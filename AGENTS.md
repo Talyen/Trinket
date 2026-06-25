@@ -1,0 +1,121 @@
+# AGENTS.md
+
+Guidance for Codex and other coding agents working on Trinket.
+
+## Product Direction
+
+Trinket is an iOS game learning project. The game idea is still open, so preserve flexibility while shaping the codebase toward small, native-feeling, portrait-mode gameplay experiments.
+
+Long-term goal: build an iOS game that can eventually ship through the App Store.
+
+## Current Decisions
+
+- Platform: iOS.
+- Orientation: portrait-first and iPhone-first.
+- UI stack: prefer Apple-native Swift, SwiftUI, SpriteKit, UIKit, Foundation, CoreGraphics, AVFoundation, GameKit, StoreKit, etc.
+- UX goal: smooth, native iOS feel over web-style UI patterns.
+- Controls: primary game controls should live near the bottom of the screen for thumb reachability.
+- Layout: respect safe areas, Dynamic Type where appropriate, and one-handed use.
+- Project workflow: CLI-first and agent-friendly through XcodeGen and scripts.
+- Xcode project: `project.yml` is the source of truth; regenerate `Trinket.xcodeproj` instead of manually editing project files.
+
+## Architecture Preferences
+
+- Keep early gameplay experiments simple and inspectable.
+- Separate game rules/state from rendering when practical, so rules can be unit tested.
+- Use SwiftUI for app shell, menus, settings, overlays, and simple prototypes.
+- Use SpriteKit when gameplay needs a 2D scene loop, sprites, physics, particles, collision, or high-frequency animation.
+- Avoid introducing cross-platform engines until there is a clear reason.
+- Prefer small types with clear ownership over broad manager objects.
+- Add abstractions only after repeated behavior appears.
+
+## UI And Game Feel
+
+- Design the first screen as the playable surface, not a marketing page.
+- Keep bottom controls reachable and visually stable.
+- Avoid placing critical controls near the top unless they are secondary.
+- Use native controls for non-game UI: `Button`, `NavigationStack`, sheets, menus, toggles, sliders, haptics, and system materials.
+- Use haptics and animation intentionally for feedback.
+- Test on simulator sizes that represent small and large iPhones.
+
+## Harness Commands
+
+Run these from the repository root.
+
+Generate the Xcode project:
+
+```sh
+./Scripts/generate.sh
+```
+
+Build:
+
+```sh
+./Scripts/build.sh
+```
+
+Test:
+
+```sh
+./Scripts/test.sh
+```
+
+Build, install, and launch in Simulator:
+
+```sh
+./Scripts/run-simulator.sh
+```
+
+## Verification Expectations
+
+Before considering a code change complete:
+
+- Run `./Scripts/test.sh` for logic changes.
+- Run `./Scripts/build.sh` for UI/project/config changes.
+- Run `./Scripts/run-simulator.sh` for user-visible changes when feasible.
+- Capture a simulator screenshot for meaningful visual changes.
+- Keep generated build output and `.DerivedData/` out of Git.
+
+## Swift/iOS Tooling Map
+
+React/web habits have close Swift/iOS equivalents, but the tools are different.
+
+- Formatting: use `swift-format` or SwiftFormat. Pick one before enforcing it in CI.
+- Linting: use SwiftLint for style, correctness nits, and project conventions.
+- Dependency cleanup: there is no exact `knip` equivalent. Prefer Xcode build warnings, SwiftLint unused rules, compiler unused warnings, and periodic manual dependency review.
+- Unit tests: use XCTest for game state, rules, scoring, persistence, and services.
+- UI tests: use XCUITest for native end-to-end flows. This is the closest iOS analogue to Playwright.
+- Visual checks: use simulator screenshots through `xcrun simctl io ... screenshot`; add snapshot testing later if visual regressions become important.
+- Project generation: use XcodeGen from `project.yml`, similar in spirit to keeping build config declarative.
+- CI: use `xcodebuild` in GitHub Actions or Xcode Cloud once the project needs remote verification.
+- Performance: use Instruments and Xcode diagnostics rather than browser devtools.
+
+## Recommended Near-Term Tooling
+
+Do not install every tool immediately. The current minimum useful harness is:
+
+1. XcodeGen for project generation.
+2. `xcodebuild` scripts for build/test/run.
+3. XCTest for logic tests.
+
+Next additions, when the app has more code:
+
+1. SwiftLint with a small, non-fussy rule set.
+2. A formatter, either `swift-format` or SwiftFormat.
+3. XCUITest for smoke tests once navigation and menus exist.
+4. Snapshot testing only after the visual design stabilizes.
+
+## Git Hygiene
+
+- Treat generated `Trinket.xcodeproj` as a generated artifact from `project.yml`.
+- Do not commit `.DerivedData/`.
+- Make small commits around working states.
+- Prefer implementation plus verification over large speculative refactors.
+
+## Open Product Questions
+
+- What is the core game loop?
+- Is the game reflex/timing, puzzle, collection, idle, word/number, or arcade?
+- Does the game need SpriteKit immediately, or can SwiftUI carry the first prototype?
+- What are the main bottom-screen controls?
+- Will there be Game Center achievements, leaderboards, or local-only progress?
