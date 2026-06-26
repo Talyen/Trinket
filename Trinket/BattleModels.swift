@@ -29,6 +29,25 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
+enum AbilityTier: String, CaseIterable, Identifiable, Hashable {
+    case basic = "Basic"
+    case skill = "Skill"
+    case ultimate = "Ultimate"
+
+    var id: String { rawValue }
+
+    var cadenceTurns: Int {
+        switch self {
+        case .basic:
+            return 1
+        case .skill:
+            return 3
+        case .ultimate:
+            return 6
+        }
+    }
+}
+
 struct StatusApplication: Hashable {
     let keyword: Keyword
     let durationTicks: Int
@@ -65,6 +84,7 @@ struct StatusSummary: Identifiable, Equatable {
 struct Ability: Identifiable, Hashable {
     let id: String
     let name: String
+    let tier: AbilityTier
     let directDamage: Int
     let damageKeyword: Keyword
     let statusApplication: StatusApplication?
@@ -72,6 +92,25 @@ struct Ability: Identifiable, Hashable {
     static let strike = Ability(
         id: "strike",
         name: "Strike",
+        tier: .basic,
+        directDamage: 1,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let shieldJab = Ability(
+        id: "shield-jab",
+        name: "Shield Jab",
+        tier: .basic,
+        directDamage: 1,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let quickCut = Ability(
+        id: "quick-cut",
+        name: "Quick Cut",
+        tier: .basic,
         directDamage: 1,
         damageKeyword: .physical,
         statusApplication: nil
@@ -80,9 +119,82 @@ struct Ability: Identifiable, Hashable {
     static let ember = Ability(
         id: "ember",
         name: "Ember",
+        tier: .basic,
         directDamage: 1,
         damageKeyword: .physical,
         statusApplication: StatusApplication(keyword: .burn, durationTicks: 2, tickDamage: 1)
+    )
+
+    static let smite = Ability(
+        id: "smite",
+        name: "Smite",
+        tier: .skill,
+        directDamage: 3,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let guardingBlow = Ability(
+        id: "guarding-blow",
+        name: "Guarding Blow",
+        tier: .skill,
+        directDamage: 2,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let firebolt = Ability(
+        id: "firebolt",
+        name: "Firebolt",
+        tier: .skill,
+        directDamage: 3,
+        damageKeyword: .physical,
+        statusApplication: StatusApplication(keyword: .burn, durationTicks: 2, tickDamage: 1)
+    )
+
+    static let kindle = Ability(
+        id: "kindle",
+        name: "Kindle",
+        tier: .skill,
+        directDamage: 1,
+        damageKeyword: .physical,
+        statusApplication: StatusApplication(keyword: .burn, durationTicks: 3, tickDamage: 2)
+    )
+
+    static let radiantCrash = Ability(
+        id: "radiant-crash",
+        name: "Radiant Crash",
+        tier: .ultimate,
+        directDamage: 6,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let oathbreaker = Ability(
+        id: "oathbreaker",
+        name: "Oathbreaker",
+        tier: .ultimate,
+        directDamage: 5,
+        damageKeyword: .physical,
+        statusApplication: nil
+    )
+
+    static let meteor = Ability(
+        id: "meteor",
+        name: "Meteor",
+        tier: .ultimate,
+        directDamage: 6,
+        damageKeyword: .physical,
+        statusApplication: StatusApplication(keyword: .burn, durationTicks: 3, tickDamage: 2)
+    )
+
+    static let inferno = Ability(
+        id: "inferno",
+        name: "Inferno",
+        tier: .ultimate,
+        directDamage: 4,
+        damageKeyword: .physical,
+        statusApplication: StatusApplication(keyword: .burn, durationTicks: 3, tickDamage: 3)
     )
 
     var damage: Int {
@@ -110,6 +222,79 @@ struct Ability: Identifiable, Hashable {
     }
 }
 
+struct AbilityLoadout: Hashable {
+    let basic: Ability?
+    let skill: Ability?
+    let ultimate: Ability?
+
+    init(
+        basic: Ability? = nil,
+        skill: Ability? = nil,
+        ultimate: Ability? = nil
+    ) {
+        self.basic = basic
+        self.skill = skill
+        self.ultimate = ultimate
+    }
+
+    var abilities: [Ability] {
+        [basic, skill, ultimate].compactMap { $0 }
+    }
+
+    func ability(for tier: AbilityTier) -> Ability? {
+        switch tier {
+        case .basic:
+            return basic
+        case .skill:
+            return skill
+        case .ultimate:
+            return ultimate
+        }
+    }
+}
+
+struct AbilityChoices: Hashable {
+    let basics: [Ability]
+    let skills: [Ability]
+    let ultimates: [Ability]
+    let selected: AbilityLoadout
+
+    init(
+        basics: [Ability],
+        skills: [Ability],
+        ultimates: [Ability],
+        selected: AbilityLoadout? = nil
+    ) {
+        self.basics = basics
+        self.skills = skills
+        self.ultimates = ultimates
+        self.selected = selected ?? AbilityLoadout(
+            basic: basics.first,
+            skill: skills.first,
+            ultimate: ultimates.first
+        )
+    }
+
+    init(abilities: [Ability]) {
+        self.init(
+            basics: abilities.filter { $0.tier == .basic },
+            skills: abilities.filter { $0.tier == .skill },
+            ultimates: abilities.filter { $0.tier == .ultimate }
+        )
+    }
+
+    func abilities(for tier: AbilityTier) -> [Ability] {
+        switch tier {
+        case .basic:
+            return basics
+        case .skill:
+            return skills
+        case .ultimate:
+            return ultimates
+        }
+    }
+}
+
 struct Combatant: Identifiable, Hashable {
     enum Role: String {
         case hero = "Hero"
@@ -121,28 +306,130 @@ struct Combatant: Identifiable, Hashable {
     let name: String
     let role: Role
     let maxHealth: Int
-    let abilities: [Ability]
+    let abilityChoices: AbilityChoices
+
+    init(
+        id: String,
+        name: String,
+        role: Role,
+        maxHealth: Int,
+        abilityChoices: AbilityChoices
+    ) {
+        self.id = id
+        self.name = name
+        self.role = role
+        self.maxHealth = maxHealth
+        self.abilityChoices = abilityChoices
+    }
+
+    init(
+        id: String,
+        name: String,
+        role: Role,
+        maxHealth: Int,
+        abilities: [Ability]
+    ) {
+        self.init(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: maxHealth,
+            abilityChoices: AbilityChoices(abilities: abilities)
+        )
+    }
+
+    var abilityLoadout: AbilityLoadout {
+        abilityChoices.selected
+    }
+
+    var abilities: [Ability] {
+        abilityLoadout.abilities
+    }
 }
 
 enum GameContent {
     static let heroes = [
-        Combatant(id: "paladin", name: "Paladin", role: .hero, maxHealth: 10, abilities: [.strike]),
-        Combatant(id: "rogue", name: "Rogue", role: .hero, maxHealth: 8, abilities: [.strike]),
-        Combatant(id: "mage", name: "Mage", role: .hero, maxHealth: 7, abilities: [.ember])
+        Combatant(
+            id: "paladin",
+            name: "Paladin",
+            role: .hero,
+            maxHealth: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.strike, .shieldJab],
+                skills: [.smite, .guardingBlow],
+                ultimates: [.radiantCrash, .oathbreaker]
+            )
+        ),
+        Combatant(
+            id: "rogue",
+            name: "Rogue",
+            role: .hero,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.quickCut, .strike],
+                skills: [.smite, .guardingBlow],
+                ultimates: [.oathbreaker, .radiantCrash]
+            )
+        ),
+        Combatant(
+            id: "mage",
+            name: "Mage",
+            role: .hero,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.ember, .strike],
+                skills: [.firebolt, .kindle],
+                ultimates: [.meteor, .inferno]
+            )
+        )
     ]
 
     static let pets = [
-        Combatant(id: "wolf", name: "Wolf", role: .pet, maxHealth: 6, abilities: [.strike]),
-        Combatant(id: "hawk", name: "Hawk", role: .pet, maxHealth: 5, abilities: [.strike]),
-        Combatant(id: "drake", name: "Drake", role: .pet, maxHealth: 7, abilities: [.ember])
+        Combatant(
+            id: "wolf",
+            name: "Wolf",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.strike, .quickCut],
+                skills: [.smite, .guardingBlow],
+                ultimates: [.radiantCrash, .oathbreaker]
+            )
+        ),
+        Combatant(
+            id: "hawk",
+            name: "Hawk",
+            role: .pet,
+            maxHealth: 5,
+            abilityChoices: AbilityChoices(
+                basics: [.quickCut, .strike],
+                skills: [.guardingBlow, .smite],
+                ultimates: [.oathbreaker, .radiantCrash]
+            )
+        ),
+        Combatant(
+            id: "drake",
+            name: "Drake",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.ember, .strike],
+                skills: [.firebolt, .kindle],
+                ultimates: [.meteor, .inferno]
+            )
+        )
     ]
 
     static let trainingSlime = Combatant(
         id: "training-slime",
         name: "Training Slime",
         role: .enemy,
-        maxHealth: 10,
-        abilities: []
+        maxHealth: 35,
+        abilityChoices: AbilityChoices(
+            basics: [.strike, .shieldJab],
+            skills: [.guardingBlow, .smite],
+            ultimates: [.oathbreaker, .radiantCrash]
+        )
     )
 }
 
@@ -302,6 +589,8 @@ struct BattleState {
     private(set) var enemyHealth: Int
     private(set) var actionCount: Int
     private(set) var tickCount: Int
+    private(set) var heroActionCount: Int
+    private(set) var petActionCount: Int
     private(set) var log: [LogEntry]
     private(set) var activeEnemyStatuses: [ActiveStatus]
 
@@ -321,6 +610,8 @@ struct BattleState {
         enemyHealth = enemy.maxHealth
         actionCount = 0
         tickCount = 0
+        heroActionCount = 0
+        petActionCount = 0
         nextEventID = 0
         nextStatusID = activeEnemyStatuses.map(\.id).max() ?? 0
         hasLoggedDefeat = false
@@ -362,10 +653,15 @@ struct BattleState {
             return events
         }
 
-        guard let ability = nextActor.abilities.first else { return events }
         let actor = nextActor
+        let actorTurnNumber = nextTurnNumber(for: actor)
+        guard let ability = selectedAbility(for: actor, turnNumber: actorTurnNumber) else {
+            return events
+        }
+
         enemyHealth = max(0, enemyHealth - ability.directDamage)
         actionCount += 1
+        incrementTurnCount(for: actor)
 
         let event = nextEvent(
             kind: .ability,
@@ -385,6 +681,48 @@ struct BattleState {
 
         appendDefeatLogIfNeeded()
         return events
+    }
+
+    private func nextTurnNumber(for actor: Combatant) -> Int {
+        switch actor.role {
+        case .hero:
+            return heroActionCount + 1
+        case .pet:
+            return petActionCount + 1
+        case .enemy:
+            return 1
+        }
+    }
+
+    private mutating func incrementTurnCount(for actor: Combatant) {
+        switch actor.role {
+        case .hero:
+            heroActionCount += 1
+        case .pet:
+            petActionCount += 1
+        case .enemy:
+            break
+        }
+    }
+
+    private func selectedAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
+        let tier = preferredTier(for: turnNumber)
+
+        return actor.abilityLoadout.ability(for: tier)
+            ?? actor.abilityLoadout.basic
+            ?? actor.abilities.first
+    }
+
+    private func preferredTier(for turnNumber: Int) -> AbilityTier {
+        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) {
+            return .ultimate
+        }
+
+        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) {
+            return .skill
+        }
+
+        return .basic
     }
 
     private mutating func applyEnemyStatusTicks() -> [ActionEvent] {
@@ -460,5 +798,335 @@ struct BattleState {
             id: nextEventID + 1000,
             text: "\(enemy.name) is defeated."
         ))
+    }
+}
+
+struct BattleSimulationOptions: Equatable {
+    let maxTicks: Int
+    let runCount: Int
+    let seed: UInt64?
+    let recordsEvents: Bool
+    let recordsLog: Bool
+
+    init(
+        maxTicks: Int = 100,
+        runCount: Int = 1,
+        seed: UInt64? = nil,
+        recordsEvents: Bool = true,
+        recordsLog: Bool = true
+    ) {
+        self.maxTicks = maxTicks
+        self.runCount = runCount
+        self.seed = seed
+        self.recordsEvents = recordsEvents
+        self.recordsLog = recordsLog
+    }
+
+    var resolvedMaxTicks: Int {
+        max(0, maxTicks)
+    }
+
+    var resolvedRunCount: Int {
+        max(0, runCount)
+    }
+}
+
+struct BattleMatchup: Equatable, Hashable {
+    let hero: Combatant
+    let pet: Combatant
+    let enemy: Combatant
+
+    init(hero: Combatant, pet: Combatant, enemy: Combatant = .trainingSlime) {
+        self.hero = hero
+        self.pet = pet
+        self.enemy = enemy
+    }
+}
+
+enum BattleSimulationOutcome: Equatable {
+    case victory
+    case tickLimit
+}
+
+struct BattleSimulationMetrics: Equatable {
+    let totalDamage: Int
+    let abilityDamage: Int
+    let statusDamage: Int
+    let actorDamage: [String: Int]
+    let keywordDamage: [Keyword: Int]
+
+    static func collect(from events: [BattleState.ActionEvent]) -> BattleSimulationMetrics {
+        var accumulator = BattleSimulationMetricsAccumulator()
+        accumulator.record(events)
+        return accumulator.metrics
+    }
+}
+
+private struct BattleSimulationMetricsAccumulator {
+    private var abilityDamage = 0
+    private var statusDamage = 0
+    private var actorDamage: [String: Int] = [:]
+    private var keywordDamage: [Keyword: Int] = [:]
+
+    mutating func record(_ events: [BattleState.ActionEvent]) {
+        for event in events {
+            switch event.kind {
+            case .ability:
+                abilityDamage += event.amount
+            case .status:
+                statusDamage += event.amount
+            }
+
+            actorDamage[event.actorName, default: 0] += event.amount
+            keywordDamage[event.keyword, default: 0] += event.amount
+        }
+    }
+
+    var metrics: BattleSimulationMetrics {
+        BattleSimulationMetrics(
+            totalDamage: abilityDamage + statusDamage,
+            abilityDamage: abilityDamage,
+            statusDamage: statusDamage,
+            actorDamage: actorDamage,
+            keywordDamage: keywordDamage
+        )
+    }
+}
+
+struct BattleSimulationResult: Equatable {
+    let matchup: BattleMatchup
+    let outcome: BattleSimulationOutcome
+    let tickCount: Int
+    let actionCount: Int
+    let finalEnemyHealth: Int
+    let finalEnemyStatuses: [ActiveStatus]
+    let finalEnemyStatusSummaries: [StatusSummary]
+    let metrics: BattleSimulationMetrics
+    let events: [BattleState.ActionEvent]
+    let log: [BattleState.LogEntry]
+
+    var didWin: Bool {
+        outcome == .victory
+    }
+
+    var didHitTickLimit: Bool {
+        outcome == .tickLimit
+    }
+}
+
+struct BattleSimulationSummary: Equatable {
+    let runCount: Int
+    let winCount: Int
+    let tickLimitCount: Int
+    let winRate: Double
+    let averageTickCount: Double
+    let minimumTickCount: Int?
+    let maximumTickCount: Int?
+    let averageActionCount: Double
+    let averageFinalEnemyHealth: Double
+    let averageTotalDamage: Double
+    let averageAbilityDamage: Double
+    let averageStatusDamage: Double
+
+    static func summarize(_ results: [BattleSimulationResult]) -> BattleSimulationSummary {
+        let runCount = results.count
+        let winCount = results.filter(\.didWin).count
+        let tickLimitCount = results.filter(\.didHitTickLimit).count
+
+        return BattleSimulationSummary(
+            runCount: runCount,
+            winCount: winCount,
+            tickLimitCount: tickLimitCount,
+            winRate: ratio(winCount, to: runCount),
+            averageTickCount: average(results.map(\.tickCount)),
+            minimumTickCount: results.map(\.tickCount).min(),
+            maximumTickCount: results.map(\.tickCount).max(),
+            averageActionCount: average(results.map(\.actionCount)),
+            averageFinalEnemyHealth: average(results.map(\.finalEnemyHealth)),
+            averageTotalDamage: average(results.map(\.metrics.totalDamage)),
+            averageAbilityDamage: average(results.map(\.metrics.abilityDamage)),
+            averageStatusDamage: average(results.map(\.metrics.statusDamage))
+        )
+    }
+
+    private static func average(_ values: [Int]) -> Double {
+        guard !values.isEmpty else { return 0 }
+        return Double(values.reduce(0, +)) / Double(values.count)
+    }
+
+    private static func ratio(_ value: Int, to total: Int) -> Double {
+        guard total > 0 else { return 0 }
+        return Double(value) / Double(total)
+    }
+}
+
+struct BattleBatchResult: Equatable {
+    let matchup: BattleMatchup
+    let options: BattleSimulationOptions
+    let results: [BattleSimulationResult]
+    let summary: BattleSimulationSummary
+}
+
+struct SeededRandomNumberGenerator: RandomNumberGenerator, Equatable {
+    private var state: UInt64
+
+    init(seed: UInt64) {
+        state = seed == 0 ? 0x4d595df4d0f33173 : seed
+    }
+
+    mutating func next() -> UInt64 {
+        state = state &* 6364136223846793005 &+ 1442695040888963407
+        return state
+    }
+}
+
+enum BattleSimulator {
+    static func run(
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant = .trainingSlime,
+        maxTicks: Int = 100
+    ) -> BattleSimulationResult {
+        run(
+            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+            options: BattleSimulationOptions(maxTicks: maxTicks)
+        )
+    }
+
+    static func run(
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant = .trainingSlime,
+        options: BattleSimulationOptions
+    ) -> BattleSimulationResult {
+        run(
+            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+            options: options
+        )
+    }
+
+    static func run(
+        _ matchup: BattleMatchup,
+        options: BattleSimulationOptions = BattleSimulationOptions()
+    ) -> BattleSimulationResult {
+        run(
+            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy),
+            options: options
+        )
+    }
+
+    static func run(
+        _ initialBattle: BattleState,
+        maxTicks: Int = 100
+    ) -> BattleSimulationResult {
+        run(
+            initialBattle,
+            options: BattleSimulationOptions(maxTicks: maxTicks)
+        )
+    }
+
+    static func run(
+        _ initialBattle: BattleState,
+        options: BattleSimulationOptions = BattleSimulationOptions()
+    ) -> BattleSimulationResult {
+        if let seed = options.seed {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return run(initialBattle, options: options, rng: &rng)
+        }
+
+        var rng = SystemRandomNumberGenerator()
+        return run(initialBattle, options: options, rng: &rng)
+    }
+
+    static func run<RNG: RandomNumberGenerator>(
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant = .trainingSlime,
+        options: BattleSimulationOptions = BattleSimulationOptions(),
+        rng: inout RNG
+    ) -> BattleSimulationResult {
+        run(
+            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+            options: options,
+            rng: &rng
+        )
+    }
+
+    static func run<RNG: RandomNumberGenerator>(
+        _ matchup: BattleMatchup,
+        options: BattleSimulationOptions = BattleSimulationOptions(),
+        rng: inout RNG
+    ) -> BattleSimulationResult {
+        run(
+            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy),
+            options: options,
+            rng: &rng
+        )
+    }
+
+    static func run<RNG: RandomNumberGenerator>(
+        _ initialBattle: BattleState,
+        options: BattleSimulationOptions = BattleSimulationOptions(),
+        rng: inout RNG
+    ) -> BattleSimulationResult {
+        var battle = initialBattle
+        var capturedEvents: [BattleState.ActionEvent] = []
+        var metricsAccumulator = BattleSimulationMetricsAccumulator()
+        let tickLimit = options.resolvedMaxTicks
+        _ = rng
+
+        while !battle.isEnemyDefeated, battle.tickCount < tickLimit {
+            let tickEvents = battle.performNextAction()
+            metricsAccumulator.record(tickEvents)
+            if options.recordsEvents {
+                capturedEvents.append(contentsOf: tickEvents)
+            }
+        }
+
+        let capturedLog = options.recordsLog ? battle.log : []
+        return BattleSimulationResult(
+            matchup: BattleMatchup(hero: battle.hero, pet: battle.pet, enemy: battle.enemy),
+            outcome: battle.isEnemyDefeated ? .victory : .tickLimit,
+            tickCount: battle.tickCount,
+            actionCount: battle.actionCount,
+            finalEnemyHealth: battle.enemyHealth,
+            finalEnemyStatuses: battle.activeEnemyStatuses,
+            finalEnemyStatusSummaries: battle.enemyStatusSummaries,
+            metrics: metricsAccumulator.metrics,
+            events: capturedEvents,
+            log: capturedLog
+        )
+    }
+
+    static func runBatch(
+        matchups: [BattleMatchup],
+        options: BattleSimulationOptions = BattleSimulationOptions()
+    ) -> [BattleBatchResult] {
+        if let seed = options.seed {
+            var rng = SeededRandomNumberGenerator(seed: seed)
+            return runBatch(matchups: matchups, options: options, rng: &rng)
+        }
+
+        var rng = SystemRandomNumberGenerator()
+        return runBatch(matchups: matchups, options: options, rng: &rng)
+    }
+
+    static func runBatch<RNG: RandomNumberGenerator>(
+        matchups: [BattleMatchup],
+        options: BattleSimulationOptions = BattleSimulationOptions(),
+        rng: inout RNG
+    ) -> [BattleBatchResult] {
+        matchups.map { matchup in
+            let results = (0..<options.resolvedRunCount).map { _ in
+                run(matchup, options: options, rng: &rng)
+            }
+
+            return BattleBatchResult(
+                matchup: matchup,
+                options: options,
+                results: results,
+                summary: BattleSimulationSummary.summarize(results)
+            )
+        }
     }
 }

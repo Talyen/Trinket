@@ -40,6 +40,8 @@ Enemy detail views use the shared combatant detail pattern and can show active c
 
 Abilities are the main source of combat actions and Keywords. Keep Abilities as rows inside combatant details for now. Do not create standalone Ability card detail screens until abilities need independent inspection, upgrades, or collection behavior.
 
+Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle: Hero and Pet turns alternate, and the selected Basic, Skill, or Ultimate fires automatically based on that combatant's own turn cadence.
+
 Implemented ability rules:
 
 - `Physical`: direct damage.

@@ -577,7 +577,7 @@ private struct CombatantCard: View {
         PlaceholderCard(
             title: combatant.name,
             subtitle: combatant.role.rawValue,
-            footer: combatant.abilities.first?.name ?? "No Ability"
+            footer: combatant.abilityLoadout.basic?.name ?? "No Ability"
         )
     }
 }
@@ -924,8 +924,15 @@ private struct CombatantCardDetailSheet: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         } else {
-                            ForEach(combatant.abilities) { ability in
-                                AbilityDetailRow(ability: ability)
+                            ForEach(AbilityTier.allCases) { tier in
+                                let abilities = combatant.abilityChoices.abilities(for: tier)
+                                if !abilities.isEmpty {
+                                    AbilityTierDetailGroup(
+                                        tier: tier,
+                                        abilities: abilities,
+                                        selectedAbility: combatant.abilityLoadout.ability(for: tier)
+                                    )
+                                }
                             }
                         }
                     }
@@ -993,16 +1000,57 @@ private struct DetailValueRow: View {
 
 private struct AbilityDetailRow: View {
     let ability: Ability
+    let isSelected: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text(ability.name)
-                .font(.headline)
+            HStack(spacing: 8) {
+                Text(ability.name)
+                    .font(.headline)
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                        .accessibilityLabel("Selected ability")
+                }
+            }
 
             KeywordDescriptionText(text: ability.summary)
                 .font(.subheadline)
         }
         .accessibilityElement(children: .combine)
+    }
+}
+
+private struct AbilityTierDetailGroup: View {
+    let tier: AbilityTier
+    let abilities: [Ability]
+    let selectedAbility: Ability?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(tier.rawValue)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            ForEach(orderedAbilities) { ability in
+                AbilityDetailRow(
+                    ability: ability,
+                    isSelected: ability.id == selectedAbility?.id
+                )
+            }
+        }
+    }
+
+    private var orderedAbilities: [Ability] {
+        guard let selectedAbility else { return abilities }
+
+        return abilities.sorted { first, second in
+            if first.id == selectedAbility.id { return true }
+            if second.id == selectedAbility.id { return false }
+            return first.name < second.name
+        }
     }
 }
 
