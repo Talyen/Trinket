@@ -21,12 +21,12 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
-  TrinketTests:
-    type: bundle.unit-test
+  TrinketUITests:
+    type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "18.0"
     sources:
-      - TrinketTests
+      - TrinketUITests
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

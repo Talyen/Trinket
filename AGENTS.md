@@ -4,7 +4,7 @@ Guidance for Codex and other coding agents working on Trinket.
 
 ## Product Direction
 
-Trinket is an iOS game learning project. The game idea is still open, so preserve flexibility while shaping the codebase toward small, native-feeling, portrait-mode gameplay experiments.
+Trinket is an iOS game learning project. The current product direction is a portrait-first fantasy idle auto-battler with heroes, pets, equipment, abilities, items, and long-term meta-progression.
 
 Long-term goal: build an iOS game that can eventually ship through the App Store.
 
@@ -13,11 +13,17 @@ Long-term goal: build an iOS game that can eventually ship through the App Store
 - Platform: iOS.
 - Orientation: portrait-first and iPhone-first.
 - UI stack: prefer Apple-native Swift, SwiftUI, SpriteKit, UIKit, Foundation, CoreGraphics, AVFoundation, GameKit, StoreKit, etc.
+- Apple guidance: follow `Docs/AppleNativeGuidelines.md` and refresh against official Apple docs before major UI, privacy, monetization, accessibility, or App Store decisions.
 - UX goal: smooth, native iOS feel over web-style UI patterns.
 - Controls: primary game controls should live near the bottom of the screen for thumb reachability.
 - Layout: respect safe areas, Dynamic Type where appropriate, and one-handed use.
 - Project workflow: CLI-first and agent-friendly through XcodeGen and scripts.
 - Xcode project: `project.yml` is the source of truth; regenerate `Trinket.xcodeproj` instead of manually editing project files.
+- Core navigation: a native persistent bottom `TabView`.
+- Top-level tabs: `Play`, `Heroes`, `Pets`, `Homestead`, `Options`.
+- Default launch tab: `Play`.
+- Card language: 3:4 full-art cards are the central representation for heroes, pets, abilities, items, and equipment.
+- Prototype status: the initial tap-target sample was intentionally removed after proving the harness.
 
 ## Architecture Preferences
 
@@ -26,15 +32,19 @@ Long-term goal: build an iOS game that can eventually ship through the App Store
 - Use SwiftUI for app shell, menus, settings, overlays, and simple prototypes.
 - Use SpriteKit when gameplay needs a 2D scene loop, sprites, physics, particles, collision, or high-frequency animation.
 - Avoid introducing cross-platform engines until there is a clear reason.
+- Keep top-level game areas as tabs; use `NavigationStack` back buttons only for drill-in detail screens within a tab.
 - Prefer small types with clear ownership over broad manager objects.
 - Add abstractions only after repeated behavior appears.
 
 ## UI And Game Feel
 
-- Design the first screen as the playable surface, not a marketing page.
+- Design the first screen as the playable `Play` tab, not a marketing page.
 - Keep bottom controls reachable and visually stable.
 - Avoid placing critical controls near the top unless they are secondary.
 - Use native controls for non-game UI: `Button`, `NavigationStack`, sheets, menus, toggles, sliders, haptics, and system materials.
+- Prefer native `TabView` for top-level navigation until there is a strong reason for custom game chrome.
+- Prefer SF Symbols for system actions and navigation until custom art has a clear gameplay or brand purpose.
+- Accessibility is part of the baseline: support readable text, accessible labels, non-color-only state, and VoiceOver-friendly structure.
 - Use haptics and animation intentionally for feedback.
 - Test on simulator sizes that represent small and large iPhones.
 
@@ -74,6 +84,7 @@ Before considering a code change complete:
 - Run `./Scripts/build.sh` for UI/project/config changes.
 - Run `./Scripts/run-simulator.sh` for user-visible changes when feasible.
 - Capture a simulator screenshot for meaningful visual changes.
+- For meaningful UI changes, compare the result against `Docs/AppleNativeGuidelines.md`.
 - Keep generated build output and `.DerivedData/` out of Git.
 
 ## Swift/iOS Tooling Map
@@ -114,8 +125,7 @@ Next additions, when the app has more code:
 
 ## Open Product Questions
 
-- What is the core game loop?
-- Is the game reflex/timing, puzzle, collection, idle, word/number, or arcade?
+- What are the exact idle battle rules?
 - Does the game need SpriteKit immediately, or can SwiftUI carry the first prototype?
-- What are the main bottom-screen controls?
 - Will there be Game Center achievements, leaderboards, or local-only progress?
+- How do heroes, pets, abilities, equipment, and homestead upgrades interact?

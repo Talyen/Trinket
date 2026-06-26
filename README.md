@@ -47,6 +47,7 @@ Build, install, and launch in Simulator:
 ## Project Shape
 
 - `project.yml` is the source of truth for the generated Xcode project.
+- `Docs/AppleNativeGuidelines.md` captures the Apple-native design, Swift, privacy, and App Store guidance we want agents to follow.
 - `Trinket/` contains the app code.
-- `TrinketTests/` contains unit tests.
+- `TrinketUITests/` contains native UI smoke tests.
 - `Scripts/` contains repeatable CLI workflows.
