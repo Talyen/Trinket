@@ -30,7 +30,7 @@ struct ContentView: View {
                     title: "Heroes",
                     subtitle: "Build a party for the idle battle loop.",
                     iconName: "shield.lefthalf.filled",
-                    cardTitles: ["Paladin", "Rogue", "Mage"]
+                    combatants: GameContent.heroes
                 )
             }
             .tabItem {
@@ -43,7 +43,7 @@ struct ContentView: View {
                     title: "Pets",
                     subtitle: "Companions will bring abilities, stats, and charm.",
                     iconName: "pawprint.fill",
-                    cardTitles: ["Wolf", "Hawk", "Drake"]
+                    combatants: GameContent.pets
                 )
             }
             .tabItem {
@@ -100,6 +100,10 @@ private enum AppTab: String {
 }
 
 private struct PlayView: View {
+    @State private var isShowingDebugBattle = false
+
+    private let debugConfiguration = BattleDebugConfiguration.current
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -121,6 +125,17 @@ private struct PlayView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(isPresented: $isShowingDebugBattle) {
+            BattleView(
+                hero: debugConfiguration.hero,
+                pet: debugConfiguration.pet,
+                debugConfiguration: debugConfiguration
+            )
+        }
+        .onAppear {
+            guard debugConfiguration.isEnabled else { return }
+            isShowingDebugBattle = true
+        }
     }
 }
 
@@ -130,7 +145,7 @@ private struct HeroSelectionView: View {
             title: "Select Hero",
             subtitle: "Pick the Hero who will lead this battle.",
             iconName: "shield.lefthalf.filled",
-            combatants: Combatant.heroes
+            combatants: GameContent.heroes
         ) { hero in
             PetSelectionView(hero: hero)
         }
@@ -145,7 +160,7 @@ private struct PetSelectionView: View {
             title: "Select Pet",
             subtitle: "\(hero.name) needs a companion for this battle.",
             iconName: "pawprint.fill",
-            combatants: Combatant.pets
+            combatants: GameContent.pets
         ) { pet in
             BattleView(hero: hero, pet: pet)
         }
@@ -187,29 +202,107 @@ private struct SelectionGridView<Destination: View>: View {
     }
 }
 
-private struct BattleView: View {
-    private struct CombatantDetails: Identifiable {
-        let combatant: Combatant
-        let health: Int
+private struct CombatantCardDetail: Identifiable {
+    let combatant: Combatant
+    let health: Int
+    let activeStatusSummaries: [StatusSummary]
 
-        var id: String { combatant.id }
+    var id: String { combatant.id }
+
+    static func base(_ combatant: Combatant) -> CombatantCardDetail {
+        CombatantCardDetail(
+            combatant: combatant,
+            health: combatant.maxHealth,
+            activeStatusSummaries: []
+        )
     }
+}
 
+private struct BattleView: View {
     @State private var battle: BattleState
-    @State private var selectedDetails: CombatantDetails?
+    @State private var selectedDetails: CombatantCardDetail?
     @State private var isShowingBattleLog = false
+    @State private var isShowingVictory = false
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
+    @State private var isDebugPaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private let debugConfiguration: BattleDebugConfiguration
     private let timer = Timer.publish(every: 0.8, on: .main, in: .common).autoconnect()
     private let feedbackLifetime: TimeInterval = 1.15
     private let maximumVisibleFeedbackEvents = 2
 
-    init(hero: Combatant, pet: Combatant) {
+    init(
+        hero: Combatant,
+        pet: Combatant,
+        debugConfiguration: BattleDebugConfiguration = .disabled
+    ) {
+        self.debugConfiguration = debugConfiguration
         _battle = State(initialValue: BattleState(hero: hero, pet: pet))
+        _isDebugPaused = State(initialValue: debugConfiguration.startsPaused)
     }
 
     var body: some View {
+        Group {
+            if isShowingVictory {
+                VictoryView(
+                    enemyName: battle.enemy.name,
+                    onBattleAgain: restartBattle
+                )
+            } else {
+                battlefield
+            }
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(isShowingVictory ? "Victory" : "Battle")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if !isShowingVictory {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isShowingBattleLog = true
+                    } label: {
+                        Label("Battle Log", systemImage: "list.bullet.rectangle")
+                    }
+                }
+            }
+        }
+        .sheet(item: $selectedDetails) { details in
+            CombatantCardDetailSheet(
+                combatant: details.combatant,
+                health: details.health,
+                activeStatusSummaries: details.activeStatusSummaries
+            )
+            .presentationDetents([.large])
+        }
+        .sheet(isPresented: $isShowingBattleLog) {
+            BattleLogSheet(entries: battle.log)
+                .presentationDetents([.medium])
+        }
+        .safeAreaInset(edge: .bottom) {
+            if debugConfiguration.isEnabled, !isShowingVictory {
+                BattleDebugOverlay(
+                    tickCount: battle.tickCount,
+                    enemyHealth: battle.enemyHealth,
+                    enemyMaxHealth: battle.enemy.maxHealth,
+                    statusSummary: debugStatusSummary,
+                    isPaused: $isDebugPaused,
+                    onStepTick: advanceBattleTick,
+                    onReset: restartBattle,
+                    onFinishBattle: finishBattle
+                )
+            }
+        }
+        .onReceive(timer) { _ in
+            guard canAutoAdvanceBattle else {
+                return
+            }
+
+            advanceBattleTick()
+        }
+    }
+
+    private var battlefield: some View {
         ScrollView {
             VStack(spacing: 18) {
                 ZStack(alignment: .top) {
@@ -221,9 +314,10 @@ private struct BattleView: View {
                         cardWidth: 210,
                         showsText: false
                     ) {
-                        selectedDetails = CombatantDetails(
+                        selectedDetails = CombatantCardDetail(
                             combatant: battle.enemy,
-                            health: battle.enemyHealth
+                            health: battle.enemyHealth,
+                            activeStatusSummaries: battle.enemyStatusSummaries
                         )
                     }
 
@@ -243,9 +337,10 @@ private struct BattleView: View {
                         cardWidth: 150,
                         showsText: false
                     ) {
-                        selectedDetails = CombatantDetails(
+                        selectedDetails = CombatantCardDetail(
                             combatant: battle.hero,
-                            health: battle.hero.maxHealth
+                            health: battle.hero.maxHealth,
+                            activeStatusSummaries: []
                         )
                     }
 
@@ -257,42 +352,47 @@ private struct BattleView: View {
                         cardWidth: 150,
                         showsText: false
                     ) {
-                        selectedDetails = CombatantDetails(
+                        selectedDetails = CombatantCardDetail(
                             combatant: battle.pet,
-                            health: battle.pet.maxHealth
+                            health: battle.pet.maxHealth,
+                            activeStatusSummaries: []
                         )
                     }
                 }
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("Battle")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    isShowingBattleLog = true
-                } label: {
-                    Label("Battle Log", systemImage: "list.bullet.rectangle")
-                }
-            }
-        }
-        .sheet(item: $selectedDetails) { details in
-            CombatantDetailsSheet(
-                combatant: details.combatant,
-                health: details.health
-            )
-            .presentationDetents([.medium])
-        }
-        .sheet(isPresented: $isShowingBattleLog) {
-            BattleLogSheet(entries: battle.log)
-                .presentationDetents([.medium])
-        }
-        .onReceive(timer) { _ in
-            guard let action = battle.performNextAction() else { return }
+    }
 
-            appendFeedbackEvent(action)
+    private var canAutoAdvanceBattle: Bool {
+        selectedDetails == nil &&
+            !isShowingBattleLog &&
+            !battle.isEnemyDefeated &&
+            !isShowingVictory &&
+            !(debugConfiguration.isEnabled && isDebugPaused)
+    }
+
+    private var debugStatusSummary: String {
+        let statusText = battle.enemyStatusSummaries.map(\.text).joined(separator: " ")
+        return statusText.isEmpty ? "No active statuses" : statusText
+    }
+
+    private func advanceBattleTick() {
+        guard !battle.isEnemyDefeated, !isShowingVictory else { return }
+
+        let events = battle.performNextAction()
+        events.forEach(appendFeedbackEvent)
+
+        if battle.isEnemyDefeated {
+            isShowingVictory = true
+        }
+    }
+
+    private func finishBattle() {
+        var safetyLimit = 100
+        while !battle.isEnemyDefeated, safetyLimit > 0 {
+            advanceBattleTick()
+            safetyLimit -= 1
         }
     }
 
@@ -304,13 +404,95 @@ private struct BattleView: View {
             activeFeedbackEvents.removeAll { $0.id == event.id }
         }
     }
+
+    private func restartBattle() {
+        battle = BattleState(hero: battle.hero, pet: battle.pet, enemy: battle.enemy)
+        activeFeedbackEvents = []
+        selectedDetails = nil
+        isShowingBattleLog = false
+        isShowingVictory = false
+        isDebugPaused = debugConfiguration.startsPaused
+    }
+}
+
+private struct BattleDebugOverlay: View {
+    let tickCount: Int
+    let enemyHealth: Int
+    let enemyMaxHealth: Int
+    let statusSummary: String
+    @Binding var isPaused: Bool
+    let onStepTick: () -> Void
+    let onReset: () -> Void
+    let onFinishBattle: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Battle Debug", systemImage: "hammer.fill")
+                    .font(.caption.bold())
+
+                Spacer()
+
+                Text(isPaused ? "Paused" : "Running")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(isPaused ? .orange : .green)
+                    .accessibilityIdentifier("Debug Pause State")
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Debug Tick: \(tickCount)")
+                    .accessibilityIdentifier("Debug Tick Count")
+                Text("Debug Enemy HP: \(enemyHealth)/\(enemyMaxHealth)")
+                    .accessibilityIdentifier("Debug Enemy HP")
+                Text("Debug Status: \(statusSummary)")
+                    .accessibilityIdentifier("Debug Status Summary")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+
+            HStack(spacing: 8) {
+                Button("Debug Step Tick", action: onStepTick)
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("Debug Step Tick")
+
+                Button(isPaused ? "Debug Resume" : "Debug Pause") {
+                    isPaused.toggle()
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("Debug Pause Toggle")
+            }
+
+            HStack(spacing: 8) {
+                Button("Debug Reset", action: onReset)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("Debug Reset")
+
+                Button("Debug Finish Battle", action: onFinishBattle)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("Debug Finish Battle")
+            }
+        }
+        .font(.caption)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.regularMaterial, in: TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(.quaternary, lineWidth: 1)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
+    }
 }
 
 private struct CardCollectionView: View {
     let title: String
     let subtitle: String
     let iconName: String
-    let cardTitles: [String]
+    let combatants: [Combatant]
+
+    @State private var selectedDetails: CombatantCardDetail?
 
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
@@ -322,8 +504,14 @@ private struct CardCollectionView: View {
                 ScreenHeader(title: title, subtitle: subtitle, iconName: iconName)
 
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(cardTitles, id: \.self) { cardTitle in
-                        PlaceholderCard(title: cardTitle)
+                    ForEach(combatants) { combatant in
+                        Button {
+                            selectedDetails = .base(combatant)
+                        } label: {
+                            CombatantCard(combatant: combatant)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("\(combatant.name) collection card")
                     }
                 }
             }
@@ -332,6 +520,14 @@ private struct CardCollectionView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $selectedDetails) { details in
+            CombatantCardDetailSheet(
+                combatant: details.combatant,
+                health: details.health,
+                activeStatusSummaries: details.activeStatusSummaries
+            )
+            .presentationDetents([.large])
+        }
     }
 }
 
@@ -625,22 +821,22 @@ private struct CombatFeedbackEventView: View {
 
     private var feedbackLabel: some View {
         HStack(spacing: 6) {
-            Image(systemName: event.damageType.feedbackSymbolName)
+            Image(systemName: event.keyword.feedbackSymbolName)
                 .font(.caption.bold())
 
             Text(event.floatingText)
                 .font(.headline)
                 .monospacedDigit()
         }
-        .foregroundStyle(event.damageType.feedbackColor)
+        .foregroundStyle(event.keyword.feedbackColor)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.thinMaterial, in: Capsule())
         .overlay {
             Capsule()
-                .stroke(event.damageType.feedbackColor.opacity(0.28), lineWidth: 1)
+                .stroke(event.keyword.feedbackColor.opacity(0.28), lineWidth: 1)
         }
-        .shadow(color: event.damageType.feedbackColor.opacity(0.25), radius: 10, y: 5)
+        .shadow(color: event.keyword.feedbackColor.opacity(0.25), radius: 10, y: 5)
     }
 }
 
@@ -650,54 +846,91 @@ private struct CombatFeedbackAnimationState {
     var verticalOffset = 0.0
 }
 
-private extension DamageType {
+private extension Keyword {
     var feedbackSymbolName: String {
         switch self {
         case .physical:
             return "burst.fill"
+        case .burn:
+            return "flame.fill"
         }
     }
 
     var feedbackColor: Color {
         switch self {
         case .physical:
-            return .red
+            return .primary
+        case .burn:
+            return .orange
+        }
+    }
+
+    var descriptionColor: Color {
+        switch self {
+        case .physical:
+            return .primary
+        case .burn:
+            return .orange
         }
     }
 }
 
-private struct CombatantDetailsSheet: View {
+private struct CombatantCardDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     let combatant: Combatant
     let health: Int
+    let activeStatusSummaries: [StatusSummary]
 
     var body: some View {
         NavigationStack {
-            List {
-                Section("Status") {
-                    LabeledContent("Role", value: combatant.role.rawValue)
-                    LabeledContent("Health", value: "\(health)/\(combatant.maxHealth) HP")
-                }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    VStack(spacing: 16) {
+                        BattleArtCard(combatant: combatant, showsText: false)
+                            .frame(maxWidth: 210)
+                            .accessibilityLabel("\(combatant.name) card art")
 
-                Section("Abilities") {
-                    if combatant.abilities.isEmpty {
-                        Text("No abilities yet.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(combatant.abilities) { ability in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(ability.name)
-                                    .font(.headline)
+                        VStack(spacing: 4) {
+                            Text(combatant.name)
+                                .font(.largeTitle.bold())
+                                .multilineTextAlignment(.center)
 
-                                Text(ability.summary)
+                            Text(combatant.role.rawValue)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+
+                    DetailSection(title: "Status") {
+                        DetailValueRow(title: "Role", value: combatant.role.rawValue)
+                        DetailValueRow(title: "Health", value: "\(health)/\(combatant.maxHealth) HP")
+                    }
+
+                    if !activeStatusSummaries.isEmpty {
+                        DetailSection(title: "Active Effects") {
+                            ForEach(activeStatusSummaries) { summary in
+                                KeywordDescriptionText(text: summary.text)
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .accessibilityElement(children: .combine)
                             }
-                            .accessibilityElement(children: .combine)
+                        }
+                    }
+
+                    DetailSection(title: "Abilities") {
+                        if combatant.abilities.isEmpty {
+                            Text("No abilities yet.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(combatant.abilities) { ability in
+                                AbilityDetailRow(ability: ability)
+                            }
                         }
                     }
                 }
+                .padding(20)
             }
             .navigationTitle(combatant.name)
             .navigationBarTitleDisplayMode(.inline)
@@ -708,6 +941,185 @@ private struct CombatantDetailsSheet: View {
                     }
                 }
             }
+        }
+    }
+}
+
+private struct DetailSection<Content: View>: View {
+    let title: String
+    let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 10) {
+                content
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(.regularMaterial, in: TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape
+                    .stroke(.quaternary, lineWidth: 1)
+            }
+        }
+    }
+}
+
+private struct DetailValueRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text(value)
+                .fontWeight(.medium)
+        }
+        .font(.subheadline)
+    }
+}
+
+private struct AbilityDetailRow: View {
+    let ability: Ability
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(ability.name)
+                .font(.headline)
+
+            KeywordDescriptionText(text: ability.summary)
+                .font(.subheadline)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct KeywordDescriptionText: View {
+    let text: String
+
+    var body: some View {
+        composedText
+    }
+
+    private var composedText: Text {
+        var result = Text("")
+        var currentIndex = text.startIndex
+
+        while currentIndex < text.endIndex {
+            if let match = nextKeywordMatch(startingAt: currentIndex) {
+                if currentIndex < match.range.lowerBound {
+                    result = result + Text(String(text[currentIndex..<match.range.lowerBound]))
+                        .foregroundColor(.secondary)
+                }
+
+                result = result + Text(match.keyword.rawValue)
+                    .bold()
+                    .foregroundColor(match.keyword.descriptionColor)
+                currentIndex = match.range.upperBound
+            } else {
+                result = result + Text(String(text[currentIndex..<text.endIndex]))
+                    .foregroundColor(.secondary)
+                break
+            }
+        }
+
+        return result
+    }
+
+    private func nextKeywordMatch(startingAt startIndex: String.Index) -> (keyword: Keyword, range: Range<String.Index>)? {
+        let searchRange = startIndex..<text.endIndex
+        return Keyword.allCases
+            .compactMap { keyword -> (Keyword, Range<String.Index>)? in
+                guard let range = text.range(of: keyword.rawValue, range: searchRange) else {
+                    return nil
+                }
+                return (keyword, range)
+            }
+            .min { left, right in
+                left.1.lowerBound < right.1.lowerBound
+            }
+    }
+}
+
+private struct VictoryView: View {
+    let enemyName: String
+    let onBattleAgain: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 22) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 56, weight: .semibold))
+                    .foregroundStyle(.green)
+                    .accessibilityHidden(true)
+
+                VStack(spacing: 8) {
+                    Text("Victory")
+                        .font(.largeTitle.bold())
+
+                    Text("\(enemyName) is defeated.")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VictoryPlaceholderSection(
+                    title: "Experience",
+                    message: "Hero and Pet experience will appear here later."
+                )
+
+                VictoryPlaceholderSection(
+                    title: "Rewards",
+                    message: "Items, Gold, materials, and unlocks are not implemented yet."
+                )
+
+                Button {
+                    onBattleAgain()
+                } label: {
+                    Text("Battle Again")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding(.top, 8)
+            }
+            .padding(24)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+private struct VictoryPlaceholderSection: View {
+    let title: String
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.regularMaterial, in: TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(.quaternary, lineWidth: 1)
         }
     }
 }
