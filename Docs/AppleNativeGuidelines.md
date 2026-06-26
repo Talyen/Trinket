@@ -38,8 +38,11 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 - The `Play` tab is the default root because it represents the active game loop.
 - `Heroes`, `Pets`, `Homestead`, and `Options` remain sibling top-level destinations. Avoid adding new tabs casually; use drill-in screens, segmented controls, filters, or sheets inside a tab first.
 - Cards are the central visual object for heroes, pets, items, abilities, and equipment. Card layouts should keep a consistent 3:4 silhouette, readable names, and accessible labels.
+- The first combat skeleton is an idle auto-battle flow: select `Battle`, select a Hero, select a Pet, then watch both use placeholder abilities against one enemy.
+- Battle screens should prioritize large card art and health bars; move secondary details such as names, exact HP, abilities, and logs into native sheets.
+- Combat feedback should remain native SwiftUI while the battle is card-based: use stable event-driven overlays for floating text/icons and custom animated health bars for damage/healing feedback.
 - Gameplay interactions should support direct touch first. Consider Game Controller support later only if the game loop benefits from it.
-- Use SpriteKit when the battle presentation needs a real-time 2D scene loop, sprite layering, particles, or animation beyond ordinary SwiftUI transitions.
+- Use SpriteKit when the battle presentation needs a real-time 2D scene loop, sprite layering, particles, or animation beyond ordinary SwiftUI transitions; defer it while SwiftUI can handle the current card battlefield.
 
 ## Accessibility Checklist
 

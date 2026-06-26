@@ -9,10 +9,19 @@
 /* Begin PBXBuildFile section */
 		221BD40B0602242031FAECCE /* CoreNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */; };
 		636A3BCA499E957249F8DFD8 /* TrinketApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */; };
+		64E2DFFA7591EC1F9581D2C8 /* BattleStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */; };
+		BDA7CBE0B3361AD6D46CBECD /* BattleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCD6D471585E0AC83039CE2 /* BattleModels.swift */; };
 		C0A2B26D39E61575C93EC40B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08112E271B450C35D8D7AEEA /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7B7B9DC370A5716BDB7204FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A9D4A823D9A51FFDE88B050 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86015561E99105F8A5BDDC7D;
+			remoteInfo = Trinket;
+		};
 		CC19ED7A0742D49E50D7ACA3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5A9D4A823D9A51FFDE88B050 /* Project object */;
@@ -25,9 +34,12 @@
 /* Begin PBXFileReference section */
 		08112E271B450C35D8D7AEEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleStateTests.swift; sourceTree = "<group>"; };
 		1524241C62BF8C54E3A7CDF8 /* Trinket.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Trinket.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2FCD6D471585E0AC83039CE2 /* BattleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleModels.swift; sourceTree = "<group>"; };
 		71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreNavigationUITests.swift; sourceTree = "<group>"; };
 		7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
+		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -35,6 +47,7 @@
 			isa = PBXGroup;
 			children = (
 				1524241C62BF8C54E3A7CDF8 /* Trinket.app */,
+				DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */,
 				0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */,
 			);
 			name = Products;
@@ -44,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				A4012463DD954CE8411DA9EE /* Trinket */,
+				B49A29077FD105628976E325 /* TrinketTests */,
 				A76BC34F8DE0E1847F8183C5 /* TrinketUITests */,
 				34E76F1E0275AF5606A8CE2F /* Products */,
 			);
@@ -52,6 +66,7 @@
 		A4012463DD954CE8411DA9EE /* Trinket */ = {
 			isa = PBXGroup;
 			children = (
+				2FCD6D471585E0AC83039CE2 /* BattleModels.swift */,
 				08112E271B450C35D8D7AEEA /* ContentView.swift */,
 				7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */,
 			);
@@ -64,6 +79,14 @@
 				71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */,
 			);
 			path = TrinketUITests;
+			sourceTree = "<group>";
+		};
+		B49A29077FD105628976E325 /* TrinketTests */ = {
+			isa = PBXGroup;
+			children = (
+				11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */,
+			);
+			path = TrinketTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -104,6 +127,24 @@
 			productReference = 1524241C62BF8C54E3A7CDF8 /* Trinket.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F4E69EC44A81B8942F321B2F /* TrinketTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F942381B1944E78647339F8B /* Build configuration list for PBXNativeTarget "TrinketTests" */;
+			buildPhases = (
+				4479C389B51D310F83EADE2C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A599320A30D893F77C9E9083 /* PBXTargetDependency */,
+			);
+			name = TrinketTests;
+			packageProductDependencies = (
+			);
+			productName = TrinketTests;
+			productReference = DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -133,6 +174,7 @@
 			projectRoot = "";
 			targets = (
 				86015561E99105F8A5BDDC7D /* Trinket */,
+				F4E69EC44A81B8942F321B2F /* TrinketTests */,
 				2B112CD93B7BA74516E26AC2 /* TrinketUITests */,
 			);
 		};
@@ -143,8 +185,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BDA7CBE0B3361AD6D46CBECD /* BattleModels.swift in Sources */,
 				C0A2B26D39E61575C93EC40B /* ContentView.swift in Sources */,
 				636A3BCA499E957249F8DFD8 /* TrinketApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4479C389B51D310F83EADE2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				64E2DFFA7591EC1F9581D2C8 /* BattleStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +210,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A599320A30D893F77C9E9083 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86015561E99105F8A5BDDC7D /* Trinket */;
+			targetProxy = 7B7B9DC370A5716BDB7204FA /* PBXContainerItemProxy */;
+		};
 		A8D206298A54DA4621EDEA88 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 86015561E99105F8A5BDDC7D /* Trinket */;
@@ -308,6 +364,24 @@
 			};
 			name = Debug;
 		};
+		8E1C9E62068F1F4DE5D05A70 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanmcintire.TrinketTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trinket.app/Trinket";
+			};
+			name = Release;
+		};
 		ABA78B53EFA8C8FF26C7A2DE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -364,6 +438,24 @@
 			};
 			name = Release;
 		};
+		C65C78F0357E03675BADC4DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanmcintire.TrinketTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trinket.app/Trinket";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -390,6 +482,15 @@
 			buildConfigurations = (
 				74517C7E8D9948485B1CF0DE /* Debug */,
 				0EFC7BF9EFF176F64263BA73 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F942381B1944E78647339F8B /* Build configuration list for PBXNativeTarget "TrinketTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C65C78F0357E03675BADC4DA /* Debug */,
+				8E1C9E62068F1F4DE5D05A70 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -5,7 +5,7 @@ final class CoreNavigationUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Idle battles, encounter progress, and rewards will anchor the core loop here."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Choose a mode to start building the core loop."].waitForExistence(timeout: 5))
 
         app.tabBars.buttons["Heroes"].tap()
         XCTAssertTrue(app.staticTexts["Paladin"].waitForExistence(timeout: 5))
@@ -22,6 +22,32 @@ final class CoreNavigationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Settings, account, accessibility, audio, and credits will live here."].waitForExistence(timeout: 5))
 
         app.tabBars.buttons["Play"].tap()
-        XCTAssertTrue(app.staticTexts["Idle battles, encounter progress, and rewards will anchor the core loop here."].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Choose a mode to start building the core loop."].waitForExistence(timeout: 5))
+    }
+
+    func testBattleFlowIsReachable() {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Battle"].waitForExistence(timeout: 5))
+        app.staticTexts["Battle"].tap()
+
+        XCTAssertTrue(app.staticTexts["Select Hero"].waitForExistence(timeout: 5))
+        app.staticTexts["Paladin"].tap()
+
+        XCTAssertTrue(app.staticTexts["Select Pet"].waitForExistence(timeout: 5))
+        app.staticTexts["Wolf"].tap()
+
+        XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Paladin card"].exists)
+        XCTAssertTrue(app.buttons["Wolf card"].exists)
+        XCTAssertFalse(app.staticTexts["Strike"].waitForExistence(timeout: 1))
+
+        app.buttons["Paladin card"].tap()
+        XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
+        app.buttons["Done"].tap()
+
+        app.buttons["Battle Log"].tap()
+        XCTAssertTrue(app.staticTexts["Paladin and Wolf face Training Slime."].waitForExistence(timeout: 5))
     }
 }

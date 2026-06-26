@@ -32,3 +32,14 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Trinket
+  TrinketTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - TrinketTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Trinket

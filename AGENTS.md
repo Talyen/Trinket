@@ -23,6 +23,12 @@ Long-term goal: build an iOS game that can eventually ship through the App Store
 - Top-level tabs: `Play`, `Heroes`, `Pets`, `Homestead`, `Options`.
 - Default launch tab: `Play`.
 - Card language: 3:4 full-art cards are the central representation for heroes, pets, abilities, items, and equipment.
+- First battle skeleton: `Play -> Battle -> Select Hero -> Select Pet -> Battle`.
+- Combat default: idle auto-battle. Hero and Pet alternate placeholder `Strike` abilities against a single enemy.
+- Battle UI: keep the battlefield focused on Enemy, Hero, and Pet cards with health bars; show names, HP text, abilities, and logs through native sheets.
+- Combat feedback: render ability feedback through a queued SwiftUI event overlay with stable event IDs, damage-type styling, icons, and Reduce Motion support.
+- Health bars: use custom animated SwiftUI bars for game combat so damage and healing can show smooth fill/trail feedback while exact HP remains in accessibility and sheets.
+- Card styling: use shared 12-point continuous rounded corners for card-like surfaces.
 - Prototype status: the initial tap-target sample was intentionally removed after proving the harness.
 
 ## Architecture Preferences
@@ -30,7 +36,7 @@ Long-term goal: build an iOS game that can eventually ship through the App Store
 - Keep early gameplay experiments simple and inspectable.
 - Separate game rules/state from rendering when practical, so rules can be unit tested.
 - Use SwiftUI for app shell, menus, settings, overlays, and simple prototypes.
-- Use SpriteKit when gameplay needs a 2D scene loop, sprites, physics, particles, collision, or high-frequency animation.
+- Use SpriteKit when gameplay needs a 2D scene loop, sprites, physics, particles, collision, or high-frequency animation; current combat feedback remains SwiftUI-only.
 - Avoid introducing cross-platform engines until there is a clear reason.
 - Keep top-level game areas as tabs; use `NavigationStack` back buttons only for drill-in detail screens within a tab.
 - Prefer small types with clear ownership over broad manager objects.
