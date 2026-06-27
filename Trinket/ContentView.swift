@@ -229,7 +229,11 @@ private struct BattleView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let debugConfiguration: BattleDebugConfiguration
-    private let timer = Timer.publish(every: 0.8, on: .main, in: .common).autoconnect()
+    private let timer = Timer.publish(
+        every: ProcessInfo.processInfo.arguments.contains("-disableAnimations") ? 0.5 : 0.8,
+        on: .main,
+        in: .common
+    ).autoconnect()
     private let feedbackLifetime: TimeInterval = 1.15
     private let maximumVisibleFeedbackEvents = 2
 
@@ -526,51 +530,82 @@ private struct HeroesCollectionView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
     @State private var selectedKind: CombatantCollectionKind = .heroes
-
+ 
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
     ]
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(
-                    title: "Heroes",
-                    subtitle: selectedKind.subtitle,
-                    iconName: selectedKind.iconName
-                )
+        // Smooth Horizontal Scroll Paging
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(alignment: .top, spacing: 0) {
+                rosterGrid(for: CombatantCollectionKind.heroes.combatants)
+                    .containerRelativeFrame(.horizontal)
+                    .id(CombatantCollectionKind.heroes)
 
-                Picker("Collection", selection: $selectedKind) {
+                rosterGrid(for: CombatantCollectionKind.pets.combatants)
+                    .containerRelativeFrame(.horizontal)
+                    .id(CombatantCollectionKind.pets)
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.paging)
+        .scrollPosition(id: Binding(
+            get: { Optional(selectedKind) },
+            set: { newValue in
+                if let newValue {
+                    withAnimation(.spring(duration: 0.28)) {
+                        selectedKind = newValue
+                    }
+                }
+            }
+        ))
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("Heroes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker("Collection", selection: Binding(
+                    get: { selectedKind },
+                    set: { newValue in
+                        withAnimation(.spring(duration: 0.28)) {
+                            selectedKind = newValue
+                        }
+                    }
+                )) {
                     ForEach(CombatantCollectionKind.allCases) { kind in
                         Text(kind.rawValue).tag(kind)
                     }
                 }
                 .pickerStyle(.segmented)
                 .accessibilityIdentifier("Heroes collection switcher")
+                .frame(width: 180)
+            }
+        }
+    }
 
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(rosterState.configuredCombatants(selectedKind.combatants)) { combatant in
-                        NavigationLink {
-                            CombatantCollectionDetailView(
-                                combatant: combatant,
-                                progression: rosterState.progression(for: combatant),
-                                loadout: loadoutBinding(for: combatant),
-                                equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                                inventoryState: $inventoryState
-                            )
-                        } label: {
-                            CombatantCard(combatant: combatant)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("\(combatant.name) collection card")
+    private func rosterGrid(for combatants: [Combatant]) -> some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(rosterState.configuredCombatants(combatants)) { combatant in
+                    NavigationLink {
+                        CombatantCollectionDetailView(
+                            combatant: combatant,
+                            progression: rosterState.progression(for: combatant),
+                            loadout: loadoutBinding(for: combatant),
+                            equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                            inventoryState: $inventoryState
+                        )
+                    } label: {
+                        CombatantCard(combatant: combatant)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("\(combatant.name) collection card")
                 }
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationTitle("Heroes")
-        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {

@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		221BD40B0602242031FAECCE /* CoreNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */; };
+		1C8B404FD2C97A63D5ECB909 /* TabNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFE2AEEAB7269E2CB6436057 /* TabNavigationUITests.swift */; };
 		636A3BCA499E957249F8DFD8 /* TrinketApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */; };
 		64E2DFFA7591EC1F9581D2C8 /* BattleStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */; };
+		74E8A6126B8F367C6B70DA15 /* BattleFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB57630536337F8AB337681 /* BattleFlowUITests.swift */; };
+		8C717FDB403FED6138CA9B04 /* DebugBattleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50337A19420E33B61E985829 /* DebugBattleUITests.swift */; };
 		BDA7CBE0B3361AD6D46CBECD /* BattleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCD6D471585E0AC83039CE2 /* BattleModels.swift */; };
 		C0A2B26D39E61575C93EC40B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08112E271B450C35D8D7AEEA /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -37,9 +39,11 @@
 		11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleStateTests.swift; sourceTree = "<group>"; };
 		1524241C62BF8C54E3A7CDF8 /* Trinket.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Trinket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FCD6D471585E0AC83039CE2 /* BattleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleModels.swift; sourceTree = "<group>"; };
-		71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreNavigationUITests.swift; sourceTree = "<group>"; };
+		50337A19420E33B61E985829 /* DebugBattleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBattleUITests.swift; sourceTree = "<group>"; };
 		7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
+		CEB57630536337F8AB337681 /* BattleFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleFlowUITests.swift; sourceTree = "<group>"; };
 		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DFE2AEEAB7269E2CB6436057 /* TabNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -76,7 +80,9 @@
 		A76BC34F8DE0E1847F8183C5 /* TrinketUITests */ = {
 			isa = PBXGroup;
 			children = (
-				71514BA4787469B43B98E63D /* CoreNavigationUITests.swift */,
+				CEB57630536337F8AB337681 /* BattleFlowUITests.swift */,
+				50337A19420E33B61E985829 /* DebugBattleUITests.swift */,
+				DFE2AEEAB7269E2CB6436057 /* TabNavigationUITests.swift */,
 			);
 			path = TrinketUITests;
 			sourceTree = "<group>";
@@ -203,7 +209,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				221BD40B0602242031FAECCE /* CoreNavigationUITests.swift in Sources */,
+				74E8A6126B8F367C6B70DA15 /* BattleFlowUITests.swift in Sources */,
+				8C717FDB403FED6138CA9B04 /* DebugBattleUITests.swift in Sources */,
+				1C8B404FD2C97A63D5ECB909 /* TabNavigationUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
