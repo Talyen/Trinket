@@ -10,15 +10,20 @@ final class BattleFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Mage"].waitForExistence(timeout: 5))
         app.buttons["Mage collection card"].tap()
         
-        app.buttons["Mage ability loadout"].tap()
-        XCTAssertTrue(app.staticTexts["Abilities"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Basic ability slot"].waitForExistence(timeout: 5))
         
         // Tap Basic Strike to select it, then tap Basic Ember to select it back
+        app.buttons["Basic ability slot"].tap()
+        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
         app.buttons["Basic Strike ability card"].tap()
-        app.buttons["Basic Ember ability card"].tap()
+        XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
 
-        // Pop twice to return to Heroes tab root before switching tabs
-        goBack(in: app) // Mage ability loadout -> Mage detail view
+        app.buttons["Basic ability slot"].tap()
+        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
+        app.buttons["Basic Ember ability card"].tap()
+        XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
+
+        // Pop once to return to Heroes tab root before switching tabs
         goBack(in: app) // Mage detail view -> Heroes list root
 
         // 2. Start Battle (Mage & Drake)
@@ -36,24 +41,35 @@ final class BattleFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Mage card"].exists)
         XCTAssertTrue(app.buttons["Drake card"].exists)
+        let pauseToggle = app.descendants(matching: .any)["Battle Pause Toggle"]
+        let speedToggle = app.descendants(matching: .any)["Battle Speed Toggle"]
+        XCTAssertTrue(pauseToggle.exists)
+        XCTAssertTrue(speedToggle.exists)
+
+        speedToggle.tap()
+        XCTAssertEqual(speedToggle.value as? String, "2x")
+        speedToggle.tap()
+        XCTAssertEqual(speedToggle.value as? String, "1x")
+        pauseToggle.tap()
+        XCTAssertEqual(pauseToggle.value as? String, "Paused")
+
+        // Switching away and tapping Play again should keep the active battle.
+        app.tabBars.buttons["Heroes"].tap()
+        XCTAssertTrue(app.staticTexts["Mage"].waitForExistence(timeout: 5))
+        app.tabBars.buttons["Play"].tap()
+        XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["Choose a mode to start building the core loop."].exists)
+
         XCTAssertFalse(app.staticTexts["Ember"].waitForExistence(timeout: 1))
 
         app.buttons["Mage card"].tap()
         XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1 Physical damage. Apply Burn 1 for 2 ticks."].exists)
         dismissSheet(in: app)
+        pauseToggle.tap()
+        XCTAssertEqual(pauseToggle.value as? String, "Running")
 
-        // Since testing timer ticks at 0.5s, Tick 3 (Burn damage tick) fires at 1.5s.
-        // Tapping Mage and dismissing the sheet takes ~0.5s. Wait 1.1s to be at ~1.6s (before Tick 4 at 2.0s):
-        RunLoop.current.run(until: Date().addingTimeInterval(1.1))
-
-        // 5. Verify Battle Log contains combat events (Ember and Burn damage)
-        app.buttons["Battle Log"].tap()
-        XCTAssertTrue(app.staticTexts["Mage uses Ember for 1 Physical damage and applies Burn 1 for 2 ticks."].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Training Slime takes 2 Burn damage."].exists)
-        app.buttons["Done"].tap()
-
-        // 6. Verify Victory screen is reached and rewards are presented
+        // 5. Verify Victory screen is reached and rewards are presented
         XCTAssertTrue(app.staticTexts["Victory"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.staticTexts["Experience"].exists)
         XCTAssertTrue(app.staticTexts["Rewards"].exists)

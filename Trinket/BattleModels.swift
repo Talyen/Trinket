@@ -280,7 +280,7 @@ struct CombatantProgression: Equatable, Hashable {
 enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
     case weapon = "Weapon"
     case armor = "Armor"
-    case accessory = "Accessory"
+    case trinket = "Trinket"
 
     var id: String { rawValue }
 
@@ -290,7 +290,7 @@ enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
             return "wand.and.sparkles"
         case .armor:
             return "shield.fill"
-        case .accessory:
+        case .trinket:
             return "diamond.fill"
         }
     }
@@ -517,11 +517,11 @@ struct PlayerRosterState: Equatable {
                 "paladin": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "ember-wand",
                     .armor: "leather-gloves",
-                    .accessory: "river-charm"
+                    .trinket: "river-charm"
                 ]),
                 "mage": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "ember-wand",
-                    .accessory: "river-charm"
+                    .trinket: "river-charm"
                 ]),
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
                     .armor: "leather-gloves"
@@ -585,7 +585,7 @@ enum GameContent {
         ItemBaseType(
             id: "river-charm",
             name: "River Charm",
-            slot: .accessory,
+            slot: .trinket,
             symbolName: "drop.fill"
         ),
         ItemBaseType(
@@ -623,7 +623,7 @@ enum GameContent {
             affixes: [
                 ItemAffix(id: "river-charm-affix-1", title: "Lucky Current", description: "+1 placeholder luck."),
                 ItemAffix(id: "river-charm-affix-2", title: "Blue Glimmer", description: "Adds a cool-toned visual identity."),
-                ItemAffix(id: "river-charm-affix-3", title: "Polished Loop", description: "Fits the shared Accessory slot."),
+                ItemAffix(id: "river-charm-affix-3", title: "Polished Loop", description: "Fits the shared Trinket slot."),
                 ItemAffix(id: "river-charm-affix-4", title: "Quiet Weight", description: "No combat effect is applied yet.")
             ]
         ),
@@ -728,7 +728,7 @@ extension Combatant {
     static var trainingSlime: Combatant { GameContent.trainingSlime }
 }
 
-struct BattleDebugConfiguration: Equatable {
+struct BattleDebugConfiguration: Equatable, Hashable {
     let isEnabled: Bool
     let hero: Combatant
     let pet: Combatant

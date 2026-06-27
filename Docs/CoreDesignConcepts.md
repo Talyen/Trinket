@@ -63,7 +63,7 @@ Let players evaluate individual Items from clear item details. Avoid automatic "
 
 Item details should become a sibling detail pattern focused on affixes, bonuses, and readable tradeoffs.
 
-Current item implementation is a visual-only stub. Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Accessory`), card-art placeholder styling, and up to four affix descriptions. Equipped Items do not affect combat stats or rules yet.
+Current item implementation is a visual-only stub. Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Trinket`), card-art placeholder styling, and up to four affix descriptions. Equipped Items do not affect combat stats or rules yet.
 
 ## Keywords
 

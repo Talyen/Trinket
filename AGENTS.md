@@ -31,8 +31,8 @@ Guidance for Codex and other agents on Trinket: a portrait-first native iOS fant
 
 ## Commands And Verification
 
-- Commands: `./Scripts/generate.sh`, `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test.sh all`, `./Scripts/run-simulator.sh`, `./Scripts/run-debug-battle.sh Mage Drake`.
-- Run `./Scripts/test.sh` (defaults to fast unit tests) for routine logic changes. Only run `./Scripts/test.sh all` or `./Scripts/test.sh ui` (slower E2E/UI tests) for large layout/flow changes or as a pre-push check.
+- Commands: `./Scripts/generate.sh`, `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test.sh all`, `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`, `./Scripts/run-simulator.sh`, `./Scripts/run-debug-battle.sh Mage Drake`.
+- Run `./Scripts/test.sh` (defaults to fast unit tests) for routine logic changes. For minor UI copy/style/layout tweaks, prefer `./Scripts/build.sh` plus the narrowest targeted UI test when automation adds useful signal, for example `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`. Run `./Scripts/test.sh ui` or `./Scripts/test.sh all` only for broad navigation changes, cross-flow regressions, or explicit pre-push/full-verification requests.
 - Run `./Scripts/build.sh` for UI/project/config changes. After `project.yml` or target membership changes, run `./Scripts/generate.sh` before build/test.
 - For user-visible changes, run `./Scripts/run-simulator.sh` when feasible; capture screenshots only for useful visual evidence.
 - Use the simulator for high-signal visual checks, not exhaustive UI proof. Prefer XCTest/XCUITest for routine navigation, sheet, log, and state checks.

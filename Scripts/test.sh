@@ -3,26 +3,48 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 DEVICE_NAME="iPhone 17"
+DERIVED_DATA_PATH="$PWD/.DerivedData"
+RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 
 # Parse arguments
 MODE="unit"
+TARGETS=()
 if [[ $# -gt 0 ]]; then
   case "$1" in
     ui|--ui)
       MODE="ui"
+      shift
       ;;
     all|--all)
       MODE="all"
+      shift
+      ;;
+    style|--style)
+      MODE="style"
+      shift
       ;;
     unit|--unit)
       MODE="unit"
+      shift
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 [unit | ui | all]"
+      echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
       exit 1
       ;;
   esac
+fi
+TARGETS=("$@")
+
+if [[ "$MODE" == "style" ]]; then
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "Target filters are not supported for style mode."
+    echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
+    exit 1
+  fi
+
+  ./Scripts/check-ui-style.sh
+  exit 0
 fi
 
 # Always run xcodegen to ensure target memberships are automatically updated
@@ -42,20 +64,53 @@ fi
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
 if [[ "$MODE" == "unit" ]]; then
-  echo "Running only unit tests (TrinketTests)..."
-  TEST_TARGET_FLAG=(-only-testing:TrinketTests)
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "Running targeted unit tests..."
+    for target in "${TARGETS[@]}"; do
+      if [[ "$target" == TrinketTests* ]]; then
+        TEST_TARGET_FLAG+=("-only-testing:$target")
+      else
+        TEST_TARGET_FLAG+=("-only-testing:TrinketTests/$target")
+      fi
+    done
+  else
+    echo "Running only unit tests (TrinketTests)..."
+    TEST_TARGET_FLAG=(-only-testing:TrinketTests)
+  fi
 elif [[ "$MODE" == "ui" ]]; then
-  echo "Running only UI tests (TrinketUITests)..."
-  TEST_TARGET_FLAG=(-only-testing:TrinketUITests)
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "Running targeted UI tests..."
+    for target in "${TARGETS[@]}"; do
+      if [[ "$target" == TrinketUITests* ]]; then
+        TEST_TARGET_FLAG+=("-only-testing:$target")
+      else
+        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
+      fi
+    done
+  else
+    echo "Running only UI tests (TrinketUITests)..."
+    TEST_TARGET_FLAG=(-only-testing:TrinketUITests)
+  fi
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 else
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "Target filters are only supported for unit or ui mode."
+    echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
+    exit 1
+  fi
   echo "Running all tests..."
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 fi
+
+mkdir -p "$RESULTS_DIR"
+RESULT_BUNDLE_PATH="$RESULTS_DIR/$MODE.xcresult"
+rm -rf "$RESULT_BUNDLE_PATH"
 
 xcodebuild test \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=26.5" \
+  -derivedDataPath "$DERIVED_DATA_PATH" \
+  -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \
   "${PARALLEL_FLAGS[@]}"

@@ -12,22 +12,31 @@ final class TabNavigationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Paladin"].waitForExistence(timeout: 5))
         app.buttons["Paladin collection card"].tap()
         
-        XCTAssertTrue(app.staticTexts["Health"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["10/10 HP"].exists)
+        XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["10 HP"].exists)
+        XCTAssertTrue(app.staticTexts["Level"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["35/120 XP"].exists)
         
-        // Verify item loadout shows shared slots
-        app.buttons["Paladin item loadout"].tap()
+        // Verify item slots open a focused picker for that slot
+        app.swipeUp()
+        XCTAssertTrue(app.buttons["Weapon item slot"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Armor item slot"].exists)
+        XCTAssertTrue(app.buttons["Trinket item slot"].exists)
         XCTAssertTrue(app.staticTexts["Weapon"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Armor"].exists)
-        XCTAssertTrue(app.staticTexts["Accessory"].exists)
+        XCTAssertTrue(app.staticTexts["Trinket"].exists)
         XCTAssertTrue(app.staticTexts["Kindled Ember Wand"].exists)
         XCTAssertTrue(app.staticTexts["Patient Leather Gloves"].exists)
         XCTAssertTrue(app.staticTexts["River Charm of Sparks"].exists)
+
+        app.buttons["Weapon item slot"].tap()
+        XCTAssertTrue(app.staticTexts["Equip Weapon"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Equip Kindled Ember Wand"].exists)
+        XCTAssertEqual(app.buttons["Equip Kindled Ember Wand"].value as? String, "Equipped")
+        dismissSheet(in: app)
         
-        // Go back to Paladin details, then back to Heroes list
-        goBack(in: app)
+        // Go back to Heroes list
         goBack(in: app)
 
         // 3. Switch to Pets segment picker, verify Wolf Details
@@ -36,8 +45,9 @@ final class TabNavigationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Hawk"].exists)
         app.buttons["Wolf collection card"].tap()
         
-        XCTAssertTrue(app.staticTexts["Health"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["6/6 HP"].exists)
+        XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["6 HP"].exists)
+        XCTAssertTrue(app.staticTexts["Level"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["12/100 XP"].exists)
         
@@ -61,9 +71,15 @@ final class TabNavigationUITests: XCTestCase {
         app.tabBars.buttons["Homestead"].tap()
         XCTAssertTrue(app.staticTexts["A future base for crafting, upgrades, and long-term progression."].waitForExistence(timeout: 5))
 
-        // 6. Go to Options tab
-        app.tabBars.buttons["Options"].tap()
-        XCTAssertTrue(app.staticTexts["Settings, account, accessibility, audio, and credits will live here."].waitForExistence(timeout: 5))
+        // 6. Go to Menu tab -> Options
+        app.tabBars.buttons["Menu"].tap()
+        XCTAssertTrue(app.staticTexts["Menu"].waitForExistence(timeout: 5))
+        app.buttons["Options menu item"].tap()
+        XCTAssertTrue(app.staticTexts["Audio"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Music"].exists)
+        XCTAssertTrue(app.staticTexts["Sound Effects"].exists)
+        XCTAssertTrue(app.staticTexts["Haptics"].exists)
+        XCTAssertTrue(app.staticTexts["About"].exists)
 
         // 7. Return to Play tab
         app.tabBars.buttons["Play"].tap()
@@ -72,6 +88,13 @@ final class TabNavigationUITests: XCTestCase {
 
     private func goBack(in app: XCUIApplication) {
         app.navigationBars.buttons.element(boundBy: 0).tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
+
+    private func dismissSheet(in app: XCUIApplication) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        start.press(forDuration: 0.1, thenDragTo: end)
         RunLoop.current.run(until: Date().addingTimeInterval(0.1))
     }
 

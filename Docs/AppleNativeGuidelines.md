@@ -32,6 +32,16 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 - Use system icons for navigation and common actions until custom art has a clear product reason.
 - Avoid inventing nonstandard controls when a familiar Apple component can do the job.
 
+## Modern Native Styling
+
+- Treat native SwiftUI styling as the default. Prefer system controls, `ButtonStyle`, `Menu`, `ToolbarItem`, `safeAreaInset`, sheets, tab bars, SF Symbols, Dynamic Type, and platform materials before custom chrome.
+- Route recurring app chrome through shared `TrinketDesign` helpers instead of repeating raw `.buttonStyle`, material backgrounds, custom circles, or capsules in feature views.
+- Do not force button label sizes to make controls visually match. Prefer native `controlSize`, `buttonBorderShape`, `Label`, SF Symbols, `ToolbarItem`, and semantic button styles; fixed frames are acceptable for layout surfaces such as art, grids, and progress bars, but not as a first response for control chrome.
+- Use `Toggle` with a native toggle style for persistent modes such as paused/running or fast/normal. Use `Button` for one-shot actions; avoid swapping icons or using prominent button styles as a custom selected state.
+- Use native glass for floating controls on iOS 26 and newer, with readable material fallbacks for earlier supported OS versions. Do not simulate glass by manually lowering opacity.
+- Reserve glass for controls and lightweight app chrome. Keep game content surfaces, full-art cards, stat panels, and debug tools readable and inspectable.
+- When a one-off raw material or custom control style is truly intentional, leave a short `UIStyleCheck: allow` comment explaining why it should bypass the style guardrail.
+
 ## App Store Readiness
 
 - Use only public Apple APIs and supported frameworks.
@@ -59,3 +69,4 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 - When adding monetization, analytics, accounts, cloud services, Game Center, or external SDKs, update this file and `AGENTS.md` with privacy/App Store implications.
 - For user-visible changes, run the harness and capture simulator screenshots.
 - Prefer linking to official docs over copying long Apple text into the repo.
+- Run `./Scripts/check-ui-style.sh` after UI styling changes to catch ad hoc glass, material, button styling, button-toggle styling, or fixed-size button-label workarounds that should use native control APIs instead.
