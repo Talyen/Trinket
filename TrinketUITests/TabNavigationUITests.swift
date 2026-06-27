@@ -36,6 +36,18 @@ final class TabNavigationUITests: XCTestCase {
         XCTAssertEqual(app.buttons["Equip Kindled Ember Wand"].value as? String, "Equipped")
         dismissSheet(in: app)
         
+        // Verify Ability Loadout Selection UI (toggle basic abilities)
+        XCTAssertTrue(app.buttons["Basic ability slot"].exists)
+        app.buttons["Basic ability slot"].tap()
+        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
+        app.buttons["Basic Shield Jab ability card"].tap()
+        XCTAssertTrue(app.staticTexts["Shield Jab"].waitForExistence(timeout: 5))
+
+        app.buttons["Basic ability slot"].tap()
+        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
+        app.buttons["Basic Strike ability card"].tap()
+        XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
+        
         // Go back to Heroes list
         goBack(in: app)
 

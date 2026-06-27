@@ -4,31 +4,8 @@ final class BattleFlowUITests: XCTestCase {
     func testBattleFlowAndCombatLoops() {
         let app = createAndLaunchApp()
 
-        // 1. Verify Ability Loadout Selection UI (toggle basic abilities in Heroes tab)
-        app.tabBars.buttons["Heroes"].tap()
-        app.segmentedControls["Heroes collection switcher"].buttons["Heroes"].tap()
-        XCTAssertTrue(app.staticTexts["Mage"].waitForExistence(timeout: 5))
-        app.buttons["Mage collection card"].tap()
-        
-        XCTAssertTrue(app.buttons["Basic ability slot"].waitForExistence(timeout: 5))
-        
-        // Tap Basic Strike to select it, then tap Basic Ember to select it back
-        app.buttons["Basic ability slot"].tap()
-        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
-        app.buttons["Basic Strike ability card"].tap()
-        XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
-
-        app.buttons["Basic ability slot"].tap()
-        XCTAssertTrue(app.staticTexts["Choose Basic"].waitForExistence(timeout: 5))
-        app.buttons["Basic Ember ability card"].tap()
-        XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
-
-        // Pop once to return to Heroes tab root before switching tabs
-        goBack(in: app) // Mage detail view -> Heroes list root
-
-        // 2. Start Battle (Mage & Drake)
-        app.tabBars.buttons["Play"].tap()
-        XCTAssertTrue(app.staticTexts["Battle"].waitForExistence(timeout: 5))
+        // 1. Start Battle (Mage & Drake)
+        XCTAssertTrue(app.staticTexts["Choose a mode to start building the core loop."].waitForExistence(timeout: 5))
         app.staticTexts["Battle"].tap()
 
         XCTAssertTrue(app.staticTexts["Select Hero"].waitForExistence(timeout: 5))
@@ -41,15 +18,9 @@ final class BattleFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Mage card"].exists)
         XCTAssertTrue(app.buttons["Drake card"].exists)
-        let pauseToggle = app.descendants(matching: .any)["Battle Pause Toggle"]
-        let speedToggle = app.descendants(matching: .any)["Battle Speed Toggle"]
+        let pauseToggle = app.buttons["Battle Pause Toggle"]
         XCTAssertTrue(pauseToggle.exists)
-        XCTAssertTrue(speedToggle.exists)
 
-        speedToggle.tap()
-        XCTAssertEqual(speedToggle.value as? String, "2x")
-        speedToggle.tap()
-        XCTAssertEqual(speedToggle.value as? String, "1x")
         pauseToggle.tap()
         XCTAssertEqual(pauseToggle.value as? String, "Paused")
 
@@ -84,10 +55,7 @@ final class BattleFlowUITests: XCTestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.1))
     }
 
-    private func goBack(in app: XCUIApplication) {
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-    }
+
 
     private func createAndLaunchApp(arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()

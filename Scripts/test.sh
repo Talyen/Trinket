@@ -2,14 +2,16 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-DEVICE_NAME="iPhone 17"
+DEVICE_NAME="iPhone 17 Pro"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 
 # Parse arguments
 MODE="unit"
+FAST=false
 TARGETS=()
-if [[ $# -gt 0 ]]; then
+
+while [[ $# -gt 0 ]]; do
   case "$1" in
     ui|--ui)
       MODE="ui"
@@ -27,14 +29,16 @@ if [[ $# -gt 0 ]]; then
       MODE="unit"
       shift
       ;;
+    fast|--fast|-f)
+      FAST=true
+      shift
+      ;;
     *)
-      echo "Unknown argument: $1"
-      echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
-      exit 1
+      TARGETS+=("$1")
+      shift
       ;;
   esac
-fi
-TARGETS=("$@")
+done
 
 if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -47,8 +51,10 @@ if [[ "$MODE" == "style" ]]; then
   exit 0
 fi
 
-# Always run xcodegen to ensure target memberships are automatically updated
-xcodegen generate
+if [[ "$FAST" == "false" ]]; then
+  # Always run xcodegen to ensure target memberships are automatically updated
+  xcodegen generate
+fi
 
 # Check if the device is already booted to save time
 BOOTED_STATE=$(xcrun simctl list devices | grep "$DEVICE_NAME" | grep -o "Booted" || true)
@@ -106,7 +112,12 @@ mkdir -p "$RESULTS_DIR"
 RESULT_BUNDLE_PATH="$RESULTS_DIR/$MODE.xcresult"
 rm -rf "$RESULT_BUNDLE_PATH"
 
-xcodebuild test \
+ACTION="test"
+if [[ "$FAST" == "true" ]]; then
+  ACTION="test-without-building"
+fi
+
+xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=26.5" \

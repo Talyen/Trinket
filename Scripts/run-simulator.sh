@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DEVICE_NAME="iPhone 17"
+DEVICE_NAME="iPhone 17 Pro"
 BUNDLE_ID="com.ryanmcintire.Trinket"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"

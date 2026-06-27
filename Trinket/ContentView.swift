@@ -391,8 +391,6 @@ private struct BattleView: View {
     @State private var isShowingVictory = false
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
     @State private var isBattlePaused = false
-    @State private var battleSpeed: BattleSpeed = .normal
-    @State private var timerPulseCount = 0
     @State private var isDebugPaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -403,7 +401,7 @@ private struct BattleView: View {
     private let inventoryState: PlayerInventoryState
     private let debugConfiguration: BattleDebugConfiguration
     private let timer = Timer.publish(
-        every: BattleSpeed.fastTickInterval,
+        every: ProcessInfo.processInfo.arguments.contains("-disableAnimations") ? 0.25 : 0.8,
         on: .main,
         in: .common
     ).autoconnect()
@@ -446,7 +444,16 @@ private struct BattleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !isShowingVictory {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        isBattlePaused.toggle()
+                    } label: {
+                        Image(systemName: isBattlePaused ? "play.fill" : "pause.fill")
+                    }
+                    .accessibilityLabel("Pause Battle")
+                    .accessibilityValue(isBattlePaused ? "Paused" : "Running")
+                    .accessibilityIdentifier("Battle Pause Toggle")
+
                     Button {
                         isShowingBattleLog = true
                     } label: {
@@ -479,36 +486,23 @@ private struct BattleView: View {
                 .presentationDetents([.medium])
         }
         .safeAreaInset(edge: .bottom) {
-            if !isShowingVictory {
-                VStack(spacing: 8) {
-                    BattleControlStrip(
-                        isPaused: $isBattlePaused,
-                        speed: battleSpeed,
-                        onToggleSpeed: toggleBattleSpeed
-                    )
-
-                    if debugConfiguration.isEnabled {
-                        BattleDebugOverlay(
-                            tickCount: battle.tickCount,
-                            enemyHealth: battle.enemyHealth,
-                            enemyMaxHealth: battle.enemy.maxHealth,
-                            statusSummary: debugStatusSummary,
-                            isPaused: $isDebugPaused,
-                            onStepTick: advanceBattleTick,
-                            onReset: restartBattle,
-                            onFinishBattle: finishBattle
-                        )
-                    }
-                }
+            if !isShowingVictory && debugConfiguration.isEnabled {
+                BattleDebugOverlay(
+                    tickCount: battle.tickCount,
+                    enemyHealth: battle.enemyHealth,
+                    enemyMaxHealth: battle.enemy.maxHealth,
+                    statusSummary: debugStatusSummary,
+                    isPaused: $isDebugPaused,
+                    onStepTick: advanceBattleTick,
+                    onReset: restartBattle,
+                    onFinishBattle: finishBattle
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
             }
         }
         .onReceive(timer) { _ in
             guard canAutoAdvanceBattle else {
-                return
-            }
-
-            timerPulseCount += 1
-            guard battleSpeed.shouldAdvance(onPulse: timerPulseCount) else {
                 return
             }
 
@@ -654,92 +648,7 @@ private struct BattleView: View {
         isShowingBattleLog = false
         isShowingVictory = false
         isBattlePaused = false
-        timerPulseCount = 0
         isDebugPaused = debugConfiguration.startsPaused
-    }
-
-    private func toggleBattleSpeed() {
-        battleSpeed.toggle()
-        timerPulseCount = 0
-    }
-}
-
-private enum BattleSpeed: Equatable {
-    case normal
-    case fast
-
-    static var baseTickInterval: TimeInterval {
-        ProcessInfo.processInfo.arguments.contains("-disableAnimations") ? 0.5 : 0.8
-    }
-
-    static var fastTickInterval: TimeInterval {
-        baseTickInterval / 2
-    }
-
-    var label: String {
-        switch self {
-        case .normal:
-            return "1x"
-        case .fast:
-            return "2x"
-        }
-    }
-
-    private var pulseStride: Int {
-        switch self {
-        case .normal:
-            return 2
-        case .fast:
-            return 1
-        }
-    }
-
-    func shouldAdvance(onPulse pulse: Int) -> Bool {
-        pulse % pulseStride == 0
-    }
-
-    mutating func toggle() {
-        self = self == .normal ? .fast : .normal
-    }
-}
-
-private struct BattleControlStrip: View {
-    @Binding var isPaused: Bool
-    let speed: BattleSpeed
-    let onToggleSpeed: () -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Toggle(isOn: $isPaused) {
-                Image(systemName: "pause.fill")
-                    .font(.callout.weight(.semibold))
-            }
-            .trinketFloatingGlassToggle()
-            .accessibilityLabel("Pause Battle")
-            .accessibilityValue(isPaused ? "Paused" : "Running")
-            .accessibilityIdentifier("Battle Pause Toggle")
-
-            Toggle(isOn: isFastSpeed) {
-                Image(systemName: "forward.fill")
-                    .font(.callout.weight(.semibold))
-            }
-            .trinketFloatingGlassToggle()
-            .accessibilityLabel("Battle Speed")
-            .accessibilityValue(speed.label)
-            .accessibilityIdentifier("Battle Speed Toggle")
-        }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(.trailing, 16)
-        .padding(.bottom, 8)
-    }
-
-    private var isFastSpeed: Binding<Bool> {
-        Binding {
-            speed == .fast
-        } set: { isFast in
-            guard isFast != (speed == .fast) else { return }
-            onToggleSpeed()
-        }
     }
 }
 
@@ -883,7 +792,7 @@ private struct HeroesCollectionView: View {
             }
         ))
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Heroes")
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
