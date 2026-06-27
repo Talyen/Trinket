@@ -1434,36 +1434,26 @@ private struct AbilitySummaryGrid: View {
     let allowsEditing: Bool
     @State private var selectedAbilityTier: AbilityTier?
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10)
-    ]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(AbilityTier.allCases) { tier in
-                    if allowsEditing {
-                        Button {
-                            selectedAbilityTier = tier
-                        } label: {
-                            abilitySlot(for: tier)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                        .accessibilityHint("Shows \(tier.rawValue) ability choices.")
-                    } else {
-                        abilitySlot(for: tier)
-                            .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                            .accessibilityHint("Shows selected \(tier.rawValue) ability.")
-                    }
-                }
-            }
-
+        VStack(spacing: 12) {
             ForEach(AbilityTier.allCases) { tier in
-                if let ability = selectedAbility(for: tier) {
-                    SelectedAbilitySummary(ability: ability)
+                if allowsEditing {
+                    Button {
+                        selectedAbilityTier = tier
+                    } label: {
+                        rowContent(for: tier)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("\(tier.rawValue) ability slot")
+                    .accessibilityHint("Shows \(tier.rawValue) ability choices.")
+                } else {
+                    rowContent(for: tier)
+                        .accessibilityIdentifier("\(tier.rawValue) ability slot")
+                        .accessibilityHint("Shows selected \(tier.rawValue) ability.")
+                }
+
+                if tier != AbilityTier.allCases.last {
+                    Divider()
                 }
             }
         }
@@ -1480,18 +1470,58 @@ private struct AbilitySummaryGrid: View {
         }
     }
 
-    private func abilitySlot(for tier: AbilityTier) -> some View {
-        LabeledSummaryCard(title: tier.rawValue) {
+    @ViewBuilder
+    private func rowContent(for tier: AbilityTier) -> some View {
+        HStack(alignment: .center, spacing: 14) {
             if let ability = selectedAbility(for: tier) {
                 AbilityChoiceCard(
                     ability: ability,
-                    tier: tier,
                     isSelected: false
                 )
+                .frame(height: 80)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(tier.rawValue.uppercased())
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    
+                    Text(ability.name)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    
+                    KeywordDescriptionText(text: ability.summary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             } else {
                 EmptyAbilitySlotCard(tier: tier)
+                    .frame(height: 80)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(tier.rawValue.uppercased())
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("Empty Slot")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("Select an ability choice.")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+            Spacer()
+
+            if allowsEditing {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
         }
+        .contentShape(Rectangle())
     }
 
     private func selectedAbility(for tier: AbilityTier) -> Ability? {
@@ -1583,17 +1613,45 @@ private struct AbilityTierPickerSheet: View {
 
     var body: some View {
         ScrollView {
-            HStack(alignment: .top, spacing: 12) {
+            VStack(spacing: 12) {
                 ForEach(abilities) { ability in
                     Button {
                         loadout = loadout.selecting(ability)
                         dismiss()
                     } label: {
-                        AbilityChoiceCard(
-                            ability: ability,
-                            tier: tier,
-                            isSelected: ability.id == selectedAbility?.id
-                        )
+                        let isSelected = ability.id == selectedAbility?.id
+                        HStack(spacing: 14) {
+                            AbilityChoiceCard(
+                                ability: ability,
+                                isSelected: isSelected
+                            )
+                            .frame(height: 80)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(ability.name)
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                KeywordDescriptionText(text: ability.summary)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            
+                            Spacer()
+                            
+                            if isSelected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(Color.accentColor)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1.5)
+                        }
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("\(tier.rawValue) \(ability.name) ability card")
@@ -1878,50 +1936,38 @@ private struct CombatantHealthDetail: View {
 
 private struct AbilityChoiceCard: View {
     let ability: Ability
-    let tier: AbilityTier
     let isSelected: Bool
 
     var body: some View {
-        VStack(spacing: 10) {
-            ZStack {
+        ZStack {
+            TrinketDesign.cardShape
+                .fill(.regularMaterial)
+
+            LinearGradient(
+                colors: [
+                    ability.damageKeyword.feedbackColor.opacity(0.24),
+                    Color(.systemBackground).opacity(0.1)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .clipShape(TrinketDesign.cardShape)
+
+            Image(systemName: ability.damageKeyword.feedbackSymbolName)
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundStyle(ability.damageKeyword.feedbackColor)
+                .accessibilityHidden(true)
+        }
+        .aspectRatio(3.0 / 4.0, contentMode: .fit)
+        .overlay {
+            if isSelected {
                 TrinketDesign.cardShape
-                    .fill(.regularMaterial)
-
-                LinearGradient(
-                    colors: [
-                        ability.damageKeyword.feedbackColor.opacity(0.24),
-                        Color(.systemBackground).opacity(0.1)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .clipShape(TrinketDesign.cardShape)
-
-                VStack(spacing: 10) {
-                    Image(systemName: ability.damageKeyword.feedbackSymbolName)
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(ability.damageKeyword.feedbackColor)
-                        .accessibilityHidden(true)
-
-                    Text(ability.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.78)
-                }
-                .padding(10)
-            }
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
+                    .stroke(Color.accentColor, lineWidth: 2)
+            } else {
                 TrinketDesign.cardShape
                     .stroke(.quaternary, lineWidth: 1)
             }
         }
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(ability.name), \(tier.rawValue)")
-        .accessibilityValue(isSelected ? "Selected" : "Not selected")
     }
 }
 
@@ -1933,56 +1979,18 @@ private struct EmptyAbilitySlotCard: View {
             .fill(.regularMaterial)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
-                VStack(spacing: 10) {
-                    Image(systemName: tier.symbolName)
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
-
-                    Text(tier.rawValue)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-
-                    Text("Empty")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(10)
+                Image(systemName: tier.symbolName)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
             .overlay {
                 TrinketDesign.cardShape
                     .stroke(.quaternary, style: StrokeStyle(lineWidth: 1, dash: [5]))
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Empty \(tier.rawValue) ability slot")
     }
 }
 
-private struct SelectedAbilitySummary: View {
-    let ability: Ability
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(ability.name)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: ability.damageKeyword.feedbackSymbolName)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(ability.damageKeyword.feedbackColor)
-                    .frame(width: 20)
-                    .accessibilityHidden(true)
-
-                KeywordDescriptionText(text: ability.summary)
-                    .font(.subheadline)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-}
 
 private struct KeywordDescriptionText: View {
     let text: String
