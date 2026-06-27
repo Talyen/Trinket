@@ -189,6 +189,66 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(mage.abilities.map(\.tier), [.basic, .skill, .ultimate])
     }
 
+    func testRosterLoadoutConfiguresBattleAbilities() {
+        let mage = GameContent.heroes[2]
+        var rosterState = PlayerRosterState.initial
+        rosterState.setLoadout(
+            AbilityLoadout(
+                basic: .strike,
+                skill: .kindle,
+                ultimate: .inferno
+            ),
+            for: mage
+        )
+
+        let configuredMage = rosterState.configuredCombatant(mage)
+        var battle = BattleState(hero: configuredMage, pet: GameContent.pets[0])
+
+        XCTAssertEqual(configuredMage.abilityLoadout.basic?.name, "Strike")
+        XCTAssertEqual(configuredMage.abilityLoadout.skill?.name, "Kindle")
+        XCTAssertEqual(configuredMage.abilityLoadout.ultimate?.name, "Inferno")
+        XCTAssertEqual(battle.performNextAction().first?.floatingText, "Mage Strike -1")
+    }
+
+    func testRosterProgressionFallsBackToInitialValues() {
+        let customHero = Combatant(
+            id: "new-hero",
+            name: "New Hero",
+            role: .hero,
+            maxHealth: 5,
+            abilities: [.strike]
+        )
+        let rosterState = PlayerRosterState.initial
+
+        XCTAssertEqual(rosterState.progression(for: customHero), .initial)
+        XCTAssertEqual(CombatantProgression.initial.level, 1)
+        XCTAssertEqual(CombatantProgression.initial.currentXP, 0)
+        XCTAssertEqual(CombatantProgression.initial.requiredXP, 100)
+    }
+
+    func testEquipmentLoadoutStoresItemIDsBySlot() {
+        let item = GameContent.sampleInventoryItems[0]
+        var loadout = EquipmentLoadout()
+
+        loadout.equip(item)
+
+        XCTAssertEqual(loadout.itemID(for: .weapon), item.id)
+        XCTAssertNil(loadout.itemID(for: .armor))
+    }
+
+    func testMissingEquippedInventoryItemResolvesAsEmpty() {
+        let paladin = GameContent.heroes[0]
+        var rosterState = PlayerRosterState.initial
+        let missingLoadout = EquipmentLoadout(itemIDsBySlot: [
+            .weapon: "missing-item"
+        ])
+        rosterState.setEquipmentLoadout(missingLoadout, for: paladin)
+        let emptyInventory = PlayerInventoryState(items: [])
+
+        XCTAssertNil(rosterState.equippedItem(for: .weapon, combatant: paladin, inventory: emptyInventory))
+        XCTAssertEqual(rosterState.equipmentLoadout(for: paladin).itemID(for: .weapon), "missing-item")
+    }
+
     func testBasicSkillAndUltimateCadenceUsesPerCombatantTurns() {
         let hero = Combatant(
             id: "cadence-hero",

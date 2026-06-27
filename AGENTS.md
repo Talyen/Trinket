@@ -1,102 +1,45 @@
 # AGENTS.md
 
-Guidance for Codex and other coding agents working on Trinket.
+Guidance for Codex and other agents on Trinket: a portrait-first native iOS fantasy idle auto-battler.
 
-## Product Direction
+## Operating Rules
 
-Trinket is an iOS game learning project: a portrait-first fantasy idle auto-battler with heroes, pets, abilities, items, enemies, and homestead base-building.
+- Start code tasks with `git status --porcelain`; treat changes as in-flight user work.
+- For non-trivial work, find docs with `rg --files -g '*.md'` and focused `rg <topic>`. Read `Docs/CoreDesignConcepts.md` for gameplay/progression/rewards and `Docs/AppleNativeGuidelines.md` for UI, accessibility, privacy, monetization, platform, or App Store choices.
+- Start from an end-to-end-verifiable flow when possible. For bugs, reproduce with the closest practical automated or user-visible check first.
+- Treat lint, test, and flake failures as harness problems.
+- Push back when requests conflict with product direction, Apple guidance, or maintainability; explain the tradeoff and offer a stronger path.
+- If an approach fails three times, stop, reassess with docs/logs/tests/Apple guidance, and ask for direction.
+- Wrap up with changes, verification, and anything intentionally untouched.
 
-## Agent Workflow
+## Product And Architecture
 
-- Start code tasks with `git status --porcelain`. Treat existing changes as in-flight user work: understand them before editing, preserve user intent, and improve them when they intersect with the task.
-- For non-trivial work, discover relevant local docs with `rg --files -g '*.md'` and focused `rg <topic>` searches. Read only what matches the task; prefer specific subsystem docs over broad assumptions.
-- Optimize for product and engineering quality over short-term development cost. Prefer simplicity, robustness, scalability, maintainability, and clear ownership even when the implementation takes longer.
-- For bug fixes, start by reproducing the issue with an end-to-end test or the closest practical automated/user-visible reproduction. A fix should be verifiable, not just plausible.
-- Start from an end-to-end-verifiable user flow whenever possible, then use focused tests to cover implementation details.
-- Treat lint failures, test failures, and flaky tests as real engineering problems. Keep the harness trustworthy and repair weak verification when it starts hiding risk.
-- Challenge weak ideas, including user requests, when there is a better product or architecture path. Explain the tradeoff clearly and let merit, elegance, and long-term maintainability win.
-- If the same approach fails three times, stop, reassess with relevant docs, build logs, tests, or Apple guidance, and ask for direction rather than continuing speculative fixes.
-- When wrapping up, report what changed, what verification ran, and anything intentionally left untouched.
+- iOS, iPhone-first, portrait-first; prefer Apple-native Swift, SwiftUI, SpriteKit, UIKit, Foundation, CoreGraphics, AVFoundation, GameKit, StoreKit.
+- Persistent bottom `TabView`: `Play`, `Heroes`, `Pets`, `Homestead`, `Options`; launch to `Play`. Battle path: `Play -> Battle -> Select Hero -> Select Pet -> Battle`.
+- Combat defaults to idle auto-battle: Hero and Pet alternate abilities against one enemy. Keywords: `Physical` direct damage, stacked `Burn` enemy damage-over-time.
+- Keep experiments simple and inspectable; separate rules/state from rendering; prefer small owned types; add abstractions after repetition.
+- Use SwiftUI for shell, menus, settings, overlays, prototypes. Use SpriteKit only for 2D loops, sprites, physics, particles, collision, or high-frequency animation.
+- Keep UI native, accessible, and thumb-friendly: safe areas, Dynamic Type, readable text, non-color-only state, VoiceOver, SF Symbols, haptics, meaningful animation.
 
-## Local Docs Routing
+## Project Map
 
-Before non-trivial work, use focused `rg` searches and read the most relevant docs.
+- `project.yml`: XcodeGen source of truth; regenerate `Trinket.xcodeproj`, do not edit it manually.
+- `Trinket/BattleModels.swift`: battle rules and state.
+- `Trinket/ContentView.swift`: SwiftUI shell, navigation, current battle UI.
+- `TrinketTests/BattleStateTests.swift`: logic coverage.
+- `TrinketUITests/CoreNavigationUITests.swift`: navigation/UI smoke coverage.
 
-- `Docs/CoreDesignConcepts.md`: read for gameplay, collection, battle, card, item, keyword, hero, pet, enemy, ability, homestead, progression, or reward design work.
-- `Docs/AppleNativeGuidelines.md`: read for meaningful UI, accessibility, privacy, monetization, platform, App Store, or Apple-native behavior decisions.
+## Commands And Verification
 
-## Durable Decisions
-
-- Platform: iOS, iPhone-first, portrait-first.
-- UI stack: prefer Apple-native Swift, SwiftUI, SpriteKit, UIKit, Foundation, CoreGraphics, AVFoundation, GameKit, StoreKit, etc.
-- Apple guidance: follow `Docs/AppleNativeGuidelines.md` and refresh against official Apple docs before major UI, privacy, monetization, accessibility, or App Store decisions.
-- Project workflow: CLI-first and agent-friendly through XcodeGen and scripts.
-- Xcode project: `project.yml` is the source of truth; regenerate `Trinket.xcodeproj` instead of manually editing project files.
-- Core navigation: native persistent bottom `TabView`.
-- Top-level tabs: `Play`, `Heroes`, `Pets`, `Homestead`, `Options`; launch defaults to `Play`.
-- First battle skeleton: `Play -> Battle -> Select Hero -> Select Pet -> Battle`.
-- Combat default: idle auto-battle. Hero and Pet alternate abilities against a single enemy.
-- Implemented Keywords: `Physical` direct damage and `Burn` enemy damage-over-time.
-- Burn status proof point: each Burn application keeps its own damage amount and duration; battle ticks aggregate active stacks into one Burn damage event.
-- Victory flow: defeated enemies show a full-screen-style outcome state with placeholder `Experience` and `Rewards` sections plus `Battle Again`; there is no `Change Party` action yet.
-- DEBUG builds can launch directly into a paused deterministic Battle harness. This is an agent/development aid, not player-facing product UI.
-- Core design concepts live in `Docs/CoreDesignConcepts.md`.
-
-## Architecture And UX
-
-- Keep early gameplay experiments simple and inspectable.
-- Separate game rules/state from rendering when practical, so rules can be unit tested.
-- Use SwiftUI for app shell, menus, settings, overlays, and simple prototypes.
-- Use SpriteKit when gameplay needs a 2D scene loop, sprites, physics, particles, collision, or high-frequency animation; current combat feedback remains SwiftUI-only.
-- Keep top-level game areas as tabs; use `NavigationStack` back buttons only for drill-in detail screens within a tab.
-- Prefer small types with clear ownership over broad manager objects.
-- Add abstractions only after repeated behavior appears.
-- Trinket should feel smooth, native, polished, accessible, and carefully crafted.
-- Keep primary controls near the bottom for thumb reachability, respect safe areas, and support Dynamic Type where appropriate.
-- Use native controls for non-game UI: `Button`, `NavigationStack`, sheets, menus, toggles, sliders, haptics, and system materials.
-- Prefer SF Symbols for system actions and navigation until custom art has a clear gameplay or brand purpose.
-- Accessibility is part of the baseline: readable text, accessible labels, non-color-only state, and VoiceOver-friendly structure.
-- Use haptics and animation intentionally for meaningful feedback.
-
-## Harness Commands
-
-Run these from the repository root.
-
-```sh
-./Scripts/generate.sh
-./Scripts/build.sh
-./Scripts/test.sh
-./Scripts/run-simulator.sh
-./Scripts/run-debug-battle.sh Mage Drake
-```
-
-## Verification Expectations
-
-- Run `./Scripts/test.sh` for logic changes.
-- Run `./Scripts/build.sh` for UI/project/config changes.
-- Run `./Scripts/run-simulator.sh` for user-visible changes when feasible.
-- Capture a simulator screenshot for meaningful visual changes.
-- For meaningful UI changes, compare the result against `Docs/AppleNativeGuidelines.md`.
+- Commands: `./Scripts/generate.sh`, `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/run-simulator.sh`, `./Scripts/run-debug-battle.sh Mage Drake`.
+- Run `./Scripts/test.sh` for logic changes and `./Scripts/build.sh` for UI/project/config. After `project.yml` or target membership changes, run `./Scripts/generate.sh` before build/test.
+- For user-visible changes, run `./Scripts/run-simulator.sh` when feasible; capture screenshots only for useful visual evidence.
+- Use the simulator for high-signal visual checks, not exhaustive UI proof. Prefer XCTest/XCUITest for routine navigation, sheet, log, and state checks.
+- For battle timing, use the DEBUG deterministic Battle harness instead of sleeps or manual tapping.
 - Keep generated build output and `.DerivedData/` out of Git.
 
-## Simulator Efficiency
+## Tooling And Git
 
-- Use the simulator for high-signal visual checks, not exhaustive proof of every UI state.
-- Prefer `./Scripts/test.sh` and XCUITest for routine navigation, sheet, log, and state verification.
-- For battle timing, prefer the DEBUG-only Battle harness over sleeps or manual tapping.
-- Harness controls have accessibility identifiers for deterministic ticks, reset, pause/resume, and victory.
-- `xcrun simctl io booted screenshot <path>` is reliable for screenshots.
-- Keep screenshots in `Screenshots/` only when they document useful visual evidence.
-
-## Tooling Direction
-
-Current minimum useful harness: XcodeGen, `xcodebuild` scripts, and XCTest.
-
-Add SwiftLint, a formatter, XCUITest smoke tests, and snapshot testing only when the app is ready for them.
-
-## Git Hygiene
-
-- Treat generated `Trinket.xcodeproj` as a generated artifact from `project.yml`.
-- Do not commit `.DerivedData/`.
-- Make small commits around working states.
-- Prefer implementation plus verification over large speculative refactors.
+- Current harness: XcodeGen, `xcodebuild` scripts, XCTest, early XCUITest.
+- Add SwiftLint, formatting, broader XCUITest, and snapshots only when ready.
+- Make small commits around working states; prefer implementation plus verification over speculative refactors.

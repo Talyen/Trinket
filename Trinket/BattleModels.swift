@@ -251,6 +251,106 @@ struct AbilityLoadout: Hashable {
             return ultimate
         }
     }
+
+    func selecting(_ ability: Ability) -> AbilityLoadout {
+        switch ability.tier {
+        case .basic:
+            return AbilityLoadout(basic: ability, skill: skill, ultimate: ultimate)
+        case .skill:
+            return AbilityLoadout(basic: basic, skill: ability, ultimate: ultimate)
+        case .ultimate:
+            return AbilityLoadout(basic: basic, skill: skill, ultimate: ability)
+        }
+    }
+}
+
+struct CombatantProgression: Equatable, Hashable {
+    let level: Int
+    let currentXP: Int
+    let requiredXP: Int
+
+    static let initial = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+
+    var progressFraction: Double {
+        guard requiredXP > 0 else { return 0 }
+        return min(max(Double(currentXP) / Double(requiredXP), 0), 1)
+    }
+}
+
+enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
+    case weapon = "Weapon"
+    case armor = "Armor"
+    case accessory = "Accessory"
+
+    var id: String { rawValue }
+
+    var symbolName: String {
+        switch self {
+        case .weapon:
+            return "wand.and.sparkles"
+        case .armor:
+            return "shield.fill"
+        case .accessory:
+            return "diamond.fill"
+        }
+    }
+}
+
+struct ItemBaseType: Identifiable, Equatable, Hashable {
+    let id: String
+    let name: String
+    let slot: ItemSlot
+    let symbolName: String
+}
+
+struct ItemAffix: Identifiable, Equatable, Hashable {
+    let id: String
+    let title: String
+    let description: String
+}
+
+struct InventoryItem: Identifiable, Equatable, Hashable {
+    let id: String
+    let baseType: ItemBaseType
+    let displayName: String
+    let affixes: [ItemAffix]
+}
+
+struct EquipmentLoadout: Equatable, Hashable {
+    var itemIDsBySlot: [ItemSlot: String]
+
+    init(itemIDsBySlot: [ItemSlot: String] = [:]) {
+        self.itemIDsBySlot = itemIDsBySlot
+    }
+
+    func itemID(for slot: ItemSlot) -> String? {
+        itemIDsBySlot[slot]
+    }
+
+    mutating func equip(_ item: InventoryItem, in slot: ItemSlot? = nil) {
+        itemIDsBySlot[slot ?? item.baseType.slot] = item.id
+    }
+
+    mutating func unequip(_ slot: ItemSlot) {
+        itemIDsBySlot[slot] = nil
+    }
+}
+
+struct PlayerInventoryState: Equatable {
+    var items: [InventoryItem]
+
+    static var initial: PlayerInventoryState {
+        PlayerInventoryState(items: GameContent.sampleInventoryItems)
+    }
+
+    func item(matching id: String?) -> InventoryItem? {
+        guard let id else { return nil }
+        return items.first { $0.id == id }
+    }
+
+    func items(for slot: ItemSlot) -> [InventoryItem] {
+        items.filter { $0.baseType.slot == slot }
+    }
 }
 
 struct AbilityChoices: Hashable {
@@ -268,10 +368,16 @@ struct AbilityChoices: Hashable {
         self.basics = basics
         self.skills = skills
         self.ultimates = ultimates
-        self.selected = selected ?? AbilityLoadout(
+        let defaultLoadout = AbilityLoadout(
             basic: basics.first,
             skill: skills.first,
             ultimate: ultimates.first
+        )
+        self.selected = AbilityChoices.resolvedLoadout(
+            selected ?? defaultLoadout,
+            basics: basics,
+            skills: skills,
+            ultimates: ultimates
         )
     }
 
@@ -292,6 +398,36 @@ struct AbilityChoices: Hashable {
         case .ultimate:
             return ultimates
         }
+    }
+
+    func withSelectedLoadout(_ loadout: AbilityLoadout) -> AbilityChoices {
+        AbilityChoices(
+            basics: basics,
+            skills: skills,
+            ultimates: ultimates,
+            selected: loadout
+        )
+    }
+
+    private static func resolvedLoadout(
+        _ loadout: AbilityLoadout,
+        basics: [Ability],
+        skills: [Ability],
+        ultimates: [Ability]
+    ) -> AbilityLoadout {
+        AbilityLoadout(
+            basic: selectedAbility(loadout.basic, in: basics),
+            skill: selectedAbility(loadout.skill, in: skills),
+            ultimate: selectedAbility(loadout.ultimate, in: ultimates)
+        )
+    }
+
+    private static func selectedAbility(_ ability: Ability?, in choices: [Ability]) -> Ability? {
+        guard let ability else {
+            return choices.first
+        }
+
+        return choices.first { $0.id == ability.id } ?? choices.first
     }
 }
 
@@ -345,9 +481,162 @@ struct Combatant: Identifiable, Hashable {
     var abilities: [Ability] {
         abilityLoadout.abilities
     }
+
+    func withAbilityLoadout(_ loadout: AbilityLoadout) -> Combatant {
+        Combatant(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: maxHealth,
+            abilityChoices: abilityChoices.withSelectedLoadout(loadout)
+        )
+    }
+}
+
+struct PlayerRosterState: Equatable {
+    var activeHeroID: String
+    var activePetID: String
+    var abilityLoadouts: [String: AbilityLoadout]
+    var progressions: [String: CombatantProgression]
+    var equipmentLoadouts: [String: EquipmentLoadout]
+
+    static var initial: PlayerRosterState {
+        PlayerRosterState(
+            activeHeroID: GameContent.heroes.first?.id ?? "",
+            activePetID: GameContent.pets.first?.id ?? "",
+            abilityLoadouts: [:],
+            progressions: [
+                "paladin": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
+                "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
+                "mage": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100),
+                "hawk": CombatantProgression(level: 1, currentXP: 40, requiredXP: 100),
+                "drake": CombatantProgression(level: 3, currentXP: 90, requiredXP: 180)
+            ],
+            equipmentLoadouts: [
+                "paladin": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "ember-wand",
+                    .armor: "leather-gloves",
+                    .accessory: "river-charm"
+                ]),
+                "mage": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "ember-wand",
+                    .accessory: "river-charm"
+                ]),
+                "wolf": EquipmentLoadout(itemIDsBySlot: [
+                    .armor: "leather-gloves"
+                ])
+            ]
+        )
+    }
+
+    func loadout(for combatant: Combatant) -> AbilityLoadout {
+        abilityLoadouts[combatant.id] ?? combatant.abilityLoadout
+    }
+
+    mutating func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
+        let configuredCombatant = combatant.withAbilityLoadout(loadout)
+        abilityLoadouts[combatant.id] = configuredCombatant.abilityLoadout
+    }
+
+    func configuredCombatant(_ combatant: Combatant) -> Combatant {
+        combatant.withAbilityLoadout(loadout(for: combatant))
+    }
+
+    func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        combatants.map(configuredCombatant)
+    }
+
+    func progression(for combatant: Combatant) -> CombatantProgression {
+        progressions[combatant.id] ?? .initial
+    }
+
+    func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
+        equipmentLoadouts[combatant.id] ?? EquipmentLoadout()
+    }
+
+    mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
+        equipmentLoadouts[combatant.id] = loadout
+    }
+
+    func equippedItem(
+        for slot: ItemSlot,
+        combatant: Combatant,
+        inventory: PlayerInventoryState
+    ) -> InventoryItem? {
+        inventory.item(matching: equipmentLoadout(for: combatant).itemID(for: slot))
+    }
 }
 
 enum GameContent {
+    static let itemBaseTypes = [
+        ItemBaseType(
+            id: "ember-wand",
+            name: "Ember Wand",
+            slot: .weapon,
+            symbolName: "wand.and.sparkles"
+        ),
+        ItemBaseType(
+            id: "leather-gloves",
+            name: "Leather Gloves",
+            slot: .armor,
+            symbolName: "hands.sparkles.fill"
+        ),
+        ItemBaseType(
+            id: "river-charm",
+            name: "River Charm",
+            slot: .accessory,
+            symbolName: "drop.fill"
+        ),
+        ItemBaseType(
+            id: "iron-sword",
+            name: "Iron Sword",
+            slot: .weapon,
+            symbolName: "sword.fill"
+        )
+    ]
+
+    static let sampleInventoryItems = [
+        InventoryItem(
+            id: "ember-wand",
+            baseType: itemBaseTypes[0],
+            displayName: "Kindled Ember Wand",
+            affixes: [
+                ItemAffix(id: "ember-wand-affix-1", title: "Warm Focus", description: "+3% fire-themed ability power."),
+                ItemAffix(id: "ember-wand-affix-2", title: "Bright Edge", description: "Basic attacks feel slightly sharper."),
+                ItemAffix(id: "ember-wand-affix-3", title: "Cinder Memory", description: "A reminder that item effects are visual-only for now.")
+            ]
+        ),
+        InventoryItem(
+            id: "leather-gloves",
+            baseType: itemBaseTypes[1],
+            displayName: "Patient Leather Gloves",
+            affixes: [
+                ItemAffix(id: "leather-gloves-affix-1", title: "Steady Grip", description: "+2 placeholder handling."),
+                ItemAffix(id: "leather-gloves-affix-2", title: "Soft Stitching", description: "Comfortable enough for long idle battles.")
+            ]
+        ),
+        InventoryItem(
+            id: "river-charm",
+            baseType: itemBaseTypes[2],
+            displayName: "River Charm of Sparks",
+            affixes: [
+                ItemAffix(id: "river-charm-affix-1", title: "Lucky Current", description: "+1 placeholder luck."),
+                ItemAffix(id: "river-charm-affix-2", title: "Blue Glimmer", description: "Adds a cool-toned visual identity."),
+                ItemAffix(id: "river-charm-affix-3", title: "Polished Loop", description: "Fits the shared Accessory slot."),
+                ItemAffix(id: "river-charm-affix-4", title: "Quiet Weight", description: "No combat effect is applied yet.")
+            ]
+        ),
+        InventoryItem(
+            id: "iron-sword",
+            baseType: itemBaseTypes[3],
+            displayName: "Plain Iron Sword",
+            affixes: [
+                ItemAffix(id: "iron-sword-affix-1", title: "Reliable", description: "A clean baseline weapon for layout testing.")
+            ]
+        )
+    ]
+
     static let heroes = [
         Combatant(
             id: "paladin",

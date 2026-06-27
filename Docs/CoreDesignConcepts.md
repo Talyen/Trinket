@@ -18,17 +18,25 @@ Play -> Battle -> Select Hero -> Select Pet -> Battle
 
 Combat is idle by default. A Hero and Pet alternate abilities against a single Enemy.
 
+The persistent tab bar is:
+
+```text
+Play -> Heroes -> Inventory -> Homestead -> Options
+```
+
+`Heroes` is the shared collection area for both Heroes and Pets, with an in-page switch between the two collections. `Inventory` is a top-level collection surface because Items are expected to become a core reward and equipment loop.
+
 ## Heroes
 
 Heroes are primary player combatants. They are represented as identity-first 3:4 full-art cards with exact health, abilities, effects, and formulas available through detail views rather than crowded onto card art.
 
-Hero detail views use the shared combatant detail pattern: large art, name, role, health, active effects, and abilities.
+Hero detail views use native pushed navigation from the Heroes tab. The overview should stay scannable: large art, name, level/experience, health, and drill-ins for ability and item loadouts.
 
 ## Pets
 
 Pets are companion combatants that fight alongside Heroes. They should feel like meaningful partners rather than passive stat bonuses.
 
-Pet detail views use the same shared combatant detail pattern as Heroes and Enemies.
+Pet detail views use the same native pushed collection-detail pattern as Heroes.
 
 ## Enemies
 
@@ -49,11 +57,13 @@ Implemented ability rules:
 
 ## Items
 
-Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses.
+Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the top-level Inventory tab and can also appear through Hero/Pet item loadout flows.
 
 Let players evaluate individual Items from clear item details. Avoid automatic "best for this hero" judgments unless later playtesting shows the inventory experience needs stronger guidance.
 
 Item details should become a sibling detail pattern focused on affixes, bonuses, and readable tradeoffs.
+
+Current item implementation is a visual-only stub. Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Accessory`), card-art placeholder styling, and up to four affix descriptions. Equipped Items do not affect combat stats or rules yet.
 
 ## Keywords
 
@@ -86,7 +96,7 @@ Do not implement all Keywords at once. Introduce them through actual abilities, 
 
 Keep cards identity-first. Avoid covering full-art cards with dense stats; put exact values and formulas in detail views.
 
-Heroes, Pets, and Enemies share the first reusable combatant detail sheet with large art, name, role, health, active effects, and abilities.
+Heroes and Pets use native pushed collection details with drill-in Ability Loadout and Item Loadout screens. Enemies and battle-context combatant inspection can continue using sheets because those details are temporary battle-context views.
 
 ## Battle Screen
 

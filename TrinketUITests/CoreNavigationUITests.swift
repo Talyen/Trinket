@@ -11,9 +11,13 @@ final class CoreNavigationUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Paladin"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Rogue"].exists)
 
-        app.tabBars.buttons["Pets"].tap()
+        app.buttons["Pets"].tap()
         XCTAssertTrue(app.staticTexts["Wolf"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Hawk"].exists)
+
+        app.tabBars.buttons["Inventory"].tap()
+        XCTAssertTrue(app.staticTexts["Kindled Ember Wand"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Patient Leather Gloves"].exists)
 
         app.tabBars.buttons["Homestead"].tap()
         XCTAssertTrue(app.staticTexts["A future base for crafting, upgrades, and long-term progression."].waitForExistence(timeout: 5))
@@ -34,16 +38,83 @@ final class CoreNavigationUITests: XCTestCase {
         app.buttons["Paladin collection card"].tap()
         XCTAssertTrue(app.staticTexts["Health"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["10/10 HP"].exists)
-        XCTAssertTrue(app.staticTexts["Strike"].exists)
-        app.buttons["Done"].tap()
+        XCTAssertTrue(app.staticTexts["Level 2"].exists)
+        XCTAssertTrue(app.staticTexts["35/120 XP"].exists)
+        XCTAssertTrue(app.staticTexts["Ability Loadout"].exists)
+        XCTAssertTrue(app.staticTexts["Item Loadout"].exists)
+        goBack(in: app)
 
-        app.tabBars.buttons["Pets"].tap()
+        app.buttons["Pets"].tap()
         XCTAssertTrue(app.staticTexts["Wolf"].waitForExistence(timeout: 5))
         app.buttons["Wolf collection card"].tap()
         XCTAssertTrue(app.staticTexts["Health"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["6/6 HP"].exists)
-        XCTAssertTrue(app.staticTexts["Strike"].exists)
-        app.buttons["Done"].tap()
+        XCTAssertTrue(app.staticTexts["Level 2"].exists)
+        XCTAssertTrue(app.staticTexts["12/100 XP"].exists)
+        XCTAssertTrue(app.staticTexts["Ability Loadout"].exists)
+        XCTAssertTrue(app.staticTexts["Item Loadout"].exists)
+        goBack(in: app)
+    }
+
+    func testCollectionAbilityLoadoutChangesBattleAbilities() {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.tabBars.buttons["Heroes"].tap()
+        XCTAssertTrue(app.staticTexts["Mage"].waitForExistence(timeout: 5))
+        app.buttons["Mage collection card"].tap()
+        XCTAssertTrue(app.staticTexts["Ability Loadout"].waitForExistence(timeout: 5))
+        app.buttons["Mage ability loadout"].tap()
+        XCTAssertTrue(app.staticTexts["Abilities"].waitForExistence(timeout: 5))
+        app.buttons["Basic Strike ability card"].tap()
+
+        app.tabBars.buttons["Play"].tap()
+        XCTAssertTrue(app.staticTexts["Battle"].waitForExistence(timeout: 5))
+        app.staticTexts["Battle"].tap()
+
+        XCTAssertTrue(app.staticTexts["Select Hero"].waitForExistence(timeout: 5))
+        app.staticTexts["Mage"].tap()
+
+        XCTAssertTrue(app.staticTexts["Select Pet"].waitForExistence(timeout: 5))
+        app.staticTexts["Drake"].tap()
+
+        XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
+        RunLoop.current.run(until: Date().addingTimeInterval(1.0))
+
+        app.buttons["Battle Log"].tap()
+        XCTAssertTrue(app.staticTexts["Mage uses Strike for 1 Physical damage."].waitForExistence(timeout: 5))
+    }
+
+    func testInventoryItemDetailsAreInspectable() {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.tabBars.buttons["Inventory"].tap()
+        XCTAssertTrue(app.buttons["Kindled Ember Wand item card"].waitForExistence(timeout: 5))
+        app.buttons["Kindled Ember Wand item card"].tap()
+
+        XCTAssertTrue(app.staticTexts["Kindled Ember Wand"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Ember Wand • Weapon"].exists)
+        XCTAssertTrue(app.staticTexts["Warm Focus"].exists)
+        XCTAssertTrue(app.staticTexts["+3% fire-themed ability power."].exists)
+    }
+
+    func testCollectionItemLoadoutShowsSharedSlots() {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.tabBars.buttons["Heroes"].tap()
+        XCTAssertTrue(app.staticTexts["Paladin"].waitForExistence(timeout: 5))
+        app.buttons["Paladin collection card"].tap()
+        XCTAssertTrue(app.buttons["Paladin item loadout"].waitForExistence(timeout: 5))
+        app.buttons["Paladin item loadout"].tap()
+
+        XCTAssertTrue(app.staticTexts["Weapon"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Armor"].exists)
+        XCTAssertTrue(app.staticTexts["Accessory"].exists)
+        XCTAssertTrue(app.staticTexts["Kindled Ember Wand"].exists)
+        XCTAssertTrue(app.staticTexts["Patient Leather Gloves"].exists)
+        XCTAssertTrue(app.staticTexts["River Charm of Sparks"].exists)
     }
 
     func testBattleFlowIsReachable() {
@@ -66,7 +137,7 @@ final class CoreNavigationUITests: XCTestCase {
 
         app.buttons["Paladin card"].tap()
         XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
-        app.buttons["Done"].tap()
+        dismissSheet(in: app)
 
         app.buttons["Battle Log"].tap()
         XCTAssertTrue(app.staticTexts["Paladin and Wolf face Training Slime."].waitForExistence(timeout: 5))
@@ -86,7 +157,7 @@ final class CoreNavigationUITests: XCTestCase {
         app.buttons["Mage card"].tap()
         XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["1 Physical damage. Apply Burn 1 for 2 ticks."].exists)
-        app.buttons["Done"].tap()
+        dismissSheet(in: app)
     }
 
     func testKeywordBattleShowsLogAndVictory() {
@@ -141,7 +212,7 @@ final class CoreNavigationUITests: XCTestCase {
         app.buttons["Training Slime card"].tap()
         XCTAssertTrue(app.staticTexts["Active Effects"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Burn: 1 damage next tick, 1 stack."].exists)
-        app.buttons["Done"].tap()
+        dismissSheet(in: app)
 
         app.buttons["Battle Log"].tap()
         XCTAssertTrue(app.staticTexts["Mage uses Ember for 1 Physical damage and applies Burn 1 for 2 ticks."].waitForExistence(timeout: 5))
@@ -164,5 +235,17 @@ final class CoreNavigationUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Select Pet"].waitForExistence(timeout: 5))
         app.staticTexts["Drake"].tap()
+    }
+
+    private func dismissSheet(in app: XCUIApplication) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+        start.press(forDuration: 0.1, thenDragTo: end)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+    }
+
+    private func goBack(in app: XCUIApplication) {
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
     }
 }
