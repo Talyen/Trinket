@@ -23,15 +23,7 @@ struct TrinketApp: App {
 
     private func configureGlobalAppearance() {
         #if canImport(UIKit)
-        // 1. Configure Global Navigation Bar Appearance
-        let navigationAppearance = UINavigationBarAppearance()
-        navigationAppearance.configureWithDefaultBackground()
-        
-        UINavigationBar.appearance().standardAppearance = navigationAppearance
-        UINavigationBar.appearance().compactAppearance = navigationAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navigationAppearance
-        
-        // 2. Configure Global Tab Bar Appearance
+        // Configure Global Tab Bar Appearance
         let tabBarAppearance = UITabBarAppearance()
         tabBarAppearance.configureWithDefaultBackground()
         

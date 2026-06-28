@@ -7,6 +7,22 @@ enum TrinketDesign {
         RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
     }
 
+    enum AppTheme: String, CaseIterable, Identifiable {
+        case system = "System"
+        case light = "Light"
+        case dark = "Dark"
+
+        var id: String { self.rawValue }
+
+        var colorScheme: ColorScheme? {
+            switch self {
+            case .system: return nil
+            case .light: return .light
+            case .dark: return .dark
+            }
+        }
+    }
+
     enum Colors {
         static var appBackground: Color { Color(.systemGroupedBackground) }
         static var groupedSurface: Color { Color(.secondarySystemGroupedBackground) }

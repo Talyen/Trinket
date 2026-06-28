@@ -29,10 +29,10 @@ final class DebugBattleUITests: XCTestCase {
         dismissSheet(in: app)
 
         app.buttons["Battle Menu"].tap()
-        XCTAssertTrue(app.buttons["Pause Battle"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Pause"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Retreat"].exists)
-        XCTAssertTrue(app.buttons["Battle Details"].waitForExistence(timeout: 5))
-        app.buttons["Battle Details"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["Combat Log"].waitForExistence(timeout: 5))
+        app.buttons["Combat Log"].firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Mage uses Ember for 1 Physical damage and applies Burn 1 for 2 ticks."].waitForExistence(timeout: 5))
         app.buttons["Close"].tap()
 

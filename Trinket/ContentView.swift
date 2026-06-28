@@ -19,6 +19,8 @@ struct ContentView: View {
     @State private var activeBattle: ActiveBattleConfiguration?
     @State private var rosterState = PlayerRosterState.initial
     @State private var inventoryState = PlayerInventoryState.initial
+    @State private var isBattlePaused = false
+    @AppStorage("options.theme") private var theme = TrinketDesign.AppTheme.system
 
     init() {
         _selectedTab = State(initialValue: AppTab.launchDefault)
@@ -26,48 +28,51 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            PlayView(
-                rosterState: $rosterState,
-                inventoryState: $inventoryState,
-                activeBattle: $activeBattle
-            )
-            .tabItem {
-                Label("Play", systemImage: "shield.lefthalf.filled")
-            }
-            .tag(AppTab.play)
-
-            NavigationStack {
-                HeroesCollectionView(
+            Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
+                PlayView(
                     rosterState: $rosterState,
-                    inventoryState: $inventoryState
+                    inventoryState: $inventoryState,
+                    activeBattle: $activeBattle,
+                    isBattlePaused: $isBattlePaused
                 )
             }
-            .tabItem {
-                Label("Heroes", systemImage: "person.3.fill")
-            }
-            .tag(AppTab.heroes)
 
-            NavigationStack {
-                InventoryView(
-                    inventoryState: $inventoryState
-                )
+            Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
+                NavigationStack {
+                    CollectionView(
+                        rosterState: $rosterState,
+                        inventoryState: $inventoryState
+                    )
+                }
             }
-            .tabItem {
-                Label("Inventory", systemImage: "shippingbox.fill")
-            }
-            .tag(AppTab.inventory)
 
-            NavigationStack {
-                PlaceholderTabView(
-                    title: "Homestead",
-                    subtitle: "A future base for crafting, upgrades, and long-term progression.",
-                    iconName: "house.fill"
-                )
+            Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
+                NavigationStack {
+                    PlaceholderTabView(title: "Homestead")
+                }
             }
-            .tabItem {
-                Label("Homestead", systemImage: "house.fill")
+
+            Tab(value: AppTab.search, role: .search) {
+                NavigationStack {
+                    SearchView(
+                        rosterState: $rosterState,
+                        inventoryState: $inventoryState
+                    )
+                }
             }
-            .tag(AppTab.homestead)
+        }
+        .preferredColorScheme(theme.colorScheme)
+        .onChange(of: selectedTab) { _, newTab in
+            guard activeBattle != nil else { return }
+            isBattlePaused = newTab != .play
+        }
+        .onChange(of: activeBattle?.id) { _, newValue in
+            guard newValue != nil else {
+                isBattlePaused = false
+                return
+            }
+
+            isBattlePaused = selectedTab != .play
         }
     }
 }
@@ -106,9 +111,27 @@ private struct ActiveBattleConfiguration: Identifiable {
 
 private enum AppTab: String {
     case play
-    case heroes
-    case inventory
+    case collection
     case homestead
+    case search
+
+    var symbolName: String {
+        switch self {
+        case .play: return "map.fill"
+        case .collection: return "person.2.fill"
+        case .homestead: return "house.fill"
+        case .search: return "magnifyingglass"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .play: return "Play"
+        case .collection: return "Collection"
+        case .homestead: return "Homestead"
+        case .search: return "Search"
+        }
+    }
 
     static var launchDefault: AppTab {
         let arguments = ProcessInfo.processInfo.arguments
@@ -124,7 +147,11 @@ private enum AppTab: String {
     }
 
     private static func fromLaunchArgument(_ argument: String) -> AppTab? {
-        AppTab(rawValue: argument.lowercased())
+        let normalized = argument.lowercased()
+        if normalized == "heroes" || normalized == "pets" || normalized == "inventory" {
+            return .collection
+        }
+        return AppTab(rawValue: normalized)
     }
 }
 
@@ -137,6 +164,7 @@ private struct PlayView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
     @Binding var activeBattle: ActiveBattleConfiguration?
+    @Binding var isBattlePaused: Bool
     @State private var path: [PlayRoute] = []
 
     private let debugConfiguration = BattleDebugConfiguration.current
@@ -193,7 +221,9 @@ private struct PlayView: View {
                 petEquipmentLoadout: activeBattle.petEquipmentLoadout,
                 inventoryState: activeBattle.inventoryState,
                 debugConfiguration: activeBattle.debugConfiguration,
+                isBattlePaused: $isBattlePaused,
                 onEndBattle: {
+                    isBattlePaused = false
                     self.activeBattle = nil
                 }
             )
@@ -205,26 +235,28 @@ private struct PlayView: View {
     }
 
     private var playDashboard: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(
-                    title: "Play",
-                    subtitle: "Choose a mode to start building the core loop.",
-                    iconName: "gamecontroller.fill"
-                )
+        List {
+            Section {
+                NavigationLink(value: PlayRoute.heroSelection) {
+                    Label {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(GameMode.battle.rawValue)
 
-                Button {
-                    path.append(.heroSelection)
-                } label: {
-                    ModeCard(mode: .battle)
+                            Text(GameMode.battle.subtitle)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "bolt.fill")
+                    }
                 }
-                .buttonStyle(.plain)
             }
-            .padding(20)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Play")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
@@ -235,8 +267,6 @@ private struct HeroSelectionView: View {
     var body: some View {
         SelectionGridView(
             title: "Select Hero",
-            subtitle: "Pick the Hero who will lead this battle.",
-            iconName: "shield.lefthalf.filled",
             combatants: rosterState.configuredCombatants(GameContent.heroes),
             onSelect: onSelect
         )
@@ -251,8 +281,6 @@ private struct PetSelectionView: View {
     var body: some View {
         SelectionGridView(
             title: "Select Pet",
-            subtitle: "\(hero.name) needs a companion for this battle.",
-            iconName: "pawprint.fill",
             combatants: rosterState.configuredCombatants(GameContent.pets),
             onSelect: onSelect
         )
@@ -261,8 +289,6 @@ private struct PetSelectionView: View {
 
 private struct SelectionGridView: View {
     let title: String
-    let subtitle: String
-    let iconName: String
     let combatants: [Combatant]
     let onSelect: (Combatant) -> Void
 
@@ -273,8 +299,6 @@ private struct SelectionGridView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(title: title, subtitle: subtitle, iconName: iconName)
-
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(combatants) { combatant in
                         Button {
@@ -291,7 +315,7 @@ private struct SelectionGridView: View {
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
@@ -322,8 +346,9 @@ private struct BattleView: View {
     @State private var selectedDetails: CombatantCardDetail?
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
+    @State private var isShowingOptions = false
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
-    @State private var isBattlePaused = false
+    @Binding var isBattlePaused: Bool
     @State private var isDebugPaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -351,6 +376,7 @@ private struct BattleView: View {
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryState: PlayerInventoryState = .initial,
         debugConfiguration: BattleDebugConfiguration = .disabled,
+        isBattlePaused: Binding<Bool>,
         onEndBattle: @escaping () -> Void
     ) {
         self.heroProgression = heroProgression
@@ -361,6 +387,7 @@ private struct BattleView: View {
         self.debugConfiguration = debugConfiguration
         self.onEndBattle = onEndBattle
         _battle = State(initialValue: BattleState(hero: hero, pet: pet))
+        _isBattlePaused = isBattlePaused
         _isDebugPaused = State(initialValue: debugConfiguration.startsPaused)
     }
 
@@ -408,6 +435,20 @@ private struct BattleView: View {
             )
                 .presentationDetents([.medium])
         }
+        .sheet(isPresented: $isShowingOptions) {
+            NavigationStack {
+                OptionsView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") {
+                                isShowingOptions = false
+                            }
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
         .safeAreaInset(edge: .bottom) {
             if !isShowingVictory && debugConfiguration.isEnabled {
                 BattleDebugOverlay(
@@ -437,7 +478,12 @@ private struct BattleView: View {
         Menu {
             if !isShowingVictory {
                 Toggle(isOn: $isBattlePaused) {
-                    Label("Pause Battle", systemImage: "pause.fill")
+                    Label {
+                        Text(isBattlePaused ? "Resume" : "Pause")
+                    } icon: {
+                        Image(systemName: isBattlePaused ? "play.fill" : "pause.fill")
+                            .contentTransition(.symbolEffect(.replace))
+                    }
                 }
                 .accessibilityIdentifier("Battle Pause Toggle")
             }
@@ -445,8 +491,15 @@ private struct BattleView: View {
             Button {
                 isShowingBattleLog = true
             } label: {
-                Label("Battle Details", systemImage: "list.bullet.rectangle")
+                Label("Combat Log", systemImage: "list.bullet.rectangle")
             }
+
+            Button {
+                isShowingOptions = true
+            } label: {
+                Label("Options", systemImage: "gearshape")
+            }
+            .accessibilityIdentifier("Options menu item")
 
             if !isShowingVictory {
                 Divider()
@@ -454,14 +507,18 @@ private struct BattleView: View {
                 Button(role: .destructive) {
                     onEndBattle()
                 } label: {
-                    Label("Retreat", systemImage: "figure.walk")
+                    Label("Retreat", systemImage: "figure.run")
                 }
                 .tint(TrinketDesign.Colors.destructive)
                 .accessibilityIdentifier("Retreat")
             }
         } label: {
-            Label("Battle actions", systemImage: "ellipsis")
-                .labelStyle(.iconOnly)
+            Label {
+                Text("Battle actions")
+            } icon: {
+                Image(systemName: "ellipsis")
+            }
+            .labelStyle(.iconOnly)
         }
         .accessibilityLabel("Battle Menu")
         .accessibilityIdentifier("Battle Menu")
@@ -477,7 +534,8 @@ private struct BattleView: View {
                         maxHealth: battle.enemy.maxHealth,
                         prominence: .enemy,
                         cardWidth: 210,
-                        showsText: false
+                        showsText: false,
+                        isPaused: isBattlePaused
                     ) {
                         selectedDetails = details(
                             for: battle.enemy,
@@ -500,7 +558,8 @@ private struct BattleView: View {
                         maxHealth: battle.hero.maxHealth,
                         prominence: .party,
                         cardWidth: 150,
-                        showsText: false
+                        showsText: false,
+                        isPaused: isBattlePaused
                     ) {
                         selectedDetails = details(
                             for: battle.hero,
@@ -515,7 +574,8 @@ private struct BattleView: View {
                         maxHealth: battle.pet.maxHealth,
                         prominence: .party,
                         cardWidth: 150,
-                        showsText: false
+                        showsText: false,
+                        isPaused: isBattlePaused
                     ) {
                         selectedDetails = details(
                             for: battle.pet,
@@ -680,119 +740,165 @@ private struct BattleDebugOverlay: View {
     }
 }
 
-private enum CombatantCollectionKind: String, CaseIterable, Identifiable {
-    case heroes = "Heroes"
-    case pets = "Pets"
 
-    var id: String { rawValue }
-
-    var subtitle: String {
-        switch self {
-        case .heroes:
-            return "Build a party for the idle battle loop."
-        case .pets:
-            return "Companions bring abilities, stats, and charm."
-        }
-    }
-
-    var iconName: String {
-        switch self {
-        case .heroes:
-            return "shield.lefthalf.filled"
-        case .pets:
-            return "pawprint.fill"
-        }
-    }
-
-    var combatants: [Combatant] {
-        switch self {
-        case .heroes:
-            return GameContent.heroes
-        case .pets:
-            return GameContent.pets
-        }
-    }
-}
-
-private struct HeroesCollectionView: View {
+private struct CollectionView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
-    @State private var selectedKind: CombatantCollectionKind = .heroes
- 
-    private let columns = [
-        GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
-    ]
+
+    @State private var selectedCombatant: Combatant?
+    @State private var selectedItem: InventoryItem?
 
     var body: some View {
-        // Smooth Horizontal Scroll Paging
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(alignment: .top, spacing: 0) {
-                rosterGrid(for: CombatantCollectionKind.heroes.combatants)
-                    .containerRelativeFrame(.horizontal)
-                    .id(CombatantCollectionKind.heroes)
-
-                rosterGrid(for: CombatantCollectionKind.pets.combatants)
-                    .containerRelativeFrame(.horizontal)
-                    .id(CombatantCollectionKind.pets)
-            }
-            .scrollTargetLayout()
-        }
-        .scrollTargetBehavior(.paging)
-        .scrollPosition(id: Binding(
-            get: { Optional(selectedKind) },
-            set: { newValue in
-                if let newValue {
-                    withAnimation(.spring(duration: 0.28)) {
-                        selectedKind = newValue
-                    }
-                }
-            }
-        ))
-        .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Collection", selection: Binding(
-                    get: { selectedKind },
-                    set: { newValue in
-                        withAnimation(.spring(duration: 0.28)) {
-                            selectedKind = newValue
-                        }
-                    }
-                )) {
-                    ForEach(CombatantCollectionKind.allCases) { kind in
-                        Text(kind.rawValue).tag(kind)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("Heroes collection switcher")
-                .frame(width: 180)
-            }
-        }
-    }
-
-    private func rosterGrid(for combatants: [Combatant]) -> some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(rosterState.configuredCombatants(combatants)) { combatant in
+            VStack(spacing: 28) {
+                // Heroes Section
+                VStack(alignment: .leading, spacing: 12) {
                     NavigationLink {
-                        CombatantCollectionDetailView(
-                            combatant: combatant,
-                            progression: rosterState.progression(for: combatant),
-                            loadout: loadoutBinding(for: combatant),
-                            equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                        HeroesGridView(
+                            rosterState: $rosterState,
                             inventoryState: $inventoryState
                         )
                     } label: {
-                        CombatantCard(combatant: combatant)
+                        HStack(spacing: 6) {
+                            Text("Heroes")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(.primary)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("\(combatant.name) collection card")
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("Heroes collection category")
+
+                    horizontalShelf {
+                        ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
+                            Button {
+                                selectedCombatant = combatant
+                            } label: {
+                                CombatantCard(combatant: combatant)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(combatant.name) collection card")
+                        }
+                    }
+                }
+
+                // Pets Section
+                VStack(alignment: .leading, spacing: 12) {
+                    NavigationLink {
+                        PetsGridView(
+                            rosterState: $rosterState,
+                            inventoryState: $inventoryState
+                        )
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text("Pets")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(.primary)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("Pets collection category")
+
+                    horizontalShelf {
+                        ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
+                            Button {
+                                selectedCombatant = combatant
+                            } label: {
+                                CombatantCard(combatant: combatant)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(combatant.name) collection card")
+                        }
+                    }
+                }
+
+                // Inventory Section
+                VStack(alignment: .leading, spacing: 12) {
+                    NavigationLink {
+                        InventoryGridView(
+                            inventoryState: $inventoryState
+                        )
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text("Inventory")
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(.primary)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("Inventory collection category")
+
+                    horizontalShelf {
+                        ForEach(inventoryState.items) { item in
+                            Button {
+                                selectedItem = item
+                            } label: {
+                                ItemCard(item: item, showsAffixCount: false)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(item.displayName) item card")
+                        }
+                    }
                 }
             }
+            .padding(.top, 16)
+            .padding(.bottom, 24)
+        }
+        .background(TrinketDesign.Colors.appBackground)
+        .navigationTitle("Collection")
+        .navigationBarTitleDisplayMode(.large)
+        .sheet(item: $selectedCombatant) { combatant in
+            NavigationStack {
+                CombatantCollectionDetailView(
+                    combatant: combatant,
+                    progression: rosterState.progression(for: combatant),
+                    loadout: loadoutBinding(for: combatant),
+                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                    inventoryState: $inventoryState
+                )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $selectedItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    private func horizontalShelf<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                content()
+            }
             .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.vertical, 4)
         }
     }
 
@@ -813,42 +919,289 @@ private struct HeroesCollectionView: View {
     }
 }
 
-private struct ModeCard: View {
-    let mode: GameMode
+
+private struct HeroesGridView: View {
+    @Binding var rosterState: PlayerRosterState
+    @Binding var inventoryState: PlayerInventoryState
+    @State private var selectedCombatant: Combatant?
+ 
+    private let columns = [
+        GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
+    ]
 
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "bolt.fill")
-                .font(.title)
-                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(mode.rawValue)
-                    .font(.title2.bold())
-                    .foregroundStyle(.primary)
-
-                Text(mode.subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
+                        Button {
+                            selectedCombatant = combatant
+                        } label: {
+                            CombatantCard(combatant: combatant)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("\(combatant.name) collection card")
+                    }
+                }
             }
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.headline)
-                .foregroundStyle(.tertiary)
-                .accessibilityHidden(true)
+            .padding(20)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .stroke(.quaternary, lineWidth: 1)
+        .background(TrinketDesign.Colors.appBackground)
+        .navigationTitle("Heroes")
+        .navigationBarTitleDisplayMode(.large)
+        .sheet(item: $selectedCombatant) { combatant in
+            NavigationStack {
+                CombatantCollectionDetailView(
+                    combatant: combatant,
+                    progression: rosterState.progression(for: combatant),
+                    loadout: loadoutBinding(for: combatant),
+                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                    inventoryState: $inventoryState
+                )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(mode.rawValue), \(mode.subtitle)")
+    }
+
+    private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
+        Binding {
+            rosterState.loadout(for: combatant)
+        } set: { loadout in
+            rosterState.setLoadout(loadout, for: combatant)
+        }
+    }
+
+    private func equipmentLoadoutBinding(for combatant: Combatant) -> Binding<EquipmentLoadout> {
+        Binding {
+            rosterState.equipmentLoadout(for: combatant)
+        } set: { loadout in
+            rosterState.setEquipmentLoadout(loadout, for: combatant)
+        }
+    }
+}
+
+private struct PetsGridView: View {
+    @Binding var rosterState: PlayerRosterState
+    @Binding var inventoryState: PlayerInventoryState
+    @State private var selectedCombatant: Combatant?
+ 
+    private let columns = [
+        GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
+                        Button {
+                            selectedCombatant = combatant
+                        } label: {
+                            CombatantCard(combatant: combatant)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("\(combatant.name) collection card")
+                    }
+                }
+            }
+            .padding(20)
+        }
+        .background(TrinketDesign.Colors.appBackground)
+        .navigationTitle("Pets")
+        .navigationBarTitleDisplayMode(.large)
+        .sheet(item: $selectedCombatant) { combatant in
+            NavigationStack {
+                CombatantCollectionDetailView(
+                    combatant: combatant,
+                    progression: rosterState.progression(for: combatant),
+                    loadout: loadoutBinding(for: combatant),
+                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                    inventoryState: $inventoryState
+                )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
+        Binding {
+            rosterState.loadout(for: combatant)
+        } set: { loadout in
+            rosterState.setLoadout(loadout, for: combatant)
+        }
+    }
+
+    private func equipmentLoadoutBinding(for combatant: Combatant) -> Binding<EquipmentLoadout> {
+        Binding {
+            rosterState.equipmentLoadout(for: combatant)
+        } set: { loadout in
+            rosterState.setEquipmentLoadout(loadout, for: combatant)
+        }
+    }
+}
+
+private struct SearchView: View {
+    @Binding var rosterState: PlayerRosterState
+    @Binding var inventoryState: PlayerInventoryState
+    @State private var searchText = ""
+    @State private var selectedCombatant: Combatant?
+    @State private var selectedItem: InventoryItem?
+
+    var body: some View {
+        searchContent
+        .background(TrinketDesign.Colors.appBackground)
+        .navigationTitle("Search")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+        .sheet(item: $selectedCombatant) { combatant in
+            NavigationStack {
+                CombatantCollectionDetailView(
+                    combatant: combatant,
+                    progression: rosterState.progression(for: combatant),
+                    loadout: loadoutBinding(for: combatant),
+                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                    inventoryState: $inventoryState
+                )
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $selectedItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+    }
+
+    @ViewBuilder
+    private var searchContent: some View {
+        let trimmedQuery = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmedQuery.isEmpty {
+            ContentUnavailableView(
+                "Heroes, Pets, and Items",
+                systemImage: "magnifyingglass"
+            )
+        } else {
+            let results = getSearchResults(for: trimmedQuery)
+
+            if results.isEmpty {
+                ContentUnavailableView(
+                    "No Results Found",
+                    systemImage: "questionmark.magnifyingglass",
+                    description: Text("No match for \"\(searchText)\".")
+                )
+            } else {
+                List {
+                    if !results.heroes.isEmpty {
+                        SearchResultSection(title: "Heroes", items: results.heroes) { combatant in
+                            Button {
+                                selectedCombatant = combatant
+                            } label: {
+                                CombatantCard(combatant: combatant)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(combatant.name) collection card")
+                        }
+                    }
+
+                    if !results.pets.isEmpty {
+                        SearchResultSection(title: "Pets", items: results.pets) { combatant in
+                            Button {
+                                selectedCombatant = combatant
+                            } label: {
+                                CombatantCard(combatant: combatant)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(combatant.name) collection card")
+                        }
+                    }
+
+                    if !results.items.isEmpty {
+                        SearchResultSection(title: "Items", items: results.items) { item in
+                            Button {
+                                selectedItem = item
+                            } label: {
+                                ItemCard(item: item, showsAffixCount: true)
+                                    .frame(width: 130)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(item.displayName) item card")
+                        }
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+            }
+        }
+    }
+
+    private struct SearchResults {
+        let heroes: [Combatant]
+        let pets: [Combatant]
+        let items: [InventoryItem]
+        
+        var isEmpty: Bool {
+            heroes.isEmpty && pets.isEmpty && items.isEmpty
+        }
+    }
+
+    private func getSearchResults(for query: String) -> SearchResults {
+        let matchingHeroes = rosterState.configuredCombatants(GameContent.heroes).filter {
+            $0.name.localizedCaseInsensitiveContains(query)
+        }
+        let matchingPets = rosterState.configuredCombatants(GameContent.pets).filter {
+            $0.name.localizedCaseInsensitiveContains(query)
+        }
+        let matchingItems = inventoryState.items.filter {
+            $0.displayName.localizedCaseInsensitiveContains(query) ||
+            $0.baseType.name.localizedCaseInsensitiveContains(query)
+        }
+
+        return SearchResults(heroes: matchingHeroes, pets: matchingPets, items: matchingItems)
+    }
+
+    private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
+        Binding {
+            rosterState.loadout(for: combatant)
+        } set: { loadout in
+            rosterState.setLoadout(loadout, for: combatant)
+        }
+    }
+
+    private func equipmentLoadoutBinding(for combatant: Combatant) -> Binding<EquipmentLoadout> {
+        Binding {
+            rosterState.equipmentLoadout(for: combatant)
+        } set: { loadout in
+            rosterState.setEquipmentLoadout(loadout, for: combatant)
+        }
+    }
+}
+
+private struct SearchResultSection<Item: Identifiable, Content: View>: View {
+    let title: String
+    let items: [Item]
+    let content: (Item) -> Content
+
+    var body: some View {
+        Section(title) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(items) { item in
+                        content(item)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 4)
+            }
+            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 12, trailing: 0))
+        }
     }
 }
 
@@ -856,11 +1209,43 @@ private struct CombatantCard: View {
     let combatant: Combatant
 
     var body: some View {
-        PlaceholderCard(
-            title: combatant.name,
-            subtitle: "\(combatant.maxHealth) HP",
-            footer: combatant.abilityLoadout.basic?.name ?? "No Ability"
-        )
+        VStack(spacing: 8) {
+            TrinketDesign.cardShape
+                .fill(TrinketDesign.Materials.card)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    ZStack {
+                        LinearGradient(
+                            colors: [
+                                TrinketDesign.Colors.cardArtAccent.opacity(0.18),
+                                Color(.systemBackground).opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .clipShape(TrinketDesign.cardShape)
+
+                        Image(systemName: combatant.role == .hero ? "person.fill" : "pawprint.fill")
+                            .font(.system(size: 38, weight: .semibold))
+                            .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
+                            .symbolRenderingMode(.hierarchical)
+                            .accessibilityHidden(true)
+                    }
+                }
+                .overlay {
+                    TrinketDesign.cardShape
+                        .stroke(.quaternary, lineWidth: 1)
+                }
+
+            Text(combatant.name)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 4)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(combatant.name) card")
     }
 }
 
@@ -876,6 +1261,7 @@ private struct CombatantStatusCard: View {
     let prominence: Prominence
     let cardWidth: CGFloat
     let showsText: Bool
+    var isPaused: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -883,7 +1269,8 @@ private struct CombatantStatusCard: View {
             VStack(spacing: 8) {
                 BattleArtCard(
                     combatant: combatant,
-                    showsText: showsText
+                    showsText: showsText,
+                    isPaused: isPaused
                 )
                 .frame(width: cardWidth)
 
@@ -912,6 +1299,7 @@ private struct CombatantStatusCard: View {
 private struct BattleArtCard: View {
     let combatant: Combatant
     let showsText: Bool
+    var isPaused: Bool = false
 
     var body: some View {
         TrinketDesign.cardShape
@@ -1156,6 +1544,7 @@ private struct CombatantCollectionDetailView: View {
     @Binding var equipmentLoadout: EquipmentLoadout
     @Binding var inventoryState: PlayerInventoryState
     @State private var selectedItemSlot: ItemSlot?
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         CombatantDetailPane(
@@ -1169,6 +1558,13 @@ private struct CombatantCollectionDetailView: View {
         )
         .navigationTitle(combatant.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
         .sheet(item: $selectedItemSlot) { slot in
             NavigationStack {
                 ItemSlotPickerView(
@@ -1195,96 +1591,83 @@ private struct CombatantDetailPane: View {
     @Binding var selectedItemSlot: ItemSlot?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+        List {
+            Section {
                 VStack(spacing: 16) {
-                    BattleArtCard(combatant: combatant, showsText: false)
-                        .frame(maxWidth: 220)
-                        .accessibilityLabel("\(combatant.name) card art")
+                    HStack {
+                        Spacer()
+                        BattleArtCard(combatant: combatant, showsText: false)
+                            .frame(maxWidth: 220)
+                            .accessibilityLabel("\(combatant.name) card art")
+                        Spacer()
+                    }
 
                     Text(combatant.name)
-                        .font(.largeTitle.bold())
+                        .font(.title.weight(.bold))
+                        .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 16)
                 }
+                .listRowBackground(Color.clear)
+            }
 
+            Section("Progress") {
                 ExperienceProgressDetail(progression: progression)
+            }
 
-                if let battleHealth {
-                    DetailSection(title: "Health") {
-                        CombatantHealthDetail(
-                            health: battleHealth,
-                            maxHealth: combatant.maxHealth,
-                            fillColor: combatant.healthBarColor
-                        )
-                    }
-                }
-
-                if !activeStatusSummaries.isEmpty {
-                    DetailSection(title: "Active Effects") {
-                        ForEach(activeStatusSummaries) { summary in
-                            KeywordDescriptionText(text: summary.text)
-                                .font(.subheadline)
-                                .accessibilityElement(children: .combine)
-                        }
-                    }
-                }
-
-                DetailSection(title: "Stats") {
-                    CombatantStatsDetail(
-                        maxHealth: combatant.maxHealth
-                    )
-                }
-
-                DetailSection(title: "Abilities") {
-                    AbilitySummaryGrid(
-                        combatant: combatant,
-                        loadout: $loadout,
-                        allowsEditing: allowsEditing
-                    )
-                }
-
-                DetailSection(title: "Items") {
-                    EquipmentSlotSummaryGrid(
-                        equipmentLoadout: equipmentLoadout,
-                        inventoryState: inventoryState,
-                        onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+            if let battleHealth {
+                Section("Health") {
+                    CombatantHealthDetail(
+                        health: battleHealth,
+                        maxHealth: combatant.maxHealth,
+                        fillColor: combatant.healthBarColor
                     )
                 }
             }
-            .padding(20)
+
+            if !activeStatusSummaries.isEmpty {
+                Section("Active Effects") {
+                    ForEach(activeStatusSummaries) { summary in
+                        KeywordDescriptionText(text: summary.text)
+                            .font(.subheadline)
+                            .accessibilityElement(children: .combine)
+                    }
+                }
+            }
+
+            Section("Stats") {
+                HStack {
+                    Text("Health")
+
+                    Spacer()
+
+                    Text("\(combatant.maxHealth) HP")
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+
+            Section("Abilities") {
+                AbilitySummaryGrid(
+                    combatant: combatant,
+                    loadout: $loadout,
+                    allowsEditing: allowsEditing
+                )
+                .padding(.vertical, 4)
+            }
+
+            Section("Items") {
+                EquipmentSlotSummaryGrid(
+                    equipmentLoadout: equipmentLoadout,
+                    inventoryState: inventoryState,
+                    onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+                )
+                .padding(.vertical, 4)
+            }
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .background(TrinketDesign.Colors.appBackground)
-    }
-}
-
-private struct CombatantStatsDetail: View {
-    let maxHealth: Int
-
-    var body: some View {
-        HStack(spacing: 12) {
-            StatPill(title: "Health", value: "\(maxHealth) HP")
-        }
-    }
-}
-
-private struct StatPill: View {
-    let title: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            Text(value)
-                .font(.subheadline.monospacedDigit().weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -1335,26 +1718,30 @@ private struct AbilitySummaryGrid: View {
     let allowsEditing: Bool
     @State private var selectedAbilityTier: AbilityTier?
 
-    var body: some View {
-        VStack(spacing: 12) {
-            ForEach(AbilityTier.allCases) { tier in
-                if allowsEditing {
-                    Button {
-                        selectedAbilityTier = tier
-                    } label: {
-                        rowContent(for: tier)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                    .accessibilityHint("Shows \(tier.rawValue) ability choices.")
-                } else {
-                    rowContent(for: tier)
-                        .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                        .accessibilityHint("Shows selected \(tier.rawValue) ability.")
-                }
+    private let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
 
-                if tier != AbilityTier.allCases.last {
-                    Divider()
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            LazyVGrid(columns: columns, spacing: 10) {
+                ForEach(AbilityTier.allCases) { tier in
+                    if allowsEditing {
+                        Button {
+                            selectedAbilityTier = tier
+                        } label: {
+                            abilitySlot(for: tier)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("\(tier.rawValue) ability slot")
+                        .accessibilityHint("Shows \(tier.rawValue) ability choices.")
+                    } else {
+                        abilitySlot(for: tier)
+                            .accessibilityIdentifier("\(tier.rawValue) ability slot")
+                            .accessibilityHint("Shows selected \(tier.rawValue) ability.")
+                    }
                 }
             }
         }
@@ -1371,58 +1758,14 @@ private struct AbilitySummaryGrid: View {
         }
     }
 
-    @ViewBuilder
-    private func rowContent(for tier: AbilityTier) -> some View {
-        HStack(alignment: .center, spacing: 14) {
+    private func abilitySlot(for tier: AbilityTier) -> some View {
+        Group {
             if let ability = selectedAbility(for: tier) {
-                AbilityChoiceCard(
-                    ability: ability,
-                    isSelected: false
-                )
-                .frame(height: 80)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(tier.rawValue.uppercased())
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-                    
-                    Text(ability.name)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    
-                    KeywordDescriptionText(text: ability.summary)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                AbilityChoiceCard(ability: ability)
             } else {
                 EmptyAbilitySlotCard(tier: tier)
-                    .frame(height: 80)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(tier.rawValue.uppercased())
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-                    
-                    Text("Empty Slot")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    
-                    Text("Select an ability choice.")
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-
-            Spacer()
-
-            if allowsEditing {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
             }
         }
-        .contentShape(Rectangle())
     }
 
     private func selectedAbility(for tier: AbilityTier) -> Ability? {
@@ -1467,7 +1810,7 @@ private struct EquipmentSlotSummaryGrid: View {
     }
 
     private func itemSlot(for slot: ItemSlot) -> some View {
-        LabeledSummaryCard(title: slot.rawValue) {
+        Group {
             if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
                 ItemCard(item: item, showsAffixCount: false)
             } else {
@@ -1477,30 +1820,7 @@ private struct EquipmentSlotSummaryGrid: View {
     }
 }
 
-private struct LabeledSummaryCard<Content: View>: View {
-    let title: String
-    let content: Content
 
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .center, spacing: 6) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
-
-            content
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
 
 private struct AbilityTierPickerSheet: View {
     let combatant: Combatant
@@ -1508,25 +1828,25 @@ private struct AbilityTierPickerSheet: View {
     @Binding var loadout: AbilityLoadout
     @Environment(\.dismiss) private var dismiss
 
+    @State private var selectedAbilityID: String? = nil
+
     private var abilities: [Ability] {
         combatant.abilityChoices.abilities(for: tier)
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 12) {
+        List {
+            Section {
                 ForEach(abilities) { ability in
                     Button {
+                        selectedAbilityID = ability.id
                         loadout = loadout.selecting(ability)
                         dismiss()
                     } label: {
-                        let isSelected = ability.id == selectedAbility?.id
+                        let isSelected = ability.id == (selectedAbilityID ?? selectedAbility?.id)
                         HStack(spacing: 14) {
-                            AbilityChoiceCard(
-                                ability: ability,
-                                isSelected: isSelected
-                            )
-                            .frame(height: 80)
+                            AbilityChoiceCard(ability: ability)
+                            .frame(height: 133)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(ability.name)
@@ -1542,26 +1862,26 @@ private struct AbilityTierPickerSheet: View {
                             Spacer()
                             
                             if isSelected {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title3.weight(.semibold))
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
                                     .foregroundStyle(TrinketDesign.Colors.selection)
+                                    .accessibilityHidden(true)
                             }
                         }
-                        .padding(12)
-                        .background(TrinketDesign.Colors.groupedSurface, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSelected ? TrinketDesign.Colors.selection : Color.clear, lineWidth: 1.5)
-                        }
+                        .padding(.vertical, 4)
                     }
                     .buttonStyle(.plain)
+                    .listRowBackground(TrinketDesign.Colors.groupedSurface)
                     .accessibilityIdentifier("\(tier.rawValue) \(ability.name) ability card")
+                    .accessibilityValue(ability.id == (selectedAbilityID ?? selectedAbility?.id) ? "Selected" : "Available")
                 }
             }
-            .padding(20)
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .sensoryFeedback(.selection, trigger: selectedAbilityID)
         .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle("Choose \(tier.rawValue)")
+        .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -1581,44 +1901,66 @@ private struct ItemSlotPickerView: View {
     @Binding var inventoryState: PlayerInventoryState
     @Environment(\.dismiss) private var dismiss
     @State private var itemOrder: [String] = []
-
-    private let columns = [
-        GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
-    ]
+    @State private var selectedItemID: String? = nil
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(orderedItems) { item in
-                        Button {
-                            equipmentLoadout.equip(item, in: slot)
-                        } label: {
-                            SelectableItemCell(isSelected: equipmentLoadout.itemID(for: slot) == item.id) {
-                                ItemCard(item: item, showsAffixCount: true)
+        List {
+            Section {
+                ForEach(orderedItems) { item in
+                    Button {
+                        selectedItemID = item.id
+                        equipmentLoadout.equip(item, in: slot)
+                        dismiss()
+                    } label: {
+                        let isSelected = item.id == (selectedItemID ?? equipmentLoadout.itemID(for: slot))
+                        HStack(spacing: 14) {
+                            ItemCard(item: item, showsAffixCount: false)
+                                .frame(height: 133)
+                            
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(item.displayName)
+                                    .font(.headline.weight(.semibold))
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.leading)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    ForEach(item.affixes.prefix(4)) { affix in
+                                        Text(affix.description)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(2)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            if isSelected {
+                                Image(systemName: "checkmark")
+                                    .font(.body.weight(.semibold))
+                                    .foregroundStyle(TrinketDesign.Colors.selection)
+                                    .accessibilityHidden(true)
                             }
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("Equip \(item.displayName)")
-                        .accessibilityValue(equipmentLoadout.itemID(for: slot) == item.id ? "Equipped" : "Available")
+                        .padding(.vertical, 4)
                     }
+                    .buttonStyle(.plain)
+                    .listRowBackground(TrinketDesign.Colors.groupedSurface)
+                    .accessibilityIdentifier("Equip \(item.displayName)")
+                    .accessibilityValue(equipmentLoadout.itemID(for: slot) == item.id ? "Equipped" : "Available")
                 }
             }
-            .padding(20)
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .sensoryFeedback(.selection, trigger: selectedItemID)
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Equip \(slot.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if itemOrder.isEmpty {
                 itemOrder = entrySortedItems.map(\.id)
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Done") {
-                    dismiss()
-                }
             }
         }
     }
@@ -1667,13 +2009,15 @@ private enum InventoryFilter: String, CaseIterable, Identifiable {
             return .trinket
         }
     }
+
 }
 
-private struct InventoryView: View {
+private struct InventoryGridView: View {
     @Binding var inventoryState: PlayerInventoryState
     @State private var searchText = ""
     @State private var selectedFilter: InventoryFilter = .all
-
+    @State private var selectedItem: InventoryItem?
+ 
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
     ]
@@ -1681,16 +2025,10 @@ private struct InventoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                ScreenHeader(
-                    title: "Inventory",
-                    subtitle: "Browse item rewards and inspect their affixes.",
-                    iconName: "shippingbox.fill"
-                )
-
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(filteredItems) { item in
-                        NavigationLink {
-                            ItemDetailView(item: item)
+                        Button {
+                            selectedItem = item
                         } label: {
                             ItemCard(item: item, showsAffixCount: true)
                         }
@@ -1703,7 +2041,7 @@ private struct InventoryView: View {
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Inventory")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search items")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -1714,10 +2052,20 @@ private struct InventoryView: View {
                         }
                     }
                 } label: {
-                    Label(selectedFilter.rawValue, systemImage: "line.3.horizontal.decrease.circle")
+                    Image(systemName: "line.3.horizontal.decrease")
+                        .font(.body.weight(selectedFilter != .all ? .semibold : .regular))
+                        .foregroundStyle(selectedFilter != .all ? TrinketDesign.Colors.cardArtAccent : .primary)
                 }
+                .accessibilityLabel("Filter")
                 .accessibilityIdentifier("Inventory filter")
             }
+        }
+        .sheet(item: $selectedItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 
@@ -1740,73 +2088,55 @@ private struct InventoryView: View {
 
 private struct ItemDetailView: View {
     let item: InventoryItem
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                ItemCard(item: item, showsAffixCount: false)
-                    .frame(maxWidth: 220)
-                    .frame(maxWidth: .infinity)
+        List {
+            Section {
+                VStack(spacing: 16) {
+                    HStack {
+                        Spacer()
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(item.displayName)
-                        .font(.largeTitle.bold())
+                        ItemCard(item: item, showsAffixCount: false, showsName: false)
+                            .frame(maxWidth: 220)
 
-                    Text("\(item.baseType.name) • \(item.baseType.slot.rawValue)")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                DetailSection(title: "Affixes") {
-                    ForEach(item.affixes.prefix(4)) { affix in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(affix.title)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.primary)
-
-                            Text(affix.description)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        .accessibilityElement(children: .combine)
+                        Spacer()
                     }
+
+                    Text(item.displayName)
+                        .font(.title.weight(.bold))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                }
+                .listRowBackground(Color.clear)
+            }
+
+            Section("Affixes") {
+                ForEach(item.affixes.prefix(4)) { affix in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(affix.title)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+
+                        Text(affix.description)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
             }
-            .padding(20)
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(item.displayName)
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct DetailSection<Content: View>: View {
-    let title: String
-    let content: Content
-
-    init(
-        title: String,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.title = title
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline)
-
-            VStack(alignment: .leading, spacing: 10) {
-                content
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, lineWidth: 1)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    dismiss()
+                }
             }
         }
     }
@@ -1837,38 +2167,43 @@ private struct CombatantHealthDetail: View {
 
 private struct AbilityChoiceCard: View {
     let ability: Ability
-    let isSelected: Bool
 
     var body: some View {
-        ZStack {
+        VStack(spacing: 8) {
             TrinketDesign.cardShape
                 .fill(TrinketDesign.Materials.card)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    LinearGradient(
+                        colors: [
+                            ability.damageKeyword.visualStyle.cardTint,
+                            Color(.systemBackground).opacity(0.08)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(TrinketDesign.cardShape)
+                }
+                .overlay {
+                    Image(systemName: ability.damageKeyword.visualStyle.symbolName)
+                        .font(.system(size: 38, weight: .semibold))
+                        .foregroundStyle(ability.damageKeyword.visualStyle.color)
+                        .accessibilityHidden(true)
+                }
+                .overlay {
+                    TrinketDesign.cardShape
+                        .stroke(.quaternary, lineWidth: 1)
+                }
 
-            LinearGradient(
-                colors: [
-                    ability.damageKeyword.visualStyle.cardTint,
-                    Color(.systemBackground).opacity(0.1)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .clipShape(TrinketDesign.cardShape)
-
-            Image(systemName: ability.damageKeyword.visualStyle.symbolName)
-                .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(ability.damageKeyword.visualStyle.color)
-                .accessibilityHidden(true)
+            Text(ability.name)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 4)
         }
-        .aspectRatio(3.0 / 4.0, contentMode: .fit)
-        .overlay {
-            if isSelected {
-                TrinketDesign.cardShape
-                    .stroke(TrinketDesign.Colors.selection, lineWidth: 2)
-            } else {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, lineWidth: 1)
-            }
-        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(ability.name) card")
     }
 }
 
@@ -1876,19 +2211,29 @@ private struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
 
     var body: some View {
-        TrinketDesign.cardShape
-            .fill(TrinketDesign.Materials.card)
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
-                Image(systemName: tier.symbolName)
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-            }
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, style: StrokeStyle(lineWidth: 1, dash: [5]))
-            }
+        VStack(spacing: 8) {
+            TrinketDesign.cardShape
+                .fill(TrinketDesign.Materials.card)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    Image(systemName: tier.symbolName)
+                        .font(.system(size: 38, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                .overlay {
+                    TrinketDesign.cardShape
+                        .stroke(.quaternary, style: StrokeStyle(lineWidth: 1, dash: [5]))
+                }
+
+            Text("Empty \(tier.rawValue)")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 4)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -1944,6 +2289,8 @@ private struct VictoryView: View {
     let enemyName: String
     let onBattleAgain: () -> Void
 
+    @State private var bounceCount = 0
+
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
@@ -1951,6 +2298,10 @@ private struct VictoryView: View {
                     .font(.system(size: 56, weight: .semibold))
                     .foregroundStyle(TrinketDesign.Colors.success)
                     .accessibilityHidden(true)
+                    .symbolEffect(.bounce, value: bounceCount)
+                    .onAppear {
+                        bounceCount += 1
+                    }
 
                 VStack(spacing: 8) {
                     Text("Victory")
@@ -2025,7 +2376,7 @@ private struct BattleLogSheet: View {
                     }
                 }
             }
-            .navigationTitle("Battle Details")
+            .navigationTitle("Combat Log")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -2042,24 +2393,38 @@ private struct OptionsView: View {
     @AppStorage("options.musicVolume") private var musicVolume = 0.75
     @AppStorage("options.effectsVolume") private var effectsVolume = 0.85
     @AppStorage("options.hapticsEnabled") private var hapticsEnabled = true
+    @AppStorage("options.theme") private var theme = TrinketDesign.AppTheme.system
 
     var body: some View {
         Form {
+            Section("Appearance") {
+                Picker("Theme", selection: $theme) {
+                    ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
+                        Text(themeOption.rawValue).tag(themeOption)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("Theme Picker")
+            }
+
             Section("Audio") {
                 VolumeOptionRow(
                     title: "Music",
-                    systemImage: "music.note",
                     value: $musicVolume
                 )
 
                 VolumeOptionRow(
                     title: "Sound Effects",
-                    systemImage: "speaker.wave.2.fill",
                     value: $effectsVolume
                 )
 
                 Toggle(isOn: $hapticsEnabled) {
-                    Label("Haptics", systemImage: "iphone.radiowaves.left.and.right")
+                    Label {
+                        Text("Haptics")
+                    } icon: {
+                        Image(systemName: hapticsEnabled ? "iphone.radiowaves.left.and.right" : "iphone")
+                            .contentTransition(.symbolEffect(.replace))
+                    }
                 }
                 .accessibilityIdentifier("Haptics Toggle")
             }
@@ -2070,7 +2435,7 @@ private struct OptionsView: View {
             }
         }
         .navigationTitle("Options")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
     }
 
@@ -2085,17 +2450,37 @@ private struct OptionsView: View {
 
 private struct VolumeOptionRow: View {
     let title: String
-    let systemImage: String
     @Binding var value: Double
 
     private var percentageText: String {
         "\(Int((value * 100).rounded()))%"
     }
 
+    private var dynamicIconName: String {
+        if title == "Music" {
+            return value == 0 ? "music.note.slash" : "music.note"
+        } else {
+            if value == 0 {
+                return "speaker.slash.fill"
+            } else if value < 0.33 {
+                return "speaker.wave.1.fill"
+            } else if value < 0.66 {
+                return "speaker.wave.2.fill"
+            } else {
+                return "speaker.wave.3.fill"
+            }
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label(title, systemImage: systemImage)
+                Label {
+                    Text(title)
+                } icon: {
+                    Image(systemName: dynamicIconName)
+                        .contentTransition(.symbolEffect(.replace))
+                }
 
                 Spacer()
 
@@ -2114,129 +2499,60 @@ private struct VolumeOptionRow: View {
 
 private struct PlaceholderTabView: View {
     let title: String
-    let subtitle: String
-    let iconName: String
 
     var body: some View {
         ZStack {
             TrinketDesign.Colors.appBackground
                 .ignoresSafeArea()
-
-            ScreenHeader(title: title, subtitle: subtitle, iconName: iconName)
-                .padding(32)
         }
         .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct ScreenHeader: View {
-    let title: String
-    let subtitle: String
-    let iconName: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: iconName)
-                .font(.system(size: 48, weight: .semibold))
-                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
-                .symbolRenderingMode(.hierarchical)
-                .accessibilityHidden(true)
-
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-
-                Text(subtitle)
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .frame(maxWidth: .infinity)
+        .navigationBarTitleDisplayMode(.large)
     }
 }
 
 private struct ItemCard: View {
     let item: InventoryItem
     var showsAffixCount: Bool
+    var showsName: Bool = true
 
     var body: some View {
-        TrinketDesign.cardShape
-            .fill(TrinketDesign.Materials.card)
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
-                LinearGradient(
-                    colors: [
-                        item.baseType.slot.visualStyle.accentColor.opacity(0.22),
-                        Color(.systemBackground).opacity(0.08)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .clipShape(TrinketDesign.cardShape)
-            }
-            .overlay {
-                VStack(spacing: 10) {
+        VStack(spacing: 8) {
+            TrinketDesign.cardShape
+                .fill(TrinketDesign.Materials.card)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    LinearGradient(
+                        colors: [
+                            item.baseType.slot.visualStyle.accentColor.opacity(0.22),
+                            Color(.systemBackground).opacity(0.08)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(TrinketDesign.cardShape)
+                }
+                .overlay {
                     Image(systemName: item.baseType.symbolName)
-                        .font(.system(size: 30, weight: .semibold))
+                        .font(.system(size: 38, weight: .semibold))
                         .foregroundStyle(item.baseType.slot.visualStyle.accentColor)
                         .accessibilityHidden(true)
-
-                    Text(item.displayName)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.78)
-
-                    Text(item.baseType.name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-
-                    if showsAffixCount {
-                        Text("\(min(item.affixes.count, 4)) affixes")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
                 }
-                .padding(10)
-            }
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, lineWidth: 1)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue), \(item.affixes.count) affixes")
-    }
-}
-
-private struct SelectableItemCell<Content: View>: View {
-    let isSelected: Bool
-    let content: Content
-
-    init(
-        isSelected: Bool,
-        @ViewBuilder content: () -> Content
-    ) {
-        self.isSelected = isSelected
-        self.content = content()
-    }
-
-    var body: some View {
-        content
-            .padding(6)
-            .background {
-                if isSelected {
+                .overlay {
                     TrinketDesign.cardShape
-                        .fill(TrinketDesign.Colors.equippedBackground)
+                        .stroke(.quaternary, lineWidth: 1)
                 }
+
+            if showsName {
+                Text(item.displayName)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 4)
             }
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(isSelected ? TrinketDesign.Colors.equippedStroke : .clear, lineWidth: 1)
-            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
     }
 }
 
@@ -2244,76 +2560,34 @@ private struct EmptyItemSlotCard: View {
     let slot: ItemSlot
 
     var body: some View {
-        TrinketDesign.cardShape
-            .fill(TrinketDesign.Materials.card)
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
-                VStack(spacing: 10) {
+        VStack(spacing: 8) {
+            TrinketDesign.cardShape
+                .fill(TrinketDesign.Materials.card)
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
                     Image(systemName: slot.symbolName)
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(slot.visualStyle.accentColor.opacity(0.7))
+                        .font(.system(size: 38, weight: .semibold))
+                        .foregroundStyle(slot.visualStyle.accentColor.opacity(0.6))
                         .accessibilityHidden(true)
-
-                    Text(slot.rawValue)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-
-                    Text("Empty")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
-                .padding(10)
-            }
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, style: StrokeStyle(lineWidth: 1, dash: [5]))
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Empty \(slot.rawValue) slot")
+                .overlay {
+                    TrinketDesign.cardShape
+                        .stroke(.quaternary, style: StrokeStyle(lineWidth: 1, dash: [5]))
+                }
+
+            Text("Empty \(slot.rawValue)")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 4)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Empty \(slot.rawValue) slot")
     }
 }
 
-private struct PlaceholderCard: View {
-    let title: String
-    var subtitle: String = "Card"
-    var footer: String? = nil
 
-    var body: some View {
-        TrinketDesign.cardShape
-            .fill(TrinketDesign.Materials.card)
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
-                VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.title2)
-                        .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
-                        .accessibilityHidden(true)
-
-                    Text(title)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    if let footer {
-                        Text(footer)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .padding()
-            }
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.quaternary, lineWidth: 1)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(title) card")
-    }
-}
 
 #Preview {
     ContentView()
