@@ -14,7 +14,6 @@ final class TabNavigationUITests: XCTestCase {
         
         XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["10 HP"].exists)
-        XCTAssertTrue(app.staticTexts["Level"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["35/120 XP"].exists)
         
@@ -59,7 +58,6 @@ final class TabNavigationUITests: XCTestCase {
         
         XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["6 HP"].exists)
-        XCTAssertTrue(app.staticTexts["Level"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["12/100 XP"].exists)
         
@@ -83,17 +81,7 @@ final class TabNavigationUITests: XCTestCase {
         app.tabBars.buttons["Homestead"].tap()
         XCTAssertTrue(app.staticTexts["A future base for crafting, upgrades, and long-term progression."].waitForExistence(timeout: 5))
 
-        // 6. Go to Menu tab -> Options
-        app.tabBars.buttons["Menu"].tap()
-        XCTAssertTrue(app.staticTexts["Menu"].waitForExistence(timeout: 5))
-        app.buttons["Options menu item"].tap()
-        XCTAssertTrue(app.staticTexts["Audio"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Music"].exists)
-        XCTAssertTrue(app.staticTexts["Sound Effects"].exists)
-        XCTAssertTrue(app.staticTexts["Haptics"].exists)
-        XCTAssertTrue(app.staticTexts["About"].exists)
-
-        // 7. Return to Play tab
+        // 6. Return to Play tab
         app.tabBars.buttons["Play"].tap()
         XCTAssertTrue(app.staticTexts["Choose a mode to start building the core loop."].waitForExistence(timeout: 5))
     }

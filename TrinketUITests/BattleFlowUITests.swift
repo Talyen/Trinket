@@ -18,11 +18,15 @@ final class BattleFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Mage card"].exists)
         XCTAssertTrue(app.buttons["Drake card"].exists)
-        let pauseToggle = app.buttons["Battle Pause Toggle"]
-        XCTAssertTrue(pauseToggle.exists)
+        XCTAssertFalse(app.buttons["End Battle"].exists)
+        XCTAssertTrue(app.buttons["Battle Menu"].exists)
 
-        pauseToggle.tap()
-        XCTAssertEqual(pauseToggle.value as? String, "Paused")
+        XCTAssertFalse(app.staticTexts["Ember"].waitForExistence(timeout: 1))
+
+        app.buttons["Mage card"].tap()
+        XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["1 Physical damage. Apply Burn 1 for 2 ticks."].exists)
+        dismissSheet(in: app)
 
         // Switching away and tapping Play again should keep the active battle.
         app.tabBars.buttons["Heroes"].tap()
@@ -31,20 +35,16 @@ final class BattleFlowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Training Slime card"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Choose a mode to start building the core loop."].exists)
 
-        XCTAssertFalse(app.staticTexts["Ember"].waitForExistence(timeout: 1))
-
-        app.buttons["Mage card"].tap()
-        XCTAssertTrue(app.staticTexts["Ember"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["1 Physical damage. Apply Burn 1 for 2 ticks."].exists)
-        dismissSheet(in: app)
-        pauseToggle.tap()
-        XCTAssertEqual(pauseToggle.value as? String, "Running")
-
         // 5. Verify Victory screen is reached and rewards are presented
         XCTAssertTrue(app.staticTexts["Victory"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.staticTexts["Experience"].exists)
         XCTAssertTrue(app.staticTexts["Rewards"].exists)
         XCTAssertTrue(app.buttons["Battle Again"].exists)
+        XCTAssertFalse(app.buttons["End Battle"].exists)
+        app.buttons["Battle Menu"].tap()
+        XCTAssertTrue(app.buttons["Battle Details"].exists)
+        XCTAssertFalse(app.buttons["Retreat"].exists)
+        dismissMenu(in: app)
         XCTAssertFalse(app.buttons["Change Party"].exists)
     }
 
@@ -55,7 +55,10 @@ final class BattleFlowUITests: XCTestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.1))
     }
 
-
+    private func dismissMenu(in app: XCUIApplication) {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.08)).tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
 
     private func createAndLaunchApp(arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()

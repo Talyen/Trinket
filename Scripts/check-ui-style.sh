@@ -17,6 +17,11 @@ is_allowed_line() {
   fi
 
   # Central styling helpers are the approved place for raw glass/material details.
+  if [[ "$file" == "Trinket/TrinketDesign.swift" ]]; then
+    return 0
+  fi
+
+  # Legacy central styling helpers lived at the top of ContentView before extraction.
   if [[ "$file" == "Trinket/ContentView.swift" && "$line_number" -le 90 ]]; then
     return 0
   fi

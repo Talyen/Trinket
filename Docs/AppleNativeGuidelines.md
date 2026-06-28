@@ -27,6 +27,7 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 
 - Prefer Apple system patterns before custom game chrome: SwiftUI controls, native tab bars, sheets, alerts, menus, haptics, SF Symbols, system materials, and platform typography.
 - Preserve a clear hierarchy. Top-level game areas belong in the persistent bottom `TabView`; detail flows inside a tab can use `NavigationStack`.
+- Keep navigation surfaces and action surfaces distinct. Use `TabView` only for top-level destinations; use `ToolbarItem`, `Menu`, sheets, alerts, or in-content controls for contextual actions.
 - Keep the interface portrait-first, thumb-reachable, and safe-area aware. Important recurring actions should remain near the bottom unless they are passive status indicators.
 - Respect Dynamic Type, Reduce Motion, VoiceOver, contrast, and legibility from the beginning. Game UI can be expressive, but the app should still be understandable with assistive technologies.
 - Use system icons for navigation and common actions until custom art has a clear product reason.
@@ -36,6 +37,7 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 
 - Treat native SwiftUI styling as the default. Prefer system controls, `ButtonStyle`, `Menu`, `ToolbarItem`, `safeAreaInset`, sheets, tab bars, SF Symbols, Dynamic Type, and platform materials before custom chrome.
 - Route recurring app chrome through shared `TrinketDesign` helpers instead of repeating raw `.buttonStyle`, material backgrounds, custom circles, or capsules in feature views.
+- Use native semantic colors and materials for app chrome, and centralized `TrinketDesign` tokens for game semantics such as Keywords, health, progression, item slots, and selection states. Views should ask for the meaning they need instead of choosing one-off colors.
 - Do not force button label sizes to make controls visually match. Prefer native `controlSize`, `buttonBorderShape`, `Label`, SF Symbols, `ToolbarItem`, and semantic button styles; fixed frames are acceptable for layout surfaces such as art, grids, and progress bars, but not as a first response for control chrome.
 - Use `Toggle` with a native toggle style for persistent modes such as paused/running or fast/normal. Use `Button` for one-shot actions; avoid swapping icons or using prominent button styles as a custom selected state.
 - Use native glass for floating controls on iOS 26 and newer, with readable material fallbacks for earlier supported OS versions. Do not simulate glass by manually lowering opacity.
@@ -66,6 +68,7 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 
 - Before major UI work, check this file and the relevant Apple reference page.
 - When adding a screen, record which Apple-native navigation pattern it uses.
+- If an implementation needs hidden tabs, invisible placeholder items, overlayed hit targets, custom tab-bar behavior, or fixed control frames to make a native component act like another component, stop and choose the closest supported SwiftUI pattern instead.
 - When adding monetization, analytics, accounts, cloud services, Game Center, or external SDKs, update this file and `AGENTS.md` with privacy/App Store implications.
 - For user-visible changes, run the harness and capture simulator screenshots.
 - Prefer linking to official docs over copying long Apple text into the repo.

@@ -1,60 +1,5 @@
 import SwiftUI
 
-private enum TrinketDesign {
-    static let cardCornerRadius: CGFloat = 12
-
-    static var cardShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-    }
-
-    struct FloatingGlassControlButtonModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            if #available(iOS 26.0, *) {
-                content
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.circle)
-                    .controlSize(.regular)
-            } else {
-                content
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.circle)
-                    .controlSize(.regular)
-            }
-        }
-    }
-
-    struct FloatingGlassToggleModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            if #available(iOS 26.0, *) {
-                content
-                    .toggleStyle(.button)
-                    .buttonStyle(.glass)
-                    .buttonBorderShape(.circle)
-                    .controlSize(.regular)
-                    .tint(.accentColor)
-            } else {
-                content
-                    .toggleStyle(.button)
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.circle)
-                    .controlSize(.regular)
-                    .tint(.accentColor)
-            }
-        }
-    }
-
-    struct CardSurfaceModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            content
-                .background(.regularMaterial, in: cardShape)
-                .overlay {
-                    cardShape
-                        .stroke(.quaternary, lineWidth: 1)
-                }
-        }
-    }
-}
-
 private extension View {
     func trinketFloatingGlassControl() -> some View {
         modifier(TrinketDesign.FloatingGlassControlButtonModifier())
@@ -108,7 +53,7 @@ struct ContentView: View {
                 )
             }
             .tabItem {
-                Label("Inventory", systemImage: "backpack.fill")
+                Label("Inventory", systemImage: "shippingbox.fill")
             }
             .tag(AppTab.inventory)
 
@@ -123,15 +68,6 @@ struct ContentView: View {
                 Label("Homestead", systemImage: "house.fill")
             }
             .tag(AppTab.homestead)
-
-            MenuView(
-                activeBattle: $activeBattle,
-                selectedTab: $selectedTab
-            )
-            .tabItem {
-                Label("Menu", systemImage: "ellipsis.circle")
-            }
-            .tag(AppTab.menu)
         }
     }
 }
@@ -173,7 +109,6 @@ private enum AppTab: String {
     case heroes
     case inventory
     case homestead
-    case menu
 
     static var launchDefault: AppTab {
         let arguments = ProcessInfo.processInfo.arguments
@@ -189,12 +124,7 @@ private enum AppTab: String {
     }
 
     private static func fromLaunchArgument(_ argument: String) -> AppTab? {
-        let normalized = argument.lowercased()
-        if normalized == "options" || normalized == "more" {
-            return .menu
-        }
-
-        return AppTab(rawValue: normalized)
+        AppTab(rawValue: argument.lowercased())
     }
 }
 
@@ -262,7 +192,10 @@ private struct PlayView: View {
                 heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
                 petEquipmentLoadout: activeBattle.petEquipmentLoadout,
                 inventoryState: activeBattle.inventoryState,
-                debugConfiguration: activeBattle.debugConfiguration
+                debugConfiguration: activeBattle.debugConfiguration,
+                onEndBattle: {
+                    self.activeBattle = nil
+                }
             )
             .id(activeBattle.id)
             .navigationBarBackButtonHidden(true)
@@ -289,7 +222,7 @@ private struct PlayView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Play")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -356,7 +289,7 @@ private struct SelectionGridView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -400,6 +333,7 @@ private struct BattleView: View {
     private let petEquipmentLoadout: EquipmentLoadout
     private let inventoryState: PlayerInventoryState
     private let debugConfiguration: BattleDebugConfiguration
+    private let onEndBattle: () -> Void
     private let timer = Timer.publish(
         every: ProcessInfo.processInfo.arguments.contains("-disableAnimations") ? 0.25 : 0.8,
         on: .main,
@@ -416,7 +350,8 @@ private struct BattleView: View {
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryState: PlayerInventoryState = .initial,
-        debugConfiguration: BattleDebugConfiguration = .disabled
+        debugConfiguration: BattleDebugConfiguration = .disabled,
+        onEndBattle: @escaping () -> Void
     ) {
         self.heroProgression = heroProgression
         self.petProgression = petProgression
@@ -424,6 +359,7 @@ private struct BattleView: View {
         self.petEquipmentLoadout = petEquipmentLoadout
         self.inventoryState = inventoryState
         self.debugConfiguration = debugConfiguration
+        self.onEndBattle = onEndBattle
         _battle = State(initialValue: BattleState(hero: hero, pet: pet))
         _isDebugPaused = State(initialValue: debugConfiguration.startsPaused)
     }
@@ -439,27 +375,12 @@ private struct BattleView: View {
                 battlefield
             }
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(isShowingVictory ? "Victory" : "Battle")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if !isShowingVictory {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        isBattlePaused.toggle()
-                    } label: {
-                        Image(systemName: isBattlePaused ? "play.fill" : "pause.fill")
-                    }
-                    .accessibilityLabel("Pause Battle")
-                    .accessibilityValue(isBattlePaused ? "Paused" : "Running")
-                    .accessibilityIdentifier("Battle Pause Toggle")
-
-                    Button {
-                        isShowingBattleLog = true
-                    } label: {
-                        Label("Battle Log", systemImage: "list.bullet.rectangle")
-                    }
-                }
+            ToolbarItem(placement: .topBarTrailing) {
+                battleActionsMenu
             }
         }
         .sheet(item: $selectedDetails) { details in
@@ -482,7 +403,9 @@ private struct BattleView: View {
             .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isShowingBattleLog) {
-            BattleLogSheet(entries: battle.log)
+            BattleLogSheet(
+                entries: battle.log
+            )
                 .presentationDetents([.medium])
         }
         .safeAreaInset(edge: .bottom) {
@@ -508,6 +431,40 @@ private struct BattleView: View {
 
             advanceBattleTick()
         }
+    }
+
+    private var battleActionsMenu: some View {
+        Menu {
+            if !isShowingVictory {
+                Toggle(isOn: $isBattlePaused) {
+                    Label("Pause Battle", systemImage: "pause.fill")
+                }
+                .accessibilityIdentifier("Battle Pause Toggle")
+            }
+
+            Button {
+                isShowingBattleLog = true
+            } label: {
+                Label("Battle Details", systemImage: "list.bullet.rectangle")
+            }
+
+            if !isShowingVictory {
+                Divider()
+
+                Button(role: .destructive) {
+                    onEndBattle()
+                } label: {
+                    Label("Retreat", systemImage: "figure.walk")
+                }
+                .tint(TrinketDesign.Colors.destructive)
+                .accessibilityIdentifier("Retreat")
+            }
+        } label: {
+            Label("Battle actions", systemImage: "ellipsis")
+                .labelStyle(.iconOnly)
+        }
+        .accessibilityLabel("Battle Menu")
+        .accessibilityIdentifier("Battle Menu")
     }
 
     private var battlefield: some View {
@@ -672,7 +629,7 @@ private struct BattleDebugOverlay: View {
 
                 Text(isPaused ? "Paused" : "Running")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(isPaused ? .orange : .green)
+                    .foregroundStyle(isPaused ? TrinketDesign.Colors.caution : TrinketDesign.Colors.success)
                     .accessibilityIdentifier("Debug Pause State")
             }
 
@@ -713,7 +670,7 @@ private struct BattleDebugOverlay: View {
         .font(.caption)
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: TrinketDesign.cardShape)
+        .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
                 .stroke(.quaternary, lineWidth: 1)
@@ -791,7 +748,7 @@ private struct HeroesCollectionView: View {
                 }
             }
         ))
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -863,7 +820,7 @@ private struct ModeCard: View {
         HStack(spacing: 16) {
             Image(systemName: "bolt.fill")
                 .font(.title)
-                .foregroundStyle(.blue)
+                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -885,7 +842,7 @@ private struct ModeCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: TrinketDesign.cardShape)
+        .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
                 .stroke(.quaternary, lineWidth: 1)
@@ -933,7 +890,7 @@ private struct CombatantStatusCard: View {
                 CombatHealthBar(
                     health: health,
                     maxHealth: maxHealth,
-                    fillColor: prominence == .enemy ? .red : .blue
+                    fillColor: combatant.healthBarColor
                 )
                     .accessibilityHidden(true)
             }
@@ -958,13 +915,13 @@ private struct BattleArtCard: View {
 
     var body: some View {
         TrinketDesign.cardShape
-            .fill(.regularMaterial)
+            .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.title)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
                         .accessibilityHidden(true)
 
                     if showsText {
@@ -1011,12 +968,12 @@ private struct CombatHealthBar: View {
                     .fill(.quaternary)
 
                 Capsule()
-                    .fill(.green.opacity(0.45))
+                    .fill(TrinketDesign.Colors.healthRestore)
                     .frame(width: width * restoreFraction)
                     .opacity(restoreOpacity)
 
                 Capsule()
-                    .fill(.orange.opacity(0.45))
+                    .fill(TrinketDesign.Colors.healthTrailingDamage)
                     .frame(width: width * trailingFraction)
 
                 Capsule()
@@ -1142,23 +1099,23 @@ private struct CombatFeedbackEventView: View {
 
     private var feedbackLabel: some View {
         HStack(spacing: 6) {
-            Image(systemName: event.keyword.feedbackSymbolName)
+            Image(systemName: event.keyword.visualStyle.symbolName)
                 .font(.caption.bold())
 
             Text(event.floatingText)
                 .font(.headline)
                 .monospacedDigit()
         }
-        .foregroundStyle(event.keyword.feedbackColor)
+        .foregroundStyle(event.keyword.visualStyle.color)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         // UIStyleCheck: allow combat feedback uses a transient material capsule over battle art.
-        .background(.thinMaterial, in: Capsule())
+        .background(TrinketDesign.Materials.feedback, in: Capsule())
         .overlay {
             Capsule()
-                .stroke(event.keyword.feedbackColor.opacity(0.28), lineWidth: 1)
+                .stroke(event.keyword.visualStyle.feedbackStroke, lineWidth: 1)
         }
-        .shadow(color: event.keyword.feedbackColor.opacity(0.25), radius: 10, y: 5)
+        .shadow(color: event.keyword.visualStyle.feedbackShadow, radius: 10, y: 5)
     }
 }
 
@@ -1166,35 +1123,6 @@ private struct CombatFeedbackAnimationState {
     var opacity = 1.0
     var scale = 1.0
     var verticalOffset = 0.0
-}
-
-private extension Keyword {
-    var feedbackSymbolName: String {
-        switch self {
-        case .physical:
-            return "burst.fill"
-        case .burn:
-            return "flame.fill"
-        }
-    }
-
-    var feedbackColor: Color {
-        switch self {
-        case .physical:
-            return .primary
-        case .burn:
-            return .orange
-        }
-    }
-
-    var descriptionColor: Color {
-        switch self {
-        case .physical:
-            return .primary
-        case .burn:
-            return .orange
-        }
-    }
 }
 
 private extension AbilityTier {
@@ -1217,25 +1145,6 @@ private extension AbilityTier {
             return "Every 3 turns"
         case .ultimate:
             return "Every 6 turns"
-        }
-    }
-}
-
-private extension Combatant {
-    var healthBarColor: Color {
-        role == .enemy ? .red : .blue
-    }
-}
-
-private extension ItemSlot {
-    var accentColor: Color {
-        switch self {
-        case .weapon:
-            return .orange
-        case .armor:
-            return .blue
-        case .trinket:
-            return .purple
         }
     }
 }
@@ -1299,6 +1208,8 @@ private struct CombatantDetailPane: View {
                         .frame(maxWidth: .infinity)
                 }
 
+                ExperienceProgressDetail(progression: progression)
+
                 if let battleHealth {
                     DetailSection(title: "Health") {
                         CombatantHealthDetail(
@@ -1321,7 +1232,6 @@ private struct CombatantDetailPane: View {
 
                 DetailSection(title: "Stats") {
                     CombatantStatsDetail(
-                        progression: progression,
                         maxHealth: combatant.maxHealth
                     )
                 }
@@ -1344,24 +1254,16 @@ private struct CombatantDetailPane: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
     }
 }
 
 private struct CombatantStatsDetail: View {
-    let progression: CombatantProgression
     let maxHealth: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
-                StatPill(title: "Level", value: "\(progression.level)")
-                StatPill(title: "Health", value: "\(maxHealth) HP")
-            }
-
-            Divider()
-
-            ExperienceProgressDetail(progression: progression)
+        HStack(spacing: 12) {
+            StatPill(title: "Health", value: "\(maxHealth) HP")
         }
     }
 }
@@ -1396,11 +1298,11 @@ private struct ExperienceProgressBar: View {
                     .fill(.quaternary)
 
                 Capsule()
-                    .fill(.indigo)
+                    .fill(TrinketDesign.Colors.progression)
                     .frame(width: geometry.size.width * progress)
             }
         }
-        .frame(height: 6)
+        .frame(height: 10)
         .clipShape(Capsule())
     }
 }
@@ -1412,8 +1314,7 @@ private struct ExperienceProgressDetail: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("Level \(progression.level)")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.headline)
 
                 Spacer(minLength: 8)
 
@@ -1643,14 +1544,14 @@ private struct AbilityTierPickerSheet: View {
                             if isSelected {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.title3.weight(.semibold))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(TrinketDesign.Colors.selection)
                             }
                         }
                         .padding(12)
-                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+                        .background(TrinketDesign.Colors.groupedSurface, in: RoundedRectangle(cornerRadius: 12))
                         .overlay {
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1.5)
+                                .stroke(isSelected ? TrinketDesign.Colors.selection : Color.clear, lineWidth: 1.5)
                         }
                     }
                     .buttonStyle(.plain)
@@ -1659,7 +1560,7 @@ private struct AbilityTierPickerSheet: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Choose \(tier.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -1705,7 +1606,7 @@ private struct ItemSlotPickerView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Equip \(slot.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -1783,7 +1684,7 @@ private struct InventoryView: View {
                 ScreenHeader(
                     title: "Inventory",
                     subtitle: "Browse item rewards and inspect their affixes.",
-                    iconName: "backpack.fill"
+                    iconName: "shippingbox.fill"
                 )
 
                 LazyVGrid(columns: columns, spacing: 16) {
@@ -1800,7 +1701,7 @@ private struct InventoryView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search items")
@@ -1874,7 +1775,7 @@ private struct ItemDetailView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(item.displayName)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -1902,7 +1803,7 @@ private struct DetailSection<Content: View>: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
-            .background(.regularMaterial, in: TrinketDesign.cardShape)
+            .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
             .overlay {
                 TrinketDesign.cardShape
                     .stroke(.quaternary, lineWidth: 1)
@@ -1941,11 +1842,11 @@ private struct AbilityChoiceCard: View {
     var body: some View {
         ZStack {
             TrinketDesign.cardShape
-                .fill(.regularMaterial)
+                .fill(TrinketDesign.Materials.card)
 
             LinearGradient(
                 colors: [
-                    ability.damageKeyword.feedbackColor.opacity(0.24),
+                    ability.damageKeyword.visualStyle.cardTint,
                     Color(.systemBackground).opacity(0.1)
                 ],
                 startPoint: .topLeading,
@@ -1953,16 +1854,16 @@ private struct AbilityChoiceCard: View {
             )
             .clipShape(TrinketDesign.cardShape)
 
-            Image(systemName: ability.damageKeyword.feedbackSymbolName)
+            Image(systemName: ability.damageKeyword.visualStyle.symbolName)
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(ability.damageKeyword.feedbackColor)
+                .foregroundStyle(ability.damageKeyword.visualStyle.color)
                 .accessibilityHidden(true)
         }
         .aspectRatio(3.0 / 4.0, contentMode: .fit)
         .overlay {
             if isSelected {
                 TrinketDesign.cardShape
-                    .stroke(Color.accentColor, lineWidth: 2)
+                    .stroke(TrinketDesign.Colors.selection, lineWidth: 2)
             } else {
                 TrinketDesign.cardShape
                     .stroke(.quaternary, lineWidth: 1)
@@ -1976,7 +1877,7 @@ private struct EmptyAbilitySlotCard: View {
 
     var body: some View {
         TrinketDesign.cardShape
-            .fill(.regularMaterial)
+            .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 Image(systemName: tier.symbolName)
@@ -2012,7 +1913,7 @@ private struct KeywordDescriptionText: View {
 
                 result = result + Text(match.keyword.rawValue)
                     .bold()
-                    .foregroundColor(match.keyword.descriptionColor)
+                    .foregroundColor(match.keyword.visualStyle.color)
                 currentIndex = match.range.upperBound
             } else {
                 result = result + Text(String(text[currentIndex..<text.endIndex]))
@@ -2048,7 +1949,7 @@ private struct VictoryView: View {
             VStack(spacing: 22) {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 56, weight: .semibold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(TrinketDesign.Colors.success)
                     .accessibilityHidden(true)
 
                 VStack(spacing: 8) {
@@ -2102,7 +2003,7 @@ private struct VictoryPlaceholderSection: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(.regularMaterial, in: TrinketDesign.cardShape)
+        .background(TrinketDesign.Materials.card, in: TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
                 .stroke(.quaternary, lineWidth: 1)
@@ -2117,52 +2018,22 @@ private struct BattleLogSheet: View {
 
     var body: some View {
         NavigationStack {
-            List(entries) { entry in
-                Text(entry.text)
+            List {
+                Section("Battle Log") {
+                    ForEach(entries) { entry in
+                        Text(entry.text)
+                    }
+                }
             }
-            .navigationTitle("Battle Log")
+            .navigationTitle("Battle Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
+                    Button("Close") {
                         dismiss()
                     }
                 }
             }
-        }
-    }
-}
-
-private struct MenuView: View {
-    @Binding var activeBattle: ActiveBattleConfiguration?
-    @Binding var selectedTab: AppTab
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    NavigationLink {
-                        OptionsView()
-                    } label: {
-                        Label("Options", systemImage: "gearshape.fill")
-                    }
-                    .accessibilityIdentifier("Options menu item")
-                }
-
-                if activeBattle != nil {
-                    Section("Battle") {
-                        Button(role: .destructive) {
-                            activeBattle = nil
-                            selectedTab = .play
-                        } label: {
-                            Label("End Battle", systemImage: "xmark.circle.fill")
-                        }
-                        .accessibilityIdentifier("End Battle")
-                    }
-                }
-            }
-            .navigationTitle("Menu")
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -2248,7 +2119,7 @@ private struct PlaceholderTabView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground)
+            TrinketDesign.Colors.appBackground
                 .ignoresSafeArea()
 
             ScreenHeader(title: title, subtitle: subtitle, iconName: iconName)
@@ -2268,7 +2139,7 @@ private struct ScreenHeader: View {
         VStack(spacing: 16) {
             Image(systemName: iconName)
                 .font(.system(size: 48, weight: .semibold))
-                .foregroundStyle(.blue)
+                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
                 .symbolRenderingMode(.hierarchical)
                 .accessibilityHidden(true)
 
@@ -2292,12 +2163,12 @@ private struct ItemCard: View {
 
     var body: some View {
         TrinketDesign.cardShape
-            .fill(.regularMaterial)
+            .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 LinearGradient(
                     colors: [
-                        item.baseType.slot.accentColor.opacity(0.22),
+                        item.baseType.slot.visualStyle.accentColor.opacity(0.22),
                         Color(.systemBackground).opacity(0.08)
                     ],
                     startPoint: .topLeading,
@@ -2309,7 +2180,7 @@ private struct ItemCard: View {
                 VStack(spacing: 10) {
                     Image(systemName: item.baseType.symbolName)
                         .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(item.baseType.slot.accentColor)
+                        .foregroundStyle(item.baseType.slot.visualStyle.accentColor)
                         .accessibilityHidden(true)
 
                     Text(item.displayName)
@@ -2359,12 +2230,12 @@ private struct SelectableItemCell<Content: View>: View {
             .background {
                 if isSelected {
                     TrinketDesign.cardShape
-                        .fill(Color.green.opacity(0.12))
+                        .fill(TrinketDesign.Colors.equippedBackground)
                 }
             }
             .overlay {
                 TrinketDesign.cardShape
-                    .stroke(isSelected ? Color.green.opacity(0.28) : .clear, lineWidth: 1)
+                    .stroke(isSelected ? TrinketDesign.Colors.equippedStroke : .clear, lineWidth: 1)
             }
     }
 }
@@ -2374,13 +2245,13 @@ private struct EmptyItemSlotCard: View {
 
     var body: some View {
         TrinketDesign.cardShape
-            .fill(.regularMaterial)
+            .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 VStack(spacing: 10) {
                     Image(systemName: slot.symbolName)
                         .font(.system(size: 28, weight: .semibold))
-                        .foregroundStyle(slot.accentColor.opacity(0.7))
+                        .foregroundStyle(slot.visualStyle.accentColor.opacity(0.7))
                         .accessibilityHidden(true)
 
                     Text(slot.rawValue)
@@ -2409,13 +2280,13 @@ private struct PlaceholderCard: View {
 
     var body: some View {
         TrinketDesign.cardShape
-            .fill(.regularMaterial)
+            .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 VStack(spacing: 12) {
                     Image(systemName: "sparkles")
                         .font(.title2)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
                         .accessibilityHidden(true)
 
                     Text(title)

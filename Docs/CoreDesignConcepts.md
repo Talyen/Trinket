@@ -69,6 +69,8 @@ Current item implementation is a visual-only stub. Inventory Items have a base t
 
 Keywords are the shared mechanic vocabulary across cards, abilities, enemies, items, affixes, and status effects. They should be player-facing fantasy terms, styled distinctly inline in descriptions, and backed by concrete rules only when those rules are implemented.
 
+Every implemented Keyword has one universal visual identity. Its color and symbol should come from the centralized `Keyword.visualStyle` design token and be reused across inline descriptions, combat feedback, ability cards, item affixes, logs, and future detail surfaces. Do not introduce one-off Keyword colors in feature views.
+
 Current Keywords:
 
 - `Physical`: baseline weapon or body damage. Implemented as direct damage.
@@ -101,6 +103,8 @@ Heroes and Pets use native pushed collection details with drill-in Ability Loado
 ## Battle Screen
 
 Treat Battle as the living moment-to-moment dashboard for combat, progress, goals, and useful next actions while preserving the top-level `TabView` as global navigation. The Battle screen should not replace or fight the app's core bottom-tab navigation.
+
+Rare battle actions such as pause, battle details, and retreat should live in native Battle-screen chrome such as a trailing toolbar `Menu`, not in the persistent bottom tab bar.
 
 Battle UI should stay focused on Enemy, Hero, and Pet cards with health bars. Names, HP text, abilities, effects, and logs can appear through native sheets.
 
