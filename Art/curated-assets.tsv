@@ -1,0 +1,3 @@
+# kind	id	asset_name	source_path	focal_x	focal_y	accessibility_label
+combatant	rogue	hero_rogue_card	Raw Assets/Heroes/Rogue.png	0.50	0.34	Full art of the Rogue hero
+combatant	wolf	pet_wolf_card	Raw Assets/Pets/Wolf.jpeg	0.50	0.36	Full art of the Wolf pet

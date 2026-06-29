@@ -68,8 +68,9 @@ This document translates Apple's design, platform, App Store, and Swift guidance
 
 - Before major UI work, check this file and the relevant Apple reference page.
 - When adding a screen, record which Apple-native navigation pattern it uses.
+- For SwiftUI layout and styling changes, run simulator checks or targeted UI tests to verify visual rendering, interaction, navigation, runtime behavior, and device compatibility.
 - If an implementation needs hidden tabs, invisible placeholder items, overlayed hit targets, custom tab-bar behavior, or fixed control frames to make a native component act like another component, stop and choose the closest supported SwiftUI pattern instead.
 - When adding monetization, analytics, accounts, cloud services, Game Center, or external SDKs, update this file and `AGENTS.md` with privacy/App Store implications.
-- For user-visible changes, run the harness and capture simulator screenshots.
+- For user-visible changes, run simulator checks or targeted UI tests to verify layouts and capture screenshots when they add useful visual evidence.
 - Prefer linking to official docs over copying long Apple text into the repo.
 - Run `./Scripts/check-ui-style.sh` after UI styling changes to catch ad hoc glass, material, button styling, button-toggle styling, or fixed-size button-label workarounds that should use native control APIs instead.

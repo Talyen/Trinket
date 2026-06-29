@@ -14,13 +14,14 @@ final class TabNavigationUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Paladin collection card"].waitForExistence(timeout: 5))
         app.buttons["Paladin collection card"].tap()
         
+        XCTAssertTrue(app.descendants(matching: .any)["Paladin detail hero header"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["10 HP"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["35/120 XP"].exists)
         
         // Verify item slots open a focused picker for that slot
-        app.swipeUp()
+        scrollUntilVisible(app.buttons["Weapon item slot"], in: app, swipingUp: true)
         XCTAssertTrue(app.buttons["Weapon item slot"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Armor item slot"].exists)
         XCTAssertTrue(app.buttons["Trinket item slot"].exists)
@@ -35,7 +36,8 @@ final class TabNavigationUITests: XCTestCase {
         dismissSheet(in: app)
         
         // Verify Ability Loadout Selection UI (toggle basic abilities)
-        XCTAssertTrue(app.buttons["Basic ability slot"].exists)
+        scrollUntilVisible(app.buttons["Basic ability slot"], in: app, swipingUp: false)
+        XCTAssertTrue(app.buttons["Basic ability slot"].waitForExistence(timeout: 5))
         app.buttons["Basic ability slot"].tap()
         XCTAssertTrue(app.staticTexts["Basic"].waitForExistence(timeout: 5))
         app.buttons["Basic Shield Jab ability card"].tap()
@@ -46,8 +48,10 @@ final class TabNavigationUITests: XCTestCase {
         app.buttons["Basic Strike ability card"].tap()
         XCTAssertTrue(app.staticTexts["Strike"].waitForExistence(timeout: 5))
         
-        // Go back to Heroes grid
+        // Dismiss Hero detail screen (pushed view)
         goBack(in: app)
+        XCTAssertTrue(app.buttons["Paladin collection card"].waitForExistence(timeout: 5))
+
         // Go back to Collection view
         goBack(in: app)
 
@@ -58,13 +62,16 @@ final class TabNavigationUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Hawk collection card"].exists)
         app.buttons["Wolf collection card"].tap()
         
+        XCTAssertTrue(app.descendants(matching: .any)["Wolf detail hero header"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Stats"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["6 HP"].exists)
         XCTAssertTrue(app.staticTexts["Level 2"].exists)
         XCTAssertTrue(app.staticTexts["12/100 XP"].exists)
         
-        // Go back to Pets grid
+        // Dismiss Pets detail screen (pushed view)
         goBack(in: app)
+        XCTAssertTrue(app.buttons["Wolf collection card"].waitForExistence(timeout: 5))
+
         // Go back to Collection view
         goBack(in: app)
 
@@ -136,15 +143,41 @@ final class TabNavigationUITests: XCTestCase {
     }
 
     private func goBack(in app: XCUIApplication) {
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
+        if navBackButton.waitForExistence(timeout: 5) {
+            navBackButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+    }
+
+    private func scrollUntilVisible(_ element: XCUIElement, in app: XCUIApplication, swipingUp: Bool) {
+        for _ in 0..<8 where !element.exists {
+            if swipingUp {
+                dragInDetailList(fromY: 0.84, toY: 0.62, in: app)
+            } else {
+                dragInDetailList(fromY: 0.62, toY: 0.84, in: app)
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+    }
+
+    private func dragInDetailList(fromY: CGFloat, toY: CGFloat, in app: XCUIApplication) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     private func dismissSheet(in app: XCUIApplication) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
-        start.press(forDuration: 0.1, thenDragTo: end)
-        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        let closeButton = app.navigationBars.buttons["Close"]
+        if closeButton.waitForExistence(timeout: 2) && closeButton.isHittable {
+            closeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        } else {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
+            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+            start.press(forDuration: 0.1, thenDragTo: end)
+            RunLoop.current.run(until: Date().addingTimeInterval(1.0))
+        }
     }
 
     private func createAndLaunchApp(arguments: [String] = []) -> XCUIApplication {

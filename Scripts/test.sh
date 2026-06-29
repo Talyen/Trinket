@@ -125,3 +125,5 @@ xcodebuild "$ACTION" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \
   "${PARALLEL_FLAGS[@]}"
+
+

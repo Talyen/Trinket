@@ -421,13 +421,12 @@ private struct BattleView: View {
                     allowsEditing: false,
                     battleHealth: details.health,
                     activeStatusSummaries: details.activeStatusSummaries,
-                    selectedItemSlot: .constant(nil)
+                    selectedItemSlot: .constant(nil),
+                    showsDismissButton: false
                 )
-                .navigationTitle(details.combatant.name)
-                .navigationBarTitleDisplayMode(.inline)
             }
             .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
         }
         .sheet(isPresented: $isShowingBattleLog) {
             BattleLogSheet(
@@ -745,7 +744,6 @@ private struct CollectionView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
 
-    @State private var selectedCombatant: Combatant?
     @State private var selectedItem: InventoryItem?
 
     var body: some View {
@@ -777,8 +775,14 @@ private struct CollectionView: View {
 
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
-                            Button {
-                                selectedCombatant = combatant
+                            NavigationLink {
+                                CombatantCollectionDetailView(
+                                    combatant: combatant,
+                                    progression: rosterState.progression(for: combatant),
+                                    loadout: loadoutBinding(for: combatant),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                    inventoryState: $inventoryState
+                                )
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -815,8 +819,14 @@ private struct CollectionView: View {
 
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                            Button {
-                                selectedCombatant = combatant
+                            NavigationLink {
+                                CombatantCollectionDetailView(
+                                    combatant: combatant,
+                                    progression: rosterState.progression(for: combatant),
+                                    loadout: loadoutBinding(for: combatant),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                    inventoryState: $inventoryState
+                                )
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -870,25 +880,12 @@ private struct CollectionView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedCombatant) { combatant in
-            NavigationStack {
-                CombatantCollectionDetailView(
-                    combatant: combatant,
-                    progression: rosterState.progression(for: combatant),
-                    loadout: loadoutBinding(for: combatant),
-                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                    inventoryState: $inventoryState
-                )
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
                 ItemDetailView(item: item)
             }
             .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
         }
     }
 
@@ -923,8 +920,7 @@ private struct CollectionView: View {
 private struct HeroesGridView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
-    @State private var selectedCombatant: Combatant?
- 
+
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
     ]
@@ -934,8 +930,14 @@ private struct HeroesGridView: View {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
-                        Button {
-                            selectedCombatant = combatant
+                        NavigationLink {
+                            CombatantCollectionDetailView(
+                                combatant: combatant,
+                                progression: rosterState.progression(for: combatant),
+                                loadout: loadoutBinding(for: combatant),
+                                equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                inventoryState: $inventoryState
+                            )
                         } label: {
                             CombatantCard(combatant: combatant)
                         }
@@ -949,19 +951,6 @@ private struct HeroesGridView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Heroes")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedCombatant) { combatant in
-            NavigationStack {
-                CombatantCollectionDetailView(
-                    combatant: combatant,
-                    progression: rosterState.progression(for: combatant),
-                    loadout: loadoutBinding(for: combatant),
-                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                    inventoryState: $inventoryState
-                )
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
@@ -984,8 +973,7 @@ private struct HeroesGridView: View {
 private struct PetsGridView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
-    @State private var selectedCombatant: Combatant?
- 
+
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
     ]
@@ -995,8 +983,14 @@ private struct PetsGridView: View {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                        Button {
-                            selectedCombatant = combatant
+                        NavigationLink {
+                            CombatantCollectionDetailView(
+                                combatant: combatant,
+                                progression: rosterState.progression(for: combatant),
+                                loadout: loadoutBinding(for: combatant),
+                                equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                inventoryState: $inventoryState
+                            )
                         } label: {
                             CombatantCard(combatant: combatant)
                         }
@@ -1010,19 +1004,6 @@ private struct PetsGridView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Pets")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedCombatant) { combatant in
-            NavigationStack {
-                CombatantCollectionDetailView(
-                    combatant: combatant,
-                    progression: rosterState.progression(for: combatant),
-                    loadout: loadoutBinding(for: combatant),
-                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                    inventoryState: $inventoryState
-                )
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
@@ -1046,7 +1027,6 @@ private struct SearchView: View {
     @Binding var rosterState: PlayerRosterState
     @Binding var inventoryState: PlayerInventoryState
     @State private var searchText = ""
-    @State private var selectedCombatant: Combatant?
     @State private var selectedItem: InventoryItem?
 
     var body: some View {
@@ -1055,19 +1035,6 @@ private struct SearchView: View {
         .navigationTitle("Search")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
-        .sheet(item: $selectedCombatant) { combatant in
-            NavigationStack {
-                CombatantCollectionDetailView(
-                    combatant: combatant,
-                    progression: rosterState.progression(for: combatant),
-                    loadout: loadoutBinding(for: combatant),
-                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                    inventoryState: $inventoryState
-                )
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
                 ItemDetailView(item: item)
@@ -1093,14 +1060,20 @@ private struct SearchView: View {
                 ContentUnavailableView(
                     "No Results Found",
                     systemImage: "questionmark.magnifyingglass",
-                    description: Text("No match for \"\(searchText)\".")
+                    description: Text("No match for \"\(searchText)\" .")
                 )
             } else {
                 List {
                     if !results.heroes.isEmpty {
                         SearchResultSection(title: "Heroes", items: results.heroes) { combatant in
-                            Button {
-                                selectedCombatant = combatant
+                            NavigationLink {
+                                CombatantCollectionDetailView(
+                                    combatant: combatant,
+                                    progression: rosterState.progression(for: combatant),
+                                    loadout: loadoutBinding(for: combatant),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                    inventoryState: $inventoryState
+                                )
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -1112,8 +1085,14 @@ private struct SearchView: View {
 
                     if !results.pets.isEmpty {
                         SearchResultSection(title: "Pets", items: results.pets) { combatant in
-                            Button {
-                                selectedCombatant = combatant
+                            NavigationLink {
+                                CombatantCollectionDetailView(
+                                    combatant: combatant,
+                                    progression: rosterState.progression(for: combatant),
+                                    loadout: loadoutBinding(for: combatant),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
+                                    inventoryState: $inventoryState
+                                )
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -1205,6 +1184,88 @@ private struct SearchResultSection<Item: Identifiable, Content: View>: View {
     }
 }
 
+private extension Combatant.Role {
+    var fallbackArtSymbolName: String {
+        switch self {
+        case .hero:
+            return "person.fill"
+        case .pet:
+            return "pawprint.fill"
+        case .enemy:
+            return "flame.fill"
+        }
+    }
+}
+
+private extension UnitPoint {
+    var artAlignment: Alignment {
+        let horizontal: HorizontalAlignment
+        if x <= 0.34 {
+            horizontal = .leading
+        } else if x >= 0.66 {
+            horizontal = .trailing
+        } else {
+            horizontal = .center
+        }
+
+        let vertical: VerticalAlignment
+        if y <= 0.34 {
+            vertical = .top
+        } else if y >= 0.66 {
+            vertical = .bottom
+        } else {
+            vertical = .center
+        }
+
+        return Alignment(horizontal: horizontal, vertical: vertical)
+    }
+}
+
+private struct CombatantArtwork: View {
+    let combatant: Combatant
+
+    var body: some View {
+        GeometryReader { geometry in
+            if let artReference = combatant.artReference {
+                Image(artReference.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(
+                        width: geometry.size.width,
+                        height: geometry.size.height,
+                        alignment: artReference.focalPoint.artAlignment
+                    )
+                    .clipped()
+                    .accessibilityLabel(artReference.accessibilityLabel)
+            } else {
+                placeholderArt
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .accessibilityLabel("\(combatant.name) placeholder art")
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var placeholderArt: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    TrinketDesign.Colors.cardArtAccent.opacity(0.18),
+                    Color(.systemBackground).opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+
+            Image(systemName: combatant.role.fallbackArtSymbolName)
+                .font(.system(size: 38, weight: .semibold))
+                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
+                .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
 private struct CombatantCard: View {
     let combatant: Combatant
 
@@ -1214,23 +1275,8 @@ private struct CombatantCard: View {
                 .fill(TrinketDesign.Materials.card)
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    ZStack {
-                        LinearGradient(
-                            colors: [
-                                TrinketDesign.Colors.cardArtAccent.opacity(0.18),
-                                Color(.systemBackground).opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                    CombatantArtwork(combatant: combatant)
                         .clipShape(TrinketDesign.cardShape)
-
-                        Image(systemName: combatant.role == .hero ? "person.fill" : "pawprint.fill")
-                            .font(.system(size: 38, weight: .semibold))
-                            .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
-                            .symbolRenderingMode(.hierarchical)
-                            .accessibilityHidden(true)
-                    }
                 }
                 .overlay {
                     TrinketDesign.cardShape
@@ -1306,19 +1352,30 @@ private struct BattleArtCard: View {
             .fill(TrinketDesign.Materials.card)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
-                VStack(spacing: 12) {
-                    Image(systemName: "sparkles")
-                        .font(.title)
-                        .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
-                        .accessibilityHidden(true)
+                ZStack(alignment: .bottom) {
+                    CombatantArtwork(combatant: combatant)
+                        .clipShape(TrinketDesign.cardShape)
 
                     if showsText {
+                        LinearGradient(
+                            colors: [
+                                .clear,
+                                .black.opacity(0.72)
+                            ],
+                            startPoint: .center,
+                            endPoint: .bottom
+                        )
+                        .clipShape(TrinketDesign.cardShape)
+                        .accessibilityHidden(true)
+
                         Text(combatant.name)
-                            .font(.headline)
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(.white)
                             .multilineTextAlignment(.center)
+                            .shadow(color: .black.opacity(0.45), radius: 3, y: 1)
+                            .padding(12)
                     }
                 }
-                .padding()
             }
             .overlay {
                 TrinketDesign.cardShape
@@ -1544,7 +1601,6 @@ private struct CombatantCollectionDetailView: View {
     @Binding var equipmentLoadout: EquipmentLoadout
     @Binding var inventoryState: PlayerInventoryState
     @State private var selectedItemSlot: ItemSlot?
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         CombatantDetailPane(
@@ -1556,15 +1612,6 @@ private struct CombatantCollectionDetailView: View {
             allowsEditing: true,
             selectedItemSlot: $selectedItemSlot
         )
-        .navigationTitle(combatant.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    dismiss()
-                }
-            }
-        }
         .sheet(item: $selectedItemSlot) { slot in
             NavigationStack {
                 ItemSlotPickerView(
@@ -1589,85 +1636,147 @@ private struct CombatantDetailPane: View {
     var battleHealth: Int?
     var activeStatusSummaries: [StatusSummary] = []
     @Binding var selectedItemSlot: ItemSlot?
+    var showsDismissButton: Bool = false
+
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        List {
-            Section {
-                VStack(spacing: 16) {
-                    HStack {
-                        Spacer()
-                        BattleArtCard(combatant: combatant, showsText: false)
-                            .frame(maxWidth: 220)
-                            .accessibilityLabel("\(combatant.name) card art")
-                        Spacer()
+        GeometryReader { geometry in
+            List {
+                CombatantHeroHeader(
+                    combatant: combatant,
+                    progression: progression,
+                    battleHealth: battleHealth
+                )
+                .frame(width: geometry.size.width, height: geometry.size.width * 4.0 / 3.0)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .listSectionMargins(.horizontal, 0)
+                .listSectionMargins(.top, 0)
+                .accessibilityIdentifier("\(combatant.name) detail hero header")
+
+                Section("Experience") {
+                    ExperienceProgressDetail(progression: progression)
+                }
+
+                if let battleHealth {
+                    Section("Health") {
+                        CombatantHealthDetail(
+                            health: battleHealth,
+                            maxHealth: combatant.maxHealth,
+                            fillColor: combatant.healthBarColor
+                        )
                     }
+                }
+
+                if !activeStatusSummaries.isEmpty {
+                    Section("Active Effects") {
+                        ForEach(activeStatusSummaries) { summary in
+                            KeywordDescriptionText(text: summary.text)
+                                .font(.subheadline)
+                                .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+
+                Section("Stats") {
+                    HStack {
+                        Text("Health")
+
+                        Spacer()
+
+                        Text("\(combatant.maxHealth) HP")
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+
+                Section("Abilities") {
+                    AbilitySummaryGrid(
+                        combatant: combatant,
+                        loadout: $loadout,
+                        allowsEditing: allowsEditing
+                    )
+                    .padding(.vertical, 4)
+                }
+
+                Section("Items") {
+                    EquipmentSlotSummaryGrid(
+                        equipmentLoadout: equipmentLoadout,
+                        inventoryState: inventoryState,
+                        onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+                    )
+                    .padding(.vertical, 4)
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .contentMargins(.top, 0, for: .scrollContent)
+            .ignoresSafeArea(showsDismissButton ? [] : .container, edges: .top)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TrinketDesign.Colors.appBackground)
+        .tint(.white)
+        .toolbarBackground(.hidden, for: .navigationBar)
+    }
+}
+
+private struct CombatantHeroHeader: View {
+    let combatant: Combatant
+    let progression: CombatantProgression
+    let battleHealth: Int?
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .bottomLeading) {
+                CombatantArtwork(combatant: combatant)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
+
+                LinearGradient(
+                    colors: [
+                        .clear,
+                        .black.opacity(0.78)
+                    ],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(combatant.role.rawValue.uppercased())
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.78))
 
                     Text(combatant.name)
-                        .font(.title.weight(.bold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-                }
-                .listRowBackground(Color.clear)
-            }
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(.white)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.75)
 
-            Section("Progress") {
-                ExperienceProgressDetail(progression: progression)
-            }
+                    HStack(spacing: 12) {
+                        Text("Level \(progression.level)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.85))
 
-            if let battleHealth {
-                Section("Health") {
-                    CombatantHealthDetail(
-                        health: battleHealth,
-                        maxHealth: combatant.maxHealth,
-                        fillColor: combatant.healthBarColor
-                    )
-                }
-            }
-
-            if !activeStatusSummaries.isEmpty {
-                Section("Active Effects") {
-                    ForEach(activeStatusSummaries) { summary in
-                        KeywordDescriptionText(text: summary.text)
-                            .font(.subheadline)
-                            .accessibilityElement(children: .combine)
+                        Text("\(currentHealth)/\(combatant.maxHealth) HP")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.85))
                     }
                 }
-            }
-
-            Section("Stats") {
-                HStack {
-                    Text("Health")
-
-                    Spacer()
-
-                    Text("\(combatant.maxHealth) HP")
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-            }
-
-            Section("Abilities") {
-                AbilitySummaryGrid(
-                    combatant: combatant,
-                    loadout: $loadout,
-                    allowsEditing: allowsEditing
-                )
-                .padding(.vertical, 4)
-            }
-
-            Section("Items") {
-                EquipmentSlotSummaryGrid(
-                    equipmentLoadout: equipmentLoadout,
-                    inventoryState: inventoryState,
-                    onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
-                )
-                .padding(.vertical, 4)
+                .shadow(color: .black.opacity(0.5), radius: 4, y: 2)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 22)
             }
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(TrinketDesign.Colors.appBackground)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(combatant.name), \(combatant.role.rawValue), level \(progression.level), \(currentHealth) of \(combatant.maxHealth) health")
+    }
+
+    private var currentHealth: Int {
+        battleHealth ?? combatant.maxHealth
     }
 }
 
@@ -1685,7 +1794,7 @@ private struct ExperienceProgressBar: View {
                     .frame(width: geometry.size.width * progress)
             }
         }
-        .frame(height: 10)
+        .frame(height: 6)
         .clipShape(Capsule())
     }
 }
@@ -1695,20 +1804,23 @@ private struct ExperienceProgressDetail: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Level \(progression.level)")
-                    .font(.headline)
-
-                Spacer(minLength: 8)
-
+            HStack {
                 Text("\(progression.currentXP)/\(progression.requiredXP) XP")
-                    .font(.caption.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .font(.footnote.monospacedDigit().weight(.medium))
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text("\(Int(progression.progressFraction * 100))%")
+                    .font(.footnote.monospacedDigit().weight(.bold))
+                    .foregroundStyle(TrinketDesign.Colors.progression)
             }
 
             ExperienceProgressBar(progress: progression.progressFraction)
+                .frame(height: 6)
                 .accessibilityHidden(true)
         }
+        .padding(.vertical, 4)
     }
 }
 
@@ -2589,6 +2701,6 @@ private struct EmptyItemSlotCard: View {
 
 
 
-#Preview {
-    ContentView()
-}
+
+
+

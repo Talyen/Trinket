@@ -16,6 +16,8 @@
 		BDA7CBE0B3361AD6D46CBECD /* BattleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FCD6D471585E0AC83039CE2 /* BattleModels.swift */; };
 		C0A2B26D39E61575C93EC40B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08112E271B450C35D8D7AEEA /* ContentView.swift */; };
 		D0DDE6991E24D3987E005B92 /* SearchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E2E15F44FC6AF78054CB63E /* SearchUITests.swift */; };
+		DB43434C1290C0EFD6BDD271 /* ArtCatalog.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B17566A405416D98A55797 /* ArtCatalog.generated.swift */; };
+		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,10 +42,12 @@
 		0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleStateTests.swift; sourceTree = "<group>"; };
 		1524241C62BF8C54E3A7CDF8 /* Trinket.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Trinket.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		28B17566A405416D98A55797 /* ArtCatalog.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtCatalog.generated.swift; sourceTree = "<group>"; };
 		2FCD6D471585E0AC83039CE2 /* BattleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleModels.swift; sourceTree = "<group>"; };
 		4E2E15F44FC6AF78054CB63E /* SearchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchUITests.swift; sourceTree = "<group>"; };
 		50337A19420E33B61E985829 /* DebugBattleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBattleUITests.swift; sourceTree = "<group>"; };
 		7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
+		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		83FD7336E87500078A33C4E7 /* TrinketDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketDesign.swift; sourceTree = "<group>"; };
 		CEB57630536337F8AB337681 /* BattleFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleFlowUITests.swift; sourceTree = "<group>"; };
 		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -74,10 +78,12 @@
 		A4012463DD954CE8411DA9EE /* Trinket */ = {
 			isa = PBXGroup;
 			children = (
+				8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */,
 				2FCD6D471585E0AC83039CE2 /* BattleModels.swift */,
 				08112E271B450C35D8D7AEEA /* ContentView.swift */,
 				7D49ACD6A84F8E890E4C186E /* TrinketApp.swift */,
 				83FD7336E87500078A33C4E7 /* TrinketDesign.swift */,
+				D041615996606263A09BB671 /* Generated */,
 			);
 			path = Trinket;
 			sourceTree = "<group>";
@@ -99,6 +105,14 @@
 				11333C6EF4CF18ECF05B59BF /* BattleStateTests.swift */,
 			);
 			path = TrinketTests;
+			sourceTree = "<group>";
+		};
+		D041615996606263A09BB671 /* Generated */ = {
+			isa = PBXGroup;
+			children = (
+				28B17566A405416D98A55797 /* ArtCatalog.generated.swift */,
+			);
+			path = Generated;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -127,6 +141,7 @@
 			buildConfigurationList = 6547600BB0ED4B74D39B3A78 /* Build configuration list for PBXNativeTarget "Trinket" */;
 			buildPhases = (
 				21E3B7E2E58C6DE18FB70E68 /* Sources */,
+				C807398A97BBF4785CD32DAD /* Resources */,
 			);
 			buildRules = (
 			);
@@ -192,11 +207,23 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		C807398A97BBF4785CD32DAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		21E3B7E2E58C6DE18FB70E68 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB43434C1290C0EFD6BDD271 /* ArtCatalog.generated.swift in Sources */,
 				BDA7CBE0B3361AD6D46CBECD /* BattleModels.swift in Sources */,
 				C0A2B26D39E61575C93EC40B /* ContentView.swift in Sources */,
 				636A3BCA499E957249F8DFD8 /* TrinketApp.swift in Sources */,

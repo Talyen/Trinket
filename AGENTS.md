@@ -34,8 +34,9 @@ Guidance for Codex and other agents on Trinket: a portrait-first native iOS fant
 - Commands: `./Scripts/generate.sh`, `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test.sh all`, `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`, `./Scripts/run-simulator.sh`, `./Scripts/run-debug-battle.sh Mage Drake`.
 - CRITICAL: Do NOT run the full UI test suite (`./Scripts/test.sh ui` or `./Scripts/test.sh all`) unless explicitly requested by the user. Default to fast unit tests (`./Scripts/test.sh`) for routine verification. For minor UI copy/style/layout tweaks, prefer `./Scripts/build.sh` or a targeted UI test (e.g. `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`).
 - Run `./Scripts/build.sh` for UI/project/config changes. After `project.yml` or target membership changes, run `./Scripts/generate.sh` before build/test.
-- For user-visible changes, run `./Scripts/run-simulator.sh` when feasible; capture screenshots only for useful visual evidence.
+- For user-visible visual changes, run `./Scripts/run-simulator.sh` to verify layout, rendering, and interaction; capture screenshots only for useful visual evidence.
 - Use the simulator for high-signal visual checks, not exhaustive UI proof. Prefer XCTest/XCUITest for routine navigation, sheet, log, and state checks.
+- For simulator visual checks, prefer Computer Use when available: launch with `./Scripts/run-simulator.sh`, inspect/click in Simulator via Computer Use, then capture screenshots with `./Scripts/capture-screenshot.sh`. Use targeted XCUITest for repeatable verification and avoid brittle manual coordinate tapping when a test can cover the behavior.
 - For battle timing, use the DEBUG deterministic Battle harness instead of sleeps or manual tapping.
 - Keep generated build output and `.DerivedData/` out of Git.
 

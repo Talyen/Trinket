@@ -7,3 +7,5 @@ xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.5'
+
+
