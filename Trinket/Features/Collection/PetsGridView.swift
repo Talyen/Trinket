@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PetsGridView: View {
     @Environment(AppState.self) private var appState
+    @State private var selectedCombatant: CombatantCollectionDetailSelection?
 
     private let columns = [
         GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
@@ -9,19 +10,15 @@ struct PetsGridView: View {
 
     var body: some View {
         let rosterState = appState.roster.current
-        let inventoryState = appState.inventory.current
 
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                        NavigationLink {
-                            CombatantCollectionDetailView(
-                                combatant: combatant,
-                                progression: rosterState.progression(for: combatant),
-                                inventoryState: inventoryState,
-                                loadout: loadoutBinding(for: combatant, in: rosterState),
-                                equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
+                        Button {
+                            selectedCombatant = CombatantCollectionDetailSelection(
+                                kind: .pet,
+                                combatantID: combatant.id
                             )
                         } label: {
                             CombatantCard(combatant: combatant)
@@ -36,25 +33,10 @@ struct PetsGridView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Pets")
         .navigationBarTitleDisplayMode(.large)
-    }
-
-    private func loadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<AbilityLoadout> {
-        Binding {
-            rosterState.loadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
-    }
-
-    private func equipmentLoadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<EquipmentLoadout> {
-        Binding {
-            rosterState.equipmentLoadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setEquipmentLoadout(newValue, for: combatant)
-            appState.roster.current = updated
+        .sheet(item: $selectedCombatant) { selection in
+            CombatantCollectionDetailSheet(selection: selection)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
         }
     }
 }

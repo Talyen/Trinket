@@ -23,6 +23,7 @@
 		5536F751338BCE35A0E116AA /* BattleSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEC9F4E5001820CB674DFC1 /* BattleSimulator.swift */; };
 		554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9644A89F778120278E7791 /* PlayView.swift */; };
 		5B18A0250A2237D41BE2D297 /* PlaceholderTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F4ECC4FED5B8FAF1266863 /* PlaceholderTabView.swift */; };
+		5D4D429EE0126AA1B9CFFEBD /* CombatantCollectionDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */; };
 		5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51450F5568FC102C62BE459D /* BattleFlowUITests.swift */; };
 		62E49A7F4C1F31EF94AB40ED /* CombatantArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BF8380DB16DE532A84024C /* CombatantArtwork.swift */; };
 		62EA2B3C00AA6E22255E0306 /* PlaySmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BAF344DA6508B76C0355DB /* PlaySmokeTests.swift */; };
@@ -61,6 +62,7 @@
 		D78954FC66153D11DB8496CE /* BattleSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */; };
 		DB43434C1290C0EFD6BDD271 /* ArtCatalog.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B17566A405416D98A55797 /* ArtCatalog.generated.swift */; };
 		E0B0375856644938DA605D7B /* CombatantCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AEFB3AF37B08FB51448330 /* CombatantCard.swift */; };
+		E33EB16F37A2F2F2AE2B5F92 /* LaunchScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AD254B2DAD999261D98A70C /* LaunchScreenUITests.swift */; };
 		E65ED3179E4512091FFA65C8 /* Ability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5352B490AF92FFE0D7753298 /* Ability.swift */; };
 		E74F7746473D291F0B93322F /* ActiveBattleConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0BF2908CA3AB98FCCE560 /* ActiveBattleConfiguration.swift */; };
 		EE30D7D59F6902A352FD35F8 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEC947E893452FC5D8E2081 /* OptionsView.swift */; };
@@ -116,6 +118,7 @@
 		6BEC9F4E5001820CB674DFC1 /* BattleSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSimulator.swift; sourceTree = "<group>"; };
 		6E05148A596023F71EC6F7C3 /* PlayerRosterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRosterStore.swift; sourceTree = "<group>"; };
 		769E5E691395F845BABD973F /* ItemSlotPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSlotPickerView.swift; sourceTree = "<group>"; };
+		7AD254B2DAD999261D98A70C /* LaunchScreenUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreenUITests.swift; sourceTree = "<group>"; };
 		7B798B754E4D0AD974583C21 /* PlayerInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerInventoryStore.swift; sourceTree = "<group>"; };
 		814777C4155CA6CD1EDBDC48 /* VolumeOptionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeOptionRow.swift; sourceTree = "<group>"; };
 		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -149,6 +152,7 @@
 		F134CA07356C4E6289659328 /* ItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCard.swift; sourceTree = "<group>"; };
 		F23440CC93C6AF578800C827 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		F3B0BF2908CA3AB98FCCE560 /* ActiveBattleConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleConfiguration.swift; sourceTree = "<group>"; };
+		F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailSheet.swift; sourceTree = "<group>"; };
 		F5D3EF948D89460BB07123D6 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
 		F84F536115F01471A0ED9BC2 /* BattleSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSmokeTests.swift; sourceTree = "<group>"; };
 		F86390BDE7F14CD4871091E4 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
@@ -263,6 +267,7 @@
 		8EFD36283A19BFF4238E7E3F /* Collection */ = {
 			isa = PBXGroup;
 			children = (
+				7AD254B2DAD999261D98A70C /* LaunchScreenUITests.swift */,
 				B6DB6E4E21780CF00DC3CC2B /* TabNavigationUITests.swift */,
 			);
 			path = Collection;
@@ -421,6 +426,7 @@
 			isa = PBXGroup;
 			children = (
 				9F72FEB7E645FFDB20C49A6C /* CollectionView.swift */,
+				F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */,
 				87841683BEB70D6891DEFE69 /* CombatantCollectionDetailView.swift */,
 				AFE3AE44DE2A80E47CDC90CD /* HeroesGridView.swift */,
 				F86390BDE7F14CD4871091E4 /* ItemViews.swift */,
@@ -567,6 +573,7 @@
 				7F7DAAE4B73CB12FB4221681 /* Combatant.swift in Sources */,
 				62E49A7F4C1F31EF94AB40ED /* CombatantArtwork.swift in Sources */,
 				E0B0375856644938DA605D7B /* CombatantCard.swift in Sources */,
+				5D4D429EE0126AA1B9CFFEBD /* CombatantCollectionDetailSheet.swift in Sources */,
 				1DD13A8FE70A0115990D3F65 /* CombatantCollectionDetailView.swift in Sources */,
 				1A5DF46E565CA6F89A4FBC77 /* CombatantDetail.swift in Sources */,
 				B580C9F53363446FFFFCF4A5 /* CombatantDetailPane.swift in Sources */,
@@ -617,6 +624,7 @@
 				2A0E6AAEB50A8DFB7A7F3845 /* BattleSmokeTests.swift in Sources */,
 				2779168B15191088A3B97C78 /* CollectionSmokeTests.swift in Sources */,
 				6D1EE9C6AFEC6E4608BB0BCB /* HomesteadSmokeTests.swift in Sources */,
+				E33EB16F37A2F2F2AE2B5F92 /* LaunchScreenUITests.swift in Sources */,
 				89A9FC7452C718D9578C45AB /* OptionsSmokeTests.swift in Sources */,
 				62EA2B3C00AA6E22255E0306 /* PlaySmokeTests.swift in Sources */,
 				10420DB76B7753231EF5981D /* SearchSmokeTests.swift in Sources */,

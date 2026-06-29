@@ -3,7 +3,7 @@ import XCTest
 enum TestLaunchArg {
     static func tab(_ tab: String) -> String { "-selectedTab \(tab)" }
     static let resetState = "-reset-state"
-    static func screen(_ screen: String) -> String { "-launch-screen \(screen)" }
+    static func screen(_ screen: String) -> [String] { ["-launch-screen", screen] }
 
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
         var args = reset ? [resetState] : []
@@ -13,7 +13,7 @@ enum TestLaunchArg {
 
     static func allForScreen(_ screen: String, reset: Bool = true) -> [String] {
         var args = reset ? [resetState] : []
-        args.append(self.screen(screen))
+        args.append(contentsOf: self.screen(screen))
         return args
     }
 }

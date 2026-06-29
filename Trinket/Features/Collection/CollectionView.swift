@@ -3,6 +3,11 @@ import SwiftUI
 struct CollectionView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
+    @State private var selectedCombatant: CombatantCollectionDetailSelection?
+
+    init(initialCombatantDetail: CombatantCollectionDetailSelection? = nil) {
+        _selectedCombatant = State(initialValue: initialCombatantDetail)
+    }
 
     var body: some View {
         let rosterState = appState.roster.current
@@ -32,13 +37,10 @@ struct CollectionView: View {
 
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
-                            NavigationLink {
-                                CombatantCollectionDetailView(
-                                    combatant: combatant,
-                                    progression: rosterState.progression(for: combatant),
-                                    inventoryState: inventoryState,
-                                    loadout: loadoutBinding(for: combatant, in: rosterState),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
+                            Button {
+                                selectedCombatant = CombatantCollectionDetailSelection(
+                                    kind: .hero,
+                                    combatantID: combatant.id
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
@@ -72,13 +74,10 @@ struct CollectionView: View {
 
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                            NavigationLink {
-                                CombatantCollectionDetailView(
-                                    combatant: combatant,
-                                    progression: rosterState.progression(for: combatant),
-                                    inventoryState: inventoryState,
-                                    loadout: loadoutBinding(for: combatant, in: rosterState),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
+                            Button {
+                                selectedCombatant = CombatantCollectionDetailSelection(
+                                    kind: .pet,
+                                    combatantID: combatant.id
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
@@ -137,6 +136,11 @@ struct CollectionView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
         }
+        .sheet(item: $selectedCombatant) { selection in
+            CombatantCollectionDetailSheet(selection: selection)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
+        }
     }
 
     private func horizontalShelf<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -149,23 +153,4 @@ struct CollectionView: View {
         }
     }
 
-    private func loadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<AbilityLoadout> {
-        Binding {
-            rosterState.loadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
-    }
-
-    private func equipmentLoadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<EquipmentLoadout> {
-        Binding {
-            rosterState.equipmentLoadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setEquipmentLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
-    }
 }

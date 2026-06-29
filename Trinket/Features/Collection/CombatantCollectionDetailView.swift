@@ -7,6 +7,7 @@ struct CombatantCollectionDetailView: View {
     let inventoryState: PlayerInventoryState
     @Binding var loadout: AbilityLoadout
     @Binding var equipmentLoadout: EquipmentLoadout
+    var navigationChrome: CombatantDetailNavigationChrome = .visible
     @State private var selectedItemSlot: ItemSlot?
 
     var body: some View {
@@ -17,6 +18,7 @@ struct CombatantCollectionDetailView: View {
             equipmentLoadout: $equipmentLoadout,
             inventoryState: inventoryBinding,
             allowsEditing: true,
+            navigationChrome: navigationChrome,
             selectedItemSlot: $selectedItemSlot
         )
         .sheet(item: $selectedItemSlot) { slot in

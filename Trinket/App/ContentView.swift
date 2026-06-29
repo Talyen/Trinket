@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @State private var collectionPath: [CollectionRoute] = Self.initialCollectionPath()
 
     init() {
         let env = AppEnvironment.shared
@@ -19,8 +20,11 @@ struct ContentView: View {
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
-                NavigationStack {
-                    CollectionView()
+                NavigationStack(path: $collectionPath) {
+                    CollectionView(initialCombatantDetail: Self.initialCollectionCombatantDetail())
+                        .navigationDestination(for: CollectionRoute.self) { route in
+                            CollectionRouteDestination(route: route)
+                        }
                 }
             }
 
@@ -50,4 +54,50 @@ struct ContentView: View {
             appState.battle.isPaused = appState.selectedTab != .play
         }
     }
+
+    private static func initialCollectionPath() -> [CollectionRoute] {
+        switch AppEnvironment.shared.launchScreen {
+        case .itemDetail(let id):
+            return [.item(id)]
+        case .heroDetail, .petDetail, .battle, .options, .none:
+            return []
+        }
+    }
+
+    private static func initialCollectionCombatantDetail() -> CombatantCollectionDetailSelection? {
+        switch AppEnvironment.shared.launchScreen {
+        case .heroDetail(let id):
+            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
+        case .petDetail(let id):
+            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
+        case .itemDetail, .battle, .options, .none:
+            nil
+        }
+    }
+}
+
+private enum CollectionRoute: Hashable {
+    case item(String)
+}
+
+private struct CollectionRouteDestination: View {
+    @Environment(AppState.self) private var appState
+    let route: CollectionRoute
+
+    var body: some View {
+        switch route {
+        case .item(let id):
+            itemDestination(id: id)
+        }
+    }
+
+    @ViewBuilder
+    private func itemDestination(id: String) -> some View {
+        if let item = appState.inventory.current.items.first(where: { $0.id == id }) {
+            ItemDetailView(item: item)
+        } else {
+            ContentUnavailableView("Item Not Found", systemImage: "questionmark.circle")
+        }
+    }
+
 }

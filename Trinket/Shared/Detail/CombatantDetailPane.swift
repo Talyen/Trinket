@@ -1,5 +1,10 @@
 import SwiftUI
 
+enum CombatantDetailNavigationChrome {
+    case visible
+    case hidden
+}
+
 struct CombatantDetailPane: View {
     let combatant: Combatant
     let progression: CombatantProgression
@@ -9,114 +14,101 @@ struct CombatantDetailPane: View {
     let allowsEditing: Bool
     var battleHealth: Int?
     var activeStatusSummaries: [StatusSummary] = []
+    var navigationChrome: CombatantDetailNavigationChrome = .visible
     @Binding var selectedItemSlot: ItemSlot?
 
-    @State private var headerHeight: CGFloat = 0
-    @State private var containerWidth: CGFloat = 0
-    @State private var stretch: CGFloat = 0
+    @State private var headerHeight: CGFloat = 300
     @State private var titleOpacity: CGFloat = 0
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                CombatantHeroHeader(
-                    combatant: combatant,
-                    progression: progression,
-                    battleHealth: battleHealth,
-                    headerHeight: headerHeight,
-                    stretch: stretch,
-                    containerWidth: containerWidth
-                )
-                .accessibilityIdentifier("\(combatant.name) detail hero header")
+        GeometryReader { geometry in
+            let baseHeaderHeight = max(geometry.size.height * 0.5, 300)
 
-                VStack(alignment: .leading, spacing: 0) {
-                    section("Experience") {
-                        ExperienceProgressDetail(progression: progression)
-                    }
+            ScrollView {
+                VStack(spacing: 0) {
+                    CombatantHeroHeader(
+                        combatant: combatant,
+                        progression: progression,
+                        battleHealth: battleHealth,
+                        baseHeight: baseHeaderHeight
+                    )
+                    .accessibilityIdentifier("\(combatant.name) detail hero header")
 
-                    if let battleHealth {
-                        section("Health") {
-                            CombatantHealthDetail(
-                                health: battleHealth,
-                                maxHealth: combatant.maxHealth,
-                                fillColor: combatant.healthBarColor
-                            )
+                    VStack(alignment: .leading, spacing: 0) {
+                        section("Experience") {
+                            ExperienceProgressDetail(progression: progression)
                         }
-                    }
 
-                    if !activeStatusSummaries.isEmpty {
-                        section("Active Effects") {
-                            ForEach(activeStatusSummaries) { summary in
-                                KeywordDescriptionText(text: summary.text)
-                                    .font(.subheadline)
-                                    .accessibilityElement(children: .combine)
+                        if let battleHealth {
+                            section("Health") {
+                                CombatantHealthDetail(
+                                    health: battleHealth,
+                                    maxHealth: combatant.maxHealth,
+                                    fillColor: combatant.healthBarColor
+                                )
                             }
                         }
-                    }
 
-                    section("Stats") {
-                        HStack {
-                            Text("Health")
+                        if !activeStatusSummaries.isEmpty {
+                            section("Active Effects") {
+                                ForEach(activeStatusSummaries) { summary in
+                                    KeywordDescriptionText(text: summary.text)
+                                        .font(.subheadline)
+                                        .accessibilityElement(children: .combine)
+                                }
+                            }
+                        }
 
-                            Spacer()
+                        section("Stats") {
+                            HStack {
+                                Text("Health")
 
-                            Text("\(combatant.maxHealth) HP")
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
+                                Spacer()
+
+                                Text("\(combatant.maxHealth) HP")
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                            }
+                        }
+
+                        section("Abilities") {
+                            AbilitySummaryGrid(
+                                combatant: combatant,
+                                loadout: $loadout,
+                                allowsEditing: allowsEditing
+                            )
+                            .padding(.vertical, 4)
+                        }
+
+                        section("Items") {
+                            EquipmentSlotSummaryGrid(
+                                equipmentLoadout: equipmentLoadout,
+                                inventoryState: inventoryState,
+                                onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
+                            )
+                            .padding(.vertical, 4)
                         }
                     }
-
-                    section("Abilities") {
-                        AbilitySummaryGrid(
-                            combatant: combatant,
-                            loadout: $loadout,
-                            allowsEditing: allowsEditing
-                        )
-                        .padding(.vertical, 4)
-                    }
-
-                    section("Items") {
-                        EquipmentSlotSummaryGrid(
-                            equipmentLoadout: equipmentLoadout,
-                            inventoryState: inventoryState,
-                            onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil
-                        )
-                        .padding(.vertical, 4)
-                    }
+                    .background(TrinketDesign.Colors.appBackground)
                 }
-                .background(TrinketDesign.Colors.appBackground)
             }
-        }
-        .ignoresSafeArea(edges: .top)
-        .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle(combatant.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(combatant.name)
-                    .font(.headline)
-                    .opacity(titleOpacity)
+            .ignoresSafeArea(edges: .top)
+            .background(TrinketDesign.Colors.appBackground)
+            .combatantDetailNavigationChrome(navigationChrome, title: combatant.name, titleOpacity: titleOpacity)
+            .onAppear {
+                headerHeight = baseHeaderHeight
             }
-        }
-        .onScrollGeometryChange(for: ScrollState.self) { geometry in
-            ScrollState(
-                offsetY: geometry.contentOffset.y,
-                topInset: geometry.contentInsets.top
-            )
-        } action: { _, state in
-            stretch = max(0, -state.offsetY)
-            let threshold = headerHeight - state.topInset - 44
-            titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
-        }
-        .background {
-            GeometryReader { geometry in
-                Color.clear
-                    .onGeometryChange(for: CGSize.self) { proxy in
-                        proxy.size
-                    } action: { newSize in
-                        setContainerSize(newSize)
-                    }
+            .onChange(of: baseHeaderHeight) { _, newHeight in
+                headerHeight = newHeight
+            }
+            .onScrollGeometryChange(for: ScrollState.self) { geometry in
+                ScrollState(
+                    offsetY: geometry.contentOffset.y + geometry.contentInsets.top,
+                    topInset: geometry.contentInsets.top
+                )
+            } action: { _, state in
+                let threshold = headerHeight - state.topInset - 44
+                titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
             }
         }
     }
@@ -135,14 +127,37 @@ struct CombatantDetailPane: View {
         }
     }
 
-    private func setContainerSize(_ size: CGSize) {
-        let height = size.height
-        headerHeight = min(max(height * 0.38, 300), height * 0.5)
-        containerWidth = size.width
-    }
-
     private struct ScrollState: Equatable {
         var offsetY: CGFloat
         var topInset: CGFloat
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func combatantDetailNavigationChrome(
+        _ chrome: CombatantDetailNavigationChrome,
+        title: String,
+        titleOpacity: CGFloat
+    ) -> some View {
+        switch chrome {
+        case .visible:
+            self
+                .navigationTitle(title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(title)
+                            .font(.headline)
+                            .opacity(titleOpacity)
+                    }
+                    .sharedBackgroundVisibility(.hidden)
+                }
+        case .hidden:
+            self
+                .toolbar(.hidden, for: .navigationBar)
+        }
     }
 }
