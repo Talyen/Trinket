@@ -8,14 +8,22 @@ struct AbilityChoiceCard: View {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    TrinketDesign.cardShape
-                        .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
-                }
-                .overlay {
-                    Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                        .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
-                        .accessibilityHidden(true)
+                    if let artRef = ability.artReference {
+                        Image(artRef.imageName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .clipShape(TrinketDesign.cardShape)
+                            .accessibilityLabel(artRef.accessibilityLabel)
+                    } else {
+                        ZStack {
+                            TrinketDesign.cardShape
+                                .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
+                            Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
+                                .font(.system(size: 38, weight: .semibold))
+                                .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
+                                .accessibilityHidden(true)
+                        }
+                    }
                 }
                 .trinketCardSurface()
 

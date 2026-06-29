@@ -9,12 +9,12 @@ final class TabNavigationUITests: TrinketUITestCase {
         app.tabBars.buttons["Collection"].tap()
         assertExists("Heroes collection category")
         app.buttons["Heroes collection category"].tap()
-        assertExists("Paladin collection card")
-        app.buttons["Paladin collection card"].tap()
+        assertExists("Knight collection card")
+        app.buttons["Knight collection card"].tap()
 
-        assertExists("Paladin detail hero header")
-        assertExists("Level 2")
-        assertExists("35/120 XP")
+        let knightHeader = app.descendants(matching: .any)["Knight detail hero header"]
+        assertExists(knightHeader)
+        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
         assertExists("Stats")
         assertExists("Health")
         assertExists("10/10")
@@ -36,32 +36,32 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists("Basic ability slot")
         app.buttons["Basic ability slot"].tap()
         assertExists("Basic")
-        app.buttons["Basic Shield Jab ability card"].tap()
-        assertExists("Shield Jab")
+        app.buttons["Basic Shield Bash ability card"].tap()
+        assertExists("Shield Bash")
 
         app.buttons["Basic ability slot"].tap()
         assertExists("Basic")
-        app.buttons["Basic Strike ability card"].tap()
-        assertExists("Strike")
+        app.buttons["Basic Bash ability card"].tap()
+        assertExists("Bash")
 
-        goBack()
-        assertExists("Paladin collection card")
+        dismissSheet()
+        assertExists("Knight collection card")
         goBack()
 
         assertExists("Pets collection category")
         app.buttons["Pets collection category"].tap()
         assertExists("Wolf collection card")
-        assertExists("Hawk collection card")
+        assertExists("Bear collection card")
         app.buttons["Wolf collection card"].tap()
 
-        assertExists("Wolf detail hero header")
-        assertExists("Level 2")
-        assertExists("12/100 XP")
+        let wolfHeader = app.descendants(matching: .any)["Wolf detail hero header"]
+        assertExists(wolfHeader)
+        XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 100 experience")
         assertExists("Stats")
         assertExists("Health")
         assertExists("6/6")
 
-        goBack()
+        dismissSheet()
         assertExists("Wolf collection card")
         goBack()
 
@@ -79,6 +79,9 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         app.tabBars.buttons["Homestead"].tap()
         assertExists("Homestead")
+
+        app.tabBars.buttons["Options"].tap()
+        assertExists("Options Screen")
 
         app.tabBars.buttons["Play"].tap()
         assertExists("Play")
@@ -101,18 +104,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         ])
 
         assertExists("Play")
-        app.buttons.containing(.staticText, identifier: "Battle").firstMatch.tap()
-        assertExists("Paladin selection card")
-        app.buttons["Paladin selection card"].tap()
-        assertExists("Wolf selection card")
-        app.buttons["Wolf selection card"].tap()
-
-        assertExists("Battle Pause Button")
-        app.buttons["Battle Pause Button"].tap()
-
-        app.buttons["Battle Menu"].tap()
-        assertExists("Options menu item")
-        app.buttons["Options menu item"].tap()
+        app.tabBars.buttons["Options"].tap()
 
         assertExists("Options Screen")
         assertExists("Theme Picker")
@@ -127,7 +119,5 @@ final class TabNavigationUITests: TrinketUITestCase {
         XCTAssertTrue(themePicker.buttons["Light"].isSelected)
         themePicker.buttons["System"].tap()
         XCTAssertTrue(themePicker.buttons["System"].isSelected)
-
-        app.buttons["Done"].tap()
     }
 }

@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "ability_raise_skeleton.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

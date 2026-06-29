@@ -28,7 +28,6 @@ struct CombatantHeroHeader: View {
             .offset(y: -pullDistance)
         }
         .frame(height: baseHeight)
-        .clipped()
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             "\(combatant.name), \(combatant.role.rawValue), level \(progression.level), \(progression.currentXP) of \(progression.requiredXP) experience"
@@ -51,13 +50,13 @@ struct CombatantHeroHeader: View {
 
     private var experienceFooter: some View {
         HStack {
-            Text("Level \(progression.level)")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.82))
+            Text("LEVEL \(progression.level)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white.opacity(0.78))
 
             Text("\(progression.currentXP)/\(progression.requiredXP) XP")
-                .font(.subheadline.monospacedDigit())
-                .foregroundStyle(.white.opacity(0.82))
+                .font(.caption.weight(.bold).monospacedDigit())
+                .foregroundStyle(.white.opacity(0.78))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

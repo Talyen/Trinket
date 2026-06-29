@@ -10,17 +10,17 @@ final class SearchUITests: TrinketUITestCase {
         let searchField = app.searchFields.firstMatch
         assertExists(searchField)
         searchField.tap()
-        searchField.typeText("Paladin")
+        searchField.typeText("Knight")
 
-        assertExists("Paladin collection card")
-        app.buttons["Paladin collection card"].tap()
+        assertExists("Knight collection card")
+        app.buttons["Knight collection card"].tap()
         assertExists("Stats")
         assertExists("Health")
         assertExists("10/10")
         goBack()
 
         searchField.tap()
-        searchField.typeText(String(repeating: "\u{0008}", count: "Paladin".count))
+        searchField.typeText(String(repeating: "\u{0008}", count: "Knight".count))
         searchField.typeText("Wolf")
         assertExists("Wolf collection card")
         app.buttons["Wolf collection card"].tap()

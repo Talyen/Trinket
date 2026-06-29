@@ -23,7 +23,9 @@ final class AppState {
             return .collection
         case .battle:
             return .play
-        case .options, .none:
+        case .options:
+            return .options
+        case .none:
             return .play
         }
     }

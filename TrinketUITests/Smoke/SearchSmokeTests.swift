@@ -14,8 +14,8 @@ final class SmokeSearchTests: TrinketUITestCase {
         let searchField = app.searchFields.firstMatch
         assertExists(searchField)
         searchField.tap()
-        searchField.typeText("Paladin")
+        searchField.typeText("Knight")
 
-        assertExists("Paladin collection card")
+        assertExists("Knight collection card")
     }
 }

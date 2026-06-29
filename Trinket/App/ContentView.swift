@@ -39,6 +39,12 @@ struct ContentView: View {
                     SearchView()
                 }
             }
+
+            Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
+                NavigationStack {
+                    OptionsView()
+                }
+            }
         }
         .preferredColorScheme(appState.options.theme.colorScheme)
         .onChange(of: appState.selectedTab) { _, newTab in

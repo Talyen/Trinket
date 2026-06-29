@@ -4,7 +4,6 @@ struct BattleView: View {
     @State private var battle: BattleState
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
-    @State private var isShowingOptions = false
     @State private var timelineStartDate: Date
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
     @Binding var isBattlePaused: Bool
@@ -85,20 +84,6 @@ struct BattleView: View {
             )
                 .presentationDetents([.medium])
         }
-        .sheet(isPresented: $isShowingOptions) {
-            NavigationStack {
-                OptionsView()
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") {
-                                isShowingOptions = false
-                            }
-                        }
-                    }
-            }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     private var battlefieldWithTimeline: some View {
@@ -117,13 +102,6 @@ struct BattleView: View {
             } label: {
                 Label("Combat Log", systemImage: "list.bullet.rectangle")
             }
-
-            Button {
-                isShowingOptions = true
-            } label: {
-                Label("Options", systemImage: "gearshape")
-            }
-            .accessibilityIdentifier("Options menu item")
 
             if !isShowingVictory {
                 Divider()

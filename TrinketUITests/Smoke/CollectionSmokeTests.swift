@@ -13,8 +13,8 @@ final class SmokeCollectionTests: TrinketUITestCase {
         launchApp(arguments: [TestLaunchArg.resetState])
         app.tabBars.buttons["Collection"].tap()
         app.buttons["Heroes collection category"].tap()
-        assertExists("Paladin collection card")
-        assertExists("Mage collection card")
+        assertExists("Knight collection card")
+        assertExists("Wizard collection card")
         assertExists("Rogue collection card")
     }
 
@@ -22,7 +22,7 @@ final class SmokeCollectionTests: TrinketUITestCase {
         launchApp(arguments: [TestLaunchArg.resetState])
         app.tabBars.buttons["Collection"].tap()
         app.buttons["Heroes collection category"].tap()
-        app.buttons["Paladin collection card"].tap()
-        assertExists("Paladin detail hero header")
+        app.buttons["Knight collection card"].tap()
+        assertExists("Knight detail hero header")
     }
 }

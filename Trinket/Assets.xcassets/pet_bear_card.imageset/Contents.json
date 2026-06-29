@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "pet_bear_card.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -1,17 +1,11 @@
 import XCTest
 
 final class SmokeOptionsTests: TrinketUITestCase {
-    func testOptionsViaBattleMenu() {
+    func testOptionsTab() {
         launchApp(arguments: [
             TestLaunchArg.resetState
         ])
-        app.staticTexts["Battle"].tap()
-        app.staticTexts["Paladin"].tap()
-        app.staticTexts["Wolf"].tap()
-
-        assertExists("Victory", timeout: 30)
-        app.buttons["Battle Menu"].tap()
-        app.buttons["Options menu item"].tap()
+        app.tabBars.buttons["Options"].tap()
 
         assertExists("Options Screen")
         assertExists("Theme Picker")

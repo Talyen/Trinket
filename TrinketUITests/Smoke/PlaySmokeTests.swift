@@ -11,8 +11,8 @@ final class SmokePlayTests: TrinketUITestCase {
         launchApp(arguments: [TestLaunchArg.resetState])
         app.staticTexts["Battle"].tap()
         assertExists("Select Hero")
-        assertExists("Paladin selection card")
-        assertExists("Mage selection card")
+        assertExists("Knight selection card")
+        assertExists("Wizard selection card")
         assertExists("Rogue selection card")
     }
 }

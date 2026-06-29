@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "pet_lizard_scout_card_thumb.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

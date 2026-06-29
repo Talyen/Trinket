@@ -7,7 +7,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         ])
         app.staticTexts["Battle"].tap()
         assertExists("Select Hero")
-        app.staticTexts["Paladin"].tap()
+        app.staticTexts["Knight"].tap()
         assertExists("Select Pet")
         app.staticTexts["Wolf"].tap()
 
@@ -24,15 +24,15 @@ final class SmokeBattleTests: TrinketUITestCase {
             TestLaunchArg.resetState
         ])
         app.staticTexts["Battle"].tap()
-        app.staticTexts["Paladin"].tap()
+        app.staticTexts["Knight"].tap()
         app.staticTexts["Wolf"].tap()
 
-        assertExists("Paladin card")
-        app.buttons["Paladin card"].tap()
+        assertExists("Knight card")
+        app.buttons["Knight card"].tap()
 
-        assertExists("Paladin detail hero header")
-        assertExists("Level 1")
-        assertExists("0/100 XP")
+        let header = app.descendants(matching: .any)["Knight detail hero header"]
+        XCTAssertTrue(header.waitForExistence(timeout: 5))
+        XCTAssertEqual(header.label, "Knight, Hero, level 2, 35 of 120 experience")
         assertExists("Stats")
         assertExists("Health")
         assertExists("10/10")

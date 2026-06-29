@@ -28,20 +28,29 @@ struct PlayerRosterState: Equatable {
             activePetID: GameContent.pets.first?.id ?? "",
             abilityLoadouts: [:],
             progressions: [
-                "paladin": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
+                "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
                 "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
-                "mage": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
-                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100),
-                "hawk": CombatantProgression(level: 1, currentXP: 40, requiredXP: 100),
-                "drake": CombatantProgression(level: 3, currentXP: 90, requiredXP: 180)
+                "wizard": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
+                "alchemist": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "druid": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "ranger": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "warlock": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "wildcard": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "bear": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "frost_whelp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "imp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "panther": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "phoenix": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100)
             ],
             equipmentLoadouts: [
-                "paladin": EquipmentLoadout(itemIDsBySlot: [
+                "knight": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "ember-wand",
                     .armor: "leather-gloves",
                     .trinket: "river-charm"
                 ]),
-                "mage": EquipmentLoadout(itemIDsBySlot: [
+                "wizard": EquipmentLoadout(itemIDsBySlot: [
                     .weapon: "ember-wand",
                     .trinket: "river-charm"
                 ]),

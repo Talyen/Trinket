@@ -5,6 +5,7 @@ enum AppTab: String, CaseIterable {
     case collection
     case homestead
     case search
+    case options
 
     var symbolName: String {
         switch self {
@@ -12,6 +13,7 @@ enum AppTab: String, CaseIterable {
         case .collection: return "person.2.fill"
         case .homestead: return "house.fill"
         case .search: return "magnifyingglass"
+        case .options: return "gearshape.fill"
         }
     }
 
@@ -21,6 +23,7 @@ enum AppTab: String, CaseIterable {
         case .collection: return "Collection"
         case .homestead: return "Homestead"
         case .search: return "Search"
+        case .options: return "Options"
         }
     }
 }

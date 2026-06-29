@@ -69,14 +69,14 @@ enum GameContent {
 
     static let heroes = [
         Combatant(
-            id: "paladin",
-            name: "Paladin",
+            id: "knight",
+            name: "Knight",
             role: .hero,
             maxHealth: 10,
             abilityChoices: AbilityChoices(
-                basics: [.strike, .shieldJab],
-                skills: [.smite, .guardingBlow],
-                ultimates: [.radiantCrash, .oathbreaker]
+                basics: [.bash, .shieldBash],
+                skills: [.smite, .spikedShield],
+                ultimates: [.blessedAegis, .crystalBulwark]
             )
         ),
         Combatant(
@@ -85,56 +85,155 @@ enum GameContent {
             role: .hero,
             maxHealth: 8,
             abilityChoices: AbilityChoices(
-                basics: [.quickCut, .strike],
-                skills: [.smite, .guardingBlow],
-                ultimates: [.oathbreaker, .radiantCrash]
+                basics: [.stab, .blackjack],
+                skills: [.poisonDagger, .serratedEdge],
+                ultimates: [.hemorrhage, .steal]
             )
         ),
         Combatant(
-            id: "mage",
-            name: "Mage",
+            id: "wizard",
+            name: "Wizard",
             role: .hero,
             maxHealth: 7,
             abilityChoices: AbilityChoices(
-                basics: [.ember, .strike],
-                skills: [.firebolt, .kindle],
-                ultimates: [.meteor, .inferno]
+                basics: [.kindling, .rayOfFrost],
+                skills: [.fireball, .frostbolt],
+                ultimates: [.meteor, .glacialWard]
+            )
+        ),
+        Combatant(
+            id: "alchemist",
+            name: "Alchemist",
+            role: .hero,
+            maxHealth: 9,
+            abilityChoices: AbilityChoices(
+                basics: [.antivenomPotion, .smellingSalts],
+                skills: [.healthPotion, .manaPotion],
+                ultimates: [.panaceaPotion, .wishingPotion]
+            )
+        ),
+        Combatant(
+            id: "druid",
+            name: "Druid",
+            role: .hero,
+            maxHealth: 11,
+            abilityChoices: AbilityChoices(
+                basics: [.apple, .bread],
+                skills: [.briarShield, .graspingVines],
+                ultimates: [.bloodthorn, .pixie]
+            )
+        ),
+        Combatant(
+            id: "ranger",
+            name: "Ranger",
+            role: .hero,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.bountyShot, .fireArrow],
+                skills: [.venomArrow, .sapArrow],
+                ultimates: [.packTactics, .concussiveShot]
+            )
+        ),
+        Combatant(
+            id: "warlock",
+            name: "Warlock",
+            role: .hero,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.willOWisp, .fangs],
+                skills: [.bloodOffering, .darkPact],
+                ultimates: [.raiseSkeleton, .faustianBargain]
+            )
+        ),
+        Combatant(
+            id: "wildcard",
+            name: "Wildcard",
+            role: .hero,
+            maxHealth: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.gold, .wishingWell],
+                skills: [.haste, .libraryOwl],
+                ultimates: [.wish, .goldenRetriever]
             )
         )
     ]
 
     static let pets = [
         Combatant(
+            id: "bear",
+            name: "Bear",
+            role: .pet,
+            maxHealth: 9,
+            abilityChoices: AbilityChoices(
+                basics: [.bash, .block],
+                skills: [.spikedShield, .sunderArmor],
+                ultimates: [.crystalBulwark, .thornMail]
+            )
+        ),
+        Combatant(
+            id: "frost_whelp",
+            name: "Frost Whelp",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.rayOfFrost, .fangs],
+                skills: [.frostbolt, .coldSnap],
+                ultimates: [.glacialWard, .concussiveShot]
+            )
+        ),
+        Combatant(
+            id: "imp",
+            name: "Imp",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.willOWisp, .fangs],
+                skills: [.darkPact, .fireball],
+                ultimates: [.combustion, .faustianBargain]
+            )
+        ),
+        Combatant(
+            id: "lizard_scout",
+            name: "Lizard Scout",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.stab, .blackjack],
+                skills: [.serratedEdge, .poisonDagger],
+                ultimates: [.hemorrhage, .steal]
+            )
+        ),
+        Combatant(
+            id: "panther",
+            name: "Panther",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.slash, .fangs],
+                skills: [.serratedEdge, .haste],
+                ultimates: [.packTactics, .hemorrhage]
+            )
+        ),
+        Combatant(
+            id: "phoenix",
+            name: "Phoenix",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.kindling, .willOWisp],
+                skills: [.fireball, .cauterize],
+                ultimates: [.phoenixFeather, .combustion]
+            )
+        ),
+        Combatant(
             id: "wolf",
             name: "Wolf",
             role: .pet,
             maxHealth: 6,
             abilityChoices: AbilityChoices(
-                basics: [.strike, .quickCut],
-                skills: [.smite, .guardingBlow],
-                ultimates: [.radiantCrash, .oathbreaker]
-            )
-        ),
-        Combatant(
-            id: "hawk",
-            name: "Hawk",
-            role: .pet,
-            maxHealth: 5,
-            abilityChoices: AbilityChoices(
-                basics: [.quickCut, .strike],
-                skills: [.guardingBlow, .smite],
-                ultimates: [.oathbreaker, .radiantCrash]
-            )
-        ),
-        Combatant(
-            id: "drake",
-            name: "Drake",
-            role: .pet,
-            maxHealth: 7,
-            abilityChoices: AbilityChoices(
-                basics: [.ember, .strike],
-                skills: [.firebolt, .kindle],
-                ultimates: [.meteor, .inferno]
+                basics: [.slash, .fangs],
+                skills: [.serratedEdge, .venomFangs],
+                ultimates: [.packTactics, .concussiveShot]
             )
         )
     ]
@@ -145,9 +244,9 @@ enum GameContent {
         role: .enemy,
         maxHealth: 35,
         abilityChoices: AbilityChoices(
-            basics: [.strike, .shieldJab],
-            skills: [.guardingBlow, .smite],
-            ultimates: [.oathbreaker, .radiantCrash]
+            basics: [.slash, .shieldBash],
+            skills: [.spikedShield, .smite],
+            ultimates: [.crystalBulwark, .judgment]
         )
     )
 }

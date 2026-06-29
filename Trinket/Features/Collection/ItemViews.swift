@@ -129,7 +129,7 @@ struct ItemDetailView: View {
                 ForEach(item.affixes.prefix(4)) { affix in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(affix.title)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(.primary)
 
                         Text(affix.description)

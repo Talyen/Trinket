@@ -115,11 +115,11 @@ struct CombatantDetailPane: View {
     private func statRow(_ title: String, value: String) -> some View {
         LabeledContent {
             Text(value)
-                .font(.subheadline.monospacedDigit())
+                .font(.body.monospacedDigit())
                 .foregroundStyle(.secondary)
         } label: {
             Text(title)
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(.primary)
         }
     }

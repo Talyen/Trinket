@@ -9,7 +9,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("Play")
         app.staticTexts["Battle"].tap()
         assertExists("Select Hero")
-        app.staticTexts["Paladin"].tap()
+        app.staticTexts["Knight"].tap()
         assertExists("Select Pet")
         app.staticTexts["Wolf"].tap()
 
@@ -17,12 +17,12 @@ final class BattleFlowUITests: TrinketUITestCase {
         app.buttons["Battle Pause Button"].tap()
 
         assertExists("Training Slime card")
-        assertExists("Paladin card")
+        assertExists("Knight card")
         assertExists("Wolf card")
         assertExists("Battle Menu")
 
-        app.buttons["Paladin card"].tap()
-        assertExists("Paladin detail hero header")
+        app.buttons["Knight card"].tap()
+        assertExists("Knight detail hero header")
         assertExists("Level 1")
         assertExists("0/100 XP")
         assertExists("Stats")
@@ -31,7 +31,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet()
 
         app.tabBars.buttons["Collection"].tap()
-        assertExists("Paladin")
+        assertExists("Knight")
         app.tabBars.buttons["Play"].tap()
         assertExists("Training Slime card")
 
