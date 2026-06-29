@@ -76,8 +76,7 @@ struct Combatant: Identifiable, Hashable {
 
     var healthBarColor: Color {
         switch role {
-        case .hero: return Color.green
-        case .pet: return Color.teal
+        case .hero, .pet: return TrinketDesign.Colors.health
         case .enemy: return Color.red
         }
     }

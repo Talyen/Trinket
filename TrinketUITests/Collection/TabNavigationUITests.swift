@@ -13,10 +13,11 @@ final class TabNavigationUITests: TrinketUITestCase {
         app.buttons["Paladin collection card"].tap()
 
         assertExists("Paladin detail hero header")
-        assertExists("Stats")
-        assertExists("10 HP")
         assertExists("Level 2")
         assertExists("35/120 XP")
+        assertExists("Stats")
+        assertExists("Health")
+        assertExists("10/10")
 
         scrollUntilVisible(app.buttons["Weapon item slot"], swipingUp: true)
         assertExists("Weapon item slot")
@@ -54,10 +55,11 @@ final class TabNavigationUITests: TrinketUITestCase {
         app.buttons["Wolf collection card"].tap()
 
         assertExists("Wolf detail hero header")
-        assertExists("Stats")
-        assertExists("6 HP")
         assertExists("Level 2")
         assertExists("12/100 XP")
+        assertExists("Stats")
+        assertExists("Health")
+        assertExists("6/6")
 
         goBack()
         assertExists("Wolf collection card")

@@ -5,6 +5,7 @@ struct BattleView: View {
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
     @State private var isShowingOptions = false
+    @State private var timelineStartDate: Date
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
     @Binding var isBattlePaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -44,6 +45,7 @@ struct BattleView: View {
         _battle = State(initialValue: BattleState(hero: hero, pet: pet))
         _isBattlePaused = isBattlePaused
         _isShowingVictory = State(initialValue: false)
+        _timelineStartDate = State(initialValue: Date())
     }
 
     var body: some View {
@@ -100,7 +102,7 @@ struct BattleView: View {
     }
 
     private var battlefieldWithTimeline: some View {
-        TimelineView(.periodic(from: .now, by: 0.8)) { context in
+        TimelineView(.periodic(from: timelineStartDate, by: 0.8)) { context in
             battlefield
                 .onChange(of: context.date) { _, _ in
                     advanceBattleTick()

@@ -3,12 +3,12 @@ import SwiftUI
 enum PlayRoute: Hashable {
     case heroSelection
     case petSelection(Combatant)
-    case combatantDetail(CombatantCardDetail)
 }
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState
     @State private var path: [PlayRoute] = []
+    @State private var selectedCombatantDetail: CombatantCollectionDetailSelection?
 
     var body: some View {
         @Bindable var state = appState
@@ -35,24 +35,19 @@ struct PlayView: View {
                             )
                             path.removeAll()
                         }
-                    case .combatantDetail(let detail):
-                        CombatantDetailPane(
-                            combatant: detail.combatant,
-                            progression: detail.progression,
-                            loadout: .constant(detail.combatant.abilityLoadout),
-                            equipmentLoadout: .constant(detail.equipmentLoadout),
-                            inventoryState: .constant(detail.inventoryState),
-                            allowsEditing: false,
-                            battleHealth: detail.health,
-                            activeStatusSummaries: detail.activeStatusSummaries,
-                            selectedItemSlot: .constant(nil)
-                        )
                     }
                 }
+        }
+        .sheet(item: $selectedCombatantDetail) { selection in
+            CombatantCollectionDetailSheet(selection: selection)
+                .presentationDetents([.large])
+                .presentationContentInteraction(.resizes)
+                .presentationDragIndicator(.hidden)
         }
         .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
             if newValue != nil {
                 path.removeAll()
+                selectedCombatantDetail = nil
             }
         }
         .onChange(of: path.count) { _, newCount in
@@ -94,7 +89,8 @@ struct PlayView: View {
                     )
                 },
                 onShowCombatantDetail: { detail in
-                    path.append(.combatantDetail(detail))
+                    appState.battle.isPaused = true
+                    selectedCombatantDetail = CombatantCollectionDetailSelection(battleSnapshot: detail)
                 }
             )
             .id(activeBattle.id)

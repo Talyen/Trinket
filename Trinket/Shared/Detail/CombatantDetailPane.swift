@@ -20,6 +20,8 @@ struct CombatantDetailPane: View {
     @State private var headerHeight: CGFloat = 300
     @State private var titleOpacity: CGFloat = 0
 
+    private let scrollCoordinateSpaceName = "CombatantDetailScroll"
+
     var body: some View {
         GeometryReader { geometry in
             let baseHeaderHeight = max(geometry.size.height * 0.5, 300)
@@ -29,24 +31,14 @@ struct CombatantDetailPane: View {
                     CombatantHeroHeader(
                         combatant: combatant,
                         progression: progression,
-                        battleHealth: battleHealth,
-                        baseHeight: baseHeaderHeight
+                        baseHeight: baseHeaderHeight,
+                        coordinateSpaceName: scrollCoordinateSpaceName
                     )
                     .accessibilityIdentifier("\(combatant.name) detail hero header")
 
                     VStack(alignment: .leading, spacing: 0) {
-                        section("Experience") {
-                            ExperienceProgressDetail(progression: progression)
-                        }
-
-                        if let battleHealth {
-                            section("Health") {
-                                CombatantHealthDetail(
-                                    health: battleHealth,
-                                    maxHealth: combatant.maxHealth,
-                                    fillColor: combatant.healthBarColor
-                                )
-                            }
+                        section("Stats") {
+                            statRow("Health", value: "\(currentHealth)/\(combatant.maxHealth)")
                         }
 
                         if !activeStatusSummaries.isEmpty {
@@ -56,18 +48,6 @@ struct CombatantDetailPane: View {
                                         .font(.subheadline)
                                         .accessibilityElement(children: .combine)
                                 }
-                            }
-                        }
-
-                        section("Stats") {
-                            HStack {
-                                Text("Health")
-
-                                Spacer()
-
-                                Text("\(combatant.maxHealth) HP")
-                                    .foregroundStyle(.secondary)
-                                    .monospacedDigit()
                             }
                         }
 
@@ -92,6 +72,7 @@ struct CombatantDetailPane: View {
                     .background(TrinketDesign.Colors.appBackground)
                 }
             }
+            .coordinateSpace(name: scrollCoordinateSpaceName)
             .ignoresSafeArea(edges: .top)
             .background(TrinketDesign.Colors.appBackground)
             .combatantDetailNavigationChrome(navigationChrome, title: combatant.name, titleOpacity: titleOpacity)
@@ -124,6 +105,22 @@ struct CombatantDetailPane: View {
 
             content()
                 .padding(.horizontal, 20)
+        }
+    }
+
+    private var currentHealth: Int {
+        battleHealth ?? combatant.maxHealth
+    }
+
+    private func statRow(_ title: String, value: String) -> some View {
+        LabeledContent {
+            Text(value)
+                .font(.subheadline.monospacedDigit())
+                .foregroundStyle(.secondary)
+        } label: {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
         }
     }
 

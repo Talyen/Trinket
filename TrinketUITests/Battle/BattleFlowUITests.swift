@@ -22,15 +22,19 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("Battle Menu")
 
         app.buttons["Paladin card"].tap()
+        assertExists("Paladin detail hero header")
+        assertExists("Level 1")
+        assertExists("0/100 XP")
         assertExists("Stats")
-        goBack()
+        assertExists("Health")
+        assertExists("10/10")
+        dismissSheet()
 
         app.tabBars.buttons["Collection"].tap()
         assertExists("Paladin")
         app.tabBars.buttons["Play"].tap()
         assertExists("Training Slime card")
 
-        app.buttons["Battle Pause Button"].tap()
         assertExists("Victory", timeout: 30)
 
         assertExists("Experience")

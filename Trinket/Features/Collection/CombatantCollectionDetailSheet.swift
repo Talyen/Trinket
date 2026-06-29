@@ -6,11 +6,28 @@ struct CombatantCollectionDetailSelection: Identifiable, Hashable {
         case pet
     }
 
-    let kind: Kind
-    let combatantID: String
+    enum Source: Hashable {
+        case collection(kind: Kind, combatantID: String)
+        case battleSnapshot(CombatantCardDetail)
+    }
+
+    let source: Source
+
+    init(kind: Kind, combatantID: String) {
+        source = .collection(kind: kind, combatantID: combatantID)
+    }
+
+    init(battleSnapshot: CombatantCardDetail) {
+        source = .battleSnapshot(battleSnapshot)
+    }
 
     var id: String {
-        "\(kind)-\(combatantID)"
+        switch source {
+        case .collection(let kind, let combatantID):
+            "\(kind)-\(combatantID)"
+        case .battleSnapshot(let detail):
+            "battle-\(detail.combatant.id)"
+        }
     }
 }
 
@@ -19,11 +36,21 @@ struct CombatantCollectionDetailSheet: View {
     let selection: CombatantCollectionDetailSelection
 
     var body: some View {
+        switch selection.source {
+        case .collection(let kind, let combatantID):
+            collectionDetail(kind: kind, combatantID: combatantID)
+        case .battleSnapshot(let detail):
+            battleDetail(detail)
+        }
+    }
+
+    @ViewBuilder
+    private func collectionDetail(kind: CombatantCollectionDetailSelection.Kind, combatantID: String) -> some View {
         let rosterState = appState.roster.current
         let inventoryState = appState.inventory.current
-        let combatants = rosterState.configuredCombatants(sourceCombatants)
+        let combatants = rosterState.configuredCombatants(sourceCombatants(for: kind))
 
-        if let combatant = combatants.first(where: { $0.id == selection.combatantID }) {
+        if let combatant = combatants.first(where: { $0.id == combatantID }) {
             CombatantCollectionDetailView(
                 combatant: combatant,
                 progression: rosterState.progression(for: combatant),
@@ -33,12 +60,26 @@ struct CombatantCollectionDetailSheet: View {
                 navigationChrome: .hidden
             )
         } else {
-            ContentUnavailableView(missingTitle, systemImage: "questionmark.circle")
+            ContentUnavailableView(missingTitle(for: kind), systemImage: "questionmark.circle")
         }
     }
 
-    private var sourceCombatants: [Combatant] {
-        switch selection.kind {
+    private func battleDetail(_ detail: CombatantCardDetail) -> some View {
+        CombatantCollectionDetailView(
+            combatant: detail.combatant,
+            progression: detail.progression,
+            inventoryState: detail.inventoryState,
+            loadout: .constant(detail.combatant.abilityLoadout),
+            equipmentLoadout: .constant(detail.equipmentLoadout),
+            allowsEditing: false,
+            battleHealth: detail.health,
+            activeStatusSummaries: detail.activeStatusSummaries,
+            navigationChrome: .hidden
+        )
+    }
+
+    private func sourceCombatants(for kind: CombatantCollectionDetailSelection.Kind) -> [Combatant] {
+        switch kind {
         case .hero:
             GameContent.heroes
         case .pet:
@@ -46,8 +87,8 @@ struct CombatantCollectionDetailSheet: View {
         }
     }
 
-    private var missingTitle: String {
-        switch selection.kind {
+    private func missingTitle(for kind: CombatantCollectionDetailSelection.Kind) -> String {
+        switch kind {
         case .hero:
             "Hero Not Found"
         case .pet:

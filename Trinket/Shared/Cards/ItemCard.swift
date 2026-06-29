@@ -4,6 +4,7 @@ struct ItemCard: View {
     let item: InventoryItem
     var showsAffixCount: Bool
     var showsName: Bool = true
+    var reservesLabelSpace: Bool = true
 
     var body: some View {
         VStack(spacing: 8) {
@@ -28,10 +29,21 @@ struct ItemCard: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 4)
-                    .frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
+                    .reservedCardLabelSpace(reservesLabelSpace)
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func reservedCardLabelSpace(_ isReserved: Bool) -> some View {
+        if isReserved {
+            frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
+        } else {
+            self
+        }
     }
 }

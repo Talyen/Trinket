@@ -8,8 +8,9 @@ enum TrinketDesign {
         static let success = Color.green
         static let destructive = Color.red
         static let selection = Color.blue
-        static let progression = Color.blue
+        static let progression = Color.yellow
 
+        static let health = Color.green
         static let healthDamage = Color.red
         static let healthTrailingDamage = Color.red.opacity(0.35)
         static let healthRestore = Color.green
@@ -17,6 +18,7 @@ enum TrinketDesign {
 
     enum Metrics {
         static let cardLabelReservedHeight: CGFloat = 38
+        static let statBarHeight: CGFloat = 7
     }
 
     static let cardShape = RoundedRectangle(cornerRadius: 12, style: .continuous)

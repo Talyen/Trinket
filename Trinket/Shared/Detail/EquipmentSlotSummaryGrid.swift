@@ -6,7 +6,7 @@ struct EquipmentSlotSummaryGrid: View {
     let onSelect: ((ItemSlot) -> Void)?
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .top, spacing: 10) {
             ForEach(ItemSlot.allCases) { slot in
                 if let onSelect {
                     Button {
@@ -15,12 +15,12 @@ struct EquipmentSlotSummaryGrid: View {
                         itemSlot(for: slot)
                     }
                     .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityIdentifier("\(slot.rawValue) item slot")
                     .accessibilityHint("Shows \(slot.rawValue) items.")
                 } else {
                     itemSlot(for: slot)
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .top)
                         .accessibilityIdentifier("\(slot.rawValue) item slot")
                         .accessibilityHint("Shows equipped \(slot.rawValue) item.")
                 }
@@ -31,9 +31,9 @@ struct EquipmentSlotSummaryGrid: View {
     private func itemSlot(for slot: ItemSlot) -> some View {
         Group {
             if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
-                ItemCard(item: item, showsAffixCount: false)
+                ItemCard(item: item, showsAffixCount: false, reservesLabelSpace: false)
             } else {
-                EmptyItemSlotCard(slot: slot)
+                EmptyItemSlotCard(slot: slot, reservesLabelSpace: false)
             }
         }
     }

@@ -7,6 +7,9 @@ struct CombatantCollectionDetailView: View {
     let inventoryState: PlayerInventoryState
     @Binding var loadout: AbilityLoadout
     @Binding var equipmentLoadout: EquipmentLoadout
+    var allowsEditing = true
+    var battleHealth: Int?
+    var activeStatusSummaries: [StatusSummary] = []
     var navigationChrome: CombatantDetailNavigationChrome = .visible
     @State private var selectedItemSlot: ItemSlot?
 
@@ -17,7 +20,9 @@ struct CombatantCollectionDetailView: View {
             loadout: $loadout,
             equipmentLoadout: $equipmentLoadout,
             inventoryState: inventoryBinding,
-            allowsEditing: true,
+            allowsEditing: allowsEditing,
+            battleHealth: battleHealth,
+            activeStatusSummaries: activeStatusSummaries,
             navigationChrome: navigationChrome,
             selectedItemSlot: $selectedItemSlot
         )

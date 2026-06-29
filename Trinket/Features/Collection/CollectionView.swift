@@ -139,6 +139,7 @@ struct CollectionView: View {
         .sheet(item: $selectedCombatant) { selection in
             CombatantCollectionDetailSheet(selection: selection)
                 .presentationDetents([.large])
+                .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)
         }
     }

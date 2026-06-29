@@ -15,6 +15,8 @@ final class SearchUITests: TrinketUITestCase {
         assertExists("Paladin collection card")
         app.buttons["Paladin collection card"].tap()
         assertExists("Stats")
+        assertExists("Health")
+        assertExists("10/10")
         goBack()
 
         searchField.tap()
@@ -23,6 +25,8 @@ final class SearchUITests: TrinketUITestCase {
         assertExists("Wolf collection card")
         app.buttons["Wolf collection card"].tap()
         assertExists("Stats")
+        assertExists("Health")
+        assertExists("6/6")
         goBack()
 
         searchField.tap()
