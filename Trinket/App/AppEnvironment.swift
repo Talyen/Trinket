@@ -1,23 +1,22 @@
 import Foundation
 
+import Foundation
+
 struct AppEnvironment {
     static let shared = load()
 
     let launchTab: AppTab?
     let launchScreen: LaunchScreen?
     let resetState: Bool
-    let battlePreset: BattlePreset
 
     private init(
         launchTab: AppTab?,
         launchScreen: LaunchScreen?,
-        resetState: Bool,
-        battlePreset: BattlePreset
+        resetState: Bool
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
         self.resetState = resetState
-        self.battlePreset = battlePreset
     }
 
     private static func load() -> AppEnvironment {
@@ -55,18 +54,10 @@ struct AppEnvironment {
 
         let reset = args.contains("-reset-state")
 
-        let preset: BattlePreset = {
-            guard let idx = args.firstIndex(of: "-battle-preset"),
-                  args.indices.contains(idx + 1)
-            else { return .fresh }
-            return BattlePreset(rawValue: args[idx + 1]) ?? .fresh
-        }()
-
         return AppEnvironment(
             launchTab: tab,
             launchScreen: screen,
-            resetState: reset,
-            battlePreset: preset
+            resetState: reset
         )
     }
 }

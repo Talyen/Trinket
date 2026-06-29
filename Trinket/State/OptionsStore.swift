@@ -29,7 +29,7 @@ final class OptionsStore {
            let resolved = TrinketDesign.AppTheme(rawValue: raw) {
             theme = resolved
         } else {
-            theme = .system
+            theme = .dark
         }
     }
 

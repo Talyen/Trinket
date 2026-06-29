@@ -95,8 +95,7 @@ final class TabNavigationUITests: TrinketUITestCase {
 
     func testOptionsAndColorSchemeSelection() {
         launchApp(arguments: [
-            TestLaunchArg.resetState,
-            "-battle-preset", "oneShot"
+            TestLaunchArg.resetState
         ])
 
         assertExists("Play")

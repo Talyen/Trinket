@@ -3,8 +3,7 @@ import XCTest
 final class BattleFlowUITests: TrinketUITestCase {
     func testBattleFlowAndCombatLoops() {
         launchApp(arguments: [
-            TestLaunchArg.resetState,
-            "-battle-preset", "oneShot"
+            TestLaunchArg.resetState
         ])
 
         assertExists("Play")
@@ -32,7 +31,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("Training Slime card")
 
         app.buttons["Battle Pause Button"].tap()
-        assertExists("Victory", timeout: 15)
+        assertExists("Victory", timeout: 30)
 
         assertExists("Experience")
         assertExists("Rewards")

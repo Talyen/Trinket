@@ -24,10 +24,6 @@ struct PlayView: View {
                         }
                     case .petSelection(let hero):
                         PetSelectionView(hero: hero) { pet in
-                            let oneShot = AppEnvironment.shared.battlePreset == .oneShot
-                            let initialBattle: BattleState? = oneShot
-                                ? BattleSimulator.runToHealth(targetHealth: 0, hero: hero, pet: pet)
-                                : nil
                             appState.battle.activeBattle = ActiveBattleConfiguration(
                                 hero: hero,
                                 pet: pet,
@@ -35,12 +31,8 @@ struct PlayView: View {
                                 petProgression: appState.roster.current.progression(for: pet),
                                 heroEquipmentLoadout: appState.roster.current.equipmentLoadout(for: hero),
                                 petEquipmentLoadout: appState.roster.current.equipmentLoadout(for: pet),
-                                inventoryState: appState.inventory.current,
-                                initialBattle: initialBattle
+                                inventoryState: appState.inventory.current
                             )
-                            if oneShot {
-                                appState.battle.isPaused = true
-                            }
                             path.removeAll()
                         }
                     case .combatantDetail(let detail):
@@ -77,7 +69,6 @@ struct PlayView: View {
             BattleView(
                 hero: activeBattle.hero,
                 pet: activeBattle.pet,
-                initialBattle: activeBattle.initialBattle,
                 heroProgression: activeBattle.heroProgression,
                 petProgression: activeBattle.petProgression,
                 heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
@@ -90,6 +81,17 @@ struct PlayView: View {
                 onEndBattle: {
                     appState.battle.isPaused = false
                     appState.battle.activeBattle = nil
+                },
+                onRestartBattle: {
+                    appState.battle.activeBattle = ActiveBattleConfiguration(
+                        hero: activeBattle.hero,
+                        pet: activeBattle.pet,
+                        heroProgression: activeBattle.heroProgression,
+                        petProgression: activeBattle.petProgression,
+                        heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
+                        petEquipmentLoadout: activeBattle.petEquipmentLoadout,
+                        inventoryState: activeBattle.inventoryState
+                    )
                 },
                 onShowCombatantDetail: { detail in
                     path.append(.combatantDetail(detail))

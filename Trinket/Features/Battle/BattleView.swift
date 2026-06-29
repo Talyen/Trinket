@@ -15,6 +15,7 @@ struct BattleView: View {
     private let petEquipmentLoadout: EquipmentLoadout
     private let inventoryState: PlayerInventoryState
     private let onEndBattle: () -> Void
+    private let onRestartBattle: () -> Void
     private let onShowCombatantDetail: (CombatantCardDetail) -> Void
     private let feedbackLifetime: TimeInterval = 1.0
     private let maximumVisibleFeedbackEvents = 2
@@ -22,7 +23,6 @@ struct BattleView: View {
     init(
         hero: Combatant,
         pet: Combatant,
-        initialBattle: BattleState? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
@@ -30,6 +30,7 @@ struct BattleView: View {
         inventoryState: PlayerInventoryState = .initial,
         isBattlePaused: Binding<Bool>,
         onEndBattle: @escaping () -> Void,
+        onRestartBattle: @escaping () -> Void,
         onShowCombatantDetail: @escaping (CombatantCardDetail) -> Void
     ) {
         self.heroProgression = heroProgression
@@ -38,11 +39,11 @@ struct BattleView: View {
         self.petEquipmentLoadout = petEquipmentLoadout
         self.inventoryState = inventoryState
         self.onEndBattle = onEndBattle
+        self.onRestartBattle = onRestartBattle
         self.onShowCombatantDetail = onShowCombatantDetail
-        let initialState = initialBattle ?? BattleState(hero: hero, pet: pet)
-        _battle = State(initialValue: initialState)
+        _battle = State(initialValue: BattleState(hero: hero, pet: pet))
         _isBattlePaused = isBattlePaused
-        _isShowingVictory = State(initialValue: initialState.isEnemyDefeated)
+        _isShowingVictory = State(initialValue: false)
     }
 
     var body: some View {
@@ -50,7 +51,7 @@ struct BattleView: View {
             if isShowingVictory {
                 VictoryView(
                     enemyName: battle.enemy.name,
-                    onBattleAgain: restartBattle
+                    onBattleAgain: onRestartBattle
                 )
             } else {
                 battlefieldWithTimeline
@@ -239,14 +240,6 @@ struct BattleView: View {
     private func appendFeedbackEvent(_ event: BattleState.ActionEvent) {
         activeFeedbackEvents.append(event)
         activeFeedbackEvents = Array(activeFeedbackEvents.suffix(maximumVisibleFeedbackEvents))
-    }
-
-    private func restartBattle() {
-        battle = BattleState(hero: battle.hero, pet: battle.pet, enemy: battle.enemy)
-        activeFeedbackEvents = []
-        isShowingBattleLog = false
-        isShowingVictory = false
-        isBattlePaused = false
     }
 
     private func details(

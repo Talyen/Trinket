@@ -3,8 +3,7 @@ import XCTest
 final class SmokeBattleTests: TrinketUITestCase {
     func testBattleStartsWithPresetOneShot() {
         launchApp(arguments: [
-            TestLaunchArg.resetState,
-            "-battle-preset", "oneShot"
+            TestLaunchArg.resetState
         ])
         app.staticTexts["Battle"].tap()
         assertExists("Select Hero")
@@ -12,20 +11,19 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists("Select Pet")
         app.staticTexts["Wolf"].tap()
 
-        assertExists("Victory", timeout: 5)
+        assertExists("Victory", timeout: 30)
         assertExists("Battle Again")
     }
 
     func testBattleCombatDetailsOpenViaSheet() {
         launchApp(arguments: [
-            TestLaunchArg.resetState,
-            "-battle-preset", "oneShot"
+            TestLaunchArg.resetState
         ])
         app.staticTexts["Battle"].tap()
         app.staticTexts["Paladin"].tap()
         app.staticTexts["Wolf"].tap()
 
-        assertExists("Victory", timeout: 5)
+        assertExists("Victory", timeout: 30)
         assertExists("Battle Again")
     }
 }

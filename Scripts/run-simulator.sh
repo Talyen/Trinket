@@ -18,7 +18,7 @@ xcodebuild build \
 xcrun simctl boot "$DEVICE_NAME" 2>/dev/null || true
 xcrun simctl bootstatus "$DEVICE_NAME" -b
 # Default to dark mode
-xcrun simctl spawn "$DEVICE_NAME" defaults write NSGlobalDomain AppleInterfaceStyle Dark 2>/dev/null || true
+xcrun simctl spawn "$DEVICE_NAME" defaults write com.apple.UIKit UIUserInterfaceStyle -int 2 2>/dev/null || true
 xcrun simctl spawn "$DEVICE_NAME" killall SpringBoard 2>/dev/null || true
 sleep 1
 DEVICE_UDID="$(xcrun simctl getenv "$DEVICE_NAME" SIMULATOR_UDID)"
