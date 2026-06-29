@@ -9,12 +9,12 @@ struct AbilityChoiceCard: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     TrinketDesign.cardShape
-                        .fill(ability.damageKeyword.visualStyle.color.opacity(0.18))
+                        .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
                 }
                 .overlay {
-                    Image(systemName: ability.damageKeyword.visualStyle.symbolName)
+                    Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
                         .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(ability.damageKeyword.visualStyle.color)
+                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                         .accessibilityHidden(true)
                 }
                 .trinketCardSurface()
@@ -39,9 +39,13 @@ struct EmptyAbilitySlotCard: View {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    Image(systemName: tier.symbolName)
+                    TrinketDesign.cardShape
+                        .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
+                }
+                .overlay {
+                    Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
                         .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                         .accessibilityHidden(true)
                 }
                 .trinketCardSurface()
@@ -68,12 +72,12 @@ struct ItemCard: View {
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     TrinketDesign.cardShape
-                        .fill(item.baseType.slot.visualStyle.accentColor.opacity(0.18))
+                        .fill(TrinketDesign.CardPlaceholderStyle.item.color.opacity(0.18))
                 }
                 .overlay {
-                    Image(systemName: item.baseType.symbolName)
+                    Image(systemName: TrinketDesign.CardPlaceholderStyle.item.symbolName)
                         .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(item.baseType.slot.visualStyle.accentColor)
+                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.item.color)
                         .accessibilityHidden(true)
                 }
                 .trinketCardSurface()
@@ -101,9 +105,13 @@ struct EmptyItemSlotCard: View {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    Image(systemName: slot.symbolName)
+                    TrinketDesign.cardShape
+                        .fill(TrinketDesign.CardPlaceholderStyle.item.color.opacity(0.18))
+                }
+                .overlay {
+                    Image(systemName: TrinketDesign.CardPlaceholderStyle.item.symbolName)
                         .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.item.color)
                         .accessibilityHidden(true)
                 }
                 .trinketCardSurface()
@@ -174,12 +182,18 @@ struct CombatantArtwork: View {
     }
 
     private var placeholderArt: some View {
-        ZStack {
-            TrinketDesign.Colors.cardArtAccent.opacity(0.18)
+        let style: TrinketDesign.CardPlaceholderStyle
+        switch combatant.role {
+        case .hero: style = .hero
+        case .pet: style = .pet
+        case .enemy: style = .enemy
+        }
+        return ZStack {
+            style.color.opacity(0.18)
 
-            Image(systemName: combatant.role.fallbackArtSymbolName)
+            Image(systemName: style.symbolName)
                 .font(.system(size: 38, weight: .semibold))
-                .foregroundStyle(TrinketDesign.Colors.cardArtAccent)
+                .foregroundStyle(style.color)
                 .symbolRenderingMode(.hierarchical)
                 .accessibilityHidden(true)
         }

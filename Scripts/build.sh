@@ -6,6 +6,6 @@ xcodegen generate
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination 'platform=iOS Simulator,name=iPhone 17'
+   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 
 

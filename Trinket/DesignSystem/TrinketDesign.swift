@@ -52,6 +52,17 @@ enum TrinketDesign {
         }
     }
 
+    struct CardPlaceholderStyle {
+        let color: Color
+        let symbolName: String
+
+        static let hero = CardPlaceholderStyle(color: .blue, symbolName: "person.fill")
+        static let pet = CardPlaceholderStyle(color: .green, symbolName: "pawprint.fill")
+        static let enemy = CardPlaceholderStyle(color: .red, symbolName: "flame.fill")
+        static let item = CardPlaceholderStyle(color: .orange, symbolName: "shippingbox.fill")
+        static let ability = CardPlaceholderStyle(color: .indigo, symbolName: "bolt.fill")
+    }
+
     struct CardSurfaceModifier: ViewModifier {
         func body(content: Content) -> some View {
             content
