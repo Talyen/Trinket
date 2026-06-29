@@ -28,6 +28,17 @@ For combatants, the raw art filename should match the game entity name exactly, 
 
 Focal points are intentionally lightweight. They let hero headers bias a 3:4 portrait image toward the face or upper body when the layout crops the image with `scaledToFill`.
 
+## Output Format: HEIC + Thumbnail Variants
+
+The pipeline outputs two **HEIC** (HEVC-based) images per manifest row:
+
+- **Full-size** — `max_dimension` px (default `1600`) for hero header / detail views. Named `<asset_name>.heic`.
+- **Thumbnail** — `thumb_dimension` px (default `480`) for card grids, battle status cards, and any `CombatantArtwork` rendered with `variant: .card`. Named `<asset_name>_thumb.heic`.
+
+HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
+
+The generated Swift struct `CombatantArtReference` includes both `imageName` (full) and `thumbnailImageName` (card-safe). Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `ContentView.swift`).
+
 ## Generate Curated Assets
 
 Run:
@@ -36,7 +47,15 @@ Run:
 ./Scripts/prepare-art-assets.sh
 ```
 
-The script validates manifest rows, verifies source files, converts selected images through macOS `sips`, writes `.imageset` folders, and regenerates the Swift art catalog.
+The script validates manifest rows, verifies source files, converts selected images through macOS `sips` (HEIC with quality 80), writes two `.imageset` folders per asset, strips metadata, and regenerates the Swift art catalog.
+
+### Environment Overrides
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ART_HEIC_QUALITY` | `80` | Lossy quality 0–100 |
+| `ART_MAX_DIMENSION` | `1600` | Full-image max dimension |
+| `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension |
 
 After changing `Art/curated-assets.tsv`, run the script, then run:
 

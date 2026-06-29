@@ -1,0 +1,76 @@
+name: Trinket CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'Test scope (standard, exhaustive)'
+        required: true
+        default: 'standard'
+
+jobs:
+  lint:
+    name: Lint and style check
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SwiftLint
+        run: brew install swiftlint
+      - name: Run style check
+        run: ./Scripts/test.sh style
+
+  unit:
+    name: Unit tests
+    needs: lint
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: ./Scripts/generate.sh
+      - name: Run unit tests
+        run: ./Scripts/test.sh unit
+
+  smoke:
+    name: Smoke UI tests
+    needs: unit
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: ./Scripts/generate.sh
+      - name: Run smoke UI tests
+        run: ./Scripts/test.sh smoke
+
+  exhaustive:
+    name: Exhaustive UI tests
+    if: github.event_name == 'workflow_dispatch' || github.ref_name == 'main'
+    needs: smoke
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: ./Scripts/generate.sh
+      - name: Run all UI tests
+        run: ./Scripts/test.sh ui

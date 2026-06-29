@@ -6,12 +6,6 @@ import UIKit
 @main
 struct TrinketApp: App {
     init() {
-        if ProcessInfo.processInfo.arguments.contains("-disableAnimations") {
-            #if canImport(UIKit)
-            UIView.setAnimationsEnabled(false)
-            #endif
-        }
-        
         configureGlobalAppearance()
     }
 
@@ -23,10 +17,9 @@ struct TrinketApp: App {
 
     private func configureGlobalAppearance() {
         #if canImport(UIKit)
-        // Configure Global Tab Bar Appearance
         let tabBarAppearance = UITabBarAppearance()
         tabBarAppearance.configureWithDefaultBackground()
-        
+
         UITabBar.appearance().standardAppearance = tabBarAppearance
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance

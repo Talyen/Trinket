@@ -7,7 +7,12 @@ manifest="Art/curated-assets.tsv"
 asset_catalog="Trinket/Assets.xcassets"
 generated_dir="Trinket/Generated"
 generated_swift="$generated_dir/ArtCatalog.generated.swift"
+
+# HEIC settings: each source generates a full (1600px) image and a card thumbnail (480px).
+# Override via ART_HEIC_QUALITY, ART_MAX_DIMENSION, ART_THUMB_DIMENSION env vars.
+heic_quality="${ART_HEIC_QUALITY:-80}"
 max_dimension="${ART_MAX_DIMENSION:-1600}"
+thumb_dimension="${ART_THUMB_DIMENSION:-480}"
 
 if [[ ! -f "$manifest" ]]; then
   echo "Missing manifest: $manifest" >&2
@@ -16,9 +21,9 @@ fi
 
 mkdir -p "$asset_catalog" "$generated_dir"
 
-rm -rf "$asset_catalog"/hero_*.imageset
-rm -rf "$asset_catalog"/pet_*.imageset
-rm -rf "$asset_catalog"/enemy_*.imageset
+rm -rf "$asset_catalog"/hero_*.imageset(N)
+rm -rf "$asset_catalog"/pet_*.imageset(N)
+rm -rf "$asset_catalog"/enemy_*.imageset(N)
 
 cat > "$asset_catalog/Contents.json" <<'JSON'
 {
@@ -36,6 +41,7 @@ import SwiftUI
 
 struct CombatantArtReference: Hashable {
     let imageName: String
+    let thumbnailImageName: String?
     let focalPoint: UnitPoint
     let accessibilityLabel: String
 }
@@ -48,6 +54,12 @@ processed_count=0
 
 escape_swift_string() {
   printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+heic_from_source() {
+  local src="$1" dst="$2" sz="$3"
+  sips -s format heic -s formatOptions "$heic_quality" -Z "$sz" "$src" --out "$dst" >/dev/null
+  sips -d all "$dst" >/dev/null 2>&1 || true
 }
 
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
@@ -79,19 +91,41 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
     exit 1
   fi
 
+  # Full-size image (hero header / detail views)
   imageset="$asset_catalog/$asset_name.imageset"
-  output_file="$imageset/$asset_name.jpg"
-
+  output_file="$imageset/$asset_name.heic"
   rm -rf "$imageset"
   mkdir -p "$imageset"
-
-  sips -s format jpeg -Z "$max_dimension" "$source_file" --out "$output_file" >/dev/null
+  heic_from_source "$source_file" "$output_file" "$max_dimension"
 
   cat > "$imageset/Contents.json" <<JSON
 {
   "images" : [
     {
-      "filename" : "$asset_name.jpg",
+      "filename" : "$asset_name.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+JSON
+
+  # Thumbnail image (card grids / battle status cards)
+  thumb_asset="${asset_name}_thumb"
+  thumb_imageset="$asset_catalog/${thumb_asset}.imageset"
+  thumb_output_file="$thumb_imageset/${thumb_asset}.heic"
+  rm -rf "$thumb_imageset"
+  mkdir -p "$thumb_imageset"
+  heic_from_source "$source_file" "$thumb_output_file" "$thumb_dimension"
+
+  cat > "$thumb_imageset/Contents.json" <<JSON
+{
+  "images" : [
+    {
+      "filename" : "${thumb_asset}.heic",
       "idiom" : "universal"
     }
   ],
@@ -104,11 +138,13 @@ JSON
 
   escaped_id="$(escape_swift_string "$id")"
   escaped_asset="$(escape_swift_string "$asset_name")"
+  escaped_thumb="$(escape_swift_string "$thumb_asset")"
   escaped_label="$(escape_swift_string "$accessibility_label")"
 
   cat >> "$generated_swift" <<SWIFT
         "$escaped_id": CombatantArtReference(
             imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb",
             focalPoint: UnitPoint(x: $focal_x, y: $focal_y),
             accessibilityLabel: "$escaped_label"
         ),
@@ -128,4 +164,4 @@ extension Combatant {
 }
 SWIFT
 
-echo "Prepared $processed_count curated art asset(s)."
+echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."

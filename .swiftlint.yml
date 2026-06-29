@@ -1,0 +1,48 @@
+opt_in_rules:
+  - explicit_init
+  - first_where
+  - sorted_imports
+  - prefer_key_path
+  - closure_spacing
+  - contains_over_first_not_nil
+  - empty_string
+  - flatmap_over_map_reduce
+  - identical_operands
+  - joined_default_parameter
+  - last_where
+  - legacy_random
+  - prohibited_super_call
+  - reduce_into
+  - redundant_nil_coalescing
+  - array_init
+  - collection_alignment
+  - closure_end_indentation
+  - unhandled_throwing_task
+
+disabled_rules:
+  - line_length
+  - identifier_name
+  - todo
+  - function_body_length
+  - file_length
+  - force_cast
+  - force_try
+  - type_body_length
+  - cyclomatic_complexity
+  - nesting
+  - large_tuple
+  - trailing_comma
+  - vertical_whitespace
+  - inclusive_language
+
+excluded:
+  - Trinket/Generated
+  - .DerivedData
+  - .build
+
+indentation: spaces: 4
+
+analyzer_rules:
+  - unused_import
+
+strict: false

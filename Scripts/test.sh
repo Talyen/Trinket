@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-DEVICE_NAME="iPhone 17 Pro"
+DEVICE_NAME="iPhone 17"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 
@@ -29,6 +29,10 @@ while [[ $# -gt 0 ]]; do
       MODE="unit"
       shift
       ;;
+    smoke|--smoke)
+      MODE="smoke"
+      shift
+      ;;
     fast|--fast|-f)
       FAST=true
       shift
@@ -43,10 +47,11 @@ done
 if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are not supported for style mode."
-    echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
     exit 1
   fi
 
+  ./Scripts/lint.sh
   ./Scripts/check-ui-style.sh
   exit 0
 fi
@@ -83,6 +88,20 @@ if [[ "$MODE" == "unit" ]]; then
     echo "Running only unit tests (TrinketTests)..."
     TEST_TARGET_FLAG=(-only-testing:TrinketTests)
   fi
+elif [[ "$MODE" == "smoke" ]]; then
+  echo "Running smoke UI tests..."
+  TEST_TARGET_FLAG=()
+  for swift_file in TrinketUITests/Smoke/*.swift; do
+    class_name=$(grep '^final class ' "$swift_file" | sed 's/final class //; s/:.*//')
+    if [[ -n "$class_name" ]]; then
+      TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$class_name")
+    fi
+  done
+  if [[ ${#TEST_TARGET_FLAG[@]} -eq 0 ]]; then
+    echo "No smoke test classes found."
+    exit 1
+  fi
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI tests..."
@@ -120,7 +139,7 @@ fi
 xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=26.5" \
+  -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \

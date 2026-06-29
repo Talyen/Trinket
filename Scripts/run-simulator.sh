@@ -12,11 +12,15 @@ xcodegen generate
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "platform=iOS Simulator,name=$DEVICE_NAME,OS=26.5" \
+  -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
 xcrun simctl boot "$DEVICE_NAME" 2>/dev/null || true
 xcrun simctl bootstatus "$DEVICE_NAME" -b
+# Default to dark mode
+xcrun simctl spawn "$DEVICE_NAME" defaults write NSGlobalDomain AppleInterfaceStyle Dark 2>/dev/null || true
+xcrun simctl spawn "$DEVICE_NAME" killall SpringBoard 2>/dev/null || true
+sleep 1
 DEVICE_UDID="$(xcrun simctl getenv "$DEVICE_NAME" SIMULATOR_UDID)"
 open -a Simulator --args -CurrentDeviceUDID "$DEVICE_UDID"
 xcrun simctl uninstall "$DEVICE_NAME" "$BUNDLE_ID" 2>/dev/null || true

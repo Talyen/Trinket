@@ -19,7 +19,6 @@ brew install xcodegen
 ./Scripts/build.sh
 ./Scripts/test.sh
 ./Scripts/run-simulator.sh
-./Scripts/run-debug-battle.sh Mage Drake
 ```
 
 ## Docs

@@ -1,47 +1,23 @@
 # AGENTS.md
 
-Guidance for Codex and other agents on Trinket: a portrait-first native iOS fantasy idle auto-battler.
+Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
-## Operating Rules
+## Product & Architecture
 
-- Start code tasks with `git status --porcelain`; treat changes as in-flight user work.
-- For non-trivial work, find docs with `rg --files -g '*.md'` and focused `rg <topic>`. Read `Docs/CoreDesignConcepts.md` for gameplay/progression/rewards and `Docs/AppleNativeGuidelines.md` for UI, accessibility, privacy, monetization, platform, or App Store choices.
-- Start from an end-to-end-verifiable flow when possible. For bugs, reproduce with the closest practical automated or user-visible check first.
-- Treat lint, test, and flake failures as harness problems.
-- Push back when requests conflict with product direction, Apple guidance, or maintainability; explain the tradeoff and offer a stronger path.
-- If an approach fails three times, stop, reassess with docs/logs/tests/Apple guidance, and ask for direction.
-- Wrap up with changes, verification, and anything intentionally untouched.
+- iOS iPhone-first, portrait. Apple-native Swift/SwiftUI/SpriteKit/UIKit/Foundation/CoreGraphics/AVFoundation/GameKit/StoreKit. Target: iOS 26.0, Swift 5.0.
+- `Trinket/Generated/*` is generated — regenerate via `./Scripts/prepare-art-assets.sh`. `Raw Assets/` is the source library, excluded from the Xcode target.
+- Simple experiments; rules/state separate from rendering; small owned types; abstract after repetition.
+- SwiftUI for shell, menus, settings, overlays, prototypes. SpriteKit for 2D loops, sprites, physics, particles, collision, high-frequency animation.
+- Native SwiftUI/Apple UI/UX; minimize customization to use defaults.
 
-## Product And Architecture
+## Commands & Verification
 
-- iOS, iPhone-first, portrait-first; prefer Apple-native Swift, SwiftUI, SpriteKit, UIKit, Foundation, CoreGraphics, AVFoundation, GameKit, StoreKit.
-- Persistent bottom `TabView`: `Play`, `Heroes`, `Pets`, `Homestead`, `Options`; launch to `Play`. Battle path: `Play -> Battle -> Select Hero -> Select Pet -> Battle`.
-- Combat defaults to idle auto-battle: Hero and Pet alternate abilities against one enemy. Keywords: `Physical` direct damage, stacked `Burn` enemy damage-over-time.
-- Keep experiments simple and inspectable; separate rules/state from rendering; prefer small owned types; add abstractions after repetition.
-- Use SwiftUI for shell, menus, settings, overlays, prototypes. Use SpriteKit only for 2D loops, sprites, physics, particles, collision, or high-frequency animation.
-- Keep UI native, accessible, and thumb-friendly: safe areas, Dynamic Type, readable text, non-color-only state, VoiceOver, SF Symbols, haptics, meaningful animation.
+- Scripts: `generate.sh`, `build.sh`, `test.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `./Scripts/test.sh style`.
+- Do NOT run `./Scripts/test.sh ui` or `all` unless explicitly requested. Default to `./Scripts/test.sh`; use `./Scripts/build.sh` for minor UI tweaks.
+- After `project.yml`/target changes, run `./Scripts/generate.sh` before build/test.
+- Visual changes: `./Scripts/run-simulator.sh`; screenshots only when useful. Prefer interactive harness (e.g., Computer Use) and XCUITest over manual tapping.
+- Deterministic battle testing: `BattleSimulator` in `Trinket/BattleModels.swift`.
+- Run `./Scripts/ci-locally.sh` before pushing; keep generated build output and `.DerivedData/` out of Git.
+- Never hand-edit `.swiftlint.yml` rule severity without a project-wide reason noted here.
 
-## Project Map
-
-- `project.yml`: XcodeGen source of truth; regenerate `Trinket.xcodeproj`, do not edit it manually.
-- `Trinket/BattleModels.swift`: battle rules and state.
-- `Trinket/ContentView.swift`: SwiftUI shell, navigation, current battle UI.
-- `TrinketTests/BattleStateTests.swift`: logic coverage.
-- `TrinketUITests/CoreNavigationUITests.swift`: navigation/UI smoke coverage.
-
-## Commands And Verification
-
-- Commands: `./Scripts/generate.sh`, `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test.sh all`, `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`, `./Scripts/run-simulator.sh`, `./Scripts/run-debug-battle.sh Mage Drake`.
-- CRITICAL: Do NOT run the full UI test suite (`./Scripts/test.sh ui` or `./Scripts/test.sh all`) unless explicitly requested by the user. Default to fast unit tests (`./Scripts/test.sh`) for routine verification. For minor UI copy/style/layout tweaks, prefer `./Scripts/build.sh` or a targeted UI test (e.g. `./Scripts/test.sh ui TabNavigationUITests/testTabNavigationAndInspectionFlow`).
-- Run `./Scripts/build.sh` for UI/project/config changes. After `project.yml` or target membership changes, run `./Scripts/generate.sh` before build/test.
-- For user-visible visual changes, run `./Scripts/run-simulator.sh` to verify layout, rendering, and interaction; capture screenshots only for useful visual evidence.
-- Use the simulator for high-signal visual checks, not exhaustive UI proof. Prefer XCTest/XCUITest for routine navigation, sheet, log, and state checks.
-- For simulator visual checks, prefer Computer Use when available: launch with `./Scripts/run-simulator.sh`, inspect/click in Simulator via Computer Use, then capture screenshots with `./Scripts/capture-screenshot.sh`. Use targeted XCUITest for repeatable verification and avoid brittle manual coordinate tapping when a test can cover the behavior.
-- For battle timing, use the DEBUG deterministic Battle harness instead of sleeps or manual tapping.
-- Keep generated build output and `.DerivedData/` out of Git.
-
-## Tooling And Git
-
-- Current harness: XcodeGen, `xcodebuild` scripts, XCTest, early XCUITest.
-- Add SwiftLint, formatting, broader XCUITest, and snapshots only when ready.
-- Make small commits around working states; prefer implementation plus verification over speculative refactors.
+Harness: XcodeGen, `xcodebuild` scripts, XCTest, early XCUITest, SwiftLint, `check-ui-style.sh`.

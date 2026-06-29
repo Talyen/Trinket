@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 enum GameMode: String, CaseIterable, Identifiable {
     case battle = "Battle"
@@ -25,6 +25,21 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
             return "Direct weapon or body damage."
         case .burn:
             return "Damage over time on the enemy."
+        }
+    }
+
+    struct VisualStyle {
+        let color: Color
+        let symbolName: String
+
+        static let physical = VisualStyle(color: Color.orange, symbolName: "bolt.fill")
+        static let burn = VisualStyle(color: Color.red, symbolName: "flame.fill")
+    }
+
+    var visualStyle: VisualStyle {
+        switch self {
+        case .physical: return .physical
+        case .burn: return .burn
         }
     }
 }
@@ -69,7 +84,7 @@ struct ActiveStatus: Identifiable, Equatable, Hashable {
     }
 }
 
-struct StatusSummary: Identifiable, Equatable {
+struct StatusSummary: Identifiable, Equatable, Hashable {
     let keyword: Keyword
     let stackCount: Int
     let totalTickDamage: Int
@@ -294,6 +309,22 @@ enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
             return "diamond.fill"
         }
     }
+
+    struct VisualStyle {
+        let accentColor: Color
+
+        static let weapon = VisualStyle(accentColor: Color.red)
+        static let armor = VisualStyle(accentColor: Color.blue)
+        static let trinket = VisualStyle(accentColor: Color.purple)
+    }
+
+    var visualStyle: VisualStyle {
+        switch self {
+        case .weapon: return .weapon
+        case .armor: return .armor
+        case .trinket: return .trinket
+        }
+    }
 }
 
 struct ItemBaseType: Identifiable, Equatable, Hashable {
@@ -336,7 +367,7 @@ struct EquipmentLoadout: Equatable, Hashable {
     }
 }
 
-struct PlayerInventoryState: Equatable {
+struct PlayerInventoryState: Equatable, Hashable {
     var items: [InventoryItem]
 
     static var initial: PlayerInventoryState {
@@ -490,6 +521,14 @@ struct Combatant: Identifiable, Hashable {
             maxHealth: maxHealth,
             abilityChoices: abilityChoices.withSelectedLoadout(loadout)
         )
+    }
+
+    var healthBarColor: Color {
+        switch role {
+        case .hero: return Color.green
+        case .pet: return Color.teal
+        case .enemy: return Color.red
+        }
     }
 }
 
@@ -728,109 +767,6 @@ extension Combatant {
     static var trainingSlime: Combatant { GameContent.trainingSlime }
 }
 
-struct BattleDebugConfiguration: Equatable, Hashable {
-    let isEnabled: Bool
-    let hero: Combatant
-    let pet: Combatant
-    let startsPaused: Bool
-
-    static var disabled: BattleDebugConfiguration {
-        BattleDebugConfiguration(
-            isEnabled: false,
-            hero: defaultHero,
-            pet: defaultPet,
-            startsPaused: false
-        )
-    }
-
-    static var current: BattleDebugConfiguration {
-        #if DEBUG
-        parse(arguments: ProcessInfo.processInfo.arguments)
-        #else
-        disabled
-        #endif
-    }
-
-    static func parse(arguments: [String]) -> BattleDebugConfiguration {
-        #if DEBUG
-        guard value(after: "-battleDebugHarness", in: arguments)?.lowercased() == "enabled" else {
-            return disabled
-        }
-
-        return BattleDebugConfiguration(
-            isEnabled: true,
-            hero: combatant(
-                matching: value(after: "-battleDebugHero", in: arguments),
-                in: GameContent.heroes,
-                default: defaultHero
-            ),
-            pet: combatant(
-                matching: value(after: "-battleDebugPet", in: arguments),
-                in: GameContent.pets,
-                default: defaultPet
-            ),
-            startsPaused: boolValue(after: "-battleDebugPaused", in: arguments) ?? true
-        )
-        #else
-        disabled
-        #endif
-    }
-
-    private static var defaultHero: Combatant {
-        GameContent.heroes.first { $0.id == "mage" } ?? GameContent.heroes[0]
-    }
-
-    private static var defaultPet: Combatant {
-        GameContent.pets.first { $0.id == "drake" } ?? GameContent.pets[0]
-    }
-
-    private static func value(after flag: String, in arguments: [String]) -> String? {
-        guard
-            let flagIndex = arguments.firstIndex(of: flag),
-            arguments.indices.contains(flagIndex + 1)
-        else {
-            return nil
-        }
-
-        return arguments[flagIndex + 1]
-    }
-
-    private static func boolValue(after flag: String, in arguments: [String]) -> Bool? {
-        guard let rawValue = value(after: flag, in: arguments)?.lowercased() else {
-            return nil
-        }
-
-        switch rawValue {
-        case "true", "yes", "1":
-            return true
-        case "false", "no", "0":
-            return false
-        default:
-            return nil
-        }
-    }
-
-    private static func combatant(
-        matching value: String?,
-        in combatants: [Combatant],
-        default defaultCombatant: Combatant
-    ) -> Combatant {
-        guard let value else {
-            return defaultCombatant
-        }
-
-        let normalizedValue = normalized(value)
-        return combatants.first {
-            normalized($0.id) == normalizedValue || normalized($0.name) == normalizedValue
-        } ?? defaultCombatant
-    }
-
-    private static func normalized(_ value: String) -> String {
-        value
-            .lowercased()
-            .filter { $0.isLetter || $0.isNumber }
-    }
-}
 
 struct BattleState {
     struct ActionEvent: Identifiable, Equatable {

@@ -4,6 +4,7 @@ import SwiftUI
 
 struct CombatantArtReference: Hashable {
     let imageName: String
+    let thumbnailImageName: String?
     let focalPoint: UnitPoint
     let accessibilityLabel: String
 }
@@ -12,11 +13,13 @@ enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
         "rogue": CombatantArtReference(
             imageName: "hero_rogue_card",
+            thumbnailImageName: "hero_rogue_card_thumb",
             focalPoint: UnitPoint(x: 0.50, y: 0.34),
             accessibilityLabel: "Full art of the Rogue hero"
         ),
         "wolf": CombatantArtReference(
             imageName: "pet_wolf_card",
+            thumbnailImageName: "pet_wolf_card_thumb",
             focalPoint: UnitPoint(x: 0.50, y: 0.36),
             accessibilityLabel: "Full art of the Wolf pet"
         ),
