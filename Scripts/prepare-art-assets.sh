@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-manifest="Art/curated-assets.tsv"
+manifest="ArtManifest/curated-assets.tsv"
 asset_catalog="Trinket/Assets.xcassets"
 generated_dir="Trinket/Generated"
 generated_swift="$generated_dir/ArtCatalog.generated.swift"

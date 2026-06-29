@@ -1,38 +1,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedTab: AppTab
-    @State private var activeBattle: ActiveBattleConfiguration?
-    @State private var rosterState = PlayerRosterState.initial
-    @State private var inventoryState = PlayerInventoryState.initial
-    @State private var isBattlePaused = false
-    @AppStorage("options.theme") private var theme = TrinketDesign.AppTheme.system
+    @Environment(AppState.self) private var appState
 
     init() {
         let env = AppEnvironment.shared
         if env.resetState {
             UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
         }
-        _selectedTab = State(initialValue: env.launchTab ?? .play)
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        @Bindable var state = appState
+
+        TabView(selection: $state.selectedTab) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
-                PlayView(
-                    rosterState: $rosterState,
-                    inventoryState: $inventoryState,
-                    activeBattle: $activeBattle,
-                    isBattlePaused: $isBattlePaused
-                )
+                PlayView()
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
-                    CollectionView(
-                        rosterState: $rosterState,
-                        inventoryState: $inventoryState
-                    )
+                    CollectionView()
                 }
             }
 
@@ -44,25 +32,22 @@ struct ContentView: View {
 
             Tab(value: AppTab.search, role: .search) {
                 NavigationStack {
-                    SearchView(
-                        rosterState: $rosterState,
-                        inventoryState: $inventoryState
-                    )
+                    SearchView()
                 }
             }
         }
-        .preferredColorScheme(theme.colorScheme)
-        .onChange(of: selectedTab) { _, newTab in
-            guard activeBattle != nil else { return }
-            isBattlePaused = newTab != .play
+        .preferredColorScheme(appState.options.theme.colorScheme)
+        .onChange(of: appState.selectedTab) { _, newTab in
+            guard appState.battle.activeBattle != nil else { return }
+            appState.battle.isPaused = newTab != .play
         }
-        .onChange(of: activeBattle?.id) { _, newValue in
+        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
             guard newValue != nil else {
-                isBattlePaused = false
+                appState.battle.isPaused = false
                 return
             }
 
-            isBattlePaused = selectedTab != .play
+            appState.battle.isPaused = appState.selectedTab != .play
         }
     }
 }

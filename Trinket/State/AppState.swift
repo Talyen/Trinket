@@ -1,8 +1,9 @@
 import SwiftUI
 
+@MainActor
 @Observable
 final class AppState {
-    var selectedTab: AppTab = .play
+    var selectedTab: AppTab
     var roster = PlayerRosterStore()
     var inventory = PlayerInventoryStore()
     var options = OptionsStore()
@@ -12,12 +13,7 @@ final class AppState {
         let env = AppEnvironment.shared
         if env.resetState {
             UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-            roster = PlayerRosterStore()
-            inventory = PlayerInventoryStore()
-            options = OptionsStore()
         }
-        if let tab = env.launchTab {
-            selectedTab = tab
-        }
+        selectedTab = env.launchTab ?? .play
     }
 }

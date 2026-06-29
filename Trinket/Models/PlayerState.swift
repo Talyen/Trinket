@@ -1,0 +1,91 @@
+struct PlayerInventoryState: Equatable, Hashable {
+    var items: [InventoryItem]
+
+    static var initial: PlayerInventoryState {
+        PlayerInventoryState(items: GameContent.sampleInventoryItems)
+    }
+
+    func item(matching id: String?) -> InventoryItem? {
+        guard let id else { return nil }
+        return items.first { $0.id == id }
+    }
+
+    func items(for slot: ItemSlot) -> [InventoryItem] {
+        items.filter { $0.baseType.slot == slot }
+    }
+}
+
+struct PlayerRosterState: Equatable {
+    var activeHeroID: String
+    var activePetID: String
+    var abilityLoadouts: [String: AbilityLoadout]
+    var progressions: [String: CombatantProgression]
+    var equipmentLoadouts: [String: EquipmentLoadout]
+
+    static var initial: PlayerRosterState {
+        PlayerRosterState(
+            activeHeroID: GameContent.heroes.first?.id ?? "",
+            activePetID: GameContent.pets.first?.id ?? "",
+            abilityLoadouts: [:],
+            progressions: [
+                "paladin": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
+                "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
+                "mage": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100),
+                "hawk": CombatantProgression(level: 1, currentXP: 40, requiredXP: 100),
+                "drake": CombatantProgression(level: 3, currentXP: 90, requiredXP: 180)
+            ],
+            equipmentLoadouts: [
+                "paladin": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "ember-wand",
+                    .armor: "leather-gloves",
+                    .trinket: "river-charm"
+                ]),
+                "mage": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "ember-wand",
+                    .trinket: "river-charm"
+                ]),
+                "wolf": EquipmentLoadout(itemIDsBySlot: [
+                    .armor: "leather-gloves"
+                ])
+            ]
+        )
+    }
+
+    func loadout(for combatant: Combatant) -> AbilityLoadout {
+        abilityLoadouts[combatant.id] ?? combatant.abilityLoadout
+    }
+
+    mutating func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
+        let configuredCombatant = combatant.withAbilityLoadout(loadout)
+        abilityLoadouts[combatant.id] = configuredCombatant.abilityLoadout
+    }
+
+    func configuredCombatant(_ combatant: Combatant) -> Combatant {
+        combatant.withAbilityLoadout(loadout(for: combatant))
+    }
+
+    func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        combatants.map(configuredCombatant)
+    }
+
+    func progression(for combatant: Combatant) -> CombatantProgression {
+        progressions[combatant.id] ?? .initial
+    }
+
+    func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
+        equipmentLoadouts[combatant.id] ?? EquipmentLoadout()
+    }
+
+    mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
+        equipmentLoadouts[combatant.id] = loadout
+    }
+
+    func equippedItem(
+        for slot: ItemSlot,
+        combatant: Combatant,
+        inventory: PlayerInventoryState
+    ) -> InventoryItem? {
+        inventory.item(matching: equipmentLoadout(for: combatant).itemID(for: slot))
+    }
+}

@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct SearchView: View {
-    @Binding var rosterState: PlayerRosterState
-    @Binding var inventoryState: PlayerInventoryState
+    @Environment(AppState.self) private var appState
     @State private var searchText = ""
     @State private var selectedItem: InventoryItem?
 
@@ -24,6 +23,8 @@ struct SearchView: View {
     @ViewBuilder
     private var searchContent: some View {
         let trimmedQuery = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let rosterState = appState.roster.current
+        let inventoryState = appState.inventory.current
 
         if trimmedQuery.isEmpty {
             ContentUnavailableView(
@@ -31,7 +32,7 @@ struct SearchView: View {
                 systemImage: "magnifyingglass"
             )
         } else {
-            let results = getSearchResults(for: trimmedQuery)
+            let results = getSearchResults(for: trimmedQuery, rosterState: rosterState, inventoryState: inventoryState)
 
             if results.isEmpty {
                 ContentUnavailableView(
@@ -47,9 +48,9 @@ struct SearchView: View {
                                 CombatantCollectionDetailView(
                                     combatant: combatant,
                                     progression: rosterState.progression(for: combatant),
-                                    loadout: loadoutBinding(for: combatant),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                                    inventoryState: $inventoryState
+                                    inventoryState: inventoryState,
+                                    loadout: loadoutBinding(for: combatant, in: rosterState),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
@@ -66,9 +67,9 @@ struct SearchView: View {
                                 CombatantCollectionDetailView(
                                     combatant: combatant,
                                     progression: rosterState.progression(for: combatant),
-                                    loadout: loadoutBinding(for: combatant),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant),
-                                    inventoryState: $inventoryState
+                                    inventoryState: inventoryState,
+                                    loadout: loadoutBinding(for: combatant, in: rosterState),
+                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
@@ -108,7 +109,11 @@ struct SearchView: View {
         }
     }
 
-    private func getSearchResults(for query: String) -> SearchResults {
+    private func getSearchResults(
+        for query: String,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState
+    ) -> SearchResults {
         let matchingHeroes = rosterState.configuredCombatants(GameContent.heroes).filter {
             $0.name.localizedCaseInsensitiveContains(query)
         }
@@ -123,19 +128,23 @@ struct SearchView: View {
         return SearchResults(heroes: matchingHeroes, pets: matchingPets, items: matchingItems)
     }
 
-    private func loadoutBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
+    private func loadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<AbilityLoadout> {
         Binding {
             rosterState.loadout(for: combatant)
-        } set: { loadout in
-            rosterState.setLoadout(loadout, for: combatant)
+        } set: { newValue in
+            var updated = appState.roster.current
+            updated.setLoadout(newValue, for: combatant)
+            appState.roster.current = updated
         }
     }
 
-    private func equipmentLoadoutBinding(for combatant: Combatant) -> Binding<EquipmentLoadout> {
+    private func equipmentLoadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<EquipmentLoadout> {
         Binding {
             rosterState.equipmentLoadout(for: combatant)
-        } set: { loadout in
-            rosterState.setEquipmentLoadout(loadout, for: combatant)
+        } set: { newValue in
+            var updated = appState.roster.current
+            updated.setEquipmentLoadout(newValue, for: combatant)
+            appState.roster.current = updated
         }
     }
 }

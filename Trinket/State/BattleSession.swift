@@ -40,17 +40,3 @@ final class BattleSession {
     }
 }
 
-enum BattlePreset: String {
-    case fresh
-    case oneShot
-}
-
-extension BattleSimulator {
-    static func runToHealth(targetHealth: Int, hero: Combatant, pet: Combatant, enemy: Combatant = .trainingSlime, maxTicks: Int = 100) -> BattleState {
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
-        while !battle.isEnemyDefeated, battle.tickCount < maxTicks, battle.enemyHealth > targetHealth {
-            _ = battle.performNextAction()
-        }
-        return battle
-    }
-}

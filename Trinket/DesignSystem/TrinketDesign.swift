@@ -37,21 +37,6 @@ enum TrinketDesign {
         }
     }
 
-    struct FloatingGlassControlButtonModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            content
-                .buttonStyle(.glass)
-        }
-    }
-
-    struct FloatingGlassToggleModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            content
-                .toggleStyle(.button)
-                .buttonStyle(.glass)
-        }
-    }
-
     struct CardPlaceholderStyle {
         let color: Color
         let symbolName: String
@@ -62,31 +47,4 @@ enum TrinketDesign {
         static let item = CardPlaceholderStyle(color: .orange, symbolName: "shippingbox.fill")
         static let ability = CardPlaceholderStyle(color: .indigo, symbolName: "bolt.fill")
     }
-
-    struct CardSurfaceModifier: ViewModifier {
-        func body(content: Content) -> some View {
-            content
-                .background(.regularMaterial)
-                .clipShape(TrinketDesign.cardShape)
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-        }
-    }
-}
-
-extension View {
-    func trinketFloatingGlassControl() -> some View {
-        modifier(TrinketDesign.FloatingGlassControlButtonModifier())
-    }
-
-    func trinketFloatingGlassToggle() -> some View {
-        modifier(TrinketDesign.FloatingGlassToggleModifier())
-    }
-
-    func trinketCardSurface() -> some View {
-        modifier(TrinketDesign.CardSurfaceModifier())
-    }
-}
-
-extension Color {
-    static let trinketDestructive = TrinketDesign.Colors.destructive
 }

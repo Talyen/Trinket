@@ -33,7 +33,7 @@ enum LaunchScreen: Equatable {
     case battle
 }
 
-enum BattleLaunchPreset: String {
+enum BattlePreset: String {
     case fresh
     case oneShot = "oneShot"
 }

@@ -6,13 +6,13 @@ struct AppEnvironment {
     let launchTab: AppTab?
     let launchScreen: LaunchScreen?
     let resetState: Bool
-    let battlePreset: BattleLaunchPreset
+    let battlePreset: BattlePreset
 
     private init(
         launchTab: AppTab?,
         launchScreen: LaunchScreen?,
         resetState: Bool,
-        battlePreset: BattleLaunchPreset
+        battlePreset: BattlePreset
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
@@ -55,11 +55,11 @@ struct AppEnvironment {
 
         let reset = args.contains("-reset-state")
 
-        let preset: BattleLaunchPreset = {
+        let preset: BattlePreset = {
             guard let idx = args.firstIndex(of: "-battle-preset"),
                   args.indices.contains(idx + 1)
             else { return .fresh }
-            return BattleLaunchPreset(rawValue: args[idx + 1]) ?? .fresh
+            return BattlePreset(rawValue: args[idx + 1]) ?? .fresh
         }()
 
         return AppEnvironment(

@@ -5,6 +5,8 @@ import UIKit
 
 @main
 struct TrinketApp: App {
+    @State private var appState = AppState()
+
     init() {
         configureGlobalAppearance()
     }
@@ -12,6 +14,7 @@ struct TrinketApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(appState)
         }
     }
 

@@ -98,7 +98,7 @@ Do not implement all Keywords at once. Introduce them through actual abilities, 
 
 Keep cards identity-first. Avoid covering full-art cards with dense stats; put exact values and formulas in detail views.
 
-Hero, Pet, and Enemy details should use an immersive hero header when curated art exists: the same 3:4 art becomes a full-bleed top background with overlaid identity content, while exact stats and choices remain in native detail sections below it. Focal points for this crop live in `Art/curated-assets.tsv` and are generated into `Trinket/Generated/ArtCatalog.generated.swift`. Combatant art should only map to the matching game entity name, not a near-synonym or temporary stand-in.
+Hero, Pet, and Enemy details should use an immersive hero header when curated art exists: the same 3:4 art becomes a full-bleed top background with overlaid identity content, while exact stats and choices remain in native detail sections below it. Focal points for this crop live in `ArtManifest/curated-assets.tsv` and are generated into `Trinket/Generated/ArtCatalog.generated.swift`. Combatant art should only map to the matching game entity name, not a near-synonym or temporary stand-in.
 
 Heroes and Pets use native pushed collection details with drill-in Ability Loadout and Item Loadout screens. Enemies and battle-context combatant inspection can continue using sheets because those details are temporary battle-context views.
 

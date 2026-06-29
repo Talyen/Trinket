@@ -24,7 +24,7 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
 }
 
 struct InventoryGridView: View {
-    @Binding var inventoryState: PlayerInventoryState
+    @Environment(AppState.self) private var appState
     @State private var searchText = ""
     @State private var selectedFilter: InventoryFilter = .all
     @State private var selectedItem: InventoryItem?
@@ -34,10 +34,12 @@ struct InventoryGridView: View {
     ]
 
     var body: some View {
+        let inventoryState = appState.inventory.current
+
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(filteredItems) { item in
+                    ForEach(filteredItems(from: inventoryState)) { item in
                         Button {
                             selectedItem = item
                         } label: {
@@ -80,7 +82,7 @@ struct InventoryGridView: View {
         }
     }
 
-    private var filteredItems: [InventoryItem] {
+    private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
         inventoryState.items.filter { item in
             let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)

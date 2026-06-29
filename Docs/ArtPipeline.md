@@ -5,13 +5,13 @@ Trinket keeps raw art and app-ready art separate.
 ## Folders
 
 - `Raw Assets/`: unoptimized source library copied from Alchemy. Do not add this folder to Xcode target membership on purpose.
-- `Art/curated-assets.tsv`: source-of-truth manifest for selected art.
+- `ArtManifest/curated-assets.tsv`: source-of-truth manifest for selected art.
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
 - `Trinket/Generated/ArtCatalog.generated.swift`: generated Swift lookup table for curated assets.
 
 ## Manifest Format
 
-`Art/curated-assets.tsv` is tab-separated:
+`ArtManifest/curated-assets.tsv` is tab-separated:
 
 ```text
 kind	id	asset_name	source_path	focal_x	focal_y	accessibility_label
@@ -57,7 +57,7 @@ The script validates manifest rows, verifies source files, converts selected ima
 | `ART_MAX_DIMENSION` | `1600` | Full-image max dimension |
 | `ART_THUMB_DIMENSION` | `480` | Thumbnail max dimension |
 
-After changing `Art/curated-assets.tsv`, run the script, then run:
+After changing `ArtManifest/curated-assets.tsv`, run the script, then run:
 
 ```sh
 ./Scripts/generate.sh

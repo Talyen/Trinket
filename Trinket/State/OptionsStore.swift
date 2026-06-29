@@ -2,27 +2,39 @@ import SwiftUI
 
 @Observable
 final class OptionsStore {
-    var musicVolume: Double = 0.75
-    var effectsVolume: Double = 0.85
-    var hapticsEnabled = true
-    var theme: TrinketDesign.AppTheme = .system
+    private let defaults: UserDefaults
 
-    private let defaults = UserDefaults.standard
+    var musicVolume: Double {
+        didSet { defaults.set(musicVolume, forKey: Self.musicVolumeKey) }
+    }
 
-    init() {
-        musicVolume = defaults.object(forKey: "options.musicVolume") as? Double ?? 0.75
-        effectsVolume = defaults.object(forKey: "options.effectsVolume") as? Double ?? 0.85
-        hapticsEnabled = defaults.object(forKey: "options.hapticsEnabled") as? Bool ?? true
-        if let raw = defaults.string(forKey: "options.theme"),
-           let t = TrinketDesign.AppTheme(rawValue: raw) {
-            theme = t
+    var effectsVolume: Double {
+        didSet { defaults.set(effectsVolume, forKey: Self.effectsVolumeKey) }
+    }
+
+    var hapticsEnabled: Bool {
+        didSet { defaults.set(hapticsEnabled, forKey: Self.hapticsEnabledKey) }
+    }
+
+    var theme: TrinketDesign.AppTheme {
+        didSet { defaults.set(theme.rawValue, forKey: Self.themeKey) }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? 0.75
+        effectsVolume = defaults.object(forKey: Self.effectsVolumeKey) as? Double ?? 0.85
+        hapticsEnabled = defaults.object(forKey: Self.hapticsEnabledKey) as? Bool ?? true
+        if let raw = defaults.string(forKey: Self.themeKey),
+           let resolved = TrinketDesign.AppTheme(rawValue: raw) {
+            theme = resolved
+        } else {
+            theme = .system
         }
     }
 
-    func persist() {
-        defaults.set(musicVolume, forKey: "options.musicVolume")
-        defaults.set(effectsVolume, forKey: "options.effectsVolume")
-        defaults.set(hapticsEnabled, forKey: "options.hapticsEnabled")
-        defaults.set(theme.rawValue, forKey: "options.theme")
-    }
+    private static let musicVolumeKey = "options.musicVolume"
+    private static let effectsVolumeKey = "options.effectsVolume"
+    private static let hapticsEnabledKey = "options.hapticsEnabled"
+    private static let themeKey = "options.theme"
 }

@@ -7,41 +7,40 @@ enum PlayRoute: Hashable {
 }
 
 struct PlayView: View {
-    @Binding var rosterState: PlayerRosterState
-    @Binding var inventoryState: PlayerInventoryState
-    @Binding var activeBattle: ActiveBattleConfiguration?
-    @Binding var isBattlePaused: Bool
+    @Environment(AppState.self) private var appState
     @State private var path: [PlayRoute] = []
 
     var body: some View {
+        @Bindable var state = appState
+        @Bindable var battle = appState.battle
+
         NavigationStack(path: $path) {
             content
                 .navigationDestination(for: PlayRoute.self) { route in
                     switch route {
                     case .heroSelection:
-                        HeroSelectionView(rosterState: $rosterState) { hero in
+                        HeroSelectionView { hero in
                             path.append(.petSelection(hero))
                         }
                     case .petSelection(let hero):
-                        PetSelectionView(hero: hero, rosterState: $rosterState) { pet in
+                        PetSelectionView(hero: hero) { pet in
                             let oneShot = AppEnvironment.shared.battlePreset == .oneShot
                             let initialBattle: BattleState? = oneShot
                                 ? BattleSimulator.runToHealth(targetHealth: 0, hero: hero, pet: pet)
                                 : nil
-                            activeBattle = ActiveBattleConfiguration(
+                            appState.battle.activeBattle = ActiveBattleConfiguration(
                                 hero: hero,
                                 pet: pet,
-                                heroProgression: rosterState.progression(for: hero),
-                                petProgression: rosterState.progression(for: pet),
-                                heroEquipmentLoadout: rosterState.equipmentLoadout(for: hero),
-                                petEquipmentLoadout: rosterState.equipmentLoadout(for: pet),
-                                inventoryState: inventoryState,
+                                heroProgression: appState.roster.current.progression(for: hero),
+                                petProgression: appState.roster.current.progression(for: pet),
+                                heroEquipmentLoadout: appState.roster.current.equipmentLoadout(for: hero),
+                                petEquipmentLoadout: appState.roster.current.equipmentLoadout(for: pet),
+                                inventoryState: appState.inventory.current,
                                 initialBattle: initialBattle
                             )
                             if oneShot {
-                                isBattlePaused = true
+                                appState.battle.isPaused = true
                             }
-                            path.removeAll()
                             path.removeAll()
                         }
                     case .combatantDetail(let detail):
@@ -59,22 +58,22 @@ struct PlayView: View {
                     }
                 }
         }
-        .onChange(of: activeBattle?.id) { _, newValue in
+        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
             if newValue != nil {
                 path.removeAll()
             }
         }
         .onChange(of: path.count) { _, newCount in
-            guard activeBattle != nil else { return }
+            guard appState.battle.activeBattle != nil else { return }
             if newCount > 0 {
-                isBattlePaused = true
+                appState.battle.isPaused = true
             }
         }
     }
 
     @ViewBuilder
     private var content: some View {
-        if let activeBattle {
+        if let activeBattle = appState.battle.activeBattle {
             BattleView(
                 hero: activeBattle.hero,
                 pet: activeBattle.pet,
@@ -84,10 +83,13 @@ struct PlayView: View {
                 heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
                 petEquipmentLoadout: activeBattle.petEquipmentLoadout,
                 inventoryState: activeBattle.inventoryState,
-                isBattlePaused: $isBattlePaused,
+                isBattlePaused: Binding(
+                    get: { appState.battle.isPaused },
+                    set: { appState.battle.isPaused = $0 }
+                ),
                 onEndBattle: {
-                    isBattlePaused = false
-                    self.activeBattle = nil
+                    appState.battle.isPaused = false
+                    appState.battle.activeBattle = nil
                 },
                 onShowCombatantDetail: { detail in
                     path.append(.combatantDetail(detail))
@@ -126,50 +128,28 @@ struct PlayView: View {
     }
 }
 
-struct CombatantCardDetail: Hashable, Identifiable {
-    let combatant: Combatant
-    let progression: CombatantProgression
-    let equipmentLoadout: EquipmentLoadout
-    let inventoryState: PlayerInventoryState
-    let health: Int
-    let activeStatusSummaries: [StatusSummary]
-
-    var id: String { combatant.id }
-
-    static func base(_ combatant: Combatant) -> CombatantCardDetail {
-        CombatantCardDetail(
-            combatant: combatant,
-            progression: .initial,
-            equipmentLoadout: EquipmentLoadout(),
-            inventoryState: .initial,
-            health: combatant.maxHealth,
-            activeStatusSummaries: []
-        )
-    }
-}
-
 private struct HeroSelectionView: View {
-    @Binding var rosterState: PlayerRosterState
+    @Environment(AppState.self) private var appState
     let onSelect: (Combatant) -> Void
 
     var body: some View {
         SelectionGridView(
             title: "Select Hero",
-            combatants: rosterState.configuredCombatants(GameContent.heroes),
+            combatants: appState.roster.current.configuredCombatants(GameContent.heroes),
             onSelect: onSelect
         )
     }
 }
 
 private struct PetSelectionView: View {
+    @Environment(AppState.self) private var appState
     let hero: Combatant
-    @Binding var rosterState: PlayerRosterState
     let onSelect: (Combatant) -> Void
 
     var body: some View {
         SelectionGridView(
             title: "Select Pet",
-            combatants: rosterState.configuredCombatants(GameContent.pets),
+            combatants: appState.roster.current.configuredCombatants(GameContent.pets),
             onSelect: onSelect
         )
     }
