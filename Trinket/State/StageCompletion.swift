@@ -3,6 +3,7 @@ enum StageCompletion {
         for stage: Stage,
         hero: Combatant,
         pet: Combatant,
+        battleEarnedGold: Int = 0,
         roster: inout PlayerRosterState,
         inventory: inout PlayerInventoryState,
         journey: inout JourneyProgressState,
@@ -10,7 +11,7 @@ enum StageCompletion {
     ) {
         guard !journey.hasClaimedRewards(for: stage) else { return }
 
-        roster.grantGold(stage.rewards.gold)
+        roster.grantGold(stage.rewards.gold + battleEarnedGold)
         roster.grantExperience(stage.rewards.experience, to: hero)
         roster.grantExperience(stage.rewards.experience, to: pet)
 
@@ -26,6 +27,7 @@ enum StageCompletion {
         _ stage: Stage,
         hero: Combatant,
         pet: Combatant,
+        battleEarnedGold: Int = 0,
         in chapters: [Chapter],
         roster: inout PlayerRosterState,
         inventory: inout PlayerInventoryState,
@@ -36,6 +38,7 @@ enum StageCompletion {
             for: stage,
             hero: hero,
             pet: pet,
+            battleEarnedGold: battleEarnedGold,
             roster: &roster,
             inventory: &inventory,
             journey: &journey,

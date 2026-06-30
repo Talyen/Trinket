@@ -5,11 +5,12 @@ final class BattleStateTests: XCTestCase {
     private lazy var defaultEnemy = GameContent.enemies.first!.combatant
     private lazy var wolfPet = GameContent.pets.first { $0.id == "wolf" }!
 
-    func testHeroAndPetAlternateActions() {
+    func testHeroAndPetActTogetherOnSecondTick() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
 
+        _ = battle.performNextAction()
         let events = battle.performNextAction()
         let abilityActors = events.filter { $0.kind == .ability }.map(\.actorName)
 
@@ -20,17 +21,19 @@ final class BattleStateTests: XCTestCase {
         var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
         let initial = battle.enemyHealth
         _ = battle.performNextAction()
+        _ = battle.performNextAction()
         XCTAssertLessThan(battle.enemyHealth, initial)
     }
 
-    func testEnemyAttacksLowerHealthTarget() {
+    func testEnemyAttackTargetPrefersHigherHealthMember() {
         var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
         let target = battle.enemyAttackTarget
-        XCTAssertTrue(target.id == heroId || target.id == "wolf")
+        XCTAssertEqual(target.id, heroId)
     }
 
     func testBurnDealsDamageForTwoTicksThenExpires() {
         var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy)
+        _ = battle.performNextAction()
         _ = battle.performNextAction()
         let firstTick = battle.performNextAction()
         let hasBurnFirst = firstTick.contains { $0.floatingText == "-1 Burn" }
@@ -93,11 +96,13 @@ final class BattleStateTests: XCTestCase {
         let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
         var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = battle.performNextAction()
+        _ = battle.performNextAction()
         XCTAssertEqual(battle.gold, 11)
     }
 
     func testInitialGoldReflectedInEarnedGold() {
         var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy, initialGold: 5)
+        _ = battle.performNextAction()
         _ = battle.performNextAction()
         XCTAssertEqual(battle.earnedGold, battle.gold - 5)
     }
@@ -150,6 +155,21 @@ final class BattleStateTests: XCTestCase {
         let poisonSummary = summaries.first { $0.keyword == .poison }
         XCTAssertNotNil(burnSummary)
         XCTAssertNotNil(poisonSummary)
+    }
+
+    func testPetSkipsActionWhenHeroKillsEnemySameTick() {
+        let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1)
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = battle.performNextAction()
+        let events = battle.performNextAction()
+        let petActions = events.filter { $0.actorName == "Pet" && $0.kind == .ability }
+
+        XCTAssertTrue(battle.isEnemyDefeated)
+        XCTAssertTrue(petActions.isEmpty)
     }
 
     private var heroId: String {

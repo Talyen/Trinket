@@ -35,6 +35,24 @@ struct StatusSummary: Identifiable, Equatable, Hashable {
     }
 }
 
+enum EffectTarget: Hashable {
+    case abilityTarget
+    case actor
+    case enemy
+    case hero
+    case pet
+}
+
+struct TargetedEffect: Hashable {
+    let effect: Effect
+    let target: EffectTarget
+
+    init(_ effect: Effect, target: EffectTarget? = nil) {
+        self.effect = effect
+        self.target = target ?? Effect.defaultTarget(for: effect)
+    }
+}
+
 enum Effect: Hashable {
     case damageOverTime(Keyword, Int, Int)
     case prevention(Keyword, Int)
@@ -100,6 +118,15 @@ enum Effect: Hashable {
             return "Cleanse all for \(d) ticks"
         }
     }
+
+    static func defaultTarget(for effect: Effect) -> EffectTarget {
+        switch effect {
+        case .damageOverTime, .prevention:
+            return .abilityTarget
+        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse:
+            return .actor
+        }
+    }
 }
 
 struct ActiveEffect: Identifiable, Hashable {
@@ -149,7 +176,11 @@ struct Ability: Identifiable, Hashable {
     let directDamage: Int
     let damageKeyword: Keyword
     let statusApplication: StatusApplication?
-    let effects: [Effect]
+    let targetedEffects: [TargetedEffect]
+
+    var effects: [Effect] {
+        targetedEffects.map(\.effect)
+    }
 
     init(
         id: String,
@@ -158,7 +189,8 @@ struct Ability: Identifiable, Hashable {
         directDamage: Int,
         damageKeyword: Keyword = .physical,
         statusApplication: StatusApplication? = nil,
-        effects: [Effect] = []
+        effects: [Effect] = [],
+        targetedEffects: [TargetedEffect]? = nil
     ) {
         self.id = id
         self.name = name
@@ -166,7 +198,11 @@ struct Ability: Identifiable, Hashable {
         self.directDamage = directDamage
         self.damageKeyword = damageKeyword
         self.statusApplication = statusApplication
-        self.effects = effects
+        if let targetedEffects {
+            self.targetedEffects = targetedEffects
+        } else {
+            self.targetedEffects = effects.map { TargetedEffect($0) }
+        }
     }
 
     static let acidPotion = Ability(id: "acid-potion", name: "Acid Potion", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
@@ -248,7 +284,15 @@ struct Ability: Identifiable, Hashable {
     static let steal = Ability(id: "steal", name: "Steal", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let stoneskinPotion = Ability(id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.mitigation(.armor, 0.25, 3)])
     static let sunburst = Ability(id: "sunburst", name: "Sunburst", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
-    static let sunderArmor = Ability(id: "sunder-armor", name: "Sunder Armor", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.mitigation(.armor, 0.25, 2)])
+    static let sunderArmor = Ability(
+        id: "sunder-armor",
+        name: "Sunder Armor",
+        tier: .skill,
+        directDamage: 3,
+        damageKeyword: .physical,
+        statusApplication: nil,
+        targetedEffects: [TargetedEffect(.mitigation(.armor, 0.25, 2), target: .enemy)]
+    )
     static let thornMail = Ability(id: "thorn-mail", name: "Thorn Mail", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.mitigation(.armor, 0.25, 3)])
     static let tithe = Ability(id: "tithe", name: "Tithe", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let venomArrow = Ability(id: "venom-arrow", name: "Venom Arrow", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.damageOverTime(.poison, 1, 2)])
@@ -271,15 +315,15 @@ struct Ability: Identifiable, Hashable {
         if let statusApplication {
             result.append(statusApplication.keyword)
         }
-        for effect in effects {
-            result.append(effect.keyword)
+        for targetedEffect in targetedEffects {
+            result.append(targetedEffect.effect.keyword)
         }
         return result
     }
 
     var summary: String {
         var text = "\(directDamage) \(damageKeyword.rawValue) damage"
-        let effectTexts = effects.map(\.summary)
+        let effectTexts = targetedEffects.map(\.effect.summary)
         if !effectTexts.isEmpty {
             text += ". Apply " + effectTexts.joined(separator: ", ") + "."
         } else if let statusApplication {

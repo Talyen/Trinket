@@ -15,12 +15,16 @@ struct BattleView: View {
     private let heroEquipmentLoadout: EquipmentLoadout
     private let petEquipmentLoadout: EquipmentLoadout
     private let inventoryState: PlayerInventoryState
+    private let stageReward: StageReward?
+    private let rewardItemNames: [String]
     private let onEndBattle: () -> Void
     private let onRestartBattle: () -> Void
-    private let onVictoryContinue: (() -> Void)?
+    private let onVictoryContinue: ((Int) -> Void)?
     private let onShowCombatantDetail: (CombatantCardDetail) -> Void
     private let feedbackLifetime: TimeInterval = 1.0
     private let maximumVisibleFeedbackEvents = 2
+
+    @State private var victorySummary: BattleVictorySummary?
 
     init(
         hero: Combatant,
@@ -31,10 +35,12 @@ struct BattleView: View {
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryState: PlayerInventoryState = .initial,
+        stageReward: StageReward? = nil,
+        rewardItemNames: [String] = [],
         isBattlePaused: Binding<Bool>,
         onEndBattle: @escaping () -> Void,
         onRestartBattle: @escaping () -> Void,
-        onVictoryContinue: (() -> Void)? = nil,
+        onVictoryContinue: ((Int) -> Void)? = nil,
         onShowCombatantDetail: @escaping (CombatantCardDetail) -> Void
     ) {
         self.heroProgression = heroProgression
@@ -42,6 +48,8 @@ struct BattleView: View {
         self.heroEquipmentLoadout = heroEquipmentLoadout
         self.petEquipmentLoadout = petEquipmentLoadout
         self.inventoryState = inventoryState
+        self.stageReward = stageReward
+        self.rewardItemNames = rewardItemNames
         self.onEndBattle = onEndBattle
         self.onRestartBattle = onRestartBattle
         self.onVictoryContinue = onVictoryContinue
@@ -54,11 +62,18 @@ struct BattleView: View {
 
     var body: some View {
         Group {
-            if isShowingVictory {
+            if isShowingVictory, let victorySummary {
                 VictoryView(
                     enemyName: battle.enemy.name,
+                    summary: victorySummary,
                     primaryActionTitle: onVictoryContinue == nil ? "Battle Again" : "Continue",
-                    onPrimaryAction: onVictoryContinue ?? onRestartBattle
+                    onPrimaryAction: {
+                        if let onVictoryContinue {
+                            onVictoryContinue(victorySummary.battleGold)
+                        } else {
+                            onRestartBattle()
+                        }
+                    }
                 )
             } else if isShowingDefeat {
                 DefeatView(
@@ -187,6 +202,7 @@ struct BattleView: View {
         events.forEach(appendFeedbackEvent)
 
         if battle.isEnemyDefeated {
+            victorySummary = makeVictorySummary()
             isShowingVictory = true
         } else if battle.isPartyDefeated {
             isShowingDefeat = true
@@ -256,5 +272,16 @@ struct BattleView: View {
         if combatant.id == battle.hero.id { return heroEquipmentLoadout }
         if combatant.id == battle.pet.id { return petEquipmentLoadout }
         return EquipmentLoadout()
+    }
+
+    private func makeVictorySummary() -> BattleVictorySummary {
+        BattleVictorySummary(
+            stageGold: stageReward?.gold ?? 0,
+            battleGold: battle.earnedGold,
+            experience: stageReward?.experience ?? 0,
+            heroName: battle.hero.name,
+            petName: battle.pet.name,
+            itemNames: rewardItemNames
+        )
     }
 }

@@ -32,6 +32,15 @@ struct Enemy: Identifiable, Hashable {
 
     static var randomNormalCombatant: Combatant {
         let normals = GameContent.enemies.filter { !$0.isBoss }
-        return normals.randomElement()!.combatant
+        if let enemy = normals.randomElement()?.combatant {
+            return enemy
+        }
+        return GameContent.enemies.first?.combatant ?? Combatant(
+            id: "fallback-enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: defaultMaxHealth,
+            abilities: [.slash]
+        )
     }
 }

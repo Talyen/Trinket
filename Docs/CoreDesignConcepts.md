@@ -58,12 +58,11 @@ Enemy detail views use the shared combatant detail pattern and can show active c
 
 Abilities are the main source of combat actions and Keywords. Keep Abilities as rows inside combatant details for now. Do not create standalone Ability card detail screens until abilities need independent inspection, upgrades, or collection behavior.
 
-Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle: Hero and Pet turns alternate, and the selected Basic, Skill, or Ultimate fires automatically based on that combatant's own turn cadence.
+Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle: each combatant acts on its own action interval while the battle advances on a shared tick clock. When multiple combatants are ready on the same tick, their actions resolve sequentially (faster intervals first, then Hero, Pet, Enemy as tie-breakers). The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
 
-Implemented ability rules:
+Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Damage-over-time and other tick-based effects can fire on ticks where nobody acts.
 
-- `Physical`: direct damage.
-- `Burn`: enemy damage-over-time.
+Implemented ability rules span the full `Effect` model (direct damage, damage over time, prevention, shields, mitigation, healing, leech, gold, cleanse). Legacy shorthand:
 
 ## Items
 
@@ -104,8 +103,8 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
-| `Stun` | yellow | `bolt.fill` | Prevents the target's next action. Applies via `.prevention`. Skip turn on schedule. |
-| `Freeze` | light blue | `snowflake` | Prevents the target's next action with cold. Same mechanics as Stun. |
+| `Stun` | yellow | `bolt.fill` | Prevents the target's next scheduled action(s). Applies via `.prevention`. Does not decay on passive battle ticks. |
+| `Freeze` | light blue | `snowflake` | Prevents the target's next scheduled action(s) with cold. Same mechanics as Stun. |
 
 ### Mitigation (Keyword.category = .mitigation)
 
@@ -125,22 +124,22 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
-| `Gold` | amber | `dollarsign.circle.fill` | Currency gain via `.resourceGain`. Increments `BattleState.gold`. Persisted in `PlayerRosterState.gold`. |
+| `Gold` | amber | `dollarsign.circle.fill` | Currency gain via `.resourceGain`. Increments `BattleState.gold` during battle and persists to `PlayerRosterState.gold` on victory (combined with stage rewards). |
 
 ### Effect Model
 
-All keyword effects are represented by the `Effect` tagged union:
+All keyword effects are represented by the `Effect` tagged union and applied through `TargetedEffect` (effect + target: ability target, actor, hero, pet, or enemy):
 
-- `.damageOverTime(keyword, tickDamage, durationTicks)` — deals `tickDamage` per tick, affected by shield/mitigation
-- `.prevention(keyword, durationTicks)` — skips the target's next `durationTicks` actions
+- `.damageOverTime(keyword, tickDamage, durationTicks)` — deals `tickDamage` per battle tick, affected by shield/mitigation
+- `.prevention(keyword, durationActions)` — skips the target's next `durationActions` scheduled actions; not reduced by passive tick decay
 - `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
 - `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`
 - `.instantHeal(keyword, amount)` — immediately restores `amount` health (clamped to max)
-- `.leech(keyword, percent, durationTicks)` — restores `percent * damage` to the attacker on each hit
+- `.leech(keyword, percent, durationTicks)` — restores `percent * effective damage dealt` to the attacker on each hit
 - `.resourceGain(keyword, amount)` — immediately adds `amount` gold
 - `.cleanse(keyword?, durationTicks)` — removes active effects matching `keyword` (or all if nil) for `durationTicks`
 
-Abilities declare `effects: [Effect]`. The `BattleState` applies instant effects immediately and tracks duration-based effects as `ActiveEffect` instances on the relevant combatant.
+Abilities declare `targetedEffects: [TargetedEffect]` (or bare `effects` with default targeting). The `BattleState` applies instant effects immediately and tracks duration-based effects as `ActiveEffect` instances on the resolved target combatant.
 
 ## Cards And Details
 

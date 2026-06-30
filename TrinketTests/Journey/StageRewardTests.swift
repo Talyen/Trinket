@@ -10,6 +10,27 @@ final class StageRewardTests: XCTestCase {
         chapter.stages[0]
     }
 
+    func testCompletingStageGrantsBattleGoldWithStageRewards() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+
+        StageCompletion.complete(
+            firstStage,
+            hero: hero,
+            pet: pet,
+            battleEarnedGold: 4,
+            in: GameContent.chapters,
+            roster: &roster,
+            inventory: &inventory,
+            journey: &journey
+        )
+
+        XCTAssertEqual(roster.gold, firstStage.rewards.gold + 4)
+    }
+
     func testCompletingStageGrantsGoldXPAndItems() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])

@@ -17,11 +17,13 @@ final class BattleStateSchedulingTests: XCTestCase {
         XCTAssertTrue(battle.performNextAction().isEmpty)
     }
 
-    func testFirstActionOrderIsHeroThenPetBeforeEnemy() {
+    func testFirstActionOrderIsHeroThenPetOnSecondTick() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        XCTAssertTrue(battle.performNextAction().filter { $0.kind == .ability }.isEmpty)
 
         let events = battle.performNextAction()
         let abilityActors = events.filter { $0.kind == .ability }.map(\.actorName)
@@ -30,19 +32,42 @@ final class BattleStateSchedulingTests: XCTestCase {
         XCTAssertEqual(battle.enemyActionCount, 0)
     }
 
-    func testEnemyAttacksOnThirdTick() {
+    func testEnemyAttacksOnSixthTick() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 50, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 50, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        for _ in 0 ..< 5 {
+            _ = battle.performNextAction()
+        }
         XCTAssertEqual(battle.enemyActionCount, 0)
 
         _ = battle.performNextAction()
         XCTAssertEqual(battle.enemyActionCount, 1)
-        XCTAssertEqual(battle.tickCount, 3)
+        XCTAssertEqual(battle.tickCount, 6)
+    }
+
+    func testFastEnemyActsBeforePartyOnSharedTick() {
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = battle.performNextAction()
+        XCTAssertEqual(battle.enemyActionCount, 1)
+        XCTAssertEqual(battle.heroActionCount, 0)
+
+        let events = battle.performNextAction()
+        let abilityActors = events.filter { $0.kind == .ability }.map(\.actorName)
+        XCTAssertEqual(abilityActors, ["Enemy", "Hero", "Pet"])
     }
 
     func testBurnEffectExpiresAfterDuration() {
@@ -87,6 +112,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
         var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
 
+        _ = battle.performNextAction()
         _ = battle.performNextAction()
 
         XCTAssertEqual(battle.gold, 11)

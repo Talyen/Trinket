@@ -62,6 +62,8 @@ struct PlayView: View {
                 heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
                 petEquipmentLoadout: activeBattle.petEquipmentLoadout,
                 inventoryState: activeBattle.inventoryState,
+                stageReward: activeBattle.stageReward,
+                rewardItemNames: activeBattle.rewardItemNames,
                 isBattlePaused: Binding(
                     get: { appState.battle.isPaused },
                     set: { appState.battle.isPaused = $0 }
@@ -80,11 +82,13 @@ struct PlayView: View {
                         petProgression: activeBattle.petProgression,
                         heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
                         petEquipmentLoadout: activeBattle.petEquipmentLoadout,
-                        inventoryState: activeBattle.inventoryState
+                        inventoryState: activeBattle.inventoryState,
+                        stageReward: activeBattle.stageReward,
+                        rewardItemNames: activeBattle.rewardItemNames
                     )
                 },
-                onVictoryContinue: {
-                    completeActiveBattle(activeBattle)
+                onVictoryContinue: { battleEarnedGold in
+                    completeActiveBattle(activeBattle, battleEarnedGold: battleEarnedGold)
                 },
                 onShowCombatantDetail: { detail in
                     appState.battle.isPaused = true
@@ -131,6 +135,9 @@ struct PlayView: View {
         let pet = activePet
         selectedStage = nil
         appState.battle.preview = nil
+        let rewardItemNames = stage.rewards.itemTemplateIDs.compactMap { templateID in
+            GameContent.itemTemplate(matching: templateID)?.displayName
+        }
         appState.battle.activeBattle = ActiveBattleConfiguration(
             stageID: stage.id,
             hero: hero,
@@ -140,14 +147,20 @@ struct PlayView: View {
             petProgression: appState.roster.current.progression(for: pet),
             heroEquipmentLoadout: appState.roster.current.equipmentLoadout(for: hero),
             petEquipmentLoadout: appState.roster.current.equipmentLoadout(for: pet),
-            inventoryState: appState.inventory.current
+            inventoryState: appState.inventory.current,
+            stageReward: stage.rewards,
+            rewardItemNames: rewardItemNames
         )
     }
 
-    private func completeActiveBattle(_ battle: ActiveBattleConfiguration) {
+    private func completeActiveBattle(_ battle: ActiveBattleConfiguration, battleEarnedGold: Int) {
         if let stageID = battle.stageID,
            let stage = chapters.flatMap(\.stages).first(where: { $0.id == stageID }) {
-            completeStage(stage, hero: battle.hero, pet: battle.pet)
+            completeStage(stage, hero: battle.hero, pet: battle.pet, battleEarnedGold: battleEarnedGold)
+        } else if battleEarnedGold > 0 {
+            var roster = appState.roster.current
+            roster.grantGold(battleEarnedGold)
+            appState.roster.current = roster
         }
         appState.battle.isPaused = false
         appState.battle.activeBattle = nil
@@ -166,7 +179,7 @@ struct PlayView: View {
         appState.battle.preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
     }
 
-    private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant) {
+    private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant, battleEarnedGold: Int = 0) {
         var roster = appState.roster.current
         var inventory = appState.inventory.current
         var journey = appState.journey.current
@@ -174,6 +187,7 @@ struct PlayView: View {
             stage,
             hero: hero,
             pet: pet,
+            battleEarnedGold: battleEarnedGold,
             in: chapters,
             roster: &roster,
             inventory: &inventory,

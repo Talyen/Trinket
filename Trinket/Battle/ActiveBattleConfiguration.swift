@@ -11,6 +11,8 @@ struct ActiveBattleConfiguration: Identifiable {
     let heroEquipmentLoadout: EquipmentLoadout
     let petEquipmentLoadout: EquipmentLoadout
     let inventoryState: PlayerInventoryState
+    let stageReward: StageReward?
+    let rewardItemNames: [String]
 
     init(
         stageID: String? = nil,
@@ -21,7 +23,9 @@ struct ActiveBattleConfiguration: Identifiable {
         petProgression: CombatantProgression = .initial,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
-        inventoryState: PlayerInventoryState = .initial
+        inventoryState: PlayerInventoryState = .initial,
+        stageReward: StageReward? = nil,
+        rewardItemNames: [String] = []
     ) {
         self.stageID = stageID
         self.hero = hero
@@ -32,5 +36,7 @@ struct ActiveBattleConfiguration: Identifiable {
         self.heroEquipmentLoadout = heroEquipmentLoadout
         self.petEquipmentLoadout = petEquipmentLoadout
         self.inventoryState = inventoryState
+        self.stageReward = stageReward
+        self.rewardItemNames = rewardItemNames
     }
 }

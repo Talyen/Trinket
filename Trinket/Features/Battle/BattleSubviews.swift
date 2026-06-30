@@ -184,6 +184,7 @@ struct CombatFeedbackAnimationState {
 
 struct VictoryView: View {
     let enemyName: String
+    let summary: BattleVictorySummary
     let primaryActionTitle: String
     let onPrimaryAction: () -> Void
 
@@ -211,15 +212,49 @@ struct VictoryView: View {
                         .multilineTextAlignment(.center)
                 }
 
-                VictoryPlaceholderSection(
-                    title: "Experience",
-                    message: "Hero and Pet experience will appear here later."
-                )
+                VictoryRewardSection(title: "Experience") {
+                    if summary.experience > 0 {
+                        VictoryRewardRow(
+                            symbolName: "star.fill",
+                            tint: .yellow,
+                            text: "+\(summary.experience) XP for \(summary.heroName) and \(summary.petName)"
+                        )
+                    } else {
+                        VictoryRewardRow(
+                            symbolName: "star",
+                            tint: .secondary,
+                            text: "No experience awarded."
+                        )
+                    }
+                }
 
-                VictoryPlaceholderSection(
-                    title: "Rewards",
-                    message: "Items, Gold, materials, and unlocks are not implemented yet."
-                )
+                VictoryRewardSection(title: "Rewards") {
+                    if summary.totalGold > 0 {
+                        VictoryRewardRow(
+                            symbolName: Keyword.gold.visualStyle.symbolName,
+                            tint: Keyword.gold.visualStyle.color,
+                            text: "+\(summary.totalGold) Gold"
+                        )
+                    }
+
+                    if summary.itemNames.isEmpty {
+                        if summary.totalGold == 0 {
+                            VictoryRewardRow(
+                                symbolName: "bag",
+                                tint: .secondary,
+                                text: "No items awarded."
+                            )
+                        }
+                    } else {
+                        ForEach(summary.itemNames, id: \.self) { itemName in
+                            VictoryRewardRow(
+                                symbolName: "bag.fill",
+                                tint: Color.accentColor,
+                                text: itemName
+                            )
+                        }
+                    }
+                }
 
                 Button {
                     onPrimaryAction()
@@ -304,6 +339,39 @@ struct VictoryPlaceholderSection: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .trinketCardSurface()
+    }
+}
+
+struct VictoryRewardSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+
+            content
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .trinketCardSurface()
+    }
+}
+
+struct VictoryRewardRow: View {
+    let symbolName: String
+    let tint: Color
+    let text: String
+
+    var body: some View {
+        Label {
+            Text(text)
+                .font(.subheadline)
+        } icon: {
+            Image(systemName: symbolName)
+                .foregroundStyle(tint)
+        }
     }
 }
 

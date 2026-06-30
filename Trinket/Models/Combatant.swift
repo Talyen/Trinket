@@ -44,6 +44,7 @@ struct Combatant: Identifiable, Hashable {
     let name: String
     let role: Role
     let maxHealth: Int
+    let actionIntervalTicks: Int?
     let abilityChoices: AbilityChoices
 
     init(
@@ -51,12 +52,14 @@ struct Combatant: Identifiable, Hashable {
         name: String,
         role: Role,
         maxHealth: Int,
+        actionIntervalTicks: Int? = nil,
         abilityChoices: AbilityChoices
     ) {
         self.id = id
         self.name = name
         self.role = role
         self.maxHealth = maxHealth
+        self.actionIntervalTicks = actionIntervalTicks
         self.abilityChoices = abilityChoices
     }
 
@@ -65,6 +68,7 @@ struct Combatant: Identifiable, Hashable {
         name: String,
         role: Role,
         maxHealth: Int,
+        actionIntervalTicks: Int? = nil,
         abilities: [Ability]
     ) {
         self.init(
@@ -72,6 +76,7 @@ struct Combatant: Identifiable, Hashable {
             name: name,
             role: role,
             maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
             abilityChoices: AbilityChoices(abilities: abilities)
         )
     }
@@ -90,6 +95,7 @@ struct Combatant: Identifiable, Hashable {
             name: name,
             role: role,
             maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadout(loadout)
         )
     }

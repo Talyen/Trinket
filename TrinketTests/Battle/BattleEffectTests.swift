@@ -34,7 +34,7 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        performActions(3, on: &battle)
+        performActions(6, on: &battle)
 
         XCTAssertEqual(battle.heroHealth, hero.maxHealth)
     }
@@ -52,8 +52,28 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        _ = performActions(3, on: &battle)
+        _ = performActions(6, on: &battle)
 
+        XCTAssertEqual(battle.heroHealth, 17)
+    }
+
+    func testEffectiveDamageMatchesEventAmount() {
+        let hero = passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.judgment])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 10), remainingTicks: 10)
+            ]
+        )
+
+        let events = performActions(6, on: &battle)
+        let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
+
+        XCTAssertEqual(damageEvent?.amount, 3)
         XCTAssertEqual(battle.heroHealth, 17)
     }
 
@@ -68,11 +88,11 @@ final class BattleEffectTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .prevention(.stun, 1), remainingTicks: 10)
+                ActiveEffect(id: 1, effect: .prevention(.stun, 1), remainingTicks: 1)
             ]
         )
 
-        let events = performActions(3, on: &battle)
+        let events = performActions(6, on: &battle)
 
         XCTAssertEqual(battle.heroHealth, hero.maxHealth)
         XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
@@ -87,14 +107,53 @@ final class BattleEffectTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .prevention(.freeze, 1), remainingTicks: 10)
+                ActiveEffect(id: 1, effect: .prevention(.freeze, 1), remainingTicks: 1)
             ]
         )
 
-        let events = performActions(3, on: &battle)
+        let events = performActions(6, on: &battle)
 
         XCTAssertEqual(battle.heroHealth, hero.maxHealth)
         XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .freeze })
+    }
+
+    func testShieldBashStunsEnemyNextAction() {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.shieldBash]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+        let events = performActions(4, on: &battle)
+
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
+        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+    }
+
+    func testPreventionDoesNotExpireFromTickDecay() {
+        let hero = passiveCombatant(id: "hero", name: "Hero", role: .hero)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .prevention(.stun, 1), remainingTicks: 1)
+            ]
+        )
+
+        _ = performActions(5, on: &battle)
+        XCTAssertFalse(battle.activeEnemyEffects.isEmpty)
+
+        let events = battle.performNextAction()
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped })
     }
 
     // MARK: - Restoration
@@ -119,6 +178,7 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
+        _ = battle.performNextAction()
         let events = battle.performNextAction()
 
         XCTAssertEqual(battle.heroHealth, 9)
@@ -139,6 +199,7 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
+        _ = battle.performNextAction()
         let events = battle.performNextAction()
 
         XCTAssertEqual(battle.heroHealth, 6)
@@ -148,7 +209,14 @@ final class BattleEffectTests: XCTestCase {
     // MARK: - Cleanse
 
     func testCleanseRemovesSpecificEffect() {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [.smellingSalts])
+        let cleansePoison = Ability(
+            id: "cleanse-poison",
+            name: "Cleanse Poison",
+            tier: .basic,
+            directDamage: 0,
+            effects: [.cleanse(.poison, 3)]
+        )
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [cleansePoison])
         let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(
@@ -156,15 +224,22 @@ final class BattleEffectTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .prevention(.stun, 2), remainingTicks: 2),
-                ActiveEffect(id: 2, effect: .damageOverTime(.burn, 1, 2), remainingTicks: 2)
+                ActiveEffect(id: 1, effect: .damageOverTime(.poison, 1, 5), remainingTicks: 5),
+                ActiveEffect(id: 2, effect: .damageOverTime(.burn, 1, 5), remainingTicks: 5)
             ]
         )
 
         _ = battle.performNextAction()
+        _ = battle.performNextAction()
 
-        XCTAssertFalse(battle.activeHeroEffects.contains { $0.keyword == .stun })
-        XCTAssertTrue(battle.activeHeroEffects.contains { $0.keyword == .burn })
+        XCTAssertFalse(battle.activeHeroEffects.contains {
+            if case .damageOverTime(.poison, _, _) = $0.effect { return true }
+            return false
+        })
+        XCTAssertTrue(battle.activeHeroEffects.contains {
+            if case .damageOverTime(.burn, _, _) = $0.effect { return true }
+            return false
+        })
     }
 
     func testCleanseAllRemovesAllEffects() {
@@ -187,7 +262,7 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        _ = performActions(3, on: &battle)
+        _ = performActions(6, on: &battle)
 
         XCTAssertTrue(
             battle.activeHeroEffects.allSatisfy {
@@ -198,6 +273,21 @@ final class BattleEffectTests: XCTestCase {
     }
 
     // MARK: - Targeting & cadence
+
+    func testSunderArmorAppliesMitigationToEnemy() {
+        let hero = passiveCombatant(id: "hero", name: "Hero", role: .hero)
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.sunderArmor])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = battle.performNextAction()
+        _ = battle.performNextAction()
+
+        XCTAssertTrue(battle.activeEnemyEffects.contains {
+            if case .mitigation(.armor, _, _) = $0.effect { return true }
+            return false
+        })
+    }
 
     func testSkillFiresOnTurn3UltimateOnTurn6() {
         let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1)
@@ -215,7 +305,7 @@ final class BattleEffectTests: XCTestCase {
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
         var heroAbilityNames: [String] = []
-        for _ in 0 ..< 6 {
+        for _ in 0 ..< 12 {
             let events = battle.performNextAction()
             heroAbilityNames.append(
                 contentsOf: events
@@ -251,7 +341,7 @@ final class BattleEffectTests: XCTestCase {
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = performActions(3, on: &battle)
+        _ = performActions(6, on: &battle)
 
         XCTAssertFalse(battle.isHeroAlive)
         XCTAssertEqual(battle.enemyAttackTarget.id, pet.id)
@@ -310,6 +400,7 @@ final class BattleEffectTests: XCTestCase {
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
+        _ = battle.performNextAction()
         let events = battle.performNextAction()
 
         XCTAssertTrue(events.contains { $0.floatingText == "+5 Block" })
@@ -329,6 +420,7 @@ final class BattleEffectTests: XCTestCase {
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
+        _ = battle.performNextAction()
         _ = battle.performNextAction()
 
         XCTAssertTrue(battle.activeEnemyEffects.contains { $0.keyword == .poison })
