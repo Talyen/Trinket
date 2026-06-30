@@ -26,7 +26,7 @@ struct PlayView: View {
                 onPrimaryAction: { handlePrimaryAction(for: stage) }
             )
             .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
         }
         .sheet(item: $selectedCombatantDetail) { selection in
             CombatantCollectionDetailSheet(selection: selection)
@@ -445,30 +445,38 @@ private struct StagePreviewSheet: View {
     let chapter: Chapter
     let onPrimaryAction: () -> Void
 
+    private let scrollCoordinateSpaceName = "StagePreviewScroll"
+
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    StagePreviewHeader(stage: stage, subject: subject)
+            GeometryReader { geometry in
+                let baseHeaderHeight = StagePreviewHeader.headerHeight(forWidth: geometry.size.width)
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        StagePreviewHeader(
+                            stage: stage,
+                            subject: subject,
+                            baseHeight: baseHeaderHeight,
+                            coordinateSpaceName: scrollCoordinateSpaceName
+                        )
                         .accessibilityIdentifier("Stage Preview Header")
 
-                    encounterInfoSection
-                    partySection
-
-                    Button(action: onPrimaryAction) {
-                        Text(stage.encounter.primaryActionTitle)
-                            .frame(maxWidth: .infinity)
+                        VStack(alignment: .leading, spacing: 0) {
+                            encounterInfoSection
+                            partySection
+                        }
+                        .background(TrinketDesign.Colors.appBackground)
                     }
-                    // UIStyleCheck: allow - encounter sheets use the native prominent CTA.
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(chapter.theme.tint)
-                    .accessibilityIdentifier("\(stage.encounter.primaryActionTitle) Button")
-                    .padding(20)
+                    .padding(.bottom, 88)
+                }
+                .coordinateSpace(name: scrollCoordinateSpaceName)
+                .background(TrinketDesign.Colors.appBackground)
+                .ignoresSafeArea(edges: .top)
+                .safeAreaInset(edge: .bottom) {
+                    primaryActionBar
                 }
             }
-            .background(TrinketDesign.Colors.appBackground)
-            .ignoresSafeArea(edges: .top)
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $partyPicker) { picker in
                 PartyPickerSheet(
@@ -486,35 +494,24 @@ private struct StagePreviewSheet: View {
     }
 
     private var encounterInfoSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("Encounter")
                 .font(.headline)
-
-            LabeledContent("Stage") {
-                Text(stageLabel)
-            }
-
-            LabeledContent("Type") {
-                Text(subject.type)
-            }
-
-            LabeledContent("Name") {
-                Text(subject.name)
-            }
+                .foregroundStyle(.secondary)
 
             Text(stage.flavorText)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .padding(.top, 4)
+                .font(.body)
+                .foregroundStyle(.primary)
         }
-        .font(.body)
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.top, 24)
     }
 
     private var partySection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Party")
                 .font(.headline)
+                .foregroundStyle(.secondary)
 
             HStack(alignment: .top, spacing: 16) {
                 Button {
@@ -541,7 +538,26 @@ private struct StagePreviewSheet: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.top, 8)
+        .padding(.top, 24)
+    }
+
+    private var primaryActionBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+
+            Button(action: onPrimaryAction) {
+                Text(stage.encounter.primaryActionTitle)
+                    .frame(maxWidth: .infinity)
+            }
+            // UIStyleCheck: allow - encounter sheets use the native prominent CTA.
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(chapter.theme.tint)
+            .accessibilityIdentifier("\(stage.encounter.primaryActionTitle) Button")
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
+        .background(TrinketDesign.Colors.appBackground)
     }
 
     private var subject: StagePreviewSubject {
@@ -663,15 +679,21 @@ private struct StagePreviewSubject {
 private struct StagePreviewHeader: View {
     let stage: Stage
     let subject: StagePreviewSubject
+    let baseHeight: CGFloat
+    let coordinateSpaceName: String
+
+    static func headerHeight(forWidth width: CGFloat) -> CGFloat {
+        min(max(width * 1.04, 340), 430)
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            let height = HeroHeaderLayout.headerHeight(forWidth: geometry.size.width)
+            let pullDistance = max(geometry.frame(in: .named(coordinateSpaceName)).minY, 0)
+            let scale = HeroHeaderLayout.overscrollScale(baseHeight: baseHeight, pullDistance: pullDistance)
 
-            ZStack(alignment: .bottomLeading) {
-                headerArt
-                    .frame(width: geometry.size.width, height: height)
-                    .clipped()
+            ZStack(alignment: .topLeading) {
+                headerArt(width: geometry.size.width, height: baseHeight)
+                    .scaleEffect(scale, anchor: .top)
 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.65)],
@@ -682,35 +704,26 @@ private struct StagePreviewHeader: View {
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .allowsHitTesting(false)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Stage \(stage.chapterNumber)-\(stage.stageNumber)")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.8))
-
-                    Text(subject.type.uppercased())
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white.opacity(0.8))
-
-                    Text(subject.name)
-                        .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.75)
-                }
-                .padding(20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                titleBlock
+                    .padding(20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
             }
+            .frame(height: baseHeight + pullDistance)
+            .clipped()
+            .offset(y: -pullDistance)
         }
-        .frame(height: 320)
+        .frame(height: baseHeight)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Stage \(stage.chapterNumber)-\(stage.stageNumber), \(subject.type), \(subject.name)")
     }
 
     @ViewBuilder
-    private var headerArt: some View {
+    private func headerArt(width: CGFloat, height: CGFloat) -> some View {
         if let combatant = subject.combatant {
             CombatantArtwork(combatant: combatant, variant: .hero)
-                .aspectRatio(contentMode: .fill)
+                .frame(width: width, height: height)
+                .clipped()
         } else {
             ZStack {
                 subject.tint.opacity(0.18)
@@ -721,6 +734,25 @@ private struct StagePreviewHeader: View {
                     .symbolRenderingMode(.hierarchical)
                     .accessibilityHidden(true)
             }
+            .frame(width: width, height: height)
+        }
+    }
+
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Stage \(stage.chapterNumber)-\(stage.stageNumber)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white.opacity(0.8))
+
+            Text(subject.type.uppercased())
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.white.opacity(0.8))
+
+            Text(subject.name)
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
         }
     }
 }
@@ -736,8 +768,22 @@ private struct PartySelectionCard: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            CombatantCard(combatant: combatant)
+            TrinketDesign.cardShape
+                .aspectRatio(3.0 / 4.0, contentMode: .fit)
+                .overlay {
+                    CombatantArtwork(combatant: combatant, variant: .card)
+                        .clipShape(TrinketDesign.cardShape)
+                }
+                .trinketCardSurface()
+                .frame(maxWidth: 132)
+
+            Text(combatant.name)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .frame(maxWidth: 132)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(accessibilityIdentifier)
     }
