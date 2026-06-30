@@ -25,8 +25,8 @@ struct PlayerSaveFileStore {
             let bundleDirectory = Bundle.main.bundleIdentifier ?? "Trinket"
             self.directoryURL = supportDirectory.appendingPathComponent(bundleDirectory, isDirectory: true)
         }
-        encoder = JSONEncoder()
-        decoder = JSONDecoder()
+        encoder = PlayerSaveCoding.makeEncoder()
+        decoder = PlayerSaveCoding.makeDecoder()
     }
 
     var saveFileURL: URL {

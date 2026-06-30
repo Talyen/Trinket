@@ -26,6 +26,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
         )
         let v1Save = PlayerSave(
             schemaVersion: 1,
+            modifiedAt: .distantPast,
             journey: .initial,
             roster: v1Roster,
             inventory: SavedInventoryState(.freshStart)
@@ -33,13 +34,13 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v1Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 2)
+        XCTAssertEqual(migrated.schemaVersion, 3)
         XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
         XCTAssertEqual(Set(migrated.roster.unlockedPetIDs), Set(GameContent.pets.map(\.id)))
         XCTAssertEqual(migrated.roster.gold, 12)
     }
 
-    func testLoadV1JSONFromDiskMigratesToV2() throws {
+    func testLoadV1JSONFromDiskMigratesToCurrentSchema() throws {
         let directoryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("PlayerSaveMigrationTests.\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
@@ -74,7 +75,8 @@ final class PlayerSaveMigrationTests: XCTestCase {
         let loaded = try XCTUnwrap(fileStore.load())
         let store = PlayerSaveStore(fileStore: fileStore)
 
-        XCTAssertEqual(loaded.schemaVersion, 2)
+        XCTAssertEqual(loaded.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertNotEqual(loaded.modifiedAt, .distantPast)
         XCTAssertEqual(Set(store.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
         XCTAssertEqual(store.roster.progression(for: GameContent.heroes[0]).currentXP, 10)
     }

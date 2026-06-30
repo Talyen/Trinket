@@ -7,7 +7,8 @@ enum TestLaunchArg {
 
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
-    static let testLaunchArgs = [resetState, seedTestProgress]
+    static let disableCloudSync = "-disable-cloud-sync"
+    static let testLaunchArgs = [resetState, seedTestProgress, disableCloudSync]
     static func screen(_ screen: String) -> [String] {
         ["-launch-screen", screen]
     }

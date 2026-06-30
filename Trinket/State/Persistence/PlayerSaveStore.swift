@@ -6,6 +6,7 @@ import SwiftUI
 final class PlayerSaveStore {
     private let fileStore: PlayerSaveFileStore
     private var save: PlayerSave
+    var onLocalSave: ((PlayerSave) -> Void)?
 
     var journey: JourneyProgressState {
         get { save.journey }
@@ -33,6 +34,10 @@ final class PlayerSaveStore {
         }
     }
 
+    var currentSave: PlayerSave {
+        save
+    }
+
     init(fileStore: PlayerSaveFileStore = PlayerSaveFileStore()) {
         self.fileStore = fileStore
         let loaded = fileStore.load() ?? .fresh
@@ -49,8 +54,15 @@ final class PlayerSaveStore {
         persist()
     }
 
-    private func persist() {
+    func applyRemoteSave(_ remoteSave: PlayerSave) {
+        save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
         fileStore.save(save)
+    }
+
+    private func persist() {
+        save = save.markedLocalMutation()
+        fileStore.save(save)
+        onLocalSave?(save)
     }
 
     private func resolvedRoster() -> PlayerRosterState {

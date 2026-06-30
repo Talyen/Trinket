@@ -7,6 +7,7 @@ struct AppEnvironment {
     let launchScreen: LaunchScreen?
     let resetState: Bool
     let seedTestProgress: Bool
+    let disableCloudSync: Bool
     let completedStageIDs: [String]
 
     private init(
@@ -14,17 +15,20 @@ struct AppEnvironment {
         launchScreen: LaunchScreen?,
         resetState: Bool,
         seedTestProgress: Bool,
+        disableCloudSync: Bool,
         completedStageIDs: [String]
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
         self.resetState = resetState
         self.seedTestProgress = seedTestProgress
+        self.disableCloudSync = disableCloudSync
         self.completedStageIDs = completedStageIDs
     }
 
     private static func load() -> AppEnvironment {
         let args = ProcessInfo.processInfo.arguments
+        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 
         let tab: AppTab? = {
             guard let idx = args.firstIndex(of: "-selectedTab"),
@@ -57,6 +61,7 @@ struct AppEnvironment {
 
         let reset = args.contains("-reset-state")
         let seedTestProgress = args.contains("-seed-test-progress")
+        let disableCloudSync = args.contains("-disable-cloud-sync")
 
         let completedStageIDs: [String] = {
             guard let idx = args.firstIndex(of: "-completed-stages"),
@@ -73,6 +78,7 @@ struct AppEnvironment {
             launchScreen: screen,
             resetState: reset,
             seedTestProgress: seedTestProgress,
+            disableCloudSync: disableCloudSync || reset || isRunningTests,
             completedStageIDs: completedStageIDs
         )
     }

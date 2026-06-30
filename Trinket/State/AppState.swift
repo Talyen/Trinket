@@ -4,6 +4,7 @@ import SwiftUI
 @Observable
 final class AppState {
     let playerSave: PlayerSaveStore
+    let syncCoordinator: PlayerSaveSyncCoordinator
     var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
@@ -11,7 +12,7 @@ final class AppState {
     var battle: BattleSession
     var journey: PlayerJourneyStore
 
-    init(playerSave: PlayerSaveStore? = nil) {
+    init(playerSave: PlayerSaveStore? = nil, sync: (any PlayerSaveSyncing)? = nil) {
         let env = AppEnvironment.shared
         let fileStore = PlayerSaveFileStore()
         if env.resetState {
@@ -24,7 +25,9 @@ final class AppState {
             resolvedPlayerSave.applyTestSeed()
         }
 
+        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
         self.playerSave = resolvedPlayerSave
+        syncCoordinator = PlayerSaveSyncCoordinator(sync: resolvedSync, playerSaveStore: resolvedPlayerSave)
         roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
         options = OptionsStore()

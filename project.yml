@@ -13,6 +13,8 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - Trinket
+    entitlements:
+      path: Trinket/Trinket.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket
@@ -21,6 +23,7 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIBackgroundModes: remote-notification
   TrinketUITests:
     type: bundle.ui-testing
     platform: iOS
