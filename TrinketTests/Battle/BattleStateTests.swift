@@ -2,6 +2,8 @@ import XCTest
 @testable import Trinket
 
 final class BattleStateTests: XCTestCase {
+    private let defaultTestEnemy = GameContent.enemies.first!.combatant
+
     private let mockDrake = Combatant(
         id: "drake",
         name: "Drake",
@@ -41,71 +43,76 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testHeroAndPetActionsReduceEnemyHealth() {
-        var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet)
+        var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultTestEnemy)
 
-        let heroActions = battle.performNextAction()
-        let heroAction = heroActions.first
-        XCTAssertEqual(battle.enemyHealth, 34)
-        XCTAssertEqual(heroAction?.actorName, "Knight")
-        XCTAssertEqual(heroAction?.abilityName, "Bash")
-        XCTAssertEqual(heroAction?.targetID, "training-slime")
-        XCTAssertEqual(heroAction?.targetName, "Training Slime")
-        XCTAssertEqual(heroAction?.amount, 1)
-        XCTAssertEqual(heroAction?.keyword, .physical)
-        XCTAssertEqual(heroAction?.floatingText, "Knight Bash -1")
-        XCTAssertEqual(battle.log.last?.text, "Knight uses Bash for 1 Physical damage.")
-
-        let petActions = battle.performNextAction()
-        let petAction = petActions.first
+        let tick1 = battle.performNextAction()
         XCTAssertEqual(battle.enemyHealth, 33)
-        XCTAssertEqual(petAction?.actorName, "Wolf")
-        XCTAssertEqual(petAction?.abilityName, "Slash")
-        XCTAssertEqual(petAction?.targetID, "training-slime")
-        XCTAssertEqual(petAction?.targetName, "Training Slime")
-        XCTAssertEqual(petAction?.amount, 1)
-        XCTAssertEqual(petAction?.keyword, .physical)
-        XCTAssertEqual(petAction?.floatingText, "Wolf Slash -1")
-        XCTAssertEqual(battle.log.last?.text, "Wolf uses Slash for 1 Physical damage.")
+        XCTAssertEqual(tick1.map(\.floatingText), ["Knight Bash -1", "Wolf Slash -1"])
+        XCTAssertEqual(tick1[0].actorName, "Knight")
+        XCTAssertEqual(tick1[0].abilityName, "Bash")
+        XCTAssertEqual(tick1[0].targetID, "goblin")
+        XCTAssertEqual(tick1[0].targetName, "Goblin")
+        XCTAssertEqual(tick1[0].amount, 1)
+        XCTAssertEqual(tick1[0].keyword, .physical)
+        XCTAssertEqual(tick1[0].floatingText, "Knight Bash -1")
+        XCTAssertEqual(tick1[1].actorName, "Wolf")
+        XCTAssertEqual(tick1[1].abilityName, "Slash")
+        XCTAssertEqual(tick1[1].floatingText, "Wolf Slash -1")
+
+        let tick2 = battle.performNextAction()
+        XCTAssertEqual(battle.enemyHealth, 31)
+        XCTAssertEqual(tick2.map(\.floatingText), ["Knight Bash -1", "Wolf Slash -1"])
     }
 
     func testBurnDealsDamageForTwoSubsequentTicksThenExpiresWhenNotReapplied() {
-        var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet)
+        let hero = Combatant(id: "burn-tester", name: "Burn Tester", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 10, abilities: [])
+        let enemy = Combatant(id: "dummy", name: "Dummy", role: .enemy, maxHealth: 20, abilities: [])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyStatuses: [ActiveStatus(id: 1, keyword: .burn, remainingTicks: 3, tickDamage: 1)]
+        )
 
-        let emberActions = battle.performNextAction()
-        XCTAssertEqual(emberActions.map(\.floatingText), ["Wizard Kindling -1"])
-        XCTAssertEqual(battle.enemyHealth, 34)
-        XCTAssertEqual(battle.activeEnemyStatuses.first?.keyword, .burn)
-        XCTAssertEqual(battle.activeEnemyStatuses.first?.remainingTicks, 2)
+        XCTAssertEqual(battle.activeEnemyStatuses.first?.remainingTicks, 3)
         XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 1 damage next tick, 1 stack.")
 
-        let firstBurnTick = battle.performNextAction()
-        XCTAssertEqual(firstBurnTick.map(\.floatingText), ["Burn -1", "Wolf Slash -1"])
-        XCTAssertEqual(battle.enemyHealth, 32)
+        let firstTick = battle.performNextAction()
+        XCTAssertEqual(firstTick.map(\.floatingText), ["Burn -1"])
+        XCTAssertEqual(battle.enemyHealth, 19)
+        XCTAssertEqual(battle.activeEnemyStatuses.first?.remainingTicks, 2)
+
+        let secondTick = battle.performNextAction()
+        XCTAssertEqual(secondTick.map(\.floatingText), ["Burn -1"])
+        XCTAssertEqual(battle.enemyHealth, 18)
         XCTAssertEqual(battle.activeEnemyStatuses.first?.remainingTicks, 1)
 
-        let secondBurnTick = battle.performNextAction()
-        XCTAssertEqual(secondBurnTick.map(\.floatingText), ["Burn -1", "Wizard Kindling -1"])
-        XCTAssertEqual(battle.enemyHealth, 30)
-        XCTAssertEqual(battle.activeEnemyStatuses.count, 1)
-        XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 1 damage next tick, 1 stack.")
-        XCTAssertEqual(battle.log.contains { $0.text == "Training Slime takes 1 Burn damage." }, true)
+        let thirdTick = battle.performNextAction()
+        XCTAssertEqual(thirdTick.map(\.floatingText), ["Burn -1"])
+        XCTAssertEqual(battle.enemyHealth, 17)
+        XCTAssertTrue(battle.activeEnemyStatuses.isEmpty)
+        XCTAssertNil(battle.enemyStatusSummaries.first)
+        XCTAssertEqual(battle.log.contains { $0.text == "Dummy takes 1 Burn damage." }, true)
     }
 
     func testMultipleBurnApplicationsStackAdditively() {
-        var battle = BattleState(hero: GameContent.heroes[2], pet: mockDrake)
+        var battle = BattleState(hero: GameContent.heroes[2], pet: mockDrake, enemy: defaultTestEnemy)
 
-        _ = battle.performNextAction()
-        XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 1 damage next tick, 1 stack.")
-
-        let drakeTick = battle.performNextAction()
-        XCTAssertEqual(drakeTick.map(\.floatingText), ["Burn -1", "Drake Kindling -1"])
+        let tick1 = battle.performNextAction()
+        XCTAssertEqual(battle.enemyHealth, 33)
+        XCTAssertEqual(tick1.map(\.floatingText), ["Wizard Kindling -1", "Drake Kindling -1"])
         XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 2 damage next tick, 2 stacks.")
 
-        let stackedBurnTick = battle.performNextAction()
-        XCTAssertEqual(stackedBurnTick.map(\.floatingText), ["Burn -2", "Wizard Kindling -1"])
+        let tick2 = battle.performNextAction()
+        XCTAssertEqual(tick2.map(\.floatingText), ["Burn -2", "Wizard Kindling -1", "Drake Kindling -1"])
         XCTAssertEqual(battle.enemyHealth, 29)
-        XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 2 damage next tick, 2 stacks.")
-        XCTAssertEqual(battle.log.contains { $0.text == "Training Slime takes 2 Burn damage." }, true)
+        XCTAssertEqual(battle.enemyStatusSummaries.first?.text, "Burn: 4 damage next tick, 4 stacks.")
+
+        let tick3 = battle.performNextAction()
+        XCTAssertEqual(tick3.map(\.floatingText), ["Burn -4", "Wizard Fireball -3", "Drake Fireball -3", "Goblin Slash -1"])
+        XCTAssertEqual(battle.enemyHealth, 19)
+        XCTAssertEqual(battle.log.contains { $0.text == "Goblin takes 4 Burn damage." }, true)
     }
 
     func testCombatantsHaveTwoAbilityChoicesPerTierWithSelectedLoadout() {
@@ -133,7 +140,7 @@ final class BattleStateTests: XCTestCase {
         )
 
         let configuredWizard = rosterState.configuredCombatant(wizard)
-        var battle = BattleState(hero: configuredWizard, pet: wolfPet)
+        var battle = BattleState(hero: configuredWizard, pet: wolfPet, enemy: defaultTestEnemy)
 
         XCTAssertEqual(configuredWizard.abilityLoadout.basic?.name, "Ray of Frost")
         XCTAssertEqual(configuredWizard.abilityLoadout.skill?.name, "Frostbolt")
@@ -269,11 +276,23 @@ final class BattleStateTests: XCTestCase {
             "Cadence Hero Slash",
             "Cadence Pet Slash",
             "Cadence Hero Blessed Aegis",
+            "Cadence Pet Pack Tactics",
+            "Cadence Hero Slash",
+            "Cadence Pet Slash",
+            "Cadence Hero Slash",
+            "Cadence Pet Slash",
+            "Cadence Hero Smite",
+            "Cadence Pet Serrated Edge",
+            "Cadence Hero Slash",
+            "Cadence Pet Slash",
+            "Cadence Hero Slash",
+            "Cadence Pet Slash",
+            "Cadence Hero Blessed Aegis",
             "Cadence Pet Pack Tactics"
         ])
-        XCTAssertEqual(battle.heroActionCount, 6)
-        XCTAssertEqual(battle.petActionCount, 6)
-        XCTAssertEqual(battle.actionCount, 12)
+        XCTAssertEqual(battle.heroActionCount, 12)
+        XCTAssertEqual(battle.petActionCount, 12)
+        XCTAssertEqual(battle.actionCount, 24)
     }
 
     func testDifferentBurnAmountsAndDurationsTickIndependently() {
@@ -310,7 +329,7 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testMageAndDrakeBattleIsDeterministicAndStopsAtVictory() {
-        var battle = BattleState(hero: GameContent.heroes[2], pet: mockDrake)
+        var battle = BattleState(hero: GameContent.heroes[2], pet: mockDrake, enemy: defaultTestEnemy)
         var allEvents: [BattleState.ActionEvent] = []
 
         while !battle.isEnemyDefeated {
@@ -319,87 +338,83 @@ final class BattleStateTests: XCTestCase {
 
         XCTAssertTrue(battle.isEnemyDefeated)
         XCTAssertEqual(battle.enemyHealth, 0)
-        XCTAssertEqual(battle.actionCount, 11)
-        XCTAssertEqual(battle.tickCount, 11)
+        XCTAssertEqual(battle.actionCount, 13)
+        XCTAssertEqual(battle.tickCount, 6)
         XCTAssertEqual(allEvents.map(\.floatingText), [
             "Wizard Kindling -1",
-            "Burn -1",
             "Drake Kindling -1",
             "Burn -2",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
+            "Burn -4",
             "Wizard Fireball -3",
-            "Burn -2",
             "Drake Fireball -3",
-            "Burn -2",
+            "Goblin Slash -1",
+            "Burn -4",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
+            "Burn -4",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
-            "Wizard Meteor -6"
+            "Burn -4",
+            "Wizard Meteor -6",
+            "Drake Meteor -6"
         ])
-        XCTAssertEqual(battle.log.last?.text, "Training Slime is defeated.")
+        XCTAssertEqual(battle.log.last?.text, "Goblin is defeated.")
 
         let defeatedActions = battle.performNextAction()
         XCTAssertTrue(defeatedActions.isEmpty)
-        XCTAssertEqual(battle.actionCount, 11)
-        XCTAssertEqual(battle.tickCount, 11)
+        XCTAssertEqual(battle.actionCount, 13)
+        XCTAssertEqual(battle.tickCount, 6)
         XCTAssertEqual(battle.enemyHealth, 0)
     }
 
     func testBattleSimulatorRunsBattleToVictoryWithoutUI() {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
-            pet: mockDrake
+            pet: mockDrake,
+            enemy: defaultTestEnemy
         )
 
         XCTAssertEqual(result.matchup.hero.name, "Wizard")
         XCTAssertEqual(result.matchup.pet.name, "Drake")
-        XCTAssertEqual(result.matchup.enemy.name, "Training Slime")
+        XCTAssertEqual(result.matchup.enemy.name, "Goblin")
         XCTAssertEqual(result.outcome, BattleSimulationOutcome.victory)
         XCTAssertTrue(result.didWin)
         XCTAssertFalse(result.didHitTickLimit)
         XCTAssertEqual(result.finalEnemyHealth, 0)
-        XCTAssertEqual(result.actionCount, 11)
-        XCTAssertEqual(result.tickCount, 11)
+        XCTAssertEqual(result.actionCount, 13)
+        XCTAssertEqual(result.tickCount, 6)
         XCTAssertEqual(result.events.map(\.floatingText), [
             "Wizard Kindling -1",
-            "Burn -1",
             "Drake Kindling -1",
             "Burn -2",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
+            "Burn -4",
             "Wizard Fireball -3",
-            "Burn -2",
             "Drake Fireball -3",
-            "Burn -2",
+            "Goblin Slash -1",
+            "Burn -4",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
+            "Burn -4",
             "Wizard Kindling -1",
-            "Burn -2",
             "Drake Kindling -1",
-            "Burn -2",
-            "Wizard Meteor -6"
+            "Burn -4",
+            "Wizard Meteor -6",
+            "Drake Meteor -6"
         ])
-        XCTAssertEqual(result.metrics.totalDamage, 39)
-        XCTAssertEqual(result.metrics.abilityDamage, 20)
-        XCTAssertEqual(result.metrics.statusDamage, 19)
+        XCTAssertEqual(result.metrics.totalDamage, 45)
+        XCTAssertEqual(result.metrics.abilityDamage, 27)
+        XCTAssertEqual(result.metrics.statusDamage, 18)
         XCTAssertEqual(result.metrics.actorDamage["Wizard"], 13)
-        XCTAssertEqual(result.metrics.actorDamage["Drake"], 7)
-        XCTAssertEqual(result.metrics.actorDamage["Burn"], 19)
-        XCTAssertNil(result.metrics.keywordDamage[Keyword.physical])
-        XCTAssertEqual(result.metrics.keywordDamage[Keyword.burn], 39)
-        XCTAssertEqual(result.log.last?.text, "Training Slime is defeated.")
+        XCTAssertEqual(result.metrics.actorDamage["Drake"], 13)
+        XCTAssertEqual(result.metrics.actorDamage["Goblin"], 1)
+        XCTAssertEqual(result.metrics.actorDamage["Burn"], 18)
+        XCTAssertEqual(result.metrics.keywordDamage[Keyword.physical], 1)
+        XCTAssertEqual(result.metrics.keywordDamage[Keyword.burn], 44)
+        XCTAssertEqual(result.log.last?.text, "Goblin is defeated.")
     }
 
     func testBattleSimulatorStopsAtTickLimitWhenBattleCannotFinish() {
@@ -428,21 +443,23 @@ final class BattleStateTests: XCTestCase {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: mockDrake,
+            enemy: defaultTestEnemy,
             options: BattleSimulationOptions(recordsEvents: false, recordsLog: false)
         )
 
         XCTAssertTrue(result.didWin)
         XCTAssertTrue(result.events.isEmpty)
         XCTAssertTrue(result.log.isEmpty)
-        XCTAssertEqual(result.metrics.totalDamage, 39)
-        XCTAssertEqual(result.metrics.abilityDamage, 20)
-        XCTAssertEqual(result.metrics.statusDamage, 19)
+        XCTAssertEqual(result.metrics.totalDamage, 45)
+        XCTAssertEqual(result.metrics.abilityDamage, 27)
+        XCTAssertEqual(result.metrics.statusDamage, 18)
     }
 
     func testBattleSimulatorSeededRunsAreRepeatable() {
         let matchup = BattleMatchup(
             hero: GameContent.heroes[2],
-            pet: mockDrake
+            pet: mockDrake,
+            enemy: defaultTestEnemy
         )
         let options = BattleSimulationOptions(maxTicks: 20, runCount: 5, seed: 42)
 
@@ -455,7 +472,7 @@ final class BattleStateTests: XCTestCase {
     func testBattleSimulatorRunsEveryCurrentHeroPetPairInBulk() {
         let matchups = GameContent.heroes.flatMap { hero in
             GameContent.pets.map { pet in
-                BattleMatchup(hero: hero, pet: pet)
+                BattleMatchup(hero: hero, pet: pet, enemy: defaultTestEnemy)
             }
         }
         let options = BattleSimulationOptions(
@@ -484,7 +501,8 @@ final class BattleStateTests: XCTestCase {
     func testBattleSimulatorSummarizesBatchResults() {
         let matchup = BattleMatchup(
             hero: GameContent.heroes[2],
-            pet: mockDrake
+            pet: mockDrake,
+            enemy: defaultTestEnemy
         )
         let options = BattleSimulationOptions(maxTicks: 20, runCount: 4, seed: 99)
 
@@ -494,20 +512,136 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(batchResult?.summary.winCount, 4)
         XCTAssertEqual(batchResult?.summary.tickLimitCount, 0)
         XCTAssertEqual(batchResult?.summary.winRate ?? 0, 1, accuracy: 0.0001)
-        XCTAssertEqual(batchResult?.summary.averageTickCount ?? 0, 11, accuracy: 0.0001)
-        XCTAssertEqual(batchResult?.summary.minimumTickCount, 11)
-        XCTAssertEqual(batchResult?.summary.maximumTickCount, 11)
-        XCTAssertEqual(batchResult?.summary.averageActionCount ?? 0, 11, accuracy: 0.0001)
+        XCTAssertEqual(batchResult?.summary.averageTickCount ?? 0, 6, accuracy: 0.0001)
+        XCTAssertEqual(batchResult?.summary.minimumTickCount, 6)
+        XCTAssertEqual(batchResult?.summary.maximumTickCount, 6)
+        XCTAssertEqual(batchResult?.summary.averageActionCount ?? 0, 13, accuracy: 0.0001)
         XCTAssertEqual(batchResult?.summary.averageFinalEnemyHealth ?? -1, 0, accuracy: 0.0001)
-        XCTAssertEqual(batchResult?.summary.averageTotalDamage ?? 0, 39, accuracy: 0.0001)
-        XCTAssertEqual(batchResult?.summary.averageAbilityDamage ?? 0, 20, accuracy: 0.0001)
-        XCTAssertEqual(batchResult?.summary.averageStatusDamage ?? 0, 19, accuracy: 0.0001)
+        XCTAssertEqual(batchResult?.summary.averageTotalDamage ?? 0, 45, accuracy: 0.0001)
+        XCTAssertEqual(batchResult?.summary.averageAbilityDamage ?? 0, 27, accuracy: 0.0001)
+        XCTAssertEqual(batchResult?.summary.averageStatusDamage ?? 0, 18, accuracy: 0.0001)
+    }
+
+    func testEnemyAttackScheduleMatchesIntervalConstant() {
+        let battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet)
+        XCTAssertEqual(BattleState.defaultEnemyAttackIntervalTicks, 3)
+        XCTAssertEqual(BattleState.defaultHeroAttackIntervalTicks, 1)
+        XCTAssertEqual(BattleState.defaultPetAttackIntervalTicks, 1)
+    }
+
+    func testEnemyTargetsHeroOnHPTie() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 5, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = battle.performNextAction()
+        _ = battle.performNextAction()
+        _ = battle.performNextAction()
+
+        XCTAssertEqual(battle.heroHealth, 9)
+        XCTAssertEqual(battle.petHealth, 10)
+        XCTAssertEqual(battle.enemyAttackTarget.id, hero.id)
+    }
+
+    func testEnemyTargetsHighestHPPartyMember() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 6, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 5, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        XCTAssertEqual(battle.enemyAttackTarget.id, hero.id)
+        _ = battle.performNextAction()
+        _ = battle.performNextAction()
+        _ = battle.performNextAction()
+
+        XCTAssertEqual(battle.heroHealth, 9)
+        XCTAssertEqual(battle.petHealth, 6)
+    }
+
+    func testBattleContinuesWhileAnyPartyMemberLives() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 3, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 3, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        while !battle.isPartyDefeated {
+            _ = battle.performNextAction()
+        }
+
+        XCTAssertTrue(battle.isPartyDefeated)
+        XCTAssertTrue(battle.isBattleOver)
+        XCTAssertEqual(battle.heroHealth, 0)
+        XCTAssertEqual(battle.petHealth, 0)
+        let defeatLog = battle.log.last { $0.text.contains("defeated by") }
+        XCTAssertNotNil(defeatLog)
+    }
+
+    func testBattleSimulatorReportsDefeatOutcome() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 2, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 2, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
+        let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy, maxTicks: 100)
+
+        XCTAssertEqual(result.outcome, .defeat)
+        XCTAssertFalse(result.didWin)
+        XCTAssertFalse(result.didHitTickLimit)
+        XCTAssertEqual(result.finalHeroHealth, 0)
+        XCTAssertEqual(result.finalPetHealth, 0)
+    }
+
+    func testEnemyAppliesStatusToTargetedPartyMember() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.kindling])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        while battle.tickCount < 5 {
+            _ = battle.performNextAction()
+        }
+
+        XCTAssertFalse(battle.heroStatusSummaries.isEmpty || battle.petStatusSummaries.isEmpty,
+                        "Enemy should have applied a status to the targeted party member")
+    }
+
+    func testPartyStatusKillsMember() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 3, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activePetStatuses: [ActiveStatus(id: 1, keyword: .burn, remainingTicks: 5, tickDamage: 10)]
+        )
+
+        while !battle.isBattleOver {
+            _ = battle.performNextAction()
+        }
+
+        XCTAssertEqual(battle.petHealth, 0)
+    }
+
+    func testEnemyUsesBasicSkillAndUltimateCadence() {
+        let hero = Combatant(id: "h1", name: "Hero", role: .hero, maxHealth: 100, abilities: [])
+        let pet = Combatant(id: "p1", name: "Pet", role: .pet, maxHealth: 100, abilities: [])
+        let enemy = Combatant(id: "e1", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash, .smite, .blessedAegis])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        while battle.enemyActionCount < 6 {
+            _ = battle.performNextAction()
+        }
+
+        let enemyAbilities = battle.log.filter { $0.text.contains("Enemy uses") }
+        XCTAssertGreaterThanOrEqual(enemyAbilities.count, 2)
+        XCTAssertEqual(battle.enemyActionCount, 6)
     }
 
     func testBattleSimulatorHandlesEmptyBatchRuns() {
         let matchup = BattleMatchup(
             hero: GameContent.heroes[0],
-            pet: wolfPet
+            pet: wolfPet,
+            enemy: defaultTestEnemy
         )
         let options = BattleSimulationOptions(runCount: 0)
 

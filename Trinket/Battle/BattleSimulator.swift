@@ -33,11 +33,12 @@ enum BattleSimulator {
     static func run(
         hero: Combatant,
         pet: Combatant,
-        enemy: Combatant = .trainingSlime,
+        enemy: Combatant? = nil,
         maxTicks: Int = 100
     ) -> BattleSimulationResult {
-        run(
-            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+        let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
+        return run(
+            BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy),
             options: BattleSimulationOptions(maxTicks: maxTicks)
         )
     }
@@ -45,11 +46,12 @@ enum BattleSimulator {
     static func run(
         hero: Combatant,
         pet: Combatant,
-        enemy: Combatant = .trainingSlime,
+        enemy: Combatant? = nil,
         options: BattleSimulationOptions
     ) -> BattleSimulationResult {
-        run(
-            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+        let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
+        return run(
+            BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy),
             options: options
         )
     }
@@ -90,12 +92,13 @@ enum BattleSimulator {
     static func run<RNG: RandomNumberGenerator>(
         hero: Combatant,
         pet: Combatant,
-        enemy: Combatant = .trainingSlime,
+        enemy: Combatant? = nil,
         options: BattleSimulationOptions = BattleSimulationOptions(),
         rng: inout RNG
     ) -> BattleSimulationResult {
-        run(
-            BattleMatchup(hero: hero, pet: pet, enemy: enemy),
+        let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
+        return run(
+            BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy),
             options: options,
             rng: &rng
         )
@@ -124,7 +127,7 @@ enum BattleSimulator {
         let tickLimit = options.resolvedMaxTicks
         _ = rng
 
-        while !battle.isEnemyDefeated, battle.tickCount < tickLimit {
+        while !battle.isBattleOver, battle.tickCount < tickLimit {
             let tickEvents = battle.performNextAction()
             metricsAccumulator.record(tickEvents)
             if options.recordsEvents {
@@ -133,14 +136,29 @@ enum BattleSimulator {
         }
 
         let capturedLog = options.recordsLog ? battle.log : []
+        let outcome: BattleSimulationOutcome
+        if battle.isEnemyDefeated {
+            outcome = .victory
+        } else if battle.isPartyDefeated {
+            outcome = .defeat
+        } else {
+            outcome = .tickLimit
+        }
+
         return BattleSimulationResult(
             matchup: BattleMatchup(hero: battle.hero, pet: battle.pet, enemy: battle.enemy),
-            outcome: battle.isEnemyDefeated ? .victory : .tickLimit,
+            outcome: outcome,
             tickCount: battle.tickCount,
             actionCount: battle.actionCount,
             finalEnemyHealth: battle.enemyHealth,
             finalEnemyStatuses: battle.activeEnemyStatuses,
             finalEnemyStatusSummaries: battle.enemyStatusSummaries,
+            finalHeroHealth: battle.heroHealth,
+            finalPetHealth: battle.petHealth,
+            finalHeroStatuses: battle.activeHeroStatuses,
+            finalPetStatuses: battle.activePetStatuses,
+            finalHeroStatusSummaries: battle.heroStatusSummaries,
+            finalPetStatusSummaries: battle.petStatusSummaries,
             metrics: metricsAccumulator.metrics,
             events: capturedEvents,
             log: capturedLog

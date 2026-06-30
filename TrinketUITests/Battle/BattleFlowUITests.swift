@@ -16,7 +16,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("Battle Pause Button")
         app.buttons["Battle Pause Button"].tap()
 
-        assertExists("Training Slime card")
         assertExists("Knight card")
         assertExists("Wolf card")
         assertExists("Battle Menu")
@@ -33,7 +32,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         app.tabBars.buttons["Collection"].tap()
         assertExists("Knight")
         app.tabBars.buttons["Play"].tap()
-        assertExists("Training Slime card")
 
         assertExists("Victory", timeout: 30)
 

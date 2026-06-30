@@ -21,4 +21,9 @@ struct Enemy: Identifiable, Hashable {
     var id: String { combatant.id }
     var name: String { combatant.name }
     var maxHealth: Int { combatant.maxHealth }
+
+    static var randomNormalCombatant: Combatant {
+        let normals = GameContent.enemies.filter { !$0.isBoss }
+        return normals.randomElement()!.combatant
+    }
 }

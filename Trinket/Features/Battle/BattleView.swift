@@ -4,6 +4,7 @@ struct BattleView: View {
     @State private var battle: BattleState
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
+    @State private var isShowingDefeat = false
     @State private var timelineStartDate: Date
     @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
     @Binding var isBattlePaused: Bool
@@ -54,17 +55,22 @@ struct BattleView: View {
                     enemyName: battle.enemy.name,
                     onBattleAgain: onRestartBattle
                 )
+            } else if isShowingDefeat {
+                DefeatView(
+                    enemyName: battle.enemy.name,
+                    onBattleAgain: onRestartBattle
+                )
             } else {
                 battlefieldWithTimeline
             }
         }
         .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle(isShowingVictory ? "Victory" : "Battle")
+        .navigationTitle(isShowingVictory ? "Victory" : isShowingDefeat ? "Defeat" : "Battle")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 4) {
-                    if !isShowingVictory {
+                    if !isShowingVictory, !isShowingDefeat {
                         Button {
                             isBattlePaused.toggle()
                         } label: {
@@ -103,7 +109,7 @@ struct BattleView: View {
                 Label("Combat Log", systemImage: "list.bullet.rectangle")
             }
 
-            if !isShowingVictory {
+            if !isShowingVictory, !isShowingDefeat {
                 Divider()
 
                 Button(role: .destructive) {
@@ -164,7 +170,7 @@ struct BattleView: View {
                 HStack(alignment: .top, spacing: spacing) {
                     CombatantStatusCard(
                         combatant: battle.hero,
-                        health: battle.hero.maxHealth,
+                        health: battle.heroHealth,
                         maxHealth: battle.hero.maxHealth,
                         prominence: .party,
                         cardWidth: partyWidth,
@@ -173,14 +179,14 @@ struct BattleView: View {
                     ) {
                         onShowCombatantDetail(details(
                             for: battle.hero,
-                            health: battle.hero.maxHealth,
-                            activeStatusSummaries: []
+                            health: battle.heroHealth,
+                            activeStatusSummaries: battle.heroStatusSummaries
                         ))
                     }
 
                     CombatantStatusCard(
                         combatant: battle.pet,
-                        health: battle.pet.maxHealth,
+                        health: battle.petHealth,
                         maxHealth: battle.pet.maxHealth,
                         prominence: .party,
                         cardWidth: partyWidth,
@@ -189,8 +195,8 @@ struct BattleView: View {
                     ) {
                         onShowCombatantDetail(details(
                             for: battle.pet,
-                            health: battle.pet.maxHealth,
-                            activeStatusSummaries: []
+                            health: battle.petHealth,
+                            activeStatusSummaries: battle.petStatusSummaries
                         ))
                     }
                 }
@@ -201,8 +207,9 @@ struct BattleView: View {
 
     private var canAutoAdvanceBattle: Bool {
         !isShowingBattleLog &&
-            !battle.isEnemyDefeated &&
+            !battle.isBattleOver &&
             !isShowingVictory &&
+            !isShowingDefeat &&
             !isBattlePaused
     }
 
@@ -214,6 +221,8 @@ struct BattleView: View {
 
         if battle.isEnemyDefeated {
             isShowingVictory = true
+        } else if battle.isPartyDefeated {
+            isShowingDefeat = true
         }
     }
 

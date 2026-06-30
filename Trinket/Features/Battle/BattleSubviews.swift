@@ -234,6 +234,56 @@ struct VictoryView: View {
     }
 }
 
+struct DefeatView: View {
+    let enemyName: String
+    let onBattleAgain: () -> Void
+
+    @State private var shakeCount = 0
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 22) {
+                Image(systemName: "xmark.seal.fill")
+                    .font(.system(size: 56, weight: .semibold))
+                    .foregroundStyle(TrinketDesign.Colors.destructive)
+                    .accessibilityHidden(true)
+                    .symbolEffect(.bounce, value: shakeCount)
+                    .onAppear {
+                        shakeCount += 1
+                    }
+
+                VStack(spacing: 8) {
+                    Text("Defeat")
+                        .font(.largeTitle.bold())
+
+                    Text("\(enemyName) has defeated your party.")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VictoryPlaceholderSection(
+                    title: "Lost Progress",
+                    message: "Experience and rewards are lost in defeat."
+                )
+
+                Button {
+                    onBattleAgain()
+                } label: {
+                    Text("Battle Again")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(TrinketDesign.Colors.destructive)
+                .padding(.top, 8)
+            }
+            .padding(24)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
 struct VictoryPlaceholderSection: View {
     let title: String
     let message: String

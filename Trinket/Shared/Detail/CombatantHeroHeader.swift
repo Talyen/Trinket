@@ -9,11 +9,13 @@ struct CombatantHeroHeader: View {
     var body: some View {
         GeometryReader { geometry in
             let pullDistance = max(geometry.frame(in: .named(coordinateSpaceName)).minY, 0)
+            let scale = (baseHeight + pullDistance) / baseHeight
 
             ZStack(alignment: .bottomLeading) {
                 CombatantArtwork(combatant: combatant)
                     .aspectRatio(3.0 / 4.0, contentMode: .fit)
                     .frame(maxWidth: .infinity)
+                    .scaleEffect(scale, anchor: .center)
 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.6)],

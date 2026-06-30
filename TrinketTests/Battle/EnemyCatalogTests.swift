@@ -23,10 +23,12 @@ final class EnemyCatalogTests: XCTestCase {
         }
     }
 
-    func testEachEnemyHasSlashBasic() {
+    func testEachEnemyHasBasicSkillUltimate() {
         for enemy in GameContent.enemies {
             let loadout = enemy.combatant.abilityLoadout
-            XCTAssertEqual(loadout.basic?.id, "slash", "\(enemy.name) should have Slash as basic ability")
+            XCTAssertNotNil(loadout.basic, "\(enemy.name) should have a basic ability")
+            XCTAssertNotNil(loadout.skill, "\(enemy.name) should have a skill ability")
+            XCTAssertNotNil(loadout.ultimate, "\(enemy.name) should have an ultimate ability")
         }
     }
 

@@ -11,7 +11,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists("Select Pet")
         app.staticTexts["Wolf"].tap()
 
-        assertExists("Training Slime card")
+        assertExists("Battle Pause Button")
         RunLoop.current.run(until: Date().addingTimeInterval(3))
         XCTAssertFalse(app.staticTexts["Victory"].exists)
 
@@ -37,6 +37,6 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists("Health")
         assertExists("10/10")
         dismissSheet()
-        assertExists("Training Slime card")
+        assertExists("Battle Pause Button")
     }
 }

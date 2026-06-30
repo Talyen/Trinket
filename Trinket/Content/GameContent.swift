@@ -212,37 +212,24 @@ enum GameContent {
         )
     ]
 
-    static let trainingSlime = Combatant(
-        id: "training-slime",
-        name: "Training Slime",
-        role: .enemy,
-        maxHealth: 35,
-        abilityChoices: AbilityChoices(
-            basics: [.slash, .shieldBash],
-            skills: [.spikedShield, .smite],
-            ultimates: [.crystalBulwark, .judgment]
-        )
-    )
-
     static let enemies: [Enemy] = [
-        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "imp_enemy", name: "Imp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "skeleton", name: "Skeleton", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash])),
-        Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash]), isBoss: true),
+        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis])),
+        Enemy(combatant: Combatant(id: "imp_enemy", name: "Imp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.willOWisp, .fireball, .combustion])),
+        Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .crystalBulwark])),
+        Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.stab, .poisonDagger, .hemorrhage])),
+        Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.block, .briarShield, .goldenPlate])),
+        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.manaBerries, .darkPact, .raiseSkeleton])),
+        Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .venomFangs, .serratedArrowhead])),
+        Enemy(combatant: Combatant(id: "skeleton", name: "Skeleton", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis])),
+        Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn]), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .moltenBulwark]), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .frostbolt, .glacialWard]), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark]), isBoss: true),
     ]
 }
 
 extension Combatant {
     static var heroes: [Combatant] { GameContent.heroes }
     static var pets: [Combatant] { GameContent.pets }
-    static var trainingSlime: Combatant { GameContent.trainingSlime }
     static var enemies: [Enemy] { GameContent.enemies }
 }

@@ -33,15 +33,16 @@ struct BattleMatchup: Equatable, Hashable {
     let pet: Combatant
     let enemy: Combatant
 
-    init(hero: Combatant, pet: Combatant, enemy: Combatant = .trainingSlime) {
+    init(hero: Combatant, pet: Combatant, enemy: Combatant? = nil) {
         self.hero = hero
         self.pet = pet
-        self.enemy = enemy
+        self.enemy = enemy ?? Enemy.randomNormalCombatant
     }
 }
 
 enum BattleSimulationOutcome: Equatable {
     case victory
+    case defeat
     case tickLimit
 }
 
@@ -61,6 +62,12 @@ struct BattleSimulationResult: Equatable {
     let finalEnemyHealth: Int
     let finalEnemyStatuses: [ActiveStatus]
     let finalEnemyStatusSummaries: [StatusSummary]
+    let finalHeroHealth: Int
+    let finalPetHealth: Int
+    let finalHeroStatuses: [ActiveStatus]
+    let finalPetStatuses: [ActiveStatus]
+    let finalHeroStatusSummaries: [StatusSummary]
+    let finalPetStatusSummaries: [StatusSummary]
     let metrics: BattleSimulationMetrics
     let events: [BattleState.ActionEvent]
     let log: [BattleState.LogEntry]
