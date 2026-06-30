@@ -6,7 +6,7 @@ struct AbilityTierPickerSheet: View {
     @Binding var loadout: AbilityLoadout
     @Environment(\.dismiss) private var dismiss
 
-    @State private var selectedAbilityID: String? = nil
+    @State private var selectedAbilityID: String?
 
     private var abilities: [Ability] {
         combatant.abilityChoices.abilities(for: tier)

@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class ItemGenerationTests: XCTestCase {
     func testBasicItemsRollOneOrTwoAffixes() throws {

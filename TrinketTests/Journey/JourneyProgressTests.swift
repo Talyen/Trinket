@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class JourneyProgressTests: XCTestCase {
     private var chapter: Chapter { GameContent.chapters[0] }

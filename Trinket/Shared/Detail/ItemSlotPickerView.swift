@@ -6,7 +6,7 @@ struct ItemSlotPickerView: View {
     @Binding var inventoryState: PlayerInventoryState
     @Environment(\.dismiss) private var dismiss
     @State private var itemOrder: [String] = []
-    @State private var selectedItemID: String? = nil
+    @State private var selectedItemID: String?
 
     var body: some View {
         List {

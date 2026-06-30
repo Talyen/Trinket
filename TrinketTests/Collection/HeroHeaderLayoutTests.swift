@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class HeroHeaderLayoutTests: XCTestCase {
     // MARK: - Header height (3:4 of width, minimum 300)

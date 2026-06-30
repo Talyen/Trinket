@@ -163,7 +163,7 @@ struct BattleState {
 
     private func groupedEffectSummaries(for effects: [ActiveEffect]) -> [EffectSummary] {
         Dictionary(grouping: effects, by: \.keyword).compactMap { keyword, group in
-            let stacks = group.map { $0.effect }
+            let stacks = group.map(\.effect)
             guard !stacks.isEmpty else { return nil }
 
             let dotTotal = stacks.reduce(0) { sum, effect in

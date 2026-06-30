@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class BattleSimulatorTests: XCTestCase {
     private lazy var defaultEnemy = GameContent.enemies.first!.combatant

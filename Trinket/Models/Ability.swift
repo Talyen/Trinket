@@ -299,7 +299,7 @@ struct AbilityLoadout: Hashable {
     }
 
     var abilities: [Ability] {
-        [basic, skill, ultimate].compactMap { $0 }
+        [basic, skill, ultimate].compactMap(\.self)
     }
 
     func ability(for tier: AbilityTier) -> Ability? {

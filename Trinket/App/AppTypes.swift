@@ -35,4 +35,3 @@ enum LaunchScreen: Equatable {
     case options
     case battle
 }
-

@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class EffectModelTests: XCTestCase {
     func testDamageOverTimeEffect() {

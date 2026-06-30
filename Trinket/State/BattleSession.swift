@@ -10,4 +10,3 @@ final class BattleSession {
         isPaused = false
     }
 }
-

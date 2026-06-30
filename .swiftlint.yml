@@ -1,3 +1,5 @@
+swiftlint_version: 0.65.0
+
 opt_in_rules:
   - explicit_init
   - first_where
@@ -18,6 +20,10 @@ opt_in_rules:
   - collection_alignment
   - closure_end_indentation
   - unhandled_throwing_task
+  - modifier_order
+  - implicit_return
+  - redundant_discardable_let
+  - async_without_await
 
 disabled_rules:
   - line_length
@@ -34,15 +40,17 @@ disabled_rules:
   - trailing_comma
   - vertical_whitespace
   - inclusive_language
+  - statement_position
+
+function_parameter_count:
+  warning: 7
+  error: 9
 
 excluded:
   - Trinket/Generated
   - .DerivedData
   - .build
 
-indentation: spaces: 4
+indentation: 4
 
-analyzer_rules:
-  - unused_import
-
-strict: false
+strict: true

@@ -1,5 +1,5 @@
-import XCTest
 @testable import Trinket
+import XCTest
 
 final class KeywordTests: XCTestCase {
     func testAllKeywordsAreCovered() {
@@ -24,7 +24,7 @@ final class KeywordTests: XCTestCase {
 
     func testAllKeywordsHaveCategory() {
         for keyword in Keyword.allCases {
-            let _ = keyword.category
+            _ = keyword.category
         }
     }
 
