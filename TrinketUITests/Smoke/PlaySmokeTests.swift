@@ -7,7 +7,7 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists("Play")
         assertExists("The Verdant Forest")
         assertExists("Stage 1-1 Node")
-        assertExists("Chapter 2 Locked")
+        XCTAssertFalse(app.descendants(matching: .any)["Chapter 2 Locked"].exists)
     }
 
     func testActiveStagePreviewAppears() {

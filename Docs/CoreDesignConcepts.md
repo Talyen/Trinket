@@ -28,13 +28,13 @@ Play -> Heroes -> Inventory -> Homestead -> Options
 
 ## Chapters And Stages
 
-The core journey is a linear chapter map that flows downward from the chapter header through centered path nodes. Chapter 1 is `The Verdant Forest`, with authored stages labeled as `Stage 1-1`, `Stage 1-2`, and so on in model and accessibility copy, while the visible map nodes use compact labels like `1-1` and `1-2`. Only the active stage is playable; recently completed stages remain visible as history, the next stage appears locked, and farther future stages are implied by the continuing path until the player approaches them.
+The core journey is a linear chapter map that flows downward from the chapter header through centered rounded path nodes. Chapter 1 is `The Verdant Forest`, with authored stages labeled as `Stage 1-1`, `Stage 1-2`, and so on in model and accessibility copy, while the visible map nodes use compact labels like `1-1` and `1-2` with an encounter-type SF Symbol. Only the active stage is playable; recently completed stages remain visible as history, the next stage appears locked, and farther future stages are implied by the continuing path until the player approaches them.
 
 Each stage has a predefined encounter type: Battle, Event, Shop, or Rest. Battle stages launch the authored enemy. Event, Shop, and Rest stages can appear in the path before their full systems exist, using a placeholder completion action so the chapter never dead-ends.
 
 Tapping the active node opens a large native stage preview sheet modeled after combatant details: full encounter art when available, stage/type/name identity, stage flavor, card-based Hero/Pet party swap controls, and the primary encounter action. Hero/Pet loadout and equipment editing still belongs in Heroes/Inventory. Do not preview possible rewards in this sheet.
 
-Stage completion advances persistent journey progress, grants stub rewards once, and returns to the map. The map should auto-center the newly active node so the next action is obvious. End-of-chapter stages should connect forward into a locked next-chapter destination even before that chapter has authored content.
+Stage completion advances persistent journey progress, grants stub rewards once, and returns to the map. The map should auto-center the newly active node so the next action is obvious. End-of-chapter stages should connect forward into a locked next-chapter destination only when the final stage is part of the visible path, even before that chapter has authored content.
 
 ## Heroes
 
