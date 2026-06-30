@@ -74,5 +74,7 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: ./Scripts/generate.sh
+      - name: Run performance tests
+        run: ./Scripts/test.sh perf
       - name: Run all UI tests
         run: ./Scripts/test.sh ui

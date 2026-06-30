@@ -33,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       MODE="smoke"
       shift
       ;;
+    perf|--perf)
+      MODE="perf"
+      shift
+      ;;
     fast|--fast|-f)
       FAST=true
       shift
@@ -47,7 +51,7 @@ done
 if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are not supported for style mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke | perf] [TestClass[/testMethod] ...]"
     exit 1
   fi
 
@@ -75,7 +79,27 @@ fi
 # Determine xcodebuild test target constraints and parallel testing flags using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
+PERF_SKIP_FLAGS=()
+
+collect_performance_test_classes() {
+  local class_names=()
+  for swift_file in TrinketTests/Performance/*.swift; do
+    [[ -f "$swift_file" ]] || continue
+    local class_name
+    class_name=$(grep '^final class ' "$swift_file" | sed 's/final class //; s/:.*//')
+    if [[ -n "$class_name" ]]; then
+      class_names+=("$class_name")
+    fi
+  done
+  print -l -- "${class_names[@]}"
+}
+
 if [[ "$MODE" == "unit" ]]; then
+  while IFS= read -r class_name; do
+    [[ -n "$class_name" ]] || continue
+    PERF_SKIP_FLAGS+=("-skip-testing:TrinketTests/$class_name")
+  done < <(collect_performance_test_classes)
+
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted unit tests..."
     for target in "${TARGETS[@]}"; do
@@ -103,6 +127,17 @@ elif [[ "$MODE" == "smoke" ]]; then
     exit 1
   fi
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+elif [[ "$MODE" == "perf" ]]; then
+  echo "Running performance tests..."
+  while IFS= read -r class_name; do
+    [[ -n "$class_name" ]] || continue
+    TEST_TARGET_FLAG+=("-only-testing:TrinketTests/$class_name")
+  done < <(collect_performance_test_classes)
+  if [[ ${#TEST_TARGET_FLAG[@]} -eq 0 ]]; then
+    echo "No performance test classes found."
+    exit 1
+  fi
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI tests..."
@@ -121,7 +156,7 @@ elif [[ "$MODE" == "ui" ]]; then
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit or ui mode."
-    echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke | perf] [TestClass[/testMethod] ...]"
     exit 1
   fi
   echo "Running all tests..."
@@ -144,6 +179,7 @@ xcodebuild "$ACTION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \
+  "${PERF_SKIP_FLAGS[@]}" \
   "${PARALLEL_FLAGS[@]}"
 
 
