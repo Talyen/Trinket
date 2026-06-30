@@ -156,20 +156,15 @@ struct PlayView: View {
     }
 
     private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant) {
-        if !appState.journey.current.hasClaimedRewards(for: stage) {
-            appState.roster.grantGold(stage.rewards.gold)
-            appState.roster.grantExperience(stage.rewards.experience, to: hero)
-            appState.roster.grantExperience(stage.rewards.experience, to: pet)
-
-            stage.rewards.itemTemplateIDs.forEach { templateID in
-                guard let template = GameContent.itemTemplate(matching: templateID) else { return }
-                appState.inventory.addRewardItem(from: template, for: stage)
-            }
-
-            appState.journey.markRewardsClaimed(for: stage)
-        }
-
-        appState.journey.complete(stage, in: chapters)
+        StageCompletion.complete(
+            stage,
+            hero: hero,
+            pet: pet,
+            in: chapters,
+            roster: &appState.roster.current,
+            inventory: &appState.inventory.current,
+            journey: &appState.journey.current
+        )
         pendingScrollTarget = appState.journey.current.activeStageID ?? "chapter-2-locked"
     }
 
