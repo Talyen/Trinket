@@ -26,7 +26,9 @@ struct StatusSummary: Identifiable, Equatable, Hashable {
     let stackCount: Int
     let totalTickDamage: Int
 
-    var id: Keyword { keyword }
+    var id: Keyword {
+        keyword
+    }
 
     var text: String {
         "\(keyword.rawValue): \(totalTickDamage) damage next tick, \(stackCount) \(stackCount == 1 ? "stack" : "stacks")."
@@ -45,26 +47,26 @@ enum Effect: Hashable {
 
     var keyword: Keyword {
         switch self {
-        case .damageOverTime(let k, _, _): return k
-        case .prevention(let k, _): return k
-        case .shield(let k, _, _): return k
-        case .mitigation(let k, _, _): return k
-        case .instantHeal(let k, _): return k
-        case .leech(let k, _, _): return k
-        case .resourceGain(let k, _): return k
-        case .cleanse(let k?, _): return k
+        case let .damageOverTime(k, _, _): return k
+        case let .prevention(k, _): return k
+        case let .shield(k, _, _): return k
+        case let .mitigation(k, _, _): return k
+        case let .instantHeal(k, _): return k
+        case let .leech(k, _, _): return k
+        case let .resourceGain(k, _): return k
+        case let .cleanse(k?, _): return k
         case .cleanse(nil, _): return .health
         }
     }
 
     var durationTicks: Int {
         switch self {
-        case .damageOverTime(_, _, let d): return d
-        case .prevention(_, let d): return d
-        case .shield(_, _, let d): return d
-        case .mitigation(_, _, let d): return d
-        case .leech(_, _, let d): return d
-        case .cleanse(_, let d): return d
+        case let .damageOverTime(_, _, d): return d
+        case let .prevention(_, d): return d
+        case let .shield(_, _, d): return d
+        case let .mitigation(_, _, d): return d
+        case let .leech(_, _, d): return d
+        case let .cleanse(_, d): return d
         case .instantHeal, .resourceGain: return 0
         }
     }
@@ -78,21 +80,21 @@ enum Effect: Hashable {
 
     var summary: String {
         switch self {
-        case .damageOverTime(let k, let t, let d):
+        case let .damageOverTime(k, t, d):
             return "\(k.rawValue) \(t) for \(d) ticks"
-        case .prevention(let k, let d):
+        case let .prevention(k, d):
             return "\(k.rawValue) for \(d) actions"
-        case .shield(let k, let b, let d):
+        case let .shield(k, b, d):
             return "\(k.rawValue) \(b) for \(d) ticks"
-        case .mitigation(let k, let p, let d):
+        case let .mitigation(k, p, d):
             return "\(k.rawValue) \(Int(p * 100))% for \(d) ticks"
-        case .instantHeal(let k, let a):
+        case let .instantHeal(k, a):
             return "\(k.rawValue) \(a)"
-        case .leech(let k, let p, let d):
+        case let .leech(k, p, d):
             return "\(k.rawValue) \(Int(p * 100))% for \(d) ticks"
-        case .resourceGain(let k, let a):
+        case let .resourceGain(k, a):
             return "\(k.rawValue) \(a)"
-        case .cleanse(let k?, let d):
+        case let .cleanse(k?, d):
             return "Cleanse \(k.rawValue) for \(d) ticks"
         case .cleanse(nil, let d):
             return "Cleanse all for \(d) ticks"
@@ -105,21 +107,23 @@ struct ActiveEffect: Identifiable, Hashable {
     let effect: Effect
     var remainingTicks: Int
 
-    var keyword: Keyword { effect.keyword }
+    var keyword: Keyword {
+        effect.keyword
+    }
 
     var summary: String {
         switch effect {
-        case .damageOverTime(let k, let t, _):
+        case let .damageOverTime(k, t, _):
             return "\(k.rawValue): \(t) damage next tick, \(remainingTicks) ticks left"
-        case .prevention(let k, _):
+        case let .prevention(k, _):
             return "\(k.rawValue): \(remainingTicks) actions prevented"
-        case .shield(let k, let b, _):
+        case let .shield(k, b, _):
             return "\(k.rawValue): \(b) buffer, \(remainingTicks) ticks left"
-        case .mitigation(let k, let p, _):
+        case let .mitigation(k, p, _):
             return "\(k.rawValue): \(Int(p * 100))% mitigation, \(remainingTicks) ticks left"
-        case .leech(let k, let p, _):
+        case let .leech(k, p, _):
             return "\(k.rawValue): \(Int(p * 100))% leech, \(remainingTicks) ticks left"
-        case .cleanse(let k?, _):
+        case let .cleanse(k?, _):
             return "Cleanse \(k.rawValue): \(remainingTicks) ticks left"
         case .cleanse(nil, _):
             return "Cleanse all: \(remainingTicks) ticks left"
@@ -133,7 +137,9 @@ struct EffectSummary: Identifiable, Equatable, Hashable {
     let keyword: Keyword
     let text: String
 
-    var id: Keyword { keyword }
+    var id: Keyword {
+        keyword
+    }
 }
 
 struct Ability: Identifiable, Hashable {

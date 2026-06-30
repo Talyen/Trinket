@@ -1,5 +1,5 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class HeroHeaderLayoutTests: XCTestCase {
     // MARK: - Header height (3:4 of width, minimum 300)
@@ -35,7 +35,7 @@ final class HeroHeaderLayoutTests: XCTestCase {
             (375, 500),
             (390, 520),
             (414, 552),
-            (428, 571),
+            (428, 571)
         ]
         for (width, expected) in widths {
             let height = HeroHeaderLayout.headerHeight(forWidth: width)
@@ -63,7 +63,7 @@ final class HeroHeaderLayoutTests: XCTestCase {
             (50, 1.096),
             (100, 1.192),
             (150, 1.288),
-            (200, 1.385),
+            (200, 1.385)
         ]
         for (pull, expected) in pulls {
             let scale = HeroHeaderLayout.overscrollScale(baseHeight: base, pullDistance: pull)

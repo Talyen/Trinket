@@ -7,17 +7,17 @@ struct SearchView: View {
 
     var body: some View {
         searchContent
-        .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle("Search")
-        .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
-        .sheet(item: $selectedItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
+            .background(TrinketDesign.Colors.appBackground)
+            .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.large)
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+            .sheet(item: $selectedItem) { item in
+                NavigationStack {
+                    ItemDetailView(item: item)
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     @ViewBuilder
@@ -122,7 +122,7 @@ struct SearchView: View {
         }
         let matchingItems = inventoryState.items.filter {
             $0.displayName.localizedCaseInsensitiveContains(query) ||
-            $0.baseType.name.localizedCaseInsensitiveContains(query)
+                $0.baseType.name.localizedCaseInsensitiveContains(query)
         }
 
         return SearchResults(heroes: matchingHeroes, pets: matchingPets, items: matchingItems)

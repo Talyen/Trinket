@@ -12,11 +12,11 @@ struct KeywordDescriptionText: View {
         for keyword in Keyword.allCases {
             var searchStart = text.startIndex
             while searchStart < text.endIndex,
-                  let range = text.range(of: keyword.rawValue, range: searchStart..<text.endIndex) {
+                  let range = text.range(of: keyword.rawValue, range: searchStart ..< text.endIndex) {
                 if let startIdx = AttributedString.Index(range.lowerBound, within: attr),
                    let endIdx = AttributedString.Index(range.upperBound, within: attr) {
-                    attr[startIdx..<endIdx].foregroundColor = keyword.visualStyle.color
-                    attr[startIdx..<endIdx].inlinePresentationIntent = .stronglyEmphasized
+                    attr[startIdx ..< endIdx].foregroundColor = keyword.visualStyle.color
+                    attr[startIdx ..< endIdx].inlinePresentationIntent = .stronglyEmphasized
                 }
                 searchStart = range.upperBound
             }

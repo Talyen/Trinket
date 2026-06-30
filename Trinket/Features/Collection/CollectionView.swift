@@ -159,5 +159,4 @@ struct CollectionView: View {
             .padding(.vertical, 4)
         }
     }
-
 }

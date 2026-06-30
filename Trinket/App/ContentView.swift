@@ -62,9 +62,9 @@ struct ContentView: View {
 
     private static func initialCollectionCombatantDetail() -> CombatantCollectionDetailSelection? {
         switch AppEnvironment.shared.launchScreen {
-        case .heroDetail(let id):
+        case let .heroDetail(id):
             CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
-        case .petDetail(let id):
+        case let .petDetail(id):
             CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
         case .itemDetail, .battle, .options, .none:
             nil
@@ -73,7 +73,7 @@ struct ContentView: View {
 
     private static func initialCollectionItemID() -> String? {
         switch AppEnvironment.shared.launchScreen {
-        case .itemDetail(let id):
+        case let .itemDetail(id):
             id
         case .heroDetail, .petDetail, .battle, .options, .none:
             nil

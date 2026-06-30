@@ -1,8 +1,10 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class JourneyProgressTests: XCTestCase {
-    private var chapter: Chapter { GameContent.chapters[0] }
+    private var chapter: Chapter {
+        GameContent.chapters[0]
+    }
 
     func testCompletingStageUnlocksExactlyNextStage() {
         var progress = JourneyProgressState.initial
@@ -69,7 +71,7 @@ final class JourneyProgressTests: XCTestCase {
         let rewardItem = try XCTUnwrap(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(rewardItem.templateID, "shortsword-basic")
         XCTAssertNotEqual(rewardItem.id, rewardItem.templateID)
-        XCTAssertTrue((1...2).contains(rewardItem.affixes.count))
+        XCTAssertTrue((1 ... 2).contains(rewardItem.affixes.count))
     }
 
     func testChapterCompletionExposesLockedNextChapterState() {

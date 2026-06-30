@@ -2,7 +2,7 @@ struct SeededRandomNumberGenerator: RandomNumberGenerator, Equatable {
     private var state: UInt64
 
     init(seed: UInt64) {
-        state = seed == 0 ? 0x4d595df4d0f33173 : seed
+        state = seed == 0 ? 0x4D59_5DF4_D0F3_3173 : seed
     }
 
     mutating func next() -> UInt64 {

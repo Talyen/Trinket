@@ -536,7 +536,7 @@ enum GameContent {
         Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn]), isBoss: true),
         Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .moltenBulwark]), isBoss: true),
         Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .frostbolt, .glacialWard]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark]), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark]), isBoss: true)
     ]
 
     static let chapters: [Chapter] = [
@@ -656,7 +656,15 @@ enum GameContent {
 }
 
 extension Combatant {
-    static var heroes: [Combatant] { GameContent.heroes }
-    static var pets: [Combatant] { GameContent.pets }
-    static var enemies: [Enemy] { GameContent.enemies }
+    static var heroes: [Combatant] {
+        GameContent.heroes
+    }
+
+    static var pets: [Combatant] {
+        GameContent.pets
+    }
+
+    static var enemies: [Enemy] {
+        GameContent.enemies
+    }
 }

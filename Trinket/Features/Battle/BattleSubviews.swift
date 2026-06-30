@@ -30,7 +30,7 @@ struct CombatantStatusCard: View {
                     maxHealth: maxHealth,
                     fillColor: combatant.healthBarColor
                 )
-                    .accessibilityHidden(true)
+                .accessibilityHidden(true)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(combatant.name) card")

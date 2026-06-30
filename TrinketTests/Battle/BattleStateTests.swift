@@ -1,5 +1,5 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class BattleStateTests: XCTestCase {
     private lazy var defaultEnemy = GameContent.enemies.first!.combatant
@@ -148,5 +148,7 @@ final class BattleStateTests: XCTestCase {
         XCTAssertNotNil(poisonSummary)
     }
 
-    private var heroId: String { GameContent.heroes[0].id }
+    private var heroId: String {
+        GameContent.heroes[0].id
+    }
 }

@@ -1,21 +1,21 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class ItemGenerationTests: XCTestCase {
     func testBasicItemsRollOneOrTwoAffixes() throws {
         let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1...120)
+        let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1 ... 120)
 
-        XCTAssertTrue(counts.allSatisfy { (1...2).contains($0) })
+        XCTAssertTrue(counts.allSatisfy { (1 ... 2).contains($0) })
         XCTAssertTrue(counts.contains(1))
         XCTAssertTrue(counts.contains(2))
     }
 
     func testAstralItemsRollThreeOrFourAffixes() throws {
         let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
-        let counts = generatedAffixCounts(baseType: baseType, rarity: .astral, seedRange: 1...120)
+        let counts = generatedAffixCounts(baseType: baseType, rarity: .astral, seedRange: 1 ... 120)
 
-        XCTAssertTrue(counts.allSatisfy { (3...4).contains($0) })
+        XCTAssertTrue(counts.allSatisfy { (3 ... 4).contains($0) })
         XCTAssertTrue(counts.contains(3))
         XCTAssertTrue(counts.contains(4))
     }

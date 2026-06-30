@@ -99,7 +99,7 @@ struct ItemGenerator {
         for rarity: Rarity,
         using randomNumberGenerator: inout RNG
     ) -> Int {
-        let roll = Int.random(in: 1...100, using: &randomNumberGenerator)
+        let roll = Int.random(in: 1 ... 100, using: &randomNumberGenerator)
 
         switch rarity {
         case .basic:
@@ -121,7 +121,7 @@ struct ItemGenerator {
             let totalWeight = pool.reduce(0) { $0 + max(0, $1.weight) }
             guard totalWeight > 0 else { break }
 
-            var roll = Int.random(in: 1...totalWeight, using: &randomNumberGenerator)
+            var roll = Int.random(in: 1 ... totalWeight, using: &randomNumberGenerator)
             let selectedIndex = pool.firstIndex { definition in
                 roll -= max(0, definition.weight)
                 return roll <= 0

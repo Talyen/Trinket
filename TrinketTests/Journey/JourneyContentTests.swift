@@ -1,8 +1,10 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class JourneyContentTests: XCTestCase {
-    private var chapter: Chapter { GameContent.chapters[0] }
+    private var chapter: Chapter {
+        GameContent.chapters[0]
+    }
 
     func testEachBattleStageReferencesValidEnemy() {
         for stage in chapter.stages {
@@ -53,7 +55,7 @@ final class JourneyContentTests: XCTestCase {
         XCTAssertNil(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters))
     }
 
-    func testIsLastCompletedReflectsLastCompletedStageID() throws {
+    func testIsLastCompletedReflectsLastCompletedStageID() {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]

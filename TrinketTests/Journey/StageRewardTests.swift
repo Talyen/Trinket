@@ -1,9 +1,14 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class StageRewardTests: XCTestCase {
-    private var chapter: Chapter { GameContent.chapters[0] }
-    private var firstStage: Stage { chapter.stages[0] }
+    private var chapter: Chapter {
+        GameContent.chapters[0]
+    }
+
+    private var firstStage: Stage {
+        chapter.stages[0]
+    }
 
     func testCompletingStageGrantsGoldXPAndItems() throws {
         var roster = PlayerRosterState.initial

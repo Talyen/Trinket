@@ -1,7 +1,6 @@
 import SwiftUI
 
 enum TrinketDesign {
-
     enum Colors {
         static let appBackground = Color(.systemBackground)
         static let cardArtAccent = Color.accentColor
@@ -28,7 +27,9 @@ enum TrinketDesign {
         case light = "Light"
         case dark = "Dark"
 
-        var id: String { rawValue }
+        var id: String {
+            rawValue
+        }
 
         var colorScheme: ColorScheme? {
             switch self {

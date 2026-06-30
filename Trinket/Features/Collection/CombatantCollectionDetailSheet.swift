@@ -23,9 +23,9 @@ struct CombatantCollectionDetailSelection: Identifiable, Hashable {
 
     var id: String {
         switch source {
-        case .collection(let kind, let combatantID):
+        case let .collection(kind, combatantID):
             "\(kind)-\(combatantID)"
-        case .battleSnapshot(let detail):
+        case let .battleSnapshot(detail):
             "battle-\(detail.combatant.id)"
         }
     }
@@ -37,9 +37,9 @@ struct CombatantCollectionDetailSheet: View {
 
     var body: some View {
         switch selection.source {
-        case .collection(let kind, let combatantID):
+        case let .collection(kind, combatantID):
             collectionDetail(kind: kind, combatantID: combatantID)
-        case .battleSnapshot(let detail):
+        case let .battleSnapshot(detail):
             battleDetail(detail)
         }
     }

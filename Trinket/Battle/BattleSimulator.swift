@@ -186,7 +186,7 @@ enum BattleSimulator {
         rng: inout RNG
     ) -> [BattleBatchResult] {
         matchups.map { matchup in
-            let results = (0..<options.resolvedRunCount).map { _ in
+            let results = (0 ..< options.resolvedRunCount).map { _ in
                 run(matchup, options: options, rng: &rng)
             }
 
@@ -198,5 +198,4 @@ enum BattleSimulator {
             )
         }
     }
-
 }

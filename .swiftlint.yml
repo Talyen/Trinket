@@ -3,9 +3,7 @@ swiftlint_version: 0.65.0
 opt_in_rules:
   - explicit_init
   - first_where
-  - sorted_imports
   - prefer_key_path
-  - closure_spacing
   - contains_over_first_not_nil
   - empty_string
   - flatmap_over_map_reduce
@@ -17,8 +15,6 @@ opt_in_rules:
   - reduce_into
   - redundant_nil_coalescing
   - array_init
-  - collection_alignment
-  - closure_end_indentation
   - unhandled_throwing_task
   - modifier_order
   - implicit_return
@@ -50,7 +46,5 @@ excluded:
   - Trinket/Generated
   - .DerivedData
   - .build
-
-indentation: 4
 
 strict: true

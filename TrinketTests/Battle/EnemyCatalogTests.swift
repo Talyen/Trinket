@@ -1,12 +1,12 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class EnemyCatalogTests: XCTestCase {
     private let bossIDs: Set<String> = [
         "the_blight_treant",
         "the_forge_golem",
         "the_frostwarden",
-        "the_iron_bear",
+        "the_iron_bear"
     ]
 
     func testEnemyCount() {

@@ -30,8 +30,13 @@ struct BattleState {
         let amount: Int
         let keyword: Keyword
 
-        var damage: Int { amount }
-        var damageType: Keyword { keyword }
+        var damage: Int {
+            amount
+        }
+
+        var damageType: Keyword {
+            keyword
+        }
 
         var floatingText: String {
             switch kind {
@@ -143,13 +148,29 @@ struct BattleState {
         ]
     }
 
-    var earnedGold: Int { gold - initialGold }
+    var earnedGold: Int {
+        gold - initialGold
+    }
 
-    var isEnemyDefeated: Bool { enemyHealth == 0 }
-    var isHeroAlive: Bool { heroHealth > 0 }
-    var isPetAlive: Bool { petHealth > 0 }
-    var isPartyDefeated: Bool { !isHeroAlive && !isPetAlive }
-    var isBattleOver: Bool { isEnemyDefeated || isPartyDefeated }
+    var isEnemyDefeated: Bool {
+        enemyHealth == 0
+    }
+
+    var isHeroAlive: Bool {
+        heroHealth > 0
+    }
+
+    var isPetAlive: Bool {
+        petHealth > 0
+    }
+
+    var isPartyDefeated: Bool {
+        !isHeroAlive && !isPetAlive
+    }
+
+    var isBattleOver: Bool {
+        isEnemyDefeated || isPartyDefeated
+    }
 
     var enemyAttackTarget: Combatant {
         if !isHeroAlive { return pet }
@@ -157,9 +178,17 @@ struct BattleState {
         return heroHealth >= petHealth ? hero : pet
     }
 
-    var enemyEffectSummaries: [EffectSummary] { groupedEffectSummaries(for: activeEnemyEffects) }
-    var heroEffectSummaries: [EffectSummary] { groupedEffectSummaries(for: activeHeroEffects) }
-    var petEffectSummaries: [EffectSummary] { groupedEffectSummaries(for: activePetEffects) }
+    var enemyEffectSummaries: [EffectSummary] {
+        groupedEffectSummaries(for: activeEnemyEffects)
+    }
+
+    var heroEffectSummaries: [EffectSummary] {
+        groupedEffectSummaries(for: activeHeroEffects)
+    }
+
+    var petEffectSummaries: [EffectSummary] {
+        groupedEffectSummaries(for: activePetEffects)
+    }
 
     private func groupedEffectSummaries(for effects: [ActiveEffect]) -> [EffectSummary] {
         Dictionary(grouping: effects, by: \.keyword).compactMap { keyword, group in
@@ -167,7 +196,7 @@ struct BattleState {
             guard !stacks.isEmpty else { return nil }
 
             let dotTotal = stacks.reduce(0) { sum, effect in
-                if case .damageOverTime(_, let d, _) = effect { return sum + d }
+                if case let .damageOverTime(_, d, _) = effect { return sum + d }
                 return sum
             }
 
@@ -176,24 +205,24 @@ struct BattleState {
             }
 
             let shieldTotal = stacks.reduce(0) { sum, effect in
-                if case .shield(_, let b, _) = effect { return sum + b }
+                if case let .shield(_, b, _) = effect { return sum + b }
                 return sum
             }
             if shieldTotal > 0 {
                 let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case .shield(_, _, let d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    if case let .shield(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(shieldTotal) buffer, \(maxTicks) ticks left.")
             }
 
             let mitigationPct = stacks.reduce(0.0) { sum, effect in
-                if case .mitigation(_, let p, _) = effect { return sum + p }
+                if case let .mitigation(_, p, _) = effect { return sum + p }
                 return sum
             }
             if mitigationPct > 0 {
                 let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case .mitigation(_, _, let d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    if case let .mitigation(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(mitigationPct * 100))% mitigation, \(maxTicks) ticks left.")
@@ -201,19 +230,19 @@ struct BattleState {
 
             if stacks.contains(where: { if case .prevention = $0 { return true }; return false }) {
                 let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case .prevention(_, let d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    if case let .prevention(_, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxTicks) actions prevented.")
             }
 
             let leechPct = stacks.reduce(0.0) { sum, effect in
-                if case .leech(_, let p, _) = effect { return sum + p }
+                if case let .leech(_, p, _) = effect { return sum + p }
                 return sum
             }
             if leechPct > 0 {
                 let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case .leech(_, _, let d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    if case let .leech(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(leechPct * 100))% leech, \(maxTicks) ticks left.")
@@ -221,7 +250,7 @@ struct BattleState {
 
             if stacks.contains(where: { if case .cleanse = $0 { return true }; return false }) {
                 let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case .cleanse(_, let d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    if case let .cleanse(_, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "Cleanse: \(maxTicks) ticks left.")
@@ -376,7 +405,7 @@ struct BattleState {
 
         for effect in effectsToApply {
             switch effect {
-            case .damageOverTime(let keyword, let tickDamage, let durationTicks):
+            case let .damageOverTime(keyword, tickDamage, durationTicks):
                 guard health(for: target) > 0 else { break }
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
@@ -385,7 +414,7 @@ struct BattleState {
                 setEffects(currentEffects, for: target)
                 appliedEffectLogs.append("\(effect.summary)")
 
-            case .prevention(let keyword, let durationTicks):
+            case let .prevention(keyword, durationTicks):
                 guard health(for: target) > 0 else { break }
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
@@ -403,7 +432,7 @@ struct BattleState {
                     keyword: keyword
                 ))
 
-            case .shield(let keyword, let buffer, let durationTicks):
+            case let .shield(keyword, buffer, durationTicks):
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
                 var currentEffects = effects(for: actor)
@@ -420,7 +449,7 @@ struct BattleState {
                     keyword: keyword
                 ))
 
-            case .mitigation(let keyword, let percent, let durationTicks):
+            case let .mitigation(keyword, percent, durationTicks):
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
                 var currentEffects = effects(for: actor)
@@ -437,7 +466,7 @@ struct BattleState {
                     keyword: keyword
                 ))
 
-            case .instantHeal(let keyword, let amount):
+            case let .instantHeal(keyword, amount):
                 applyHeal(amount, to: actor)
                 appliedEffectLogs.append("\(effect.summary)")
                 events.append(nextEvent(
@@ -450,7 +479,7 @@ struct BattleState {
                     keyword: keyword
                 ))
 
-            case .leech(let keyword, let percent, let durationTicks):
+            case let .leech(keyword, percent, durationTicks):
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
                 var currentEffects = effects(for: actor)
@@ -458,7 +487,7 @@ struct BattleState {
                 setEffects(currentEffects, for: actor)
                 appliedEffectLogs.append("\(effect.summary)")
 
-            case .resourceGain(let keyword, let amount):
+            case let .resourceGain(keyword, amount):
                 gold += amount
                 appliedEffectLogs.append("\(effect.summary)")
                 events.append(nextEvent(
@@ -471,7 +500,7 @@ struct BattleState {
                     keyword: keyword
                 ))
 
-            case .cleanse(let targetKeyword, let durationTicks):
+            case let .cleanse(targetKeyword, durationTicks):
                 let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
                 nextEffectID += 1
                 var currentEffects = effects(for: actor)
@@ -502,7 +531,7 @@ struct BattleState {
                 return false
             }
             let leechPct = activeLeech.reduce(0.0) { sum, ae in
-                if case .leech(_, let p, _) = ae.effect { return sum + p }
+                if case let .leech(_, p, _) = ae.effect { return sum + p }
                 return sum
             }
             if leechPct > 0 {
@@ -583,15 +612,15 @@ struct BattleState {
         var remaining = effects
 
         var shieldBuffers: [Int: Int] = [:]
-        for (index, ae) in remaining.enumerated() {
-            if case .shield(_, let buffer, _) = ae.effect {
+        for ae in remaining {
+            if case let .shield(_, buffer, _) = ae.effect {
                 shieldBuffers[ae.id] = buffer
             }
         }
 
         for ae in remaining {
             switch ae.effect {
-            case .damageOverTime(let keyword, let tickDamage, _):
+            case let .damageOverTime(keyword, tickDamage, _):
                 let actualDamage = applyDamage(tickDamage, to: target)
                 let event = nextEvent(
                     kind: .status,
@@ -608,7 +637,7 @@ struct BattleState {
                     text: "\(target.name) takes \(actualDamage) \(keyword.rawValue) damage."
                 ))
 
-            case .cleanse(let cleanseKeyword, _):
+            case let .cleanse(cleanseKeyword, _):
                 let beforeCount = remaining.count
                 if let removeKeyword = cleanseKeyword {
                     remaining.removeAll { $0.keyword == removeKeyword }
@@ -646,7 +675,7 @@ struct BattleState {
         var shieldIndexes: [Int] = []
 
         for (index, ae) in currentEffects.enumerated() {
-            if case .shield(let keyword, let buffer, _) = ae.effect {
+            if case let .shield(keyword, buffer, _) = ae.effect {
                 let absorbed = min(remaining, buffer)
                 remaining -= absorbed
                 if absorbed > 0 {
@@ -675,7 +704,7 @@ struct BattleState {
         }
 
         let mitigationPct = currentEffects.reduce(0.0) { sum, ae in
-            if case .mitigation(_, let p, _) = ae.effect { return sum + p }
+            if case let .mitigation(_, p, _) = ae.effect { return sum + p }
             return sum
         }
         if mitigationPct > 0 {

@@ -6,7 +6,9 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
     case armor = "Armor"
     case trinket = "Trinket"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var slot: ItemSlot? {
         switch self {
@@ -20,7 +22,6 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
             return .trinket
         }
     }
-
 }
 
 struct InventoryGridView: View {

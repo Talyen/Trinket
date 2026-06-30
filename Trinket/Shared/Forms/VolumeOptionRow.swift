@@ -41,7 +41,7 @@ struct VolumeOptionRow: View {
                     .monospacedDigit()
             }
 
-            Slider(value: $value, in: 0...1, step: 0.05)
+            Slider(value: $value, in: 0 ... 1, step: 0.05)
                 .accessibilityLabel(title)
                 .accessibilityValue(percentageText)
         }

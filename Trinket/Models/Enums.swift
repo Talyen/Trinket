@@ -3,7 +3,9 @@ import SwiftUI
 enum GameMode: String, CaseIterable, Identifiable {
     case battle = "Battle"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var subtitle: String {
         switch self {
@@ -28,7 +30,9 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
     case nature = "Nature"
     case freeze = "Freeze"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     enum Category: String, CaseIterable {
         case damageType = "Damage Type"
@@ -121,7 +125,9 @@ enum Rarity: String, CaseIterable, Identifiable, Hashable {
     case basic
     case astral
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var label: String {
         switch self {
@@ -136,7 +142,9 @@ enum AbilityTier: String, CaseIterable, Identifiable, Hashable {
     case skill = "Skill"
     case ultimate = "Ultimate"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var cadenceTurns: Int {
         switch self {
@@ -179,7 +187,9 @@ enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
     case armor = "Armor"
     case trinket = "Trinket"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var symbolName: String {
         switch self {

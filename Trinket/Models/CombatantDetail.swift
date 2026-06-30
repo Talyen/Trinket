@@ -6,7 +6,9 @@ struct CombatantCardDetail: Hashable, Identifiable {
     let health: Int
     let activeEffectSummaries: [EffectSummary]
 
-    var id: String { combatant.id }
+    var id: String {
+        combatant.id
+    }
 
     static func base(_ combatant: Combatant) -> CombatantCardDetail {
         CombatantCardDetail(

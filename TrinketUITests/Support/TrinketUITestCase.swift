@@ -1,9 +1,15 @@
 import XCTest
 
 enum TestLaunchArg {
-    static func tab(_ tab: String) -> String { "-selectedTab \(tab)" }
+    static func tab(_ tab: String) -> String {
+        "-selectedTab \(tab)"
+    }
+
     static let resetState = "-reset-state"
-    static func screen(_ screen: String) -> [String] { ["-launch-screen", screen] }
+    static func screen(_ screen: String) -> [String] {
+        ["-launch-screen", screen]
+    }
+
     static func completedStages(_ stageIDs: [String]) -> [String] {
         ["-completed-stages", stageIDs.joined(separator: ",")]
     }
@@ -47,8 +53,8 @@ class TrinketUITestCase: XCTestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.2))
     }
 
-    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, file: StaticString = #file, line: UInt = #line) {
-        for _ in 0..<8 where !element.exists {
+    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, file _: StaticString = #file, line _: UInt = #line) {
+        for _ in 0 ..< 8 where !element.exists {
             if swipingUp {
                 dragInDetailList(fromY: 0.84, toY: 0.62)
             } else {
@@ -66,7 +72,7 @@ class TrinketUITestCase: XCTestCase {
 
     func dismissSheet() {
         let closeButton = app.navigationBars.buttons["Close"]
-        if closeButton.waitForExistence(timeout: 2) && closeButton.isHittable {
+        if closeButton.waitForExistence(timeout: 2), closeButton.isHittable {
             closeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             RunLoop.current.run(until: Date().addingTimeInterval(0.2))
         } else {

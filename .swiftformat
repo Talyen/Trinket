@@ -1,0 +1,10 @@
+--swiftversion 5.0
+--indent 4
+--trimwhitespace always
+--commas inline
+--decimalgrouping none
+--ifdef no-indent
+--self remove
+--importgrouping testable-bottom
+--disable wrapMultilineStatementBraces
+--exclude Trinket/Generated,.DerivedData,.build

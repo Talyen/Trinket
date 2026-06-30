@@ -7,8 +7,13 @@ struct PlayView: View {
     @State private var stageMessage: StageMapMessage?
     @State private var pendingScrollTarget: String?
 
-    private var chapters: [Chapter] { GameContent.chapters }
-    private var currentChapter: Chapter { chapters.first ?? GameContent.chapters[0] }
+    private var chapters: [Chapter] {
+        GameContent.chapters
+    }
+
+    private var currentChapter: Chapter {
+        chapters.first ?? GameContent.chapters[0]
+    }
 
     var body: some View {
         NavigationStack {
@@ -116,7 +121,7 @@ struct PlayView: View {
 
     private func handlePrimaryAction(for stage: Stage) {
         switch stage.encounter {
-        case .battle(let enemyID):
+        case let .battle(enemyID):
             startBattle(for: stage, enemyID: enemyID)
         case .event, .shop, .rest:
             completeStage(stage, hero: activeHero, pet: activePet)
@@ -628,7 +633,9 @@ private enum PartyPickerKind: String, Identifiable {
     case hero = "Hero"
     case pet = "Pet"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var accessibilityIdentifier: String {
         "\(rawValue) Party Picker"

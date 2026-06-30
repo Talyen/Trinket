@@ -93,7 +93,7 @@ struct BattleView: View {
             BattleLogSheet(
                 entries: battle.log
             )
-                .presentationDetents([.medium])
+            .presentationDetents([.medium])
         }
     }
 

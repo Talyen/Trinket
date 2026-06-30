@@ -18,9 +18,17 @@ struct Enemy: Identifiable, Hashable {
         self.level = level
     }
 
-    var id: String { combatant.id }
-    var name: String { combatant.name }
-    var maxHealth: Int { combatant.maxHealth }
+    var id: String {
+        combatant.id
+    }
+
+    var name: String {
+        combatant.name
+    }
+
+    var maxHealth: Int {
+        combatant.maxHealth
+    }
 
     static var randomNormalCombatant: Combatant {
         let normals = GameContent.enemies.filter { !$0.isBoss }

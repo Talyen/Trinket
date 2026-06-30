@@ -20,8 +20,8 @@ struct CombatantHealthDetail: View {
                 maxHealth: maxHealth,
                 fillColor: fillColor
             )
-                .accessibilityLabel("Health")
-                .accessibilityValue("\(health) of \(maxHealth) HP")
+            .accessibilityLabel("Health")
+            .accessibilityValue("\(health) of \(maxHealth) HP")
         }
         .padding(.vertical, 4)
     }

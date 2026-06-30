@@ -51,6 +51,7 @@ if [[ "$MODE" == "style" ]]; then
     exit 1
   fi
 
+  ./Scripts/format.sh --lint
   ./Scripts/lint.sh
   ./Scripts/check-ui-style.sh
   exit 0

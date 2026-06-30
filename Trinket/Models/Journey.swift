@@ -87,7 +87,7 @@ enum StageEncounter: Hashable {
     }
 
     var battleEnemyID: String? {
-        if case .battle(let enemyID) = self {
+        if case let .battle(enemyID) = self {
             return enemyID
         }
         return nil

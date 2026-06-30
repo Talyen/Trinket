@@ -94,7 +94,6 @@ struct CombatantDetailPane: View {
         }
     }
 
-    @ViewBuilder
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -139,8 +138,7 @@ private extension View {
     ) -> some View {
         switch chrome {
         case .visible:
-            self
-                .navigationTitle(title)
+            navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
@@ -153,8 +151,7 @@ private extension View {
                     .sharedBackgroundVisibility(.hidden)
                 }
         case .hidden:
-            self
-                .toolbar(.hidden, for: .navigationBar)
+            toolbar(.hidden, for: .navigationBar)
         }
     }
 }

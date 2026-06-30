@@ -1,5 +1,5 @@
-@testable import Trinket
 import XCTest
+@testable import Trinket
 
 final class BattleEffectTests: XCTestCase {
     private func passiveCombatant(
@@ -13,7 +13,7 @@ final class BattleEffectTests: XCTestCase {
 
     private func performActions(_ count: Int, on battle: inout BattleState) -> [BattleState.ActionEvent] {
         var allEvents: [BattleState.ActionEvent] = []
-        for _ in 0..<count {
+        for _ in 0 ..< count {
             allEvents.append(contentsOf: battle.performNextAction())
         }
         return allEvents
@@ -215,7 +215,7 @@ final class BattleEffectTests: XCTestCase {
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
         var heroAbilityNames: [String] = []
-        for _ in 0..<6 {
+        for _ in 0 ..< 6 {
             let events = battle.performNextAction()
             heroAbilityNames.append(
                 contentsOf: events
@@ -279,10 +279,10 @@ final class BattleEffectTests: XCTestCase {
         XCTAssertNotNil(summaries.first { $0.keyword == .armor })
     }
 
-    func testVictoryLogMessage() {
+    func testVictoryLogMessage() throws {
         let hero = GameContent.heroes[2]
-        let pet = GameContent.pets.first { $0.id == "wolf" }!
-        let enemy = GameContent.enemies.first!.combatant
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
         let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
 
         XCTAssertTrue(result.log.contains { $0.text.contains("is defeated.") })
