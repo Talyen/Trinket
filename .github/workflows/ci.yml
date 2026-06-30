@@ -1,10 +1,8 @@
 name: Trinket CI
 
+# Automatic CI is paused until GitHub Actions budget is available.
+# Re-enable pull_request and push triggers below when ready.
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       scope:
