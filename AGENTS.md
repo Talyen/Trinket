@@ -21,6 +21,13 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles.
 - Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Trinket/DesignSystem/`.
 
+## Git Workflow
+
+- Work on `main` unless the user explicitly requests a feature branch.
+- Commit locally when work is complete or before testing.
+- Do **not** `git push` unless the user explicitly asks.
+- Do **not** create or update pull requests unless the user explicitly asks.
+
 ## Commands & Verification
 
 All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). XcodeGen, `xcodebuild`, XCTest, SwiftLint. `test.sh` runs xcodegen unless `--fast`; `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
