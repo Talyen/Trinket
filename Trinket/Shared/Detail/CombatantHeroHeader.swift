@@ -5,17 +5,16 @@ struct CombatantHeroHeader: View {
     let progression: CombatantProgression
     let baseHeight: CGFloat
     let coordinateSpaceName: String
-
     var body: some View {
         GeometryReader { geometry in
             let pullDistance = max(geometry.frame(in: .named(coordinateSpaceName)).minY, 0)
-            let scale = (baseHeight + pullDistance) / baseHeight
+            let scale = HeroHeaderLayout.overscrollScale(baseHeight: baseHeight, pullDistance: pullDistance)
 
-            ZStack(alignment: .bottomLeading) {
+            ZStack(alignment: .topLeading) {
                 CombatantArtwork(combatant: combatant)
                     .aspectRatio(3.0 / 4.0, contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .scaleEffect(scale, anchor: .center)
+                    .scaleEffect(scale, anchor: .top)
 
                 LinearGradient(
                     colors: [.clear, .black.opacity(0.6)],
@@ -32,6 +31,7 @@ struct CombatantHeroHeader: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .bottom)
             }
             .frame(height: baseHeight + pullDistance)
             .clipped()
