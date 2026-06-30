@@ -92,6 +92,9 @@ struct InventoryGridView: View {
                 || item.affixes.contains { affix in
                     affix.title.localizedCaseInsensitiveContains(query)
                         || affix.description.localizedCaseInsensitiveContains(query)
+                        || affix.keywords.contains { keyword in
+                            keyword.rawValue.localizedCaseInsensitiveContains(query)
+                        }
                 }
 
             return matchesSlot && matchesSearch
@@ -132,9 +135,17 @@ struct ItemDetailView: View {
                             .font(.body.weight(.semibold))
                             .foregroundStyle(.primary)
 
-                        Text(affix.description)
+                        KeywordDescriptionText(text: affix.description)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+
+                        HStack(spacing: 8) {
+                            ForEach(affix.sortedKeywords) { keyword in
+                                Label(keyword.rawValue, systemImage: keyword.visualStyle.symbolName)
+                                    .font(.caption)
+                                    .foregroundStyle(keyword.visualStyle.color)
+                            }
+                        }
                     }
                     .accessibilityElement(children: .combine)
                 }

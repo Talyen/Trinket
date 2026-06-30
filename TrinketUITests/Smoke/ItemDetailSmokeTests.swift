@@ -4,24 +4,24 @@ final class SmokeItemDetailTests: TrinketUITestCase {
     func testLongswordBasicItemDetailRenders() {
         launchApp(arguments: TestLaunchArg.allForScreen("item:longsword-basic"))
         assertExists("Longsword")
-        assertExists("Placeholder")
+        assertExists("Affixes")
     }
 
     func testPlateArmorBasicItemDetailRenders() {
         launchApp(arguments: TestLaunchArg.allForScreen("item:plate_armor-basic"))
         assertExists("Plate Armor")
-        assertExists("Placeholder")
+        assertExists("Affixes")
     }
 
     func testRubyRingBasicItemDetailRenders() {
         launchApp(arguments: TestLaunchArg.allForScreen("item:ruby_ring-basic"))
         assertExists("Ruby Ring")
-        assertExists("Placeholder")
+        assertExists("Affixes")
     }
 
     func testLongswordAstralItemDetailRenders() {
         launchApp(arguments: TestLaunchArg.allForScreen("item:longsword-astral"))
         assertExists("Longsword")
-        assertExists("Placeholder")
+        assertExists("Affixes")
     }
 }

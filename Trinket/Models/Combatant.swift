@@ -11,6 +11,26 @@ struct CombatantProgression: Equatable, Hashable {
         guard requiredXP > 0 else { return 0 }
         return min(max(Double(currentXP) / Double(requiredXP), 0), 1)
     }
+
+    func addingExperience(_ amount: Int) -> CombatantProgression {
+        guard amount > 0 else { return self }
+
+        var nextLevel = level
+        var nextXP = currentXP + amount
+        var nextRequiredXP = requiredXP
+
+        while nextRequiredXP > 0, nextXP >= nextRequiredXP {
+            nextXP -= nextRequiredXP
+            nextLevel += 1
+            nextRequiredXP += 50
+        }
+
+        return CombatantProgression(
+            level: nextLevel,
+            currentXP: nextXP,
+            requiredXP: nextRequiredXP
+        )
+    }
 }
 
 struct Combatant: Identifiable, Hashable {

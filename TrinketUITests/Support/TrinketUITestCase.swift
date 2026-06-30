@@ -4,6 +4,9 @@ enum TestLaunchArg {
     static func tab(_ tab: String) -> String { "-selectedTab \(tab)" }
     static let resetState = "-reset-state"
     static func screen(_ screen: String) -> [String] { ["-launch-screen", screen] }
+    static func completedStages(_ stageIDs: [String]) -> [String] {
+        ["-completed-stages", stageIDs.joined(separator: ",")]
+    }
 
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
         var args = reset ? [resetState] : []

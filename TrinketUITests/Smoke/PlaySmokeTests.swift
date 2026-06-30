@@ -1,18 +1,58 @@
 import XCTest
 
 final class SmokePlayTests: TrinketUITestCase {
-    func testPlayDashboardRenders() {
+    func testPlayMapRendersChapterOne() {
         launchApp(arguments: [TestLaunchArg.resetState])
+
         assertExists("Play")
-        assertExists(app.staticTexts["Battle"])
+        assertExists("The Verdant Forest")
+        assertExists("Stage 1-1 Node")
+        assertExists("Chapter 2 Locked")
     }
 
-    func testHeroSelectionAppears() {
+    func testActiveStagePreviewAppears() {
         launchApp(arguments: [TestLaunchArg.resetState])
-        app.staticTexts["Battle"].tap()
-        assertExists("Select Hero")
-        assertExists("Knight selection card")
-        assertExists("Wizard selection card")
-        assertExists("Rogue selection card")
+
+        app.buttons["Stage 1-1 Node"].tap()
+
+        assertExists("Stage Preview Header")
+        let header = app.descendants(matching: .any)["Stage Preview Header"]
+        XCTAssertTrue(header.label.contains("Enemy"))
+        assertExists("Stage 1-1")
+        assertExists("Goblin")
+        assertExists("Party")
+        assertExists("Selected Hero Card")
+        assertExists("Selected Pet Card")
+        assertExists("Battle Button")
+        XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
+    }
+
+    func testFutureStageShowsLockedFeedback() {
+        launchApp(arguments: [TestLaunchArg.resetState])
+
+        app.buttons["Stage 1-2 Node"].tap()
+
+        assertExists("Stage Locked")
+        app.alerts.buttons["OK"].tap()
+        XCTAssertFalse(app.buttons["Battle Button"].exists)
+    }
+
+    func testNonBattleStubStageCanComplete() {
+        launchApp(arguments: [
+            TestLaunchArg.resetState
+        ] + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
+
+        app.buttons["Stage 1-2 Node"].tap()
+        assertExists("Stage Preview Header")
+        let header = app.descendants(matching: .any)["Stage Preview Header"]
+        assertExists("Stage 1-2")
+        XCTAssertTrue(header.label.contains("Mystery"))
+        assertExists("Continue Button")
+        app.buttons["Continue Button"].tap()
+
+        assertExists("Stage 1-3 Node")
+        app.buttons["Stage 1-2 Node"].tap()
+        assertExists("Stage Complete")
+        app.alerts.buttons["OK"].tap()
     }
 }

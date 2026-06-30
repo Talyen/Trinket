@@ -13,6 +13,27 @@ struct PlayerInventoryState: Equatable, Hashable {
     func items(for slot: ItemSlot) -> [InventoryItem] {
         items.filter { $0.baseType.slot == slot }
     }
+
+    mutating func addRewardItem(from template: InventoryItem, for stage: Stage) {
+        var randomNumberGenerator = SystemRandomNumberGenerator()
+        addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
+    }
+
+    mutating func addRewardItem<RNG: RandomNumberGenerator>(
+        from template: InventoryItem,
+        for stage: Stage,
+        using randomNumberGenerator: inout RNG
+    ) {
+        let rewardItem = ItemGenerator().generate(
+            id: "\(stage.id)-\(template.templateID)",
+            templateID: template.templateID,
+            baseType: template.baseType,
+            rarity: template.rarity,
+            using: &randomNumberGenerator
+        )
+        guard !items.contains(where: { $0.id == rewardItem.id }) else { return }
+        items.append(rewardItem)
+    }
 }
 
 struct PlayerRosterState: Equatable {
@@ -88,6 +109,23 @@ struct PlayerRosterState: Equatable {
 
     mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
         equipmentLoadouts[combatant.id] = loadout
+    }
+
+    mutating func setActiveHero(_ hero: Combatant) {
+        activeHeroID = hero.id
+    }
+
+    mutating func setActivePet(_ pet: Combatant) {
+        activePetID = pet.id
+    }
+
+    mutating func grantExperience(_ amount: Int, to combatant: Combatant) {
+        progressions[combatant.id] = progression(for: combatant).addingExperience(amount)
+    }
+
+    mutating func grantGold(_ amount: Int) {
+        guard amount > 0 else { return }
+        gold += amount
     }
 
     func equippedItem(

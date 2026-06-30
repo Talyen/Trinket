@@ -5,27 +5,25 @@ final class SmokeBattleTests: TrinketUITestCase {
         launchApp(arguments: [
             TestLaunchArg.resetState
         ])
-        app.staticTexts["Battle"].tap()
-        assertExists("Select Hero")
-        app.staticTexts["Knight"].tap()
-        assertExists("Select Pet")
-        app.staticTexts["Wolf"].tap()
+        app.buttons["Stage 1-1 Node"].tap()
+        assertExists("Battle Button")
+        app.buttons["Battle Button"].tap()
 
         assertExists("Battle Pause Button")
         RunLoop.current.run(until: Date().addingTimeInterval(3))
         XCTAssertFalse(app.staticTexts["Victory"].exists)
 
         assertExists("Victory", timeout: 30)
-        assertExists("Battle Again")
+        assertExists("Continue")
     }
 
     func testBattleCombatDetailsOpenViaSheet() {
         launchApp(arguments: [
             TestLaunchArg.resetState
         ])
-        app.staticTexts["Battle"].tap()
-        app.staticTexts["Knight"].tap()
-        app.staticTexts["Wolf"].tap()
+        app.buttons["Stage 1-1 Node"].tap()
+        assertExists("Battle Button")
+        app.buttons["Battle Button"].tap()
 
         assertExists("Knight card")
         app.buttons["Knight card"].tap()

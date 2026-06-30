@@ -4,17 +4,37 @@ import SwiftUI
 @Observable
 final class AppState {
     var selectedTab: AppTab
-    var roster = PlayerRosterStore()
-    var inventory = PlayerInventoryStore()
-    var options = OptionsStore()
-    var battle = BattleSession()
+    var roster: PlayerRosterStore
+    var inventory: PlayerInventoryStore
+    var options: OptionsStore
+    var battle: BattleSession
+    var journey: PlayerJourneyStore
 
     init() {
         let env = AppEnvironment.shared
         if env.resetState {
             UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
         }
+        roster = PlayerRosterStore()
+        inventory = PlayerInventoryStore()
+        options = OptionsStore()
+        battle = BattleSession()
+        journey = PlayerJourneyStore()
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
+        seedJourneyProgress(completedStageIDs: env.completedStageIDs)
+    }
+
+    private func seedJourneyProgress(completedStageIDs: [String]) {
+        guard !completedStageIDs.isEmpty else { return }
+        journey.current = .initial
+
+        let stagesByID = Dictionary(
+            uniqueKeysWithValues: GameContent.chapters.flatMap(\.stages).map { ($0.id, $0) }
+        )
+        completedStageIDs.compactMap { stagesByID[$0] }.forEach { stage in
+            journey.complete(stage, in: GameContent.chapters)
+            journey.markRewardsClaimed(for: stage)
+        }
     }
 
     private static func defaultTab(for launchScreen: LaunchScreen?) -> AppTab {

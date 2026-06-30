@@ -15,4 +15,8 @@ final class PlayerInventoryStore {
     func item(matching id: String?) -> InventoryItem? {
         current.item(matching: id)
     }
+
+    func addRewardItem(from template: InventoryItem, for stage: Stage) {
+        current.addRewardItem(from: template, for: stage)
+    }
 }

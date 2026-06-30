@@ -7,11 +7,9 @@ final class BattleFlowUITests: TrinketUITestCase {
         ])
 
         assertExists("Play")
-        app.staticTexts["Battle"].tap()
-        assertExists("Select Hero")
-        app.staticTexts["Knight"].tap()
-        assertExists("Select Pet")
-        app.staticTexts["Wolf"].tap()
+        app.buttons["Stage 1-1 Node"].tap()
+        assertExists("Battle Button")
+        app.buttons["Battle Button"].tap()
 
         assertExists("Battle Pause Button")
         app.buttons["Battle Pause Button"].tap()
@@ -22,8 +20,8 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         app.buttons["Knight card"].tap()
         assertExists("Knight detail hero header")
-        assertExists("Level 1")
-        assertExists("0/100 XP")
+        assertExists("Level 2")
+        assertExists("35/120 XP")
         assertExists("Stats")
         assertExists("Health")
         assertExists("10/10")
@@ -37,7 +35,7 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         assertExists("Experience")
         assertExists("Rewards")
-        assertExists("Battle Again")
+        assertExists("Continue")
 
         app.buttons["Battle Menu"].tap()
         assertExists("Combat Log")

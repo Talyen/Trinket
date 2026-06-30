@@ -17,6 +17,7 @@ struct BattleView: View {
     private let inventoryState: PlayerInventoryState
     private let onEndBattle: () -> Void
     private let onRestartBattle: () -> Void
+    private let onVictoryContinue: (() -> Void)?
     private let onShowCombatantDetail: (CombatantCardDetail) -> Void
     private let feedbackLifetime: TimeInterval = 1.0
     private let maximumVisibleFeedbackEvents = 2
@@ -24,6 +25,7 @@ struct BattleView: View {
     init(
         hero: Combatant,
         pet: Combatant,
+        enemy: Combatant? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
@@ -32,6 +34,7 @@ struct BattleView: View {
         isBattlePaused: Binding<Bool>,
         onEndBattle: @escaping () -> Void,
         onRestartBattle: @escaping () -> Void,
+        onVictoryContinue: (() -> Void)? = nil,
         onShowCombatantDetail: @escaping (CombatantCardDetail) -> Void
     ) {
         self.heroProgression = heroProgression
@@ -41,8 +44,9 @@ struct BattleView: View {
         self.inventoryState = inventoryState
         self.onEndBattle = onEndBattle
         self.onRestartBattle = onRestartBattle
+        self.onVictoryContinue = onVictoryContinue
         self.onShowCombatantDetail = onShowCombatantDetail
-        _battle = State(initialValue: BattleState(hero: hero, pet: pet))
+        _battle = State(initialValue: BattleState(hero: hero, pet: pet, enemy: enemy))
         _isBattlePaused = isBattlePaused
         _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())
@@ -53,7 +57,8 @@ struct BattleView: View {
             if isShowingVictory {
                 VictoryView(
                     enemyName: battle.enemy.name,
-                    onBattleAgain: onRestartBattle
+                    primaryActionTitle: onVictoryContinue == nil ? "Battle Again" : "Continue",
+                    onPrimaryAction: onVictoryContinue ?? onRestartBattle
                 )
             } else if isShowingDefeat {
                 DefeatView(

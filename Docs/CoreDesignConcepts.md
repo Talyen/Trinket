@@ -10,10 +10,10 @@ Read this before changing gameplay concepts, card/detail patterns, Keywords, Ite
 
 Trinket is a portrait-first fantasy idle auto-battler. The core loop centers on collecting and improving heroes, pets, abilities, items, and homestead upgrades while battles provide the moment-to-moment dashboard for progress and next actions.
 
-The current battle path is:
+The current play path is:
 
 ```text
-Play -> Battle -> Select Hero -> Select Pet -> Battle
+Play -> Chapter Map -> Active Stage Preview -> Battle or Encounter
 ```
 
 Combat is idle by default. A Hero and Pet alternate abilities against a single Enemy.
@@ -25,6 +25,16 @@ Play -> Heroes -> Inventory -> Homestead -> Options
 ```
 
 `Heroes` is the shared collection area for both Heroes and Pets, with an in-page switch between the two collections. `Inventory` is a top-level collection surface because Items are expected to become a core reward and equipment loop.
+
+## Chapters And Stages
+
+The core journey is a linear chapter map that starts at the bottom and climbs upward through compact stage cards. Chapter 1 is `The Verdant Forest`, with authored stages labeled as `Stage 1-1`, `Stage 1-2`, and so on. Only the active stage is playable; completed stages are history, and future stages are locked until the path advances.
+
+Each stage has a predefined encounter type: Battle, Event, Shop, or Rest. Battle stages launch the authored enemy. Event, Shop, and Rest stages can appear in the path before their full systems exist, using a placeholder completion action so the chapter never dead-ends.
+
+Tapping the active node opens a large native stage preview sheet modeled after combatant details: full encounter art when available, stage/type/name identity, stage flavor, card-based Hero/Pet party swap controls, and the primary encounter action. Hero/Pet loadout and equipment editing still belongs in Heroes/Inventory. Do not preview possible rewards in this sheet.
+
+Stage completion advances persistent journey progress, grants stub rewards once, and returns to the map. The map should auto-center the newly active node so the next action is obvious.
 
 ## Heroes
 
@@ -63,7 +73,11 @@ Let players evaluate individual Items from clear item details. Avoid automatic "
 
 Item details should become a sibling detail pattern focused on affixes, bonuses, and readable tradeoffs.
 
-Current item implementation is a visual-only stub. Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Trinket`), card-art placeholder styling, and up to four affix descriptions. Equipped Items do not affect combat stats or rules yet.
+Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Trinket`), item art, and up to four affix descriptions. Items are generated at reward time from base item type, rarity, slot-specific affix pools, and base item Keyword Affinities. Basic items roll one or two affixes, weighted toward one. Astral items roll three or four affixes, weighted toward three, and resolve the same affix pool into stronger values. Rarity does not change a base item's Keyword Affinities.
+
+Affixes are eligible when their slot matches the base item slot and at least one affix Keyword matches the base item's Keyword Affinities. Items cannot roll duplicate affix IDs, but multiple affixes can share the same Keyword. Affixes are positive-only. Item names stay as the base item name to keep inventory grids readable.
+
+Equipped Items do not affect combat stats or rules yet. Affix `Effect` values are authored so combat integration can be added later as a separate balance pass.
 
 ## Keywords
 

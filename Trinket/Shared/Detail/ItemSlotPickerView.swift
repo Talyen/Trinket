@@ -30,7 +30,7 @@ struct ItemSlotPickerView: View {
 
                                 VStack(alignment: .leading, spacing: 4) {
                                     ForEach(item.affixes.prefix(4)) { affix in
-                                        Text(affix.description)
+                                        KeywordDescriptionText(text: affix.description)
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                             .lineLimit(2)

@@ -8,15 +8,18 @@ struct AppEnvironment {
     let launchTab: AppTab?
     let launchScreen: LaunchScreen?
     let resetState: Bool
+    let completedStageIDs: [String]
 
     private init(
         launchTab: AppTab?,
         launchScreen: LaunchScreen?,
-        resetState: Bool
+        resetState: Bool,
+        completedStageIDs: [String]
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
         self.resetState = resetState
+        self.completedStageIDs = completedStageIDs
     }
 
     private static func load() -> AppEnvironment {
@@ -53,10 +56,21 @@ struct AppEnvironment {
 
         let reset = args.contains("-reset-state")
 
+        let completedStageIDs: [String] = {
+            guard let idx = args.firstIndex(of: "-completed-stages"),
+                  args.indices.contains(idx + 1)
+            else { return [] }
+            return args[idx + 1]
+                .split(separator: ",")
+                .map(String.init)
+                .filter { !$0.isEmpty }
+        }()
+
         return AppEnvironment(
             launchTab: tab,
             launchScreen: screen,
-            resetState: reset
+            resetState: reset,
+            completedStageIDs: completedStageIDs
         )
     }
 }

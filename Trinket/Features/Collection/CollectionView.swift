@@ -4,9 +4,14 @@ struct CollectionView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantCollectionDetailSelection?
+    private let initialItemID: String?
 
-    init(initialCombatantDetail: CombatantCollectionDetailSelection? = nil) {
+    init(
+        initialCombatantDetail: CombatantCollectionDetailSelection? = nil,
+        initialItemID: String? = nil
+    ) {
         _selectedCombatant = State(initialValue: initialCombatantDetail)
+        self.initialItemID = initialItemID
     }
 
     var body: some View {
@@ -123,6 +128,13 @@ struct CollectionView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            guard selectedItem == nil,
+                  let initialItemID,
+                  let item = appState.inventory.current.item(matching: initialItemID)
+            else { return }
+            selectedItem = item
+        }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
                 ItemDetailView(item: item)

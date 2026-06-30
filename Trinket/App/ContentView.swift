@@ -21,7 +21,8 @@ struct ContentView: View {
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
                     CollectionView(
-                        initialCombatantDetail: Self.initialCollectionCombatantDetail()
+                        initialCombatantDetail: Self.initialCollectionCombatantDetail(),
+                        initialItemID: Self.initialCollectionItemID()
                     )
                 }
             }
@@ -66,6 +67,15 @@ struct ContentView: View {
         case .petDetail(let id):
             CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
         case .itemDetail, .battle, .options, .none:
+            nil
+        }
+    }
+
+    private static func initialCollectionItemID() -> String? {
+        switch AppEnvironment.shared.launchScreen {
+        case .itemDetail(let id):
+            id
+        case .heroDetail, .petDetail, .battle, .options, .none:
             nil
         }
     }

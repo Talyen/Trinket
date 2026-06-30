@@ -24,17 +24,32 @@ struct ItemCard: View {
                 .trinketCardSurface()
 
             if showsName {
-                Text(item.displayName)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 4)
-                    .reservedCardLabelSpace(reservesLabelSpace)
+                VStack(spacing: 2) {
+                    Text(item.displayName)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+
+                    if showsAffixCount {
+                        Text(item.affixCountLabel)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .padding(.horizontal, 4)
+                .reservedCardLabelSpace(reservesLabelSpace)
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
+    }
+}
+
+private extension InventoryItem {
+    var affixCountLabel: String {
+        "\(affixes.count) \(affixes.count == 1 ? "affix" : "affixes")"
     }
 }
 

@@ -62,6 +62,7 @@ struct BattleArtCard: View {
 
                     if showsText {
                         Rectangle()
+                            // UIStyleCheck: allow - battle art labels need readable material over artwork.
                             .fill(.ultraThinMaterial)
                             .frame(maxHeight: 60)
 
@@ -169,6 +170,7 @@ struct CombatFeedbackEventView: View {
         .foregroundStyle(event.keyword.visualStyle.color)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+        // UIStyleCheck: allow - combat feedback is transient floating battle chrome.
         .glassEffect(.regular)
         .clipShape(Capsule())
     }
@@ -182,7 +184,8 @@ struct CombatFeedbackAnimationState {
 
 struct VictoryView: View {
     let enemyName: String
-    let onBattleAgain: () -> Void
+    let primaryActionTitle: String
+    let onPrimaryAction: () -> Void
 
     @State private var bounceCount = 0
 
@@ -219,11 +222,12 @@ struct VictoryView: View {
                 )
 
                 Button {
-                    onBattleAgain()
+                    onPrimaryAction()
                 } label: {
-                    Text("Battle Again")
+                    Text(primaryActionTitle)
                         .frame(maxWidth: .infinity)
                 }
+                // UIStyleCheck: allow - victory uses the native prominent primary action.
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .padding(.top, 8)

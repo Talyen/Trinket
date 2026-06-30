@@ -32,6 +32,22 @@ final class PlayerRosterStore {
         current.setEquipmentLoadout(loadout, for: combatant)
     }
 
+    func setActiveHero(_ hero: Combatant) {
+        current.setActiveHero(hero)
+    }
+
+    func setActivePet(_ pet: Combatant) {
+        current.setActivePet(pet)
+    }
+
+    func grantExperience(_ amount: Int, to combatant: Combatant) {
+        current.grantExperience(amount, to: combatant)
+    }
+
+    func grantGold(_ amount: Int) {
+        current.grantGold(amount)
+    }
+
     func equippedItem(for slot: ItemSlot, combatant: Combatant, inventory: PlayerInventoryState) -> InventoryItem? {
         current.equippedItem(for: slot, combatant: combatant, inventory: inventory)
     }
