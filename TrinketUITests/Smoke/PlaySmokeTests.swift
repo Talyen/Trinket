@@ -53,4 +53,21 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists("Stage Complete")
         app.alerts.buttons["OK"].tap()
     }
+
+    func testFinalStageShowsLockedNextChapter() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages([
+            "chapter-1-stage-1",
+            "chapter-1-stage-2",
+            "chapter-1-stage-3",
+            "chapter-1-stage-4",
+            "chapter-1-stage-5",
+            "chapter-1-stage-6",
+            "chapter-1-stage-7",
+            "chapter-1-stage-8",
+            "chapter-1-stage-9"
+        ]))
+
+        assertExists("Stage 1-10 Node")
+        assertExists("Chapter 2 Locked")
+    }
 }

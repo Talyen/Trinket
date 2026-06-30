@@ -231,22 +231,11 @@ private struct JourneyMapView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     chapterHeader
 
-                    VStack(spacing: 0) {
-                        LockedChapterPreview()
-                            .id("chapter-2-locked")
-                            .padding(.bottom, 18)
-
-                        ForEach(Array(chapter.stages.reversed().enumerated()), id: \.element.id) { index, stage in
-                            StageNodeRow(
-                                stage: stage,
-                                state: state(for: stage),
-                                theme: chapter.theme,
-                                isLast: index == chapter.stages.count - 1,
-                                onTap: { onStageTap(stage) }
-                            )
-                            .id(stage.id)
-                        }
-                    }
+                    StagePathView(
+                        path: visiblePath,
+                        theme: chapter.theme,
+                        onStageTap: onStageTap
+                    )
                 }
                 .padding(20)
             }
@@ -281,19 +270,15 @@ private struct JourneyMapView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            Text("Begin at the bottom and climb toward the heartwood.")
+            Text("The trail continues deeper with each victory.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func state(for stage: Stage) -> StageNodeState {
-        if progress.isActive(stage) { return .active }
-        if progress.isCompleted(stage) {
-            return progress.isLastCompleted(stage) ? .justCompleted : .completed
-        }
-        return .future
+    private var visiblePath: VisibleStagePath {
+        VisibleStagePath(chapter: chapter, progress: progress)
     }
 
     private func centerActiveNode(with proxy: ScrollViewProxy) {
@@ -306,6 +291,68 @@ private struct JourneyMapView: View {
     }
 }
 
+private struct VisibleStagePath {
+    let nodes: [VisibleStageNode]
+    let showsChapterGate: Bool
+    let showsTrailContinuation: Bool
+
+    init(chapter: Chapter, progress: JourneyProgressState) {
+        let stages = chapter.stages
+        let activeIndex = progress.activeStageID.flatMap { activeStageID in
+            stages.firstIndex { $0.id == activeStageID }
+        }
+        let lastCompletedIndex = stages.lastIndex { progress.isCompleted($0) }
+        let anchorIndex = activeIndex ?? lastCompletedIndex ?? 0
+        let startIndex = max(stages.startIndex, anchorIndex - 2)
+        let endIndex: Int
+        if let activeIndex {
+            endIndex = min(stages.index(before: stages.endIndex), activeIndex + 1)
+        } else {
+            endIndex = min(stages.index(before: stages.endIndex), anchorIndex)
+        }
+
+        nodes = (startIndex ... endIndex).map { index in
+            let stage = stages[index]
+            return VisibleStageNode(
+                stage: stage,
+                state: Self.state(for: stage, progress: progress),
+                offset: Self.offset(for: index)
+            )
+        }
+        showsChapterGate = true
+        showsTrailContinuation = endIndex < stages.index(before: stages.endIndex)
+    }
+
+    private static func state(for stage: Stage, progress: JourneyProgressState) -> StageNodeState {
+        if progress.isActive(stage) { return .active }
+        if progress.isCompleted(stage) {
+            return progress.isLastCompleted(stage) ? .justCompleted : .completed
+        }
+        return .future
+    }
+
+    private static func offset(for index: Int) -> StagePathOffset {
+        switch index % 4 {
+        case 1:
+            return .trailing
+        case 3:
+            return .leading
+        default:
+            return .center
+        }
+    }
+}
+
+private struct VisibleStageNode: Identifiable {
+    let stage: Stage
+    let state: StageNodeState
+    let offset: StagePathOffset
+
+    var id: String {
+        stage.id
+    }
+}
+
 private enum StageNodeState: Equatable {
     case completed
     case justCompleted
@@ -313,77 +360,195 @@ private enum StageNodeState: Equatable {
     case future
 }
 
-private struct StageNodeRow: View {
-    let stage: Stage
-    let state: StageNodeState
+private enum StagePathOffset {
+    case leading
+    case center
+    case trailing
+
+    var x: CGFloat {
+        switch self {
+        case .leading:
+            return -58
+        case .center:
+            return 0
+        case .trailing:
+            return 58
+        }
+    }
+}
+
+private struct StagePathView: View {
+    let path: VisibleStagePath
     let theme: ChapterTheme
-    let isLast: Bool
-    let onTap: () -> Void
+    let onStageTap: (Stage) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            Button(action: onTap) {
-                HStack(spacing: 10) {
-                    Image(systemName: nodeSymbolName)
-                        .font(.headline)
-                        .foregroundStyle(nodeSymbolStyle)
-                        // UIStyleCheck: allow - stage node symbols need a stable slot.
-                        .frame(width: 28, height: 28)
-                        .accessibilityHidden(true)
+            ForEach(Array(path.nodes.enumerated()), id: \.element.id) { index, node in
+                StagePathNode(
+                    stage: node.stage,
+                    state: node.state,
+                    theme: theme,
+                    offset: node.offset,
+                    onTap: { onStageTap(node.stage) }
+                )
+                .id(node.stage.id)
 
-                    Text(stageLabel)
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(primaryTextStyle)
-
-                    if state == .justCompleted {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(theme.tint)
-                            .accessibilityHidden(true)
-                    }
+                if let nextNode = path.nodes[safe: index + 1] {
+                    StagePathConnector(
+                        from: node.offset,
+                        to: nextNode.offset,
+                        color: connectorColor(after: node.state)
+                    )
+                } else if path.showsTrailContinuation {
+                    StagePathContinuation(from: node.offset)
+                } else if path.showsChapterGate {
+                    StagePathConnector(
+                        from: node.offset,
+                        to: .center,
+                        color: connectorColor(after: node.state)
+                    )
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(backgroundStyle)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
-            .accessibilityLabel(accessibilityLabel)
 
-            if !isLast {
-                Rectangle()
-                    .fill(connectorStyle)
-                    .frame(width: 3, height: 24)
-                    .frame(maxWidth: .infinity, alignment: .center)
+            if path.showsTrailContinuation {
+                StagePathConnector(
+                    from: .center,
+                    to: .center,
+                    color: Color.secondary.opacity(0.14)
+                )
+            }
+
+            if path.showsChapterGate {
+                LockedChapterGate(theme: theme)
+                    .id("chapter-2-locked")
             }
         }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 4)
     }
 
-    private var nodeSymbolName: String {
+    private func connectorColor(after state: StageNodeState) -> Color {
         switch state {
         case .completed, .justCompleted:
-            return "checkmark"
+            return theme.tint.opacity(0.46)
         case .active:
-            return stage.encounter.symbolName
+            return theme.tint.opacity(0.28)
         case .future:
-            return "lock.fill"
+            return Color.secondary.opacity(0.16)
         }
     }
+}
 
-    private var stageLabel: String {
+private struct StagePathNode: View {
+    let stage: Stage
+    let state: StageNodeState
+    let theme: ChapterTheme
+    let offset: StagePathOffset
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                ZStack(alignment: .topTrailing) {
+                    Circle()
+                        .fill(nodeFill)
+                        .overlay {
+                            Circle()
+                                .stroke(nodeStroke, lineWidth: state == .active ? 3 : 1)
+                        }
+                        .shadow(color: shadowColor, radius: shadowRadius, y: 3)
+
+                    Text(shortStageLabel)
+                        .font(nodeLabelFont)
+                        .foregroundStyle(primaryTextStyle)
+                        .minimumScaleFactor(0.76)
+                        .lineLimit(1)
+                        // UIStyleCheck: allow - path node labels need stable circular geometry.
+                        .frame(width: nodeSize - 14, height: nodeSize - 14)
+
+                    badge
+                        .offset(x: 6, y: -6)
+                }
+                .frame(width: nodeSize, height: nodeSize)
+
+                if state == .active {
+                    VStack(spacing: 2) {
+                        Text(stage.title)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+
+                        Label(stage.encounter.title, systemImage: stage.encounter.symbolName)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(theme.tint)
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .frame(width: 130)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .offset(x: offset.x)
+        .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var badge: some View {
+        ZStack {
+            Circle()
+                .fill(badgeFill)
+                .overlay {
+                    Circle()
+                        .stroke(Color(.systemBackground), lineWidth: 2)
+                }
+
+            Image(systemName: badgeSymbolName)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(badgeSymbolStyle)
+                .accessibilityHidden(true)
+        }
+        .frame(width: 24, height: 24)
+    }
+
+    private var shortStageLabel: String {
+        "\(stage.chapterNumber)-\(stage.stageNumber)"
+    }
+
+    private var fullStageLabel: String {
         "Stage \(stage.chapterNumber)-\(stage.stageNumber)"
     }
 
     private var accessibilityLabel: String {
         switch state {
         case .active:
-            return "\(stageLabel), active \(stage.encounter.title)"
+            return "\(fullStageLabel), active \(stage.encounter.title)"
         case .completed, .justCompleted:
-            return "\(stageLabel), complete"
+            return "\(fullStageLabel), complete"
         case .future:
-            return "\(stageLabel), locked"
+            return "\(fullStageLabel), locked"
+        }
+    }
+
+    private var nodeSize: CGFloat {
+        switch state {
+        case .active:
+            return 74
+        case .completed, .justCompleted:
+            return 58
+        case .future:
+            return 54
+        }
+    }
+
+    private var nodeLabelFont: Font {
+        switch state {
+        case .active:
+            return .title3.weight(.bold)
+        case .completed, .justCompleted, .future:
+            return .headline.weight(.bold)
         }
     }
 
@@ -396,61 +561,158 @@ private struct StageNodeRow: View {
         }
     }
 
-    private var nodeSymbolStyle: Color {
+    private var nodeFill: Color {
         switch state {
         case .active:
-            return theme.tint
+            return theme.tint.opacity(0.18)
         case .completed, .justCompleted:
-            return theme.tint
+            return theme.tint.opacity(0.10)
         case .future:
-            return .secondary
+            return Color.secondary.opacity(0.08)
         }
     }
 
-    private var connectorStyle: Color {
+    private var nodeStroke: Color {
+        switch state {
+        case .active:
+            return theme.tint
+        case .completed, .justCompleted:
+            return theme.tint.opacity(0.55)
+        case .future:
+            return Color.secondary.opacity(0.22)
+        }
+    }
+
+    private var shadowColor: Color {
+        switch state {
+        case .active:
+            return theme.tint.opacity(0.24)
+        case .completed, .justCompleted, .future:
+            return .clear
+        }
+    }
+
+    private var shadowRadius: CGFloat {
+        state == .active ? 8 : 0
+    }
+
+    private var badgeSymbolName: String {
         switch state {
         case .completed, .justCompleted:
-            return theme.tint.opacity(0.45)
+            return "checkmark"
         case .active:
-            return theme.tint.opacity(0.25)
+            return stage.encounter.symbolName
+        case .future:
+            return "lock.fill"
+        }
+    }
+
+    private var badgeFill: Color {
+        switch state {
+        case .active, .completed, .justCompleted:
+            return theme.tint
         case .future:
             return Color.secondary.opacity(0.18)
         }
     }
 
-    private var backgroundStyle: Color {
+    private var badgeSymbolStyle: Color {
         switch state {
-        case .active:
-            return theme.tint.opacity(0.16)
-        case .completed, .justCompleted:
-            return Color.secondary.opacity(0.08)
+        case .active, .completed, .justCompleted:
+            return Color(.systemBackground)
         case .future:
-            return Color.secondary.opacity(0.05)
+            return .secondary
         }
     }
 }
 
-private struct LockedChapterPreview: View {
+private struct StagePathConnector: View {
+    let from: StagePathOffset
+    let to: StagePathOffset
+    let color: Color
+
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "lock.fill")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .frame(width: 28, height: 28)
-                .accessibilityHidden(true)
+        GeometryReader { geometry in
+            Path { path in
+                let start = CGPoint(x: geometry.size.width / 2 + from.x, y: 0)
+                let end = CGPoint(x: geometry.size.width / 2 + to.x, y: geometry.size.height)
+                path.move(to: start)
+                path.addCurve(
+                    to: end,
+                    control1: CGPoint(x: start.x, y: geometry.size.height * 0.42),
+                    control2: CGPoint(x: end.x, y: geometry.size.height * 0.58)
+                )
+            }
+            .stroke(
+                color,
+                style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [2, 8])
+            )
+        }
+        .frame(height: 42)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct StagePathContinuation: View {
+    let from: StagePathOffset
+
+    var body: some View {
+        VStack(spacing: 0) {
+            StagePathConnector(
+                from: from,
+                to: .center,
+                color: Color.secondary.opacity(0.14)
+            )
+
+            ForEach(0 ..< 3, id: \.self) { index in
+                Circle()
+                    .fill(Color.secondary.opacity(0.12 - Double(index) * 0.03))
+                    .frame(width: 5, height: 5)
+                    .padding(.vertical, 4)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+private struct LockedChapterGate: View {
+    let theme: ChapterTheme
+
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.secondary.opacity(0.08))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(Color.secondary.opacity(0.20), lineWidth: 1)
+                    }
+
+                Image(systemName: "lock.fill")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+            .frame(width: 74, height: 54)
 
             Text("Chapter 2")
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            Spacer()
+            Text("Locked")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(theme.tint.opacity(0.8))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color.secondary.opacity(0.05))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .frame(maxWidth: .infinity)
+        .padding(.top, 2)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("Chapter 2 Locked")
+    }
+}
+
+private extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 
