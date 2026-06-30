@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		004112EE5EE91CBC2EEA5BA2 /* ActionSpeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5D574FF1A0958BF3D7E629 /* ActionSpeed.swift */; };
 		037CC6DD35987E1069EC8E30 /* CloudKitPlayerSaveSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016D85608EE4392958B395C9 /* CloudKitPlayerSaveSync.swift */; };
+		05199F21B2C7BEFE363C846A /* BattleStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = F682AED23F59F64AFF864A3B /* BattleStep.swift */; };
 		0AC82612ECBE21174731AC5C /* PlayerSaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3059A4513D7515F092DA04DA /* PlayerSaveStore.swift */; };
 		0B90A40C6529B95C49576E45 /* JourneyContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5EA88828F72B5DA0CA525F /* JourneyContentTests.swift */; };
 		0FB570DC2519949443867F27 /* CombatantHealthDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */; };
@@ -294,6 +295,7 @@
 		F586133A7383F3D2E7BD70A8 /* music_battle_2.m4a */ = {isa = PBXFileReference; path = music_battle_2.m4a; sourceTree = "<group>"; };
 		F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailSheet.swift; sourceTree = "<group>"; };
 		F5D3EF948D89460BB07123D6 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
+		F682AED23F59F64AFF864A3B /* BattleStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleStep.swift; sourceTree = "<group>"; };
 		F84F536115F01471A0ED9BC2 /* BattleSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSmokeTests.swift; sourceTree = "<group>"; };
 		F86390BDE7F14CD4871091E4 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		F8D51B4459EF2745EE7B905B /* PlayerSaveSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncCoordinator.swift; sourceTree = "<group>"; };
@@ -719,6 +721,7 @@
 				F3B0BF2908CA3AB98FCCE560 /* ActiveBattleConfiguration.swift */,
 				6BEC9F4E5001820CB674DFC1 /* BattleSimulator.swift */,
 				E475EE13E1487D90C6976139 /* BattleState.swift */,
+				F682AED23F59F64AFF864A3B /* BattleStep.swift */,
 				2336A6145BC2BF1C5EEE6072 /* BattleVictorySummary.swift */,
 				89B84FDFE6027513E5DC73E8 /* SeededRandomNumberGenerator.swift */,
 				28EE3F0126FE07615AA25F11 /* SimulationResults.swift */,
@@ -907,6 +910,7 @@
 				D78954FC66153D11DB8496CE /* BattleSession.swift in Sources */,
 				5536F751338BCE35A0E116AA /* BattleSimulator.swift in Sources */,
 				8945939160C9ED005E596039 /* BattleState.swift in Sources */,
+				05199F21B2C7BEFE363C846A /* BattleStep.swift in Sources */,
 				B23C39B8E9A413269913DF5A /* BattleSubviews.swift in Sources */,
 				4C2EF603B37BAF4632847C75 /* BattleVictorySummary.swift in Sources */,
 				C3E58F33099DD44C027B4EF2 /* BattleView.swift in Sources */,

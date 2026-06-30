@@ -283,54 +283,60 @@ struct BattleState {
     }
 
     @discardableResult
-    mutating func performNextAction() -> [ActionEvent] {
-        guard !isBattleOver else { return [] }
+    mutating func advanceOneStep() -> BattleStep {
+        guard !isBattleOver else { return .ended(events: []) }
 
         tickCount += 1
         var events = applyAllEffectTicks()
 
-        guard !isBattleOver else {
+        if isBattleOver {
             appendDefeatLogIfNeeded()
             appendPartyDefeatLogIfNeeded()
-            return events
+            return .ended(events: events)
         }
 
-        for actor in readyCombatants() {
-            guard !isBattleOver else { break }
+        guard let actor = readyCombatants().first else {
+            return .effectsOnly(events: events)
+        }
 
-            if actor.role == .enemy, isEnemyDefeated { break }
+        if actor.role == .enemy, isEnemyDefeated {
+            return .effectsOnly(events: events)
+        }
 
-            let abilityTarget = actor.role == .enemy ? enemyAttackTarget : enemy
-            if hasActivePrevention(actor: actor) {
-                events.append(contentsOf: consumePrevention(for: actor))
-            } else {
-                events.append(contentsOf: performAction(actor: actor, abilityTarget: abilityTarget))
-            }
-
-            if isEnemyDefeated || isPartyDefeated { break }
+        let abilityTarget = actor.role == .enemy ? enemyAttackTarget : enemy
+        if hasActivePrevention(actor: actor) {
+            events.append(contentsOf: consumePrevention(for: actor))
+        } else {
+            events.append(contentsOf: performAction(actor: actor, abilityTarget: abilityTarget))
         }
 
         appendDefeatLogIfNeeded()
         appendPartyDefeatLogIfNeeded()
-        return events
+
+        if isBattleOver {
+            return .ended(events: events)
+        }
+
+        return .acted(actor, events: events)
     }
 
     private func readyCombatants() -> [Combatant] {
-        var ready: [(combatant: Combatant, interval: Int, order: Int)] = []
+        var ready: [(combatant: Combatant, interval: Int, order: Int, readyAtTick: Int)] = []
 
         if heroNextReadyAtTick <= tickCount, isHeroAlive {
-            ready.append((hero, heroActionSpeed.effectiveInterval, 0))
+            ready.append((hero, heroActionSpeed.effectiveInterval, 0, heroNextReadyAtTick))
         }
         if petNextReadyAtTick <= tickCount, isPetAlive {
-            ready.append((pet, petActionSpeed.effectiveInterval, 1))
+            ready.append((pet, petActionSpeed.effectiveInterval, 1, petNextReadyAtTick))
         }
         if enemyNextReadyAtTick <= tickCount, !isEnemyDefeated {
-            ready.append((enemy, enemyActionSpeed.effectiveInterval, 2))
+            ready.append((enemy, enemyActionSpeed.effectiveInterval, 2, enemyNextReadyAtTick))
         }
 
         return ready
             .sorted {
-                if $0.interval != $1.interval { return $0.interval < $1.interval }
+                if $0.readyAtTick != $1.readyAtTick { return $0.readyAtTick < $1.readyAtTick }
+                if $0.interval != $1.interval { return $0.interval > $1.interval }
                 return $0.order < $1.order
             }
             .map(\.combatant)

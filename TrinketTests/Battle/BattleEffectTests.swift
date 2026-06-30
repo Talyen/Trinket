@@ -14,7 +14,7 @@ final class BattleEffectTests: XCTestCase {
     private func performActions(_ count: Int, on battle: inout BattleState) -> [BattleState.ActionEvent] {
         var allEvents: [BattleState.ActionEvent] = []
         for _ in 0 ..< count {
-            allEvents.append(contentsOf: battle.performNextAction())
+            allEvents.append(contentsOf: battle.advanceOneStep().events)
         }
         return allEvents
     }
@@ -152,8 +152,39 @@ final class BattleEffectTests: XCTestCase {
         _ = performActions(5, on: &battle)
         XCTAssertFalse(battle.activeEnemyEffects.isEmpty)
 
-        let events = battle.performNextAction()
-        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped })
+        let step = battle.advanceOneStep()
+        if case let .acted(_, events) = step {
+            XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped })
+        } else {
+            XCTFail("Expected stunned enemy to act on tick 6")
+        }
+    }
+
+    func testStunClaimsItsOwnStep() {
+        let hero = passiveCombatant(id: "hero", name: "Hero", role: .hero)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .prevention(.stun, 1), remainingTicks: 1)
+            ]
+        )
+
+        for _ in 0 ..< 5 {
+            _ = battle.advanceOneStep()
+        }
+
+        let step = battle.advanceOneStep()
+        if case let .acted(actor, events) = step {
+            XCTAssertEqual(actor.id, enemy.id)
+            XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped })
+            XCTAssertFalse(events.contains { $0.kind == .ability })
+        } else {
+            XCTFail("Expected stunned enemy to claim its step")
+        }
     }
 
     // MARK: - Restoration
@@ -178,8 +209,8 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        _ = battle.performNextAction()
-        let events = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        let events = battle.advanceOneStep().events
 
         XCTAssertEqual(battle.heroHealth, 9)
         XCTAssertTrue(events.contains { $0.effectKind == .instantHeal && $0.floatingText == "+3 Health" })
@@ -199,8 +230,8 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        _ = battle.performNextAction()
-        let events = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        let events = battle.advanceOneStep().events
 
         XCTAssertEqual(battle.heroHealth, 6)
         XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
@@ -229,8 +260,8 @@ final class BattleEffectTests: XCTestCase {
             ]
         )
 
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        _ = battle.advanceOneStep()
 
         XCTAssertFalse(battle.activeHeroEffects.contains {
             if case .damageOverTime(.poison, _, _) = $0.effect { return true }
@@ -280,8 +311,9 @@ final class BattleEffectTests: XCTestCase {
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        _ = battle.advanceOneStep()
+        _ = battle.advanceOneStep()
 
         XCTAssertTrue(battle.activeEnemyEffects.contains {
             if case .mitigation(.armor, _, _) = $0.effect { return true }
@@ -301,17 +333,27 @@ final class BattleEffectTests: XCTestCase {
             abilities: [basic, skill, ultimate]
         )
         let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1000)
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 1000,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
         var heroAbilityNames: [String] = []
-        for _ in 0 ..< 12 {
-            let events = battle.performNextAction()
+        var safety = 0
+        while heroAbilityNames.count < 6, safety < 40 {
+            let step = battle.advanceOneStep()
             heroAbilityNames.append(
-                contentsOf: events
+                contentsOf: step.events
                     .filter { $0.actorName == "Hero" && $0.kind == .ability }
                     .map(\.abilityName)
             )
+            safety += 1
+            if battle.isBattleOver { break }
         }
 
         XCTAssertEqual(heroAbilityNames, ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
@@ -400,8 +442,8 @@ final class BattleEffectTests: XCTestCase {
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = battle.performNextAction()
-        let events = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        let events = battle.advanceOneStep().events
 
         XCTAssertTrue(events.contains { $0.floatingText == "+5 Block" })
         XCTAssertTrue(events.contains { $0.floatingText == "Cleanse Stun" } == false)
@@ -420,8 +462,8 @@ final class BattleEffectTests: XCTestCase {
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = battle.advanceOneStep()
+        _ = battle.advanceOneStep()
 
         XCTAssertTrue(battle.activeEnemyEffects.contains { $0.keyword == .poison })
     }

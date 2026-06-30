@@ -130,7 +130,7 @@ enum BattleSimulator {
         _ = rng
 
         while !battle.isBattleOver, battle.tickCount < tickLimit {
-            let tickEvents = battle.performNextAction()
+            let tickEvents = battle.advanceOneStep().events
             metricsAccumulator.record(tickEvents)
             if options.recordsEvents {
                 capturedEvents.append(contentsOf: tickEvents)

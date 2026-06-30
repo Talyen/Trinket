@@ -58,9 +58,9 @@ Enemy detail views use the shared combatant detail pattern and can show active c
 
 Abilities are the main source of combat actions and Keywords. Keep Abilities as rows inside combatant details for now. Do not create standalone Ability card detail screens until abilities need independent inspection, upgrades, or collection behavior.
 
-Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle: each combatant acts on its own action interval while the battle advances on a shared tick clock. When multiple combatants are ready on the same tick, their actions resolve sequentially (faster intervals first, then Hero, Pet, Enemy as tie-breakers). The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
+Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle on a shared tick clock. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
 
-Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Damage-over-time and other tick-based effects can fire on ticks where nobody acts.
+Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Damage-over-time and other tick-based effects can fire on steps where nobody acts.
 
 Implemented ability rules span the full `Effect` model (direct damage, damage over time, prevention, shields, mitigation, healing, leech, gold, cleanse). Legacy shorthand:
 

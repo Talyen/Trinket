@@ -22,7 +22,6 @@ struct BattleView: View {
     private let onVictoryContinue: ((Int) -> Void)?
     private let onShowCombatantDetail: (CombatantCardDetail) -> Void
     private let feedbackLifetime: TimeInterval = 1.0
-    private let maximumVisibleFeedbackEvents = 2
 
     @State private var victorySummary: BattleVictorySummary?
 
@@ -198,8 +197,8 @@ struct BattleView: View {
     private func advanceBattleTick() {
         guard canAutoAdvanceBattle else { return }
 
-        let events = battle.performNextAction()
-        events.forEach(appendFeedbackEvent)
+        let step = battle.advanceOneStep()
+        step.events.forEach(appendFeedbackEvent)
 
         if battle.isEnemyDefeated {
             victorySummary = makeVictorySummary()
@@ -211,7 +210,6 @@ struct BattleView: View {
 
     private func appendFeedbackEvent(_ event: BattleState.ActionEvent) {
         activeFeedbackEvents.append(event)
-        activeFeedbackEvents = Array(activeFeedbackEvents.suffix(maximumVisibleFeedbackEvents))
     }
 
     private func details(

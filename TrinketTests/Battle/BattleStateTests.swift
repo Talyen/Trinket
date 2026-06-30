@@ -5,23 +5,39 @@ final class BattleStateTests: XCTestCase {
     private lazy var defaultEnemy = GameContent.enemies.first!.combatant
     private lazy var wolfPet = GameContent.pets.first { $0.id == "wolf" }!
 
-    func testHeroAndPetActTogetherOnSecondTick() {
+    private func advance(_ battle: inout BattleState) -> BattleStep {
+        battle.advanceOneStep()
+    }
+
+    func testHeroActsOnSecondTickPetOnThird() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
 
-        _ = battle.performNextAction()
-        let events = battle.performNextAction()
-        let abilityActors = events.filter { $0.kind == .ability }.map(\.actorName)
+        _ = advance(&battle)
+        let heroStep = advance(&battle)
+        let petStep = advance(&battle)
 
-        XCTAssertEqual(abilityActors, ["Hero", "Pet"])
+        if case let .acted(actor, events) = heroStep {
+            XCTAssertEqual(actor.id, hero.id)
+            XCTAssertEqual(events.filter { $0.kind == .ability }.map(\.actorName), ["Hero"])
+        } else {
+            XCTFail("Expected hero step")
+        }
+
+        if case let .acted(actor, events) = petStep {
+            XCTAssertEqual(actor.id, pet.id)
+            XCTAssertEqual(events.filter { $0.kind == .ability }.map(\.actorName), ["Pet"])
+        } else {
+            XCTFail("Expected pet step")
+        }
     }
 
     func testEnemyHealthDecreasesOnHit() {
         var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
         let initial = battle.enemyHealth
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = advance(&battle)
+        _ = advance(&battle)
         XCTAssertLessThan(battle.enemyHealth, initial)
     }
 
@@ -33,13 +49,13 @@ final class BattleStateTests: XCTestCase {
 
     func testBurnDealsDamageForTwoTicksThenExpires() {
         var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy)
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
-        let firstTick = battle.performNextAction()
-        let hasBurnFirst = firstTick.contains { $0.floatingText == "-1 Burn" }
+        _ = advance(&battle)
+        _ = advance(&battle)
+        let firstTick = advance(&battle)
+        let hasBurnFirst = firstTick.events.contains { $0.floatingText == "-1 Burn" }
         XCTAssertTrue(hasBurnFirst)
-        let secondTick = battle.performNextAction()
-        let hasBurnSecond = secondTick.contains { $0.floatingText == "-1 Burn" }
+        let secondTick = advance(&battle)
+        let hasBurnSecond = secondTick.events.contains { $0.floatingText == "-1 Burn" }
         XCTAssertTrue(hasBurnSecond)
     }
 
@@ -49,7 +65,7 @@ final class BattleStateTests: XCTestCase {
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleState(hero: fragile, pet: helper, enemy: enemy)
         while !battle.isBattleOver {
-            _ = battle.performNextAction()
+            _ = advance(&battle)
         }
         XCTAssertTrue(battle.isPartyDefeated)
         XCTAssertFalse(battle.isEnemyDefeated)
@@ -95,15 +111,15 @@ final class BattleStateTests: XCTestCase {
     func testBattleTracksGoldFromResourceGains() throws {
         let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
         var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = advance(&battle)
+        _ = advance(&battle)
         XCTAssertEqual(battle.gold, 11)
     }
 
     func testInitialGoldReflectedInEarnedGold() {
         var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy, initialGold: 5)
-        _ = battle.performNextAction()
-        _ = battle.performNextAction()
+        _ = advance(&battle)
+        _ = advance(&battle)
         XCTAssertEqual(battle.earnedGold, battle.gold - 5)
     }
 
@@ -149,7 +165,7 @@ final class BattleStateTests: XCTestCase {
                 ActiveEffect(id: 2, effect: effect2, remainingTicks: 3)
             ]
         )
-        _ = battle.performNextAction()
+        _ = advance(&battle)
         let summaries = battle.enemyEffectSummaries
         let burnSummary = summaries.first { $0.keyword == .burn }
         let poisonSummary = summaries.first { $0.keyword == .poison }
@@ -157,19 +173,34 @@ final class BattleStateTests: XCTestCase {
         XCTAssertNotNil(poisonSummary)
     }
 
-    func testPetSkipsActionWhenHeroKillsEnemySameTick() {
+    func testPetSkipsActionWhenHeroKillsEnemySameStep() {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1)
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
-        _ = battle.performNextAction()
-        let events = battle.performNextAction()
-        let petActions = events.filter { $0.actorName == "Pet" && $0.kind == .ability }
+        _ = advance(&battle)
+        let heroStep = advance(&battle)
 
         XCTAssertTrue(battle.isEnemyDefeated)
-        XCTAssertTrue(petActions.isEmpty)
+        if case let .acted(actor, events) = heroStep {
+            XCTAssertEqual(actor.id, hero.id)
+            XCTAssertFalse(events.contains { $0.actorName == "Pet" && $0.kind == .ability })
+        } else if case let .ended(events) = heroStep {
+            XCTAssertFalse(events.contains { $0.actorName == "Pet" && $0.kind == .ability })
+        } else {
+            XCTFail("Expected hero to act before battle ended")
+        }
+
+        let petStep = advance(&battle)
+        if case .ended = petStep {
+            XCTAssertTrue(true)
+        } else if case let .acted(actor, _) = petStep {
+            XCTFail("Pet should not act after enemy defeat, got \(actor.name)")
+        } else {
+            XCTAssertTrue(battle.isBattleOver)
+        }
     }
 
     private var heroId: String {
