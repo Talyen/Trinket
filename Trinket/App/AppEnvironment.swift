@@ -27,14 +27,20 @@ struct AppEnvironment {
     }
 
     private static func load() -> AppEnvironment {
-        let args = ProcessInfo.processInfo.arguments
-        let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        parse(
+            arguments: ProcessInfo.processInfo.arguments,
+            environment: ProcessInfo.processInfo.environment
+        )
+    }
+
+    static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
+        let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
 
         let tab: AppTab? = {
-            guard let idx = args.firstIndex(of: "-selectedTab"),
-                  args.indices.contains(idx + 1)
+            guard let idx = arguments.firstIndex(of: "-selectedTab"),
+                  arguments.indices.contains(idx + 1)
             else { return nil }
-            let val = args[idx + 1].lowercased()
+            let val = arguments[idx + 1].lowercased()
             if val == "heroes" || val == "pets" || val == "inventory" {
                 return .collection
             }
@@ -42,10 +48,10 @@ struct AppEnvironment {
         }()
 
         let screen: LaunchScreen? = {
-            guard let idx = args.firstIndex(of: "-launch-screen"),
-                  args.indices.contains(idx + 1)
+            guard let idx = arguments.firstIndex(of: "-launch-screen"),
+                  arguments.indices.contains(idx + 1)
             else { return nil }
-            let val = args[idx + 1]
+            let val = arguments[idx + 1]
             let parts = val.split(separator: ":", maxSplits: 1).map(String.init)
             let kind = parts[0].lowercased()
             let id = parts.count == 2 ? parts[1] : ""
@@ -59,15 +65,15 @@ struct AppEnvironment {
             }
         }()
 
-        let reset = args.contains("-reset-state")
-        let seedTestProgress = args.contains("-seed-test-progress")
-        let disableCloudSync = args.contains("-disable-cloud-sync")
+        let reset = arguments.contains("-reset-state")
+        let seedTestProgress = arguments.contains("-seed-test-progress")
+        let disableCloudSync = arguments.contains("-disable-cloud-sync")
 
         let completedStageIDs: [String] = {
-            guard let idx = args.firstIndex(of: "-completed-stages"),
-                  args.indices.contains(idx + 1)
+            guard let idx = arguments.firstIndex(of: "-completed-stages"),
+                  arguments.indices.contains(idx + 1)
             else { return [] }
-            return args[idx + 1]
+            return arguments[idx + 1]
                 .split(separator: ",")
                 .map(String.init)
                 .filter { !$0.isEmpty }

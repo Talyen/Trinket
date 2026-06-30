@@ -12,15 +12,20 @@ final class AppState {
     var battle: BattleSession
     var journey: PlayerJourneyStore
 
-    init(playerSave: PlayerSaveStore? = nil, sync: (any PlayerSaveSyncing)? = nil) {
-        let env = AppEnvironment.shared
-        let fileStore = PlayerSaveFileStore()
+    init(
+        environment: AppEnvironment = .shared,
+        playerSave: PlayerSaveStore? = nil,
+        sync: (any PlayerSaveSyncing)? = nil,
+        fileStore: PlayerSaveFileStore? = nil
+    ) {
+        let env = environment
+        let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
         if env.resetState {
             UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-            fileStore.deleteSave()
+            resolvedFileStore.deleteSave()
         }
 
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: fileStore)
+        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
         if env.seedTestProgress {
             resolvedPlayerSave.applyTestSeed()
         }
