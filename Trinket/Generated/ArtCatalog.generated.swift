@@ -14,6 +14,17 @@ struct AbilityArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct ItemArtReference: Hashable {
+    let imageName: String
+    let thumbnailImageName: String?
+    let accessibilityLabel: String
+}
+
+struct SlotBackgroundArtReference: Hashable {
+    let imageName: String
+    let accessibilityLabel: String
+}
+
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
         "alchemist": CombatantArtReference(
@@ -462,6 +473,294 @@ enum ArtCatalog {
             accessibilityLabel: "Ability art for Wishing Well"
         ),
     ]
+
+    static let itemArtByID: [String: ItemArtReference] = [
+        "crossbow-astral": ItemArtReference(
+            imageName: "item_crossbow_astral",
+            thumbnailImageName: "item_crossbow_astral_thumb",
+            accessibilityLabel: "Item art for Crossbow (Astral)"
+        ),
+        "crossbow-basic": ItemArtReference(
+            imageName: "item_crossbow_basic",
+            thumbnailImageName: "item_crossbow_basic_thumb",
+            accessibilityLabel: "Item art for Crossbow (Basic)"
+        ),
+        "dagger-astral": ItemArtReference(
+            imageName: "item_dagger_astral",
+            thumbnailImageName: "item_dagger_astral_thumb",
+            accessibilityLabel: "Item art for Dagger (Astral)"
+        ),
+        "dagger-basic": ItemArtReference(
+            imageName: "item_dagger_basic",
+            thumbnailImageName: "item_dagger_basic_thumb",
+            accessibilityLabel: "Item art for Dagger (Basic)"
+        ),
+        "double_axe-astral": ItemArtReference(
+            imageName: "item_double_axe_astral",
+            thumbnailImageName: "item_double_axe_astral_thumb",
+            accessibilityLabel: "Item art for Double Axe (Astral)"
+        ),
+        "double_axe-basic": ItemArtReference(
+            imageName: "item_double_axe_basic",
+            thumbnailImageName: "item_double_axe_basic_thumb",
+            accessibilityLabel: "Item art for Double Axe (Basic)"
+        ),
+        "emerald_amulet-astral": ItemArtReference(
+            imageName: "item_emerald_amulet_astral",
+            thumbnailImageName: "item_emerald_amulet_astral_thumb",
+            accessibilityLabel: "Item art for Emerald Amulet (Astral)"
+        ),
+        "emerald_amulet-basic": ItemArtReference(
+            imageName: "item_emerald_amulet_basic",
+            thumbnailImageName: "item_emerald_amulet_basic_thumb",
+            accessibilityLabel: "Item art for Emerald Amulet (Basic)"
+        ),
+        "emerald_ring-astral": ItemArtReference(
+            imageName: "item_emerald_ring_astral",
+            thumbnailImageName: "item_emerald_ring_astral_thumb",
+            accessibilityLabel: "Item art for Emerald Ring (Astral)"
+        ),
+        "emerald_ring-basic": ItemArtReference(
+            imageName: "item_emerald_ring_basic",
+            thumbnailImageName: "item_emerald_ring_basic_thumb",
+            accessibilityLabel: "Item art for Emerald Ring (Basic)"
+        ),
+        "flail-astral": ItemArtReference(
+            imageName: "item_flail_astral",
+            thumbnailImageName: "item_flail_astral_thumb",
+            accessibilityLabel: "Item art for Flail (Astral)"
+        ),
+        "flail-basic": ItemArtReference(
+            imageName: "item_flail_basic",
+            thumbnailImageName: "item_flail_basic_thumb",
+            accessibilityLabel: "Item art for Flail (Basic)"
+        ),
+        "greatsword-astral": ItemArtReference(
+            imageName: "item_greatsword_astral",
+            thumbnailImageName: "item_greatsword_astral_thumb",
+            accessibilityLabel: "Item art for Greatsword (Astral)"
+        ),
+        "greatsword-basic": ItemArtReference(
+            imageName: "item_greatsword_basic",
+            thumbnailImageName: "item_greatsword_basic_thumb",
+            accessibilityLabel: "Item art for Greatsword (Basic)"
+        ),
+        "hatchet-astral": ItemArtReference(
+            imageName: "item_hatchet_astral",
+            thumbnailImageName: "item_hatchet_astral_thumb",
+            accessibilityLabel: "Item art for Hatchet (Astral)"
+        ),
+        "hatchet-basic": ItemArtReference(
+            imageName: "item_hatchet_basic",
+            thumbnailImageName: "item_hatchet_basic_thumb",
+            accessibilityLabel: "Item art for Hatchet (Basic)"
+        ),
+        "kite_shield-astral": ItemArtReference(
+            imageName: "item_kite_shield_astral",
+            thumbnailImageName: "item_kite_shield_astral_thumb",
+            accessibilityLabel: "Item art for Kite Shield (Astral)"
+        ),
+        "kite_shield-basic": ItemArtReference(
+            imageName: "item_kite_shield_basic",
+            thumbnailImageName: "item_kite_shield_basic_thumb",
+            accessibilityLabel: "Item art for Kite Shield (Basic)"
+        ),
+        "leather_armor-astral": ItemArtReference(
+            imageName: "item_leather_armor_astral",
+            thumbnailImageName: "item_leather_armor_astral_thumb",
+            accessibilityLabel: "Item art for Leather Armor (Astral)"
+        ),
+        "leather_armor-basic": ItemArtReference(
+            imageName: "item_leather_armor_basic",
+            thumbnailImageName: "item_leather_armor_basic_thumb",
+            accessibilityLabel: "Item art for Leather Armor (Basic)"
+        ),
+        "longbow-astral": ItemArtReference(
+            imageName: "item_longbow_astral",
+            thumbnailImageName: "item_longbow_astral_thumb",
+            accessibilityLabel: "Item art for Longbow (Astral)"
+        ),
+        "longbow-basic": ItemArtReference(
+            imageName: "item_longbow_basic",
+            thumbnailImageName: "item_longbow_basic_thumb",
+            accessibilityLabel: "Item art for Longbow (Basic)"
+        ),
+        "longsword-astral": ItemArtReference(
+            imageName: "item_longsword_astral",
+            thumbnailImageName: "item_longsword_astral_thumb",
+            accessibilityLabel: "Item art for Longsword (Astral)"
+        ),
+        "longsword-basic": ItemArtReference(
+            imageName: "item_longsword_basic",
+            thumbnailImageName: "item_longsword_basic_thumb",
+            accessibilityLabel: "Item art for Longsword (Basic)"
+        ),
+        "mace-astral": ItemArtReference(
+            imageName: "item_mace_astral",
+            thumbnailImageName: "item_mace_astral_thumb",
+            accessibilityLabel: "Item art for Mace (Astral)"
+        ),
+        "mace-basic": ItemArtReference(
+            imageName: "item_mace_basic",
+            thumbnailImageName: "item_mace_basic_thumb",
+            accessibilityLabel: "Item art for Mace (Basic)"
+        ),
+        "maul-astral": ItemArtReference(
+            imageName: "item_maul_astral",
+            thumbnailImageName: "item_maul_astral_thumb",
+            accessibilityLabel: "Item art for Maul (Astral)"
+        ),
+        "maul-basic": ItemArtReference(
+            imageName: "item_maul_basic",
+            thumbnailImageName: "item_maul_basic_thumb",
+            accessibilityLabel: "Item art for Maul (Basic)"
+        ),
+        "plate_armor-astral": ItemArtReference(
+            imageName: "item_plate_armor_astral",
+            thumbnailImageName: "item_plate_armor_astral_thumb",
+            accessibilityLabel: "Item art for Plate Armor (Astral)"
+        ),
+        "plate_armor-basic": ItemArtReference(
+            imageName: "item_plate_armor_basic",
+            thumbnailImageName: "item_plate_armor_basic_thumb",
+            accessibilityLabel: "Item art for Plate Armor (Basic)"
+        ),
+        "recurve_bow-astral": ItemArtReference(
+            imageName: "item_recurve_bow_astral",
+            thumbnailImageName: "item_recurve_bow_astral_thumb",
+            accessibilityLabel: "Item art for Recurve Bow (Astral)"
+        ),
+        "recurve_bow-basic": ItemArtReference(
+            imageName: "item_recurve_bow_basic",
+            thumbnailImageName: "item_recurve_bow_basic_thumb",
+            accessibilityLabel: "Item art for Recurve Bow (Basic)"
+        ),
+        "ruby_amulet-astral": ItemArtReference(
+            imageName: "item_ruby_amulet_astral",
+            thumbnailImageName: "item_ruby_amulet_astral_thumb",
+            accessibilityLabel: "Item art for Ruby Amulet (Astral)"
+        ),
+        "ruby_amulet-basic": ItemArtReference(
+            imageName: "item_ruby_amulet_basic",
+            thumbnailImageName: "item_ruby_amulet_basic_thumb",
+            accessibilityLabel: "Item art for Ruby Amulet (Basic)"
+        ),
+        "ruby_ring-astral": ItemArtReference(
+            imageName: "item_ruby_ring_astral",
+            thumbnailImageName: "item_ruby_ring_astral_thumb",
+            accessibilityLabel: "Item art for Ruby Ring (Astral)"
+        ),
+        "ruby_ring-basic": ItemArtReference(
+            imageName: "item_ruby_ring_basic",
+            thumbnailImageName: "item_ruby_ring_basic_thumb",
+            accessibilityLabel: "Item art for Ruby Ring (Basic)"
+        ),
+        "sapphire_amulet-astral": ItemArtReference(
+            imageName: "item_sapphire_amulet_astral",
+            thumbnailImageName: "item_sapphire_amulet_astral_thumb",
+            accessibilityLabel: "Item art for Sapphire Amulet (Astral)"
+        ),
+        "sapphire_amulet-basic": ItemArtReference(
+            imageName: "item_sapphire_amulet_basic",
+            thumbnailImageName: "item_sapphire_amulet_basic_thumb",
+            accessibilityLabel: "Item art for Sapphire Amulet (Basic)"
+        ),
+        "sapphire_ring-astral": ItemArtReference(
+            imageName: "item_sapphire_ring_astral",
+            thumbnailImageName: "item_sapphire_ring_astral_thumb",
+            accessibilityLabel: "Item art for Sapphire Ring (Astral)"
+        ),
+        "sapphire_ring-basic": ItemArtReference(
+            imageName: "item_sapphire_ring_basic",
+            thumbnailImageName: "item_sapphire_ring_basic_thumb",
+            accessibilityLabel: "Item art for Sapphire Ring (Basic)"
+        ),
+        "shortbow-astral": ItemArtReference(
+            imageName: "item_shortbow_astral",
+            thumbnailImageName: "item_shortbow_astral_thumb",
+            accessibilityLabel: "Item art for Shortbow (Astral)"
+        ),
+        "shortbow-basic": ItemArtReference(
+            imageName: "item_shortbow_basic",
+            thumbnailImageName: "item_shortbow_basic_thumb",
+            accessibilityLabel: "Item art for Shortbow (Basic)"
+        ),
+        "shortsword-astral": ItemArtReference(
+            imageName: "item_shortsword_astral",
+            thumbnailImageName: "item_shortsword_astral_thumb",
+            accessibilityLabel: "Item art for Shortsword (Astral)"
+        ),
+        "shortsword-basic": ItemArtReference(
+            imageName: "item_shortsword_basic",
+            thumbnailImageName: "item_shortsword_basic_thumb",
+            accessibilityLabel: "Item art for Shortsword (Basic)"
+        ),
+        "spellbook-astral": ItemArtReference(
+            imageName: "item_spellbook_astral",
+            thumbnailImageName: "item_spellbook_astral_thumb",
+            accessibilityLabel: "Item art for Spellbook (Astral)"
+        ),
+        "spellbook-basic": ItemArtReference(
+            imageName: "item_spellbook_basic",
+            thumbnailImageName: "item_spellbook_basic_thumb",
+            accessibilityLabel: "Item art for Spellbook (Basic)"
+        ),
+        "staff-astral": ItemArtReference(
+            imageName: "item_staff_astral",
+            thumbnailImageName: "item_staff_astral_thumb",
+            accessibilityLabel: "Item art for Staff (Astral)"
+        ),
+        "staff-basic": ItemArtReference(
+            imageName: "item_staff_basic",
+            thumbnailImageName: "item_staff_basic_thumb",
+            accessibilityLabel: "Item art for Staff (Basic)"
+        ),
+        "topaz_amulet-astral": ItemArtReference(
+            imageName: "item_topaz_amulet_astral",
+            thumbnailImageName: "item_topaz_amulet_astral_thumb",
+            accessibilityLabel: "Item art for Topaz Amulet (Astral)"
+        ),
+        "topaz_amulet-basic": ItemArtReference(
+            imageName: "item_topaz_amulet_basic",
+            thumbnailImageName: "item_topaz_amulet_basic_thumb",
+            accessibilityLabel: "Item art for Topaz Amulet (Basic)"
+        ),
+        "topaz_ring-astral": ItemArtReference(
+            imageName: "item_topaz_ring_astral",
+            thumbnailImageName: "item_topaz_ring_astral_thumb",
+            accessibilityLabel: "Item art for Topaz Ring (Astral)"
+        ),
+        "topaz_ring-basic": ItemArtReference(
+            imageName: "item_topaz_ring_basic",
+            thumbnailImageName: "item_topaz_ring_basic_thumb",
+            accessibilityLabel: "Item art for Topaz Ring (Basic)"
+        ),
+        "wand-astral": ItemArtReference(
+            imageName: "item_wand_astral",
+            thumbnailImageName: "item_wand_astral_thumb",
+            accessibilityLabel: "Item art for Wand (Astral)"
+        ),
+        "wand-basic": ItemArtReference(
+            imageName: "item_wand_basic",
+            thumbnailImageName: "item_wand_basic_thumb",
+            accessibilityLabel: "Item art for Wand (Basic)"
+        ),
+    ]
+
+    static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
+        .armor: SlotBackgroundArtReference(
+            imageName: "slot_armor",
+            accessibilityLabel: "Empty armor slot frame"
+        ),
+        .trinket: SlotBackgroundArtReference(
+            imageName: "slot_trinket",
+            accessibilityLabel: "Empty trinket slot frame"
+        ),
+        .weapon: SlotBackgroundArtReference(
+            imageName: "slot_weapon",
+            accessibilityLabel: "Empty weapon slot frame"
+        ),
+    ]
 }
 
 extension Combatant {
@@ -473,5 +772,17 @@ extension Combatant {
 extension Ability {
     var artReference: AbilityArtReference? {
         ArtCatalog.abilityArtByID[id]
+    }
+}
+
+extension InventoryItem {
+    var artReference: ItemArtReference? {
+        ArtCatalog.itemArtByID[id]
+    }
+}
+
+extension ItemSlot {
+    var slotBackgroundReference: SlotBackgroundArtReference? {
+        ArtCatalog.slotBackgroundArtByID[self]
     }
 }

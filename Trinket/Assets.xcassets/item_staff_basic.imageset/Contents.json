@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "item_staff_basic.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

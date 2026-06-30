@@ -24,14 +24,23 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## Commands & Verification
 
-- Scripts: `generate.sh`, `build.sh`, `test.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `./Scripts/test.sh style`.
-- Do NOT run the full UI suite (`./Scripts/test.sh ui` with no target) or `all` unless explicitly requested. Default to `./Scripts/test.sh`; use `./Scripts/build.sh` for minor UI tweaks.
-- Narrowly scoped UI tests are allowed when relevant, such as `./Scripts/test.sh ui SmokeCollectionTests/testHeroDetailOpens` or one specific XCUITest class/method. Prefer the smallest useful UI verification.
+- Scripts: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `./Scripts/test.sh style`.
+- Test tiers: **smoke** (per-screen, deep-link, fast) → **targeted full-UI** (one `TestClass`/`testMethod`) → **full UI suite** (deploy gate). Don't reach past the tier you actually need.
+- **UI iteration loop:** `./Scripts/test-iterate.sh`. With no args it runs smoke only. Pass `TestClass` or `TestClass/testMethod` (repeatable) to also run that targeted full-UI test, e.g. `./Scripts/test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests`. Add `--fast` to skip rebuild on re-runs.
+- **Deploy gate:** `./Scripts/test-deploy.sh` (style + unit + smoke + full UI). Run pre-merge / nightly, not during local iteration. `ci-locally.sh` remains the fast pre-push lane (style + unit + smoke).
+- Do NOT run the full UI suite (`./Scripts/test.sh ui` with no target) or `all` during local iteration. Use `test-iterate.sh` instead.
+- For minor UI tweaks, `./Scripts/build.sh` or `./Scripts/run-simulator.sh` + a screenshot is often enough before any tests.
 - After `project.yml`/target changes, run `./Scripts/generate.sh` before build/test.
 - Visual changes: `./Scripts/run-simulator.sh`; screenshots are allowed when useful. Agents may use focused simulator/XCUITest navigation and screenshot checks without asking first. Prefer interactive harness (e.g., Computer Use) and XCUITest over manual tapping.
 - Run `./Scripts/check-ui-style.sh` after UI styling changes.
 - Deterministic battle testing: `BattleSimulator` in `Trinket/BattleModels.swift`.
 - Run `./Scripts/ci-locally.sh` before pushing; keep generated build output and `.DerivedData/` out of Git.
 - Never hand-edit `.swiftlint.yml` rule severity without a project-wide reason noted here.
+
+## UI Test Conventions
+
+- New smoke tests go in `TrinketUITests/Smoke/`. Use `TestLaunchArg.allForScreen(...)` deep links (see `Trinket/App/AppEnvironment.swift:36`) to launch directly into the screen under test: `hero:<id>`, `pet:<id>`, `item:<id>`, `options`, `battle`. This skips tab-tap + animation waits and keeps smoke fast.
+- Full-UI multi-step flows go in `TrinketUITests/{Collection,Battle,Search}/` and walk the navigation explicitly. Reserve them for the deploy tier; they are not for iteration.
+- One assertion focus per test method. If a smoke test grows past ~20 lines or starts scrolling, split it.
 
 Harness: XcodeGen, `xcodebuild` scripts, XCTest, early XCUITest, SwiftLint, `check-ui-style.sh`.

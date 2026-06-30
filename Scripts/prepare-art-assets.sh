@@ -23,6 +23,8 @@ rm -rf "$asset_catalog"/hero_*.imageset(N)
 rm -rf "$asset_catalog"/pet_*.imageset(N)
 rm -rf "$asset_catalog"/enemy_*.imageset(N)
 rm -rf "$asset_catalog"/ability_*.imageset(N)
+rm -rf "$asset_catalog"/item_*.imageset(N)
+rm -rf "$asset_catalog"/slot_*.imageset(N)
 
 cat > "$asset_catalog/Contents.json" <<'JSON'
 {
@@ -35,6 +37,8 @@ JSON
 
 combatants_temp=$(mktemp)
 abilities_temp=$(mktemp)
+items_temp=$(mktemp)
+slot_backgrounds_temp=$(mktemp)
 processed_count=0
 
 escape_swift_string() {
@@ -50,7 +54,7 @@ heic_from_source() {
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -142,6 +146,28 @@ SWIFT
             accessibilityLabel: "$escaped_label"
         ),
 SWIFT
+  elif [[ "$kind" == "item" ]]; then
+    cat >> "$items_temp" <<SWIFT
+        "$escaped_id": ItemArtReference(
+            imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb",
+            accessibilityLabel: "$escaped_label"
+        ),
+SWIFT
+  elif [[ "$kind" == "slot_background" ]]; then
+    case "$id" in
+      weapon|armor|trinket) ;;
+      *)
+        echo "Slot background id '$id' must be one of: weapon, armor, trinket." >&2
+        exit 1
+        ;;
+    esac
+    cat >> "$slot_backgrounds_temp" <<SWIFT
+        .$id: SlotBackgroundArtReference(
+            imageName: "$escaped_asset",
+            accessibilityLabel: "$escaped_label"
+        ),
+SWIFT
   fi
 
   processed_count=$((processed_count + 1))
@@ -164,6 +190,17 @@ struct AbilityArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct ItemArtReference: Hashable {
+    let imageName: String
+    let thumbnailImageName: String?
+    let accessibilityLabel: String
+}
+
+struct SlotBackgroundArtReference: Hashable {
+    let imageName: String
+    let accessibilityLabel: String
+}
+
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
 $(cat "$combatants_temp")
@@ -171,6 +208,14 @@ $(cat "$combatants_temp")
 
     static let abilityArtByID: [String: AbilityArtReference] = [
 $(cat "$abilities_temp")
+    ]
+
+    static let itemArtByID: [String: ItemArtReference] = [
+$(cat "$items_temp")
+    ]
+
+    static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
+$(cat "$slot_backgrounds_temp")
     ]
 }
 
@@ -185,8 +230,20 @@ extension Ability {
         ArtCatalog.abilityArtByID[id]
     }
 }
+
+extension InventoryItem {
+    var artReference: ItemArtReference? {
+        ArtCatalog.itemArtByID[id]
+    }
+}
+
+extension ItemSlot {
+    var slotBackgroundReference: SlotBackgroundArtReference? {
+        ArtCatalog.slotBackgroundArtByID[self]
+    }
+}
 SWIFT
 
-rm -f "$combatants_temp" "$abilities_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp"
 
 echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."

@@ -24,7 +24,7 @@ struct CombatantDetailPane: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let baseHeaderHeight = max(geometry.size.height * 0.5, 300)
+            let baseHeaderHeight = max(geometry.size.width * 4.0 / 3.0, 300)
 
             ScrollView {
                 VStack(spacing: 0) {

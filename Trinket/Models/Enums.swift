@@ -44,6 +44,20 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
+enum Rarity: String, CaseIterable, Identifiable, Hashable {
+    case basic
+    case astral
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .basic: return "Basic"
+        case .astral: return "Astral"
+        }
+    }
+}
+
 enum AbilityTier: String, CaseIterable, Identifiable, Hashable {
     case basic = "Basic"
     case skill = "Skill"

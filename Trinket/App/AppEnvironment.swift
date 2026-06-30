@@ -38,14 +38,13 @@ struct AppEnvironment {
                   args.indices.contains(idx + 1)
             else { return nil }
             let val = args[idx + 1]
-            let parts = val.split(separator: ":", maxSplits: 1)
-            guard parts.count == 2 else { return nil }
-            let kind = String(parts[0]).lowercased()
-            let id = String(parts[1])
+            let parts = val.split(separator: ":", maxSplits: 1).map(String.init)
+            let kind = parts[0].lowercased()
+            let id = parts.count == 2 ? parts[1] : ""
             switch kind {
-            case "hero": return .heroDetail(id)
-            case "pet": return .petDetail(id)
-            case "item": return .itemDetail(id)
+            case "hero" where !id.isEmpty: return .heroDetail(id)
+            case "pet" where !id.isEmpty: return .petDetail(id)
+            case "item" where !id.isEmpty: return .itemDetail(id)
             case "options": return .options
             case "battle": return .battle
             default: return nil

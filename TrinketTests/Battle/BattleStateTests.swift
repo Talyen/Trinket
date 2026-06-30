@@ -167,6 +167,55 @@ final class BattleStateTests: XCTestCase {
         XCTAssertNil(loadout.itemID(for: .armor))
     }
 
+    func testLongswordBasicItemExposesArtAndDisplayName() {
+        let item = GameContent.sampleInventoryItems.first { $0.id == "longsword-basic" }
+
+        XCTAssertNotNil(item)
+        XCTAssertEqual(item?.displayName, "Longsword")
+        XCTAssertEqual(item?.rarity, .basic)
+        XCTAssertEqual(item?.baseType.slot, .weapon)
+        XCTAssertNotNil(item?.artReference)
+        XCTAssertEqual(item?.artReference?.imageName, "item_longsword_basic")
+        XCTAssertEqual(item?.affixes, [.placeholder])
+    }
+
+    func testSampleInventoryCoversAllRaritiesForEveryBaseType() {
+        let baseIDs = Set(GameContent.itemBaseTypes.map(\.id))
+        let itemIDs = Set(GameContent.sampleInventoryItems.map(\.id))
+
+        for base in baseIDs {
+            for rarity in Rarity.allCases {
+                XCTAssertTrue(
+                    itemIDs.contains("\(base)-\(rarity.rawValue)"),
+                    "Missing sample item for \(base) at \(rarity.label) rarity"
+                )
+            }
+        }
+    }
+
+    func testKnightStartsWithLongswordAndPlateArmor() {
+        let knight = GameContent.heroes.first { $0.id == "knight" }!
+        let loadout = PlayerRosterState.initial.equipmentLoadout(for: knight)
+        let inventory = PlayerInventoryState.initial
+
+        XCTAssertEqual(loadout.itemID(for: .weapon), "longsword-basic")
+        XCTAssertEqual(loadout.itemID(for: .armor), "plate_armor-basic")
+        XCTAssertNil(loadout.itemID(for: .trinket))
+
+        let weapon = inventory.item(matching: loadout.itemID(for: .weapon))
+        let armor = inventory.item(matching: loadout.itemID(for: .armor))
+        XCTAssertEqual(weapon?.displayName, "Longsword")
+        XCTAssertEqual(weapon?.rarity, .basic)
+        XCTAssertEqual(armor?.displayName, "Plate Armor")
+        XCTAssertEqual(armor?.rarity, .basic)
+    }
+
+    func testSlotBackgroundsAreWiredForEachItemSlot() {
+        for slot in ItemSlot.allCases {
+            XCTAssertNotNil(slot.slotBackgroundReference, "Missing slot background for \(slot.rawValue)")
+        }
+    }
+
     func testMissingEquippedInventoryItemResolvesAsEmpty() {
         let knight = GameContent.heroes[0]
         var rosterState = PlayerRosterState.initial

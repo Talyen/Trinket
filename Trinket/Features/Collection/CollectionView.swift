@@ -38,10 +38,7 @@ struct CollectionView: View {
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
                             Button {
-                                selectedCombatant = CombatantCollectionDetailSelection(
-                                    kind: .hero,
-                                    combatantID: combatant.id
-                                )
+                                selectedCombatant = CombatantCollectionDetailSelection(kind: .hero, combatantID: combatant.id)
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -75,10 +72,7 @@ struct CollectionView: View {
                     horizontalShelf {
                         ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
                             Button {
-                                selectedCombatant = CombatantCollectionDetailSelection(
-                                    kind: .pet,
-                                    combatantID: combatant.id
-                                )
+                                selectedCombatant = CombatantCollectionDetailSelection(kind: .pet, combatantID: combatant.id)
                             } label: {
                                 CombatantCard(combatant: combatant)
                                     .frame(width: 130)
@@ -110,7 +104,7 @@ struct CollectionView: View {
                     .accessibilityIdentifier("Inventory collection category")
 
                     horizontalShelf {
-                        ForEach(inventoryState.items) { item in
+                        ForEach(Array(inventoryState.items.prefix(12))) { item in
                             Button {
                                 selectedItem = item
                             } label: {

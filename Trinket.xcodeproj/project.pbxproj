@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0FB570DC2519949443867F27 /* CombatantHealthDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */; };
 		10420DB76B7753231EF5981D /* SearchSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E1A20AE7C8994B1A8D47C5 /* SearchSmokeTests.swift */; };
+		12CCECCD042C1F806951D0A9 /* HeroDetailSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F57B4F223357F6A22CCEEB /* HeroDetailSmokeTests.swift */; };
 		1A5DF46E565CA6F89A4FBC77 /* CombatantDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347BB1AB82B612306606BC5E /* CombatantDetail.swift */; };
 		1B17EF37C44E72F215CACD2F /* EmptySlots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA113D28663DD99A31408B3 /* EmptySlots.swift */; };
 		1DD13A8FE70A0115990D3F65 /* CombatantCollectionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87841683BEB70D6891DEFE69 /* CombatantCollectionDetailView.swift */; };
@@ -20,6 +21,7 @@
 		2F69665B3C9BED8030C553CE /* SeededRandomNumberGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B84FDFE6027513E5DC73E8 /* SeededRandomNumberGenerator.swift */; };
 		3300AE189FC1CA8B733509D2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4F5008156859F661347AEE /* AppEnvironment.swift */; };
 		3AB0340125D10F66A14E0CD4 /* PetsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */; };
+		5479F446045D68F22F43A5DF /* OptionsThemeSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */; };
 		5536F751338BCE35A0E116AA /* BattleSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEC9F4E5001820CB674DFC1 /* BattleSimulator.swift */; };
 		554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9644A89F778120278E7791 /* PlayView.swift */; };
 		5B18A0250A2237D41BE2D297 /* PlaceholderTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F4ECC4FED5B8FAF1266863 /* PlaceholderTabView.swift */; };
@@ -67,6 +69,8 @@
 		E74F7746473D291F0B93322F /* ActiveBattleConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0BF2908CA3AB98FCCE560 /* ActiveBattleConfiguration.swift */; };
 		EE30D7D59F6902A352FD35F8 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEC947E893452FC5D8E2081 /* OptionsView.swift */; };
 		EE6011AE2C0BE69860F552DF /* KeywordDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */; };
+		F502BFE43A9F6EEA4D8A2126 /* PetDetailSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EC930AB389358B739A2B97F /* PetDetailSmokeTests.swift */; };
+		F9A855C48174CD69565EC047 /* ItemDetailSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91849E69A56975176C347715 /* ItemDetailSmokeTests.swift */; };
 		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
 		FAA47725F11C48BC843A3EFD /* OptionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B491A0A9519D754A3DAAF9 /* OptionsStore.swift */; };
 		FB768D6C41E3CBA4B39F3A8F /* ItemSlotPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769E5E691395F845BABD973F /* ItemSlotPickerView.swift */; };
@@ -96,6 +100,7 @@
 		1869BF8BD4946DDA87CE066E /* HomesteadSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomesteadSmokeTests.swift; sourceTree = "<group>"; };
 		24A588423B8C52AF3D9FA851 /* CollectionSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSmokeTests.swift; sourceTree = "<group>"; };
 		24CA1D20B1A35114D2B61598 /* AbilitySummaryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilitySummaryGrid.swift; sourceTree = "<group>"; };
+		2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsThemeSmokeTests.swift; sourceTree = "<group>"; };
 		26AE7A325D5344AF030C3332 /* Combatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
 		28B17566A405416D98A55797 /* ArtCatalog.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtCatalog.generated.swift; sourceTree = "<group>"; };
 		28EE3F0126FE07615AA25F11 /* SimulationResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationResults.swift; sourceTree = "<group>"; };
@@ -126,7 +131,9 @@
 		86E45F04BF076FEE8AF6123D /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
 		87841683BEB70D6891DEFE69 /* CombatantCollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailView.swift; sourceTree = "<group>"; };
 		89B84FDFE6027513E5DC73E8 /* SeededRandomNumberGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandomNumberGenerator.swift; sourceTree = "<group>"; };
+		8EC930AB389358B739A2B97F /* PetDetailSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetDetailSmokeTests.swift; sourceTree = "<group>"; };
 		8F4F5008156859F661347AEE /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		91849E69A56975176C347715 /* ItemDetailSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemDetailSmokeTests.swift; sourceTree = "<group>"; };
 		91BF8380DB16DE532A84024C /* CombatantArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantArtwork.swift; sourceTree = "<group>"; };
 		9BA113D28663DD99A31408B3 /* EmptySlots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptySlots.swift; sourceTree = "<group>"; };
 		9EB54342F6A6FD993F1FBFCF /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
@@ -138,6 +145,7 @@
 		AFE3AE44DE2A80E47CDC90CD /* HeroesGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroesGridView.swift; sourceTree = "<group>"; };
 		B181BBF9AD2C8734B9A493B1 /* SearchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchUITests.swift; sourceTree = "<group>"; };
 		B6DB6E4E21780CF00DC3CC2B /* TabNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationUITests.swift; sourceTree = "<group>"; };
+		B6F57B4F223357F6A22CCEEB /* HeroDetailSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroDetailSmokeTests.swift; sourceTree = "<group>"; };
 		B71B79EAE04A82ABAD865742 /* AbilityCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityCard.swift; sourceTree = "<group>"; };
 		BCA51735A5B73B55C602985B /* TrinketDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketDesign.swift; sourceTree = "<group>"; };
 		BF4265C96C40FA204B6FBCF3 /* AbilityTierPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityTierPickerSheet.swift; sourceTree = "<group>"; };
@@ -406,8 +414,12 @@
 			children = (
 				F84F536115F01471A0ED9BC2 /* BattleSmokeTests.swift */,
 				24A588423B8C52AF3D9FA851 /* CollectionSmokeTests.swift */,
+				B6F57B4F223357F6A22CCEEB /* HeroDetailSmokeTests.swift */,
 				1869BF8BD4946DDA87CE066E /* HomesteadSmokeTests.swift */,
+				91849E69A56975176C347715 /* ItemDetailSmokeTests.swift */,
 				30B234F2C3D2BB67AE3BB31D /* OptionsSmokeTests.swift */,
+				2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */,
+				8EC930AB389358B739A2B97F /* PetDetailSmokeTests.swift */,
 				A9BAF344DA6508B76C0355DB /* PlaySmokeTests.swift */,
 				06E1A20AE7C8994B1A8D47C5 /* SearchSmokeTests.swift */,
 			);
@@ -623,9 +635,13 @@
 				5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */,
 				2A0E6AAEB50A8DFB7A7F3845 /* BattleSmokeTests.swift in Sources */,
 				2779168B15191088A3B97C78 /* CollectionSmokeTests.swift in Sources */,
+				12CCECCD042C1F806951D0A9 /* HeroDetailSmokeTests.swift in Sources */,
 				6D1EE9C6AFEC6E4608BB0BCB /* HomesteadSmokeTests.swift in Sources */,
+				F9A855C48174CD69565EC047 /* ItemDetailSmokeTests.swift in Sources */,
 				E33EB16F37A2F2F2AE2B5F92 /* LaunchScreenUITests.swift in Sources */,
 				89A9FC7452C718D9578C45AB /* OptionsSmokeTests.swift in Sources */,
+				5479F446045D68F22F43A5DF /* OptionsThemeSmokeTests.swift in Sources */,
+				F502BFE43A9F6EEA4D8A2126 /* PetDetailSmokeTests.swift in Sources */,
 				62EA2B3C00AA6E22255E0306 /* PlaySmokeTests.swift in Sources */,
 				10420DB76B7753231EF5981D /* SearchSmokeTests.swift in Sources */,
 				D4B6C64A1B6B6815884EDBAD /* SearchUITests.swift in Sources */,

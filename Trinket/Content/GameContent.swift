@@ -1,71 +1,45 @@
 enum GameContent {
-    static let itemBaseTypes = [
-        ItemBaseType(
-            id: "ember-wand",
-            name: "Ember Wand",
-            slot: .weapon,
-            symbolName: "wand.and.sparkles"
-        ),
-        ItemBaseType(
-            id: "leather-gloves",
-            name: "Leather Gloves",
-            slot: .armor,
-            symbolName: "hands.sparkles.fill"
-        ),
-        ItemBaseType(
-            id: "river-charm",
-            name: "River Charm",
-            slot: .trinket,
-            symbolName: "drop.fill"
-        ),
-        ItemBaseType(
-            id: "iron-sword",
-            name: "Iron Sword",
-            slot: .weapon,
-            symbolName: "sword.fill"
-        )
+    static let itemBaseTypes: [ItemBaseType] = [
+        ItemBaseType(id: "crossbow", name: "Crossbow", slot: .weapon),
+        ItemBaseType(id: "dagger", name: "Dagger", slot: .weapon),
+        ItemBaseType(id: "double_axe", name: "Double Axe", slot: .weapon),
+        ItemBaseType(id: "flail", name: "Flail", slot: .weapon),
+        ItemBaseType(id: "greatsword", name: "Greatsword", slot: .weapon),
+        ItemBaseType(id: "hatchet", name: "Hatchet", slot: .weapon),
+        ItemBaseType(id: "kite_shield", name: "Kite Shield", slot: .weapon),
+        ItemBaseType(id: "longbow", name: "Longbow", slot: .weapon),
+        ItemBaseType(id: "longsword", name: "Longsword", slot: .weapon),
+        ItemBaseType(id: "mace", name: "Mace", slot: .weapon),
+        ItemBaseType(id: "maul", name: "Maul", slot: .weapon),
+        ItemBaseType(id: "recurve_bow", name: "Recurve Bow", slot: .weapon),
+        ItemBaseType(id: "shortbow", name: "Shortbow", slot: .weapon),
+        ItemBaseType(id: "shortsword", name: "Shortsword", slot: .weapon),
+        ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon),
+        ItemBaseType(id: "staff", name: "Staff", slot: .weapon),
+        ItemBaseType(id: "wand", name: "Wand", slot: .weapon),
+        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor),
+        ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor),
+        ItemBaseType(id: "emerald_amulet", name: "Emerald Amulet", slot: .trinket),
+        ItemBaseType(id: "emerald_ring", name: "Emerald Ring", slot: .trinket),
+        ItemBaseType(id: "ruby_amulet", name: "Ruby Amulet", slot: .trinket),
+        ItemBaseType(id: "ruby_ring", name: "Ruby Ring", slot: .trinket),
+        ItemBaseType(id: "sapphire_amulet", name: "Sapphire Amulet", slot: .trinket),
+        ItemBaseType(id: "sapphire_ring", name: "Sapphire Ring", slot: .trinket),
+        ItemBaseType(id: "topaz_amulet", name: "Topaz Amulet", slot: .trinket),
+        ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .trinket)
     ]
 
-    static let sampleInventoryItems = [
-        InventoryItem(
-            id: "ember-wand",
-            baseType: itemBaseTypes[0],
-            displayName: "Kindled Ember Wand",
-            affixes: [
-                ItemAffix(id: "ember-wand-affix-1", title: "Warm Focus", description: "+3% fire-themed ability power."),
-                ItemAffix(id: "ember-wand-affix-2", title: "Bright Edge", description: "Basic attacks feel slightly sharper."),
-                ItemAffix(id: "ember-wand-affix-3", title: "Cinder Memory", description: "A reminder that item effects are visual-only for now.")
-            ]
-        ),
-        InventoryItem(
-            id: "leather-gloves",
-            baseType: itemBaseTypes[1],
-            displayName: "Patient Leather Gloves",
-            affixes: [
-                ItemAffix(id: "leather-gloves-affix-1", title: "Steady Grip", description: "+2 placeholder handling."),
-                ItemAffix(id: "leather-gloves-affix-2", title: "Soft Stitching", description: "Comfortable enough for long idle battles.")
-            ]
-        ),
-        InventoryItem(
-            id: "river-charm",
-            baseType: itemBaseTypes[2],
-            displayName: "River Charm of Sparks",
-            affixes: [
-                ItemAffix(id: "river-charm-affix-1", title: "Lucky Current", description: "+1 placeholder luck."),
-                ItemAffix(id: "river-charm-affix-2", title: "Blue Glimmer", description: "Adds a cool-toned visual identity."),
-                ItemAffix(id: "river-charm-affix-3", title: "Polished Loop", description: "Fits the shared Trinket slot."),
-                ItemAffix(id: "river-charm-affix-4", title: "Quiet Weight", description: "No combat effect is applied yet.")
-            ]
-        ),
-        InventoryItem(
-            id: "iron-sword",
-            baseType: itemBaseTypes[3],
-            displayName: "Plain Iron Sword",
-            affixes: [
-                ItemAffix(id: "iron-sword-affix-1", title: "Reliable", description: "A clean baseline weapon for layout testing.")
-            ]
-        )
-    ]
+    static let sampleInventoryItems: [InventoryItem] = itemBaseTypes.flatMap { base in
+        Rarity.allCases.map { rarity in
+            InventoryItem(
+                id: "\(base.id)-\(rarity.rawValue)",
+                baseType: base,
+                rarity: rarity,
+                displayName: base.name,
+                affixes: [.placeholder]
+            )
+        }
+    }
 
     static let heroes = [
         Combatant(

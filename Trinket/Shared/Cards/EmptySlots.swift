@@ -39,15 +39,16 @@ struct EmptyItemSlotCard: View {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    TrinketDesign.cardShape
-                        .fill(TrinketDesign.CardPlaceholderStyle.item.color.opacity(0.18))
+                    if let imageName = slot.slotBackgroundReference?.imageName {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        TrinketDesign.cardShape
+                            .fill(TrinketDesign.Colors.appBackground)
+                    }
                 }
-                .overlay {
-                    Image(systemName: TrinketDesign.CardPlaceholderStyle.item.symbolName)
-                        .font(.system(size: 38, weight: .semibold))
-                        .foregroundStyle(TrinketDesign.CardPlaceholderStyle.item.color)
-                        .accessibilityHidden(true)
-                }
+                .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
 
             Text("Empty \(slot.rawValue)")

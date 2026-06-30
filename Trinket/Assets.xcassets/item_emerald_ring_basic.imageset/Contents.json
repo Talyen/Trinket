@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "item_emerald_ring_basic.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

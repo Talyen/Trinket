@@ -46,16 +46,15 @@ struct PlayerRosterState: Equatable {
             ],
             equipmentLoadouts: [
                 "knight": EquipmentLoadout(itemIDsBySlot: [
-                    .weapon: "ember-wand",
-                    .armor: "leather-gloves",
-                    .trinket: "river-charm"
+                    .weapon: "longsword-basic",
+                    .armor: "plate_armor-basic"
                 ]),
                 "wizard": EquipmentLoadout(itemIDsBySlot: [
-                    .weapon: "ember-wand",
-                    .trinket: "river-charm"
+                    .weapon: "wand-basic",
+                    .trinket: "ruby_ring-basic"
                 ]),
                 "wolf": EquipmentLoadout(itemIDsBySlot: [
-                    .armor: "leather-gloves"
+                    .armor: "leather_armor-basic"
                 ])
             ]
         )

@@ -2,7 +2,6 @@ struct ItemBaseType: Identifiable, Equatable, Hashable {
     let id: String
     let name: String
     let slot: ItemSlot
-    let symbolName: String
 }
 
 struct ItemAffix: Identifiable, Equatable, Hashable {
@@ -11,9 +10,18 @@ struct ItemAffix: Identifiable, Equatable, Hashable {
     let description: String
 }
 
+extension ItemAffix {
+    static let placeholder = ItemAffix(
+        id: "placeholder",
+        title: "Placeholder",
+        description: "No effect yet."
+    )
+}
+
 struct InventoryItem: Identifiable, Equatable, Hashable {
     let id: String
     let baseType: ItemBaseType
+    let rarity: Rarity
     let displayName: String
     let affixes: [ItemAffix]
 }

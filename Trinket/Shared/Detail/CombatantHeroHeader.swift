@@ -12,10 +12,17 @@ struct CombatantHeroHeader: View {
 
             ZStack(alignment: .bottomLeading) {
                 CombatantArtwork(combatant: combatant)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(height: baseHeight + pullDistance, alignment: .top)
+                    .aspectRatio(3.0 / 4.0, contentMode: .fit)
                     .frame(maxWidth: .infinity)
-                    .clipped()
+
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.6)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 140)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                .allowsHitTesting(false)
 
                 VStack(alignment: .leading) {
                     titleBlock
@@ -25,6 +32,7 @@ struct CombatantHeroHeader: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(height: baseHeight + pullDistance)
+            .clipped()
             .offset(y: -pullDistance)
         }
         .frame(height: baseHeight)

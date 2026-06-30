@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "item_staff_astral.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
