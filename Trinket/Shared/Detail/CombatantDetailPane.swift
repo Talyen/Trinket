@@ -13,7 +13,7 @@ struct CombatantDetailPane: View {
     @Binding var inventoryState: PlayerInventoryState
     let allowsEditing: Bool
     var battleHealth: Int?
-    var activeStatusSummaries: [StatusSummary] = []
+    var activeEffectSummaries: [EffectSummary] = []
     var navigationChrome: CombatantDetailNavigationChrome = .visible
     @Binding var selectedItemSlot: ItemSlot?
 
@@ -41,9 +41,9 @@ struct CombatantDetailPane: View {
                             statRow("Health", value: "\(currentHealth)/\(combatant.maxHealth)")
                         }
 
-                        if !activeStatusSummaries.isEmpty {
+                        if !activeEffectSummaries.isEmpty {
                             section("Active Effects") {
-                                ForEach(activeStatusSummaries) { summary in
+                                ForEach(activeEffectSummaries) { summary in
                                     KeywordDescriptionText(text: summary.text)
                                         .font(.subheadline)
                                         .accessibilityElement(children: .combine)

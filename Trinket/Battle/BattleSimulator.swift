@@ -11,6 +11,8 @@ private struct BattleSimulationMetricsAccumulator {
                 abilityDamage += event.amount
             case .status:
                 statusDamage += event.amount
+            case .effect:
+                break
             }
 
             actorDamage[event.actorName, default: 0] += event.amount
@@ -151,14 +153,14 @@ enum BattleSimulator {
             tickCount: battle.tickCount,
             actionCount: battle.actionCount,
             finalEnemyHealth: battle.enemyHealth,
-            finalEnemyStatuses: battle.activeEnemyStatuses,
-            finalEnemyStatusSummaries: battle.enemyStatusSummaries,
+            finalEnemyEffects: battle.activeEnemyEffects,
+            finalEnemyEffectSummaries: battle.enemyEffectSummaries,
             finalHeroHealth: battle.heroHealth,
             finalPetHealth: battle.petHealth,
-            finalHeroStatuses: battle.activeHeroStatuses,
-            finalPetStatuses: battle.activePetStatuses,
-            finalHeroStatusSummaries: battle.heroStatusSummaries,
-            finalPetStatusSummaries: battle.petStatusSummaries,
+            finalHeroEffects: battle.activeHeroEffects,
+            finalPetEffects: battle.activePetEffects,
+            finalHeroEffectSummaries: battle.heroEffectSummaries,
+            finalPetEffectSummaries: battle.petEffectSummaries,
             metrics: metricsAccumulator.metrics,
             events: capturedEvents,
             log: capturedLog

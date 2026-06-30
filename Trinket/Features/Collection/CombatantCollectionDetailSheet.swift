@@ -73,7 +73,7 @@ struct CombatantCollectionDetailSheet: View {
             equipmentLoadout: .constant(detail.equipmentLoadout),
             allowsEditing: false,
             battleHealth: detail.health,
-            activeStatusSummaries: detail.activeStatusSummaries,
+            activeEffectSummaries: detail.activeEffectSummaries,
             navigationChrome: .hidden
         )
     }

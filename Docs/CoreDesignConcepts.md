@@ -67,30 +67,66 @@ Current item implementation is a visual-only stub. Inventory Items have a base t
 
 ## Keywords
 
-Keywords are the shared mechanic vocabulary across cards, abilities, enemies, items, affixes, and status effects. They should be player-facing fantasy terms, styled distinctly inline in descriptions, and backed by concrete rules only when those rules are implemented.
+Keywords are the shared mechanic vocabulary across cards, abilities, enemies, items, affixes, and status effects. They are player-facing fantasy terms, styled distinctly inline in descriptions, and backed by concrete rules.
 
-Every implemented Keyword has one universal visual identity. Its color and symbol should come from the centralized `Keyword.visualStyle` design token and be reused across inline descriptions, combat feedback, ability cards, item affixes, logs, and future detail surfaces. Do not introduce one-off Keyword colors in feature views.
+Every Keyword has one universal visual identity. Its color and symbol come from `Keyword.visualStyle` and are reused across inline descriptions, combat feedback, ability cards, item affixes, logs, and detail surfaces. Do not introduce one-off Keyword colors in feature views.
 
-Current Keywords:
+All Keywords are defined in `Trinket/Models/Enums.swift` and their mechanics are wired through the unified `Effect` model (`Trinket/Models/Ability.swift`).
 
-- `Physical`: baseline weapon or body damage. Implemented as direct damage.
-- `Burn`: fire damage over time. Implemented as independently stacking, enemy-only damage-over-time.
+### Damage Types (Keyword.category = .damageType)
 
-Early candidate Keywords:
+Used as `damageKeyword` on abilities. Direct damage is applied as the ability's `directDamage` value.
 
-- `Freeze`: action prevention or delay.
-- `Stun`: short interruption or skipped action.
-- `Block`: temporary damage prevention.
-- `Armor`: durable physical mitigation.
-- `Health`: survivability and restoration.
-- `Gold`: currency for shops or upgrades.
-- `Holy`: radiant or restorative power.
-- `Poison`: toxic damage over time or weakening.
-- `Bleed`: physical damage over time.
-- `Leech`: damage that restores the user.
-- `Nature`: growth, beasts, healing, roots, or wild magic.
+| Keyword | Color | SF Symbol | Rules |
+|---|---|---|---|
+| `Physical` | orange | `bolt.fill` | Direct weapon or body damage. |
+| `Burn` | red | `flame.fill` | Fire damage over time via `.damageOverTime`. |
+| `Poison` | dark green | `drop.triangle.fill` | Toxic damage over time via `.damageOverTime`. |
+| `Bleed` | dark red | `drop.fill` | Physical damage over time via `.damageOverTime`. |
+| `Holy` | pale gold | `sun.max.fill` | Radiant holy damage type. |
+| `Nature` | emerald | `leaf.fill` | Nature and growth damage type. |
 
-Do not implement all Keywords at once. Introduce them through actual abilities, enemies, items, and affixes as the battle loop needs them.
+### Prevention (Keyword.category = .prevention)
+
+| Keyword | Color | SF Symbol | Rules |
+|---|---|---|---|
+| `Stun` | yellow | `bolt.fill` | Prevents the target's next action. Applies via `.prevention`. Skip turn on schedule. |
+| `Freeze` | light blue | `snowflake` | Prevents the target's next action with cold. Same mechanics as Stun. |
+
+### Mitigation (Keyword.category = .mitigation)
+
+| Keyword | Color | SF Symbol | Rules |
+|---|---|---|---|
+| `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs all incoming damage (including DOTs) until buffer expires. |
+| `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming damage by a percentage. |
+
+### Restoration (Keyword.category = .restoration)
+
+| Keyword | Color | SF Symbol | Rules |
+|---|---|---|---|
+| `Health` | red | `heart.fill` | Instant health restoration via `.instantHeal`. Clamped to max health. |
+| `Leech` | magenta | `drop.fill` | Restores health to the attacker based on damage dealt via `.leech`. Applies `percent * damage` as healing. |
+
+### Resource (Keyword.category = .resource)
+
+| Keyword | Color | SF Symbol | Rules |
+|---|---|---|---|
+| `Gold` | amber | `dollarsign.circle.fill` | Currency gain via `.resourceGain`. Increments `BattleState.gold`. Persisted in `PlayerRosterState.gold`. |
+
+### Effect Model
+
+All keyword effects are represented by the `Effect` tagged union:
+
+- `.damageOverTime(keyword, tickDamage, durationTicks)` — deals `tickDamage` per tick, affected by shield/mitigation
+- `.prevention(keyword, durationTicks)` — skips the target's next `durationTicks` actions
+- `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
+- `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`
+- `.instantHeal(keyword, amount)` — immediately restores `amount` health (clamped to max)
+- `.leech(keyword, percent, durationTicks)` — restores `percent * damage` to the attacker on each hit
+- `.resourceGain(keyword, amount)` — immediately adds `amount` gold
+- `.cleanse(keyword?, durationTicks)` — removes active effects matching `keyword` (or all if nil) for `durationTicks`
+
+Abilities declare `effects: [Effect]`. The `BattleState` applies instant effects immediately and tracks duration-based effects as `ActiveEffect` instances on the relevant combatant.
 
 ## Cards And Details
 

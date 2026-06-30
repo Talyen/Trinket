@@ -4,7 +4,7 @@ struct CombatantCardDetail: Hashable, Identifiable {
     let equipmentLoadout: EquipmentLoadout
     let inventoryState: PlayerInventoryState
     let health: Int
-    let activeStatusSummaries: [StatusSummary]
+    let activeEffectSummaries: [EffectSummary]
 
     var id: String { combatant.id }
 
@@ -15,7 +15,7 @@ struct CombatantCardDetail: Hashable, Identifiable {
             equipmentLoadout: EquipmentLoadout(),
             inventoryState: .initial,
             health: combatant.maxHealth,
-            activeStatusSummaries: []
+            activeEffectSummaries: []
         )
     }
 }

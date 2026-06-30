@@ -60,14 +60,14 @@ struct BattleSimulationResult: Equatable {
     let tickCount: Int
     let actionCount: Int
     let finalEnemyHealth: Int
-    let finalEnemyStatuses: [ActiveStatus]
-    let finalEnemyStatusSummaries: [StatusSummary]
+    let finalEnemyEffects: [ActiveEffect]
+    let finalEnemyEffectSummaries: [EffectSummary]
     let finalHeroHealth: Int
     let finalPetHealth: Int
-    let finalHeroStatuses: [ActiveStatus]
-    let finalPetStatuses: [ActiveStatus]
-    let finalHeroStatusSummaries: [StatusSummary]
-    let finalPetStatusSummaries: [StatusSummary]
+    let finalHeroEffects: [ActiveEffect]
+    let finalPetEffects: [ActiveEffect]
+    let finalHeroEffectSummaries: [EffectSummary]
+    let finalPetEffectSummaries: [EffectSummary]
     let metrics: BattleSimulationMetrics
     let events: [BattleState.ActionEvent]
     let log: [BattleState.LogEntry]

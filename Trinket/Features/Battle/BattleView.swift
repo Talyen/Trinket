@@ -140,65 +140,27 @@ struct BattleView: View {
             let partyWidth = (availableWidth - spacing) * 0.45
 
             VStack(spacing: spacing) {
-                ZStack(alignment: .top) {
-                    CombatantStatusCard(
-                        combatant: battle.enemy,
-                        health: battle.enemyHealth,
-                        maxHealth: battle.enemy.maxHealth,
-                        prominence: .enemy,
-                        cardWidth: enemyWidth,
-                        showsText: false,
-                        isPaused: isBattlePaused
-                    ) {
-                        onShowCombatantDetail(details(
-                            for: battle.enemy,
-                            health: battle.enemyHealth,
-                            activeStatusSummaries: battle.enemyStatusSummaries
-                        ))
-                    }
-
-                    CombatFeedbackOverlay(
-                        events: activeFeedbackEvents,
-                        reduceMotion: reduceMotion,
-                        onRemoveEvent: { id in
-                            activeFeedbackEvents.removeAll { $0.id == id }
-                        }
-                    )
-                    .padding(.top, 10)
-                }
+                cardWithOverlay(
+                    combatant: battle.enemy,
+                    health: battle.enemyHealth,
+                    cardWidth: enemyWidth,
+                    isEnemy: true
+                )
 
                 HStack(alignment: .top, spacing: spacing) {
-                    CombatantStatusCard(
+                    cardWithOverlay(
                         combatant: battle.hero,
                         health: battle.heroHealth,
-                        maxHealth: battle.hero.maxHealth,
-                        prominence: .party,
                         cardWidth: partyWidth,
-                        showsText: false,
-                        isPaused: isBattlePaused
-                    ) {
-                        onShowCombatantDetail(details(
-                            for: battle.hero,
-                            health: battle.heroHealth,
-                            activeStatusSummaries: battle.heroStatusSummaries
-                        ))
-                    }
+                        isEnemy: false
+                    )
 
-                    CombatantStatusCard(
+                    cardWithOverlay(
                         combatant: battle.pet,
                         health: battle.petHealth,
-                        maxHealth: battle.pet.maxHealth,
-                        prominence: .party,
                         cardWidth: partyWidth,
-                        showsText: false,
-                        isPaused: isBattlePaused
-                    ) {
-                        onShowCombatantDetail(details(
-                            for: battle.pet,
-                            health: battle.petHealth,
-                            activeStatusSummaries: battle.petStatusSummaries
-                        ))
-                    }
+                        isEnemy: false
+                    )
                 }
             }
             .padding(20)
@@ -234,7 +196,7 @@ struct BattleView: View {
     private func details(
         for combatant: Combatant,
         health: Int,
-        activeStatusSummaries: [StatusSummary]
+        activeEffectSummaries: [EffectSummary]
     ) -> CombatantCardDetail {
         CombatantCardDetail(
             combatant: combatant,
@@ -242,8 +204,41 @@ struct BattleView: View {
             equipmentLoadout: equipmentLoadout(for: combatant),
             inventoryState: inventoryState,
             health: health,
-            activeStatusSummaries: activeStatusSummaries
+            activeEffectSummaries: activeEffectSummaries
         )
+    }
+
+    private func cardWithOverlay(combatant: Combatant, health: Int, cardWidth: CGFloat, isEnemy: Bool) -> some View {
+        ZStack(alignment: .top) {
+            CombatantStatusCard(
+                combatant: combatant,
+                health: health,
+                maxHealth: combatant.maxHealth,
+                prominence: isEnemy ? .enemy : .party,
+                cardWidth: cardWidth,
+                showsText: false,
+                isPaused: isBattlePaused
+            ) {
+                onShowCombatantDetail(details(
+                    for: combatant,
+                    health: health,
+                    activeEffectSummaries: combatant.id == battle.enemy.id
+                        ? battle.enemyEffectSummaries
+                        : combatant.id == battle.hero.id
+                        ? battle.heroEffectSummaries
+                        : battle.petEffectSummaries
+                ))
+            }
+
+            CombatFeedbackOverlay(
+                events: activeFeedbackEvents.filter { $0.targetID == combatant.id },
+                reduceMotion: reduceMotion,
+                onRemoveEvent: { id in
+                    activeFeedbackEvents.removeAll { $0.id == id }
+                }
+            )
+            .padding(.top, 10)
+        }
     }
 
     private func progression(for combatant: Combatant) -> CombatantProgression {

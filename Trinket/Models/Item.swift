@@ -8,13 +8,15 @@ struct ItemAffix: Identifiable, Equatable, Hashable {
     let id: String
     let title: String
     let description: String
+    let effect: Effect?
 }
 
 extension ItemAffix {
     static let placeholder = ItemAffix(
         id: "placeholder",
         title: "Placeholder",
-        description: "No effect yet."
+        description: "No effect yet.",
+        effect: nil
     )
 }
 

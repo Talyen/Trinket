@@ -21,6 +21,7 @@ struct PlayerRosterState: Equatable {
     var abilityLoadouts: [String: AbilityLoadout]
     var progressions: [String: CombatantProgression]
     var equipmentLoadouts: [String: EquipmentLoadout]
+    var gold: Int = 0
 
     static var initial: PlayerRosterState {
         PlayerRosterState(
