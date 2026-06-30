@@ -2,7 +2,7 @@ import XCTest
 
 final class SmokeCollectionTests: TrinketUITestCase {
     func testCollectionScreenRenders() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Collection"].tap()
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
@@ -10,7 +10,7 @@ final class SmokeCollectionTests: TrinketUITestCase {
     }
 
     func testHeroesGridRenders() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Collection"].tap()
         app.buttons["Heroes collection category"].tap()
         assertExists("Knight collection card")
@@ -19,7 +19,7 @@ final class SmokeCollectionTests: TrinketUITestCase {
     }
 
     func testHeroDetailOpens() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Collection"].tap()
         app.buttons["Heroes collection category"].tap()
         app.buttons["Knight collection card"].tap()

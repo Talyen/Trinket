@@ -3,13 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppState.self) private var appState
 
-    init() {
-        let env = AppEnvironment.shared
-        if env.resetState {
-            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-        }
-    }
-
     var body: some View {
         @Bindable var state = appState
 

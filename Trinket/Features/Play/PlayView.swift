@@ -161,15 +161,21 @@ struct PlayView: View {
     }
 
     private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant) {
+        var roster = appState.roster.current
+        var inventory = appState.inventory.current
+        var journey = appState.journey.current
         StageCompletion.complete(
             stage,
             hero: hero,
             pet: pet,
             in: chapters,
-            roster: &appState.roster.current,
-            inventory: &appState.inventory.current,
-            journey: &appState.journey.current
+            roster: &roster,
+            inventory: &inventory,
+            journey: &journey
         )
+        appState.roster.current = roster
+        appState.inventory.current = inventory
+        appState.journey.current = journey
         pendingScrollTarget = appState.journey.current.activeStageID ?? "chapter-2-locked"
     }
 

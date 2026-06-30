@@ -2,9 +2,7 @@ import XCTest
 
 final class SmokeBattleTests: TrinketUITestCase {
     func testBattleStartsWithPresetOneShot() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState
-        ])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.buttons["Stage 1-1 Node"].tap()
         assertExists("Battle Button")
         app.buttons["Battle Button"].tap()
@@ -18,9 +16,7 @@ final class SmokeBattleTests: TrinketUITestCase {
     }
 
     func testBattleCombatDetailsOpenViaSheet() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState
-        ])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.buttons["Stage 1-1 Node"].tap()
         assertExists("Battle Button")
         app.buttons["Battle Button"].tap()

@@ -1,6 +1,7 @@
 import XCTest
 @testable import Trinket
 
+@MainActor
 final class JourneyProgressTests: XCTestCase {
     private var chapter: Chapter {
         GameContent.chapters[0]
@@ -86,15 +87,17 @@ final class JourneyProgressTests: XCTestCase {
     }
 
     func testJourneyStorePersistsProgress() throws {
-        let suiteName = "JourneyProgressTests.\(UUID().uuidString)"
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
-        defaults.removePersistentDomain(forName: suiteName)
-        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("JourneyProgressTests.\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directoryURL) }
 
-        let firstStore = PlayerJourneyStore(defaults: defaults)
+        let fileStore = PlayerSaveFileStore(directoryURL: directoryURL)
+        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let firstStore = PlayerJourneyStore(saveStore: saveStore)
         firstStore.complete(chapter.stages[0], in: GameContent.chapters)
 
-        let secondStore = PlayerJourneyStore(defaults: defaults)
+        let secondStore = PlayerJourneyStore(saveStore: PlayerSaveStore(fileStore: fileStore))
         XCTAssertEqual(secondStore.current.activeStageID, "chapter-1-stage-2")
         XCTAssertTrue(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))
     }

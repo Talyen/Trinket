@@ -2,13 +2,13 @@ import XCTest
 
 final class SmokeSearchTests: TrinketUITestCase {
     func testSearchTabExists() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Search"].tap()
         assertExists("Heroes, Pets, and Items")
     }
 
     func testSearchFindsPaladin() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Search"].tap()
 
         let searchField = app.searchFields.firstMatch

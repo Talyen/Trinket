@@ -2,7 +2,7 @@ import XCTest
 
 final class TabNavigationUITests: TrinketUITestCase {
     func testTabNavigationAndInspectionFlow() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         assertExists("Play")
 
@@ -88,7 +88,7 @@ final class TabNavigationUITests: TrinketUITestCase {
     }
 
     func testInventoryGridLayout() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
         app.tabBars.buttons["Collection"].tap()
         assertExists("Inventory collection category")
         app.buttons["Inventory collection category"].tap()
@@ -99,9 +99,7 @@ final class TabNavigationUITests: TrinketUITestCase {
     }
 
     func testOptionsAndColorSchemeSelection() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState
-        ])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         assertExists("Play")
         app.tabBars.buttons["Options"].tap()

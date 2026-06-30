@@ -6,17 +6,20 @@ struct AppEnvironment {
     let launchTab: AppTab?
     let launchScreen: LaunchScreen?
     let resetState: Bool
+    let seedTestProgress: Bool
     let completedStageIDs: [String]
 
     private init(
         launchTab: AppTab?,
         launchScreen: LaunchScreen?,
         resetState: Bool,
+        seedTestProgress: Bool,
         completedStageIDs: [String]
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
         self.resetState = resetState
+        self.seedTestProgress = seedTestProgress
         self.completedStageIDs = completedStageIDs
     }
 
@@ -53,6 +56,7 @@ struct AppEnvironment {
         }()
 
         let reset = args.contains("-reset-state")
+        let seedTestProgress = args.contains("-seed-test-progress")
 
         let completedStageIDs: [String] = {
             guard let idx = args.firstIndex(of: "-completed-stages"),
@@ -68,6 +72,7 @@ struct AppEnvironment {
             launchTab: tab,
             launchScreen: screen,
             resetState: reset,
+            seedTestProgress: seedTestProgress,
             completedStageIDs: completedStageIDs
         )
     }

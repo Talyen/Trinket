@@ -121,7 +121,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-enum Rarity: String, CaseIterable, Identifiable, Hashable {
+enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable {
     case basic
     case astral
 

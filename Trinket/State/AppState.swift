@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 @Observable
 final class AppState {
+    let playerSave: PlayerSaveStore
     var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
@@ -10,18 +11,31 @@ final class AppState {
     var battle: BattleSession
     var journey: PlayerJourneyStore
 
-    init() {
+    init(playerSave: PlayerSaveStore? = nil) {
         let env = AppEnvironment.shared
+        let fileStore = PlayerSaveFileStore()
         if env.resetState {
             UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            fileStore.deleteSave()
         }
-        roster = PlayerRosterStore()
-        inventory = PlayerInventoryStore()
+
+        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: fileStore)
+        if env.seedTestProgress {
+            resolvedPlayerSave.applyTestSeed()
+        }
+
+        self.playerSave = resolvedPlayerSave
+        roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
+        inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
         options = OptionsStore()
         battle = BattleSession()
-        journey = PlayerJourneyStore()
+        journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
+    }
+
+    func resetGameplayProgress() {
+        playerSave.resetGameplayProgress()
     }
 
     private func seedJourneyProgress(completedStageIDs: [String]) {

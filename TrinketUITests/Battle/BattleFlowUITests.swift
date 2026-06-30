@@ -2,9 +2,7 @@ import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
     func testBattleFlowAndCombatLoops() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState
-        ])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         assertExists("Play")
         app.buttons["Stage 1-1 Node"].tap()

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CombatantProgression: Equatable, Hashable {
+struct CombatantProgression: Equatable, Hashable, Codable {
     let level: Int
     let currentXP: Int
     let requiredXP: Int

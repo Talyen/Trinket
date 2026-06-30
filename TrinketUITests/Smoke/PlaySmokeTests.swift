@@ -2,7 +2,7 @@ import XCTest
 
 final class SmokePlayTests: TrinketUITestCase {
     func testPlayMapRendersChapterOne() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         assertExists("Play")
         assertExists("The Verdant Forest")
@@ -11,7 +11,7 @@ final class SmokePlayTests: TrinketUITestCase {
     }
 
     func testActiveStagePreviewAppears() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         app.buttons["Stage 1-1 Node"].tap()
 
@@ -28,7 +28,7 @@ final class SmokePlayTests: TrinketUITestCase {
     }
 
     func testFutureStageShowsLockedFeedback() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         app.buttons["Stage 1-2 Node"].tap()
 
@@ -38,9 +38,7 @@ final class SmokePlayTests: TrinketUITestCase {
     }
 
     func testNonBattleStubStageCanComplete() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState
-        ] + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
+        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
 
         app.buttons["Stage 1-2 Node"].tap()
         assertExists("Stage Preview Header")

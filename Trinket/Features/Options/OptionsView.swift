@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OptionsView: View {
     @Environment(AppState.self) private var appState
+    @State private var isResetConfirmationPresented = false
 
     var body: some View {
         @Bindable var options = appState.options
@@ -39,6 +40,13 @@ struct OptionsView: View {
                 .accessibilityIdentifier("Haptics Toggle")
             }
 
+            Section("Game Data") {
+                Button("Reset Game Progress", role: .destructive) {
+                    isResetConfirmationPresented = true
+                }
+                .accessibilityIdentifier("Reset Game Progress Button")
+            }
+
             Section("About") {
                 LabeledContent("Version", value: appVersionText)
                 LabeledContent("Build", value: appBuildText)
@@ -47,6 +55,17 @@ struct OptionsView: View {
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
+        .confirmationDialog(
+            "Reset Game Progress?",
+            isPresented: $isResetConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Reset Game Progress", role: .destructive) {
+                appState.resetGameplayProgress()
+            }
+        } message: {
+            Text("This permanently deletes journey, roster, and inventory progress on this device. Settings are kept.")
+        }
     }
 
     private var appVersionText: String {

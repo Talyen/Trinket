@@ -1,8 +1,16 @@
 struct PlayerInventoryState: Equatable, Hashable {
     var items: [InventoryItem]
 
-    static var initial: PlayerInventoryState {
+    static var freshStart: PlayerInventoryState {
+        PlayerInventoryState(items: [])
+    }
+
+    static var testSeed: PlayerInventoryState {
         PlayerInventoryState(items: GameContent.sampleInventoryItems)
+    }
+
+    static var initial: PlayerInventoryState {
+        testSeed
     }
 
     func item(matching id: String?) -> InventoryItem? {
@@ -44,7 +52,18 @@ struct PlayerRosterState: Equatable {
     var equipmentLoadouts: [String: EquipmentLoadout]
     var gold: Int = 0
 
-    static var initial: PlayerRosterState {
+    static var freshStart: PlayerRosterState {
+        let combatantIDs = (GameContent.heroes + GameContent.pets).map(\.id)
+        return PlayerRosterState(
+            activeHeroID: GameContent.heroes.first?.id ?? "",
+            activePetID: GameContent.pets.first?.id ?? "",
+            abilityLoadouts: [:],
+            progressions: Dictionary(uniqueKeysWithValues: combatantIDs.map { ($0, CombatantProgression.initial) }),
+            equipmentLoadouts: [:]
+        )
+    }
+
+    static var testSeed: PlayerRosterState {
         PlayerRosterState(
             activeHeroID: GameContent.heroes.first?.id ?? "",
             activePetID: GameContent.pets.first?.id ?? "",
@@ -80,6 +99,10 @@ struct PlayerRosterState: Equatable {
                 ])
             ]
         )
+    }
+
+    static var initial: PlayerRosterState {
+        testSeed
     }
 
     func loadout(for combatant: Combatant) -> AbilityLoadout {

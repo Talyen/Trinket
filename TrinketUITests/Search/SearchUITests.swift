@@ -2,7 +2,7 @@ import XCTest
 
 final class SearchUITests: TrinketUITestCase {
     func testSearchFlow() {
-        launchApp(arguments: [TestLaunchArg.resetState])
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         app.tabBars.buttons["Search"].tap()
         assertExists("Heroes, Pets, and Items")

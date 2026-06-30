@@ -1,8 +1,18 @@
 import SwiftUI
 
+@MainActor
 @Observable
 final class PlayerRosterStore {
-    var current: PlayerRosterState = .initial
+    private let saveStore: PlayerSaveStore
+
+    var current: PlayerRosterState {
+        get { saveStore.roster }
+        set { saveStore.roster = newValue }
+    }
+
+    init(saveStore: PlayerSaveStore) {
+        self.saveStore = saveStore
+    }
 
     var heroes: [Combatant] {
         current.configuredCombatants(GameContent.heroes)
@@ -21,7 +31,9 @@ final class PlayerRosterStore {
     }
 
     func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
-        current.setLoadout(loadout, for: combatant)
+        var updated = current
+        updated.setLoadout(loadout, for: combatant)
+        current = updated
     }
 
     func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
@@ -29,23 +41,33 @@ final class PlayerRosterStore {
     }
 
     func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
-        current.setEquipmentLoadout(loadout, for: combatant)
+        var updated = current
+        updated.setEquipmentLoadout(loadout, for: combatant)
+        current = updated
     }
 
     func setActiveHero(_ hero: Combatant) {
-        current.setActiveHero(hero)
+        var updated = current
+        updated.setActiveHero(hero)
+        current = updated
     }
 
     func setActivePet(_ pet: Combatant) {
-        current.setActivePet(pet)
+        var updated = current
+        updated.setActivePet(pet)
+        current = updated
     }
 
     func grantExperience(_ amount: Int, to combatant: Combatant) {
-        current.grantExperience(amount, to: combatant)
+        var updated = current
+        updated.grantExperience(amount, to: combatant)
+        current = updated
     }
 
     func grantGold(_ amount: Int) {
-        current.grantGold(amount)
+        var updated = current
+        updated.grantGold(amount)
+        current = updated
     }
 
     func equippedItem(for slot: ItemSlot, combatant: Combatant, inventory: PlayerInventoryState) -> InventoryItem? {

@@ -1,8 +1,18 @@
 import SwiftUI
 
+@MainActor
 @Observable
 final class PlayerInventoryStore {
-    var current: PlayerInventoryState = .initial
+    private let saveStore: PlayerSaveStore
+
+    var current: PlayerInventoryState {
+        get { saveStore.inventory }
+        set { saveStore.inventory = newValue }
+    }
+
+    init(saveStore: PlayerSaveStore) {
+        self.saveStore = saveStore
+    }
 
     var items: [InventoryItem] {
         current.items
@@ -17,6 +27,8 @@ final class PlayerInventoryStore {
     }
 
     func addRewardItem(from template: InventoryItem, for stage: Stage) {
-        current.addRewardItem(from: template, for: stage)
+        var updated = current
+        updated.addRewardItem(from: template, for: stage)
+        current = updated
     }
 }

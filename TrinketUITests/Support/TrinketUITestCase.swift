@@ -6,6 +6,8 @@ enum TestLaunchArg {
     }
 
     static let resetState = "-reset-state"
+    static let seedTestProgress = "-seed-test-progress"
+    static let testLaunchArgs = [resetState, seedTestProgress]
     static func screen(_ screen: String) -> [String] {
         ["-launch-screen", screen]
     }
@@ -15,13 +17,13 @@ enum TestLaunchArg {
     }
 
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
-        var args = reset ? [resetState] : []
+        var args = reset ? testLaunchArgs : []
         args.append(tab)
         return args
     }
 
     static func allForScreen(_ screen: String, reset: Bool = true) -> [String] {
-        var args = reset ? [resetState] : []
+        var args = reset ? testLaunchArgs : []
         args.append(contentsOf: self.screen(screen))
         return args
     }
