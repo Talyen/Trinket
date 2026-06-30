@@ -121,7 +121,7 @@ elif [[ "$MODE" == "ui" ]]; then
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit or ui mode."
-    echo "Usage: $0 [unit | ui | all | style] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
     exit 1
   fi
   echo "Running all tests..."
