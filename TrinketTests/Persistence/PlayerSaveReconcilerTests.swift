@@ -39,6 +39,11 @@ final class PlayerSaveReconcilerTests: XCTestCase {
         XCTAssertEqual(outcome, .keepLocal)
     }
 
+    func testBothMissingKeepsLocal() {
+        let outcome = PlayerSaveReconciler.reconcile(local: nil, remote: nil)
+        XCTAssertEqual(outcome, .keepLocal)
+    }
+
     private func makeSave(modifiedAt: Date) -> PlayerSave {
         PlayerSave(
             schemaVersion: PlayerSave.currentSchemaVersion,

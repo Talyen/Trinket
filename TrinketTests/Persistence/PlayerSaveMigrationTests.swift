@@ -112,4 +112,63 @@ final class PlayerSaveMigrationTests: XCTestCase {
         XCTAssertEqual(playerRoster.activeHeroID, PlayerRosterState.starterHeroID)
         XCTAssertEqual(playerRoster.activePetID, PlayerRosterState.starterPetID)
     }
+
+    func testMigrateV1SavePreservesPartialUnlocks() {
+        let v1Roster = SavedRosterState(
+            activeHeroID: "knight",
+            activePetID: "bear",
+            unlockedHeroIDs: ["knight", "wizard"],
+            unlockedPetIDs: ["bear"],
+            abilityLoadouts: [:],
+            progressions: ["knight": .initial],
+            equipmentLoadouts: [:],
+            gold: 8
+        )
+        let v1Save = PlayerSave(
+            schemaVersion: 1,
+            modifiedAt: .distantPast,
+            journey: .initial,
+            roster: v1Roster,
+            inventory: SavedInventoryState(.freshStart)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(v1Save)
+
+        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), ["knight", "wizard"])
+        XCTAssertEqual(migrated.roster.unlockedPetIDs, ["bear"])
+        XCTAssertEqual(migrated.roster.gold, 8)
+    }
+
+    func testUnsupportedSchemaVersionReturnsFresh() {
+        let unsupported = PlayerSave(
+            schemaVersion: 0,
+            modifiedAt: Date(),
+            journey: .initial,
+            roster: SavedRosterState(.testSeed),
+            inventory: SavedInventoryState(.testSeed)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(unsupported)
+
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertEqual(migrated.journey, .initial)
+        XCTAssertEqual(migrated.roster, SavedRosterState(.freshStart))
+        XCTAssertEqual(migrated.inventory, SavedInventoryState(.freshStart))
+    }
+
+    func testMigrateV2ToV3StampsModifiedAt() {
+        let v2Save = PlayerSave(
+            schemaVersion: 2,
+            modifiedAt: .distantPast,
+            journey: .initial,
+            roster: SavedRosterState(.freshStart),
+            inventory: SavedInventoryState(.freshStart)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(v2Save)
+
+        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertNotEqual(migrated.modifiedAt, .distantPast)
+    }
 }
