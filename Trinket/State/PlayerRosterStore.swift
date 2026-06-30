@@ -15,11 +15,27 @@ final class PlayerRosterStore {
     }
 
     var heroes: [Combatant] {
-        current.configuredCombatants(GameContent.heroes)
+        current.configuredCombatants(
+            GameContent.heroes.filter { current.isUnlocked($0) }
+        )
     }
 
     var pets: [Combatant] {
+        current.configuredCombatants(
+            GameContent.pets.filter { current.isUnlocked($0) }
+        )
+    }
+
+    var collectionHeroes: [Combatant] {
+        current.configuredCombatants(GameContent.heroes)
+    }
+
+    var collectionPets: [Combatant] {
         current.configuredCombatants(GameContent.pets)
+    }
+
+    func isUnlocked(_ combatant: Combatant) -> Bool {
+        current.isUnlocked(combatant)
     }
 
     func progression(for combatant: Combatant) -> CombatantProgression {

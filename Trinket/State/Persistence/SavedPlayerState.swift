@@ -103,18 +103,65 @@ struct SavedInventoryItem: Codable, Equatable {
 struct SavedRosterState: Codable, Equatable {
     var activeHeroID: String
     var activePetID: String
+    var unlockedHeroIDs: [String]
+    var unlockedPetIDs: [String]
     var abilityLoadouts: [String: SavedAbilityLoadout]
     var progressions: [String: CombatantProgression]
     var equipmentLoadouts: [String: SavedEquipmentLoadout]
     var gold: Int
 
+    enum CodingKeys: String, CodingKey {
+        case activeHeroID
+        case activePetID
+        case unlockedHeroIDs
+        case unlockedPetIDs
+        case abilityLoadouts
+        case progressions
+        case equipmentLoadouts
+        case gold
+    }
+
     init(_ roster: PlayerRosterState) {
         activeHeroID = roster.activeHeroID
         activePetID = roster.activePetID
+        unlockedHeroIDs = roster.unlockedHeroIDs.sorted()
+        unlockedPetIDs = roster.unlockedPetIDs.sorted()
         abilityLoadouts = roster.abilityLoadouts.mapValues(SavedAbilityLoadout.init)
         progressions = roster.progressions
         equipmentLoadouts = roster.equipmentLoadouts.mapValues(SavedEquipmentLoadout.init)
         gold = roster.gold
+    }
+
+    init(
+        activeHeroID: String,
+        activePetID: String,
+        unlockedHeroIDs: [String],
+        unlockedPetIDs: [String],
+        abilityLoadouts: [String: SavedAbilityLoadout],
+        progressions: [String: CombatantProgression],
+        equipmentLoadouts: [String: SavedEquipmentLoadout],
+        gold: Int
+    ) {
+        self.activeHeroID = activeHeroID
+        self.activePetID = activePetID
+        self.unlockedHeroIDs = unlockedHeroIDs
+        self.unlockedPetIDs = unlockedPetIDs
+        self.abilityLoadouts = abilityLoadouts
+        self.progressions = progressions
+        self.equipmentLoadouts = equipmentLoadouts
+        self.gold = gold
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        activeHeroID = try container.decode(String.self, forKey: .activeHeroID)
+        activePetID = try container.decode(String.self, forKey: .activePetID)
+        unlockedHeroIDs = try container.decodeIfPresent([String].self, forKey: .unlockedHeroIDs) ?? []
+        unlockedPetIDs = try container.decodeIfPresent([String].self, forKey: .unlockedPetIDs) ?? []
+        abilityLoadouts = try container.decode([String: SavedAbilityLoadout].self, forKey: .abilityLoadouts)
+        progressions = try container.decode([String: CombatantProgression].self, forKey: .progressions)
+        equipmentLoadouts = try container.decode([String: SavedEquipmentLoadout].self, forKey: .equipmentLoadouts)
+        gold = try container.decode(Int.self, forKey: .gold)
     }
 
     func roster(inventoryItemIDs: Set<String>) -> PlayerRosterState {
@@ -136,14 +183,20 @@ struct SavedRosterState: Codable, Equatable {
             resolvedEquipmentLoadouts[combatantID] = savedLoadout.loadout(inventoryItemIDs: inventoryItemIDs)
         }
 
-        let heroIDs = Set(GameContent.heroes.map(\.id))
-        let petIDs = Set(GameContent.pets.map(\.id))
-        let resolvedHeroID = heroIDs.contains(activeHeroID) ? activeHeroID : (GameContent.heroes.first?.id ?? "")
-        let resolvedPetID = petIDs.contains(activePetID) ? activePetID : (GameContent.pets.first?.id ?? "")
+        let unlockedHeroIDSet = Set(unlockedHeroIDs)
+        let unlockedPetIDSet = Set(unlockedPetIDs)
+        let resolvedHeroID = unlockedHeroIDSet.contains(activeHeroID)
+            ? activeHeroID
+            : (unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID)
+        let resolvedPetID = unlockedPetIDSet.contains(activePetID)
+            ? activePetID
+            : (unlockedPetIDs.first ?? PlayerRosterState.starterPetID)
 
         return PlayerRosterState(
             activeHeroID: resolvedHeroID,
             activePetID: resolvedPetID,
+            unlockedHeroIDs: unlockedHeroIDSet,
+            unlockedPetIDs: unlockedPetIDSet,
             abilityLoadouts: resolvedAbilityLoadouts,
             progressions: progressions,
             equipmentLoadouts: resolvedEquipmentLoadouts,

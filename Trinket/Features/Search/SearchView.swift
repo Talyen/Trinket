@@ -115,10 +115,10 @@ struct SearchView: View {
         inventoryState: PlayerInventoryState
     ) -> SearchResults {
         let matchingHeroes = rosterState.configuredCombatants(GameContent.heroes).filter {
-            $0.name.localizedCaseInsensitiveContains(query)
+            rosterState.isUnlocked($0) && $0.name.localizedCaseInsensitiveContains(query)
         }
         let matchingPets = rosterState.configuredCombatants(GameContent.pets).filter {
-            $0.name.localizedCaseInsensitiveContains(query)
+            rosterState.isUnlocked($0) && $0.name.localizedCaseInsensitiveContains(query)
         }
         let matchingItems = inventoryState.items.filter {
             $0.displayName.localizedCaseInsensitiveContains(query) ||

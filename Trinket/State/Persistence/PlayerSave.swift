@@ -1,7 +1,7 @@
 import Foundation
 
 struct PlayerSave: Codable, Equatable {
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     var schemaVersion: Int
     var journey: JourneyProgressState

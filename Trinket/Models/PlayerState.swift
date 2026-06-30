@@ -45,28 +45,39 @@ struct PlayerInventoryState: Equatable, Hashable {
 }
 
 struct PlayerRosterState: Equatable {
+    static let starterHeroID = "knight"
+    static let starterPetID = "bear"
+
     var activeHeroID: String
     var activePetID: String
+    var unlockedHeroIDs: Set<String>
+    var unlockedPetIDs: Set<String>
     var abilityLoadouts: [String: AbilityLoadout]
     var progressions: [String: CombatantProgression]
     var equipmentLoadouts: [String: EquipmentLoadout]
     var gold: Int = 0
 
     static var freshStart: PlayerRosterState {
-        let combatantIDs = (GameContent.heroes + GameContent.pets).map(\.id)
-        return PlayerRosterState(
-            activeHeroID: GameContent.heroes.first?.id ?? "",
-            activePetID: GameContent.pets.first?.id ?? "",
+        PlayerRosterState(
+            activeHeroID: starterHeroID,
+            activePetID: starterPetID,
+            unlockedHeroIDs: [starterHeroID],
+            unlockedPetIDs: [starterPetID],
             abilityLoadouts: [:],
-            progressions: Dictionary(uniqueKeysWithValues: combatantIDs.map { ($0, CombatantProgression.initial) }),
+            progressions: [
+                starterHeroID: .initial,
+                starterPetID: .initial
+            ],
             equipmentLoadouts: [:]
         )
     }
 
     static var testSeed: PlayerRosterState {
         PlayerRosterState(
-            activeHeroID: GameContent.heroes.first?.id ?? "",
-            activePetID: GameContent.pets.first?.id ?? "",
+            activeHeroID: starterHeroID,
+            activePetID: "wolf",
+            unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+            unlockedPetIDs: Set(GameContent.pets.map(\.id)),
             abilityLoadouts: [:],
             progressions: [
                 "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
@@ -105,6 +116,25 @@ struct PlayerRosterState: Equatable {
         testSeed
     }
 
+    func isUnlocked(_ combatant: Combatant) -> Bool {
+        switch combatant.role {
+        case .hero:
+            return unlockedHeroIDs.contains(combatant.id)
+        case .pet:
+            return unlockedPetIDs.contains(combatant.id)
+        case .enemy:
+            return false
+        }
+    }
+
+    func isHeroUnlocked(_ heroID: String) -> Bool {
+        unlockedHeroIDs.contains(heroID)
+    }
+
+    func isPetUnlocked(_ petID: String) -> Bool {
+        unlockedPetIDs.contains(petID)
+    }
+
     func loadout(for combatant: Combatant) -> AbilityLoadout {
         abilityLoadouts[combatant.id] ?? combatant.abilityLoadout
     }
@@ -135,10 +165,12 @@ struct PlayerRosterState: Equatable {
     }
 
     mutating func setActiveHero(_ hero: Combatant) {
+        guard isUnlocked(hero) else { return }
         activeHeroID = hero.id
     }
 
     mutating func setActivePet(_ pet: Combatant) {
+        guard isUnlocked(pet) else { return }
         activePetID = pet.id
     }
 

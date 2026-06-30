@@ -93,13 +93,7 @@ struct PlayerSaveFileStore {
     }
 
     private func migrated(_ save: PlayerSave) -> PlayerSave {
-        switch save.schemaVersion {
-        case PlayerSave.currentSchemaVersion:
-            return save
-        default:
-            logger.warning("Unsupported player save schema version \(save.schemaVersion, privacy: .public). Starting fresh.")
-            return .fresh
-        }
+        PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(save))
     }
 
     private func migrateLegacyUserDefaultsJourney() -> PlayerSave? {

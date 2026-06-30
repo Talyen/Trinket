@@ -9,22 +9,20 @@ struct PetsGridView: View {
     ]
 
     var body: some View {
-        let rosterState = appState.roster.current
-
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                        Button {
+                    ForEach(appState.roster.collectionPets) { combatant in
+                        CollectionCombatantButton(
+                            combatant: combatant,
+                            isLocked: !appState.roster.isUnlocked(combatant),
+                            cardWidth: nil
+                        ) {
                             selectedCombatant = CombatantCollectionDetailSelection(
                                 kind: .pet,
                                 combatantID: combatant.id
                             )
-                        } label: {
-                            CombatantCard(combatant: combatant)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("\(combatant.name) collection card")
                     }
                 }
             }

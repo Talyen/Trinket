@@ -9,22 +9,20 @@ struct HeroesGridView: View {
     ]
 
     var body: some View {
-        let rosterState = appState.roster.current
-
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
-                        Button {
+                    ForEach(appState.roster.collectionHeroes) { combatant in
+                        CollectionCombatantButton(
+                            combatant: combatant,
+                            isLocked: !appState.roster.isUnlocked(combatant),
+                            cardWidth: nil
+                        ) {
                             selectedCombatant = CombatantCollectionDetailSelection(
                                 kind: .hero,
                                 combatantID: combatant.id
                             )
-                        } label: {
-                            CombatantCard(combatant: combatant)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("\(combatant.name) collection card")
                     }
                 }
             }

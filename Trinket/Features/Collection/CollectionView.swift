@@ -41,15 +41,13 @@ struct CollectionView: View {
                     .accessibilityIdentifier("Heroes collection category")
 
                     horizontalShelf {
-                        ForEach(rosterState.configuredCombatants(GameContent.heroes)) { combatant in
-                            Button {
+                        ForEach(appState.roster.collectionHeroes) { combatant in
+                            CollectionCombatantButton(
+                                combatant: combatant,
+                                isLocked: !appState.roster.isUnlocked(combatant)
+                            ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .hero, combatantID: combatant.id)
-                            } label: {
-                                CombatantCard(combatant: combatant)
-                                    .frame(width: 130)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("\(combatant.name) collection card")
                         }
                     }
                 }
@@ -75,15 +73,13 @@ struct CollectionView: View {
                     .accessibilityIdentifier("Pets collection category")
 
                     horizontalShelf {
-                        ForEach(rosterState.configuredCombatants(GameContent.pets)) { combatant in
-                            Button {
+                        ForEach(appState.roster.collectionPets) { combatant in
+                            CollectionCombatantButton(
+                                combatant: combatant,
+                                isLocked: !appState.roster.isUnlocked(combatant)
+                            ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .pet, combatantID: combatant.id)
-                            } label: {
-                                CombatantCard(combatant: combatant)
-                                    .frame(width: 130)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("\(combatant.name) collection card")
                         }
                     }
                 }

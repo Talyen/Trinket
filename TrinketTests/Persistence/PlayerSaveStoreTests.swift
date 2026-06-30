@@ -17,10 +17,13 @@ final class PlayerSaveStoreTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testFreshSaveStartsWithEmptyInventoryAndLevelOneProgress() {
+    func testFreshSaveStartsWithKnightAndBearStarters() {
         let store = makeStore()
 
-        XCTAssertEqual(store.roster, .freshStart)
+        XCTAssertEqual(store.roster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
+        XCTAssertEqual(store.roster.unlockedPetIDs, [PlayerRosterState.starterPetID])
+        XCTAssertEqual(store.roster.activeHeroID, PlayerRosterState.starterHeroID)
+        XCTAssertEqual(store.roster.activePetID, PlayerRosterState.starterPetID)
         XCTAssertEqual(store.inventory, .freshStart)
         XCTAssertEqual(store.journey, .initial)
     }

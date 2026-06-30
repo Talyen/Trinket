@@ -1,0 +1,113 @@
+import XCTest
+@testable import Trinket
+
+@MainActor
+final class PlayerSaveMigrationTests: XCTestCase {
+    func testFreshSaveUsesKnightAndBearStarters() {
+        let save = PlayerSave.fresh
+
+        XCTAssertEqual(save.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertEqual(save.roster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
+        XCTAssertEqual(save.roster.unlockedPetIDs, [PlayerRosterState.starterPetID])
+        XCTAssertEqual(save.roster.activeHeroID, PlayerRosterState.starterHeroID)
+        XCTAssertEqual(save.roster.activePetID, PlayerRosterState.starterPetID)
+    }
+
+    func testMigrateV1SaveUnlocksAllLegacyCombatants() throws {
+        let v1Roster = SavedRosterState(
+            activeHeroID: "knight",
+            activePetID: "wolf",
+            unlockedHeroIDs: [],
+            unlockedPetIDs: [],
+            abilityLoadouts: [:],
+            progressions: ["knight": .initial],
+            equipmentLoadouts: [:],
+            gold: 12
+        )
+        let v1Save = PlayerSave(
+            schemaVersion: 1,
+            journey: .initial,
+            roster: v1Roster,
+            inventory: SavedInventoryState(.freshStart)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(v1Save)
+
+        XCTAssertEqual(migrated.schemaVersion, 2)
+        XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
+        XCTAssertEqual(Set(migrated.roster.unlockedPetIDs), Set(GameContent.pets.map(\.id)))
+        XCTAssertEqual(migrated.roster.gold, 12)
+    }
+
+    func testLoadV1JSONFromDiskMigratesToV2() throws {
+        let directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PlayerSaveMigrationTests.\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directoryURL) }
+
+        let v1JSON = """
+        {
+          "schemaVersion": 1,
+          "journey": {
+            "activeChapterID": "chapter-1",
+            "activeStageID": "chapter-1-stage-1",
+            "completedStageIDs": [],
+            "claimedRewardStageIDs": [],
+            "lastCompletedStageID": null
+          },
+          "roster": {
+            "activeHeroID": "knight",
+            "activePetID": "bear",
+            "abilityLoadouts": {},
+            "progressions": {
+              "knight": { "level": 2, "currentXP": 10, "requiredXP": 120 }
+            },
+            "equipmentLoadouts": {},
+            "gold": 5
+          },
+          "inventory": { "items": [] }
+        }
+        """
+        let fileStore = PlayerSaveFileStore(directoryURL: directoryURL)
+        try v1JSON.write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
+
+        let loaded = try XCTUnwrap(fileStore.load())
+        let store = PlayerSaveStore(fileStore: fileStore)
+
+        XCTAssertEqual(loaded.schemaVersion, 2)
+        XCTAssertEqual(Set(store.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
+        XCTAssertEqual(store.roster.progression(for: GameContent.heroes[0]).currentXP, 10)
+    }
+
+    func testInvalidAbilityIDFallsBackToCombatantDefault() {
+        let knight = GameContent.heroes.first { $0.id == "knight" }!
+        var saved = SavedAbilityLoadout(knight.abilityLoadout)
+        saved.skillID = "missing-ability"
+
+        let resolved = saved.loadout(
+            defaults: knight.abilityLoadout,
+            choices: knight.abilityChoices
+        )
+
+        XCTAssertEqual(resolved.skill?.id, knight.abilityLoadout.skill?.id)
+    }
+
+    func testSanitizeClampsActivePartyToUnlockedStarters() {
+        var roster = SavedRosterState(
+            activeHeroID: "wizard",
+            activePetID: "wolf",
+            unlockedHeroIDs: [PlayerRosterState.starterHeroID],
+            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            abilityLoadouts: [:],
+            progressions: [:],
+            equipmentLoadouts: [:],
+            gold: 0
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let playerRoster = sanitized.roster(inventoryItemIDs: [])
+
+        XCTAssertEqual(playerRoster.activeHeroID, PlayerRosterState.starterHeroID)
+        XCTAssertEqual(playerRoster.activePetID, PlayerRosterState.starterPetID)
+    }
+}

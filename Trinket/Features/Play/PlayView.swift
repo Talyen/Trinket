@@ -185,12 +185,14 @@ struct PlayView: View {
 
     private var activeHero: Combatant {
         appState.roster.heroes.first { $0.id == appState.roster.current.activeHeroID } ??
-            appState.roster.heroes[0]
+            appState.roster.heroes.first ??
+            appState.roster.collectionHeroes[0]
     }
 
     private var activePet: Combatant {
         appState.roster.pets.first { $0.id == appState.roster.current.activePetID } ??
-            appState.roster.pets[0]
+            appState.roster.pets.first ??
+            appState.roster.collectionPets[0]
     }
 }
 
@@ -599,12 +601,14 @@ private struct StagePreviewSheet: View {
 
     private var activeHero: Combatant {
         appState.roster.heroes.first { $0.id == appState.roster.current.activeHeroID } ??
-            appState.roster.heroes[0]
+            appState.roster.heroes.first ??
+            appState.roster.collectionHeroes[0]
     }
 
     private var activePet: Combatant {
         appState.roster.pets.first { $0.id == appState.roster.current.activePetID } ??
-            appState.roster.pets[0]
+            appState.roster.pets.first ??
+            appState.roster.collectionPets[0]
     }
 
     private func combatants(for picker: PartyPickerKind) -> [Combatant] {
