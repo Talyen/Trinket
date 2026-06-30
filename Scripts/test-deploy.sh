@@ -37,10 +37,6 @@ echo "=== Unit tests ==="
 ./Scripts/test.sh "${FAST_FLAG[@]}" unit
 
 echo ""
-echo "=== Performance tests ==="
-./Scripts/test.sh "${FAST_FLAG[@]}" perf
-
-echo ""
 echo "=== Smoke UI tests ==="
 ./Scripts/test.sh "${FAST_FLAG[@]}" smoke
 

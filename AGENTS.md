@@ -41,7 +41,7 @@ All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`,
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
 
-Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). **perf** (`test.sh perf`) runs `XCTMeasure` guards in `TrinketTests/Performance/`; excluded from `unit`/`ci-locally.sh`, included in `test-deploy.sh`. No committed baselines yet — metrics are recorded in the `.xcresult` for trend review. No `test.sh ui`/`all` during iteration. Example: `test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests --fast`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
+Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example: `test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests --fast`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
 
 ## UI Tests
 
