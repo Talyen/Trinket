@@ -247,3 +247,5 @@ SWIFT
 rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp"
 
 echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."
+
+./Scripts/prepare-music-assets.sh

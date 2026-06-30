@@ -76,14 +76,20 @@ private final class SpyCloudKitEntitlementChecker: CloudKitEntitlementChecking {
 
 private struct StubPlayerSaveSync: PlayerSaveSyncing {
     func accountStatus() async -> PlayerSaveAccountStatus {
-        .available
+        await Task.yield()
+        return .available
     }
 
     func fetchRemoteSave() async throws -> RemotePlayerSave? {
-        nil
+        await Task.yield()
+        return nil
     }
 
-    func upload(_: PlayerSave) async throws {}
+    func upload(_: PlayerSave) async throws {
+        await Task.yield()
+    }
 
-    func subscribeToChanges() async throws {}
+    func subscribeToChanges() async throws {
+        await Task.yield()
+    }
 }

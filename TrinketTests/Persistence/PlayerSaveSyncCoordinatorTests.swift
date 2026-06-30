@@ -4,8 +4,8 @@ import XCTest
 @MainActor
 final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     private var directoryURL: URL!
-    private let earlier = Date(timeIntervalSince1970: 1_600_000_000)
-    private let later = Date(timeIntervalSince1970: 1_800_000_000)
+    private let earlier = Date(timeIntervalSince1970: 1600000000)
+    private let later = Date(timeIntervalSince1970: 1800000000)
 
     override func setUp() async throws {
         try await super.setUp()
@@ -77,7 +77,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     func testEqualTimestampsKeepLocalWithoutUpload() async throws {
         let mock = MockPlayerSaveSync()
         let fileStore = makeFileStore()
-        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let timestamp = Date(timeIntervalSince1970: 1700000000)
         try writeSave(makeSave(modifiedAt: timestamp, gold: 15), to: fileStore)
         let store = PlayerSaveStore(fileStore: fileStore)
         let remote = RemotePlayerSave(
@@ -99,7 +99,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     func testLocalMutationSchedulesDebouncedUpload() async throws {
         let mock = MockPlayerSaveSync()
         let fileStore = makeFileStore()
-        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        let timestamp = Date(timeIntervalSince1970: 1700000000)
         try writeSave(makeSave(modifiedAt: timestamp, gold: 0), to: fileStore)
         let store = PlayerSaveStore(fileStore: fileStore)
         await mock.setRemoteSave(
@@ -147,7 +147,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(uploadCount, 0)
     }
 
-    func testFetchFailureSetsErrorStatus() async throws {
+    func testFetchFailureSetsErrorStatus() async {
         let mock = MockPlayerSaveSync()
         await mock.setFetchError(MockSyncError.fetchFailed)
         let store = PlayerSaveStore(fileStore: makeFileStore())
@@ -162,7 +162,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         let mock = MockPlayerSaveSync()
         await mock.setUploadError(MockSyncError.uploadFailed)
         let fileStore = makeFileStore()
-        let timestamp = Date(timeIntervalSince1970: 1_700_000_001)
+        let timestamp = Date(timeIntervalSince1970: 1700000001)
         try writeSave(makeSave(modifiedAt: timestamp, gold: 0), to: fileStore)
         let store = PlayerSaveStore(fileStore: fileStore)
         await mock.setRemoteSave(
@@ -254,10 +254,12 @@ private actor MockPlayerSaveSync: PlayerSaveSyncing {
     }
 
     func accountStatus() async -> PlayerSaveAccountStatus {
-        accountStatusResult
+        await Task.yield()
+        return accountStatusResult
     }
 
     func fetchRemoteSave() async throws -> RemotePlayerSave? {
+        await Task.yield()
         fetchCount += 1
         if let fetchError {
             throw fetchError
@@ -266,6 +268,7 @@ private actor MockPlayerSaveSync: PlayerSaveSyncing {
     }
 
     func upload(_ save: PlayerSave) async throws {
+        await Task.yield()
         if let uploadError {
             throw uploadError
         }
@@ -273,6 +276,7 @@ private actor MockPlayerSaveSync: PlayerSaveSyncing {
     }
 
     func subscribeToChanges() async throws {
+        await Task.yield()
         subscribeCallCount += 1
     }
 }

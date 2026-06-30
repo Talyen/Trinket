@@ -83,8 +83,8 @@ final class BattleStateSchedulingTests: XCTestCase {
         XCTAssertTrue(battle.enemyEffectSummaries.filter { $0.keyword == .poison }.isEmpty)
     }
 
-    func testWildcardHeroFirstActionGrantsExactGold() {
-        let wildcard = GameContent.heroes.first { $0.id == "wildcard" }!
+    func testWildcardHeroFirstActionGrantsExactGold() throws {
+        let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
         var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
 
         _ = battle.performNextAction()

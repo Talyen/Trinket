@@ -68,8 +68,8 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         XCTAssertEqual(playerRoster.activePetID, PlayerRosterState.starterPetID)
     }
 
-    func testSanitizeRosterStripsUnknownCombatantAbilityLoadouts() {
-        let knight = GameContent.heroes.first { $0.id == "knight" }!
+    func testSanitizeRosterStripsUnknownCombatantAbilityLoadouts() throws {
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         var unknownLoadout = SavedAbilityLoadout(knight.abilityLoadout)
         unknownLoadout.basicID = "smite"
         let roster = SavedRosterState(
@@ -91,8 +91,8 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         XCTAssertEqual(Set(sanitized.abilityLoadouts.keys), ["knight"])
     }
 
-    func testSanitizeRosterResolvesInvalidAbilityIDs() {
-        let knight = GameContent.heroes.first { $0.id == "knight" }!
+    func testSanitizeRosterResolvesInvalidAbilityIDs() throws {
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         var savedLoadout = SavedAbilityLoadout(knight.abilityLoadout)
         savedLoadout.skillID = "missing-ability"
         let roster = SavedRosterState(
@@ -116,7 +116,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
     }
 
     func testSanitizeRosterPrunesMissingEquipmentItems() throws {
-        let knight = GameContent.heroes.first { $0.id == "knight" }!
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .weapon })
         let weapon = InventoryItem(
             id: "weapon-id",

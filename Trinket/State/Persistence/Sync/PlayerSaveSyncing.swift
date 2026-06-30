@@ -1,6 +1,6 @@
 import Foundation
 
-struct RemotePlayerSave: Equatable, Sendable {
+struct RemotePlayerSave: Equatable {
     let save: PlayerSave
     let modifiedAt: Date
     let recordChangeTag: String?

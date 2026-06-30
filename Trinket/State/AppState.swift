@@ -5,6 +5,8 @@ import SwiftUI
 final class AppState {
     let playerSave: PlayerSaveStore
     let syncCoordinator: PlayerSaveSyncCoordinator
+    let musicDirector: MusicDirector
+    let musicPlayer: MusicPlayer
     var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
@@ -33,6 +35,8 @@ final class AppState {
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
         self.playerSave = resolvedPlayerSave
         syncCoordinator = PlayerSaveSyncCoordinator(sync: resolvedSync, playerSaveStore: resolvedPlayerSave)
+        musicDirector = MusicDirector()
+        musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
         roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
         options = OptionsStore()

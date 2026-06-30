@@ -67,6 +67,11 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(parse(arguments: []).disableCloudSync)
     }
 
+    func testDisableAudioFlag() {
+        XCTAssertTrue(parse(arguments: ["-disable-audio"]).disableAudio)
+        XCTAssertFalse(parse(arguments: []).disableAudio)
+    }
+
     func testResetStateImplicitlyDisablesCloudSync() {
         XCTAssertTrue(parse(arguments: ["-reset-state"]).disableCloudSync)
     }
@@ -77,6 +82,14 @@ final class AppEnvironmentTests: XCTestCase {
             environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
         )
         XCTAssertTrue(env.disableCloudSync)
+    }
+
+    func testRunningUnderXCTestDisablesAudio() {
+        let env = parse(
+            arguments: [],
+            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
+        )
+        XCTAssertTrue(env.disableAudio)
     }
 
     func testCompletedStagesParsesCommaSeparatedIDs() {
@@ -97,6 +110,7 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(env.resetState)
         XCTAssertFalse(env.seedTestProgress)
         XCTAssertFalse(env.disableCloudSync)
+        XCTAssertFalse(env.disableAudio)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
     }
 

@@ -2,9 +2,9 @@ import XCTest
 @testable import Trinket
 
 final class PlayerSaveReconcilerTests: XCTestCase {
-    private let now = Date(timeIntervalSince1970: 1_700_000_000)
-    private let earlier = Date(timeIntervalSince1970: 1_600_000_000)
-    private let later = Date(timeIntervalSince1970: 1_800_000_000)
+    private let now = Date(timeIntervalSince1970: 1700000000)
+    private let earlier = Date(timeIntervalSince1970: 1600000000)
+    private let later = Date(timeIntervalSince1970: 1800000000)
 
     func testRemoteMissingUploadsLocal() {
         let local = makeSave(modifiedAt: now)

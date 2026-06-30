@@ -33,8 +33,8 @@ final class PlayerSaveStoreTests: XCTestCase {
         let firstStore = PlayerSaveStore(fileStore: fileStore)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
-        firstStore.addRewardItem(
-            from: try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic")),
+        try firstStore.addRewardItem(
+            from: XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic")),
             for: GameContent.chapters[0].stages[0]
         )
         firstStore.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
@@ -50,8 +50,8 @@ final class PlayerSaveStoreTests: XCTestCase {
     func testResetGameplayProgressRestoresFreshStart() throws {
         let store = makeStore()
         store.grantGold(99)
-        store.addRewardItem(
-            from: try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic")),
+        try store.addRewardItem(
+            from: XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic")),
             for: GameContent.chapters[0].stages[0]
         )
         store.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
@@ -71,7 +71,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(store.inventory, .testSeed)
     }
 
-    func testEquipmentLoadoutDropsMissingInventoryItemsOnLoad() {
+    func testEquipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
         let fileStore = makeFileStore()
         var save = PlayerSave.testSeed
         save.roster.equipmentLoadouts["knight"] = SavedEquipmentLoadout(
@@ -80,7 +80,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         fileStore.save(save)
 
         let store = PlayerSaveStore(fileStore: fileStore)
-        let knight = GameContent.heroes.first { $0.id == "knight" }!
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
 
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
     }

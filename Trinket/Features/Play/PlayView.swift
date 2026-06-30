@@ -45,6 +45,9 @@ struct PlayView: View {
             guard newValue == nil else { return }
             pendingScrollTarget = appState.journey.current.activeStageID ?? "chapter-2-locked"
         }
+        .onChange(of: selectedStage?.id) { _, _ in
+            updateMusicPreview(for: selectedStage)
+        }
     }
 
     @ViewBuilder
@@ -138,6 +141,7 @@ struct PlayView: View {
         let hero = activeHero
         let pet = activePet
         selectedStage = nil
+        appState.battle.preview = nil
         appState.battle.activeBattle = ActiveBattleConfiguration(
             stageID: stage.id,
             hero: hero,
@@ -158,6 +162,19 @@ struct PlayView: View {
         }
         appState.battle.isPaused = false
         appState.battle.activeBattle = nil
+        appState.battle.preview = nil
+    }
+
+    private func updateMusicPreview(for stage: Stage?) {
+        guard appState.battle.activeBattle == nil,
+              let stage,
+              let enemyID = stage.encounter.battleEnemyID
+        else {
+            appState.battle.preview = nil
+            return
+        }
+
+        appState.battle.preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
     }
 
     private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant) {

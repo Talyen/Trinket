@@ -8,6 +8,7 @@ struct AppEnvironment {
     let resetState: Bool
     let seedTestProgress: Bool
     let disableCloudSync: Bool
+    let disableAudio: Bool
     let completedStageIDs: [String]
 
     private init(
@@ -16,6 +17,7 @@ struct AppEnvironment {
         resetState: Bool,
         seedTestProgress: Bool,
         disableCloudSync: Bool,
+        disableAudio: Bool,
         completedStageIDs: [String]
     ) {
         self.launchTab = launchTab
@@ -23,6 +25,7 @@ struct AppEnvironment {
         self.resetState = resetState
         self.seedTestProgress = seedTestProgress
         self.disableCloudSync = disableCloudSync
+        self.disableAudio = disableAudio
         self.completedStageIDs = completedStageIDs
     }
 
@@ -68,6 +71,7 @@ struct AppEnvironment {
         let reset = arguments.contains("-reset-state")
         let seedTestProgress = arguments.contains("-seed-test-progress")
         let disableCloudSync = arguments.contains("-disable-cloud-sync")
+        let disableAudio = arguments.contains("-disable-audio")
 
         let completedStageIDs: [String] = {
             guard let idx = arguments.firstIndex(of: "-completed-stages"),
@@ -85,6 +89,7 @@ struct AppEnvironment {
             resetState: reset,
             seedTestProgress: seedTestProgress,
             disableCloudSync: disableCloudSync || reset || isRunningTests,
+            disableAudio: disableAudio || isRunningTests,
             completedStageIDs: completedStageIDs
         )
     }

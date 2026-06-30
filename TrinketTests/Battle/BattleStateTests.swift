@@ -89,8 +89,8 @@ final class BattleStateTests: XCTestCase {
         XCTAssertTrue(hasStun)
     }
 
-    func testBattleTracksGoldFromResourceGains() {
-        let wildcard = GameContent.heroes.first { $0.id == "wildcard" }!
+    func testBattleTracksGoldFromResourceGains() throws {
+        let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
         var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = battle.performNextAction()
         XCTAssertEqual(battle.gold, 11)

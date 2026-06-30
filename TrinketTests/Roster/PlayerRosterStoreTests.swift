@@ -37,11 +37,11 @@ final class PlayerRosterStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.roster.gold, 50)
     }
 
-    func testGrantExperienceWriteThroughToSaveStore() {
+    func testGrantExperienceWriteThroughToSaveStore() throws {
         let fileStore = makeFileStore()
         let saveStore = PlayerSaveStore(fileStore: fileStore)
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
-        let knight = GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID }!
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
 
         rosterStore.grantExperience(25, to: knight)
 

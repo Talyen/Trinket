@@ -13,7 +13,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
         XCTAssertEqual(save.roster.activePetID, PlayerRosterState.starterPetID)
     }
 
-    func testMigrateV1SaveUnlocksAllLegacyCombatants() throws {
+    func testMigrateV1SaveUnlocksAllLegacyCombatants() {
         let v1Roster = SavedRosterState(
             activeHeroID: "knight",
             activePetID: "wolf",
@@ -81,8 +81,8 @@ final class PlayerSaveMigrationTests: XCTestCase {
         XCTAssertEqual(store.roster.progression(for: GameContent.heroes[0]).currentXP, 10)
     }
 
-    func testInvalidAbilityIDFallsBackToCombatantDefault() {
-        let knight = GameContent.heroes.first { $0.id == "knight" }!
+    func testInvalidAbilityIDFallsBackToCombatantDefault() throws {
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         var saved = SavedAbilityLoadout(knight.abilityLoadout)
         saved.skillID = "missing-ability"
 
