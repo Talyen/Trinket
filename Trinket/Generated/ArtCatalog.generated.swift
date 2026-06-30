@@ -117,6 +117,78 @@ enum ArtCatalog {
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Phoenix pet"
         ),
+        "goblin": CombatantArtReference(
+            imageName: "enemy_goblin_card",
+            thumbnailImageName: "enemy_goblin_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Goblin enemy"
+        ),
+        "imp_enemy": CombatantArtReference(
+            imageName: "enemy_imp_enemy_card",
+            thumbnailImageName: "enemy_imp_enemy_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Imp enemy"
+        ),
+        "living_armor": CombatantArtReference(
+            imageName: "enemy_living_armor_card",
+            thumbnailImageName: "enemy_living_armor_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Living Armor enemy"
+        ),
+        "mimic": CombatantArtReference(
+            imageName: "enemy_mimic_card",
+            thumbnailImageName: "enemy_mimic_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Mimic enemy"
+        ),
+        "mud_elemental": CombatantArtReference(
+            imageName: "enemy_mud_elemental_card",
+            thumbnailImageName: "enemy_mud_elemental_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Mud Elemental enemy"
+        ),
+        "necromancer": CombatantArtReference(
+            imageName: "enemy_necromancer_card",
+            thumbnailImageName: "enemy_necromancer_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Necromancer enemy"
+        ),
+        "plague_doctor": CombatantArtReference(
+            imageName: "enemy_plague_doctor_card",
+            thumbnailImageName: "enemy_plague_doctor_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Plague Doctor enemy"
+        ),
+        "skeleton": CombatantArtReference(
+            imageName: "enemy_skeleton_card",
+            thumbnailImageName: "enemy_skeleton_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Skeleton enemy"
+        ),
+        "the_blight_treant": CombatantArtReference(
+            imageName: "enemy_the_blight_treant_card",
+            thumbnailImageName: "enemy_the_blight_treant_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Blight Treant enemy"
+        ),
+        "the_forge_golem": CombatantArtReference(
+            imageName: "enemy_the_forge_golem_card",
+            thumbnailImageName: "enemy_the_forge_golem_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Forge Golem enemy"
+        ),
+        "the_frostwarden": CombatantArtReference(
+            imageName: "enemy_the_frostwarden_card",
+            thumbnailImageName: "enemy_the_frostwarden_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Frostwarden enemy"
+        ),
+        "the_iron_bear": CombatantArtReference(
+            imageName: "enemy_the_iron_bear_card",
+            thumbnailImageName: "enemy_the_iron_bear_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Iron Bear enemy"
+        ),
     ]
 
     static let abilityArtByID: [String: AbilityArtReference] = [

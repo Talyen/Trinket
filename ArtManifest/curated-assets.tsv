@@ -159,3 +159,15 @@ item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50	Item
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50	Empty armor slot frame
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50	Empty trinket slot frame
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50	Empty weapon slot frame
+combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50	Full art of the Goblin enemy
+combatant	imp_enemy	enemy_imp_enemy_card	Raw Assets/Enemies/Imp.png	0.50	0.50	Full art of the Imp enemy
+combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50	Full art of the Living Armor enemy
+combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.png	0.50	0.50	Full art of the Mimic enemy
+combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.png	0.50	0.50	Full art of the Mud Elemental enemy
+combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.50	0.50	Full art of the Necromancer enemy
+combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.50	0.50	Full art of the Plague Doctor enemy
+combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.png	0.50	0.50	Full art of the Skeleton enemy
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/The Blight Treant.jpeg	0.50	0.50	Full art of the Blight Treant enemy
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/The Forge Golem.jpeg	0.50	0.50	Full art of the Forge Golem enemy
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/The Frostwarden.jpeg	0.50	0.50	Full art of the Frostwarden enemy
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/The Iron Bear.jpeg	0.50	0.50	Full art of the Iron Bear enemy
