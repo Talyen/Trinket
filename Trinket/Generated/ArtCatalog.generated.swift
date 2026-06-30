@@ -25,6 +25,12 @@ struct SlotBackgroundArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct BackgroundArtReference: Hashable {
+    let imageName: String
+    let accessibilityLabel: String
+}
+
+
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
         "alchemist": CombatantArtReference(
@@ -833,6 +839,14 @@ enum ArtCatalog {
             accessibilityLabel: "Empty weapon slot frame"
         ),
     ]
+
+    static let backgroundArtByID: [String: BackgroundArtReference] = [
+        "chapter-1": BackgroundArtReference(
+            imageName: "bg_verdant_forest",
+            accessibilityLabel: "Lush green canopy and winding forest path of the Verdant Forest"
+        ),
+    ]
+
 }
 
 extension Combatant {

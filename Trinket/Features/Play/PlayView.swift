@@ -100,8 +100,6 @@ struct PlayView: View {
                 pendingScrollTarget: $pendingScrollTarget,
                 onStageTap: handleStageTap
             )
-            .navigationTitle("Play")
-            .navigationBarTitleDisplayMode(.large)
         }
     }
 
@@ -109,17 +107,8 @@ struct PlayView: View {
         let progress = appState.journey.current
         if progress.isActive(stage) {
             selectedStage = stage
-        } else if progress.isCompleted(stage) {
-            stageMessage = StageMapMessage(
-                title: "Stage Complete",
-                message: "\(stage.displayTitle) is already complete. The path only moves forward."
-            )
-        } else {
-            stageMessage = StageMapMessage(
-                title: "Stage Locked",
-                message: "Complete the active stage to unlock this point on the path."
-            )
         }
+        // Tapping locked or completed stages does nothing.
     }
 
     private func handlePrimaryAction(for stage: Stage) {
@@ -220,10 +209,21 @@ private struct StageMapMessage: Identifiable {
 }
 
 private struct JourneyMapView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var motionObserver = MotionObserver()
+
     let chapter: Chapter
     let progress: JourneyProgressState
     @Binding var pendingScrollTarget: String?
     let onStageTap: (Stage) -> Void
+
+    private var totalCount: Int {
+        chapter.stages.count
+    }
+
+    private var completedCount: Int {
+        chapter.stages.filter { progress.isCompleted($0) }.count
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -237,12 +237,49 @@ private struct JourneyMapView: View {
                         onStageTap: onStageTap
                     )
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+                .padding(.top, 16)
             }
             .scrollContentBackground(.hidden)
-            .background(TrinketDesign.Colors.appBackground)
+            .background {
+                ZStack {
+                    // Background Layer: Ambient animation and gyroscopic parallax
+                    if let bgImageName = ArtCatalog.backgroundArtByID[chapter.id]?.imageName {
+                        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { context in
+                            let time = context.date.timeIntervalSinceReferenceDate
+                            let waveX = sin(time * 0.15) * 15
+                            let waveY = cos(time * 0.10) * 15
+
+                            Image(bgImageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .scaleEffect(reduceMotion ? 1.0 : 1.1)
+                                .offset(
+                                    x: reduceMotion ? 0 : (waveX + motionObserver.xOffset),
+                                    y: reduceMotion ? 0 : (waveY + motionObserver.yOffset)
+                                )
+                                .blur(radius: 12)
+                        }
+                    } else {
+                        TrinketDesign.Colors.appBackground
+                    }
+
+                    // Dark/Tint Overlay to ensure readability & contrast
+                    Color.black.opacity(0.12)
+                }
+                .ignoresSafeArea()
+            }
+            .navigationTitle(chapter.title)
+            .navigationBarTitleDisplayMode(.large)
             .onAppear {
+                if !reduceMotion {
+                    motionObserver.start()
+                }
                 centerActiveNode(with: proxy)
+            }
+            .onDisappear {
+                motionObserver.stop()
             }
             .onChange(of: progress.activeStageID) { _, _ in
                 centerActiveNode(with: proxy)
@@ -258,17 +295,30 @@ private struct JourneyMapView: View {
     }
 
     private var chapterHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Chapter \(chapter.number)")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(chapter.theme.tint)
+        VStack(alignment: .leading, spacing: 16) {
+            // Chapter Progress Card using standard design
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Chapter Progress")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
 
-            Text(chapter.title)
-                .font(.largeTitle.bold())
+                        Spacer()
 
-            Text("Follow the forest path.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                        Text("\(completedCount)/\(totalCount) Cleared")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    ProgressView(value: Double(completedCount), total: Double(totalCount))
+                        .tint(chapter.theme.tint)
+                        .progressViewStyle(.linear)
+                        .padding(.bottom, 4)
+                }
+            }
+            .padding(14)
+            .trinketCardSurface()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -361,169 +411,254 @@ private struct StagePathView: View {
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(path.nodes.enumerated()), id: \.element.id) { index, node in
-                StagePathNode(
-                    stage: node.stage,
-                    state: node.state,
+                let isFirst = index == 0
+                let isLast = index == path.nodes.count - 1 && !path.showsChapterGate && !path.showsTrailContinuation
+
+                StageTimelineRow(
+                    node: node,
                     theme: theme,
+                    isFirst: isFirst,
+                    isLast: isLast,
                     onTap: { onStageTap(node.stage) }
                 )
                 .id(node.stage.id)
-
-                if path.nodes[safe: index + 1] != nil {
-                    StagePathConnector(color: connectorColor(after: node.state))
-                } else if path.showsTrailContinuation {
-                    StagePathContinuation()
-                } else if path.showsChapterGate {
-                    StagePathConnector(color: connectorColor(after: node.state))
+                .scrollTransition(.interactive, axis: .vertical) { content, phase in
+                    content
+                        .scaleEffect(phase.isIdentity ? 1.0 : 0.95)
+                        .opacity(phase.isIdentity ? 1.0 : 0.7)
                 }
             }
 
             if path.showsChapterGate {
-                LockedChapterGate()
-                    .id("chapter-2-locked")
+                StageTimelineGateRow(
+                    theme: theme,
+                    isLast: true
+                )
+                .id("chapter-2-locked")
+                .scrollTransition(.interactive, axis: .vertical) { content, phase in
+                    content
+                        .scaleEffect(phase.isIdentity ? 1.0 : 0.95)
+                        .opacity(phase.isIdentity ? 1.0 : 0.7)
+                }
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 4)
     }
-
-    private func connectorColor(after state: StageNodeState) -> Color {
-        switch state {
-        case .completed, .justCompleted:
-            return theme.tint.opacity(0.46)
-        case .active:
-            return theme.tint.opacity(0.28)
-        case .future:
-            return Color.secondary.opacity(0.16)
-        }
-    }
 }
 
-private struct StagePathNode: View {
-    let stage: Stage
-    let state: StageNodeState
+private struct StageTimelineRow: View {
+    let node: VisibleStageNode
     let theme: ChapterTheme
+    let isFirst: Bool
+    let isLast: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 8) {
-                Image(systemName: stage.encounter.symbolName)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(iconStyle)
-                    .symbolRenderingMode(.hierarchical)
-                    .accessibilityHidden(true)
+            HStack(spacing: 16) {
+                // Left: Timeline Line & Circle Indicator
+                ZStack {
+                    TimelineLine(
+                        topColored: topColored,
+                        bottomColored: bottomColored,
+                        color: theme.tint,
+                        isFirst: isFirst,
+                        isLast: isLast
+                    )
+                    .frame(maxHeight: .infinity)
 
-                Text(shortStageLabel)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(textStyle)
-                    .minimumScaleFactor(0.82)
-                    .lineLimit(1)
+                    TimelineIndicatorCircle(
+                        state: node.state,
+                        theme: theme,
+                        symbolName: node.stage.encounter.symbolName
+                    )
+                }
+                .frame(width: 40)
+
+                // Right: The Stage Card
+                StageCardView(
+                    stage: node.stage,
+                    state: node.state,
+                    theme: theme
+                )
             }
-            .padding(.horizontal, 14)
-            .frame(width: nodeWidth, height: nodeHeight)
-            .background {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(nodeFill)
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(nodeStroke, lineWidth: state == .active ? 2 : 1)
-            }
-            .shadow(color: shadowColor, radius: shadowRadius, y: 2)
+            .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
-        .frame(maxWidth: .infinity)
-        .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+        .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
         .accessibilityLabel(accessibilityLabel)
     }
 
-    private var shortStageLabel: String {
-        "\(stage.chapterNumber)-\(stage.stageNumber)"
+    private var topColored: Bool {
+        node.state == .completed || node.state == .justCompleted || node.state == .active
     }
 
-    private var fullStageLabel: String {
-        "Stage \(stage.chapterNumber)-\(stage.stageNumber)"
+    private var bottomColored: Bool {
+        node.state == .completed || node.state == .justCompleted
     }
 
     private var accessibilityLabel: String {
-        switch state {
+        let fullLabel = "Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber)"
+        switch node.state {
         case .active:
-            return "\(fullStageLabel), active \(stage.encounter.title)"
+            return "\(fullLabel), active \(node.stage.encounter.title)"
         case .completed, .justCompleted:
-            return "\(fullStageLabel), complete"
+            return "\(fullLabel), complete"
         case .future:
-            return "\(fullStageLabel), locked"
+            return "\(fullLabel), locked"
         }
     }
+}
 
-    private var nodeWidth: CGFloat {
-        switch state {
-        case .active:
-            return 118
-        case .completed, .justCompleted, .future:
-            return 102
+private struct TimelineLine: View {
+    let topColored: Bool
+    let bottomColored: Bool
+    let color: Color
+    let isFirst: Bool
+    let isLast: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if !isFirst {
+                Rectangle()
+                    .fill(topColored ? color : Color.white.opacity(0.25))
+                    .frame(width: 3)
+            } else {
+                Color.clear
+                    .frame(width: 3)
+            }
+
+            if !isLast {
+                Rectangle()
+                    .fill(bottomColored ? color : Color.white.opacity(0.25))
+                    .frame(width: 3)
+            } else {
+                Color.clear
+                    .frame(width: 3)
+            }
         }
     }
+}
 
-    private var nodeHeight: CGFloat {
-        state == .active ? 52 : 46
-    }
+private struct TimelineIndicatorCircle: View {
+    let state: StageNodeState
+    let theme: ChapterTheme
+    let symbolName: String
 
-    private var textStyle: Color {
-        switch state {
-        case .future:
-            return .secondary
-        case .completed, .justCompleted, .active:
-            return .primary
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(TrinketDesign.Colors.appBackground)
+                .frame(width: 32, height: 32)
+
+            switch state {
+            case .completed, .justCompleted:
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 24, height: 24)
+                    .overlay {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+            case .active:
+                Circle()
+                    .fill(theme.tint)
+                    .frame(width: 24, height: 24)
+            case .future:
+                Circle()
+                    .fill(Color.secondary.opacity(0.12))
+                    .frame(width: 24, height: 24)
+                    .overlay {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.secondary)
+                    }
+            }
         }
+        .frame(width: 40, height: 40)
+    }
+}
+
+private struct StageCardView: View {
+    let stage: Stage
+    let state: StageNodeState
+    let theme: ChapterTheme
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text("STAGE \(stage.chapterNumber)-\(stage.stageNumber)")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(headerStyle)
+
+                    Text("•")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
+                    Text(stage.encounter.title.uppercased())
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(encounterTint)
+                }
+
+                Text(stage.title)
+                    .font(.headline)
+                    .foregroundStyle(titleStyle)
+
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(statusStyle)
+            }
+
+            Spacer()
+
+            encounterBadge
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .trinketCardSurface()
+        .opacity(cardOpacity)
     }
 
-    private var nodeFill: Color {
+    private var cardOpacity: Double {
         switch state {
-        case .active:
-            return encounterTint.opacity(0.18)
         case .completed, .justCompleted:
-            return Color.secondary.opacity(0.08)
+            return 0.90
+        case .active:
+            return 1.0
         case .future:
-            return Color.secondary.opacity(0.06)
+            return 0.85
         }
     }
 
-    private var nodeStroke: Color {
+    private var headerStyle: Color {
+        state == .active ? .primary : .secondary
+    }
+
+    private var titleStyle: Color {
+        state == .future ? .secondary : .primary
+    }
+
+    private var statusText: String {
         switch state {
-        case .active:
-            return encounterTint
         case .completed, .justCompleted:
-            return theme.tint.opacity(0.38)
-        case .future:
-            return Color.secondary.opacity(0.18)
-        }
-    }
-
-    private var shadowColor: Color {
-        switch state {
+            return "Cleared"
         case .active:
-            return theme.tint.opacity(0.24)
-        case .completed, .justCompleted, .future:
-            return .clear
-        }
-    }
-
-    private var shadowRadius: CGFloat {
-        state == .active ? 6 : 0
-    }
-
-    private var iconStyle: Color {
-        switch state {
-        case .active, .completed, .justCompleted:
-            return encounterTint
+            return "Tap to begin encounter"
         case .future:
-            return .secondary
+            return "Locked"
         }
+    }
+
+    private var statusStyle: Color {
+        state == .active ? .primary : .secondary
     }
 
     private var encounterTint: Color {
+        if state == .future { return .secondary }
         switch stage.encounter {
         case .battle:
             return .red
@@ -535,68 +670,81 @@ private struct StagePathNode: View {
             return .mint
         }
     }
-}
 
-private struct StagePathConnector: View {
-    let color: Color
+    private var encounterBadge: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(encounterTint.opacity(0.12))
+                .frame(width: 36, height: 36)
 
-    var body: some View {
-        GeometryReader { geometry in
-            Path { path in
-                let centerX = geometry.size.width / 2
-                path.move(to: CGPoint(x: centerX, y: 0))
-                path.addLine(to: CGPoint(x: centerX, y: geometry.size.height))
-            }
-            .stroke(
-                color,
-                style: StrokeStyle(lineWidth: 3, lineCap: .round, dash: [2, 8])
-            )
-        }
-        .frame(height: 42)
-        .accessibilityHidden(true)
-    }
-}
-
-private struct StagePathContinuation: View {
-    var body: some View {
-        VStack(spacing: 0) {
-            StagePathConnector(color: Color.secondary.opacity(0.14))
-
-            ForEach(0 ..< 3, id: \.self) { index in
-                Circle()
-                    .fill(Color.secondary.opacity(0.12 - Double(index) * 0.03))
-                    .frame(width: 5, height: 5)
-                    .padding(.vertical, 4)
-            }
+            Image(systemName: stage.encounter.symbolName)
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(encounterTint)
         }
         .accessibilityHidden(true)
     }
 }
 
-private struct LockedChapterGate: View {
+private struct StageTimelineGateRow: View {
+    let theme: ChapterTheme
+    let isLast: Bool
+
     var body: some View {
-        VStack(spacing: 8) {
+        HStack(spacing: 16) {
             ZStack {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.secondary.opacity(0.08))
+                TimelineLine(
+                    topColored: false,
+                    bottomColored: false,
+                    color: theme.tint,
+                    isFirst: false,
+                    isLast: isLast
+                )
+
+                Circle()
+                    .fill(Color.secondary.opacity(0.12))
+                    .frame(width: 24, height: 24)
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color.secondary.opacity(0.20), lineWidth: 1)
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.secondary)
                     }
-
-                Image(systemName: "lock.fill")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
             }
-            .frame(width: 74, height: 54)
+            .frame(width: 40)
 
-            Text("Chapter 2")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CHAPTER 2")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.secondary)
+
+                    Text("Next Chapter Locked")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    Text("Complete all current stages to unlock.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.secondary.opacity(0.08))
+                        .frame(width: 36, height: 36)
+
+                    Image(systemName: "lock.rectangle.on.rectangle.fill")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .trinketCardSurface()
+            .opacity(0.54)
+            .padding(.vertical, 8)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 2)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("Chapter 2 Locked")
     }

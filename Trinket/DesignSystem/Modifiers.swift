@@ -18,8 +18,12 @@ struct FloatingGlassToggleModifier: ViewModifier {
 struct CardSurfaceModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(.regularMaterial)
+            .background(.thinMaterial)
             .clipShape(TrinketDesign.cardShape)
+            .overlay {
+                TrinketDesign.cardShape
+                    .stroke(.white.opacity(0.12), lineWidth: 1)
+            }
             .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
     }
 }

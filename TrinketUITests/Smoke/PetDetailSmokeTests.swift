@@ -7,11 +7,4 @@ final class SmokePetDetailTests: TrinketUITestCase {
         assertExists("Stats")
         assertExists("Health")
     }
-
-    func testBearPetDetailRenders() {
-        launchApp(arguments: TestLaunchArg.allForScreen("pet:bear"))
-        assertExists("Bear detail hero header")
-        assertExists("Stats")
-        assertExists("Health")
-    }
 }

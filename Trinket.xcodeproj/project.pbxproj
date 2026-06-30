@@ -41,7 +41,6 @@
 		46475D2E1895CC8D41AF7DE7 /* PlayerSaveSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001383C7F83FE8437683AD2A /* PlayerSaveSanitizer.swift */; };
 		4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F878C46477AE9CD0197CFD8 /* AppStateTests.swift */; };
 		4B8F75949757B5293FC90A9A /* PlayerSaveStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFB560DF2BEC4AE154564E0 /* PlayerSaveStoreTests.swift */; };
-		5479F446045D68F22F43A5DF /* OptionsThemeSmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */; };
 		551999D2C8803BDBC5651E4A /* music_boss_forge_golem.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2FD23B6740A3565027D2A103 /* music_boss_forge_golem.m4a */; };
 		5536F751338BCE35A0E116AA /* BattleSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BEC9F4E5001820CB674DFC1 /* BattleSimulator.swift */; };
 		554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9644A89F778120278E7791 /* PlayView.swift */; };
@@ -51,6 +50,7 @@
 		5E6F34A79043BE52BCAB194B /* PlayerSaveFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA07D03CFF5D5ABED8B5894 /* PlayerSaveFileStore.swift */; };
 		5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51450F5568FC102C62BE459D /* BattleFlowUITests.swift */; };
 		5FFDA92BAF3539D0427E04CE /* HeroHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDBE5745A194C412DB428CB /* HeroHeaderLayout.swift */; };
+		603EA1FAA71B279DCBC53493 /* MotionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288A748C54E56F2D989F5B93 /* MotionObserver.swift */; };
 		62E49A7F4C1F31EF94AB40ED /* CombatantArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BF8380DB16DE532A84024C /* CombatantArtwork.swift */; };
 		62EA2B3C00AA6E22255E0306 /* PlaySmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9BAF344DA6508B76C0355DB /* PlaySmokeTests.swift */; };
 		66011609C3194A5920ADF322 /* SavedEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D15D0BBE17B8209C0E1D04 /* SavedEffect.swift */; };
@@ -173,8 +173,8 @@
 		1B99B58146F18E267DC8B1FB /* PlayerSaveMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveMigration.swift; sourceTree = "<group>"; };
 		24A588423B8C52AF3D9FA851 /* CollectionSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSmokeTests.swift; sourceTree = "<group>"; };
 		24CA1D20B1A35114D2B61598 /* AbilitySummaryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilitySummaryGrid.swift; sourceTree = "<group>"; };
-		2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsThemeSmokeTests.swift; sourceTree = "<group>"; };
 		26AE7A325D5344AF030C3332 /* Combatant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combatant.swift; sourceTree = "<group>"; };
+		288A748C54E56F2D989F5B93 /* MotionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionObserver.swift; sourceTree = "<group>"; };
 		28B17566A405416D98A55797 /* ArtCatalog.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtCatalog.generated.swift; sourceTree = "<group>"; };
 		28EE3F0126FE07615AA25F11 /* SimulationResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulationResults.swift; sourceTree = "<group>"; };
 		2BDDEAAA72F0F53F0DE9AA8D /* PlayerSaveFileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveFileStoreTests.swift; sourceTree = "<group>"; };
@@ -189,6 +189,7 @@
 		3CEC947E893452FC5D8E2081 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
 		3D8CABFB14B1AB535F450557 /* StageCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCompletion.swift; sourceTree = "<group>"; };
 		4012A1AE6C63CE8396809643 /* SavedPlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPlayerState.swift; sourceTree = "<group>"; };
+		4058BC1CE8ECD030168E8758 /* Integration.xctestplan */ = {isa = PBXFileReference; path = Integration.xctestplan; sourceTree = "<group>"; };
 		429D8A44231746AA8118D5EA /* GameContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContent.swift; sourceTree = "<group>"; };
 		4362E34D0EBFEC0161B41D12 /* PlayerInventoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerInventoryStoreTests.swift; sourceTree = "<group>"; };
 		437D8A973CF02F94F550E1E4 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
@@ -271,6 +272,7 @@
 		C9DCF85128AEC8577B0356E0 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
 		D1D30B98EECEDB98A3608EDB /* music_menu_1.m4a */ = {isa = PBXFileReference; path = music_menu_1.m4a; sourceTree = "<group>"; };
 		D6A71A45CB0232807C35A833 /* music_boss_frostwarden.m4a */ = {isa = PBXFileReference; path = music_boss_frostwarden.m4a; sourceTree = "<group>"; };
+		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		DDEEE7C69B927E5A5C87B01B /* PlayerSaveMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveMigrationTests.swift; sourceTree = "<group>"; };
 		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantHealthDetail.swift; sourceTree = "<group>"; };
@@ -371,6 +373,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		353472ED96C56C30C6221DFD /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				288A748C54E56F2D989F5B93 /* MotionObserver.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
 		38B7CC31799C2F3746FDBC58 /* Search */ = {
 			isa = PBXGroup;
 			children = (
@@ -407,6 +417,8 @@
 		4C496176F4614A5DBFEF2CFF = {
 			isa = PBXGroup;
 			children = (
+				4058BC1CE8ECD030168E8758 /* Integration.xctestplan */,
+				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
 				A4012463DD954CE8411DA9EE /* Trinket */,
 				B49A29077FD105628976E325 /* TrinketTests */,
 				A76BC34F8DE0E1847F8183C5 /* TrinketUITests */,
@@ -483,6 +495,7 @@
 				B131800D03D03F5AADA4F764 /* Cards */,
 				5B38279F17AFBCB4BFE99CFA /* Detail */,
 				26FA96C4E21CC8C518CD7EFA /* Forms */,
+				353472ED96C56C30C6221DFD /* Support */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -667,7 +680,6 @@
 				1869BF8BD4946DDA87CE066E /* HomesteadSmokeTests.swift */,
 				91849E69A56975176C347715 /* ItemDetailSmokeTests.swift */,
 				30B234F2C3D2BB67AE3BB31D /* OptionsSmokeTests.swift */,
-				2609A4DFA9CCF2651910E6DA /* OptionsThemeSmokeTests.swift */,
 				8EC930AB389358B739A2B97F /* PetDetailSmokeTests.swift */,
 				A9BAF344DA6508B76C0355DB /* PlaySmokeTests.swift */,
 				06E1A20AE7C8994B1A8D47C5 /* SearchSmokeTests.swift */,
@@ -917,6 +929,7 @@
 				EE6011AE2C0BE69860F552DF /* KeywordDescriptionText.swift in Sources */,
 				AC98C409B0D78A6AC52F6BA3 /* LocalOnlyPlayerSaveSync.swift in Sources */,
 				B4C68B2402F5CCE152A80C3C /* Modifiers.swift in Sources */,
+				603EA1FAA71B279DCBC53493 /* MotionObserver.swift in Sources */,
 				41315E737AFF76DE38FBA3EB /* MusicCatalog.generated.swift in Sources */,
 				B55FDF0B6DB7A601885C431D /* MusicDirector.swift in Sources */,
 				3053ECE7D253C0B6E5536E88 /* MusicModels.swift in Sources */,
@@ -998,7 +1011,6 @@
 				F9A855C48174CD69565EC047 /* ItemDetailSmokeTests.swift in Sources */,
 				E33EB16F37A2F2F2AE2B5F92 /* LaunchScreenUITests.swift in Sources */,
 				89A9FC7452C718D9578C45AB /* OptionsSmokeTests.swift in Sources */,
-				5479F446045D68F22F43A5DF /* OptionsThemeSmokeTests.swift in Sources */,
 				F502BFE43A9F6EEA4D8A2126 /* PetDetailSmokeTests.swift in Sources */,
 				62EA2B3C00AA6E22255E0306 /* PlaySmokeTests.swift in Sources */,
 				10420DB76B7753231EF5981D /* SearchSmokeTests.swift in Sources */,

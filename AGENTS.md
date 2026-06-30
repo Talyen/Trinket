@@ -30,18 +30,19 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## Commands & Verification
 
-All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs xcodegen unless `--fast`; `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
+All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-deploy.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs xcodegen unless `--fast`; `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
 
 | Change | Check |
 |--------|-------|
 | One-screen layout | `build.sh` or `run-simulator.sh` |
 | Styling | `check-ui-style.sh` + smoke |
 | Rules/models | `test.sh unit <Tests>` |
-| Multi-step UI | `test-iterate.sh <Smoke> <FullUI>` |
+| Multi-step UI | `test.sh ui <TestClass>` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
 
-Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example: `test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests --fast`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
+Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example: `./Scripts/test.sh ui SmokeCollectionTests --fast`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
+- **Speed Tip**: Avoid running `ci-locally.sh` or `test-deploy.sh` during active development. They run the entire unit/UI suite and delay iteration. Compile with `build.sh` or run simulator previews.
 
 ## UI Tests
 

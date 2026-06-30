@@ -20,7 +20,6 @@ if ! command -v afconvert >/dev/null 2>&1; then
 fi
 
 mkdir -p "$resources_dir" "$generated_dir"
-rm -f "$resources_dir"/*.m4a(N)
 
 tracks_temp=$(mktemp)
 menu_temp=$(mktemp)
@@ -28,6 +27,7 @@ battle_temp=$(mktemp)
 boss_temp=$(mktemp)
 seen_ids_temp=$(mktemp)
 seen_assets_temp=$(mktemp)
+active_tracks_temp=$(mktemp)
 processed_count=0
 
 escape_swift_string() {
@@ -94,7 +94,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
       echo "Boss music '$id' must include boss_enemy_id." >&2
       exit 1
     fi
-    if ! rg -q "id: \"$boss_enemy_id\".*isBoss: true" Trinket/Content/GameContent.swift; then
+    if ! grep -q "id: \"$boss_enemy_id\".*isBoss: true" Trinket/Content/GameContent.swift; then
       echo "Boss music '$id' references missing or non-boss enemy '$boss_enemy_id'." >&2
       exit 1
     fi
@@ -103,8 +103,19 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
     exit 1
   fi
 
+  # Track active assets for pruning
+  printf '%s\n' "$asset_name.m4a" >> "$active_tracks_temp"
+
   output_file="$resources_dir/$asset_name.m4a"
-  afconvert "$source_path" "$output_file" -f m4af -d aac -b "$bitrate" --soundcheck-generate >/dev/null
+
+  local needs_convert=true
+  if [[ -f "$output_file" && "$source_path" -ot "$output_file" ]]; then
+    needs_convert=false
+  fi
+
+  if $needs_convert; then
+    afconvert "$source_path" "$output_file" -f m4af -d aac -b "$bitrate" --soundcheck-generate >/dev/null
+  fi
 
   escaped_id="$(escape_swift_string "$id")"
   escaped_asset="$(escape_swift_string "$asset_name")"
@@ -167,6 +178,16 @@ $(cat "$boss_temp")
 }
 SWIFT
 
-rm -f "$tracks_temp" "$menu_temp" "$battle_temp" "$boss_temp" "$seen_ids_temp" "$seen_assets_temp"
+  # Prune orphaned music assets
+  for file in "$resources_dir"/*.m4a(N); do
+    [[ -f "$file" ]] || continue
+    local filename=$(basename "$file")
+    if ! grep -qx "$filename" "$active_tracks_temp"; then
+      echo "Pruning orphaned music track: $filename"
+      rm -f "$file"
+    fi
+  done
+
+rm -f "$tracks_temp" "$menu_temp" "$battle_temp" "$boss_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_tracks_temp"
 
 echo "Prepared $processed_count music assets in $resources_dir and regenerated $generated_swift."

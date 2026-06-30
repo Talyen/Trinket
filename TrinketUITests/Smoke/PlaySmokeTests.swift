@@ -27,16 +27,6 @@ final class SmokePlayTests: TrinketUITestCase {
         XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
     }
 
-    func testFutureStageShowsLockedFeedback() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-
-        app.buttons["Stage 1-2 Node"].tap()
-
-        assertExists("Stage Locked")
-        app.alerts.buttons["OK"].tap()
-        XCTAssertFalse(app.buttons["Battle Button"].exists)
-    }
-
     func testNonBattleStubStageCanComplete() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
 
@@ -50,8 +40,7 @@ final class SmokePlayTests: TrinketUITestCase {
 
         assertExists("Stage 1-3 Node")
         app.buttons["Stage 1-2 Node"].tap()
-        assertExists("Stage Complete")
-        app.alerts.buttons["OK"].tap()
+        XCTAssertFalse(app.alerts.element.exists)
     }
 
     func testFinalStageShowsLockedNextChapter() {

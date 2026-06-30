@@ -9,13 +9,18 @@ struct OptionsView: View {
 
         Form {
             Section("Appearance") {
-                Picker("Theme", selection: $options.theme) {
-                    ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
-                        Text(themeOption.rawValue).tag(themeOption)
+                HStack {
+                    Picker(selection: $options.theme) {
+                        ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
+                            Text(themeOption.rawValue).tag(themeOption)
+                        }
+                    } label: {
+                        EmptyView()
                     }
+                    .pickerStyle(.segmented)
+                    .accessibilityLabel("Theme")
+                    .accessibilityIdentifier("Theme Picker")
                 }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("Theme Picker")
             }
 
             Section("Audio") {

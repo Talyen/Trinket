@@ -3,6 +3,9 @@ options:
   bundleIdPrefix: com.ryanmcintire
   deploymentTarget:
     iOS: "26.0"
+fileGroups:
+  - Smoke.xctestplan
+  - Integration.xctestplan
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -46,3 +49,19 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Trinket
+
+schemes:
+  Trinket:
+    build:
+      targets:
+        Trinket: all
+    test:
+      testPlans:
+        - path: Smoke.xctestplan
+          defaultPlan: true
+        - path: Integration.xctestplan
+      targets:
+        - TrinketTests
+        - TrinketUITests
+    run:
+      target: Trinket

@@ -19,12 +19,6 @@ fi
 
 mkdir -p "$asset_catalog" "$generated_dir"
 
-rm -rf "$asset_catalog"/hero_*.imageset(N)
-rm -rf "$asset_catalog"/pet_*.imageset(N)
-rm -rf "$asset_catalog"/enemy_*.imageset(N)
-rm -rf "$asset_catalog"/ability_*.imageset(N)
-rm -rf "$asset_catalog"/item_*.imageset(N)
-rm -rf "$asset_catalog"/slot_*.imageset(N)
 
 cat > "$asset_catalog/Contents.json" <<'JSON'
 {
@@ -39,6 +33,8 @@ combatants_temp=$(mktemp)
 abilities_temp=$(mktemp)
 items_temp=$(mktemp)
 slot_backgrounds_temp=$(mktemp)
+backgrounds_temp=$(mktemp)
+active_assets_temp=$(mktemp)
 processed_count=0
 
 escape_swift_string() {
@@ -54,7 +50,7 @@ heic_from_source() {
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -80,14 +76,30 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
     exit 1
   fi
 
+  # Track active assets for pruning
+  printf '%s\n' "$asset_name" >> "$active_assets_temp"
+  printf '%s\n' "${asset_name}_thumb" >> "$active_assets_temp"
+
   # Full-size image
   imageset="$asset_catalog/$asset_name.imageset"
   output_file="$imageset/$asset_name.heic"
-  rm -rf "$imageset"
-  mkdir -p "$imageset"
-  heic_from_source "$source_file" "$output_file" "$max_dimension"
 
-  cat > "$imageset/Contents.json" <<JSON
+  # Thumbnail image
+  thumb_asset="${asset_name}_thumb"
+  thumb_imageset="$asset_catalog/${thumb_asset}.imageset"
+  thumb_output_file="$thumb_imageset/${thumb_asset}.heic"
+
+  local needs_convert=true
+  if [[ -f "$output_file" && -f "$thumb_output_file" && "$source_file" -ot "$output_file" && "$source_file" -ot "$thumb_output_file" ]]; then
+    needs_convert=false
+  fi
+
+  if $needs_convert; then
+    rm -rf "$imageset"
+    mkdir -p "$imageset"
+    heic_from_source "$source_file" "$output_file" "$max_dimension"
+
+    cat > "$imageset/Contents.json" <<JSON
 {
   "images" : [
     {
@@ -102,15 +114,11 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
 }
 JSON
 
-  # Thumbnail image
-  thumb_asset="${asset_name}_thumb"
-  thumb_imageset="$asset_catalog/${thumb_asset}.imageset"
-  thumb_output_file="$thumb_imageset/${thumb_asset}.heic"
-  rm -rf "$thumb_imageset"
-  mkdir -p "$thumb_imageset"
-  heic_from_source "$source_file" "$thumb_output_file" "$thumb_dimension"
+    rm -rf "$thumb_imageset"
+    mkdir -p "$thumb_imageset"
+    heic_from_source "$source_file" "$thumb_output_file" "$thumb_dimension"
 
-  cat > "$thumb_imageset/Contents.json" <<JSON
+    cat > "$thumb_imageset/Contents.json" <<JSON
 {
   "images" : [
     {
@@ -124,6 +132,7 @@ JSON
   }
 }
 JSON
+  fi
 
   escaped_id="$(escape_swift_string "$id")"
   escaped_asset="$(escape_swift_string "$asset_name")"
@@ -168,6 +177,13 @@ SWIFT
             accessibilityLabel: "$escaped_label"
         ),
 SWIFT
+  elif [[ "$kind" == "background" ]]; then
+    cat >> "$backgrounds_temp" <<SWIFT
+        "$escaped_id": BackgroundArtReference(
+            imageName: "$escaped_asset",
+            accessibilityLabel: "$escaped_label"
+        ),
+SWIFT
   fi
 
   processed_count=$((processed_count + 1))
@@ -201,6 +217,12 @@ struct SlotBackgroundArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct BackgroundArtReference: Hashable {
+    let imageName: String
+    let accessibilityLabel: String
+}
+
+
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
 $(cat "$combatants_temp")
@@ -217,6 +239,11 @@ $(cat "$items_temp")
     static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
 $(cat "$slot_backgrounds_temp")
     ]
+
+    static let backgroundArtByID: [String: BackgroundArtReference] = [
+$(cat "$backgrounds_temp")
+    ]
+
 }
 
 extension Combatant {
@@ -244,7 +271,23 @@ extension ItemSlot {
 }
 SWIFT
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp"
+  # Prune orphaned assets
+  for dir in "$asset_catalog"/*/*.imageset(N) "$asset_catalog"/*.imageset(N); do
+    [[ -d "$dir" ]] || continue
+    local foldername=$(basename "$dir")
+    local name="${foldername%.imageset}"
+    
+    case "$name" in
+      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*)
+        if ! grep -qx "$name" "$active_assets_temp"; then
+          echo "Pruning orphaned asset: $foldername"
+          rm -rf "$dir"
+        fi
+        ;;
+    esac
+  done
+
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$active_assets_temp"
 
 echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."
 

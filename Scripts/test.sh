@@ -90,18 +90,8 @@ if [[ "$MODE" == "unit" ]]; then
     TEST_TARGET_FLAG=(-only-testing:TrinketTests)
   fi
 elif [[ "$MODE" == "smoke" ]]; then
-  echo "Running smoke UI tests..."
-  TEST_TARGET_FLAG=()
-  for swift_file in TrinketUITests/Smoke/*.swift; do
-    class_name=$(grep '^final class ' "$swift_file" | sed 's/final class //; s/:.*//')
-    if [[ -n "$class_name" ]]; then
-      TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$class_name")
-    fi
-  done
-  if [[ ${#TEST_TARGET_FLAG[@]} -eq 0 ]]; then
-    echo "No smoke test classes found."
-    exit 1
-  fi
+  echo "Running smoke tests via Xcode Test Plan..."
+  TEST_TARGET_FLAG=(-testPlan Smoke)
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -124,7 +114,8 @@ else
     echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
     exit 1
   fi
-  echo "Running all tests..."
+  echo "Running all tests via Xcode Test Plan..."
+  TEST_TARGET_FLAG=(-testPlan Integration)
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 fi
 

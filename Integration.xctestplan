@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "A974C688-6625-45C6-A586-B91F268EE182",
+      "name" : "Default Configuration",
+      "options" : {}
+    }
+  ],
+  "defaultOptions" : {
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Trinket.xcodeproj",
+        "identifier" : "B49A29077FD105628976E325",
+        "name" : "TrinketTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Trinket.xcodeproj",
+        "identifier" : "A76BC34F8DE0E1847F8183C5",
+        "name" : "TrinketUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
