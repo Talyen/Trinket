@@ -1,0 +1,278 @@
+import XCTest
+@testable import Trinket
+
+@MainActor
+final class PlayerSaveSyncCoordinatorTests: XCTestCase {
+    private var directoryURL: URL!
+    private let earlier = Date(timeIntervalSince1970: 1_600_000_000)
+    private let later = Date(timeIntervalSince1970: 1_800_000_000)
+
+    override func setUp() async throws {
+        try await super.setUp()
+        directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PlayerSaveSyncCoordinatorTests.\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+    }
+
+    override func tearDown() async throws {
+        try? FileManager.default.removeItem(at: directoryURL)
+        try await super.tearDown()
+    }
+
+    func testUnavailableAccountSetsStatus() async {
+        let mock = MockPlayerSaveSync()
+        await mock.setAccountStatus(.unavailable("iCloud is signed out."))
+        let store = PlayerSaveStore(fileStore: makeFileStore())
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+
+        XCTAssertEqual(coordinator.status, .iCloudUnavailable("iCloud is signed out."))
+        let fetchCount = await mock.fetchCallCount()
+        XCTAssertEqual(fetchCount, 0)
+    }
+
+    func testNewerRemoteAppliesToStore() async throws {
+        let mock = MockPlayerSaveSync()
+        let fileStore = makeFileStore()
+        try writeSave(makeSave(modifiedAt: earlier, gold: 10), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        let remote = RemotePlayerSave(
+            save: makeSave(modifiedAt: later, gold: 99),
+            modifiedAt: later,
+            recordChangeTag: "remote"
+        )
+        await mock.setRemoteSave(remote)
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+
+        XCTAssertEqual(coordinator.status, .upToDate)
+        XCTAssertEqual(store.roster.gold, 99)
+        let uploadCount = await mock.uploadedSaveCount()
+        XCTAssertEqual(uploadCount, 0)
+    }
+
+    func testNewerLocalUploadsOnReconcile() async throws {
+        let mock = MockPlayerSaveSync()
+        let fileStore = makeFileStore()
+        try writeSave(makeSave(modifiedAt: later, gold: 42), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        let remote = RemotePlayerSave(
+            save: makeSave(modifiedAt: earlier, gold: 5),
+            modifiedAt: earlier,
+            recordChangeTag: "remote"
+        )
+        await mock.setRemoteSave(remote)
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+
+        XCTAssertEqual(coordinator.status, .upToDate)
+        let uploads = await mock.uploadedSavesSnapshot()
+        XCTAssertEqual(uploads.count, 1)
+        XCTAssertEqual(uploads.first?.roster.gold, 42)
+    }
+
+    func testEqualTimestampsKeepLocalWithoutUpload() async throws {
+        let mock = MockPlayerSaveSync()
+        let fileStore = makeFileStore()
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        try writeSave(makeSave(modifiedAt: timestamp, gold: 15), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        let remote = RemotePlayerSave(
+            save: makeSave(modifiedAt: timestamp, gold: 99),
+            modifiedAt: timestamp,
+            recordChangeTag: "remote"
+        )
+        await mock.setRemoteSave(remote)
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+
+        XCTAssertEqual(coordinator.status, .upToDate)
+        XCTAssertEqual(store.roster.gold, 15)
+        let uploadCount = await mock.uploadedSaveCount()
+        XCTAssertEqual(uploadCount, 0)
+    }
+
+    func testLocalMutationSchedulesDebouncedUpload() async throws {
+        let mock = MockPlayerSaveSync()
+        let fileStore = makeFileStore()
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        try writeSave(makeSave(modifiedAt: timestamp, gold: 0), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        await mock.setRemoteSave(
+            RemotePlayerSave(
+                save: makeSave(modifiedAt: timestamp, gold: 0),
+                modifiedAt: timestamp,
+                recordChangeTag: "remote"
+            )
+        )
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+        store.roster = updatedRoster(store.roster, gold: 33)
+
+        let uploadCountBeforeDelay = await mock.uploadedSaveCount()
+        XCTAssertEqual(uploadCountBeforeDelay, 0)
+
+        try await Task.sleep(for: .seconds(2.1))
+
+        let uploads = await mock.uploadedSavesSnapshot()
+        XCTAssertEqual(uploads.count, 1)
+        XCTAssertEqual(uploads.first?.roster.gold, 33)
+        XCTAssertEqual(coordinator.status, .upToDate)
+    }
+
+    func testApplyingRemoteSaveDoesNotScheduleUpload() async throws {
+        let mock = MockPlayerSaveSync()
+        let fileStore = makeFileStore()
+        try writeSave(makeSave(modifiedAt: earlier, gold: 10), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        await mock.setRemoteSave(
+            RemotePlayerSave(
+                save: makeSave(modifiedAt: later, gold: 77),
+                modifiedAt: later,
+                recordChangeTag: "remote"
+            )
+        )
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+        try await Task.sleep(for: .seconds(2.1))
+
+        XCTAssertEqual(store.roster.gold, 77)
+        let uploadCount = await mock.uploadedSaveCount()
+        XCTAssertEqual(uploadCount, 0)
+    }
+
+    func testFetchFailureSetsErrorStatus() async throws {
+        let mock = MockPlayerSaveSync()
+        await mock.setFetchError(MockSyncError.fetchFailed)
+        let store = PlayerSaveStore(fileStore: makeFileStore())
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+
+        XCTAssertEqual(coordinator.status, .error("Playing offline on this device."))
+    }
+
+    func testUploadFailureSetsOfflineStatus() async throws {
+        let mock = MockPlayerSaveSync()
+        await mock.setUploadError(MockSyncError.uploadFailed)
+        let fileStore = makeFileStore()
+        let timestamp = Date(timeIntervalSince1970: 1_700_000_001)
+        try writeSave(makeSave(modifiedAt: timestamp, gold: 0), to: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore)
+        await mock.setRemoteSave(
+            RemotePlayerSave(
+                save: makeSave(modifiedAt: timestamp, gold: 0),
+                modifiedAt: timestamp,
+                recordChangeTag: "remote"
+            )
+        )
+        let coordinator = makeCoordinator(sync: mock, store: store)
+
+        await coordinator.pullAndReconcile()
+        store.roster = updatedRoster(store.roster, gold: 12)
+
+        try await Task.sleep(for: .seconds(2.1))
+
+        XCTAssertEqual(coordinator.status, .offline)
+    }
+
+    private func makeFileStore() -> PlayerSaveFileStore {
+        PlayerSaveFileStore(directoryURL: directoryURL)
+    }
+
+    private func makeCoordinator(
+        sync: MockPlayerSaveSync,
+        store: PlayerSaveStore
+    ) -> PlayerSaveSyncCoordinator {
+        PlayerSaveSyncCoordinator(sync: sync, playerSaveStore: store)
+    }
+
+    private func makeSave(modifiedAt: Date, gold: Int) -> PlayerSave {
+        var save = PlayerSave.fresh
+        save.modifiedAt = modifiedAt
+        save.roster.gold = gold
+        return save
+    }
+
+    private func writeSave(_ save: PlayerSave, to fileStore: PlayerSaveFileStore) throws {
+        fileStore.save(save)
+    }
+
+    private func updatedRoster(_ roster: PlayerRosterState, gold: Int) -> PlayerRosterState {
+        var updated = roster
+        updated.gold = gold
+        return updated
+    }
+}
+
+private enum MockSyncError: Error {
+    case fetchFailed
+    case uploadFailed
+}
+
+private actor MockPlayerSaveSync: PlayerSaveSyncing {
+    private var accountStatusResult: PlayerSaveAccountStatus = .available
+    private var remoteSave: RemotePlayerSave?
+    private var fetchError: Error?
+    private var uploadError: Error?
+    private var uploadedSaves: [PlayerSave] = []
+    private var fetchCount = 0
+    private var subscribeCallCount = 0
+
+    func setAccountStatus(_ status: PlayerSaveAccountStatus) {
+        accountStatusResult = status
+    }
+
+    func setRemoteSave(_ remote: RemotePlayerSave?) {
+        remoteSave = remote
+    }
+
+    func setFetchError(_ error: Error?) {
+        fetchError = error
+    }
+
+    func setUploadError(_ error: Error?) {
+        uploadError = error
+    }
+
+    func uploadedSaveCount() -> Int {
+        uploadedSaves.count
+    }
+
+    func uploadedSavesSnapshot() -> [PlayerSave] {
+        uploadedSaves
+    }
+
+    func fetchCallCount() -> Int {
+        fetchCount
+    }
+
+    func accountStatus() async -> PlayerSaveAccountStatus {
+        accountStatusResult
+    }
+
+    func fetchRemoteSave() async throws -> RemotePlayerSave? {
+        fetchCount += 1
+        if let fetchError {
+            throw fetchError
+        }
+        return remoteSave
+    }
+
+    func upload(_ save: PlayerSave) async throws {
+        if let uploadError {
+            throw uploadError
+        }
+        uploadedSaves.append(save)
+    }
+
+    func subscribeToChanges() async throws {
+        subscribeCallCount += 1
+    }
+}
