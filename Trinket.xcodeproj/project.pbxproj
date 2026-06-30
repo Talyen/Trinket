@@ -29,6 +29,7 @@
 		326BDC36B29C8CEA8D5B4944 /* PlayerSaveSanitizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A070826715C7CAD963F7C900 /* PlayerSaveSanitizerTests.swift */; };
 		3300AE189FC1CA8B733509D2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4F5008156859F661347AEE /* AppEnvironment.swift */; };
 		34B0ABD5A43422308E908004 /* EffectModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036D108B8D8714857531934 /* EffectModelTests.swift */; };
+		381688F1CAF45AF5B8AE41ED /* BattleStateSchedulingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003A0737522A6E1EDF301911 /* BattleStateSchedulingTests.swift */; };
 		3AB0340125D10F66A14E0CD4 /* PetsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */; };
 		3E7AC8926624B847BBA703C1 /* StageCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8CABFB14B1AB535F450557 /* StageCompletion.swift */; };
 		41160DA084928326881122F0 /* PlayerRosterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DFB68E089F941D1CD8FEEE /* PlayerRosterTests.swift */; };
@@ -136,6 +137,7 @@
 
 /* Begin PBXFileReference section */
 		001383C7F83FE8437683AD2A /* PlayerSaveSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSanitizer.swift; sourceTree = "<group>"; };
+		003A0737522A6E1EDF301911 /* BattleStateSchedulingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleStateSchedulingTests.swift; sourceTree = "<group>"; };
 		016D85608EE4392958B395C9 /* CloudKitPlayerSaveSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitPlayerSaveSync.swift; sourceTree = "<group>"; };
 		06E1A20AE7C8994B1A8D47C5 /* SearchSmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSmokeTests.swift; sourceTree = "<group>"; };
 		0B865B185E48E642F8C4418E /* PlayerSave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSave.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 			children = (
 				C830DB0F9FAC0426BD7BBBB8 /* BattleEffectTests.swift */,
 				62375A0D4AD99EB4A1D32358 /* BattleSimulatorTests.swift */,
+				003A0737522A6E1EDF301911 /* BattleStateSchedulingTests.swift */,
 				5978C1EA252EEDBADA40D5C1 /* BattleStateTests.swift */,
 				C036D108B8D8714857531934 /* EffectModelTests.swift */,
 				14019B868280979361212BB9 /* EnemyCatalogTests.swift */,
@@ -843,6 +846,7 @@
 				4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */,
 				6E6ED2C8190DD877CF0E8E78 /* BattleEffectTests.swift in Sources */,
 				FC1C937AD1C4C47257B9D1BE /* BattleSimulatorTests.swift in Sources */,
+				381688F1CAF45AF5B8AE41ED /* BattleStateSchedulingTests.swift in Sources */,
 				86D13A653AFF678C497E77F6 /* BattleStateTests.swift in Sources */,
 				34B0ABD5A43422308E908004 /* EffectModelTests.swift in Sources */,
 				832F4F613E5492807C8B5D84 /* EnemyCatalogTests.swift in Sources */,

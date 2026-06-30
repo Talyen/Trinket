@@ -6,11 +6,14 @@ final class BattleStateTests: XCTestCase {
     private lazy var wolfPet = GameContent.pets.first { $0.id == "wolf" }!
 
     func testHeroAndPetAlternateActions() {
-        var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
-        let first = battle.performNextAction()
-        XCTAssertFalse(first.isEmpty)
-        let second = battle.performNextAction()
-        XCTAssertFalse(second.isEmpty)
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
+
+        let events = battle.performNextAction()
+        let abilityActors = events.filter { $0.kind == .ability }.map(\.actorName)
+
+        XCTAssertEqual(abilityActors, ["Hero", "Pet"])
     }
 
     func testEnemyHealthDecreasesOnHit() {
@@ -87,9 +90,10 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBattleTracksGoldFromResourceGains() {
-        var battle = BattleState(hero: GameContent.heroes[7], pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+        let wildcard = GameContent.heroes.first { $0.id == "wildcard" }!
+        var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = battle.performNextAction()
-        XCTAssertGreaterThanOrEqual(battle.gold, 10)
+        XCTAssertEqual(battle.gold, 11)
     }
 
     func testInitialGoldReflectedInEarnedGold() {

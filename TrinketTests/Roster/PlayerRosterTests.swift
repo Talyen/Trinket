@@ -13,6 +13,15 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertEqual(leveled.requiredXP, 150)
     }
 
+    func testProgressionChainsMultipleLevelUps() {
+        let progression = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
+        let leveled = progression.addingExperience(200)
+
+        XCTAssertEqual(leveled.level, 3)
+        XCTAssertEqual(leveled.currentXP, 45)
+        XCTAssertEqual(leveled.requiredXP, 200)
+    }
+
     func testProgressionIgnoresZeroOrNegativeXP() {
         let progression = CombatantProgression(level: 2, currentXP: 40, requiredXP: 120)
 
@@ -81,6 +90,24 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertEqual(roster.activePetID, "wolf")
     }
 
+    func testSetActiveHeroIgnoresLockedCombatantOnFreshStart() throws {
+        var roster = PlayerRosterState.freshStart
+        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
+
+        roster.setActiveHero(wizard)
+
+        XCTAssertEqual(roster.activeHeroID, PlayerRosterState.starterHeroID)
+    }
+
+    func testSetActivePetIgnoresLockedCombatantOnFreshStart() throws {
+        var roster = PlayerRosterState.freshStart
+        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+
+        roster.setActivePet(wolf)
+
+        XCTAssertEqual(roster.activePetID, PlayerRosterState.starterPetID)
+    }
+
     // MARK: - Gold
 
     func testGrantGoldIgnoresNonPositiveAmounts() {
@@ -115,5 +142,20 @@ final class PlayerRosterTests: XCTestCase {
 
         loadout.unequip(.weapon)
         XCTAssertNil(loadout.itemID(for: .weapon))
+    }
+
+    // MARK: - Inventory rewards
+
+    func testAddRewardItemIgnoresDuplicateID() throws {
+        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let stage = GameContent.chapters[0].stages[0]
+        var inventory = PlayerInventoryState.freshStart
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
+
+        inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
+        inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
+
+        XCTAssertEqual(inventory.items.count, 1)
+        XCTAssertEqual(inventory.items.first?.id, "chapter-1-stage-1-shortsword-basic")
     }
 }
