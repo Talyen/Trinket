@@ -2,45 +2,40 @@
 
 Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
+## When To Read What
+
+- Workflow/scripts/style: `AGENTS.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · setup: `README.md`
+
 ## Product & Architecture
 
-- iOS iPhone-first, portrait. Apple-native Swift/SwiftUI/SpriteKit/UIKit/Foundation/CoreGraphics/AVFoundation/GameKit/StoreKit. Target: iOS 26.0, Swift 5.0.
-- `Trinket/Generated/*` is generated — regenerate via `./Scripts/prepare-art-assets.sh`. `Raw Assets/` is the source library, excluded from the Xcode target.
-- Simple experiments; rules/state separate from rendering; small owned types; abstract after repetition.
-- SwiftUI for shell, menus, settings, overlays, prototypes. SpriteKit for 2D loops, sprites, physics, particles, collision, high-frequency animation.
-- Native SwiftUI/Apple UI/UX; minimize customization to use defaults.
+- iOS iPhone-first, portrait-only (`project.yml`). Swift/SwiftUI/SpriteKit; iOS 26.0, Swift 5.0. Public Apple APIs for StoreKit, GameKit, privacy, cloud, etc.; update docs with App Store/privacy implications.
+- SwiftUI for shell/menus/overlays; SpriteKit for 2D loops, sprites, physics, particles, collision. Rules/state separate from rendering; small owned types; abstract after repetition.
+- Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
+- Codebase: `App/` · `Features/` · `Battle/` · `State/` stores · `Models/` · `Content/GameContent.swift` · `DesignSystem/TrinketDesign` · `Shared/` · `TrinketTests/` · `TrinketUITests/Smoke/` + `{Collection,Battle,Search}/`.
+- Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Apple-Native Product Rules
 
-- Prefer system SwiftUI controls, native navigation, SF Symbols, Dynamic Type, accessibility, safe areas, haptics, platform typography, and semantic colors/materials before custom game chrome.
-- Use `TabView` only for top-level destinations. Use `NavigationStack`, sheets, alerts, menus, `ToolbarItem`, and in-content controls for detail flows and contextual actions.
-- Keep portrait layouts thumb-reachable and assistive-tech friendly: respect VoiceOver, Reduce Motion, contrast, legibility, and Dynamic Type from the start.
-- Route recurring chrome through `TrinketDesign`; avoid one-off raw `.buttonStyle`, material backgrounds, custom capsules/circles, selected-button states, fixed button-label frames, and simulated glass. Use `UIStyleCheck: allow` only for intentional exceptions.
-- Use native glass only for floating controls/light app chrome on iOS 26+, with readable material fallbacks. Keep game content, cards, stat panels, and debug tools inspectable.
-- Use `Toggle` for persistent modes and `Button` for one-shot actions. Prefer `controlSize`, `buttonBorderShape`, `Label`, SF Symbols, and semantic styles over visual size hacks.
-- StoreKit, GameKit, privacy, tracking, accounts, analytics, ads, cloud, multiplayer, or external SDK work must use public Apple APIs and update docs with App Store/privacy implications.
-- Follow Swift API Design Guidelines; clarity at call sites beats clever brevity. Keep models, rules, rendering, persistence, and platform services separated enough to test.
-- For major UI work, check `Docs/AppleNativeGuidelines.md` and the relevant official Apple page before implementing.
+- System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
+- `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
+- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles.
+- Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Trinket/DesignSystem/`.
 
 ## Commands & Verification
 
-- Scripts: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `./Scripts/test.sh style`.
-- Test tiers: **smoke** (per-screen, deep-link, fast) → **targeted full-UI** (one `TestClass`/`testMethod`) → **full UI suite** (deploy gate). Don't reach past the tier you actually need.
-- **UI iteration loop:** `./Scripts/test-iterate.sh`. With no args it runs smoke only. Pass `TestClass` or `TestClass/testMethod` (repeatable) to also run that targeted full-UI test, e.g. `./Scripts/test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests`. Add `--fast` to skip rebuild on re-runs.
-- **Deploy gate:** `./Scripts/test-deploy.sh` (style + unit + smoke + full UI). Run pre-merge / nightly, not during local iteration. `ci-locally.sh` remains the fast pre-push lane (style + unit + smoke).
-- Do NOT run the full UI suite (`./Scripts/test.sh ui` with no target) or `all` during local iteration. Use `test-iterate.sh` instead.
-- For minor UI tweaks, `./Scripts/build.sh` or `./Scripts/run-simulator.sh` + a screenshot is often enough before any tests.
-- After `project.yml`/target changes, run `./Scripts/generate.sh` before build/test.
-- Visual changes: `./Scripts/run-simulator.sh`; screenshots are allowed when useful. Agents may use focused simulator/XCUITest navigation and screenshot checks without asking first. Prefer interactive harness (e.g., Computer Use) and XCUITest over manual tapping.
-- Run `./Scripts/check-ui-style.sh` after UI styling changes.
-- Deterministic battle testing: `BattleSimulator` in `Trinket/BattleModels.swift`.
-- Run `./Scripts/ci-locally.sh` before pushing; keep generated build output and `.DerivedData/` out of Git.
-- Never hand-edit `.swiftlint.yml` rule severity without a project-wide reason noted here.
+All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). XcodeGen, `xcodebuild`, XCTest, SwiftLint. `test.sh` runs xcodegen unless `--fast`; `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
 
-## UI Test Conventions
+| Change | Check |
+|--------|-------|
+| One-screen layout | `build.sh` or `run-simulator.sh` |
+| Styling | `check-ui-style.sh` + smoke |
+| Rules/models | `test.sh unit <Tests>` |
+| Multi-step UI | `test-iterate.sh <Smoke> <FullUI>` |
+| Pre-push | `ci-locally.sh` |
+| Pre-merge | `test-deploy.sh` |
 
-- New smoke tests go in `TrinketUITests/Smoke/`. Use `TestLaunchArg.allForScreen(...)` deep links (see `Trinket/App/AppEnvironment.swift:36`) to launch directly into the screen under test: `hero:<id>`, `pet:<id>`, `item:<id>`, `options`, `battle`. This skips tab-tap + animation waits and keeps smoke fast.
-- Full-UI multi-step flows go in `TrinketUITests/{Collection,Battle,Search}/` and walk the navigation explicitly. Reserve them for the deploy tier; they are not for iteration.
-- One assertion focus per test method. If a smoke test grows past ~20 lines or starts scrolling, split it.
+Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example: `test-iterate.sh SmokeCollectionTests Collection/TabNavigationUITests --fast`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
 
-Harness: XcodeGen, `xcodebuild` scripts, XCTest, early XCUITest, SwiftLint, `check-ui-style.sh`.
+## UI Tests
+
+Smoke in `TrinketUITests/Smoke/`; deploy flows in `{Collection,Battle,Search}/`. One assertion per method; split at ~20 lines. `TestLaunchArg` + `LaunchScreen` (`AppTypes.swift`), parsed in `AppEnvironment`; helpers `allForScreen`, `allForTab`, `completedStages`. Args: `-reset-state` (default), `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle`), `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory`→`.collection`), `-completed-stages` (comma IDs). No `play:`/Search screen deep links. Smoke classes `Smoke*` (file may differ). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. `Player*Store`/UserDefaults; keep `-reset-state` unless testing persistence.
