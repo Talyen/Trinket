@@ -318,51 +318,29 @@ private struct JourneyMapView: View {
 
 private struct ChapterMapBackground: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.colorScheme) private var colorScheme
 
     let chapter: Chapter
 
     var body: some View {
-        ZStack {
-            TrinketDesign.Colors.appBackground
+        GeometryReader { geometry in
+            ZStack {
+                TrinketDesign.Colors.appBackground
 
-            if !reduceTransparency,
-               let bgImageName = ArtCatalog.backgroundArtByID[chapter.id]?.imageName {
-                Image(bgImageName)
-                    .resizable()
-                    .scaledToFill()
-                    .blur(radius: 8)
-                    .opacity(backgroundImageOpacity)
-                    .accessibilityHidden(true)
+                if !reduceTransparency,
+                   let bgImageName = ArtCatalog.backgroundArtByID[chapter.id]?.imageName {
+                    Image(bgImageName)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                        .scaleEffect(1.08)
+                        .blur(radius: 3)
+                        .accessibilityHidden(true)
+                }
             }
-
-            LinearGradient(
-                colors: backgroundOverlayColors,
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .ignoresSafeArea()
-    }
-
-    private var backgroundImageOpacity: Double {
-        colorScheme == .dark ? 0.30 : 0.32
-    }
-
-    private var backgroundOverlayColors: [Color] {
-        if colorScheme == .dark {
-            return [
-                Color(.systemBackground).opacity(0.70),
-                Color(.systemBackground).opacity(0.58),
-                Color(.systemBackground).opacity(0.82)
-            ]
-        }
-
-        return [
-            Color(.systemBackground).opacity(0.56),
-            Color(.systemBackground).opacity(0.48),
-            Color(.systemBackground).opacity(0.74)
-        ]
     }
 }
 
@@ -445,7 +423,6 @@ private struct StagePathView: View {
 
                 StageTimelineRow(
                     node: node,
-                    theme: theme,
                     isFirst: isFirst,
                     isLast: isLast,
                     onTap: { onStageTap(node.stage) }
@@ -470,7 +447,6 @@ private struct StagePathView: View {
 
 private struct StageTimelineRow: View {
     let node: VisibleStageNode
-    let theme: ChapterTheme
     let isFirst: Bool
     let isLast: Bool
     let onTap: () -> Void
@@ -480,7 +456,7 @@ private struct StageTimelineRow: View {
             TimelineSegment(
                 isVisible: !isFirst,
                 isComplete: topColored,
-                color: theme.tint,
+                color: TrinketDesign.Colors.success,
                 height: 24
             )
 
@@ -489,7 +465,7 @@ private struct StageTimelineRow: View {
             TimelineSegment(
                 isVisible: !isLast,
                 isComplete: bottomColored,
-                color: theme.tint,
+                color: TrinketDesign.Colors.success,
                 height: 28
             )
         }
@@ -497,17 +473,26 @@ private struct StageTimelineRow: View {
 
     @ViewBuilder
     private var stageNode: some View {
-        Button(action: onTap) {
+        if node.state == .active {
+            Button(action: onTap) {
+                StageNodeView(
+                    stage: node.stage,
+                    state: node.state
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityHint("Opens the stage preview.")
+        } else {
             StageNodeView(
                 stage: node.stage,
-                state: node.state,
-                theme: theme
+                state: node.state
             )
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+            .accessibilityLabel(accessibilityLabel)
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityHint(accessibilityHint)
     }
 
     private var topColored: Bool {
@@ -530,16 +515,6 @@ private struct StageTimelineRow: View {
         }
     }
 
-    private var accessibilityHint: String {
-        switch node.state {
-        case .active:
-            return "Opens the stage preview."
-        case .completed, .justCompleted:
-            return "Completed stages are not replayable yet."
-        case .future:
-            return "Locked stages are not available yet."
-        }
-    }
 }
 
 private struct TimelineSegment: View {
@@ -562,7 +537,6 @@ private struct TimelineSegment: View {
 private struct StageNodeView: View {
     let stage: Stage
     let state: StageNodeState
-    let theme: ChapterTheme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -591,7 +565,9 @@ private struct StageNodeView: View {
         .padding(.vertical, 12)
         .frame(width: 268, alignment: .leading)
         .frame(minHeight: 72, alignment: .leading)
-        .background(nodeBackground)
+        // UIStyleCheck: allow - map nodes use native iOS 26 Liquid Glass over chapter art.
+        .glassEffect(.regular, in: TrinketDesign.cardShape)
+        .background(tintLayer)
         .clipShape(TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
@@ -608,76 +584,88 @@ private struct StageNodeView: View {
         state == .future ? .secondary : .primary
     }
 
-    private var nodeBackground: Color {
+    private var tintLayer: Color {
         switch state {
         case .active:
-            return theme.tint.opacity(0.16)
+            return encounterStyle.color.opacity(0.14)
         case .completed, .justCompleted, .future:
-            return Color(.secondarySystemBackground).opacity(0.88)
+            return Color(.secondarySystemBackground).opacity(0.18)
         }
     }
 
     private var nodeStroke: Color {
-        state == .active ? theme.tint.opacity(0.55) : Color.secondary.opacity(0.16)
+        state == .active ? encounterStyle.color.opacity(0.68) : Color.secondary.opacity(0.18)
     }
 
     private var shadowColor: Color {
-        state == .active ? theme.tint.opacity(0.18) : .black.opacity(0.05)
-    }
-
-    private var symbolTint: Color {
-        switch stage.encounter {
-        case .battle:
-            return state == .active ? theme.tint : .secondary
-        case .event:
-            return state == .active ? theme.secondaryTint : .secondary
-        case .shop:
-            return state == .active ? theme.tint : .secondary
-        case .rest:
-            return state == .active ? theme.secondaryTint : .secondary
-        }
+        state == .active ? encounterStyle.color.opacity(0.24) : .black.opacity(0.05)
     }
 
     private var encounterBadge: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(symbolTint.opacity(state == .active ? 0.16 : 0.10))
+                .fill(badgeFill)
                 .frame(width: 44, height: 44)
 
-            Image(systemName: stage.encounter.symbolName)
+            Image(systemName: badgeSymbolName)
                 .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(symbolTint)
+                .foregroundStyle(badgeTint)
                 .frame(width: 44, height: 44)
-
-            if let statusSymbol {
-                Image(systemName: statusSymbol)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(statusSymbolTint)
-                    .padding(3)
-                    .background(TrinketDesign.Colors.appBackground, in: Circle())
-                    .offset(x: 4, y: 4)
-            }
         }
         .accessibilityHidden(true)
     }
 
-    private var statusSymbol: String? {
+    private var encounterStyle: StageEncounterMapStyle {
+        stage.encounter.mapStyle
+    }
+
+    private var badgeFill: Color {
+        switch state {
+        case .active:
+            return encounterStyle.color.opacity(0.20)
+        case .completed, .justCompleted, .future:
+            return Color.secondary.opacity(0.12)
+        }
+    }
+
+    private var badgeTint: Color {
+        switch state {
+        case .active:
+            return encounterStyle.color
+        case .completed, .justCompleted:
+            return TrinketDesign.Colors.success
+        case .future:
+            return .secondary
+        }
+    }
+
+    private var badgeSymbolName: String {
         switch state {
         case .completed, .justCompleted:
             return "checkmark.circle.fill"
         case .future:
-            return "lock.circle.fill"
+            return "lock.fill"
         case .active:
-            return nil
+            return stage.encounter.symbolName
         }
     }
+}
 
-    private var statusSymbolTint: Color {
-        switch state {
-        case .completed, .justCompleted:
-            return TrinketDesign.Colors.success
-        case .future, .active:
-            return .secondary
+private struct StageEncounterMapStyle {
+    let color: Color
+}
+
+private extension StageEncounter {
+    var mapStyle: StageEncounterMapStyle {
+        switch self {
+        case .battle:
+            return StageEncounterMapStyle(color: Color(red: 0.86, green: 0.18, blue: 0.16))
+        case .event:
+            return StageEncounterMapStyle(color: Color(red: 0.46, green: 0.36, blue: 0.86))
+        case .shop:
+            return StageEncounterMapStyle(color: Color(red: 0.88, green: 0.48, blue: 0.16))
+        case .rest:
+            return StageEncounterMapStyle(color: Color(red: 0.10, green: 0.64, blue: 0.58))
         }
     }
 }
@@ -723,7 +711,9 @@ private struct StageTimelineGateRow: View {
             .padding(.vertical, 12)
             .frame(width: 268, alignment: .leading)
             .frame(minHeight: 72, alignment: .leading)
-            .background(Color(.secondarySystemBackground).opacity(0.72))
+            // UIStyleCheck: allow - locked map gate uses native iOS 26 Liquid Glass over chapter art.
+            .glassEffect(.regular, in: TrinketDesign.cardShape)
+            .background(Color(.secondarySystemBackground).opacity(0.18))
             .clipShape(TrinketDesign.cardShape)
             .overlay {
                 TrinketDesign.cardShape

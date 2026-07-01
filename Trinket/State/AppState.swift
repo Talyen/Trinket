@@ -33,13 +33,18 @@ final class AppState {
         }
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
+        let resolvedOptions = OptionsStore()
+        if let themeOverride = env.themeOverride {
+            resolvedOptions.theme = themeOverride
+        }
+
         self.playerSave = resolvedPlayerSave
         syncCoordinator = PlayerSaveSyncCoordinator(sync: resolvedSync, playerSaveStore: resolvedPlayerSave)
         musicDirector = MusicDirector()
         musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
         roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
-        options = OptionsStore()
+        options = resolvedOptions
         battle = BattleSession()
         journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)

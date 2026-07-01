@@ -8,18 +8,23 @@ cd "$(dirname "$0")/.."
 #
 # Examples:
 #   ./Scripts/test-deploy.sh
-#   ./Scripts/test-deploy.sh --fast   # re-run without rebuilding
+#   ./Scripts/test-deploy.sh --no-build   # re-run previously built test binaries
 
-FAST_FLAG=()
+NO_BUILD_FLAG=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --no-build)
+      NO_BUILD_FLAG+=("$1")
+      shift
+      ;;
     --fast|-f)
-      FAST_FLAG+=("$1")
+      echo "Warning: --fast is deprecated; use --no-build." >&2
+      NO_BUILD_FLAG+=("--no-build")
       shift
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 [--fast]"
+      echo "Usage: $0 [--no-build]"
       exit 1
       ;;
   esac
@@ -34,15 +39,15 @@ echo "=== Style check ==="
 
 echo ""
 echo "=== Unit tests ==="
-./Scripts/test.sh "${FAST_FLAG[@]}" unit
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit
 
 echo ""
 echo "=== Smoke UI tests ==="
-./Scripts/test.sh "${FAST_FLAG[@]}" smoke
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" smoke
 
 echo ""
 echo "=== Full UI tests ==="
-./Scripts/test.sh "${FAST_FLAG[@]}" ui
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui
 
 echo ""
 echo "=== All deploy checks passed ==="

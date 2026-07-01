@@ -58,6 +58,24 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .options)
     }
 
+    func testThemeOverrideAppliesToOptionsStore() {
+        let defaults = UserDefaults.standard
+        let previousTheme = defaults.string(forKey: "options.theme")
+        defer {
+            if let previousTheme {
+                defaults.set(previousTheme, forKey: "options.theme")
+            } else {
+                defaults.removeObject(forKey: "options.theme")
+            }
+        }
+
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-theme", "light"])
+        )
+
+        XCTAssertEqual(state.options.theme, .light)
+    }
+
     func testResetStateWipesPersistedSave() {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh

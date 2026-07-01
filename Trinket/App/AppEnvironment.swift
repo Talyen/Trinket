@@ -9,6 +9,7 @@ struct AppEnvironment {
     let seedTestProgress: Bool
     let disableCloudSync: Bool
     let disableAudio: Bool
+    let themeOverride: TrinketDesign.AppTheme?
     let completedStageIDs: [String]
 
     private init(
@@ -18,6 +19,7 @@ struct AppEnvironment {
         seedTestProgress: Bool,
         disableCloudSync: Bool,
         disableAudio: Bool,
+        themeOverride: TrinketDesign.AppTheme?,
         completedStageIDs: [String]
     ) {
         self.launchTab = launchTab
@@ -26,6 +28,7 @@ struct AppEnvironment {
         self.seedTestProgress = seedTestProgress
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
+        self.themeOverride = themeOverride
         self.completedStageIDs = completedStageIDs
     }
 
@@ -72,6 +75,13 @@ struct AppEnvironment {
         let seedTestProgress = arguments.contains("-seed-test-progress")
         let disableCloudSync = arguments.contains("-disable-cloud-sync")
         let disableAudio = arguments.contains("-disable-audio")
+        let themeOverride: TrinketDesign.AppTheme? = {
+            guard let idx = arguments.firstIndex(of: "-theme"),
+                  arguments.indices.contains(idx + 1)
+            else { return nil }
+            let val = arguments[idx + 1].lowercased()
+            return TrinketDesign.AppTheme.allCases.first { $0.rawValue.lowercased() == val }
+        }()
 
         let completedStageIDs: [String] = {
             guard let idx = arguments.firstIndex(of: "-completed-stages"),
@@ -90,6 +100,7 @@ struct AppEnvironment {
             seedTestProgress: seedTestProgress,
             disableCloudSync: disableCloudSync || reset || isRunningTests,
             disableAudio: disableAudio || isRunningTests,
+            themeOverride: themeOverride,
             completedStageIDs: completedStageIDs
         )
     }

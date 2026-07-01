@@ -8,7 +8,8 @@ RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 
 # Parse arguments
 MODE="unit"
-FAST=false
+NO_BUILD=false
+USED_FAST_ALIAS=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -33,8 +34,13 @@ while [[ $# -gt 0 ]]; do
       MODE="smoke"
       shift
       ;;
+    no-build|--no-build)
+      NO_BUILD=true
+      shift
+      ;;
     fast|--fast|-f)
-      FAST=true
+      NO_BUILD=true
+      USED_FAST_ALIAS=true
       shift
       ;;
     *)
@@ -47,7 +53,7 @@ done
 if [[ "$MODE" == "style" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are not supported for style mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi
 
@@ -57,7 +63,7 @@ if [[ "$MODE" == "style" ]]; then
   exit 0
 fi
 
-if [[ "$FAST" == "false" ]]; then
+if [[ "$NO_BUILD" == "false" ]]; then
   # Always run xcodegen to ensure target memberships are automatically updated
   xcodegen generate
 fi
@@ -111,7 +117,7 @@ elif [[ "$MODE" == "ui" ]]; then
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit or ui mode."
-    echo "Usage: $0 [unit | ui | all | style | smoke] [TestClass[/testMethod] ...]"
+    echo "Usage: $0 [unit | ui | all | style | smoke] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi
   echo "Running all tests via Xcode Test Plan..."
@@ -124,7 +130,65 @@ RESULT_BUNDLE_PATH="$RESULTS_DIR/$MODE.xcresult"
 rm -rf "$RESULT_BUNDLE_PATH"
 
 ACTION="test"
-if [[ "$FAST" == "true" ]]; then
+RUN_FINGERPRINT="$MODE"
+for target in "${TARGETS[@]}"; do
+  RUN_FINGERPRINT+="_$target"
+done
+RUN_KEY="$(printf "%s" "$RUN_FINGERPRINT" | tr -c '[:alnum:]_.-' '_')"
+BUILD_STAMP="$RESULTS_DIR/.last-build-$RUN_KEY.stamp"
+
+assert_no_build_is_fresh() {
+  if [[ "$USED_FAST_ALIAS" == "true" ]]; then
+    echo "Warning: --fast is deprecated; use --no-build for test-without-building reruns." >&2
+  fi
+
+  echo "Running without building. This only reruns the previously built '$RUN_FINGERPRINT' test binary."
+
+  if [[ ! -f "$BUILD_STAMP" ]]; then
+    echo "No prior built test stamp found for '$RUN_FINGERPRINT'. Run without --no-build first." >&2
+    exit 1
+  fi
+
+  local built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
+  if [[ ! -d "$built_app" ]]; then
+    echo "Built app is missing from DerivedData. Run without --no-build first." >&2
+    exit 1
+  fi
+
+  local newer_files=()
+  local source_roots=(Trinket TrinketTests TrinketUITests)
+  local root
+  for root in "${source_roots[@]}"; do
+    if [[ -d "$root" ]]; then
+      while IFS= read -r file; do
+        newer_files+=("$file")
+        if [[ ${#newer_files[@]} -ge 10 ]]; then
+          break 2
+        fi
+      done < <(find "$root" -type f \( -name "*.swift" -o -name "*.plist" -o -name "*.xctestplan" \) -newer "$BUILD_STAMP" -print)
+    fi
+  done
+
+  local project_files=(project.yml Package.resolved)
+  local file
+  for file in "${project_files[@]}"; do
+    if [[ -f "$file" && "$file" -nt "$BUILD_STAMP" ]]; then
+      newer_files+=("$file")
+    fi
+  done
+
+  if [[ ${#newer_files[@]} -gt 0 ]]; then
+    echo "--no-build refused because sources changed after the last built '$RUN_FINGERPRINT' test binary:" >&2
+    for file in "${newer_files[@]}"; do
+      echo "  $file" >&2
+    done
+    echo "Run without --no-build to rebuild app and test bundles." >&2
+    exit 1
+  fi
+}
+
+if [[ "$NO_BUILD" == "true" ]]; then
+  assert_no_build_is_fresh
   ACTION="test-without-building"
 fi
 
@@ -137,4 +201,6 @@ xcodebuild "$ACTION" \
   "${TEST_TARGET_FLAG[@]}" \
   "${PARALLEL_FLAGS[@]}"
 
-
+if [[ "$NO_BUILD" == "false" ]]; then
+  touch "$BUILD_STAMP"
+fi

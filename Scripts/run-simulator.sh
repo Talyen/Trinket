@@ -25,4 +25,7 @@ DEVICE_UDID="$(xcrun simctl getenv "$DEVICE_NAME" SIMULATOR_UDID)"
 open -a Simulator --args -CurrentDeviceUDID "$DEVICE_UDID"
 xcrun simctl uninstall "$DEVICE_NAME" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl install "$DEVICE_NAME" "$APP_PATH"
-xcrun simctl launch "$DEVICE_NAME" "$BUNDLE_ID"
+# Installing a normal app bundle replaces the XCTest-installed app container, so
+# invalidate test-without-building stamps that depend on that simulator state.
+rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp(N) 2>/dev/null || true
+xcrun simctl launch "$DEVICE_NAME" "$BUNDLE_ID" -- -theme dark

@@ -72,6 +72,16 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(parse(arguments: []).disableAudio)
     }
 
+    func testThemeOverrideParsesKnownThemes() {
+        XCTAssertEqual(parse(arguments: ["-theme", "dark"]).themeOverride, .dark)
+        XCTAssertEqual(parse(arguments: ["-theme", "Light"]).themeOverride, .light)
+        XCTAssertEqual(parse(arguments: ["-theme", "system"]).themeOverride, .system)
+    }
+
+    func testInvalidThemeOverrideReturnsNil() {
+        XCTAssertNil(parse(arguments: ["-theme", "not-a-theme"]).themeOverride)
+    }
+
     func testResetStateImplicitlyDisablesCloudSync() {
         XCTAssertTrue(parse(arguments: ["-reset-state"]).disableCloudSync)
     }
@@ -111,6 +121,7 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(env.seedTestProgress)
         XCTAssertFalse(env.disableCloudSync)
         XCTAssertFalse(env.disableAudio)
+        XCTAssertNil(env.themeOverride)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
     }
 

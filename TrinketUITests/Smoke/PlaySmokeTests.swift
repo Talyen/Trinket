@@ -39,7 +39,8 @@ final class SmokePlayTests: TrinketUITestCase {
         app.buttons["Continue Button"].tap()
 
         assertExists("Stage 1-3 Node")
-        app.buttons["Stage 1-2 Node"].tap()
+        XCTAssertFalse(app.buttons["Stage 1-2 Node"].exists)
+        assertExists("Stage 1-2 Node")
         XCTAssertFalse(app.alerts.element.exists)
     }
 
