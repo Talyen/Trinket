@@ -52,31 +52,6 @@ struct OptionsView: View {
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
 
-            Section("iCloud") {
-                LabeledContent("Progress Sync") {
-                    if appState.syncCoordinator.status == .syncing {
-                        ProgressView()
-                            .accessibilityIdentifier("iCloud Sync Progress")
-                    }
-                }
-
-                Text(appState.syncCoordinator.status.displayText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("iCloud Sync Status")
-
-                Button("Sync Now") {
-                    Task {
-                        await appState.syncCoordinator.syncNow()
-                    }
-                }
-                .accessibilityIdentifier("Sync Now Button")
-            }
-
-            Section("About") {
-                LabeledContent("Version", value: appVersionText)
-                LabeledContent("Build", value: appBuildText)
-            }
         }
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
@@ -92,13 +67,5 @@ struct OptionsView: View {
         } message: {
             Text("This permanently deletes journey, roster, and inventory progress on this device and iCloud. Settings are kept.")
         }
-    }
-
-    private var appVersionText: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-    }
-
-    private var appBuildText: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 }
