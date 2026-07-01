@@ -246,7 +246,7 @@ final class BattleEffectTests: XCTestCase {
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 9)
+        XCTAssertEqual(battle.heroHealth, 8)
         XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
@@ -489,5 +489,101 @@ final class BattleEffectTests: XCTestCase {
         _ = battle.advanceOneStep()
 
         XCTAssertTrue(battle.activeEnemyEffects.contains { $0.keyword == .poison })
+    }
+
+    func testBloodthornDealsSixDamageOnceAndAppliesDoTs() {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            actionIntervalTicks: 2,
+            abilities: [.bloodthorn]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        var bloodthornResolved = false
+        var safety = 0
+        while !bloodthornResolved, safety < 40 {
+            let step = battle.advanceOneStep()
+            bloodthornResolved = step.events.contains {
+                $0.actorName == "Hero" && $0.abilityName == "Bloodthorn"
+            }
+            safety += 1
+        }
+
+        XCTAssertTrue(bloodthornResolved)
+        XCTAssertEqual(battle.enemyHealth, 94)
+        XCTAssertTrue(battle.activeEnemyEffects.contains {
+            if case .bleed = $0.effect { return true }
+            return false
+        })
+        XCTAssertTrue(battle.activeEnemyEffects.contains {
+            if case .poison = $0.effect { return true }
+            return false
+        })
+        XCTAssertTrue(battle.activeHeroEffects.contains {
+            if case .leech = $0.effect { return true }
+            return false
+        })
+    }
+
+    func testPrayerCleanseRandomRemovesOneDebuffAndHeals() {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 10,
+            actionIntervalTicks: 2,
+            abilities: [.prayer]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, actionIntervalTicks: 100)
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .poison(4), remainingTicks: 0)
+            ]
+        )
+
+        _ = battle.advanceOneStep()
+        XCTAssertLessThan(battle.heroHealth, 10)
+
+        var prayerStep: BattleStep?
+        var safety = 0
+        while prayerStep == nil, safety < 10 {
+            let step = battle.advanceOneStep()
+            if step.events.contains(where: { $0.abilityName == "Prayer" && $0.actorName == "Hero" }) {
+                prayerStep = step
+            }
+            safety += 1
+        }
+
+        guard let step = prayerStep else {
+            return XCTFail("Expected Prayer to resolve in battle")
+        }
+        XCTAssertTrue(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
+        XCTAssertEqual(battle.activeHeroEffects.filter(isDebuffEffect).count, 1)
+    }
+
+    private func isDebuffEffect(_ activeEffect: ActiveEffect) -> Bool {
+        switch activeEffect.effect {
+        case .burn, .poison, .bleed, .prevention:
+            return true
+        default:
+            return false
+        }
     }
 }

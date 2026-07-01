@@ -145,7 +145,7 @@ enum GameContent {
             keywords: [.leech],
             weight: 8,
             basic: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff),
-            astral: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff)
+            astral: ItemAffixPower(description: "Gain Leech.", effect: .leech(.leech, 0.20, 8))
         ),
         ItemAffixDefinition(
             id: "reinforced",
@@ -262,7 +262,7 @@ enum GameContent {
             keywords: [.leech, .health],
             weight: 8,
             basic: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff),
-            astral: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff)
+            astral: ItemAffixPower(description: "Gain Leech.", effect: .leech(.leech, 0.20, 8))
         ),
         ItemAffixDefinition(
             id: "venomheart",

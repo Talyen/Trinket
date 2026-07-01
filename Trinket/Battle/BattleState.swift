@@ -1,6 +1,11 @@
 import Foundation
 
 struct BattleState {
+    private struct PairedDamageHit: Hashable {
+        let keyword: Keyword
+        let amount: Int
+    }
+
     struct ActionEvent: Identifiable, Equatable {
         enum Kind: Equatable {
             case ability
@@ -445,6 +450,10 @@ struct BattleState {
             logText = "\(actor.name) uses \(ability.name) on \(abilityTarget.name)"
         }
         var appliedEffectLogs: [String] = []
+        var pairedDamageHits: Set<PairedDamageHit> = []
+        if ability.directDamage > 0 {
+            pairedDamageHits.insert(PairedDamageHit(keyword: ability.damageKeyword, amount: ability.directDamage))
+        }
 
         let effectsToApply: [TargetedEffect] = ability.targetedEffects.isEmpty
             ? (ability.statusApplication.map {
@@ -465,7 +474,7 @@ struct BattleState {
                 let skipImmediate = shouldSkipImmediateDoT(
                     potency: potency,
                     keyword: .burn,
-                    ability: ability
+                    pairedDamageHits: pairedDamageHits
                 )
                 events.append(contentsOf: applyDecayingDoT(
                     keyword: .burn,
@@ -480,7 +489,7 @@ struct BattleState {
                 let skipImmediate = shouldSkipImmediateDoT(
                     potency: potency,
                     keyword: .poison,
-                    ability: ability
+                    pairedDamageHits: pairedDamageHits
                 )
                 events.append(contentsOf: applyDecayingDoT(
                     keyword: .poison,
@@ -495,7 +504,7 @@ struct BattleState {
                 let skipImmediate = shouldSkipImmediateDoT(
                     potency: potency,
                     keyword: .bleed,
-                    ability: ability
+                    pairedDamageHits: pairedDamageHits
                 )
                 events.append(contentsOf: applyBleed(
                     potency: potency,
@@ -665,6 +674,9 @@ struct BattleState {
             case let .dealDamage(keyword, amount):
                 let (typedDamage, typedShieldEvents) = applyDamage(amount, to: effectTarget)
                 events.append(contentsOf: typedShieldEvents)
+                if typedDamage > 0 || amount > 0 {
+                    pairedDamageHits.insert(PairedDamageHit(keyword: keyword, amount: amount))
+                }
                 if typedDamage > 0 {
                     events.append(nextEvent(
                         kind: .ability,
@@ -720,10 +732,12 @@ struct BattleState {
         }
     }
 
-    private func shouldSkipImmediateDoT(potency: Int, keyword: Keyword, ability: Ability) -> Bool {
-        ability.directDamage > 0
-            && ability.damageKeyword == keyword
-            && potency == ability.directDamage
+    private func shouldSkipImmediateDoT(
+        potency: Int,
+        keyword: Keyword,
+        pairedDamageHits: Set<PairedDamageHit>
+    ) -> Bool {
+        pairedDamageHits.contains(PairedDamageHit(keyword: keyword, amount: potency))
     }
 
     private func isRemovableDebuff(_ effect: Effect) -> Bool {

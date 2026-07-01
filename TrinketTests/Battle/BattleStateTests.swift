@@ -48,10 +48,19 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBurnDealsDamageAfterApplication() {
-        var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy)
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            actionIntervalTicks: 2,
+            abilities: [.fireball]
+        )
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: [])
+        var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
         _ = advance(&battle)
         let applyStep = advance(&battle)
-        XCTAssertTrue(applyStep.events.contains { $0.floatingText == "-2 Burn" })
+        XCTAssertTrue(applyStep.events.contains { $0.kind == .ability && $0.amount == 3 && $0.keyword == .burn })
         let tickStep = advance(&battle)
         XCTAssertTrue(tickStep.events.contains { $0.floatingText == "-1 Burn" })
     }

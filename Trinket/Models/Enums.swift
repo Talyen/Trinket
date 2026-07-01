@@ -36,7 +36,6 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
 
     enum Category: String, CaseIterable {
         case damageType = "Damage Type"
-        case prevention = "Prevention"
         case mitigation = "Mitigation"
         case restoration = "Restoration"
         case resource = "Resource"
@@ -70,7 +69,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
                 terms.append((alias, keyword))
             }
         }
-        return terms.sorted { $0.term.count > $1.term.count }
+        return terms.sorted { $0.0.count > $1.0.count }
     }()
 
     var rulesText: String {
