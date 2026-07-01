@@ -54,6 +54,7 @@ struct CombatantDetailPane: View {
                         section("Abilities") {
                             AbilitySummaryGrid(
                                 combatant: combatant,
+                                progression: progression,
                                 loadout: $loadout,
                                 allowsEditing: allowsEditing
                             )

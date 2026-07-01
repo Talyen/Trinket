@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AbilitySummaryGrid: View {
     let combatant: Combatant
+    let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     let allowsEditing: Bool
     @State private var selectedAbilityTier: AbilityTier?
@@ -9,7 +10,7 @@ struct AbilitySummaryGrid: View {
     var body: some View {
         HStack(spacing: 10) {
             ForEach(AbilityTier.allCases) { tier in
-                if allowsEditing {
+                if allowsEditing, !isLocked(tier) {
                     Button {
                         selectedAbilityTier = tier
                     } label: {
@@ -23,7 +24,7 @@ struct AbilitySummaryGrid: View {
                     abilitySlot(for: tier)
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("\(tier.rawValue) ability slot")
-                        .accessibilityHint("Shows selected \(tier.rawValue) ability.")
+                        .accessibilityHint(accessibilityHint(for: tier))
                 }
             }
         }
@@ -43,7 +44,7 @@ struct AbilitySummaryGrid: View {
     private func abilitySlot(for tier: AbilityTier) -> some View {
         Group {
             if let ability = selectedAbility(for: tier) {
-                AbilityChoiceCard(ability: ability)
+                AbilityChoiceCard(ability: ability, lockLabel: lockLabel(for: tier))
             } else {
                 EmptyAbilitySlotCard(tier: tier)
             }
@@ -56,5 +57,20 @@ struct AbilitySummaryGrid: View {
         }
 
         return combatant.abilityChoices.abilities(for: tier).first
+    }
+
+    private func isLocked(_ tier: AbilityTier) -> Bool {
+        combatant.role != .enemy && !progression.unlocks(tier)
+    }
+
+    private func lockLabel(for tier: AbilityTier) -> String? {
+        isLocked(tier) ? tier.unlockLabel : nil
+    }
+
+    private func accessibilityHint(for tier: AbilityTier) -> String {
+        if isLocked(tier) {
+            return tier.unlockLabel
+        }
+        return "Shows selected \(tier.rawValue) ability."
     }
 }

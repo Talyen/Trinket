@@ -2,6 +2,11 @@ import SwiftUI
 
 struct AbilityChoiceCard: View {
     let ability: Ability
+    var lockLabel: String?
+
+    private var isLocked: Bool {
+        lockLabel != nil
+    }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -25,16 +30,42 @@ struct AbilityChoiceCard: View {
                         }
                     }
                 }
+                .saturation(isLocked ? 0.15 : 1)
+                .opacity(isLocked ? 0.65 : 1)
+                .overlay {
+                    if let lockLabel {
+                        TrinketDesign.cardShape
+                            .fill(.black.opacity(0.35))
+                        VStack(spacing: 6) {
+                            Image(systemName: "lock.fill")
+                                .font(.title3.weight(.semibold))
+                            Text(lockLabel)
+                                .font(.caption.weight(.semibold))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                                .padding(.horizontal, 8)
+                        }
+                        .foregroundStyle(.white)
+                    }
+                }
                 .trinketCardSurface()
 
             Text(ability.name)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(isLocked ? .secondary : .primary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 4)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(ability.name) card")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        if let lockLabel {
+            return "\(ability.name), \(lockLabel)"
+        }
+        return "\(ability.name) card"
     }
 }

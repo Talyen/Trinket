@@ -12,6 +12,10 @@ struct CombatantProgression: Equatable, Hashable, Codable {
         return min(max(Double(currentXP) / Double(requiredXP), 0), 1)
     }
 
+    func unlocks(_ tier: AbilityTier) -> Bool {
+        level >= tier.unlockLevel
+    }
+
     func addingExperience(_ amount: Int) -> CombatantProgression {
         guard amount > 0 else { return self }
 
@@ -97,6 +101,17 @@ struct Combatant: Identifiable, Hashable {
             maxHealth: maxHealth,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadout(loadout)
+        )
+    }
+
+    func withAbilityLoadoutPreservingEmptyTiers(_ loadout: AbilityLoadout) -> Combatant {
+        Combatant(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
+            abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout)
         )
     }
 

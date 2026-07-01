@@ -45,6 +45,12 @@ final class PlayerRosterTests: XCTestCase {
 
     // MARK: - Loadouts
 
+    func testAbilityTierUnlockLevels() {
+        XCTAssertEqual(AbilityTier.basic.unlockLevel, 1)
+        XCTAssertEqual(AbilityTier.skill.unlockLevel, 3)
+        XCTAssertEqual(AbilityTier.ultimate.unlockLevel, 6)
+    }
+
     func testSetLoadoutOverridesDefaultAbilityChoices() throws {
         var roster = PlayerRosterState.initial
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
@@ -59,6 +65,54 @@ final class PlayerRosterTests: XCTestCase {
 
         XCTAssertEqual(configured.abilityLoadout.skill?.id, "smite")
         XCTAssertEqual(configured.abilityLoadout.ultimate?.id, "blessed-aegis")
+    }
+
+    func testBattleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
+        var roster = PlayerRosterState.freshStart
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let customLoadout = AbilityLoadout(
+            basic: .shieldBash,
+            skill: .spikedShield,
+            ultimate: .crystalBulwark
+        )
+
+        roster.setLoadout(customLoadout, for: knight)
+        let configured = roster.battleConfiguredCombatant(knight)
+
+        XCTAssertEqual(roster.loadout(for: knight).skill?.id, "spiked-shield")
+        XCTAssertEqual(configured.abilityLoadout.basic?.id, "shield-bash")
+        XCTAssertNil(configured.abilityLoadout.skill)
+        XCTAssertNil(configured.abilityLoadout.ultimate)
+        XCTAssertEqual(configured.abilities.map(\.id), ["shield-bash"])
+    }
+
+    func testBattleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
+        var roster = PlayerRosterState.freshStart
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let customLoadout = AbilityLoadout(
+            basic: .shieldBash,
+            skill: .spikedShield,
+            ultimate: .crystalBulwark
+        )
+        roster.setLoadout(customLoadout, for: knight)
+
+        roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 200)
+        XCTAssertEqual(roster.battleConfiguredCombatant(knight).abilities.map(\.id), ["shield-bash", "spiked-shield"])
+
+        roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 350)
+        XCTAssertEqual(
+            roster.battleConfiguredCombatant(knight).abilities.map(\.id),
+            ["shield-bash", "spiked-shield", "crystal-bulwark"]
+        )
+    }
+
+    func testBattleConfiguredCombatantDoesNotFilterEnemyAbilities() throws {
+        let roster = PlayerRosterState.freshStart
+        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
+        let configured = roster.battleConfiguredCombatant(enemy)
+
+        XCTAssertEqual(configured.abilityLoadout.skill?.tier, .skill)
+        XCTAssertEqual(configured.abilityLoadout.ultimate?.tier, .ultimate)
     }
 
     func testInvalidLoadoutAbilityFallsBackToFirstChoice() {

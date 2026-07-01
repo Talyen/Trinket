@@ -15,13 +15,13 @@ final class PlayerRosterStore {
     }
 
     var heroes: [Combatant] {
-        current.configuredCombatants(
+        current.battleConfiguredCombatants(
             GameContent.heroes.filter { current.isUnlocked($0) }
         )
     }
 
     var pets: [Combatant] {
-        current.configuredCombatants(
+        current.battleConfiguredCombatants(
             GameContent.pets.filter { current.isUnlocked($0) }
         )
     }
@@ -96,5 +96,9 @@ final class PlayerRosterStore {
 
     func configuredCombatant(_ combatant: Combatant) -> Combatant {
         current.configuredCombatant(combatant)
+    }
+
+    func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
+        current.battleConfiguredCombatant(combatant)
     }
 }

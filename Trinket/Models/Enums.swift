@@ -176,6 +176,21 @@ enum AbilityTier: String, CaseIterable, Identifiable, Hashable {
             return 6
         }
     }
+
+    var unlockLevel: Int {
+        switch self {
+        case .basic:
+            return 1
+        case .skill:
+            return 3
+        case .ultimate:
+            return 6
+        }
+    }
+
+    var unlockLabel: String {
+        "Unlocks at Level \(unlockLevel)"
+    }
 }
 
 extension AbilityTier {

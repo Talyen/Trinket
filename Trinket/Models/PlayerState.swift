@@ -152,6 +152,18 @@ struct PlayerRosterState: Equatable {
         combatants.map(configuredCombatant)
     }
 
+    func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
+        let configured = configuredCombatant(combatant)
+        guard combatant.role != .enemy else { return configured }
+
+        let unlockedLoadout = configured.abilityLoadout.unlocked(for: progression(for: combatant))
+        return configured.withAbilityLoadoutPreservingEmptyTiers(unlockedLoadout)
+    }
+
+    func battleConfiguredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        combatants.map(battleConfiguredCombatant)
+    }
+
     func progression(for combatant: Combatant) -> CombatantProgression {
         progressions[combatant.id] ?? .initial
     }
