@@ -35,7 +35,7 @@ struct CombatantCard: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 4)
-                .frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
+                .trinketCardLabelSpace()
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)

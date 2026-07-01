@@ -39,7 +39,7 @@ struct ItemCard: View {
                     }
                 }
                 .padding(.horizontal, 4)
-                .reservedCardLabelSpace(reservesLabelSpace)
+                .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
         .accessibilityElement(children: .combine)
@@ -50,16 +50,5 @@ struct ItemCard: View {
 private extension InventoryItem {
     var affixCountLabel: String {
         "\(affixes.count) \(affixes.count == 1 ? "affix" : "affixes")"
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func reservedCardLabelSpace(_ isReserved: Bool) -> some View {
-        if isReserved {
-            frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
-        } else {
-            self
-        }
     }
 }

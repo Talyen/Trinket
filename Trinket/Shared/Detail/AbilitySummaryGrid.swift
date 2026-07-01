@@ -8,7 +8,7 @@ struct AbilitySummaryGrid: View {
     @State private var selectedAbilityTier: AbilityTier?
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(alignment: .top, spacing: 10) {
             ForEach(AbilityTier.allCases) { tier in
                 if allowsEditing, !isLocked(tier) {
                     Button {
@@ -17,12 +17,12 @@ struct AbilitySummaryGrid: View {
                         abilitySlot(for: tier)
                     }
                     .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .top)
                     .accessibilityIdentifier("\(tier.rawValue) ability slot")
                     .accessibilityHint("Shows \(tier.rawValue) ability choices.")
                 } else {
                     abilitySlot(for: tier)
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .top)
                         .accessibilityIdentifier("\(tier.rawValue) ability slot")
                         .accessibilityHint(accessibilityHint(for: tier))
                 }

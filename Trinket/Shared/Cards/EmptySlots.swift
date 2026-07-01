@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
+    var reservesLabelSpace: Bool = true
 
     var body: some View {
         VStack(spacing: 8) {
@@ -25,6 +26,7 @@ struct EmptyAbilitySlotCard: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 4)
+                .trinketCardLabelSpace(reservesLabelSpace)
         }
         .accessibilityElement(children: .combine)
     }
@@ -57,20 +59,9 @@ struct EmptyItemSlotCard: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 4)
-                .reservedCardLabelSpace(reservesLabelSpace)
+                .trinketCardLabelSpace(reservesLabelSpace)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Empty \(slot.rawValue) slot")
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func reservedCardLabelSpace(_ isReserved: Bool) -> some View {
-        if isReserved {
-            frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
-        } else {
-            self
-        }
     }
 }

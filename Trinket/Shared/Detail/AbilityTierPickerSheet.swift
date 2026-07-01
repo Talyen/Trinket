@@ -23,7 +23,7 @@ struct AbilityTierPickerSheet: View {
                     } label: {
                         let isSelected = ability.id == (selectedAbilityID ?? selectedAbility?.id)
                         HStack(spacing: 14) {
-                            AbilityChoiceCard(ability: ability)
+                            AbilityChoiceCard(ability: ability, showsName: false)
                                 .frame(height: 133)
 
                             VStack(alignment: .leading, spacing: 4) {

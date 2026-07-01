@@ -19,7 +19,7 @@ struct ItemSlotPickerView: View {
                     } label: {
                         let isSelected = item.id == (selectedItemID ?? equipmentLoadout.itemID(for: slot))
                         HStack(spacing: 14) {
-                            ItemCard(item: item, showsAffixCount: false)
+                            ItemCard(item: item, showsAffixCount: false, showsName: false)
                                 .frame(height: 133)
 
                             VStack(alignment: .leading, spacing: 6) {

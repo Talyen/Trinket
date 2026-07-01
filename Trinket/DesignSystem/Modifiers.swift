@@ -28,6 +28,19 @@ struct CardSurfaceModifier: ViewModifier {
     }
 }
 
+struct CardLabelSpaceModifier: ViewModifier {
+    let isReserved: Bool
+
+    func body(content: Content) -> some View {
+        if isReserved {
+            content
+                .frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
     func trinketFloatingGlassControl() -> some View {
         modifier(FloatingGlassControlButtonModifier())
@@ -39,6 +52,10 @@ extension View {
 
     func trinketCardSurface() -> some View {
         modifier(CardSurfaceModifier())
+    }
+
+    func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
+        modifier(CardLabelSpaceModifier(isReserved: isReserved))
     }
 }
 

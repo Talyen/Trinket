@@ -3,6 +3,8 @@ import SwiftUI
 struct AbilityChoiceCard: View {
     let ability: Ability
     var lockLabel: String?
+    var showsName: Bool = true
+    var reservesLabelSpace: Bool = true
 
     private var isLocked: Bool {
         lockLabel != nil
@@ -51,12 +53,15 @@ struct AbilityChoiceCard: View {
                 }
                 .trinketCardSurface()
 
-            Text(ability.name)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(isLocked ? .secondary : .primary)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 4)
+            if showsName {
+                Text(ability.name)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(isLocked ? .secondary : .primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 4)
+                    .trinketCardLabelSpace(reservesLabelSpace)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
