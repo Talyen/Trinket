@@ -126,7 +126,7 @@ enum Effect: Hashable {
         case let .burn(potency):
             return potency / 2
         case let .poison(potency):
-            let decrease = max(1, Int(ceil(Double(potency) * 0.25)))
+            let decrease = max(1, potency * 25 / 100)
             return potency - decrease
         default:
             return 0

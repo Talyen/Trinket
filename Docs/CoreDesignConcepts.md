@@ -71,7 +71,7 @@ These three keywords share a pattern: the ability effect deals its potency immed
 | Keyword | On apply | Each step-start tick | Stacking | Block / Armor |
 |---|---|---|---|---|
 | `Burn` | Deal potency | Deal `floor(potency / 2)`, then set potency to that value | Merge into one stack per target | Bypassed |
-| `Poison` | Deal potency | Deal `potency - max(1, ceil(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Bypassed |
+| `Poison` | Deal potency | Deal `potency - max(1, floor(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Bypassed |
 | `Bleed` | Deal potency | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Bypassed |
 
 `Nature` is direct damage only; it is not a DoT keyword.

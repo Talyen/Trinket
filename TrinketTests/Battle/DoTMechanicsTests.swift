@@ -112,7 +112,7 @@ final class DoTMechanicsTests: XCTestCase {
         )
 
         var amounts: [Int] = []
-        for _ in 0 ..< 6 {
+        for _ in 0 ..< 8 {
             let step = battle.advanceOneStep()
             amounts.append(contentsOf: statusAmounts(from: step.events, keyword: .poison))
             if battle.activeEnemyEffects.contains(where: { $0.keyword == .poison }) == false {
@@ -120,7 +120,7 @@ final class DoTMechanicsTests: XCTestCase {
             }
         }
 
-        XCTAssertEqual(amounts, [6, 4, 3, 2, 1])
+        XCTAssertEqual(amounts, [6, 5, 4, 3, 2, 1])
         XCTAssertTrue(battle.activeEnemyEffects.filter { $0.keyword == .poison }.isEmpty)
     }
 
