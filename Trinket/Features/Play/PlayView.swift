@@ -104,7 +104,7 @@ struct PlayView: View {
             .id(activeBattle.id)
             .navigationBarBackButtonHidden(true)
         } else {
-            JourneyMapView(
+            ChapterStageSelectView(
                 chapter: currentChapter,
                 progress: appState.journey.current,
                 pendingScrollTarget: $pendingScrollTarget,
@@ -228,7 +228,7 @@ private struct StageMapMessage: Identifiable {
     let message: String
 }
 
-private struct JourneyMapView: View {
+private struct ChapterStageSelectView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let chapter: Chapter
@@ -245,90 +245,55 @@ private struct JourneyMapView: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 28) {
-                    chapterHeader
+        GeometryReader { geometry in
+            let headerHeight = Self.headerHeight(for: geometry.size.height)
 
-                    StagePathView(
-                        path: visiblePath,
-                        theme: chapter.theme,
-                        onStageTap: onStageTap
-                    )
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 32)
-                .padding(.top, 12)
+            VStack(spacing: 0) {
+                ChapterHeroHeader(
+                    chapter: chapter,
+                    completedCount: completedCount,
+                    totalCount: totalCount,
+                    height: headerHeight
+                )
+
+                StageDeckView(
+                    deck: visibleDeck,
+                    scrollAnimation: scrollAnimation,
+                    pendingScrollTarget: $pendingScrollTarget,
+                    onStageTap: onStageTap
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(TrinketDesign.Colors.appBackground)
             }
-            .scrollContentBackground(.hidden)
-            .background {
-                ChapterMapBackground(chapter: chapter)
-            }
-            .navigationTitle(chapter.title)
-            .navigationBarTitleDisplayMode(.large)
-            .onAppear {
-                centerActiveNode(with: proxy)
-            }
-            .onChange(of: progress.activeStageID) { _, _ in
-                centerActiveNode(with: proxy)
-            }
-            .onChange(of: pendingScrollTarget) { _, target in
-                guard let target else { return }
-                withAnimation(scrollAnimation) {
-                    proxy.scrollTo(target, anchor: .center)
-                }
-                pendingScrollTarget = nil
-            }
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+            .background(TrinketDesign.Colors.appBackground)
         }
+        .toolbar(.hidden, for: .navigationBar)
     }
 
-    private var chapterHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Chapter Progress")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                Text("\(completedCount)/\(totalCount) Cleared")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-            }
-
-            ProgressView(value: Double(completedCount), total: Double(totalCount))
-                .tint(chapter.theme.tint)
-                .progressViewStyle(.linear)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
-    }
-
-    private var visiblePath: VisibleStagePath {
-        VisibleStagePath(chapter: chapter, progress: progress)
+    private var visibleDeck: VisibleStageDeck {
+        VisibleStageDeck(chapter: chapter, progress: progress)
     }
 
     private var scrollAnimation: Animation? {
         reduceMotion ? nil : .easeInOut(duration: 0.45)
     }
 
-    private func centerActiveNode(with proxy: ScrollViewProxy) {
-        let target = progress.activeStageID ?? "chapter-2-locked"
-        DispatchQueue.main.async {
-            withAnimation(scrollAnimation) {
-                proxy.scrollTo(target, anchor: .center)
-            }
-        }
+    private static func headerHeight(for availableHeight: CGFloat) -> CGFloat {
+        min(max(availableHeight * 0.54, 320), 450)
     }
 }
 
-private struct ChapterMapBackground: View {
+private struct ChapterHeroHeader: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let chapter: Chapter
+    let completedCount: Int
+    let totalCount: Int
+    let height: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
+        ZStack(alignment: .bottomLeading) {
             ZStack {
                 TrinketDesign.Colors.appBackground
 
@@ -337,58 +302,128 @@ private struct ChapterMapBackground: View {
                     Image(bgImageName)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
-                        .scaleEffect(1.08)
-                        .blur(radius: 3)
                         .accessibilityHidden(true)
                 }
+
+                LinearGradient(
+                    colors: [
+                        .black.opacity(0.03),
+                        .black.opacity(0.08),
+                        .black.opacity(0.56)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .accessibilityHidden(true)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Chapter \(chapter.number)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.82))
+
+                Text(chapter.title)
+                    .font(.largeTitle.weight(.bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.76)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("Chapter Progress")
+                            .font(.caption.weight(.semibold))
+
+                        Spacer()
+
+                        Text("\(completedCount)/\(totalCount) Cleared")
+                            .font(.caption.weight(.medium))
+                    }
+                    .foregroundStyle(.white.opacity(0.86))
+
+                    ProgressView(value: Double(completedCount), total: Double(totalCount))
+                        .tint(chapter.theme.secondaryTint)
+                        .progressViewStyle(.linear)
+                }
+                .frame(maxWidth: 360)
+                .accessibilityElement(children: .combine)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, metadataBottomPadding)
         }
-        .ignoresSafeArea()
+        .frame(height: height)
+        .frame(maxWidth: .infinity)
+        .ignoresSafeArea(edges: .top)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var metadataBottomPadding: CGFloat {
+        min(max(height * 0.40, 144), 184)
     }
 }
 
-private struct VisibleStagePath {
-    let nodes: [VisibleStageNode]
-    let showsChapterGate: Bool
-    let showsTrailContinuation: Bool
+private struct VisibleStageDeck {
+    let cards: [StageDeckCard]
+    let scrollTargetID: String?
 
     init(chapter: Chapter, progress: JourneyProgressState) {
         let stages = chapter.stages
         guard !stages.isEmpty else {
-            nodes = []
-            showsChapterGate = false
-            showsTrailContinuation = false
+            cards = []
+            scrollTargetID = nil
             return
         }
 
         let activeIndex = progress.activeStageID.flatMap { activeStageID in
             stages.firstIndex { $0.id == activeStageID }
         }
-        let lastCompletedIndex = stages.lastIndex { progress.isCompleted($0) }
-        let anchorIndex = activeIndex ?? lastCompletedIndex ?? 0
-        let startIndex = max(stages.startIndex, anchorIndex - 2)
-        let endIndex: Int
+
+        var visibleCards: [StageDeckCard] = []
         if let activeIndex {
-            endIndex = min(stages.index(before: stages.endIndex), activeIndex + 1)
+            let previousIndex = activeIndex - 1
+            if stages.indices.contains(previousIndex) {
+                visibleCards.append(.stage(VisibleStageNode(
+                    stage: stages[previousIndex],
+                    state: Self.state(for: stages[previousIndex], progress: progress)
+                )))
+            }
+
+            visibleCards.append(.stage(VisibleStageNode(
+                stage: stages[activeIndex],
+                state: .active
+            )))
+
+            let nextIndex = activeIndex + 1
+            if stages.indices.contains(nextIndex) {
+                visibleCards.append(.stage(VisibleStageNode(
+                    stage: stages[nextIndex],
+                    state: .future
+                )))
+            } else {
+                visibleCards.append(.chapterGate)
+            }
+
+            scrollTargetID = stages[activeIndex].id
         } else {
-            endIndex = min(stages.index(before: stages.endIndex), anchorIndex)
+            let lastCompletedIndex = stages.lastIndex { progress.isCompleted($0) } ?? stages.startIndex
+            let previousIndex = max(stages.startIndex, lastCompletedIndex - 1)
+            if previousIndex != lastCompletedIndex {
+                visibleCards.append(.stage(VisibleStageNode(
+                    stage: stages[previousIndex],
+                    state: Self.state(for: stages[previousIndex], progress: progress)
+                )))
+            }
+
+            visibleCards.append(.stage(VisibleStageNode(
+                stage: stages[lastCompletedIndex],
+                state: Self.state(for: stages[lastCompletedIndex], progress: progress)
+            )))
+            visibleCards.append(.chapterGate)
+            scrollTargetID = "chapter-2-locked"
         }
 
-        nodes = (startIndex ... endIndex).map { index in
-            let stage = stages[index]
-            return VisibleStageNode(
-                stage: stage,
-                state: Self.state(for: stage, progress: progress)
-            )
-        }
-        let finalStageID = stages.last?.id
-        showsChapterGate = nodes.contains { node in
-            node.stage.id == finalStageID
-        }
-        showsTrailContinuation = !showsChapterGate && endIndex < stages.index(before: stages.endIndex)
+        cards = visibleCards
     }
 
     private static func state(for stage: Stage, progress: JourneyProgressState) -> StageNodeState {
@@ -397,6 +432,20 @@ private struct VisibleStagePath {
             return progress.isLastCompleted(stage) ? .justCompleted : .completed
         }
         return .future
+    }
+}
+
+private enum StageDeckCard: Identifiable {
+    case stage(VisibleStageNode)
+    case chapterGate
+
+    var id: String {
+        switch self {
+        case let .stage(node):
+            return node.id
+        case .chapterGate:
+            return "chapter-2-locked"
+        }
     }
 }
 
@@ -416,100 +465,100 @@ private enum StageNodeState: Equatable {
     case future
 }
 
-private struct StagePathView: View {
-    let path: VisibleStagePath
-    let theme: ChapterTheme
+private struct StageDeckView: View {
+    let deck: VisibleStageDeck
+    let scrollAnimation: Animation?
+    @Binding var pendingScrollTarget: String?
     let onStageTap: (Stage) -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(path.nodes.enumerated()), id: \.element.id) { index, node in
-                let isFirst = index == 0
-                let isLast = index == path.nodes.count - 1 && !path.showsChapterGate && !path.showsTrailContinuation
+        ScrollViewReader { proxy in
+            VStack(alignment: .leading, spacing: 18) {
+                Text("Current Path")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
 
-                StageTimelineRow(
-                    node: node,
-                    isFirst: isFirst,
-                    isLast: isLast,
-                    onTap: { onStageTap(node.stage) }
-                )
-                .id(node.stage.id)
+                ScrollView(.horizontal) {
+                    LazyHStack(alignment: .center, spacing: 14) {
+                        ForEach(deck.cards) { card in
+                            StageDeckCardView(
+                                card: card,
+                                onStageTap: onStageTap
+                            )
+                            .containerRelativeFrame(.horizontal) { length, _ in
+                                min(max(length - 56, 292), 340)
+                            }
+                            .id(card.id)
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .scrollIndicators(.hidden)
+                .contentMargins(.horizontal, 20, for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
             }
-
-            if path.showsChapterGate {
-                StageTimelineGateRow(
-                    theme: theme,
-                    isLast: true
-                )
-                .id("chapter-2-locked")
-            } else if path.showsTrailContinuation {
-                StageTrailContinuationRow(theme: theme)
+            .padding(.top, 22)
+            .padding(.bottom, 28)
+            .onAppear {
+                scrollToDeckTarget(with: proxy)
+            }
+            .onChange(of: deck.scrollTargetID) { _, _ in
+                scrollToDeckTarget(with: proxy)
+            }
+            .onChange(of: pendingScrollTarget) { _, target in
+                guard let target else { return }
+                withAnimation(scrollAnimation) {
+                    proxy.scrollTo(target, anchor: .center)
+                }
+                pendingScrollTarget = nil
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 4)
+    }
+
+    private func scrollToDeckTarget(with proxy: ScrollViewProxy) {
+        guard let target = deck.scrollTargetID else { return }
+        DispatchQueue.main.async {
+            withAnimation(scrollAnimation) {
+                proxy.scrollTo(target, anchor: .center)
+            }
+        }
     }
 }
 
-private struct StageTimelineRow: View {
-    let node: VisibleStageNode
-    let isFirst: Bool
-    let isLast: Bool
-    let onTap: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            TimelineSegment(
-                isVisible: !isFirst,
-                isComplete: topColored,
-                color: TrinketDesign.Colors.success,
-                height: 24
-            )
-
-            stageNode
-
-            TimelineSegment(
-                isVisible: !isLast,
-                isComplete: bottomColored,
-                color: TrinketDesign.Colors.success,
-                height: 28
-            )
-        }
-    }
+private struct StageDeckCardView: View {
+    let card: StageDeckCard
+    let onStageTap: (Stage) -> Void
 
     @ViewBuilder
-    private var stageNode: some View {
-        if node.state == .active {
-            Button(action: onTap) {
-                StageNodeView(
-                    stage: node.stage,
-                    state: node.state
-                )
+    var body: some View {
+        switch card {
+        case let .stage(node):
+            if node.state == .active {
+                Button {
+                    onStageTap(node.stage)
+                } label: {
+                    StageNodeView(stage: node.stage, state: node.state)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+                .accessibilityLabel(accessibilityLabel(for: node))
+                .accessibilityHint("Opens the stage preview.")
+            } else {
+                StageNodeView(stage: node.stage, state: node.state)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+                    .accessibilityLabel(accessibilityLabel(for: node))
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
-            .accessibilityLabel(accessibilityLabel)
-            .accessibilityHint("Opens the stage preview.")
-        } else {
-            StageNodeView(
-                stage: node.stage,
-                state: node.state
-            )
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
-            .accessibilityLabel(accessibilityLabel)
+        case .chapterGate:
+            ChapterGateCardView()
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("Chapter 2 Locked")
+                .accessibilityLabel("Chapter 2, locked")
         }
     }
 
-    private var topColored: Bool {
-        node.state == .completed || node.state == .justCompleted || node.state == .active
-    }
-
-    private var bottomColored: Bool {
-        node.state == .completed || node.state == .justCompleted
-    }
-
-    private var accessibilityLabel: String {
+    private func accessibilityLabel(for node: VisibleStageNode) -> String {
         let fullLabel = "Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber)"
         switch node.state {
         case .active:
@@ -520,24 +569,6 @@ private struct StageTimelineRow: View {
             return "\(fullLabel), locked"
         }
     }
-
-}
-
-private struct TimelineSegment: View {
-    let isVisible: Bool
-    let isComplete: Bool
-    let color: Color
-    let height: CGFloat
-
-    var body: some View {
-        Rectangle()
-            .fill(isVisible ? segmentColor : Color.clear)
-            .frame(width: 2, height: height)
-    }
-
-    private var segmentColor: Color {
-        isComplete ? color.opacity(0.65) : Color.secondary.opacity(0.22)
-    }
 }
 
 private struct StageNodeView: View {
@@ -545,41 +576,65 @@ private struct StageNodeView: View {
     let state: StageNodeState
 
     var body: some View {
-        HStack(spacing: 12) {
-            encounterBadge
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top, spacing: 12) {
+                encounterBadge
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 5) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(stage.mapLabel)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(labelStyle)
 
-                    Text(stage.encounter.title)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(statusTitle)
+                        .font(.title3.weight(state == .active ? .bold : .semibold))
+                        .foregroundStyle(titleStyle)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.84)
                 }
 
-                Text(stage.title)
-                    .font(.subheadline.weight(state == .active ? .semibold : .medium))
-                    .foregroundStyle(titleStyle)
+                Spacer(minLength: 0)
             }
-            .lineLimit(2)
 
-            Spacer()
+            VStack(alignment: .leading, spacing: 10) {
+                if state == .future {
+                    Text("The path ahead has not revealed itself.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Label(statusLabel, systemImage: statusSymbolName)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(statusTint)
+
+                    Text(stage.flavorText)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .lineLimit(3)
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            if state == .active {
+                HStack {
+                    Label("Preview", systemImage: "chevron.right")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(encounterStyle.color)
+                        .labelStyle(.titleAndIcon)
+
+                    Spacer()
+                }
+                .padding(.top, 2)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .frame(width: 268, alignment: .leading)
-        .frame(minHeight: 72, alignment: .leading)
-        // UIStyleCheck: allow - map nodes use native iOS 26 Liquid Glass over chapter art.
-        .glassEffect(.regular, in: TrinketDesign.cardShape)
+        .padding(20)
+        .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 272, alignment: .topLeading)
         .background(tintLayer)
         .clipShape(TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
                 .stroke(nodeStroke, lineWidth: state == .active ? 1.5 : 1)
         }
-        .shadow(color: shadowColor, radius: state == .active ? 8 : 3, y: state == .active ? 4 : 2)
+        .shadow(color: shadowColor, radius: state == .active ? 14 : 4, y: state == .active ? 8 : 2)
     }
 
     private var labelStyle: Color {
@@ -593,9 +648,11 @@ private struct StageNodeView: View {
     private var tintLayer: Color {
         switch state {
         case .active:
-            return encounterStyle.color.opacity(0.14)
-        case .completed, .justCompleted, .future:
-            return Color(.secondarySystemBackground).opacity(0.18)
+            return Color(.secondarySystemBackground)
+        case .completed, .justCompleted:
+            return Color(.secondarySystemBackground).opacity(0.72)
+        case .future:
+            return Color(.tertiarySystemBackground).opacity(0.68)
         }
     }
 
@@ -611,12 +668,12 @@ private struct StageNodeView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(badgeFill)
-                .frame(width: 44, height: 44)
+                .frame(width: 52, height: 52)
 
             Image(systemName: badgeSymbolName)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(badgeTint)
-                .frame(width: 44, height: 44)
+                .frame(width: 52, height: 52)
         }
         .accessibilityHidden(true)
     }
@@ -655,6 +712,48 @@ private struct StageNodeView: View {
             return stage.encounter.symbolName
         }
     }
+
+    private var statusTitle: String {
+        switch state {
+        case .active, .completed, .justCompleted:
+            return stage.title
+        case .future:
+            return "Unknown Path"
+        }
+    }
+
+    private var statusLabel: String {
+        switch state {
+        case .active:
+            return stage.encounter.title
+        case .completed, .justCompleted:
+            return "Cleared"
+        case .future:
+            return "Locked"
+        }
+    }
+
+    private var statusSymbolName: String {
+        switch state {
+        case .active:
+            return stage.encounter.symbolName
+        case .completed, .justCompleted:
+            return "checkmark.circle.fill"
+        case .future:
+            return "lock.fill"
+        }
+    }
+
+    private var statusTint: Color {
+        switch state {
+        case .active:
+            return encounterStyle.color
+        case .completed, .justCompleted:
+            return TrinketDesign.Colors.success
+        case .future:
+            return .secondary
+        }
+    }
 }
 
 private struct StageEncounterMapStyle {
@@ -676,85 +775,43 @@ private extension StageEncounter {
     }
 }
 
-private struct StageTimelineGateRow: View {
-    let theme: ChapterTheme
-    let isLast: Bool
-
+private struct ChapterGateCardView: View {
     var body: some View {
-        VStack(spacing: 0) {
-            TimelineSegment(
-                isVisible: true,
-                isComplete: false,
-                color: theme.tint,
-                height: 28
-            )
+        VStack(alignment: .leading, spacing: 18) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.secondary.opacity(0.12))
+                    .frame(width: 52, height: 52)
 
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.secondary.opacity(0.10))
-                        .frame(width: 44, height: 44)
-
-                    Image(systemName: "lock.rectangle.on.rectangle.fill")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Chapter 2")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-
-                    Text("Next Chapter Locked")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
+                Image(systemName: "lock.rectangle.on.rectangle.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(width: 268, alignment: .leading)
-            .frame(minHeight: 72, alignment: .leading)
-            // UIStyleCheck: allow - locked map gate uses native iOS 26 Liquid Glass over chapter art.
-            .glassEffect(.regular, in: TrinketDesign.cardShape)
-            .background(Color(.secondarySystemBackground).opacity(0.18))
-            .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
+            .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Chapter 2")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+
+                Text("Next Chapter Locked")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
 
-            TimelineSegment(
-                isVisible: !isLast,
-                isComplete: false,
-                color: theme.tint,
-                height: 28
-            )
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("Chapter 2 Locked")
-    }
-}
-
-private struct StageTrailContinuationRow: View {
-    let theme: ChapterTheme
-
-    var body: some View {
-        VStack(spacing: 8) {
-            TimelineSegment(
-                isVisible: true,
-                isComplete: false,
-                color: theme.tint,
-                height: 28
-            )
-
-            Image(systemName: "ellipsis")
-                .font(.headline.weight(.semibold))
+            Text("A new route will open after this chapter is complete.")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .frame(width: 44, height: 28)
-                .accessibilityLabel("More stages ahead")
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 272, alignment: .topLeading)
+        .background(Color(.tertiarySystemBackground).opacity(0.68))
+        .clipShape(TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
         }
     }
 }
