@@ -11,9 +11,12 @@ final class SavedEffectRoundtripTests: XCTestCase {
             .shield(.block, 5, 2),
             .mitigation(.armor, 0.5, 3),
             .instantHeal(.nature, 10),
-            .leech(.holy, 0.25, 2),
+            .leech(.leech, Effect.standardLeechPercent, Effect.standardLeechDuration),
             .resourceGain(.gold, 3),
-            .cleanse(.poison, 1)
+            .cleanse(.poison, 1),
+            .dealDamage(.holy, 2),
+            .cleanseRandom,
+            .halveMitigation(.armor)
         ]
 
         for effect in effects {

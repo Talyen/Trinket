@@ -68,7 +68,7 @@ final class PlayerRosterTests: XCTestCase {
             ultimates: [.blessedAegis, .crystalBulwark],
             selected: AbilityLoadout(
                 basic: .bash,
-                skill: Ability(id: "missing", name: "Missing", tier: .skill, directDamage: 0),
+                skill: Ability(id: "missing", name: "Missing", tier: .skill, directDamage: 0, description: "Missing"),
                 ultimate: .blessedAegis
             )
         )

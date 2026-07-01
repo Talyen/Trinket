@@ -9,7 +9,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.durationTicks, 0)
         XCTAssertFalse(effect.isInstant)
         XCTAssertTrue(effect.isDecayingDoT)
-        XCTAssertEqual(effect.summary, "Deals 4 Burn damage")
+        XCTAssertEqual(effect.summary, "applies Burning")
         XCTAssertEqual(effect.potencyAfterTick(), 2)
     }
 
@@ -18,7 +18,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .poison)
         XCTAssertEqual(effect.potency, 8)
         XCTAssertTrue(effect.isDecayingDoT)
-        XCTAssertEqual(effect.summary, "Deals 8 Poison damage")
+        XCTAssertEqual(effect.summary, "applies Poisoned")
         XCTAssertEqual(effect.potencyAfterTick(), 6)
     }
 
@@ -28,7 +28,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.potency, 3)
         XCTAssertEqual(effect.durationTicks, Effect.bleedDoTTickCount)
         XCTAssertTrue(effect.isBleed)
-        XCTAssertEqual(effect.summary, "Deals 3 Bleed damage")
+        XCTAssertEqual(effect.summary, "applies Bleeding")
     }
 
     func testPreventionEffect() {
@@ -36,7 +36,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .stun)
         XCTAssertEqual(effect.durationTicks, 2)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Stun for 2 actions")
+        XCTAssertEqual(effect.summary, "applies Stunned")
     }
 
     func testShieldEffect() {
@@ -44,7 +44,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .block)
         XCTAssertEqual(effect.durationTicks, 3)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Block 5 for 3 ticks")
+        XCTAssertEqual(effect.summary, "gain Block")
     }
 
     func testMitigationEffect() {
@@ -52,7 +52,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .armor)
         XCTAssertEqual(effect.durationTicks, 3)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Armor 25% for 3 ticks")
+        XCTAssertEqual(effect.summary, "gain Armor")
     }
 
     func testInstantHealEffect() {
@@ -60,15 +60,15 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .health)
         XCTAssertEqual(effect.durationTicks, 0)
         XCTAssertTrue(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Health 5")
+        XCTAssertEqual(effect.summary, "restore 5 Health")
     }
 
     func testLeechEffect() {
-        let effect = Effect.leech(.leech, 0.25, 3)
+        let effect = Effect.standardLeechBuff
         XCTAssertEqual(effect.keyword, .leech)
-        XCTAssertEqual(effect.durationTicks, 3)
+        XCTAssertEqual(effect.durationTicks, 6)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Leech 25% for 3 ticks")
+        XCTAssertEqual(effect.summary, "gain Leech")
     }
 
     func testResourceGainEffect() {
@@ -76,7 +76,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .gold)
         XCTAssertEqual(effect.durationTicks, 0)
         XCTAssertTrue(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Gold 3")
+        XCTAssertEqual(effect.summary, "gain 3 Gold")
     }
 
     func testCleanseSpecificEffect() {
@@ -84,7 +84,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .stun)
         XCTAssertEqual(effect.durationTicks, 3)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Cleanse Stun for 3 ticks")
+        XCTAssertEqual(effect.summary, "cleanse Stunned")
     }
 
     func testCleanseAllEffect() {
@@ -92,7 +92,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .health)
         XCTAssertEqual(effect.durationTicks, 3)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Cleanse all for 3 ticks")
+        XCTAssertEqual(effect.summary, "cleanse all debuffs")
     }
 
     func testActiveEffectTracksRemainingTicks() {
@@ -104,29 +104,13 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(active.remainingTicks, 2)
     }
 
-    func testAbilitySummaryIncludesBurnEffect() {
-        let ability = Ability(
-            id: "test-dot",
-            name: "Test DOT",
-            tier: .skill,
-            directDamage: 3,
-            damageKeyword: .poison,
-            effects: [.poison(4)]
-        )
-        XCTAssertTrue(ability.summary.contains("Deals 4 Poison damage"))
+    func testAbilityUsesPlayerFacingDescription() {
+        let ability = Ability.rayOfFrost
+        XCTAssertEqual(ability.summary, "Deal 1 Freeze damage and applies Frozen.")
     }
 
-    func testAbilitySummaryWithDirectDamageAndEffect() {
-        let ability = Ability(
-            id: "test-summary",
-            name: "Test",
-            tier: .basic,
-            directDamage: 2,
-            damageKeyword: .holy,
-            statusApplication: nil,
-            effects: [.burn(2)]
-        )
-        XCTAssertTrue(ability.summary.contains("2 Holy damage"))
-        XCTAssertTrue(ability.summary.contains("Deals 2 Burn damage"))
+    func testAbilityHealHasNoDamage() {
+        XCTAssertEqual(Ability.heal.summary, "Restore 3 Health.")
+        XCTAssertEqual(Ability.heal.directDamage, 0)
     }
 }

@@ -203,6 +203,7 @@ final class BattleEffectTests: XCTestCase {
             name: "Heal",
             tier: .basic,
             directDamage: 0,
+            description: "Restore 3 Health.",
             effects: [.instantHeal(.health, 3)]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, actionIntervalTicks: 2, abilities: [heal])
@@ -236,7 +237,7 @@ final class BattleEffectTests: XCTestCase {
             enemy: enemy,
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .leech(.leech, 0.25, 3), remainingTicks: 3)
+                ActiveEffect(id: 2, effect: .standardLeechBuff, remainingTicks: 6)
             ]
         )
 
@@ -245,7 +246,7 @@ final class BattleEffectTests: XCTestCase {
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 8)
+        XCTAssertEqual(battle.heroHealth, 9)
         XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
@@ -257,6 +258,7 @@ final class BattleEffectTests: XCTestCase {
             name: "Cleanse Poison",
             tier: .basic,
             directDamage: 0,
+            description: "Cleanse Poisoned.",
             effects: [.cleanse(.poison, 3)]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [cleansePoison])
@@ -317,26 +319,33 @@ final class BattleEffectTests: XCTestCase {
 
     // MARK: - Targeting & cadence
 
-    func testSunderArmorAppliesMitigationToEnemy() {
+    func testSunderArmorHalvesEnemyArmor() {
         let hero = passiveCombatant(id: "hero", name: "Hero", role: .hero)
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.sunderArmor])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)
+            ]
+        )
 
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
         XCTAssertTrue(battle.activeEnemyEffects.contains {
-            if case .mitigation(.armor, _, _) = $0.effect { return true }
+            if case .mitigation(.armor, 0.20, _) = $0.effect { return true }
             return false
         })
     }
 
     func testSkillFiresOnTurn3UltimateOnTurn6() {
-        let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1)
-        let skill = Ability(id: "skill", name: "SkillAtk", tier: .skill, directDamage: 3)
-        let ultimate = Ability(id: "ultimate", name: "UltAtk", tier: .ultimate, directDamage: 6)
+        let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1, description: "Basic")
+        let skill = Ability(id: "skill", name: "SkillAtk", tier: .skill, directDamage: 3, description: "Skill")
+        let ultimate = Ability(id: "ultimate", name: "UltAtk", tier: .ultimate, directDamage: 6, description: "Ultimate")
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -447,6 +456,7 @@ final class BattleEffectTests: XCTestCase {
             name: "Shield",
             tier: .basic,
             directDamage: 0,
+            description: "Gain Block.",
             effects: [.shield(.block, 5, 2)]
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [shield])
@@ -467,6 +477,7 @@ final class BattleEffectTests: XCTestCase {
             name: "Legacy",
             tier: .basic,
             directDamage: 1,
+            description: "Legacy",
             statusApplication: StatusApplication(keyword: .poison, durationTicks: 2, tickDamage: 2)
         )
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [legacy])

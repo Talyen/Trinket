@@ -29,16 +29,9 @@ final class KeywordTests: XCTestCase {
     }
 
     func testDamageTypeCategory() {
-        let types: [Keyword] = [.physical, .burn, .poison, .bleed, .holy, .nature]
+        let types: [Keyword] = [.physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun]
         for kw in types {
             XCTAssertEqual(kw.category, .damageType, "\(kw.rawValue) should be damageType")
-        }
-    }
-
-    func testPreventionCategory() {
-        let types: [Keyword] = [.stun, .freeze]
-        for kw in types {
-            XCTAssertEqual(kw.category, .prevention, "\(kw.rawValue) should be prevention")
         }
     }
 
@@ -60,14 +53,23 @@ final class KeywordTests: XCTestCase {
         XCTAssertEqual(Keyword.gold.category, .resource)
     }
 
+    func testStatusAliases() {
+        XCTAssertEqual(Keyword.freeze.statusAlias, "Frozen")
+        XCTAssertEqual(Keyword.stun.statusAlias, "Stunned")
+        XCTAssertEqual(Keyword.burn.statusAlias, "Burning")
+        XCTAssertEqual(Keyword.poison.statusAlias, "Poisoned")
+        XCTAssertEqual(Keyword.bleed.statusAlias, "Bleeding")
+    }
+
     func testKeywordDescriptionTextRendersWithoutCrash() {
         let sentence = Keyword.allCases.map(\.rawValue).joined(separator: " ")
+            + " Frozen Stunned Burning Poisoned Bleeding"
         let view = KeywordDescriptionText(text: sentence)
         XCTAssertNotNil(view)
     }
 
     func testCategoryAllCases() {
-        let expected: Set = ["Damage Type", "Prevention", "Mitigation", "Restoration", "Resource"]
+        let expected: Set = ["Damage Type", "Mitigation", "Restoration", "Resource"]
         let actual = Set(Keyword.Category.allCases.map(\.rawValue))
         XCTAssertEqual(expected, actual)
     }

@@ -169,7 +169,7 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testPetSkipsActionWhenHeroKillsEnemySameStep() {
-        let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1)
+        let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])

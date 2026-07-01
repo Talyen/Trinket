@@ -44,13 +44,34 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
 
     var category: Category {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .nature: return .damageType
-        case .stun, .freeze: return .prevention
+        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: return .damageType
         case .block, .armor: return .mitigation
         case .health, .leech: return .restoration
         case .gold: return .resource
         }
     }
+
+    /// Player-facing status label for prevention and DoT effects. Shares styling with the parent keyword.
+    var statusAlias: String? {
+        switch self {
+        case .freeze: return "Frozen"
+        case .stun: return "Stunned"
+        case .burn: return "Burning"
+        case .poison: return "Poisoned"
+        case .bleed: return "Bleeding"
+        default: return nil
+        }
+    }
+
+    static let styledTerms: [(term: String, keyword: Keyword)] = {
+        var terms: [(String, Keyword)] = allCases.map { ($0.rawValue, $0) }
+        for keyword in allCases {
+            if let alias = keyword.statusAlias {
+                terms.append((alias, keyword))
+            }
+        }
+        return terms.sorted { $0.term.count > $1.term.count }
+    }()
 
     var rulesText: String {
         switch self {
@@ -59,7 +80,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .burn:
             return "Fire damage over time."
         case .stun:
-            return "Prevents the target's next action."
+            return "Stun damage and Stunned prevention."
         case .block:
             return "Damage absorption shield layered on top of health."
         case .armor:
@@ -79,7 +100,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .nature:
             return "Nature and growth damage type."
         case .freeze:
-            return "Prevents the target's next action with cold."
+            return "Freeze damage and Frozen prevention."
         }
     }
 

@@ -9,10 +9,10 @@ struct KeywordDescriptionText: View {
 
     private var attributedText: AttributedString {
         var attr = AttributedString(text)
-        for keyword in Keyword.allCases {
+        for (term, keyword) in Keyword.styledTerms {
             var searchStart = text.startIndex
             while searchStart < text.endIndex,
-                  let range = text.range(of: keyword.rawValue, range: searchStart ..< text.endIndex) {
+                  let range = text.range(of: term, range: searchStart ..< text.endIndex) {
                 if let startIdx = AttributedString.Index(range.lowerBound, within: attr),
                    let endIdx = AttributedString.Index(range.upperBound, within: attr) {
                     attr[startIdx ..< endIdx].foregroundColor = keyword.visualStyle.color

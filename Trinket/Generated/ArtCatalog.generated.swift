@@ -123,6 +123,30 @@ enum ArtCatalog {
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Phoenix pet"
         ),
+        "golden_retriever": CombatantArtReference(
+            imageName: "pet_golden_retriever_card",
+            thumbnailImageName: "pet_golden_retriever_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Golden Retriever pet"
+        ),
+        "library_owl": CombatantArtReference(
+            imageName: "pet_library_owl_card",
+            thumbnailImageName: "pet_library_owl_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Library Owl pet"
+        ),
+        "risen_skeleton": CombatantArtReference(
+            imageName: "pet_risen_skeleton_card",
+            thumbnailImageName: "pet_risen_skeleton_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Risen Skeleton pet"
+        ),
+        "mana_moth": CombatantArtReference(
+            imageName: "pet_mana_moth_card",
+            thumbnailImageName: "pet_mana_moth_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Mana Moth pet"
+        ),
         "goblin": CombatantArtReference(
             imageName: "enemy_goblin_card",
             thumbnailImageName: "enemy_goblin_card_thumb",
@@ -326,10 +350,6 @@ enum ArtCatalog {
             imageName: "ability_golden_plate_thumb",
             accessibilityLabel: "Ability art for Golden Plate"
         ),
-        "golden-retriever": AbilityArtReference(
-            imageName: "ability_golden_retriever_thumb",
-            accessibilityLabel: "Ability art for Golden Retriever"
-        ),
         "grasping-vines": AbilityArtReference(
             imageName: "ability_grasping_vines_thumb",
             accessibilityLabel: "Ability art for Grasping Vines"
@@ -366,10 +386,6 @@ enum ArtCatalog {
             imageName: "ability_kindling_thumb",
             accessibilityLabel: "Ability art for Kindling"
         ),
-        "library-owl": AbilityArtReference(
-            imageName: "ability_library_owl_thumb",
-            accessibilityLabel: "Ability art for Library Owl"
-        ),
         "lightning-arrow": AbilityArtReference(
             imageName: "ability_lightning_arrow_thumb",
             accessibilityLabel: "Ability art for Lightning Arrow"
@@ -389,10 +405,6 @@ enum ArtCatalog {
         "mana-crystals": AbilityArtReference(
             imageName: "ability_mana_crystals_thumb",
             accessibilityLabel: "Ability art for Mana Crystals"
-        ),
-        "mana-moth": AbilityArtReference(
-            imageName: "ability_mana_moth_thumb",
-            accessibilityLabel: "Ability art for Mana Moth"
         ),
         "mana-potion": AbilityArtReference(
             imageName: "ability_mana_potion_thumb",
@@ -445,10 +457,6 @@ enum ArtCatalog {
         "prayer": AbilityArtReference(
             imageName: "ability_prayer_thumb",
             accessibilityLabel: "Ability art for Prayer"
-        ),
-        "raise-skeleton": AbilityArtReference(
-            imageName: "ability_raise_skeleton_thumb",
-            accessibilityLabel: "Ability art for Raise Skeleton"
         ),
         "ray-of-frost": AbilityArtReference(
             imageName: "ability_ray_of_frost_thumb",

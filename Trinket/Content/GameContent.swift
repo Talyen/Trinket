@@ -144,8 +144,8 @@ enum GameContent {
             slot: .weapon,
             keywords: [.leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Leech 10% for 2 ticks.", effect: .leech(.leech, 0.10, 2)),
-            astral: ItemAffixPower(description: "Leech 25% for 3 ticks.", effect: .leech(.leech, 0.25, 3))
+            basic: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff),
+            astral: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff)
         ),
         ItemAffixDefinition(
             id: "reinforced",
@@ -261,8 +261,8 @@ enum GameContent {
             slot: .trinket,
             keywords: [.leech, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Leech 10% for 2 ticks.", effect: .leech(.leech, 0.10, 2)),
-            astral: ItemAffixPower(description: "Leech 25% for 3 ticks.", effect: .leech(.leech, 0.25, 3))
+            basic: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff),
+            astral: ItemAffixPower(description: "Gain Leech.", effect: .standardLeechBuff)
         ),
         ItemAffixDefinition(
             id: "venomheart",
@@ -393,8 +393,8 @@ enum GameContent {
             role: .hero,
             maxHealth: 9,
             abilityChoices: AbilityChoices(
-                basics: [.antivenomPotion, .smellingSalts],
-                skills: [.healthPotion, .manaPotion],
+                basics: [.smellingSalts, .mixedPotion],
+                skills: [.healthPotion, .antivenomPotion],
                 ultimates: [.panaceaPotion, .wishingPotion]
             )
         ),
@@ -428,7 +428,7 @@ enum GameContent {
             abilityChoices: AbilityChoices(
                 basics: [.willOWisp, .fangs],
                 skills: [.bloodOffering, .darkPact],
-                ultimates: [.raiseSkeleton, .faustianBargain]
+                ultimates: [.sunburst, .faustianBargain]
             )
         ),
         Combatant(
@@ -438,8 +438,8 @@ enum GameContent {
             maxHealth: 10,
             abilityChoices: AbilityChoices(
                 basics: [.gold, .wishingWell],
-                skills: [.haste, .libraryOwl],
-                ultimates: [.wish, .goldenRetriever]
+                skills: [.haste, .roulette],
+                ultimates: [.wish, .luckPotion]
             )
         )
     ]
@@ -521,6 +521,50 @@ enum GameContent {
                 skills: [.serratedEdge, .venomFangs],
                 ultimates: [.packTactics, .concussiveShot]
             )
+        ),
+        Combatant(
+            id: "golden_retriever",
+            name: "Golden Retriever",
+            role: .pet,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.gold, .bread],
+                skills: [.healthPotion, .bountyShot],
+                ultimates: [.wish, .pixie]
+            )
+        ),
+        Combatant(
+            id: "library_owl",
+            name: "Library Owl",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.smellingSalts, .willOWisp],
+                skills: [.cleanse, .prayer],
+                ultimates: [.panaceaPotion, .holyRadiance]
+            )
+        ),
+        Combatant(
+            id: "risen_skeleton",
+            name: "Risen Skeleton",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.slash, .fangs],
+                skills: [.darkPact, .bloodOffering],
+                ultimates: [.faustianBargain, .hemorrhage]
+            )
+        ),
+        Combatant(
+            id: "mana_moth",
+            name: "Mana Moth",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.manaBerries, .manaCrystals],
+                skills: [.manaPotion, .manaShield],
+                ultimates: [.luckPotion, .sunburst]
+            )
         )
     ]
 
@@ -530,7 +574,7 @@ enum GameContent {
         Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .crystalBulwark])),
         Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.stab, .poisonDagger, .hemorrhage])),
         Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.block, .briarShield, .goldenPlate])),
-        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.manaBerries, .darkPact, .raiseSkeleton])),
+        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.manaBerries, .darkPact, .hemorrhage])),
         Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .venomFangs, .serratedArrowhead])),
         Enemy(combatant: Combatant(id: "skeleton", name: "Skeleton", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis])),
         Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn]), isBoss: true),

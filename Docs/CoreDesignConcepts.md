@@ -62,21 +62,21 @@ Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pe
 
 Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed ticks can fire on steps where nobody acts.
 
-Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, prevention, shields, mitigation, healing, leech, gold, cleanse). Ability copy describes DoTs as `Deals N Burn damage` (and likewise for Poison and Bleed) without tick language.
+Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, prevention, shields, mitigation, healing, leech, gold, cleanse). Ability copy uses player-facing descriptions such as `Deal 3 Freeze damage and applies Frozen.` without tick or action language. Status aliases (`Frozen`, `Stunned`, `Burning`, `Poisoned`, `Bleeding`) share keyword color and emphasis in `KeywordDescriptionText`.
 
 ### Burn, Poison, and Bleed
 
-These three keywords share a pattern: the ability effect deals its potency immediately on use, then the battle engine tracks ongoing decay at step start.
+These three keywords share a pattern: when an ability pairs direct damage with a matching DoT, the initial hit uses `directDamage` and the status tracks ongoing decay at step start without duplicating the first hit. When only a DoT effect is used, potency is dealt immediately on apply, then decays per the rules below.
 
 | Keyword | On apply | Each step-start tick | Stacking | Block / Armor |
 |---|---|---|---|---|
-| `Burn` | Deal potency | Deal `floor(potency / 2)`, then set potency to that value | Merge into one stack per target | Bypassed |
-| `Poison` | Deal potency | Deal `potency - max(1, floor(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Bypassed |
-| `Bleed` | Deal potency | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Bypassed |
+| `Burn` | Deal potency (unless paired direct hit already dealt it) | Deal `floor(potency / 2)`, then set potency to that value | Merge into one stack per target | Respected |
+| `Poison` | Deal potency (unless paired direct hit already dealt it) | Deal `potency - max(1, floor(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Respected |
+| `Bleed` | Deal potency (unless paired direct hit already dealt it) | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Respected |
 
-`Nature` is direct damage only; it is not a DoT keyword.
+`Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also apply `Frozen`/`Stunned` prevention via `.prevention`; prevention always consumes exactly one scheduled action regardless of damage amount.
 
-`Cleanse` removes all active Burn, Poison, or Bleed instances matching the cleansed keyword.
+`Cleanse` removes active Burn, Poison, Bleed, or prevention instances matching the cleansed keyword (or all debuffs when unspecified).
 
 ## Items
 
@@ -111,28 +111,25 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 | `Poison` | dark green | `drop.triangle.fill` | Deals potency immediately, then decays by 25% (minimum 1) each step-start tick. Stacks merge. |
 | `Bleed` | dark red | `drop.fill` | Deals potency immediately, then repeats the same damage for 3 step-start ticks. Each application is tracked separately. |
 | `Holy` | pale gold | `sun.max.fill` | Radiant holy damage type. |
-| `Nature` | emerald | `leaf.fill` | Nature damage type (direct damage only). |
+| `Nature` | emerald | `leaf.fill` | Nature damage type. |
+| `Freeze` | light blue | `snowflake` | Freeze damage type. Also applies `Frozen` prevention (one action). |
+| `Stun` | yellow | `bolt.fill` | Stun damage type. Also applies `Stunned` prevention (one action). |
 
-### Prevention (Keyword.category = .prevention)
-
-| Keyword | Color | SF Symbol | Rules |
-|---|---|---|---|
-| `Stun` | yellow | `bolt.fill` | Prevents the target's next scheduled action(s). Applies via `.prevention`. Does not decay on passive battle ticks. |
-| `Freeze` | light blue | `snowflake` | Prevents the target's next scheduled action(s) with cold. Same mechanics as Stun. |
+Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun), `Burning` (Burn), `Poisoned` (Poison), `Bleeding` (Bleed).
 
 ### Mitigation (Keyword.category = .mitigation)
 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
-| `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs incoming ability damage until buffer expires. Burn, Poison, and Bleed bypass Block. |
-| `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming ability damage by a percentage. Burn, Poison, and Bleed bypass Armor. |
+| `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs incoming damage until buffer expires. |
+| `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming damage by a percentage. |
 
 ### Restoration (Keyword.category = .restoration)
 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
 | `Health` | red | `heart.fill` | Instant health restoration via `.instantHeal`. Clamped to max health. |
-| `Leech` | magenta | `drop.fill` | Restores health to the attacker based on damage dealt via `.leech`. Applies `percent * damage` as healing. |
+| `Leech` | magenta | `drop.fill` | Ongoing buff via `.leech`: restores 10% of damage dealt (any source, including DoTs) for 6 ticks. Standard value: `Effect.standardLeechBuff`. |
 
 ### Resource (Keyword.category = .resource)
 
@@ -151,7 +148,10 @@ All keyword effects are represented by the `Effect` tagged union and applied thr
 - `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
 - `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`
 - `.instantHeal(keyword, amount)` — immediately restores `amount` health (clamped to max)
-- `.leech(keyword, percent, durationTicks)` — restores `percent * effective damage dealt` to the attacker on each hit
+- `.leech(keyword, percent, durationTicks)` — ongoing buff; restores `percent * damage dealt` to the source combatant for `durationTicks` (standard: 10% for 6 ticks)
+- `.dealDamage(keyword, amount)` — typed direct damage hit
+- `.cleanseRandom` — removes one random debuff (Burn, Poison, Bleed, Stun, Freeze)
+- `.halveMitigation(keyword)` — halves existing mitigation % on the target
 - `.resourceGain(keyword, amount)` — immediately adds `amount` gold
 - `.cleanse(keyword?, durationTicks)` — removes active effects matching `keyword` (or all if nil) for `durationTicks`
 

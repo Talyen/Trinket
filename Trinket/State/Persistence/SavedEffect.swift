@@ -11,6 +11,9 @@ enum SavedEffect: Codable, Equatable {
     case leech(keyword: String, percent: Double, duration: Int)
     case resourceGain(keyword: String, amount: Int)
     case cleanse(keyword: String?, duration: Int)
+    case dealDamage(keyword: String, amount: Int)
+    case cleanseRandom
+    case halveMitigation(keyword: String)
 
     init(_ effect: Effect) {
         switch effect {
@@ -34,6 +37,12 @@ enum SavedEffect: Codable, Equatable {
             self = .resourceGain(keyword: keyword.rawValue, amount: amount)
         case let .cleanse(keyword, duration):
             self = .cleanse(keyword: keyword?.rawValue, duration: duration)
+        case let .dealDamage(keyword, amount):
+            self = .dealDamage(keyword: keyword.rawValue, amount: amount)
+        case .cleanseRandom:
+            self = .cleanseRandom
+        case let .halveMitigation(keyword):
+            self = .halveMitigation(keyword: keyword.rawValue)
         }
     }
 
@@ -66,6 +75,14 @@ enum SavedEffect: Codable, Equatable {
         case let .cleanse(keywordRawValue, duration):
             let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
             return .cleanse(keyword, duration)
+        case let .dealDamage(keywordRawValue, amount):
+            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
+            return .dealDamage(keyword, amount)
+        case .cleanseRandom:
+            return .cleanseRandom
+        case let .halveMitigation(keywordRawValue):
+            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
+            return .halveMitigation(keyword)
         }
     }
 }
@@ -74,15 +91,22 @@ struct SavedActiveEffect: Codable, Equatable {
     let id: Int
     let effect: SavedEffect
     let remainingTicks: Int
+    let sourceActorID: String?
 
     init(_ activeEffect: ActiveEffect) {
         id = activeEffect.id
         effect = SavedEffect(activeEffect.effect)
         remainingTicks = activeEffect.remainingTicks
+        sourceActorID = activeEffect.sourceActorID
     }
 
     func activeEffect() -> ActiveEffect? {
         guard let effect = effect.effect() else { return nil }
-        return ActiveEffect(id: id, effect: effect, remainingTicks: remainingTicks)
+        return ActiveEffect(
+            id: id,
+            effect: effect,
+            remainingTicks: remainingTicks,
+            sourceActorID: sourceActorID
+        )
     }
 }

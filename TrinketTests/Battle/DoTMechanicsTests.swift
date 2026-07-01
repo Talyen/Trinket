@@ -42,15 +42,15 @@ final class DoTMechanicsTests: XCTestCase {
     }
 
     private func burnAbility(potency: Int) -> Ability {
-        Ability(id: "burn-\(potency)", name: "Burn", tier: .basic, directDamage: 0, effects: [.burn(potency)])
+        Ability(id: "burn-\(potency)", name: "Burn", tier: .basic, directDamage: 0, description: "Burn", effects: [.burn(potency)])
     }
 
     private func poisonAbility(potency: Int) -> Ability {
-        Ability(id: "poison-\(potency)", name: "Poison", tier: .basic, directDamage: 0, effects: [.poison(potency)])
+        Ability(id: "poison-\(potency)", name: "Poison", tier: .basic, directDamage: 0, description: "Poison", effects: [.poison(potency)])
     }
 
     private func bleedAbility(potency: Int) -> Ability {
-        Ability(id: "bleed-\(potency)", name: "Bleed", tier: .basic, directDamage: 0, effects: [.bleed(potency)])
+        Ability(id: "bleed-\(potency)", name: "Bleed", tier: .basic, directDamage: 0, description: "Bleed", effects: [.bleed(potency)])
     }
 
     private func statusAmounts(
@@ -172,7 +172,7 @@ final class DoTMechanicsTests: XCTestCase {
         XCTAssertEqual(battle.activeEnemyEffects.filter { $0.keyword == .bleed }.count, 2)
     }
 
-    func testBurnBypassesBlockAndArmor() {
+    func testBurnRespectsBlockAndArmor() {
         var battle = BattleState(
             hero: Combatant(
                 id: "hero",
@@ -193,11 +193,11 @@ final class DoTMechanicsTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(battle.enemyHealth, 96)
+        XCTAssertEqual(battle.enemyHealth, 100)
     }
 
     func testCleanseRemovesMergedPoisonStack() {
-        let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, effects: [.cleanse(.poison, 3)])
+        let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison, 3)])
         var battle = isolatedBattle(
             heroAbilities: [cleanse],
             heroEffects: [ActiveEffect(id: 1, effect: .poison(6), remainingTicks: 0)],
