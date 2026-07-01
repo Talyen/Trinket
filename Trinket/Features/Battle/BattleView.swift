@@ -273,13 +273,21 @@ struct BattleView: View {
     }
 
     private func makeVictorySummary() -> BattleVictorySummary {
-        BattleVictorySummary(
+        let xpAwarded = stageReward?.experience ?? 0
+        let heroAfter = heroProgression.addingExperience(xpAwarded)
+        let petAfter = petProgression.addingExperience(xpAwarded)
+
+        return BattleVictorySummary(
             stageGold: stageReward?.gold ?? 0,
             battleGold: battle.earnedGold,
-            experience: stageReward?.experience ?? 0,
+            experience: xpAwarded,
             heroName: battle.hero.name,
             petName: battle.pet.name,
-            itemNames: rewardItemNames
+            itemNames: rewardItemNames,
+            heroProgressionBefore: heroProgression,
+            heroProgressionAfter: heroAfter,
+            petProgressionBefore: petProgression,
+            petProgressionAfter: petAfter
         )
     }
 }

@@ -214,11 +214,23 @@ struct VictoryView: View {
 
                 VictoryRewardSection(title: "Experience") {
                     if summary.experience > 0 {
-                        VictoryRewardRow(
-                            symbolName: "star.fill",
-                            tint: .yellow,
-                            text: "+\(summary.experience) XP for \(summary.heroName) and \(summary.petName)"
-                        )
+                        VStack(alignment: .leading, spacing: 12) {
+                            ExperienceBar(
+                                combatantName: summary.heroName,
+                                pre: summary.heroProgressionBefore,
+                                post: summary.heroProgressionAfter,
+                                fillColor: TrinketDesign.Colors.progression
+                            )
+                            .accessibilityIdentifier("\(summary.heroName) experience bar")
+
+                            ExperienceBar(
+                                combatantName: summary.petName,
+                                pre: summary.petProgressionBefore,
+                                post: summary.petProgressionAfter,
+                                fillColor: TrinketDesign.Colors.progression
+                            )
+                            .accessibilityIdentifier("\(summary.petName) experience bar")
+                        }
                     } else {
                         VictoryRewardRow(
                             symbolName: "star",
