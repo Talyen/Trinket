@@ -574,14 +574,6 @@ struct Ability: Identifiable, Hashable {
         description: "Deal 6 Burn damage and applies Burning.",
         targetedEffects: [TargetedEffect(.burn(6))]
     )
-    static let mixedPotion = Ability(
-        id: "mixed-potion", name: "Mixed Potion", tier: .skill, directDamage: 0,
-        description: "Restore 2 Health and cleanse a random debuff.",
-        targetedEffects: [
-            TargetedEffect(.instantHeal(.health, 2)),
-            TargetedEffect(.cleanseRandom)
-        ]
-    )
     static let moltenBulwark = Ability(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate, directDamage: 3, damageKeyword: .burn,
         description: "Gain Block and deal 3 Burn damage.",
@@ -610,15 +602,6 @@ struct Ability: Identifiable, Hashable {
             TargetedEffect(.burn(6)),
             TargetedEffect(.instantHeal(.health, 3))
         ]
-    )
-    static let pixie = Ability(
-        id: "pixie", name: "Pixie", tier: .ultimate, directDamage: 0,
-        description: "Restore 4 Health.",
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 4))]
-    )
-    static let placeholderCard = Ability(
-        id: "placeholder-card", name: "Placeholder Card", tier: .basic, directDamage: 1,
-        description: "Deal 1 Physical damage."
     )
     static let plateMail = Ability(
         id: "plate-mail", name: "Plate Mail", tier: .ultimate, directDamage: 0,
@@ -678,14 +661,6 @@ struct Ability: Identifiable, Hashable {
         id: "shield-bash", name: "Shield Bash", tier: .basic, directDamage: 1, damageKeyword: .stun,
         description: "Deal 1 Stun damage.\nGain 1 Block.",
         targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
-    )
-    static let shieldScarab = Ability(
-        id: "shield-scarab", name: "Shield Scarab", tier: .skill, directDamage: 2, damageKeyword: .poison,
-        description: "Gain Block and deal 2 Poison damage.",
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 2, 6)),
-            TargetedEffect(.poison(2))
-        ]
     )
     static let slash = Ability(
         id: "slash", name: "Slash", tier: .basic, directDamage: 1,
@@ -764,30 +739,6 @@ struct Ability: Identifiable, Hashable {
         description: "Deal 3 Poison damage and applies Poisoned.",
         targetedEffects: [TargetedEffect(.poison(3))]
     )
-    static let willOWisp = Ability(
-        id: "will-o-wisp", name: "Will-o-Wisp", tier: .basic, directDamage: 1, damageKeyword: .burn,
-        description: "Deal 1 Burn damage and applies Burning.",
-        targetedEffects: [TargetedEffect(.burn(1))]
-    )
-    static let wish = Ability(
-        id: "wish", name: "Wish", tier: .ultimate, directDamage: 0,
-        description: "Gain 3 Gold.",
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))]
-    )
-    static let wishingPotion = Ability(
-        id: "wishing-potion", name: "Wishing Potion", tier: .ultimate, directDamage: 0,
-        description: "Gain 3 Gold and restore 2 Health.",
-        targetedEffects: [
-            TargetedEffect(.resourceGain(.gold, 3)),
-            TargetedEffect(.instantHeal(.health, 2))
-        ]
-    )
-    static let wishingWell = Ability(
-        id: "wishing-well", name: "Wishing Well", tier: .basic, directDamage: 0,
-        description: "Gain 2 Gold.",
-        targetedEffects: [TargetedEffect(.resourceGain(.gold, 2))]
-    )
-
     var damage: Int {
         directDamage
     }

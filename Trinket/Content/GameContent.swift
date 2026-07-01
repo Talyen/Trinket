@@ -396,9 +396,9 @@ enum GameContent {
             role: .hero,
             maxHealth: 9,
             abilityChoices: AbilityChoices(
-                basics: [.smellingSalts, .mixedPotion],
+                basics: [.smellingSalts, .apple],
                 skills: [.healthPotion, .antivenomPotion],
-                ultimates: [.panaceaPotion, .wishingPotion]
+                ultimates: [.panaceaPotion, .luckPotion]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 7, wisdom: 8)
         ),
@@ -410,7 +410,7 @@ enum GameContent {
             abilityChoices: AbilityChoices(
                 basics: [.apple, .bread],
                 skills: [.briarShield, .graspingVines],
-                ultimates: [.bloodthorn, .pixie]
+                ultimates: [.bloodthorn, .faustianBargain]
             ),
             primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 7, intellect: 3, wisdom: 9)
         ),
@@ -432,7 +432,7 @@ enum GameContent {
             role: .hero,
             maxHealth: 7,
             abilityChoices: AbilityChoices(
-                basics: [.willOWisp, .fangs],
+                basics: [.kindling, .fangs],
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.sunburst, .faustianBargain]
             ),
@@ -444,9 +444,9 @@ enum GameContent {
             role: .hero,
             maxHealth: 10,
             abilityChoices: AbilityChoices(
-                basics: [.gold, .wishingWell],
+                basics: [.gold, .manaBerries],
                 skills: [.haste, .roulette],
-                ultimates: [.wish, .luckPotion]
+                ultimates: [.faustianBargain, .luckPotion]
             ),
             primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 6, intellect: 5, wisdom: 6)
         )
@@ -507,7 +507,7 @@ enum GameContent {
             role: .pet,
             maxHealth: 6,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .willOWisp],
+                basics: [.kindling, .fireArrow],
                 skills: [.fireball, .cauterize],
                 ultimates: [.phoenixFeather, .combustion]
             ),
@@ -533,7 +533,7 @@ enum GameContent {
             abilityChoices: AbilityChoices(
                 basics: [.gold, .bread],
                 skills: [.healthPotion, .bountyShot],
-                ultimates: [.wish, .pixie]
+                ultimates: [.luckPotion, .faustianBargain]
             ),
             primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 6, intellect: 3, wisdom: 8)
         ),
@@ -543,7 +543,7 @@ enum GameContent {
             role: .pet,
             maxHealth: 6,
             abilityChoices: AbilityChoices(
-                basics: [.smellingSalts, .willOWisp],
+                basics: [.smellingSalts, .kindling],
                 skills: [.cleanse, .prayer],
                 ultimates: [.panaceaPotion, .holyRadiance]
             ),
@@ -572,6 +572,42 @@ enum GameContent {
                 ultimates: [.luckPotion, .sunburst]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 3, intellect: 7, wisdom: 7)
+        ),
+        Combatant(
+            id: "pixie",
+            name: "Pixie",
+            role: .pet,
+            maxHealth: 5,
+            abilityChoices: AbilityChoices(
+                basics: [.apple, .bread],
+                skills: [.prayer, .cleanse],
+                ultimates: [.panaceaPotion, .sunburst]
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 7, toughness: 3, intellect: 5, wisdom: 8)
+        ),
+        Combatant(
+            id: "shield_scarab",
+            name: "Shield Scarab",
+            role: .pet,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.block, .shieldBash],
+                skills: [.spikedShield, .stoneskinPotion],
+                ultimates: [.crystalBulwark, .plateMail]
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 11, intellect: 1, wisdom: 3)
+        ),
+        Combatant(
+            id: "imp",
+            name: "Imp",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.kindling, .fangs],
+                skills: [.fireball, .darkPact],
+                ultimates: [.combustion, .faustianBargain]
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 7, toughness: 2, intellect: 9, wisdom: 4)
         )
     ]
 
@@ -585,7 +621,12 @@ enum GameContent {
         Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn], primaryStats: PrimaryStats(strength: 7, agility: 4, toughness: 12, intellect: 5, wisdom: 8)), isBoss: true),
         Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .moltenBulwark], primaryStats: PrimaryStats(strength: 10, agility: 3, toughness: 14, intellect: 3, wisdom: 4)), isBoss: true),
         Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .frostbolt, .glacialWard], primaryStats: PrimaryStats(strength: 4, agility: 6, toughness: 6, intellect: 12, wisdom: 5)), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 9, agility: 4, toughness: 13, intellect: 2, wisdom: 3)), isBoss: true)
+        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 9, agility: 4, toughness: 13, intellect: 2, wisdom: 3)), isBoss: true),
+        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .steal, .packTactics], primaryStats: PrimaryStats(strength: 3, agility: 7, toughness: 2, intellect: 3, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "fire_elemental", name: "Fire Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.kindling, .fireball, .combustion], primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 8, wisdom: 3))),
+        Enemy(combatant: Combatant(id: "frost_elemental", name: "Frost Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .coldSnap, .glacialWard], primaryStats: PrimaryStats(strength: 4, agility: 4, toughness: 8, intellect: 7, wisdom: 4))),
+        Enemy(combatant: Combatant(id: "slime", name: "Slime", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .briarShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 4, agility: 2, toughness: 12, intellect: 1, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "will_o_wisp", name: "Will-o-Wisp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.kindling, .cauterize, .phoenixFeather], primaryStats: PrimaryStats(strength: 1, agility: 7, toughness: 2, intellect: 9, wisdom: 4)))
     ]
 
     static let chapters: [Chapter] = [

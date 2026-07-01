@@ -66,13 +66,10 @@ ability	mana-crystals	ability_mana_crystals	Raw Assets/Abilities/Mana Crystals.j
 ability	mana-potion	ability_mana_potion	Raw Assets/Abilities/Mana Potion.png	0.50	0.50	Ability art for Mana Potion
 ability	mana-shield	ability_mana_shield	Raw Assets/Abilities/Mana Shield.jpeg	0.50	0.50	Ability art for Mana Shield
 ability	meteor	ability_meteor	Raw Assets/Abilities/Meteor.jpeg	0.50	0.50	Ability art for Meteor
-ability	mixed-potion	ability_mixed_potion	Raw Assets/Abilities/Mixed Potion.jpeg	0.50	0.50	Ability art for Mixed Potion
 ability	molten-bulwark	ability_molten_bulwark	Raw Assets/Abilities/Molten Bulwark.jpeg	0.50	0.50	Ability art for Molten Bulwark
 ability	pack-tactics	ability_pack_tactics	Raw Assets/Abilities/Pack Tactics.jpeg	0.50	0.50	Ability art for Pack Tactics
 ability	panacea-potion	ability_panacea_potion	Raw Assets/Abilities/Panacea Potion.png	0.50	0.50	Ability art for Panacea Potion
 ability	phoenix-feather	ability_phoenix_feather	Raw Assets/Abilities/Phoenix Feather.jpeg	0.50	0.50	Ability art for Phoenix Feather
-ability	pixie	ability_pixie	Raw Assets/Abilities/Pixie.jpeg	0.50	0.50	Ability art for Pixie
-ability	placeholder-card	ability_placeholder_card	Raw Assets/Abilities/Placeholder Card.png	0.50	0.50	Ability art for Placeholder Card
 ability	plate-mail	ability_plate_mail	Raw Assets/Abilities/Plate Mail.png	0.50	0.50	Ability art for Plate Mail
 ability	poison-dagger	ability_poison_dagger	Raw Assets/Abilities/Poison Dagger.jpeg	0.50	0.50	Ability art for Poison Dagger
 ability	prayer	ability_prayer	Raw Assets/Abilities/Prayer.jpeg	0.50	0.50	Ability art for Prayer
@@ -83,7 +80,6 @@ ability	sap-arrow	ability_sap_arrow	Raw Assets/Abilities/Sap Arrow.jpeg	0.50	0.5
 ability	serrated-arrowhead	ability_serrated_arrowhead	Raw Assets/Abilities/Serrated Arrowhead.jpeg	0.50	0.50	Ability art for Serrated Arrowhead
 ability	serrated-edge	ability_serrated_edge	Raw Assets/Abilities/Serrated Edge.jpeg	0.50	0.50	Ability art for Serrated Edge
 ability	shield-bash	ability_shield_bash	Raw Assets/Abilities/Shield Bash.jpeg	0.50	0.50	Ability art for Shield Bash
-ability	shield-scarab	ability_shield_scarab	Raw Assets/Abilities/Shield Scarab.jpeg	0.50	0.50	Ability art for Shield Scarab
 ability	slash	ability_slash	Raw Assets/Abilities/Slash.png	0.50	0.50	Ability art for Slash
 ability	smelling-salts	ability_smelling_salts	Raw Assets/Abilities/Smelling Salts.jpeg	0.50	0.50	Ability art for Smelling Salts
 ability	smite	ability_smite	Raw Assets/Abilities/Smite.jpeg	0.50	0.50	Ability art for Smite
@@ -97,10 +93,6 @@ ability	thorn-mail	ability_thorn_mail	Raw Assets/Abilities/Thorn Mail.jpeg	0.50	
 ability	tithe	ability_tithe	Raw Assets/Abilities/Tithe.jpeg	0.50	0.50	Ability art for Tithe
 ability	venom-arrow	ability_venom_arrow	Raw Assets/Abilities/Venom Arrow.jpeg	0.50	0.50	Ability art for Venom Arrow
 ability	venom-fangs	ability_venom_fangs	Raw Assets/Abilities/Venom Fangs.jpeg	0.50	0.50	Ability art for Venom Fangs
-ability	will-o-wisp	ability_will_o_wisp	Raw Assets/Abilities/Will-o-Wisp.jpeg	0.50	0.50	Ability art for Will-o-Wisp
-ability	wish	ability_wish	Raw Assets/Abilities/Wish.jpeg	0.50	0.50	Ability art for Wish
-ability	wishing-potion	ability_wishing_potion	Raw Assets/Abilities/Wishing Potion.jpeg	0.50	0.50	Ability art for Wishing Potion
-ability	wishing-well	ability_wishing_well	Raw Assets/Abilities/Wishing Well.jpeg	0.50	0.50	Ability art for Wishing Well
 item	crossbow-astral	item_crossbow_astral	Raw Assets/Gear/Crossbow - Astral.jpeg	0.50	0.50	Item art for Crossbow (Astral)
 item	crossbow-basic	item_crossbow_basic	Raw Assets/Gear/Crossbow - Basic.jpeg	0.50	0.50	Item art for Crossbow (Basic)
 item	dagger-astral	item_dagger_astral	Raw Assets/Gear/Dagger - Astral.jpeg	0.50	0.50	Item art for Dagger (Astral)
@@ -163,9 +155,17 @@ combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.png	0.50	0.50	Full art
 combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.png	0.50	0.50	Full art of the Mud Elemental enemy
 combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.50	0.50	Full art of the Necromancer enemy
 combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.50	0.50	Full art of the Plague Doctor enemy
-combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.png	0.50	0.50	Full art of the Skeleton enemy
-combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/The Blight Treant.jpeg	0.50	0.50	Full art of the Blight Treant enemy
-combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/The Forge Golem.jpeg	0.50	0.50	Full art of the Forge Golem enemy
-combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/The Frostwarden.jpeg	0.50	0.50	Full art of the Frostwarden enemy
-combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/The Iron Bear.jpeg	0.50	0.50	Full art of the Iron Bear enemy
+combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50	Full art of the Skeleton enemy
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.50	0.50	Full art of the Blight Treant enemy
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.50	0.50	Full art of the Forge Golem enemy
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpeg	0.50	0.50	Full art of the Frostwarden enemy
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpeg	0.50	0.50	Full art of the Iron Bear enemy
+combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50	Full art of the Fire Elemental enemy
+combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50	Full art of the Frost Elemental enemy
+combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50	Full art of the Goblin enemy
+combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.50	Full art of the Slime enemy
+combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.50	0.50	Full art of the Will-o-Wisp enemy
+combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of the Pixie pet
+combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
+combatant	imp	pet_imp_card	Raw Assets/Pets/Imp.png	0.50	0.50	Full art of the Imp pet
 background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50	Lush green canopy and winding forest path of the Verdant Forest

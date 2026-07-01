@@ -201,6 +201,54 @@ enum ArtCatalog {
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Iron Bear enemy"
         ),
+        "fire_elemental": CombatantArtReference(
+            imageName: "enemy_fire_elemental_card",
+            thumbnailImageName: "enemy_fire_elemental_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Fire Elemental enemy"
+        ),
+        "frost_elemental": CombatantArtReference(
+            imageName: "enemy_frost_elemental_card",
+            thumbnailImageName: "enemy_frost_elemental_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Frost Elemental enemy"
+        ),
+        "goblin": CombatantArtReference(
+            imageName: "enemy_goblin_card",
+            thumbnailImageName: "enemy_goblin_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Goblin enemy"
+        ),
+        "slime": CombatantArtReference(
+            imageName: "enemy_slime_card",
+            thumbnailImageName: "enemy_slime_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Slime enemy"
+        ),
+        "will_o_wisp": CombatantArtReference(
+            imageName: "enemy_will_o_wisp_card",
+            thumbnailImageName: "enemy_will_o_wisp_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Will-o-Wisp enemy"
+        ),
+        "pixie": CombatantArtReference(
+            imageName: "pet_pixie_card",
+            thumbnailImageName: "pet_pixie_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Pixie pet"
+        ),
+        "shield_scarab": CombatantArtReference(
+            imageName: "pet_shield_scarab_card",
+            thumbnailImageName: "pet_shield_scarab_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Shield Scarab pet"
+        ),
+        "imp": CombatantArtReference(
+            imageName: "pet_imp_card",
+            thumbnailImageName: "pet_imp_card_thumb",
+            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Full art of the Imp pet"
+        ),
     ]
 
     static let abilityArtByID: [String: AbilityArtReference] = [
@@ -400,10 +448,6 @@ enum ArtCatalog {
             imageName: "ability_meteor_thumb",
             accessibilityLabel: "Ability art for Meteor"
         ),
-        "mixed-potion": AbilityArtReference(
-            imageName: "ability_mixed_potion_thumb",
-            accessibilityLabel: "Ability art for Mixed Potion"
-        ),
         "molten-bulwark": AbilityArtReference(
             imageName: "ability_molten_bulwark_thumb",
             accessibilityLabel: "Ability art for Molten Bulwark"
@@ -419,14 +463,6 @@ enum ArtCatalog {
         "phoenix-feather": AbilityArtReference(
             imageName: "ability_phoenix_feather_thumb",
             accessibilityLabel: "Ability art for Phoenix Feather"
-        ),
-        "pixie": AbilityArtReference(
-            imageName: "ability_pixie_thumb",
-            accessibilityLabel: "Ability art for Pixie"
-        ),
-        "placeholder-card": AbilityArtReference(
-            imageName: "ability_placeholder_card_thumb",
-            accessibilityLabel: "Ability art for Placeholder Card"
         ),
         "plate-mail": AbilityArtReference(
             imageName: "ability_plate_mail_thumb",
@@ -467,10 +503,6 @@ enum ArtCatalog {
         "shield-bash": AbilityArtReference(
             imageName: "ability_shield_bash_thumb",
             accessibilityLabel: "Ability art for Shield Bash"
-        ),
-        "shield-scarab": AbilityArtReference(
-            imageName: "ability_shield_scarab_thumb",
-            accessibilityLabel: "Ability art for Shield Scarab"
         ),
         "slash": AbilityArtReference(
             imageName: "ability_slash_thumb",
@@ -523,22 +555,6 @@ enum ArtCatalog {
         "venom-fangs": AbilityArtReference(
             imageName: "ability_venom_fangs_thumb",
             accessibilityLabel: "Ability art for Venom Fangs"
-        ),
-        "will-o-wisp": AbilityArtReference(
-            imageName: "ability_will_o_wisp_thumb",
-            accessibilityLabel: "Ability art for Will-o-Wisp"
-        ),
-        "wish": AbilityArtReference(
-            imageName: "ability_wish_thumb",
-            accessibilityLabel: "Ability art for Wish"
-        ),
-        "wishing-potion": AbilityArtReference(
-            imageName: "ability_wishing_potion_thumb",
-            accessibilityLabel: "Ability art for Wishing Potion"
-        ),
-        "wishing-well": AbilityArtReference(
-            imageName: "ability_wishing_well_thumb",
-            accessibilityLabel: "Ability art for Wishing Well"
         ),
     ]
 

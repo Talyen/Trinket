@@ -10,7 +10,7 @@ final class EnemyCatalogTests: XCTestCase {
     ]
 
     func testEnemyCount() {
-        XCTAssertEqual(GameContent.enemies.count, 10)
+        XCTAssertEqual(GameContent.enemies.count, 15)
     }
 
     func testBossClassification() {
@@ -62,6 +62,11 @@ final class EnemyCatalogTests: XCTestCase {
         XCTAssertNotNil(ArtCatalog.combatantArtByID["the_forge_golem"])
         XCTAssertNotNil(ArtCatalog.combatantArtByID["the_frostwarden"])
         XCTAssertNotNil(ArtCatalog.combatantArtByID["the_iron_bear"])
+        XCTAssertNotNil(ArtCatalog.combatantArtByID["goblin"])
+        XCTAssertNotNil(ArtCatalog.combatantArtByID["fire_elemental"])
+        XCTAssertNotNil(ArtCatalog.combatantArtByID["frost_elemental"])
+        XCTAssertNotNil(ArtCatalog.combatantArtByID["slime"])
+        XCTAssertNotNil(ArtCatalog.combatantArtByID["will_o_wisp"])
     }
 
     func testIDsAreUniqueAcrossCombatants() {
