@@ -58,6 +58,7 @@ enum Effect: Hashable {
     case poison(Int)
     case bleed(Int)
     case prevention(Keyword, Int)
+    case preventionBuildup(Keyword, Int, Int)
     case shield(Keyword, Int, Int)
     case mitigation(Keyword, Double, Int)
     case instantHeal(Keyword, Int)
@@ -79,6 +80,7 @@ enum Effect: Hashable {
         case .poison: return .poison
         case .bleed: return .bleed
         case let .prevention(k, _): return k
+        case let .preventionBuildup(k, _, _): return k
         case let .shield(k, _, _): return k
         case let .mitigation(k, _, _): return k
         case let .instantHeal(k, _): return k
@@ -107,7 +109,7 @@ enum Effect: Hashable {
         case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
         case let .cleanse(_, d): return d
-        case .burn, .poison, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return 0
+        case .burn, .poison, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation, .preventionBuildup: return 0
         }
     }
 
@@ -152,6 +154,8 @@ enum Effect: Hashable {
             return statusPhrase(for: .bleed, amount: amount)
         case let .prevention(keyword, _):
             return "applies \(keyword.statusAlias ?? keyword.rawValue)"
+        case let .preventionBuildup(keyword, _, _):
+            return "applies \(keyword.rawValue) Build-up"
         case .shield(.block, _, _):
             return "gain Block"
         case .mitigation(.armor, _, _):
@@ -184,7 +188,7 @@ enum Effect: Hashable {
 
     static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .burn, .poison, .bleed, .prevention, .dealDamage, .halveMitigation:
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .dealDamage, .halveMitigation:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom:
             return .actor
@@ -226,6 +230,8 @@ struct ActiveEffect: Identifiable, Hashable {
             return "\(effect.keyword.statusAlias ?? effect.keyword.rawValue): \(potency) damage"
         case let .prevention(keyword, _):
             return keyword.statusAlias ?? keyword.rawValue
+        case let .preventionBuildup(keyword, amount, threshold):
+            return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
         case let .shield(k, b, _):
             return "\(k.rawValue): \(b) buffer"
         case let .mitigation(k, p, _):
@@ -305,8 +311,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let anvil = Ability(
         id: "anvil", name: "Anvil", tier: .basic, directDamage: 1, damageKeyword: .stun,
-        description: "Deal 1 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 1 Stun damage.",
+        targetedEffects: []
     )
     static let apple = Ability(
         id: "apple", name: "Apple", tier: .basic, directDamage: 0,
@@ -314,14 +320,14 @@ struct Ability: Identifiable, Hashable {
         targetedEffects: [TargetedEffect(.instantHeal(.health, 1))]
     )
     static let bash = Ability(
-        id: "bash", name: "Bash", tier: .basic, directDamage: 1, damageKeyword: .physical,
-        description: "Deal 1 Physical damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        id: "bash", name: "Bash", tier: .basic, directDamage: 1, damageKeyword: .stun,
+        description: "Deal 1 Stun damage.",
+        targetedEffects: []
     )
     static let blackjack = Ability(
         id: "blackjack", name: "Blackjack", tier: .basic, directDamage: 1, damageKeyword: .stun,
-        description: "Deal 1 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 1 Stun damage.\nGain 1 Gold.",
+        targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate, directDamage: 6, damageKeyword: .holy,
@@ -399,8 +405,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill, directDamage: 3, damageKeyword: .freeze,
-        description: "Deal 3 Freeze damage and applies Frozen.",
-        targetedEffects: [TargetedEffect(.prevention(.freeze, 1))]
+        description: "Deal 3 Freeze damage.",
+        targetedEffects: []
     )
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate, directDamage: 6, damageKeyword: .burn,
@@ -409,8 +415,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let concussiveShot = Ability(
         id: "concussive-shot", name: "Concussive Shot", tier: .ultimate, directDamage: 6, damageKeyword: .stun,
-        description: "Deal 6 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 6 Stun damage.",
+        targetedEffects: []
     )
     static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate, directDamage: 0,
@@ -458,8 +464,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let frostbolt = Ability(
         id: "frostbolt", name: "Frostbolt", tier: .skill, directDamage: 3, damageKeyword: .freeze,
-        description: "Deal 3 Freeze damage and applies Frozen.",
-        targetedEffects: [TargetedEffect(.prevention(.freeze, 1))]
+        description: "Deal 3 Freeze damage.",
+        targetedEffects: []
     )
     static let gamblersShot = Ability(
         id: "gamblers-shot", name: "Gambler's Shot", tier: .basic, directDamage: 1,
@@ -470,8 +476,7 @@ struct Ability: Identifiable, Hashable {
         id: "glacial-ward", name: "Glacial Ward", tier: .ultimate, directDamage: 3, damageKeyword: .freeze,
         description: "Gain Block and deal 3 Freeze damage.",
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4, 6)),
-            TargetedEffect(.prevention(.freeze, 1), target: .abilityTarget)
+            TargetedEffect(.shield(.block, 4, 6))
         ]
     )
     static let gold = Ability(
@@ -489,8 +494,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let graspingVines = Ability(
         id: "grasping-vines", name: "Grasping Vines", tier: .skill, directDamage: 3, damageKeyword: .nature,
-        description: "Deal 3 Nature damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 3 Nature damage.\nRestore 1 Health.",
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 1))]
     )
     static let haste = Ability(
         id: "haste", name: "Haste", tier: .skill, directDamage: 0,
@@ -522,13 +527,13 @@ struct Ability: Identifiable, Hashable {
     )
     static let iceShot = Ability(
         id: "ice-shot", name: "Ice Shot", tier: .basic, directDamage: 1, damageKeyword: .freeze,
-        description: "Deal 1 Freeze damage and applies Frozen.",
-        targetedEffects: [TargetedEffect(.prevention(.freeze, 1))]
+        description: "Deal 1 Freeze damage.",
+        targetedEffects: []
     )
     static let judgment = Ability(
         id: "judgment", name: "Judgment", tier: .ultimate, directDamage: 6, damageKeyword: .holy,
-        description: "Deal 6 Holy damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 6 Holy damage.\nGain 1 Block.",
+        targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
     )
     static let kindling = Ability(
         id: "kindling", name: "Kindling", tier: .basic, directDamage: 1, damageKeyword: .burn,
@@ -536,14 +541,14 @@ struct Ability: Identifiable, Hashable {
         targetedEffects: [TargetedEffect(.burn(1))]
     )
     static let lightningArrow = Ability(
-        id: "lightning-arrow", name: "Lightning Arrow", tier: .skill, directDamage: 3, damageKeyword: .stun,
-        description: "Deal 3 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        id: "lightning-arrow", name: "Lightning Arrow", tier: .skill, directDamage: 3, damageKeyword: .nature,
+        description: "Deal 3 Nature damage.",
+        targetedEffects: []
     )
     static let lightningBolt = Ability(
-        id: "lightning-bolt", name: "Lightning Bolt", tier: .skill, directDamage: 3, damageKeyword: .stun,
-        description: "Deal 3 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        id: "lightning-bolt", name: "Lightning Bolt", tier: .skill, directDamage: 3, damageKeyword: .nature,
+        description: "Deal 3 Nature damage.",
+        targetedEffects: []
     )
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate, directDamage: 0,
@@ -650,8 +655,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let rayOfFrost = Ability(
         id: "ray-of-frost", name: "Ray of Frost", tier: .basic, directDamage: 1, damageKeyword: .freeze,
-        description: "Deal 1 Freeze damage and applies Frozen.",
-        targetedEffects: [TargetedEffect(.prevention(.freeze, 1))]
+        description: "Deal 1 Freeze damage.",
+        targetedEffects: []
     )
     static let roulette = Ability(
         id: "roulette", name: "Roulette", tier: .skill, directDamage: 3,
@@ -668,8 +673,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let sapArrow = Ability(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill, directDamage: 3, damageKeyword: .stun,
-        description: "Deal 3 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 3 Stun damage.",
+        targetedEffects: []
     )
     static let serratedArrowhead = Ability(
         id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate, directDamage: 6, damageKeyword: .bleed,
@@ -683,8 +688,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic, directDamage: 1, damageKeyword: .stun,
-        description: "Deal 1 Stun damage and applies Stunned.",
-        targetedEffects: [TargetedEffect(.prevention(.stun, 1))]
+        description: "Deal 1 Stun damage.\nGain 1 Block.",
+        targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
     )
     static let shieldScarab = Ability(
         id: "shield-scarab", name: "Shield Scarab", tier: .skill, directDamage: 2, damageKeyword: .poison,

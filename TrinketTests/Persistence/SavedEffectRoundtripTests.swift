@@ -8,6 +8,8 @@ final class SavedEffectRoundtripTests: XCTestCase {
             .poison(3),
             .bleed(4),
             .prevention(.stun, 1),
+            .preventionBuildup(.stun, 3, 10),
+            .preventionBuildup(.freeze, 7, 20),
             .shield(.block, 5, 2),
             .mitigation(.armor, 0.5, 3),
             .instantHeal(.nature, 10),

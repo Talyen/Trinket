@@ -79,7 +79,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .burn:
             return "Fire damage over time."
         case .stun:
-            return "Stun damage and Stunned prevention."
+            return "Stun damage builds up; at 20% of max HP the target becomes Stunned and loses their next action."
         case .block:
             return "Damage absorption shield layered on top of health."
         case .armor:
@@ -99,7 +99,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .nature:
             return "Nature and growth damage type."
         case .freeze:
-            return "Freeze damage and Frozen prevention."
+            return "Freeze damage builds up; at 20% of max HP the target becomes Frozen and loses their next action."
         }
     }
 

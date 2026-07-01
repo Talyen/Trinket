@@ -39,6 +39,14 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.summary, "applies Stunned")
     }
 
+    func testPreventionBuildupEffect() {
+        let effect = Effect.preventionBuildup(.stun, 3, 10)
+        XCTAssertEqual(effect.keyword, .stun)
+        XCTAssertEqual(effect.durationTicks, 0)
+        XCTAssertFalse(effect.isInstant)
+        XCTAssertEqual(effect.summary, "applies Stun Build-up")
+    }
+
     func testShieldEffect() {
         let effect = Effect.shield(.block, 5, 3)
         XCTAssertEqual(effect.keyword, .block)
@@ -106,7 +114,7 @@ final class EffectModelTests: XCTestCase {
 
     func testAbilityUsesPlayerFacingDescription() {
         let ability = Ability.rayOfFrost
-        XCTAssertEqual(ability.summary, "Deal 1 Freeze damage and applies Frozen.")
+        XCTAssertEqual(ability.summary, "Deal 1 Freeze damage.")
     }
 
     func testAbilityHealHasNoDamage() {

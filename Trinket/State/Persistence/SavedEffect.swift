@@ -5,6 +5,7 @@ enum SavedEffect: Codable, Equatable {
     case poison(potency: Int)
     case bleed(potency: Int)
     case prevention(keyword: String, duration: Int)
+    case preventionBuildup(keyword: String, amount: Int, threshold: Int)
     case shield(keyword: String, blockAmount: Int, duration: Int)
     case mitigation(keyword: String, percent: Double, duration: Int)
     case instantHeal(keyword: String, amount: Int)
@@ -25,6 +26,8 @@ enum SavedEffect: Codable, Equatable {
             self = .bleed(potency: potency)
         case let .prevention(keyword, duration):
             self = .prevention(keyword: keyword.rawValue, duration: duration)
+        case let .preventionBuildup(keyword, amount, threshold):
+            self = .preventionBuildup(keyword: keyword.rawValue, amount: amount, threshold: threshold)
         case let .shield(keyword, blockAmount, duration):
             self = .shield(keyword: keyword.rawValue, blockAmount: blockAmount, duration: duration)
         case let .mitigation(keyword, percent, duration):
@@ -57,6 +60,9 @@ enum SavedEffect: Codable, Equatable {
         case let .prevention(keywordRawValue, duration):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .prevention(keyword, duration)
+        case let .preventionBuildup(keywordRawValue, amount, threshold):
+            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
+            return .preventionBuildup(keyword, amount, threshold)
         case let .shield(keywordRawValue, blockAmount, duration):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .shield(keyword, blockAmount, duration)

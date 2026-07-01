@@ -22,6 +22,7 @@ struct BattleState {
             case shieldAbsorbed
             case preventionSkipped
             case preventionApplied
+            case preventionTriggered
             case cleanseApplied
         }
 
@@ -43,27 +44,28 @@ struct BattleState {
             keyword
         }
 
-        var floatingText: String {
-            switch kind {
-            case .ability:
-                return "-\(amount)"
-            case .status:
-                return "-\(amount) \(keyword.rawValue)"
-            case .effect:
-                guard let effectKind else { return keyword.rawValue }
-                switch effectKind {
-                case .instantHeal: return "+\(amount) \(keyword.rawValue)"
-                case .resourceGain: return "+\(amount) \(keyword.rawValue)"
-                case .leechHeal: return "+\(amount) \(keyword.rawValue)"
-                case .shieldApplied: return "+\(amount) \(keyword.rawValue)"
-                case .mitigationApplied: return "+\(Int(Double(amount)))% \(keyword.rawValue)"
-                case .shieldAbsorbed: return "-\(amount) \(keyword.rawValue)"
-                case .preventionSkipped: return keyword.rawValue
-                case .preventionApplied: return "+\(keyword.rawValue)"
-                case .cleanseApplied: return "Cleanse \(keyword.rawValue)"
-                }
+    var floatingText: String {
+        switch kind {
+        case .ability:
+            return "-\(amount)"
+        case .status:
+            return "-\(amount) \(keyword.rawValue)"
+        case .effect:
+            guard let effectKind else { return keyword.rawValue }
+            switch effectKind {
+            case .instantHeal: return "+\(amount) \(keyword.rawValue)"
+            case .resourceGain: return "+\(amount) \(keyword.rawValue)"
+            case .leechHeal: return "+\(amount) \(keyword.rawValue)"
+            case .shieldApplied: return "+\(amount) \(keyword.rawValue)"
+            case .mitigationApplied: return "+\(Int(Double(amount)))% \(keyword.rawValue)"
+            case .shieldAbsorbed: return "-\(amount) \(keyword.rawValue)"
+            case .preventionSkipped: return keyword.rawValue
+            case .preventionApplied: return "+\(keyword.rawValue)"
+            case .preventionTriggered: return "\(keyword.statusAlias ?? keyword.rawValue)!"
+            case .cleanseApplied: return "Cleanse \(keyword.rawValue)"
             }
         }
+    }
     }
 
     struct LogEntry: Identifiable, Equatable {
@@ -246,6 +248,21 @@ struct BattleState {
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(mitigationPct * 100))% mitigation, \(maxTicks) ticks left.")
             }
 
+            if stacks.contains(where: { if case .preventionBuildup = $0 { return true }; return false }) {
+                let amount = stacks.compactMap { eff -> Int? in
+                    if case let .preventionBuildup(_, amt, _) = eff { return amt }
+                    return nil
+                }.reduce(0, +)
+                let threshold = stacks.compactMap { eff -> Int? in
+                    if case let .preventionBuildup(_, _, th) = eff { return th }
+                    return nil
+                }.max() ?? 1
+                return EffectSummary(
+                    keyword: keyword,
+                    text: "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
+                )
+            }
+
             if stacks.contains(where: { if case .prevention = $0 { return true }; return false }) {
                 let maxActions = stacks.compactMap { eff -> Int? in
                     if case .prevention = eff {
@@ -424,7 +441,12 @@ struct BattleState {
 
         var events: [ActionEvent] = []
 
-        let (dealt, damageShieldEvents) = applyDamage(ability.directDamage, to: abilityTarget)
+        let (dealt, damageShieldEvents) = applyDamage(
+            ability.directDamage,
+            to: abilityTarget,
+            damageKeyword: ability.damageKeyword,
+            sourceActorID: actor.id
+        )
         events.append(contentsOf: damageShieldEvents)
         if dealt > 0 {
             events.append(contentsOf: applyLeechFromDamage(dealt, sourceActorID: actor.id))
@@ -707,6 +729,9 @@ struct BattleState {
                 }
                 setEffects(currentEffects, for: effectTarget)
                 appliedEffectLogs.append(effect.summary)
+
+            case .preventionBuildup:
+                break
             }
         }
 
@@ -742,7 +767,7 @@ struct BattleState {
 
     private func isRemovableDebuff(_ effect: Effect) -> Bool {
         switch effect {
-        case .burn, .poison, .bleed, .prevention:
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup:
             return true
         case .shield, .mitigation, .leech, .cleanse, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
             return false
@@ -970,7 +995,7 @@ struct BattleState {
                 return ae.remainingTicks > 0 ? ae : nil
             case .burn, .poison:
                 return ae
-            case .prevention:
+            case .prevention, .preventionBuildup:
                 return ae
             default:
                 var updated = ae
@@ -984,7 +1009,7 @@ struct BattleState {
 
     private func isEffectType(_ effect: Effect) -> Bool {
         switch effect {
-        case .burn, .poison, .bleed, .prevention, .shield, .mitigation, .leech, .cleanse: return true
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .shield, .mitigation, .leech, .cleanse: return true
         case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return false
         }
     }
@@ -1004,6 +1029,89 @@ struct BattleState {
         }
         _ = keyword
         return (healthLost, events)
+    }
+
+    private mutating func applyPreventionBuildup(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?
+    ) -> [ActionEvent] {
+        guard amount > 0, health(for: combatant) > 0 else { return [] }
+        if hasActivePrevention(actor: combatant) { return [] }
+
+        let threshold = max(1, Int(ceil(Double(combatant.maxHealth) * 0.20)))
+        var currentEffects = effects(for: combatant)
+
+        let existingIndex = currentEffects.firstIndex { ae in
+            if case let .preventionBuildup(k, _, _) = ae.effect, k == keyword { return true }
+            return false
+        }
+        let existingAmount: Int = {
+            guard let existingIndex,
+                  case let .preventionBuildup(_, amt, _) = currentEffects[existingIndex].effect
+            else { return 0 }
+            return amt
+        }()
+
+        let newAmount = min(existingAmount + amount, threshold)
+        var events: [ActionEvent] = []
+
+        if newAmount >= threshold {
+            if let existingIndex {
+                currentEffects.remove(at: existingIndex)
+            }
+            let prevention = Effect.prevention(keyword, 1)
+            let ae = ActiveEffect(
+                id: nextEffectID,
+                effect: prevention,
+                remainingTicks: 1,
+                sourceActorID: sourceActorID
+            )
+            nextEffectID += 1
+            currentEffects.append(ae)
+            setEffects(currentEffects, for: combatant)
+
+            let actorName: String
+            if let sourceActorID, let source = self.combatant(for: sourceActorID) {
+                actorName = source.name
+            } else {
+                actorName = combatant.name
+            }
+            let abilityName = keyword.statusAlias ?? keyword.rawValue
+            events.append(nextEvent(
+                kind: .effect,
+                effectKind: .preventionTriggered,
+                actorName: actorName,
+                abilityName: abilityName,
+                target: combatant,
+                amount: 0,
+                keyword: keyword
+            ))
+        } else {
+            let buildup = Effect.preventionBuildup(keyword, newAmount, threshold)
+            if let existingIndex {
+                currentEffects[existingIndex] = ActiveEffect(
+                    id: currentEffects[existingIndex].id,
+                    effect: buildup,
+                    remainingTicks: currentEffects[existingIndex].remainingTicks,
+                    sourceActorID: currentEffects[existingIndex].sourceActorID
+                )
+            } else {
+                currentEffects.append(
+                    ActiveEffect(
+                        id: nextEffectID,
+                        effect: buildup,
+                        remainingTicks: 0,
+                        sourceActorID: sourceActorID
+                    )
+                )
+                nextEffectID += 1
+            }
+            setEffects(currentEffects, for: combatant)
+        }
+
+        return events
     }
 
     private mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
@@ -1039,7 +1147,12 @@ struct BattleState {
         return nil
     }
 
-    private mutating func applyDamage(_ amount: Int, to combatant: Combatant) -> (healthLost: Int, shieldEvents: [ActionEvent]) {
+    private mutating func applyDamage(
+        _ amount: Int,
+        to combatant: Combatant,
+        damageKeyword: Keyword? = nil,
+        sourceActorID: String? = nil
+    ) -> (healthLost: Int, shieldEvents: [ActionEvent]) {
         var remaining = amount
         var shieldEvents: [ActionEvent] = []
 
@@ -1091,6 +1204,18 @@ struct BattleState {
             petHealth = max(0, petHealth - remaining)
         } else {
             enemyHealth = max(0, enemyHealth - remaining)
+        }
+
+        if amount > 0,
+           let damageKeyword,
+           damageKeyword == .stun || damageKeyword == .freeze,
+           health(for: combatant) > 0 {
+            shieldEvents.append(contentsOf: applyPreventionBuildup(
+                amount,
+                keyword: damageKeyword,
+                to: combatant,
+                sourceActorID: sourceActorID
+            ))
         }
 
         return (remaining, shieldEvents)

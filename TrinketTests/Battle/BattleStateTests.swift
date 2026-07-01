@@ -104,14 +104,19 @@ final class BattleStateTests: XCTestCase {
         XCTAssertTrue(hasBleedDot)
     }
 
-    func testJudgmentDealsHolyDamageAndStuns() {
+    func testJudgmentDealsHolyDamageAndGrantsBlock() {
         let ability = Ability.judgment
         XCTAssertEqual(ability.damageKeyword, .holy)
+        let hasBlock = ability.effects.contains {
+            if case .shield(.block, _, _) = $0 { return true }
+            return false
+        }
         let hasStun = ability.effects.contains {
             if case .prevention(.stun, _) = $0 { return true }
             return false
         }
-        XCTAssertTrue(hasStun)
+        XCTAssertTrue(hasBlock)
+        XCTAssertFalse(hasStun)
     }
 
     func testBattleTracksGoldFromResourceGains() throws {

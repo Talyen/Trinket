@@ -125,7 +125,26 @@ final class BattleEffectTests: XCTestCase {
         XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .freeze })
     }
 
-    func testShieldBashStunsEnemyNextAction() {
+    func testShieldBashStunsLowHpEnemyNextAction() {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.shieldBash]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 5, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+        let events = performActions(4, on: &battle)
+
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
+        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+    }
+
+    func testShieldBashGrantsBlockAlongsideStunDamage() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -138,10 +157,11 @@ final class BattleEffectTests: XCTestCase {
         var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
 
         _ = performActions(2, on: &battle)
-        let events = performActions(4, on: &battle)
 
-        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
-        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+        XCTAssertTrue(battle.activeHeroEffects.contains { ae in
+            if case let .shield(.block, buffer, _) = ae.effect, buffer > 0 { return true }
+            return false
+        })
     }
 
     func testPreventionDoesNotExpireFromTickDecay() {
@@ -192,6 +212,260 @@ final class BattleEffectTests: XCTestCase {
             XCTAssertFalse(events.contains { $0.kind == .ability })
         } else {
             XCTFail("Expected stunned enemy to claim its step")
+        }
+    }
+
+    // MARK: - Prevention Build-up
+
+    private func stunAbilityHero(id: String = "hero", damage: Int = 1) -> Combatant {
+        let ability = Ability(
+            id: "test-stun",
+            name: "Test Stun",
+            tier: .basic,
+            directDamage: damage,
+            damageKeyword: .stun,
+            description: "Deal \(damage) Stun damage."
+        )
+        return Combatant(
+            id: id,
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            actionIntervalTicks: 1,
+            abilities: [ability]
+        )
+    }
+
+    private func freezeAbilityHero(id: String = "hero", damage: Int = 1) -> Combatant {
+        let ability = Ability(
+            id: "test-freeze",
+            name: "Test Freeze",
+            tier: .basic,
+            directDamage: damage,
+            damageKeyword: .freeze,
+            description: "Deal \(damage) Freeze damage."
+        )
+        return Combatant(
+            id: id,
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            actionIntervalTicks: 1,
+            abilities: [ability]
+        )
+    }
+
+    private func silentEnemy(maxHealth: Int, id: String = "enemy") -> Combatant {
+        passiveCombatant(id: id, name: "Enemy", role: .enemy, maxHealth: maxHealth, actionIntervalTicks: 100)
+    }
+
+    func testStunBuildupAccumulatesFromStunDamage() {
+        let hero = stunAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 100)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+
+        let buildup = battle.activeEnemyEffects.first { ae in
+            if case .preventionBuildup = ae.effect { return true }
+            return false
+        }
+        XCTAssertNotNil(buildup)
+        if case let .preventionBuildup(_, amount, threshold) = buildup?.effect {
+            XCTAssertGreaterThan(amount, 0)
+            XCTAssertEqual(threshold, 20)
+        }
+    }
+
+    func testStunBuildupTriggersStunAtThreshold() {
+        let hero = stunAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 5, actionIntervalTicks: 2, abilities: [.slash])
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        let events = performActions(6, on: &battle)
+
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered && $0.keyword == .stun })
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
+    }
+
+    func testStunBuildupOverflowIsWasted() {
+        let hero = stunAbilityHero(damage: 50)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 100)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(1, on: &battle)
+
+        let buildup = battle.activeEnemyEffects.first { ae in
+            if case .preventionBuildup = ae.effect { return true }
+            return false
+        }
+        XCTAssertNil(buildup, "Build-up should be consumed on trigger")
+        XCTAssertTrue(battle.activeEnemyEffects.contains { ae in
+            if case .prevention = ae.effect { return true }
+            return false
+        })
+    }
+
+    func testStunBuildupNotTrackedWhileStunned() {
+        let hero = stunAbilityHero(damage: 3)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 10)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+
+        let stunnedCount = battle.activeEnemyEffects.filter { ae in
+            if case .prevention(.stun, _) = ae.effect { return true }
+            return false
+        }.count
+        let buildupCount = battle.activeEnemyEffects.filter { ae in
+            if case .preventionBuildup = ae.effect { return true }
+            return false
+        }.count
+        XCTAssertEqual(stunnedCount, 1, "Enemy should be stunned")
+        XCTAssertEqual(buildupCount, 0, "No build-up should accumulate while stunned")
+    }
+
+    func testStunBuildupEmitsStunnedFloatingText() {
+        let hero = stunAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 5)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        let events = performActions(2, on: &battle)
+
+        let triggered = events.first { $0.effectKind == .preventionTriggered && $0.keyword == .stun }
+        XCTAssertNotNil(triggered)
+        XCTAssertEqual(triggered?.floatingText, "Stunned!")
+    }
+
+    func testFreezeBuildupTriggersFrozenAtThreshold() {
+        let hero = freezeAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 5)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        let events = performActions(2, on: &battle)
+
+        XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered && $0.keyword == .freeze })
+        let triggered = events.first { $0.effectKind == .preventionTriggered && $0.keyword == .freeze }
+        XCTAssertEqual(triggered?.floatingText, "Frozen!")
+    }
+
+    func testStunBuildupProgressRendersInEffectSummary() {
+        let hero = stunAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 100)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+
+        let summary = battle.enemyEffectSummaries.first { $0.keyword == .stun }
+        XCTAssertNotNil(summary)
+        XCTAssertTrue(summary?.text.contains("Build-up") ?? false)
+    }
+
+    func testBlackjackGrantsGoldAlongsideStunDamage() {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            abilities: [.blackjack]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 100)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy, initialGold: 0)
+
+        _ = performActions(2, on: &battle)
+
+        XCTAssertEqual(battle.gold, 1)
+    }
+
+    func testCleanseStunRemovesBuildupAndActiveState() {
+        let cleanseAbility = Ability(
+            id: "test-cleanse",
+            name: "Test Cleanse",
+            tier: .basic,
+            directDamage: 0,
+            description: "Cleanse Stunned.",
+            targetedEffects: [TargetedEffect(.cleanse(.stun, 0), target: .abilityTarget)]
+        )
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            actionIntervalTicks: 1,
+            abilities: [cleanseAbility]
+        )
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, actionIntervalTicks: 100, abilities: [])
+        var battle = BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .prevention(.stun, 1), remainingTicks: 1)
+            ]
+        )
+
+        _ = performActions(1, on: &battle)
+
+        let remainingPrevention = battle.activeEnemyEffects.contains { ae in
+            if case .prevention(.stun, _) = ae.effect { return true }
+            return false
+        }
+        let remainingBuildup = battle.activeEnemyEffects.contains { ae in
+            if case .preventionBuildup = ae.effect { return true }
+            return false
+        }
+        XCTAssertFalse(remainingPrevention, "Cleanse removed active prevention")
+        XCTAssertFalse(remainingBuildup, "Cleanse removed buildup")
+    }
+
+    func testFreezeBuildupProgressRendersInEffectSummary() {
+        let hero = freezeAbilityHero(damage: 1)
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = silentEnemy(maxHealth: 100)
+        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+        _ = performActions(2, on: &battle)
+
+        let summary = battle.enemyEffectSummaries.first { $0.keyword == .freeze }
+        XCTAssertNotNil(summary)
+        XCTAssertTrue(summary?.text.contains("Build-up") ?? false)
+    }
+
+    func testThresholdIsCeilOfTwentyPercentOfMaxHealth() {
+        let cases: [(maxHealth: Int, expectedThreshold: Int)] = [
+            (7, 2),
+            (20, 4),
+            (50, 10),
+            (100, 20)
+        ]
+        for (maxHealth, expectedThreshold) in cases {
+            let hero = stunAbilityHero(damage: 1)
+            let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+            let enemy = silentEnemy(maxHealth: maxHealth)
+            var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+
+            _ = performActions(1, on: &battle)
+
+            let buildup = battle.activeEnemyEffects.first { ae in
+                if case .preventionBuildup = ae.effect { return true }
+                return false
+            }
+            if case let .preventionBuildup(_, amount, threshold) = buildup?.effect {
+                XCTAssertEqual(threshold, expectedThreshold, "maxHealth=\(maxHealth)")
+                XCTAssertGreaterThanOrEqual(amount, 1, "Buildup of at least 1 expected for maxHealth=\(maxHealth)")
+            } else {
+                XCTFail("Expected buildup for maxHealth=\(maxHealth)")
+            }
         }
     }
 
