@@ -69,8 +69,8 @@ struct BattleSimulationResult: Equatable {
     let finalHeroEffectSummaries: [EffectSummary]
     let finalPetEffectSummaries: [EffectSummary]
     let metrics: BattleSimulationMetrics
-    let events: [BattleState.ActionEvent]
-    let log: [BattleState.LogEntry]
+    let events: [ActionEvent]
+    let log: [LogEntry]
 
     var didWin: Bool {
         outcome == .victory

@@ -33,12 +33,12 @@ struct PlayView: View {
             guard appState.battle.activeBattle != nil else { return }
             appState.battle.isPaused = pauseBeforeSheet ?? false
             pauseBeforeSheet = nil
-        }) { selection in
+        }, content: { selection in
             CombatantCollectionDetailSheet(selection: selection)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)
-        }
+        })
         .alert(item: $stageMessage) { message in
             Alert(
                 title: Text(message.title),
@@ -187,25 +187,24 @@ struct PlayView: View {
     }
 
     private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant, battleEarnedGold: Int = 0) {
-        var roster = appState.roster.current
-        var inventory = appState.inventory.current
-        var homestead = appState.homestead.current
-        var journey = appState.journey.current
+        var ctx = StageCompletionContext(
+            roster: appState.roster.current,
+            inventory: appState.inventory.current,
+            homestead: appState.homestead.current,
+            journey: appState.journey.current
+        )
         StageCompletion.complete(
             stage,
             hero: hero,
             pet: pet,
             battleEarnedGold: battleEarnedGold,
             in: chapters,
-            roster: &roster,
-            inventory: &inventory,
-            homestead: &homestead,
-            journey: &journey
+            context: &ctx
         )
-        appState.roster.current = roster
-        appState.inventory.current = inventory
-        appState.homestead.current = homestead
-        appState.journey.current = journey
+        appState.roster.current = ctx.roster
+        appState.inventory.current = ctx.inventory
+        appState.homestead.current = ctx.homestead
+        appState.journey.current = ctx.journey
         pendingScrollTarget = appState.journey.current.activeStageID ?? "chapter-2-locked"
     }
 

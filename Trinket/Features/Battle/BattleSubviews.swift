@@ -86,7 +86,7 @@ struct BattleCombatantPane: View {
     let health: Int
     let maxHealth: Int
     let healthBarPlacement: HealthBarPlacement
-    let events: [BattleState.ActionEvent]
+    let events: [ActionEvent]
     let reduceMotion: Bool
     let onRemoveEvent: (Int) -> Void
     let action: () -> Void
@@ -169,7 +169,7 @@ struct BattleCombatantPane: View {
 }
 
 struct CombatFeedbackOverlay: View {
-    let events: [BattleState.ActionEvent]
+    let events: [ActionEvent]
     let reduceMotion: Bool
     let onRemoveEvent: (Int) -> Void
 
@@ -197,7 +197,7 @@ struct CombatFeedbackOverlay: View {
 }
 
 struct CombatFeedbackEventView: View {
-    let event: BattleState.ActionEvent
+    let event: ActionEvent
     let stackIndex: Int
     let reduceMotion: Bool
     let onRemove: () -> Void
@@ -246,17 +246,18 @@ struct CombatFeedbackEventView: View {
     }
 
     private var feedbackLabel: some View {
-        HStack(spacing: 6) {
-            Image(systemName: event.keyword.visualStyle.symbolName)
+        let display = ActionEventFormatter.display(for: event)
+        return HStack(spacing: 6) {
+            Image(systemName: display.keyword.visualStyle.symbolName)
                 .font(.caption.bold())
                 .symbolEffect(.bounce, value: event.id)
 
-            Text(event.floatingText)
+            Text(display.text)
                 .font(.headline)
                 .monospacedDigit()
                 .contentTransition(.numericText())
         }
-        .foregroundStyle(event.keyword.visualStyle.color)
+        .foregroundStyle(display.keyword.visualStyle.color)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         // UIStyleCheck: allow - combat feedback is transient floating battle chrome.
@@ -479,7 +480,7 @@ struct VictoryRewardRow: View {
 struct BattleLogSheet: View {
     @Environment(\.dismiss) private var dismiss
 
-    let entries: [BattleState.LogEntry]
+    let entries: [LogEntry]
 
     var body: some View {
         NavigationStack {

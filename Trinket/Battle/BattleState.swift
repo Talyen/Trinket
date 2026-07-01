@@ -1,80 +1,35 @@
 import Foundation
 
+/// The state of a single battle. `BattleState` is the top-level facade
+/// drivers (UI, simulation) interact with: it exposes the per-combatant
+/// read-only views (`heroHealth`, `activeHeroEffects`, `heroEffectSummaries`,
+/// etc.) and the single mutable entry point `advanceOneStep()` that ticks
+/// the simulation forward by one step.
+///
+/// **Public surface (read-only views):**
+/// - Combatant definitions: `hero`, `pet`, `enemy`
+/// - Per-combatant state: `heroHealth`/`petHealth`/`enemyHealth`,
+///   `activeHeroEffects`/`activePetEffects`/`activeEnemyEffects`,
+///   `heroActionCount`/`petActionCount`/`enemyActionCount`,
+///   `heroEffectSummaries`/`petEffectSummaries`/`enemyEffectSummaries`
+/// - Global state: `tickCount`, `actionCount`, `log`, `gold`, `earnedGold`
+/// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
+///   `isPartyDefeated`, `isBattleOver`
+/// - AI helper: `enemyAttackTarget`
+///
+/// **Public surface (mutations):**
+/// - `init(...)` — construct a battle
+/// - `advanceOneStep() -> BattleStep` — drive the simulation by one tick
+///
+/// **Internal:**
+/// - Per-combatant mutable state lives on `BattleRoster` (via three
+///   `CombatantRuntime`s)
+/// - Effect application rules live on the `BattleEffectHandler` structs in
+///   `EffectHandlers.swift`; this type only orchestrates dispatch
+/// - Combat log lines are assembled by `BattleLogBuilder`
+/// - Effect summaries are built by `EffectSummaryBuilder`
+/// - Floating-text chrome is formatted by `ActionEventFormatter`
 struct BattleState {
-    private struct PairedDamageHit: Hashable {
-        let keyword: Keyword
-        let amount: Int
-    }
-
-    struct ActionEvent: Identifiable, Equatable {
-        enum Kind: Equatable {
-            case ability
-            case status
-            case effect
-        }
-
-        enum EffectKind: Equatable {
-            case instantHeal
-            case resourceGain
-            case leechHeal
-            case shieldApplied
-            case mitigationApplied
-            case shieldAbsorbed
-            case preventionSkipped
-            case preventionApplied
-            case preventionTriggered
-            case cleanseApplied
-            case dodgeApplied
-        }
-
-        let id: Int
-        let kind: Kind
-        let effectKind: EffectKind?
-        let actorName: String
-        let abilityName: String
-        let targetID: String
-        let targetName: String
-        let amount: Int
-        let keyword: Keyword
-
-        var damage: Int {
-            amount
-        }
-
-        var damageType: Keyword {
-            keyword
-        }
-
-    var floatingText: String {
-        switch kind {
-        case .ability:
-            return "-\(amount)"
-        case .status:
-            return "-\(amount) \(keyword.rawValue)"
-        case .effect:
-            guard let effectKind else { return keyword.rawValue }
-            switch effectKind {
-            case .instantHeal: return "+\(amount) \(keyword.rawValue)"
-            case .resourceGain: return "+\(amount) \(keyword.rawValue)"
-            case .leechHeal: return "+\(amount) \(keyword.rawValue)"
-            case .shieldApplied: return "+\(amount) \(keyword.rawValue)"
-            case .mitigationApplied: return "+\(Int(Double(amount)))% \(keyword.rawValue)"
-            case .shieldAbsorbed: return "-\(amount) \(keyword.rawValue)"
-            case .preventionSkipped: return keyword.rawValue
-            case .preventionApplied: return "+\(keyword.rawValue)"
-            case .preventionTriggered: return "\(keyword.statusAlias ?? keyword.rawValue)!"
-            case .cleanseApplied: return "Cleanse \(keyword.rawValue)"
-            case .dodgeApplied: return "Dodge"
-            }
-        }
-    }
-    }
-
-    struct LogEntry: Identifiable, Equatable {
-        let id: Int
-        let text: String
-    }
-
     static let defaultHeroActionIntervalTicks: Int = 2
     static let defaultPetActionIntervalTicks: Int = 2
     static let defaultEnemyActionIntervalTicks: Int = 6
@@ -83,34 +38,20 @@ struct BattleState {
     let pet: Combatant
     let enemy: Combatant
 
-    private(set) var heroHealth: Int
-    private(set) var petHealth: Int
-    private(set) var enemyHealth: Int
+    // MARK: - Global mutable state (lives on BattleState itself)
 
     private(set) var tickCount: Int
     private(set) var actionCount: Int
-    private(set) var heroActionCount: Int
-    private(set) var petActionCount: Int
-    private(set) var enemyActionCount: Int
-
     private(set) var log: [LogEntry]
-    private(set) var activeEnemyEffects: [ActiveEffect]
-    private(set) var activeHeroEffects: [ActiveEffect]
-    private(set) var activePetEffects: [ActiveEffect]
     private(set) var gold: Int
 
-    private var heroActionSpeed: ActionSpeed
-    private var petActionSpeed: ActionSpeed
-    private var enemyActionSpeed: ActionSpeed
-
+    private var roster: BattleRoster
     private var nextEventID: Int
+    private var nextLogEntryID: Int
     private var nextEffectID: Int
     private var rng: SeededRandomNumberGenerator
     private var hasLoggedDefeat: Bool
     private var hasLoggedPartyDefeat: Bool
-    private var heroNextReadyAtTick: Int
-    private var petNextReadyAtTick: Int
-    private var enemyNextReadyAtTick: Int
     private let initialGold: Int
 
     static let defaultRNGSeed: UInt64 = 0
@@ -130,31 +71,20 @@ struct BattleState {
         let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
         self.enemy = resolvedEnemy
 
-        let seed = rngSeed ?? UInt64.random(in: UInt64.min...UInt64.max)
+        let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
         rng = SeededRandomNumberGenerator(seed: seed)
-
-        heroHealth = hero.maxHealth + hero.primaryStats.toughness
-        petHealth = pet.maxHealth + pet.primaryStats.toughness
-        enemyHealth = resolvedEnemy.maxHealth + resolvedEnemy.primaryStats.toughness
 
         tickCount = 0
         actionCount = 0
-        heroActionCount = 0
-        petActionCount = 0
-        enemyActionCount = 0
 
-        self.activeEnemyEffects = activeEnemyEffects
-        self.activeHeroEffects = activeHeroEffects
-        self.activePetEffects = activePetEffects
-
-        heroActionSpeed = ActionSpeed(baseIntervalTicks: hero.actionIntervalTicks ?? Self.defaultHeroActionIntervalTicks)
-        heroActionSpeed.intervalModifier = -hero.primaryStats.agility / 5
-        petActionSpeed = ActionSpeed(baseIntervalTicks: pet.actionIntervalTicks ?? Self.defaultPetActionIntervalTicks)
-        petActionSpeed.intervalModifier = -pet.primaryStats.agility / 5
-        enemyActionSpeed = ActionSpeed(baseIntervalTicks: resolvedEnemy.actionIntervalTicks ?? Self.defaultEnemyActionIntervalTicks)
-        enemyActionSpeed.intervalModifier = -resolvedEnemy.primaryStats.agility / 5
+        roster = BattleRoster(
+            hero: CombatantRuntime(combatant: hero, initialActiveEffects: activeHeroEffects),
+            pet: CombatantRuntime(combatant: pet, initialActiveEffects: activePetEffects),
+            enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
+        )
 
         nextEventID = 0
+        nextLogEntryID = 1
         nextEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
@@ -162,10 +92,6 @@ struct BattleState {
         )
         hasLoggedDefeat = false
         hasLoggedPartyDefeat = false
-
-        heroNextReadyAtTick = heroActionSpeed.effectiveInterval
-        petNextReadyAtTick = petActionSpeed.effectiveInterval
-        enemyNextReadyAtTick = enemyActionSpeed.effectiveInterval
 
         self.initialGold = initialGold
         gold = initialGold
@@ -175,24 +101,62 @@ struct BattleState {
         ]
     }
 
+    // MARK: - Per-combatant state accessors (delegate to roster)
+
+    var heroHealth: Int {
+        roster.hero.currentHealth
+    }
+
+    var petHealth: Int {
+        roster.pet.currentHealth
+    }
+
+    var enemyHealth: Int {
+        roster.enemy.currentHealth
+    }
+
+    var activeEnemyEffects: [ActiveEffect] {
+        roster.enemy.activeEffects
+    }
+
+    var activeHeroEffects: [ActiveEffect] {
+        roster.hero.activeEffects
+    }
+
+    var activePetEffects: [ActiveEffect] {
+        roster.pet.activeEffects
+    }
+
+    var heroActionCount: Int {
+        roster.hero.actionCount
+    }
+
+    var petActionCount: Int {
+        roster.pet.actionCount
+    }
+
+    var enemyActionCount: Int {
+        roster.enemy.actionCount
+    }
+
     var earnedGold: Int {
         gold - initialGold
     }
 
     var isEnemyDefeated: Bool {
-        enemyHealth == 0
+        roster.isEnemyDefeated
     }
 
     var isHeroAlive: Bool {
-        heroHealth > 0
+        roster.hero.isAlive
     }
 
     var isPetAlive: Bool {
-        petHealth > 0
+        roster.pet.isAlive
     }
 
     var isPartyDefeated: Bool {
-        !isHeroAlive && !isPetAlive
+        roster.isPartyDefeated
     }
 
     var isBattleOver: Bool {
@@ -200,9 +164,7 @@ struct BattleState {
     }
 
     var enemyAttackTarget: Combatant {
-        if !isHeroAlive { return pet }
-        if !isPetAlive { return hero }
-        return heroHealth >= petHealth ? hero : pet
+        roster.enemyAttackTarget
     }
 
     // MARK: - Primary Stats Helpers
@@ -211,152 +173,68 @@ struct BattleState {
         combatant.maxHealth + combatant.primaryStats.toughness
     }
 
-    private func statBonusForDamage(from actor: Combatant, keyword: Keyword) -> Int {
-        switch keyword {
-        case .physical, .stun: return actor.primaryStats.strength / 5
-        case .bleed: return actor.primaryStats.agility / 5
-        case .burn, .freeze: return actor.primaryStats.intellect / 5
-        case .poison, .holy, .nature: return actor.primaryStats.wisdom / 5
-        default: return 0
-        }
-    }
-
-    private func dodgeChance(for combatant: Combatant) -> Double {
-        min(0.75, 0.05 + Double(combatant.primaryStats.agility) * 0.005)
-    }
-
-    private func toughnessMitigationPct(for combatant: Combatant) -> Double {
-        let t = Double(combatant.primaryStats.toughness)
-        return t / (t + 50.0)
-    }
-
-    private func dotResistanceMultiplier(for combatant: Combatant) -> Double {
-        max(0.25, 1.0 - Double(combatant.primaryStats.toughness) * 0.005)
-    }
-
     var enemyEffectSummaries: [EffectSummary] {
-        groupedEffectSummaries(for: activeEnemyEffects)
+        EffectSummaryBuilder.build(for: activeEnemyEffects)
     }
 
     var heroEffectSummaries: [EffectSummary] {
-        groupedEffectSummaries(for: activeHeroEffects)
+        EffectSummaryBuilder.build(for: activeHeroEffects)
     }
 
     var petEffectSummaries: [EffectSummary] {
-        groupedEffectSummaries(for: activePetEffects)
+        EffectSummaryBuilder.build(for: activePetEffects)
     }
 
-    private func groupedEffectSummaries(for effects: [ActiveEffect]) -> [EffectSummary] {
-        Dictionary(grouping: effects, by: \.keyword).compactMap { keyword, group in
-            let stacks = group.map(\.effect)
-            guard !stacks.isEmpty else { return nil }
+    // MARK: - Roster helpers (replace the 6 deleted dispatch methods)
 
-            if stacks.contains(where: \.isDecayingDoT) {
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue) active")
-            }
-
-            let bleedTotal = group.reduce(0) { sum, activeEffect in
-                guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTicks > 0 else {
-                    return sum
-                }
-                return sum + potency
-            }
-            if bleedTotal > 0 {
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(bleedTotal) damage")
-            }
-
-            let shieldTotal = stacks.reduce(0) { sum, effect in
-                if case let .shield(_, b, _) = effect { return sum + b }
-                return sum
-            }
-            if shieldTotal > 0 {
-                let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case let .shield(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(shieldTotal) buffer, \(maxTicks) ticks left.")
-            }
-
-            let mitigationPct = stacks.reduce(0.0) { sum, effect in
-                if case let .mitigation(_, p, _) = effect { return sum + p }
-                return sum
-            }
-            if mitigationPct > 0 {
-                let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case let .mitigation(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(mitigationPct * 100))% mitigation, \(maxTicks) ticks left.")
-            }
-
-            if stacks.contains(where: { if case .preventionBuildup = $0 { return true }; return false }) {
-                let amount = stacks.compactMap { eff -> Int? in
-                    if case let .preventionBuildup(_, amt, _) = eff { return amt }
-                    return nil
-                }.reduce(0, +)
-                let threshold = stacks.compactMap { eff -> Int? in
-                    if case let .preventionBuildup(_, _, th) = eff { return th }
-                    return nil
-                }.max() ?? 1
-                return EffectSummary(
-                    keyword: keyword,
-                    text: "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
-                )
-            }
-
-            if stacks.contains(where: { if case .prevention = $0 { return true }; return false }) {
-                let maxActions = stacks.compactMap { eff -> Int? in
-                    if case .prevention = eff {
-                        return group.first(where: { $0.effect == eff })?.remainingTicks
-                    }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxActions) actions prevented.")
-            }
-
-            let leechPct = stacks.reduce(0.0) { sum, effect in
-                if case let .leech(_, p, _) = effect { return sum + p }
-                return sum
-            }
-            if leechPct > 0 {
-                let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case let .leech(_, _, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(leechPct * 100))% leech, \(maxTicks) ticks left.")
-            }
-
-            if stacks.contains(where: { if case .dodge = $0 { return true }; return false }) {
-                let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case let .dodge(_, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxTicks) ticks.")
-            }
-
-            if stacks.contains(where: { if case .cleanse = $0 { return true }; return false }) {
-                let maxTicks = stacks.compactMap { eff -> Int? in
-                    if case let .cleanse(_, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
-                    return nil
-                }.min() ?? 0
-                return EffectSummary(keyword: keyword, text: "Cleanse: \(maxTicks) ticks left.")
-            }
-
-            return nil
+    private func runtime(for combatant: Combatant) -> CombatantRuntime {
+        guard let runtime = roster.runtime(for: combatant) else {
+            preconditionFailure("Unknown combatant id \(combatant.id)")
         }
+        return runtime
     }
 
-    private func effects(for combatant: Combatant) -> [ActiveEffect] {
-        if combatant.id == hero.id { return activeHeroEffects }
-        if combatant.id == pet.id { return activePetEffects }
-        return activeEnemyEffects
+    private mutating func updateRuntime(_ runtime: CombatantRuntime) {
+        roster.update(runtime)
     }
 
-    private mutating func setEffects(_ newEffects: [ActiveEffect], for combatant: Combatant) {
-        if combatant.id == hero.id { activeHeroEffects = newEffects }
-        else if combatant.id == pet.id { activePetEffects = newEffects }
-        else { activeEnemyEffects = newEffects }
+    // MARK: - Effect-handler accessors
+
+    //
+    // These are intentionally `internal` (not `private`) so the
+    // `BattleEffectHandler` implementations in `EffectHandlers.swift` can
+    // read and mutate battle state without going through `performAction`
+    // itself.
+
+    /// Returns the current health of `combatant` from the roster.
+    func rosterHealth(for combatant: Combatant) -> Int {
+        roster.health(for: combatant)
     }
+
+    /// Returns the active effects of `combatant` from the roster.
+    func rosterActiveEffects(for combatant: Combatant) -> [ActiveEffect] {
+        roster.activeEffects(for: combatant)
+    }
+
+    /// Replaces the active effects of `combatant` in the roster.
+    mutating func rosterSetActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
+        roster.setActiveEffects(effects, for: combatant)
+    }
+
+    /// Returns the next free effect ID and increments the counter. Used by
+    /// every handler that adds a new `ActiveEffect`.
+    mutating func consumeNextEffectID() -> Int {
+        let id = nextEffectID
+        nextEffectID += 1
+        return id
+    }
+
+    /// Adds `amount` to the battle's gold. Used by `ResourceGainHandler`.
+    mutating func addGold(_ amount: Int) {
+        gold += amount
+    }
+
+    // MARK: - Turn loop
 
     @discardableResult
     mutating func advanceOneStep() -> BattleStep {
@@ -397,43 +275,25 @@ struct BattleState {
     }
 
     private func readyCombatants() -> [Combatant] {
-        var ready: [(combatant: Combatant, interval: Int, order: Int, readyAtTick: Int)] = []
-
-        if heroNextReadyAtTick <= tickCount, isHeroAlive {
-            ready.append((hero, heroActionSpeed.effectiveInterval, 0, heroNextReadyAtTick))
-        }
-        if petNextReadyAtTick <= tickCount, isPetAlive {
-            ready.append((pet, petActionSpeed.effectiveInterval, 1, petNextReadyAtTick))
-        }
-        if enemyNextReadyAtTick <= tickCount, !isEnemyDefeated {
-            ready.append((enemy, enemyActionSpeed.effectiveInterval, 2, enemyNextReadyAtTick))
-        }
-
-        return ready
-            .sorted {
-                if $0.readyAtTick != $1.readyAtTick { return $0.readyAtTick < $1.readyAtTick }
-                if $0.interval != $1.interval { return $0.interval > $1.interval }
-                return $0.order < $1.order
-            }
-            .map(\.combatant)
+        roster.readyCombatants(atTick: tickCount).map(\.combatant)
     }
 
     private func hasActivePrevention(actor: Combatant) -> Bool {
-        effects(for: actor).contains(where: {
+        roster.activeEffects(for: actor).contains(where: {
             if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
             return false
         })
     }
 
     private mutating func consumePrevention(for actor: Combatant) -> [ActionEvent] {
-        var activeEffects = effects(for: actor)
+        var currentEffects = roster.activeEffects(for: actor)
         var events: [ActionEvent] = []
 
-        if let index = activeEffects.firstIndex(where: {
+        if let index = currentEffects.firstIndex(where: {
             if case .prevention = $0.effect { return true }
             return false
         }) {
-            let effect = activeEffects[index]
+            let effect = currentEffects[index]
             let event = nextEvent(
                 kind: .effect,
                 effectKind: .preventionSkipped,
@@ -446,42 +306,26 @@ struct BattleState {
             events.append(event)
 
             if effect.remainingTicks <= 1 {
-                activeEffects.remove(at: index)
+                currentEffects.remove(at: index)
             } else {
-                activeEffects[index].remainingTicks -= 1
+                currentEffects[index].remainingTicks -= 1
             }
         }
 
-        setEffects(activeEffects, for: actor)
+        roster.setActiveEffects(currentEffects, for: actor)
         recordAction(for: actor)
         return events
     }
 
     private mutating func recordAction(for actor: Combatant) {
         actionCount += 1
-        switch actor.role {
-        case .hero: heroActionCount += 1
-        case .pet: petActionCount += 1
-        case .enemy: enemyActionCount += 1
-        }
-        advanceSchedule(for: actor)
-    }
-
-    private func actionSpeed(for actor: Combatant) -> ActionSpeed {
-        switch actor.role {
-        case .hero: return heroActionSpeed
-        case .pet: return petActionSpeed
-        case .enemy: return enemyActionSpeed
-        }
+        var runtime = runtime(for: actor)
+        runtime.markActed(atTick: tickCount)
+        updateRuntime(runtime)
     }
 
     private mutating func performAction(actor: Combatant, abilityTarget: Combatant) -> [ActionEvent] {
-        let turnNumber: Int
-        switch actor.role {
-        case .hero: turnNumber = heroActionCount + 1
-        case .pet: turnNumber = petActionCount + 1
-        case .enemy: turnNumber = enemyActionCount + 1
-        }
+        let turnNumber = runtime(for: actor).actionCount + 1
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber) else {
             recordAction(for: actor)
@@ -490,13 +334,13 @@ struct BattleState {
 
         var events: [ActionEvent] = []
 
-        let (dealt, damageShieldEvents) = applyDamage(
+        let (dealt, damageEvents) = applyDamage(
             ability.directDamage,
             to: abilityTarget,
             damageKeyword: ability.damageKeyword,
             sourceActorID: actor.id
         )
-        events.append(contentsOf: damageShieldEvents)
+        events.append(contentsOf: damageEvents)
         if dealt > 0 {
             events.append(contentsOf: applyLeechFromDamage(dealt, sourceActorID: actor.id))
         }
@@ -514,16 +358,10 @@ struct BattleState {
             events.append(event)
         }
 
-        var logText: String
-        if ability.directDamage > 0 {
-            logText = "\(actor.name) uses \(ability.name) for \(dealt) \(ability.damageKeyword.rawValue) damage to \(abilityTarget.name)"
-        } else {
-            logText = "\(actor.name) uses \(ability.name) on \(abilityTarget.name)"
-        }
         var appliedEffectLogs: [String] = []
-        var pairedDamageHits: Set<PairedDamageHit> = []
+        var pairedDamageHits: [(Keyword, Int)] = []
         if ability.directDamage > 0 {
-            pairedDamageHits.insert(PairedDamageHit(keyword: ability.damageKeyword, amount: ability.directDamage))
+            pairedDamageHits.append((ability.damageKeyword, ability.directDamage))
         }
 
         let effectsToApply: [TargetedEffect] = ability.targetedEffects.isEmpty
@@ -540,301 +378,41 @@ struct BattleState {
                 abilityTarget: abilityTarget
             )
 
-            switch effect {
-            case let .burn(potency):
-                let skipImmediate = shouldSkipImmediateDoT(
-                    potency: potency,
-                    keyword: .burn,
-                    pairedDamageHits: pairedDamageHits
-                )
-                events.append(contentsOf: applyDecayingDoT(
-                    keyword: .burn,
-                    potency: potency,
-                    to: effectTarget,
-                    sourceActorID: actor.id,
-                    dealImmediateDamage: !skipImmediate
-                ))
-                appliedEffectLogs.append(effect.summary)
-
-            case let .poison(potency):
-                let skipImmediate = shouldSkipImmediateDoT(
-                    potency: potency,
-                    keyword: .poison,
-                    pairedDamageHits: pairedDamageHits
-                )
-                events.append(contentsOf: applyDecayingDoT(
-                    keyword: .poison,
-                    potency: potency,
-                    to: effectTarget,
-                    sourceActorID: actor.id,
-                    dealImmediateDamage: !skipImmediate
-                ))
-                appliedEffectLogs.append(effect.summary)
-
-            case let .bleed(potency):
-                let skipImmediate = shouldSkipImmediateDoT(
-                    potency: potency,
-                    keyword: .bleed,
-                    pairedDamageHits: pairedDamageHits
-                )
-                events.append(contentsOf: applyBleed(
-                    potency: potency,
-                    to: effectTarget,
-                    sourceActorID: actor.id,
-                    dealImmediateDamage: !skipImmediate
-                ))
-                appliedEffectLogs.append(effect.summary)
-
-            case let .prevention(keyword, _):
-                guard health(for: effectTarget) > 0 else { break }
-                let duration = preventionDuration(for: keyword)
-                let preventionEffect = Effect.prevention(keyword, duration)
-                let ae = ActiveEffect(
-                    id: nextEffectID,
-                    effect: preventionEffect,
-                    remainingTicks: duration,
-                    sourceActorID: actor.id
-                )
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .preventionApplied,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: 0,
-                    keyword: keyword
-                ))
-
-            case let .shield(keyword, buffer, durationTicks):
-                let ae = ActiveEffect(
-                    id: nextEffectID,
-                    effect: effect,
-                    remainingTicks: durationTicks,
-                    sourceActorID: actor.id
-                )
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .shieldApplied,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: buffer,
-                    keyword: keyword
-                ))
-
-            case let .mitigation(keyword, percent, durationTicks):
-                let ae = ActiveEffect(
-                    id: nextEffectID,
-                    effect: effect,
-                    remainingTicks: durationTicks,
-                    sourceActorID: actor.id
-                )
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .mitigationApplied,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: Int(percent * 100),
-                    keyword: keyword
-                ))
-
-            case let .instantHeal(keyword, amount):
-                applyHeal(amount, to: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .instantHeal,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: amount,
-                    keyword: keyword
-                ))
-
-            case let .leech(keyword, percent, durationTicks):
-                let wisdomTicks = actor.primaryStats.wisdom / 20
-                let ae = ActiveEffect(
-                    id: nextEffectID,
-                    effect: effect,
-                    remainingTicks: durationTicks + wisdomTicks,
-                    sourceActorID: actor.id
-                )
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-
-            case let .resourceGain(keyword, amount):
-                gold += amount
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .resourceGain,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: amount,
-                    keyword: keyword
-                ))
-
-            case let .cleanse(targetKeyword, durationTicks):
-                var currentEffects = effects(for: effectTarget)
-
-                if let removeKeyword = targetKeyword {
-                    currentEffects.removeAll { $0.keyword == removeKeyword }
-                } else {
-                    currentEffects.removeAll { isRemovableDebuff($0.effect) }
-                }
-
-                if durationTicks > 0 {
-                    let ae = ActiveEffect(
-                        id: nextEffectID,
-                        effect: effect,
-                        remainingTicks: durationTicks,
-                        sourceActorID: actor.id
-                    )
-                    nextEffectID += 1
-                    currentEffects.append(ae)
-                }
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .cleanseApplied,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: 0,
-                    keyword: targetKeyword ?? .health
-                ))
-
-            case .cleanseRandom:
-                var currentEffects = effects(for: effectTarget)
-                let debuffs = currentEffects.filter { isRemovableDebuff($0.effect) }
-                if let removed = debuffs.randomElement() {
-                    currentEffects.removeAll { $0.id == removed.id }
-                }
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-                events.append(nextEvent(
-                    kind: .effect,
-                    effectKind: .cleanseApplied,
-                    actorName: actor.name,
-                    abilityName: ability.name,
-                    target: effectTarget,
-                    amount: 0,
-                    keyword: .health
-                ))
-
-            case let .dealDamage(keyword, amount):
-                let (typedDamage, typedShieldEvents) = applyDamage(amount, to: effectTarget)
-                events.append(contentsOf: typedShieldEvents)
-                if typedDamage > 0 || amount > 0 {
-                    pairedDamageHits.insert(PairedDamageHit(keyword: keyword, amount: amount))
-                }
-                if typedDamage > 0 {
-                    events.append(nextEvent(
-                        kind: .ability,
-                        effectKind: nil,
-                        actorName: actor.name,
-                        abilityName: ability.name,
-                        target: effectTarget,
-                        amount: typedDamage,
-                        keyword: keyword
-                    ))
-                    if effectTarget.id != actor.id {
-                        events.append(contentsOf: applyLeechFromDamage(typedDamage, sourceActorID: actor.id))
-                    }
-                }
-                appliedEffectLogs.append(effect.summary)
-
-            case let .halveMitigation(keyword):
-                var currentEffects = effects(for: effectTarget)
-                for index in currentEffects.indices {
-                    if case let .mitigation(mitigationKeyword, percent, duration) = currentEffects[index].effect,
-                       mitigationKeyword == keyword {
-                        currentEffects[index].effect = .mitigation(
-                            mitigationKeyword,
-                            percent / 2,
-                            duration
-                        )
-                    }
-                }
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append(effect.summary)
-
-            case .preventionBuildup:
-                break
-
-            case let .dodge(keyword, durationTicks):
-                let ae = ActiveEffect(
-                    id: nextEffectID,
-                    effect: effect,
-                    remainingTicks: durationTicks,
-                    sourceActorID: actor.id
-                )
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
+            guard let handler = EffectHandlers.all[effect.kind] else { continue }
+            let outcome = handler.apply(
+                effect,
+                ability: ability,
+                source: actor,
+                target: effectTarget,
+                in: &self,
+                pairedDamageHits: &pairedDamageHits
+            )
+            events.append(contentsOf: outcome.events)
+            if outcome.didApply {
                 appliedEffectLogs.append(effect.summary)
             }
         }
 
-        if !appliedEffectLogs.isEmpty {
-            logText += " and " + appliedEffectLogs.joined(separator: ", ")
-        }
-        if ability.directDamage > 0 || !appliedEffectLogs.isEmpty {
-            log.append(LogEntry(id: nextEventID, text: "\(logText)."))
-        } else {
-            log.append(LogEntry(id: nextEventID, text: "\(actor.name) uses \(ability.name)."))
-        }
+        let logLine = BattleLogBuilder.lineForAction(
+            actorName: actor.name,
+            abilityName: ability.name,
+            dealt: dealt,
+            damageKeyword: ability.damageKeyword,
+            targetName: abilityTarget.name,
+            appliedEffectSummaries: appliedEffectLogs
+        )
+        appendLog(logLine)
 
         recordAction(for: actor)
         return events
     }
 
-    private func preventionDuration(for keyword: Keyword) -> Int {
-        switch keyword {
-        case .freeze, .stun:
-            return 1
-        default:
-            return 1
-        }
-    }
-
-    private func shouldSkipImmediateDoT(
+    func shouldSkipImmediateDoT(
         potency: Int,
         keyword: Keyword,
-        pairedDamageHits: Set<PairedDamageHit>
+        pairedDamageHits: [(Keyword, Int)]
     ) -> Bool {
-        pairedDamageHits.contains(PairedDamageHit(keyword: keyword, amount: potency))
-    }
-
-    private func isRemovableDebuff(_ effect: Effect) -> Bool {
-        switch effect {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup:
-            return true
-        case .shield, .mitigation, .leech, .cleanse, .dodge, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
-            return false
-        }
+        pairedDamageHits.contains(where: { $0 == (keyword, potency) })
     }
 
     private func resolveEffectTarget(
@@ -856,11 +434,6 @@ struct BattleState {
         }
     }
 
-    private func removeEffectsSummary(_ keyword: Keyword?) -> String {
-        if let keyword { return "Remove \(keyword.rawValue)" }
-        return "Remove all effects"
-    }
-
     private func selectedAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
         let tier = preferredTier(for: turnNumber)
         return actor.abilityLoadout.ability(for: tier)
@@ -878,36 +451,35 @@ struct BattleState {
         var events: [ActionEvent] = []
 
         let enemyResult = tickEffects(activeEnemyEffects, target: enemy)
-        activeEnemyEffects = enemyResult.updated
+        roster.setActiveEffects(enemyResult.updated, for: enemy)
         events.append(contentsOf: enemyResult.events)
 
         if isHeroAlive {
             let heroResult = tickEffects(activeHeroEffects, target: hero)
-            activeHeroEffects = heroResult.updated
+            roster.setActiveEffects(heroResult.updated, for: hero)
             events.append(contentsOf: heroResult.events)
         }
 
         if isPetAlive {
             let petResult = tickEffects(activePetEffects, target: pet)
-            activePetEffects = petResult.updated
+            roster.setActiveEffects(petResult.updated, for: pet)
             events.append(contentsOf: petResult.events)
         }
 
         return events
     }
 
-    private mutating func applyDecayingDoT(
+    mutating func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool
     ) -> [ActionEvent] {
-        guard health(for: effectTarget) > 0, potency > 0 else { return [] }
-
+        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
         let statBonus: Int
-        if let actor = combatant(for: sourceActorID) {
-            statBonus = statBonusForDamage(from: actor, keyword: keyword)
+        if let actor = roster.combatant(for: sourceActorID) {
+            statBonus = actor.primaryStats.statBonusForDamage(keyword: keyword)
         } else {
             statBonus = 0
         }
@@ -922,7 +494,7 @@ struct BattleState {
             ))
         }
 
-        var currentEffects = effects(for: effectTarget)
+        var currentEffects = roster.activeEffects(for: effectTarget)
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
             currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + boostedPotency)
@@ -940,21 +512,21 @@ struct BattleState {
             )
             nextEffectID += 1
         }
-        setEffects(currentEffects, for: effectTarget)
+        roster.setActiveEffects(currentEffects, for: effectTarget)
         return events
     }
 
-    private mutating func applyBleed(
+    mutating func applyBleed(
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool
     ) -> [ActionEvent] {
-        guard health(for: effectTarget) > 0, potency > 0 else { return [] }
+        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
         let statBonus: Int
-        if let actor = combatant(for: sourceActorID) {
-            statBonus = statBonusForDamage(from: actor, keyword: .bleed)
+        if let actor = roster.combatant(for: sourceActorID) {
+            statBonus = actor.primaryStats.statBonusForDamage(keyword: .bleed)
         } else {
             statBonus = 0
         }
@@ -969,7 +541,7 @@ struct BattleState {
             ))
         }
 
-        var currentEffects = effects(for: effectTarget)
+        var currentEffects = roster.activeEffects(for: effectTarget)
         currentEffects.append(
             ActiveEffect(
                 id: nextEffectID,
@@ -979,7 +551,7 @@ struct BattleState {
             )
         )
         nextEffectID += 1
-        setEffects(currentEffects, for: effectTarget)
+        roster.setActiveEffects(currentEffects, for: effectTarget)
         return events
     }
 
@@ -991,7 +563,7 @@ struct BattleState {
         }
     }
 
-    private mutating func logDoTDamage(
+    mutating func logDoTDamage(
         _ result: (healthLost: Int, events: [ActionEvent]),
         keyword: Keyword,
         target: Combatant
@@ -1009,10 +581,7 @@ struct BattleState {
             keyword: keyword
         )
         events.append(event)
-        log.append(LogEntry(
-            id: event.id,
-            text: "\(target.name) takes \(result.healthLost) \(keyword.rawValue) damage."
-        ))
+        appendLog("\(target.name) takes \(result.healthLost) \(keyword.rawValue) damage.")
         return events
     }
 
@@ -1020,44 +589,42 @@ struct BattleState {
         var events: [ActionEvent] = []
         var remaining = effects
 
-        guard health(for: target) > 0 else {
+        guard roster.health(for: target) > 0 else {
             return (events, remaining)
         }
 
+        // Phase 1: per-handler tick. `BleedHandler`, `BurnHandler`, and
+        // `PoisonHandler` deal damage and update their own potency or
+        // remaining ticks. Other kinds return a no-op outcome.
+        var toRemove: [Int] = []
         for index in remaining.indices {
-            guard case let .bleed(potency) = remaining[index].effect, remaining[index].remainingTicks > 0 else {
-                continue
+            guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
+            let outcome = handler.tick(remaining[index], on: target, in: &self)
+            events.append(contentsOf: outcome.events)
+            if let updated = outcome.updatedStack {
+                remaining[index] = updated
             }
-
-            events.append(contentsOf: logDoTDamage(
-                applyDoTDamage(potency, keyword: .bleed, to: target, sourceActorID: remaining[index].sourceActorID),
-                keyword: .bleed,
-                target: target
-            ))
-            remaining[index].remainingTicks -= 1
+            if outcome.removeAfter {
+                toRemove.append(index)
+            }
         }
-
-        for index in remaining.indices where remaining[index].effect.isDecayingDoT {
-            let nextPotency = remaining[index].effect.potencyAfterTick()
-            if nextPotency > 0 {
-                events.append(contentsOf: logDoTDamage(
-                    applyDoTDamage(nextPotency, keyword: remaining[index].keyword, to: target, sourceActorID: remaining[index].sourceActorID),
-                    keyword: remaining[index].keyword,
-                    target: target
-                ))
-                remaining[index].effect = effectCase(for: remaining[index].keyword, potency: nextPotency)
-            } else {
-                remaining[index].effect = effectCase(for: remaining[index].keyword, potency: 0)
+        if !toRemove.isEmpty {
+            let removeSet = Set(toRemove)
+            remaining = remaining.enumerated().compactMap { index, ae in
+                removeSet.contains(index) ? nil : ae
             }
         }
 
+        // Phase 2: cleanse removal pass. Cleanses strip matching effects
+        // and then re-add themselves so their own `remainingTicks` keeps
+        // decrementing in the generic pass below.
         for ae in remaining {
             switch ae.effect {
             case let .cleanse(cleanseKeyword, _):
                 if let removeKeyword = cleanseKeyword {
                     remaining.removeAll { $0.keyword == removeKeyword }
                 } else {
-                    remaining.removeAll { isEffectType($0.effect) }
+                    remaining.removeAll { $0.effect.isTickable }
                 }
                 remaining.append(ae)
 
@@ -1066,6 +633,10 @@ struct BattleState {
             }
         }
 
+        // Phase 3: generic duration decrement for effects not handled by
+        // a per-handler `tick`. Bleed, burn, poison, prevention, and
+        // preventionBuildup opt out (their lifecycle is managed by phase
+        // 1 or by their own remainingTicks=0 self-removal).
         remaining = remaining.compactMap { ae in
             switch ae.effect {
             case .burn(0), .poison(0):
@@ -1086,14 +657,7 @@ struct BattleState {
         return (events, remaining)
     }
 
-    private func isEffectType(_ effect: Effect) -> Bool {
-        switch effect {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .shield, .mitigation, .leech, .cleanse, .dodge: return true
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return false
-        }
-    }
-
-    private mutating func applyDoTDamage(
+    mutating func applyDoTDamage(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -1101,8 +665,8 @@ struct BattleState {
     ) -> (healthLost: Int, events: [ActionEvent]) {
         guard amount > 0 else { return (0, []) }
 
-        let (healthLost, shieldEvents) = applyDamage(amount, to: combatant)
-        var events = shieldEvents
+        let (healthLost, damageEvents) = applyDamage(amount, to: combatant)
+        var events = damageEvents
         if healthLost > 0, let sourceActorID {
             events.append(contentsOf: applyLeechFromDamage(healthLost, sourceActorID: sourceActorID))
         }
@@ -1116,13 +680,13 @@ struct BattleState {
         to combatant: Combatant,
         sourceActorID: String?
     ) -> [ActionEvent] {
-        guard amount > 0, health(for: combatant) > 0 else { return [] }
+        guard amount > 0, roster.health(for: combatant) > 0 else { return [] }
         if hasActivePrevention(actor: combatant) { return [] }
 
         let baseThreshold = Double(maxHealth(for: combatant)) * 0.20
         let agilityResist = 1.0 + Double(combatant.primaryStats.agility) * 0.01
         let threshold = max(1, Int(ceil(baseThreshold * agilityResist)))
-        var currentEffects = effects(for: combatant)
+        var currentEffects = roster.activeEffects(for: combatant)
 
         let existingIndex = currentEffects.firstIndex { ae in
             if case let .preventionBuildup(k, _, _) = ae.effect, k == keyword { return true }
@@ -1151,10 +715,10 @@ struct BattleState {
             )
             nextEffectID += 1
             currentEffects.append(ae)
-            setEffects(currentEffects, for: combatant)
+            roster.setActiveEffects(currentEffects, for: combatant)
 
             let actorName: String
-            if let sourceActorID, let source = self.combatant(for: sourceActorID) {
+            if let sourceActorID, let source = roster.combatant(for: sourceActorID) {
                 actorName = source.name
             } else {
                 actorName = combatant.name
@@ -1189,58 +753,52 @@ struct BattleState {
                 )
                 nextEffectID += 1
             }
-            setEffects(currentEffects, for: combatant)
+            roster.setActiveEffects(currentEffects, for: combatant)
         }
 
         return events
     }
 
-    private mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
-        guard damage > 0, let actor = combatant(for: sourceActorID) else { return [] }
+    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+        guard damage > 0, let actor = roster.combatant(for: sourceActorID) else { return [] }
+        let actorCombatant = actor.combatant
 
-        let leechPct = effects(for: actor).reduce(0.0) { sum, activeEffect in
+        let leechPct = roster.activeEffects(for: actorCombatant).reduce(0.0) { sum, activeEffect in
             if case let .leech(_, percent, _) = activeEffect.effect { return sum + percent }
             return sum
         }
         guard leechPct > 0 else { return [] }
 
-        let wisdomPercent = Double(actor.primaryStats.wisdom) * 0.001
+        let wisdomPercent = Double(actorCombatant.primaryStats.wisdom) * 0.001
         let totalPct = leechPct + wisdomPercent
         let restored = Int(ceil(Double(damage) * totalPct))
         guard restored > 0 else { return [] }
 
-        applyHeal(restored, to: actor)
+        applyHeal(restored, to: actorCombatant)
         return [
             nextEvent(
                 kind: .effect,
                 effectKind: .leechHeal,
-                actorName: actor.name,
+                actorName: actorCombatant.name,
                 abilityName: "Leech",
-                target: actor,
+                target: actorCombatant,
                 amount: restored,
                 keyword: .leech
             )
         ]
     }
 
-    private func combatant(for id: String) -> Combatant? {
-        if hero.id == id { return hero }
-        if pet.id == id { return pet }
-        if enemy.id == id { return enemy }
-        return nil
-    }
-
-    private mutating func applyDamage(
+    mutating func applyDamage(
         _ amount: Int,
         to combatant: Combatant,
         damageKeyword: Keyword? = nil,
         sourceActorID: String? = nil
-    ) -> (healthLost: Int, shieldEvents: [ActionEvent]) {
-        var shieldEvents: [ActionEvent] = []
+    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
+        var damageEvents: [ActionEvent] = []
 
-        if amount > 0, health(for: combatant) > 0, let _ = sourceActorID {
-            if Double.random(in: 0...1, using: &rng) < dodgeChance(for: combatant) {
-                shieldEvents.append(nextEvent(
+        if amount > 0, roster.health(for: combatant) > 0, sourceActorID != nil {
+            if Double.random(in: 0 ... 1, using: &rng) < combatant.primaryStats.dodgeChance {
+                damageEvents.append(nextEvent(
                     kind: .effect,
                     effectKind: .dodgeApplied,
                     actorName: combatant.name,
@@ -1249,19 +807,19 @@ struct BattleState {
                     amount: 0,
                     keyword: .dodge
                 ))
-                return (0, shieldEvents)
+                return (0, damageEvents)
             }
         }
 
         let statBonus: Int
-        if let sourceActorID, let damageKeyword, let actor = self.combatant(for: sourceActorID) {
-            statBonus = statBonusForDamage(from: actor, keyword: damageKeyword)
+        if let sourceActorID, let damageKeyword, let actor = roster.combatant(for: sourceActorID) {
+            statBonus = actor.primaryStats.statBonusForDamage(keyword: damageKeyword)
         } else {
             statBonus = 0
         }
         var remaining = amount + statBonus
 
-        var currentEffects = effects(for: combatant)
+        var currentEffects = roster.activeEffects(for: combatant)
         var shieldIndexes: [Int] = []
 
         for (index, ae) in currentEffects.enumerated() {
@@ -1269,7 +827,7 @@ struct BattleState {
                 let absorbed = min(remaining, buffer)
                 remaining -= absorbed
                 if absorbed > 0 {
-                    shieldEvents.append(nextEvent(
+                    damageEvents.append(nextEvent(
                         kind: .effect,
                         effectKind: .shieldAbsorbed,
                         actorName: keyword.rawValue,
@@ -1297,28 +855,24 @@ struct BattleState {
             if case let .mitigation(_, p, _) = ae.effect { return sum + p }
             return sum
         }
-        let toughnessPct = toughnessMitigationPct(for: combatant)
+        let toughnessPct = combatant.primaryStats.toughnessMitigationPct
         let combinedPct = max(0, min(1, armorPct + toughnessPct))
         if combinedPct > 0 {
             remaining = Int(ceil(Double(remaining) * (1 - combinedPct)))
         }
 
-        setEffects(currentEffects, for: combatant)
+        roster.setActiveEffects(currentEffects, for: combatant)
 
-        if combatant.id == hero.id {
-            heroHealth = max(0, heroHealth - remaining)
-        } else if combatant.id == pet.id {
-            petHealth = max(0, petHealth - remaining)
-        } else {
-            enemyHealth = max(0, enemyHealth - remaining)
-        }
+        var runtime = runtime(for: combatant)
+        let healthLost = runtime.takeRawDamage(remaining)
+        updateRuntime(runtime)
 
         let dealt = amount + statBonus
         if dealt > 0,
            let damageKeyword,
            damageKeyword == .stun || damageKeyword == .freeze,
-           health(for: combatant) > 0 {
-            shieldEvents.append(contentsOf: applyPreventionBuildup(
+           roster.health(for: combatant) > 0 {
+            damageEvents.append(contentsOf: applyPreventionBuildup(
                 dealt,
                 keyword: damageKeyword,
                 to: combatant,
@@ -1326,36 +880,16 @@ struct BattleState {
             ))
         }
 
-        return (remaining, shieldEvents)
+        return (healthLost, damageEvents)
     }
 
-    private mutating func applyHeal(_ amount: Int, to combatant: Combatant) {
-        let wisdomBonus = combatant.primaryStats.wisdom / 5
-        let total = amount + wisdomBonus
-        let effectiveMax = maxHealth(for: combatant)
-        if combatant.id == hero.id {
-            heroHealth = min(effectiveMax, heroHealth + total)
-        } else if combatant.id == pet.id {
-            petHealth = min(effectiveMax, petHealth + total)
-        }
+    mutating func applyHeal(_ amount: Int, to combatant: Combatant) {
+        var runtime = runtime(for: combatant)
+        runtime.heal(amount)
+        updateRuntime(runtime)
     }
 
-    private func health(for combatant: Combatant) -> Int {
-        if combatant.id == hero.id { return heroHealth }
-        if combatant.id == pet.id { return petHealth }
-        return enemyHealth
-    }
-
-    private mutating func advanceSchedule(for actor: Combatant) {
-        let interval = actionSpeed(for: actor).effectiveInterval
-        switch actor.role {
-        case .hero: heroNextReadyAtTick = tickCount + interval
-        case .pet: petNextReadyAtTick = tickCount + interval
-        case .enemy: enemyNextReadyAtTick = tickCount + interval
-        }
-    }
-
-    private mutating func nextEvent(
+    mutating func nextEvent(
         kind: ActionEvent.Kind,
         effectKind: ActionEvent.EffectKind?,
         actorName: String,
@@ -1378,23 +912,20 @@ struct BattleState {
         )
     }
 
+    private mutating func appendLog(_ text: String) {
+        log.append(LogEntry(id: nextLogEntryID, text: text))
+        nextLogEntryID += 1
+    }
+
     private mutating func appendDefeatLogIfNeeded() {
         guard isEnemyDefeated, !hasLoggedDefeat else { return }
-
         hasLoggedDefeat = true
-        log.append(LogEntry(
-            id: nextEventID + 1000,
-            text: "\(enemy.name) is defeated."
-        ))
+        appendLog("\(enemy.name) is defeated.")
     }
 
     private mutating func appendPartyDefeatLogIfNeeded() {
         guard isPartyDefeated, !hasLoggedPartyDefeat else { return }
-
         hasLoggedPartyDefeat = true
-        log.append(LogEntry(
-            id: nextEventID + 2000,
-            text: "Your party has been defeated by \(enemy.name)."
-        ))
+        appendLog("Your party has been defeated by \(enemy.name).")
     }
 }

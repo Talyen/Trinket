@@ -12,7 +12,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let helper = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: fragile, pet: helper, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: fragile, pet: helper, enemy: enemy)
 
         while !battle.isBattleOver {
             _ = advance(&battle)
@@ -29,7 +29,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case .effectsOnly = advance(&battle) {
             // tick 1: nobody acts
@@ -51,7 +51,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         _ = advance(&battle)
@@ -68,7 +68,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let heroStep = advance(&battle)
@@ -93,7 +93,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 50, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 50, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         for _ in 0 ..< 5 {
             _ = advance(&battle)
@@ -120,7 +120,7 @@ final class BattleStateSchedulingTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case let .acted(actor, _) = advance(&battle) {
             XCTAssertEqual(actor.id, enemy.id)
@@ -145,7 +145,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
-        var battle = BattleState(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -165,7 +165,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
-        var battle = BattleState(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -186,7 +186,7 @@ final class BattleStateSchedulingTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case .effectsOnly = advance(&battle) {
             XCTAssertEqual(battle.tickCount, 1)
@@ -197,7 +197,7 @@ final class BattleStateSchedulingTests: XCTestCase {
 
     func testWildcardHeroFirstActionGrantsExactGold() throws {
         let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
-        var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+        var battle = BattleStateTestFactory.makeBattle(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
 
         _ = advance(&battle)
         _ = advance(&battle)

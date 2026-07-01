@@ -41,16 +41,23 @@ final class StageRewardTests: XCTestCase {
         let heroXPBefore = roster.progression(for: hero).currentXP
         let petXPBefore = roster.progression(for: pet).currentXP
 
+        var ctx = StageCompletionContext(
+            roster: roster,
+            inventory: inventory,
+            homestead: homestead,
+            journey: journey
+        )
         StageCompletion.complete(
             firstStage,
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            roster: &roster,
-            inventory: &inventory,
-            homestead: &homestead,
-            journey: &journey
+            context: &ctx
         )
+        roster = ctx.roster
+        inventory = ctx.inventory
+        homestead = ctx.homestead
+        journey = ctx.journey
 
         XCTAssertEqual(roster.gold, firstStage.rewards.gold)
         XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + firstStage.rewards.experience)

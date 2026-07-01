@@ -1,0 +1,398 @@
+import XCTest
+@testable import Trinket
+
+/// Per-handler tests. Each handler gets a focused test that constructs a
+/// minimal `BattleState` and applies the corresponding effect through the
+/// dispatch table (`EffectHandlers.all`). The tests pin the per-effect
+/// behavior so refactors in `BattleState` can't silently change outcomes.
+final class EffectHandlersTests: XCTestCase {
+    // MARK: - Fixtures
+
+    private func combatant(
+        id: String,
+        role: Combatant.Role,
+        maxHealth: Int = 50,
+        actionIntervalTicks: Int? = nil,
+        primaryStats: PrimaryStats = PrimaryStats()
+    ) -> Combatant {
+        Combatant(
+            id: id,
+            name: id.capitalized,
+            role: role,
+            maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
+            abilities: [],
+            primaryStats: primaryStats
+        )
+    }
+
+    private func ability(name: String = "Test") -> Ability {
+        Ability(id: "test", name: name, tier: .basic, directDamage: 0, description: "Test")
+    }
+
+    private func makeBattle(
+        hero: Combatant? = nil,
+        pet: Combatant? = nil,
+        enemy: Combatant? = nil,
+        initialGold: Int = 0
+    ) -> BattleState {
+        let hero = hero ?? combatant(id: "hero", role: .hero, maxHealth: 50)
+        let pet = pet ?? combatant(id: "pet", role: .pet, maxHealth: 50)
+        let enemy = enemy ?? combatant(id: "enemy", role: .enemy, maxHealth: 50)
+        return BattleStateTestFactory.makeBattle(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            initialGold: initialGold
+        )
+    }
+
+    private func dispatch(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in state: inout BattleState
+    ) -> EffectApplyOutcome {
+        var hits: [(Keyword, Int)] = []
+        return EffectHandlers.all[effect.kind]!.apply(
+            effect,
+            ability: ability,
+            source: source,
+            target: target,
+            in: &state,
+            pairedDamageHits: &hits
+        )
+    }
+
+    // MARK: - Registry
+
+    func testRegistryContainsEveryEffectKind() {
+        for kind in [
+            EffectKind.burn, .poison, .bleed, .prevention, .preventionBuildup,
+            .shield, .mitigation, .instantHeal, .leech, .resourceGain,
+            .cleanse, .cleanseRandom, .dealDamage, .halveMitigation, .dodge
+        ] {
+            XCTAssertNotNil(EffectHandlers.all[kind], "Missing handler for \(kind)")
+            XCTAssertEqual(EffectHandlers.all[kind]?.kind, kind)
+        }
+    }
+
+    // MARK: - DoT handlers
+
+    func testBurnHandlerAppliesBurnEffect() {
+        var battle = makeBattle()
+        let enemy = battle.enemy
+        let outcome = dispatch(.burn(3), ability: ability(), source: battle.hero, target: enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeEnemyEffects.contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
+    }
+
+    func testBurnHandlerSkipsInitialDamageWhenPaired() throws {
+        var battle = makeBattle()
+        let enemy = battle.enemy
+        var hits: [(Keyword, Int)] = [(.burn, 3)]
+        let outcome = try XCTUnwrap(EffectHandlers.all[.burn]?.apply(
+            .burn(3),
+            ability: ability(),
+            source: battle.hero,
+            target: enemy,
+            in: &battle,
+            pairedDamageHits: &hits
+        ))
+        XCTAssertTrue(outcome.didApply)
+        // No `events` containing a status DoT damage entry.
+        XCTAssertFalse(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
+    }
+
+    func testPoisonHandlerAppliesPoisonEffect() {
+        var battle = makeBattle()
+        let outcome = dispatch(.poison(2), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeEnemyEffects.contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+    }
+
+    func testBleedHandlerAppliesBleedEffect() {
+        var battle = makeBattle()
+        let outcome = dispatch(.bleed(2), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeEnemyEffects.contains(where: \.effect.isBleed))
+    }
+
+    // MARK: - Defensive buffs
+
+    func testPreventionHandlerAddsActiveEffect() {
+        var battle = makeBattle()
+        let outcome = dispatch(.prevention(.stun, 1), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeEnemyEffects.contains { ae in
+            if case .prevention(.stun, _) = ae.effect { return true }
+            return false
+        })
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .preventionApplied })
+    }
+
+    func testPreventionHandlerSkipsOnDeadTarget() {
+        let enemy = combatant(id: "enemy", role: .enemy, maxHealth: 1)
+        var battle = makeBattle(enemy: enemy)
+        _ = battle.applyDamage(99, to: battle.enemy)
+        let outcome = dispatch(.prevention(.stun, 1), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
+
+    func testShieldHandlerAddsShieldAndEmitsEvent() {
+        var battle = makeBattle()
+        let outcome = dispatch(.shield(.block, 5, 3), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeHeroEffects.contains { ae in
+            if case .shield(.block, 5, _) = ae.effect { return true }
+            return false
+        })
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+    }
+
+    func testMitigationHandlerAddsMitigationAndEmitsEvent() {
+        var battle = makeBattle()
+        let outcome = dispatch(.mitigation(.armor, 0.25, 6), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeHeroEffects.contains { ae in
+            if case .mitigation(.armor, 0.25, _) = ae.effect { return true }
+            return false
+        })
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
+    }
+
+    func testDodgeHandlerAddsDodgeEffect() {
+        var battle = makeBattle()
+        let outcome = dispatch(.dodge(.dodge, 3), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeHeroEffects.contains(where: \.effect.isDodge))
+    }
+
+    func testLeechHandlerAddsLeechEffect() {
+        var battle = makeBattle()
+        let outcome = dispatch(.standardLeechBuff, ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeHeroEffects.contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
+    }
+
+    // MARK: - Restoration
+
+    func testInstantHealHandlerHealsTarget() {
+        var battle = makeBattle()
+        _ = battle.applyDamage(30, to: battle.hero)
+        let before = battle.heroHealth
+        let outcome = dispatch(.instantHeal(.health, 5), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertGreaterThan(battle.heroHealth, before)
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .instantHeal && $0.amount == 5 })
+    }
+
+    func testResourceGainHandlerAddsGold() {
+        var battle = makeBattle(initialGold: 10)
+        let resourceEffect: Effect = .resourceGain(.gold, 3)
+        let outcome = dispatch(resourceEffect, ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertEqual(battle.gold, 13)
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
+    }
+
+    // MARK: - Cleanse
+
+    func testCleanseSpecificKeywordRemovesMatchingEffects() {
+        var battle = makeBattle()
+        battle.rosterSetActiveEffects(
+            [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
+            for: battle.hero
+        )
+        let outcome = dispatch(.cleanse(.poison, 0), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertFalse(battle.activeHeroEffects.contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+    }
+
+    func testCleanseAllRemovesAllDebuffs() {
+        var battle = makeBattle()
+        battle.rosterSetActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
+                ActiveEffect(id: 3, effect: .shield(.block, 5, 6), remainingTicks: 6)
+            ],
+            for: battle.hero
+        )
+        let outcome = dispatch(.cleanse(nil, 0), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        // Debuffs gone, shield still present
+        XCTAssertFalse(battle.activeHeroEffects.contains(where: \.effect.isRemovableDebuff))
+        XCTAssertTrue(battle.activeHeroEffects.contains { $0.effect.isTickable && !$0.effect.isRemovableDebuff })
+    }
+
+    func testCleanseWithDurationAddsActiveEffect() {
+        var battle = makeBattle()
+        battle.rosterSetActiveEffects(
+            [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
+            for: battle.hero
+        )
+        let outcome = dispatch(.cleanse(.poison, 3), ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeHeroEffects.contains { ae in
+            if case .cleanse(.poison, 3) = ae.effect { return true }
+            return false
+        })
+    }
+
+    func testCleanseRandomRemovesOneDebuff() {
+        var battle = makeBattle()
+        battle.rosterSetActiveEffects(
+            [
+                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0)
+            ],
+            for: battle.hero
+        )
+        let outcome = dispatch(.cleanseRandom, ability: ability(), source: battle.hero, target: battle.hero, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        // Exactly one debuff removed
+        let remainingDebuffs = battle.activeHeroEffects.filter(\.effect.isRemovableDebuff)
+        XCTAssertEqual(remainingDebuffs.count, 1)
+    }
+
+    // MARK: - Damage
+
+    func testDealDamageHandlerDealsTypedDamage() {
+        var battle = makeBattle()
+        let before = battle.enemyHealth
+        let damageEffect: Effect = .dealDamage(.burn, 4)
+        let outcome = dispatch(damageEffect, ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertLessThan(battle.enemyHealth, before)
+        XCTAssertTrue(outcome.events.contains { $0.kind == .ability && $0.amount == 4 && $0.keyword == .burn })
+    }
+
+    func testDealDamageHandlerAppendsToPairedDamageHits() throws {
+        var battle = makeBattle()
+        var hits: [(Keyword, Int)] = []
+        _ = try XCTUnwrap(EffectHandlers.all[.dealDamage]?.apply(
+            .dealDamage(.bleed, 3),
+            ability: ability(),
+            source: battle.hero,
+            target: battle.enemy,
+            in: &battle,
+            pairedDamageHits: &hits
+        ))
+        XCTAssertTrue(hits.contains(where: { $0 == (.bleed, 3) }))
+    }
+
+    // MARK: - Debuff
+
+    func testHalveMitigationHandlerHalvesArmor() {
+        var battle = makeBattle()
+        battle.rosterSetActiveEffects(
+            [ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)],
+            for: battle.enemy
+        )
+        let outcome = dispatch(.halveMitigation(.armor), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertTrue(outcome.didApply)
+        XCTAssertTrue(battle.activeEnemyEffects.contains { ae in
+            if case .mitigation(.armor, 0.20, _) = ae.effect { return true }
+            return false
+        })
+    }
+
+    func testPreventionBuildupHandlerIsNoOp() {
+        var battle = makeBattle()
+        let effectsBefore = battle.activeEnemyEffects
+        let outcome = dispatch(.preventionBuildup(.stun, 1, 10), ability: ability(), source: battle.hero, target: battle.enemy, in: &battle)
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertEqual(battle.activeEnemyEffects, effectsBefore)
+    }
+
+    // MARK: - Tick
+
+    func testBleedTickDealsDamageAndDecrementsRemainingTicks() throws {
+        var battle = makeBattle()
+        let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 3, sourceActorID: "hero")
+        var outcome = try XCTUnwrap(EffectHandlers.all[.bleed]?.tick(bleed, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.updatedStack?.remainingTicks, 2)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testBleedTickWithZeroRemainingTicksIsNoOp() throws {
+        var battle = makeBattle()
+        let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.bleed]?.tick(bleed, on: battle.enemy, in: &battle))
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertNil(outcome.updatedStack)
+    }
+
+    func testBleedTickAtOneRemainingTickMarksForRemoval() throws {
+        var battle = makeBattle()
+        let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 1, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.bleed]?.tick(bleed, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.updatedStack?.remainingTicks, 0)
+        XCTAssertTrue(outcome.removeAfter)
+    }
+
+    func testBurnTickHalvesPotency() throws {
+        var battle = makeBattle()
+        let burn = ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.burn]?.tick(burn, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.updatedStack?.effect.potency, 2)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testBurnTickAtPotencyTwoGoesToOne() throws {
+        var battle = makeBattle()
+        let burn = ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.burn]?.tick(burn, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.updatedStack?.effect.potency, 1)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testBurnTickAtPotencyOneIsMarkedForRemoval() throws {
+        var battle = makeBattle()
+        let burn = ActiveEffect(id: 1, effect: .burn(1), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.burn]?.tick(burn, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 0)
+        XCTAssertEqual(outcome.updatedStack?.effect.potency, 0)
+        XCTAssertTrue(outcome.removeAfter)
+    }
+
+    func testPoisonTickDecaysPotency() throws {
+        var battle = makeBattle()
+        let poison = ActiveEffect(id: 1, effect: .poison(8), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.poison]?.tick(poison, on: battle.enemy, in: &battle))
+        XCTAssertEqual(outcome.events.count, 1)
+        // 8 - max(1, 8 * 25 / 100) = 8 - 2 = 6
+        XCTAssertEqual(outcome.updatedStack?.effect.potency, 6)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testPoisonTickAtPotencyTwoIsMarkedForRemoval() throws {
+        var battle = makeBattle()
+        let poison = ActiveEffect(id: 1, effect: .poison(2), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.poison]?.tick(poison, on: battle.enemy, in: &battle))
+        // 2 - max(1, 0) = 1
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.updatedStack?.effect.potency, 1)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testDefaultTickReturnsEmptyOutcome() throws {
+        var battle = makeBattle()
+        // Handlers that don't override `tick` (e.g. ShieldHandler) fall
+        // back to the default empty outcome.
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6, sourceActorID: "hero")
+        let outcome = try XCTUnwrap(EffectHandlers.all[.shield]?.tick(shield, on: battle.enemy, in: &battle))
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertNil(outcome.updatedStack)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+}

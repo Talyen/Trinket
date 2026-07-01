@@ -6,7 +6,7 @@ struct BattleView: View {
     @State private var isShowingVictory = false
     @State private var isShowingDefeat = false
     @State private var timelineStartDate: Date
-    @State private var activeFeedbackEvents: [BattleState.ActionEvent] = []
+    @State private var activeFeedbackEvents: [ActionEvent] = []
     @Binding var isBattlePaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -225,7 +225,7 @@ struct BattleView: View {
         return battle.petEffectSummaries
     }
 
-    private func feedbackEvents(for combatant: Combatant) -> [BattleState.ActionEvent] {
+    private func feedbackEvents(for combatant: Combatant) -> [ActionEvent] {
         activeFeedbackEvents.filter { $0.targetID == combatant.id }
     }
 
@@ -255,7 +255,7 @@ struct BattleView: View {
         }
     }
 
-    private func appendFeedbackEvent(_ event: BattleState.ActionEvent) {
+    private func appendFeedbackEvent(_ event: ActionEvent) {
         activeFeedbackEvents.append(event)
     }
 

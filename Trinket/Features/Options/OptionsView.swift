@@ -51,14 +51,13 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
-
         }
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
         .alert(
             "Reset Game Progress?",
-            isPresented: $isResetConfirmationPresented,
+            isPresented: $isResetConfirmationPresented
         ) {
             Button("Reset Game Progress", role: .destructive) {
                 appState.resetGameplayProgress()

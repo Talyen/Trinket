@@ -25,7 +25,7 @@ final class DoTMechanicsTests: XCTestCase {
         heroEffects: [ActiveEffect] = [],
         heroActionIntervalTicks: Int = 4
     ) -> BattleState {
-        BattleState(
+        BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
                 name: "Hero",
@@ -54,7 +54,7 @@ final class DoTMechanicsTests: XCTestCase {
     }
 
     private func statusAmounts(
-        from events: [BattleState.ActionEvent],
+        from events: [ActionEvent],
         keyword: Keyword
     ) -> [Int] {
         events
@@ -173,7 +173,7 @@ final class DoTMechanicsTests: XCTestCase {
     }
 
     func testBurnRespectsBlockAndArmor() {
-        var battle = BattleState(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
                 name: "Hero",

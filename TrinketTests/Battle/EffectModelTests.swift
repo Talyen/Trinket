@@ -121,4 +121,81 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Ability.heal.summary, "Restore 3 Health.")
         XCTAssertEqual(Ability.heal.directDamage, 0)
     }
+
+    // MARK: - EffectKind
+
+    func testEffectKindMatchesCase() {
+        XCTAssertEqual(Effect.burn(3).kind, .burn)
+        XCTAssertEqual(Effect.poison(2).kind, .poison)
+        XCTAssertEqual(Effect.bleed(1).kind, .bleed)
+        XCTAssertEqual(Effect.prevention(.stun, 1).kind, .prevention)
+        XCTAssertEqual(Effect.preventionBuildup(.freeze, 1, 10).kind, .preventionBuildup)
+        XCTAssertEqual(Effect.shield(.block, 1, 6).kind, .shield)
+        XCTAssertEqual(Effect.mitigation(.armor, 0.25, 6).kind, .mitigation)
+        XCTAssertEqual(Effect.instantHeal(.health, 1).kind, .instantHeal)
+        XCTAssertEqual(Effect.leech(.leech, 0.1, 6).kind, .leech)
+        XCTAssertEqual(Effect.resourceGain(.gold, 1).kind, .resourceGain)
+        XCTAssertEqual(Effect.cleanse(.poison, 0).kind, .cleanse)
+        XCTAssertEqual(Effect.cleanse(nil, 0).kind, .cleanse)
+        XCTAssertEqual(Effect.cleanseRandom.kind, .cleanseRandom)
+        XCTAssertEqual(Effect.dealDamage(.physical, 1).kind, .dealDamage)
+        XCTAssertEqual(Effect.halveMitigation(.armor).kind, .halveMitigation)
+        XCTAssertEqual(Effect.dodge(.dodge, 3).kind, .dodge)
+    }
+
+    func testEffectKindIsUniquePerCase() {
+        // New Effect cases must add a matching EffectKind case.
+        let allKinds = Set<EffectKind>([
+            .burn, .poison, .bleed, .prevention, .preventionBuildup,
+            .shield, .mitigation, .instantHeal, .leech, .resourceGain,
+            .cleanse, .cleanseRandom, .dealDamage, .halveMitigation, .dodge
+        ])
+        XCTAssertEqual(allKinds.count, 15)
+    }
+
+    // MARK: - isRemovableDebuff
+
+    func testIsRemovableDebuffMatchesPriorDefinition() {
+        // debuffs
+        XCTAssertTrue(Effect.burn(1).isRemovableDebuff)
+        XCTAssertTrue(Effect.poison(1).isRemovableDebuff)
+        XCTAssertTrue(Effect.bleed(1).isRemovableDebuff)
+        XCTAssertTrue(Effect.prevention(.stun, 1).isRemovableDebuff)
+        XCTAssertTrue(Effect.preventionBuildup(.stun, 1, 10).isRemovableDebuff)
+        // non-debuffs
+        XCTAssertFalse(Effect.shield(.block, 1, 6).isRemovableDebuff)
+        XCTAssertFalse(Effect.mitigation(.armor, 0.25, 6).isRemovableDebuff)
+        XCTAssertFalse(Effect.leech(.leech, 0.1, 6).isRemovableDebuff)
+        XCTAssertFalse(Effect.cleanse(.poison, 0).isRemovableDebuff)
+        XCTAssertFalse(Effect.cleanse(nil, 0).isRemovableDebuff)
+        XCTAssertFalse(Effect.dodge(.dodge, 3).isRemovableDebuff)
+        XCTAssertFalse(Effect.instantHeal(.health, 1).isRemovableDebuff)
+        XCTAssertFalse(Effect.resourceGain(.gold, 1).isRemovableDebuff)
+        XCTAssertFalse(Effect.dealDamage(.physical, 1).isRemovableDebuff)
+        XCTAssertFalse(Effect.cleanseRandom.isRemovableDebuff)
+        XCTAssertFalse(Effect.halveMitigation(.armor).isRemovableDebuff)
+    }
+
+    // MARK: - isTickable
+
+    func testIsTickableMatchesPriorDefinition() {
+        // ticking effects
+        XCTAssertTrue(Effect.burn(1).isTickable)
+        XCTAssertTrue(Effect.poison(1).isTickable)
+        XCTAssertTrue(Effect.bleed(1).isTickable)
+        XCTAssertTrue(Effect.prevention(.stun, 1).isTickable)
+        XCTAssertTrue(Effect.preventionBuildup(.stun, 1, 10).isTickable)
+        XCTAssertTrue(Effect.shield(.block, 1, 6).isTickable)
+        XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isTickable)
+        XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isTickable)
+        XCTAssertTrue(Effect.cleanse(.poison, 0).isTickable)
+        XCTAssertTrue(Effect.cleanse(nil, 0).isTickable)
+        XCTAssertTrue(Effect.dodge(.dodge, 3).isTickable)
+        // instant effects
+        XCTAssertFalse(Effect.instantHeal(.health, 1).isTickable)
+        XCTAssertFalse(Effect.resourceGain(.gold, 1).isTickable)
+        XCTAssertFalse(Effect.dealDamage(.physical, 1).isTickable)
+        XCTAssertFalse(Effect.cleanseRandom.isTickable)
+        XCTAssertFalse(Effect.halveMitigation(.armor).isTickable)
+    }
 }

@@ -6,8 +6,8 @@ final class StatTests: XCTestCase {
         battle.advanceOneStep()
     }
 
-    private func firstAbilityEvent(in step: BattleStep) -> BattleState.ActionEvent? {
-        let events: [BattleState.ActionEvent]
+    private func firstAbilityEvent(in step: BattleStep) -> ActionEvent? {
+        let events: [ActionEvent]
         switch step {
         case let .acted(_, e): events = e
         case let .effectsOnly(e): events = e
@@ -16,8 +16,8 @@ final class StatTests: XCTestCase {
         return events.first { $0.kind == .ability }
     }
 
-    private func firstStatusEvent(in step: BattleStep) -> BattleState.ActionEvent? {
-        let events: [BattleState.ActionEvent]
+    private func firstStatusEvent(in step: BattleStep) -> ActionEvent? {
+        let events: [ActionEvent]
         switch step {
         case let .acted(_, e): events = e
         case let .effectsOnly(e): events = e
@@ -37,7 +37,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: strong, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: strong, pet: pet, enemy: enemy)
 
         _ = advance(&battle) // tick 1: effects only (hero ready at 2, not ≤ 1)
         let step = advance(&battle) // tick 2: hero acts
@@ -56,7 +56,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: strong, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: strong, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let step = advance(&battle)
@@ -75,7 +75,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: weak, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: weak, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let step = advance(&battle)
@@ -95,12 +95,12 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         // agility 25 → intervalModifier = -5 → effectiveInterval = max(1, 10-5) = 5
         // hero acts at tick 5 (5th advance; first 4 are effects only)
         var heroActed = false
-        for _ in 1...6 {
+        for _ in 1 ... 6 {
             let s = advance(&battle)
             if case let .acted(actor, _) = s, actor.id == hero.id {
                 heroActed = true
@@ -118,10 +118,10 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: slow, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: slow, pet: pet, enemy: enemy)
 
         var heroActed = false
-        for _ in 1...6 {
+        for _ in 1 ... 6 {
             let s = advance(&battle)
             if case let .acted(actor, _) = s, actor.id == "slow" {
                 heroActed = true
@@ -142,7 +142,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        let battle = BattleState(hero: tank, pet: pet, enemy: enemy)
+        let battle = BattleStateTestFactory.makeBattle(hero: tank, pet: pet, enemy: enemy)
 
         XCTAssertEqual(battle.heroHealth, 10 + 5)
     }
@@ -161,7 +161,7 @@ final class StatTests: XCTestCase {
             abilities: [.slash],
             primaryStats: PrimaryStats(strength: 0)
         )
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         let initial = battle.heroHealth
         // enemy acts at tick 1
@@ -186,7 +186,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: wizard, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: wizard, pet: pet, enemy: enemy)
 
         _ = advance(&battle) // tick 1
         let step = advance(&battle) // tick 2: hero acts
@@ -207,7 +207,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: wizard, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: wizard, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let step = advance(&battle)
@@ -236,7 +236,7 @@ final class StatTests: XCTestCase {
             abilities: [.slash],
             primaryStats: PrimaryStats(strength: 0)
         )
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         // Tick 1: enemy hits hero for 1 → health = 100 - 1 = 99
         advance(&battle)
@@ -259,7 +259,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: druid, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: druid, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let step = advance(&battle)
@@ -279,7 +279,7 @@ final class StatTests: XCTestCase {
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: priest, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: priest, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let step = advance(&battle)
@@ -307,10 +307,10 @@ final class StatTests: XCTestCase {
             abilities: [.bash],
             primaryStats: PrimaryStats(strength: 0)
         )
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         // Enemy hits multiple times (high enough to overcome 5% dodge non-determinism)
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             _ = advance(&battle)
         }
 
@@ -334,7 +334,7 @@ final class StatTests: XCTestCase {
             abilities: [.fireball],
             primaryStats: PrimaryStats(strength: 0, intellect: 0)
         )
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         let initial = battle.heroHealth // 100 + 50 = 150
 
@@ -387,7 +387,7 @@ final class StatTests: XCTestCase {
     func testStandardBattleStillWorksWithDefaultStats() {
         let hero = GameContent.heroes[0]
         let pet = GameContent.pets[0]
-        var battle = BattleState(hero: hero, pet: pet)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet)
         while !battle.isBattleOver {
             _ = advance(&battle)
         }
@@ -401,5 +401,45 @@ final class StatTests: XCTestCase {
         let data = try JSONEncoder().encode(stats)
         let decoded = try JSONDecoder().decode(PrimaryStats.self, from: data)
         XCTAssertEqual(decoded, stats)
+    }
+
+    // MARK: - PrimaryStats Rules (extracted from BattleState)
+
+    func testStatBonusForDamageUsesCorrectStat() {
+        let stats = PrimaryStats(strength: 10, agility: 15, intellect: 20, wisdom: 25)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .physical), 2)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .stun), 2)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .bleed), 3)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .burn), 4)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .freeze), 4)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .poison), 5)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .holy), 5)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .nature), 5)
+        // Keywords without a stat mapping return 0
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .armor), 0)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .block), 0)
+    }
+
+    func testDodgeChanceCapsAtSeventyFivePercent() {
+        XCTAssertEqual(PrimaryStats(agility: 0).dodgeChance, 0.05, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 10).dodgeChance, 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 100).dodgeChance, 0.55, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 1000).dodgeChance, 0.75, accuracy: 0.0001)
+    }
+
+    func testToughnessMitigationPctMatchesFormula() {
+        XCTAssertEqual(PrimaryStats(toughness: 0).toughnessMitigationPct, 0.0, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(toughness: 50).toughnessMitigationPct, 0.5, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(toughness: 100).toughnessMitigationPct, 100.0 / 150.0, accuracy: 0.0001)
+    }
+
+    func testDotResistanceMultiplierMatchesFormula() {
+        // 1 - 0.005 * toughness, floored at 0.25
+        XCTAssertEqual(PrimaryStats(toughness: 0).dotResistanceMultiplier, 1.0, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(toughness: 50).dotResistanceMultiplier, 0.75, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(toughness: 100).dotResistanceMultiplier, 0.5, accuracy: 0.0001)
+        // Past 150 toughness, multiplier caps at 0.25
+        XCTAssertEqual(PrimaryStats(toughness: 200).dotResistanceMultiplier, 0.25, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(toughness: 1000).dotResistanceMultiplier, 0.25, accuracy: 0.0001)
     }
 }

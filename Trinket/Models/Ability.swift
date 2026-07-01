@@ -116,30 +116,6 @@ enum Effect: Hashable {
         }
     }
 
-    var isInstant: Bool {
-        switch self {
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return true
-        default: return false
-        }
-    }
-
-    var isDodge: Bool {
-        if case .dodge = self { return true }
-        return false
-    }
-
-    var isDecayingDoT: Bool {
-        switch self {
-        case .burn, .poison: return true
-        default: return false
-        }
-    }
-
-    var isBleed: Bool {
-        if case .bleed = self { return true }
-        return false
-    }
-
     func potencyAfterTick() -> Int {
         switch self {
         case let .burn(potency):

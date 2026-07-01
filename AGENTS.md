@@ -14,6 +14,28 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - Codebase: `App/` · `Features/` · `Battle/` · `State/` stores · `Models/` · `Content/GameContent.swift` · `DesignSystem/TrinketDesign` · `Shared/` · `TrinketTests/` · `TrinketUITests/Smoke/` + `{Collection,Battle,Search}/`.
 - Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
+## Battle Module
+
+All battle files live in `Trinket/Battle/` and `Trinket/Models/`. No separate target.
+
+- `BattleState.swift` — turn loop, damage/leech/DoT rules, tick orchestration. Single `roster: BattleRoster` replaces parallel health/effect/schedule arrays.
+- `CombatantRuntime.swift` — per-combatant mutable state (health, effects, schedule).
+- `BattleRoster.swift` — collection of 3 runtimes + dispatch helpers.
+- `BattleEffectHandler.swift` — `BattleEffectHandler` protocol + `EffectApplyOutcome` + `EffectTickOutcome`.
+- `EffectHandlers.swift` — 15 handler structs + registry keyed by `EffectKind`.
+- `BattleActionEvent.swift` — top-level `ActionEvent` and `LogEntry` types.
+- `EffectSummaryBuilder.swift` — priority-ordered summary dispatch (decaying DoT > bleed > shield > mitigation > prevention > leech > dodge > cleanse).
+- `BattleLogBuilder.swift` — combat-log line assembly.
+- `ActionEventFormatter.swift` — `ActionEventDisplay` value type + `ActionEventFormatter` for UI binding.
+- `BattleSimulator.swift` — slim simulation entry points.
+- `BattleStep.swift` — turn-step enum.
+- `Effect+Properties.swift` (in `Models/`) — `EffectKind` enum + `Effect` properties.
+- `PrimaryStats+Rules.swift` (in `Models/`) — stat formulas.
+
+Key patterns:
+- Effects are value-type structs conforming to `BattleEffectHandler`; lookup by `EffectKind` dictionary in `BattleState`.
+- Test determinism: use `BattleStateTestFactory.makeBattle(...)` (seed 0) instead of raw `BattleState(...)`.
+
 ## Apple-Native Product Rules
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.

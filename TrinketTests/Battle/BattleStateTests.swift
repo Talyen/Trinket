@@ -12,7 +12,7 @@ final class BattleStateTests: XCTestCase {
     func testHeroActsOnSecondTickPetOnThird() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
-        var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
 
         _ = advance(&battle)
         let heroStep = advance(&battle)
@@ -34,7 +34,7 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testEnemyHealthDecreasesOnHit() {
-        var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
         let initial = battle.enemyHealth
         _ = advance(&battle)
         _ = advance(&battle)
@@ -42,7 +42,7 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testEnemyAttackTargetPrefersHigherHealthMember() {
-        var battle = BattleState(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
         let target = battle.enemyAttackTarget
         XCTAssertEqual(target.id, heroId)
     }
@@ -57,19 +57,19 @@ final class BattleStateTests: XCTestCase {
             abilities: [.fireball]
         )
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: [])
-        var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
         _ = advance(&battle)
         let applyStep = advance(&battle)
         XCTAssertTrue(applyStep.events.contains { $0.kind == .ability && $0.keyword == .burn })
         let tickStep = advance(&battle)
-        XCTAssertTrue(tickStep.events.contains { $0.floatingText == "-1 Burn" })
+        XCTAssertTrue(tickStep.events.contains { ActionEventFormatter.display(for: $0).text == "-1 Burn" })
     }
 
     func testPartyDefeatWhenBothHeroAndPetDie() {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let helper = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
-        var battle = BattleState(hero: fragile, pet: helper, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: fragile, pet: helper, enemy: enemy)
         while !battle.isBattleOver {
             _ = advance(&battle)
         }
@@ -121,14 +121,14 @@ final class BattleStateTests: XCTestCase {
 
     func testBattleTracksGoldFromResourceGains() throws {
         let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
-        var battle = BattleState(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+        var battle = BattleStateTestFactory.makeBattle(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertEqual(battle.gold, 11)
     }
 
     func testInitialGoldReflectedInEarnedGold() {
-        var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy, initialGold: 5)
+        var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy, initialGold: 5)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertEqual(battle.earnedGold, battle.gold - 5)
@@ -138,7 +138,10 @@ final class BattleStateTests: XCTestCase {
         let hero = GameContent.heroes[2]
         let result1 = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy, options: BattleSimulationOptions(seed: 42))
         let result2 = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy, options: BattleSimulationOptions(seed: 42))
-        XCTAssertEqual(result1.events.map(\.floatingText), result2.events.map(\.floatingText))
+        XCTAssertEqual(
+            result1.events.map(ActionEventFormatter.display(for:)).map(\.text),
+            result2.events.map(ActionEventFormatter.display(for:)).map(\.text)
+        )
         XCTAssertEqual(result1.metrics, result2.metrics)
     }
 
@@ -167,7 +170,7 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBurnAndPoisonStackIndependently() {
-        var battle = BattleState(
+        var battle = BattleStateTestFactory.makeBattle(
             hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy,
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
@@ -187,7 +190,7 @@ final class BattleStateTests: XCTestCase {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 1, abilities: [])
-        var battle = BattleState(hero: hero, pet: pet, enemy: enemy)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         _ = advance(&battle)
         let heroStep = advance(&battle)

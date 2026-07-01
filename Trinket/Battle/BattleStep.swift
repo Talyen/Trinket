@@ -1,11 +1,11 @@
 import Foundation
 
 enum BattleStep: Equatable {
-    case effectsOnly(events: [BattleState.ActionEvent])
-    case acted(Combatant, events: [BattleState.ActionEvent])
-    case ended(events: [BattleState.ActionEvent])
+    case effectsOnly(events: [ActionEvent])
+    case acted(Combatant, events: [ActionEvent])
+    case ended(events: [ActionEvent])
 
-    var events: [BattleState.ActionEvent] {
+    var events: [ActionEvent] {
         switch self {
         case let .effectsOnly(events), let .acted(_, events), let .ended(events):
             return events

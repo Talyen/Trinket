@@ -101,7 +101,7 @@ struct ExperienceBar: View {
             return
         }
         animationTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: UInt64(initialDelay * 1_000_000_000))
+            try? await Task.sleep(nanoseconds: UInt64(initialDelay * 1000000000))
             guard !Task.isCancelled else { return }
             await runSegments()
         }
@@ -131,7 +131,7 @@ struct ExperienceBar: View {
             displayedFraction = segment.endFraction
             displayedXP = segment.endXP
         }
-        try? await Task.sleep(nanoseconds: UInt64(segmentDuration * 1_000_000_000))
+        try? await Task.sleep(nanoseconds: UInt64(segmentDuration * 1000000000))
     }
 
     private func showLevelUpFlash(newLevel: Int, newRequiredXP: Int) async {
@@ -143,12 +143,12 @@ struct ExperienceBar: View {
         withAnimation(.easeOut(duration: levelUpFlashInDuration)) {
             levelUpBurst = newLevel
         }
-        try? await Task.sleep(nanoseconds: UInt64(levelUpFlashHoldDuration * 1_000_000_000))
+        try? await Task.sleep(nanoseconds: UInt64(levelUpFlashHoldDuration * 1000000000))
         guard !Task.isCancelled else { return }
         withAnimation(.easeIn(duration: levelUpFlashOutDuration)) {
             levelUpBurst = nil
         }
-        try? await Task.sleep(nanoseconds: UInt64(levelUpFlashOutDuration * 1_000_000_000))
+        try? await Task.sleep(nanoseconds: UInt64(levelUpFlashOutDuration * 1000000000))
     }
 
     struct Segment: Equatable {

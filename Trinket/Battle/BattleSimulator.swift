@@ -4,7 +4,7 @@ private struct BattleSimulationMetricsAccumulator {
     private var actorDamage: [String: Int] = [:]
     private var keywordDamage: [Keyword: Int] = [:]
 
-    mutating func record(_ events: [BattleState.ActionEvent]) {
+    mutating func record(_ events: [ActionEvent]) {
         for event in events {
             switch event.kind {
             case .ability:
@@ -32,19 +32,23 @@ private struct BattleSimulationMetricsAccumulator {
 }
 
 enum BattleSimulator {
+    /// Runs a single battle to completion or to `maxTicks`. Convenience
+    /// overload for the common call shape.
     static func run(
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
         maxTicks: Int = 100
     ) -> BattleSimulationResult {
-        let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
-        return run(
-            BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy),
+        run(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
             options: BattleSimulationOptions(maxTicks: maxTicks)
         )
     }
 
+    /// Runs a single battle to completion or to `options.resolvedMaxTicks`.
     static func run(
         hero: Combatant,
         pet: Combatant,
@@ -58,6 +62,7 @@ enum BattleSimulator {
         )
     }
 
+    /// Runs a single battle for the given matchup.
     static func run(
         _ matchup: BattleMatchup,
         options: BattleSimulationOptions = BattleSimulationOptions()
@@ -68,66 +73,18 @@ enum BattleSimulator {
         )
     }
 
-    static func run(
-        _ initialBattle: BattleState,
-        maxTicks: Int = 100
-    ) -> BattleSimulationResult {
-        run(
-            initialBattle,
-            options: BattleSimulationOptions(maxTicks: maxTicks)
-        )
-    }
-
+    /// Drives an already-constructed `BattleState` to completion or
+    /// `options.resolvedMaxTicks`. This is the single core implementation
+    /// shared by every entry point. Determinism is controlled by the seed
+    /// already baked into `BattleState.rng`.
     static func run(
         _ initialBattle: BattleState,
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> BattleSimulationResult {
-        if let seed = options.seed {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            return run(initialBattle, options: options, rng: &rng)
-        }
-
-        var rng = SystemRandomNumberGenerator()
-        return run(initialBattle, options: options, rng: &rng)
-    }
-
-    static func run<RNG: RandomNumberGenerator>(
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant? = nil,
-        options: BattleSimulationOptions = BattleSimulationOptions(),
-        rng: inout RNG
-    ) -> BattleSimulationResult {
-        let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
-        return run(
-            BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy),
-            options: options,
-            rng: &rng
-        )
-    }
-
-    static func run<RNG: RandomNumberGenerator>(
-        _ matchup: BattleMatchup,
-        options: BattleSimulationOptions = BattleSimulationOptions(),
-        rng: inout RNG
-    ) -> BattleSimulationResult {
-        run(
-            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy, rngSeed: options.seed),
-            options: options,
-            rng: &rng
-        )
-    }
-
-    static func run<RNG: RandomNumberGenerator>(
-        _ initialBattle: BattleState,
-        options: BattleSimulationOptions = BattleSimulationOptions(),
-        rng: inout RNG
-    ) -> BattleSimulationResult {
         var battle = initialBattle
-        var capturedEvents: [BattleState.ActionEvent] = []
+        var capturedEvents: [ActionEvent] = []
         var metricsAccumulator = BattleSimulationMetricsAccumulator()
         let tickLimit = options.resolvedMaxTicks
-        _ = rng
 
         while !battle.isBattleOver, battle.tickCount < tickLimit {
             let tickEvents = battle.advanceOneStep().events
@@ -167,27 +124,15 @@ enum BattleSimulator {
         )
     }
 
+    /// Runs every matchup the requested number of times, summarizing the
+    /// results. Useful for win-rate sweeps.
     static func runBatch(
         matchups: [BattleMatchup],
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> [BattleBatchResult] {
-        if let seed = options.seed {
-            var rng = SeededRandomNumberGenerator(seed: seed)
-            return runBatch(matchups: matchups, options: options, rng: &rng)
-        }
-
-        var rng = SystemRandomNumberGenerator()
-        return runBatch(matchups: matchups, options: options, rng: &rng)
-    }
-
-    static func runBatch<RNG: RandomNumberGenerator>(
-        matchups: [BattleMatchup],
-        options: BattleSimulationOptions = BattleSimulationOptions(),
-        rng: inout RNG
-    ) -> [BattleBatchResult] {
         matchups.map { matchup in
             let results = (0 ..< options.resolvedRunCount).map { _ in
-                run(matchup, options: options, rng: &rng)
+                run(matchup, options: options)
             }
 
             return BattleBatchResult(
