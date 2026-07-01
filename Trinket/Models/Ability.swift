@@ -68,6 +68,7 @@ enum Effect: Hashable {
     case dealDamage(Keyword, Int)
     case cleanseRandom
     case halveMitigation(Keyword)
+    case dodge(Keyword, Int)
 
     static let bleedDoTTickCount = 3
     static let standardLeechPercent = 0.10
@@ -90,6 +91,7 @@ enum Effect: Hashable {
         case .cleanse(nil, _), .cleanseRandom: return .health
         case let .dealDamage(k, _): return k
         case let .halveMitigation(k): return k
+        case .dodge: return .dodge
         }
     }
 
@@ -109,6 +111,7 @@ enum Effect: Hashable {
         case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
         case let .cleanse(_, d): return d
+        case let .dodge(_, d): return d
         case .burn, .poison, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation, .preventionBuildup: return 0
         }
     }
@@ -118,6 +121,11 @@ enum Effect: Hashable {
         case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return true
         default: return false
         }
+    }
+
+    var isDodge: Bool {
+        if case .dodge = self { return true }
+        return false
     }
 
     var isDecayingDoT: Bool {
@@ -176,6 +184,8 @@ enum Effect: Hashable {
             return "deal \(amount) \(keyword.rawValue) damage"
         case .halveMitigation(.armor):
             return "reduce enemy Armor by half"
+        case .dodge:
+            return "gain Dodge"
         default:
             return keyword.rawValue
         }
@@ -190,7 +200,7 @@ enum Effect: Hashable {
         switch effect {
         case .burn, .poison, .bleed, .prevention, .preventionBuildup, .dealDamage, .halveMitigation:
             return .abilityTarget
-        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom:
+        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom, .dodge:
             return .actor
         }
     }
@@ -240,6 +250,8 @@ struct ActiveEffect: Identifiable, Hashable {
             return "Leech"
         case .cleanse:
             return "Cleanse"
+        case .dodge:
+            return "Dodge"
         case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
             return ""
         }

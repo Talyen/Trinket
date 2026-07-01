@@ -15,6 +15,7 @@ enum SavedEffect: Codable, Equatable {
     case dealDamage(keyword: String, amount: Int)
     case cleanseRandom
     case halveMitigation(keyword: String)
+    case dodge(keyword: String, duration: Int)
 
     init(_ effect: Effect) {
         switch effect {
@@ -46,6 +47,8 @@ enum SavedEffect: Codable, Equatable {
             self = .cleanseRandom
         case let .halveMitigation(keyword):
             self = .halveMitigation(keyword: keyword.rawValue)
+        case let .dodge(keyword, duration):
+            self = .dodge(keyword: keyword.rawValue, duration: duration)
         }
     }
 
@@ -89,6 +92,9 @@ enum SavedEffect: Codable, Equatable {
         case let .halveMitigation(keywordRawValue):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .halveMitigation(keyword)
+        case let .dodge(keywordRawValue, duration):
+            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
+            return .dodge(keyword, duration)
         }
     }
 }

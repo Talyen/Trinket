@@ -39,6 +39,11 @@ struct CombatantDetailPane: View {
                     VStack(alignment: .leading, spacing: 0) {
                         section("Stats") {
                             statRow("Health", value: "\(currentHealth)/\(combatant.maxHealth)")
+                            statRow("Strength", value: "\(combatant.primaryStats.strength)")
+                            statRow("Agility", value: "\(combatant.primaryStats.agility)")
+                            statRow("Toughness", value: "\(combatant.primaryStats.toughness)")
+                            statRow("Intellect", value: "\(combatant.primaryStats.intellect)")
+                            statRow("Wisdom", value: "\(combatant.primaryStats.wisdom)")
                         }
 
                         if !activeEffectSummaries.isEmpty {

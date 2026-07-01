@@ -50,6 +50,7 @@ struct Combatant: Identifiable, Hashable {
     let maxHealth: Int
     let actionIntervalTicks: Int?
     let abilityChoices: AbilityChoices
+    let primaryStats: PrimaryStats
 
     init(
         id: String,
@@ -57,7 +58,8 @@ struct Combatant: Identifiable, Hashable {
         role: Role,
         maxHealth: Int,
         actionIntervalTicks: Int? = nil,
-        abilityChoices: AbilityChoices
+        abilityChoices: AbilityChoices,
+        primaryStats: PrimaryStats = PrimaryStats()
     ) {
         self.id = id
         self.name = name
@@ -65,6 +67,7 @@ struct Combatant: Identifiable, Hashable {
         self.maxHealth = maxHealth
         self.actionIntervalTicks = actionIntervalTicks
         self.abilityChoices = abilityChoices
+        self.primaryStats = primaryStats
     }
 
     init(
@@ -73,7 +76,8 @@ struct Combatant: Identifiable, Hashable {
         role: Role,
         maxHealth: Int,
         actionIntervalTicks: Int? = nil,
-        abilities: [Ability]
+        abilities: [Ability],
+        primaryStats: PrimaryStats = PrimaryStats()
     ) {
         self.init(
             id: id,
@@ -81,7 +85,8 @@ struct Combatant: Identifiable, Hashable {
             role: role,
             maxHealth: maxHealth,
             actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: AbilityChoices(abilities: abilities)
+            abilityChoices: AbilityChoices(abilities: abilities),
+            primaryStats: primaryStats
         )
     }
 
@@ -100,7 +105,8 @@ struct Combatant: Identifiable, Hashable {
             role: role,
             maxHealth: maxHealth,
             actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: abilityChoices.withSelectedLoadout(loadout)
+            abilityChoices: abilityChoices.withSelectedLoadout(loadout),
+            primaryStats: primaryStats
         )
     }
 
@@ -111,7 +117,8 @@ struct Combatant: Identifiable, Hashable {
             role: role,
             maxHealth: maxHealth,
             actionIntervalTicks: actionIntervalTicks,
-            abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout)
+            abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout),
+            primaryStats: primaryStats
         )
     }
 

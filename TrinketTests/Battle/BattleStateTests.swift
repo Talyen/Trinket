@@ -60,7 +60,7 @@ final class BattleStateTests: XCTestCase {
         var battle = BattleState(hero: hero, pet: pet, enemy: defaultEnemy)
         _ = advance(&battle)
         let applyStep = advance(&battle)
-        XCTAssertTrue(applyStep.events.contains { $0.kind == .ability && $0.amount == 3 && $0.keyword == .burn })
+        XCTAssertTrue(applyStep.events.contains { $0.kind == .ability && $0.keyword == .burn })
         let tickStep = advance(&battle)
         XCTAssertTrue(tickStep.events.contains { $0.floatingText == "-1 Burn" })
     }

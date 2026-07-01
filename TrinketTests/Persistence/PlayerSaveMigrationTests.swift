@@ -34,7 +34,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v1Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertEqual(migrated.schemaVersion, 4)
         XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
         XCTAssertEqual(Set(migrated.roster.unlockedPetIDs), Set(GameContent.pets.map(\.id)))
         XCTAssertEqual(migrated.roster.gold, 12)
@@ -134,7 +134,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v1Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertEqual(migrated.schemaVersion, 4)
         XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), ["knight", "wizard"])
         XCTAssertEqual(migrated.roster.unlockedPetIDs, ["bear"])
         XCTAssertEqual(migrated.roster.gold, 8)
@@ -168,7 +168,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v2Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 3)
+        XCTAssertEqual(migrated.schemaVersion, 4)
         XCTAssertNotEqual(migrated.modifiedAt, .distantPast)
     }
 }

@@ -15,6 +15,8 @@ enum PlayerSaveMigration {
                 current = migrateV1ToV2(current)
             case 2:
                 current = migrateV2ToV3(current)
+            case 3:
+                current = migrateV3ToV4(current)
             default:
                 logger.warning(
                     "Unsupported player save schema version \(current.schemaVersion, privacy: .public). Starting fresh."
@@ -43,6 +45,24 @@ enum PlayerSaveMigration {
         }
         migrated.schemaVersion = 3
         logger.info("Migrated player save from schema v2 to v3.")
+        return migrated
+    }
+
+    private static func migrateV3ToV4(_ save: PlayerSave) -> PlayerSave {
+        var migrated = save
+        migrated.roster = SavedRosterState(
+            activeHeroID: migrated.roster.activeHeroID,
+            activePetID: migrated.roster.activePetID,
+            unlockedHeroIDs: migrated.roster.unlockedHeroIDs,
+            unlockedPetIDs: migrated.roster.unlockedPetIDs,
+            abilityLoadouts: migrated.roster.abilityLoadouts,
+            progressions: migrated.roster.progressions,
+            equipmentLoadouts: migrated.roster.equipmentLoadouts,
+            gold: migrated.roster.gold,
+            primaryStats: [:]
+        )
+        migrated.schemaVersion = 4
+        logger.info("Migrated player save from schema v3 to v4.")
         return migrated
     }
 }

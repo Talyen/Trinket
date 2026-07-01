@@ -109,6 +109,7 @@ struct SavedRosterState: Codable, Equatable {
     var progressions: [String: CombatantProgression]
     var equipmentLoadouts: [String: SavedEquipmentLoadout]
     var gold: Int
+    var primaryStats: [String: PrimaryStats]
 
     enum CodingKeys: String, CodingKey {
         case activeHeroID
@@ -119,6 +120,7 @@ struct SavedRosterState: Codable, Equatable {
         case progressions
         case equipmentLoadouts
         case gold
+        case primaryStats
     }
 
     init(_ roster: PlayerRosterState) {
@@ -130,6 +132,7 @@ struct SavedRosterState: Codable, Equatable {
         progressions = roster.progressions
         equipmentLoadouts = roster.equipmentLoadouts.mapValues(SavedEquipmentLoadout.init)
         gold = roster.gold
+        primaryStats = [:]
     }
 
     init(
@@ -140,7 +143,8 @@ struct SavedRosterState: Codable, Equatable {
         abilityLoadouts: [String: SavedAbilityLoadout],
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: SavedEquipmentLoadout],
-        gold: Int
+        gold: Int,
+        primaryStats: [String: PrimaryStats] = [:]
     ) {
         self.activeHeroID = activeHeroID
         self.activePetID = activePetID
@@ -150,6 +154,7 @@ struct SavedRosterState: Codable, Equatable {
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
         self.gold = gold
+        self.primaryStats = primaryStats
     }
 
     init(from decoder: Decoder) throws {
@@ -162,6 +167,7 @@ struct SavedRosterState: Codable, Equatable {
         progressions = try container.decode([String: CombatantProgression].self, forKey: .progressions)
         equipmentLoadouts = try container.decode([String: SavedEquipmentLoadout].self, forKey: .equipmentLoadouts)
         gold = try container.decode(Int.self, forKey: .gold)
+        primaryStats = try container.decodeIfPresent([String: PrimaryStats].self, forKey: .primaryStats) ?? [:]
     }
 
     func roster(inventoryItemIDs: Set<String>) -> PlayerRosterState {

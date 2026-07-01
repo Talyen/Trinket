@@ -63,7 +63,7 @@ enum BattleSimulator {
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> BattleSimulationResult {
         run(
-            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy),
+            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy, rngSeed: options.seed),
             options: options
         )
     }
@@ -112,7 +112,7 @@ enum BattleSimulator {
         rng: inout RNG
     ) -> BattleSimulationResult {
         run(
-            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy),
+            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy, rngSeed: options.seed),
             options: options,
             rng: &rng
         )

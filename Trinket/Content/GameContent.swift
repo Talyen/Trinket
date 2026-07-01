@@ -363,7 +363,8 @@ enum GameContent {
                 basics: [.bash, .shieldBash],
                 skills: [.smite, .spikedShield],
                 ultimates: [.blessedAegis, .crystalBulwark]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 8, agility: 4, toughness: 10, intellect: 2, wisdom: 3)
         ),
         Combatant(
             id: "rogue",
@@ -374,7 +375,8 @@ enum GameContent {
                 basics: [.stab, .blackjack],
                 skills: [.poisonDagger, .serratedEdge],
                 ultimates: [.hemorrhage, .steal]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 4, intellect: 3, wisdom: 2)
         ),
         Combatant(
             id: "wizard",
@@ -385,7 +387,8 @@ enum GameContent {
                 basics: [.kindling, .rayOfFrost],
                 skills: [.fireball, .frostbolt],
                 ultimates: [.meteor, .glacialWard]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 10, wisdom: 4)
         ),
         Combatant(
             id: "alchemist",
@@ -396,7 +399,8 @@ enum GameContent {
                 basics: [.smellingSalts, .mixedPotion],
                 skills: [.healthPotion, .antivenomPotion],
                 ultimates: [.panaceaPotion, .wishingPotion]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 7, wisdom: 8)
         ),
         Combatant(
             id: "druid",
@@ -407,7 +411,8 @@ enum GameContent {
                 basics: [.apple, .bread],
                 skills: [.briarShield, .graspingVines],
                 ultimates: [.bloodthorn, .pixie]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 7, intellect: 3, wisdom: 9)
         ),
         Combatant(
             id: "ranger",
@@ -418,7 +423,8 @@ enum GameContent {
                 basics: [.bountyShot, .fireArrow],
                 skills: [.venomArrow, .sapArrow],
                 ultimates: [.packTactics, .concussiveShot]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 8, toughness: 5, intellect: 2, wisdom: 4)
         ),
         Combatant(
             id: "warlock",
@@ -429,7 +435,8 @@ enum GameContent {
                 basics: [.willOWisp, .fangs],
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.sunburst, .faustianBargain]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 4, intellect: 9, wisdom: 6)
         ),
         Combatant(
             id: "wildcard",
@@ -440,7 +447,8 @@ enum GameContent {
                 basics: [.gold, .wishingWell],
                 skills: [.haste, .roulette],
                 ultimates: [.wish, .luckPotion]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 6, intellect: 5, wisdom: 6)
         )
     ]
 
@@ -454,7 +462,8 @@ enum GameContent {
                 basics: [.bash, .block],
                 skills: [.spikedShield, .sunderArmor],
                 ultimates: [.crystalBulwark, .thornMail]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 8, agility: 3, toughness: 10, intellect: 1, wisdom: 3)
         ),
         Combatant(
             id: "frost_whelp",
@@ -465,7 +474,8 @@ enum GameContent {
                 basics: [.rayOfFrost, .fangs],
                 skills: [.frostbolt, .coldSnap],
                 ultimates: [.glacialWard, .concussiveShot]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 3, intellect: 9, wisdom: 3)
         ),
         Combatant(
             id: "imp",
@@ -476,7 +486,8 @@ enum GameContent {
                 basics: [.willOWisp, .fangs],
                 skills: [.darkPact, .fireball],
                 ultimates: [.combustion, .faustianBargain]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 3, intellect: 9, wisdom: 4)
         ),
         Combatant(
             id: "lizard_scout",
@@ -487,7 +498,8 @@ enum GameContent {
                 basics: [.stab, .blackjack],
                 skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.hemorrhage, .steal]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 8, toughness: 5, intellect: 3, wisdom: 3)
         ),
         Combatant(
             id: "panther",
@@ -498,7 +510,8 @@ enum GameContent {
                 basics: [.slash, .fangs],
                 skills: [.serratedEdge, .haste],
                 ultimates: [.packTactics, .hemorrhage]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 7, agility: 8, toughness: 4, intellect: 2, wisdom: 3)
         ),
         Combatant(
             id: "phoenix",
@@ -509,7 +522,8 @@ enum GameContent {
                 basics: [.kindling, .willOWisp],
                 skills: [.fireball, .cauterize],
                 ultimates: [.phoenixFeather, .combustion]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 8, wisdom: 7)
         ),
         Combatant(
             id: "wolf",
@@ -520,7 +534,8 @@ enum GameContent {
                 basics: [.slash, .fangs],
                 skills: [.serratedEdge, .venomFangs],
                 ultimates: [.packTactics, .concussiveShot]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 5, intellect: 2, wisdom: 2)
         ),
         Combatant(
             id: "golden_retriever",
@@ -531,7 +546,8 @@ enum GameContent {
                 basics: [.gold, .bread],
                 skills: [.healthPotion, .bountyShot],
                 ultimates: [.wish, .pixie]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 6, intellect: 3, wisdom: 8)
         ),
         Combatant(
             id: "library_owl",
@@ -542,7 +558,8 @@ enum GameContent {
                 basics: [.smellingSalts, .willOWisp],
                 skills: [.cleanse, .prayer],
                 ultimates: [.panaceaPotion, .holyRadiance]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 5, wisdom: 9)
         ),
         Combatant(
             id: "risen_skeleton",
@@ -553,7 +570,8 @@ enum GameContent {
                 basics: [.slash, .fangs],
                 skills: [.darkPact, .bloodOffering],
                 ultimates: [.faustianBargain, .hemorrhage]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 5, toughness: 6, intellect: 5, wisdom: 3)
         ),
         Combatant(
             id: "mana_moth",
@@ -564,23 +582,24 @@ enum GameContent {
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
                 ultimates: [.luckPotion, .sunburst]
-            )
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 3, intellect: 7, wisdom: 7)
         )
     ]
 
     static let enemies: [Enemy] = [
-        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis])),
-        Enemy(combatant: Combatant(id: "imp_enemy", name: "Imp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.willOWisp, .fireball, .combustion])),
-        Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .crystalBulwark])),
-        Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.stab, .poisonDagger, .hemorrhage])),
-        Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.block, .briarShield, .goldenPlate])),
-        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.manaBerries, .darkPact, .hemorrhage])),
-        Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .venomFangs, .serratedArrowhead])),
-        Enemy(combatant: Combatant(id: "skeleton", name: "Skeleton", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis])),
-        Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .moltenBulwark]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .frostbolt, .glacialWard]), isBoss: true),
-        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark]), isBoss: true)
+        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis], primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 3, intellect: 2, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "imp_enemy", name: "Imp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.willOWisp, .fireball, .combustion], primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 2, intellect: 6, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 6, agility: 3, toughness: 8, intellect: 1, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.stab, .poisonDagger, .hemorrhage], primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 5, intellect: 3, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.block, .briarShield, .goldenPlate], primaryStats: PrimaryStats(strength: 4, agility: 3, toughness: 9, intellect: 3, wisdom: 3))),
+        Enemy(combatant: Combatant(id: "necromancer", name: "Necromancer", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.manaBerries, .darkPact, .hemorrhage], primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 3, intellect: 6, wisdom: 4))),
+        Enemy(combatant: Combatant(id: "plague_doctor", name: "Plague Doctor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .venomFangs, .serratedArrowhead], primaryStats: PrimaryStats(strength: 4, agility: 6, toughness: 4, intellect: 5, wisdom: 4))),
+        Enemy(combatant: Combatant(id: "skeleton", name: "Skeleton", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis], primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2))),
+        Enemy(combatant: Combatant(id: "the_blight_treant", name: "The Blight Treant", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.apple, .graspingVines, .bloodthorn], primaryStats: PrimaryStats(strength: 7, agility: 4, toughness: 12, intellect: 5, wisdom: 8)), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_forge_golem", name: "The Forge Golem", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .moltenBulwark], primaryStats: PrimaryStats(strength: 10, agility: 3, toughness: 14, intellect: 3, wisdom: 4)), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_frostwarden", name: "The Frostwarden", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.rayOfFrost, .frostbolt, .glacialWard], primaryStats: PrimaryStats(strength: 4, agility: 6, toughness: 6, intellect: 12, wisdom: 5)), isBoss: true),
+        Enemy(combatant: Combatant(id: "the_iron_bear", name: "The Iron Bear", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.fangs, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 9, agility: 4, toughness: 13, intellect: 2, wisdom: 3)), isBoss: true)
     ]
 
     static let chapters: [Chapter] = [

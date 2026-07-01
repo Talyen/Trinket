@@ -24,6 +24,7 @@ struct BattleState {
             case preventionApplied
             case preventionTriggered
             case cleanseApplied
+            case dodgeApplied
         }
 
         let id: Int
@@ -63,6 +64,7 @@ struct BattleState {
             case .preventionApplied: return "+\(keyword.rawValue)"
             case .preventionTriggered: return "\(keyword.statusAlias ?? keyword.rawValue)!"
             case .cleanseApplied: return "Cleanse \(keyword.rawValue)"
+            case .dodgeApplied: return "Dodge"
             }
         }
     }
@@ -103,12 +105,15 @@ struct BattleState {
 
     private var nextEventID: Int
     private var nextEffectID: Int
+    private var rng: SeededRandomNumberGenerator
     private var hasLoggedDefeat: Bool
     private var hasLoggedPartyDefeat: Bool
     private var heroNextReadyAtTick: Int
     private var petNextReadyAtTick: Int
     private var enemyNextReadyAtTick: Int
     private let initialGold: Int
+
+    static let defaultRNGSeed: UInt64 = 0
 
     init(
         hero: Combatant,
@@ -117,16 +122,20 @@ struct BattleState {
         activeEnemyEffects: [ActiveEffect] = [],
         activeHeroEffects: [ActiveEffect] = [],
         activePetEffects: [ActiveEffect] = [],
-        initialGold: Int = 0
+        initialGold: Int = 0,
+        rngSeed: UInt64? = nil
     ) {
         self.hero = hero
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
         self.enemy = resolvedEnemy
 
-        heroHealth = hero.maxHealth
-        petHealth = pet.maxHealth
-        enemyHealth = resolvedEnemy.maxHealth
+        let seed = rngSeed ?? UInt64.random(in: UInt64.min...UInt64.max)
+        rng = SeededRandomNumberGenerator(seed: seed)
+
+        heroHealth = hero.maxHealth + hero.primaryStats.toughness
+        petHealth = pet.maxHealth + pet.primaryStats.toughness
+        enemyHealth = resolvedEnemy.maxHealth + resolvedEnemy.primaryStats.toughness
 
         tickCount = 0
         actionCount = 0
@@ -139,8 +148,11 @@ struct BattleState {
         self.activePetEffects = activePetEffects
 
         heroActionSpeed = ActionSpeed(baseIntervalTicks: hero.actionIntervalTicks ?? Self.defaultHeroActionIntervalTicks)
+        heroActionSpeed.intervalModifier = -hero.primaryStats.agility / 5
         petActionSpeed = ActionSpeed(baseIntervalTicks: pet.actionIntervalTicks ?? Self.defaultPetActionIntervalTicks)
+        petActionSpeed.intervalModifier = -pet.primaryStats.agility / 5
         enemyActionSpeed = ActionSpeed(baseIntervalTicks: resolvedEnemy.actionIntervalTicks ?? Self.defaultEnemyActionIntervalTicks)
+        enemyActionSpeed.intervalModifier = -resolvedEnemy.primaryStats.agility / 5
 
         nextEventID = 0
         nextEffectID = max(
@@ -191,6 +203,35 @@ struct BattleState {
         if !isHeroAlive { return pet }
         if !isPetAlive { return hero }
         return heroHealth >= petHealth ? hero : pet
+    }
+
+    // MARK: - Primary Stats Helpers
+
+    private func maxHealth(for combatant: Combatant) -> Int {
+        combatant.maxHealth + combatant.primaryStats.toughness
+    }
+
+    private func statBonusForDamage(from actor: Combatant, keyword: Keyword) -> Int {
+        switch keyword {
+        case .physical, .stun: return actor.primaryStats.strength / 5
+        case .bleed: return actor.primaryStats.agility / 5
+        case .burn, .freeze: return actor.primaryStats.intellect / 5
+        case .poison, .holy, .nature: return actor.primaryStats.wisdom / 5
+        default: return 0
+        }
+    }
+
+    private func dodgeChance(for combatant: Combatant) -> Double {
+        min(0.75, 0.05 + Double(combatant.primaryStats.agility) * 0.005)
+    }
+
+    private func toughnessMitigationPct(for combatant: Combatant) -> Double {
+        let t = Double(combatant.primaryStats.toughness)
+        return t / (t + 50.0)
+    }
+
+    private func dotResistanceMultiplier(for combatant: Combatant) -> Double {
+        max(0.25, 1.0 - Double(combatant.primaryStats.toughness) * 0.005)
     }
 
     var enemyEffectSummaries: [EffectSummary] {
@@ -283,6 +324,14 @@ struct BattleState {
                     return nil
                 }.min() ?? 0
                 return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(leechPct * 100))% leech, \(maxTicks) ticks left.")
+            }
+
+            if stacks.contains(where: { if case .dodge = $0 { return true }; return false }) {
+                let maxTicks = stacks.compactMap { eff -> Int? in
+                    if case let .dodge(_, d) = eff { return group.first(where: { $0.effect == eff })?.remainingTicks ?? d }
+                    return nil
+                }.min() ?? 0
+                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxTicks) ticks.")
             }
 
             if stacks.contains(where: { if case .cleanse = $0 { return true }; return false }) {
@@ -619,10 +668,11 @@ struct BattleState {
                 ))
 
             case let .leech(keyword, percent, durationTicks):
+                let wisdomTicks = actor.primaryStats.wisdom / 20
                 let ae = ActiveEffect(
                     id: nextEffectID,
                     effect: effect,
-                    remainingTicks: durationTicks,
+                    remainingTicks: durationTicks + wisdomTicks,
                     sourceActorID: actor.id
                 )
                 nextEffectID += 1
@@ -732,6 +782,19 @@ struct BattleState {
 
             case .preventionBuildup:
                 break
+
+            case let .dodge(keyword, durationTicks):
+                let ae = ActiveEffect(
+                    id: nextEffectID,
+                    effect: effect,
+                    remainingTicks: durationTicks,
+                    sourceActorID: actor.id
+                )
+                nextEffectID += 1
+                var currentEffects = effects(for: effectTarget)
+                currentEffects.append(ae)
+                setEffects(currentEffects, for: effectTarget)
+                appliedEffectLogs.append(effect.summary)
             }
         }
 
@@ -769,7 +832,7 @@ struct BattleState {
         switch effect {
         case .burn, .poison, .bleed, .prevention, .preventionBuildup:
             return true
-        case .shield, .mitigation, .leech, .cleanse, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
+        case .shield, .mitigation, .leech, .cleanse, .dodge, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
             return false
         }
     }
@@ -842,10 +905,18 @@ struct BattleState {
     ) -> [ActionEvent] {
         guard health(for: effectTarget) > 0, potency > 0 else { return [] }
 
+        let statBonus: Int
+        if let actor = combatant(for: sourceActorID) {
+            statBonus = statBonusForDamage(from: actor, keyword: keyword)
+        } else {
+            statBonus = 0
+        }
+        let boostedPotency = potency + statBonus
+
         var events: [ActionEvent] = []
         if dealImmediateDamage {
             events.append(contentsOf: logDoTDamage(
-                applyDoTDamage(potency, keyword: keyword, to: effectTarget, sourceActorID: sourceActorID),
+                applyDoTDamage(boostedPotency, keyword: keyword, to: effectTarget, sourceActorID: sourceActorID),
                 keyword: keyword,
                 target: effectTarget
             ))
@@ -854,7 +925,7 @@ struct BattleState {
         var currentEffects = effects(for: effectTarget)
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + potency)
+            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + boostedPotency)
             if currentEffects[index].sourceActorID == nil {
                 currentEffects[index].sourceActorID = sourceActorID
             }
@@ -862,7 +933,7 @@ struct BattleState {
             currentEffects.append(
                 ActiveEffect(
                     id: nextEffectID,
-                    effect: effectCase(for: keyword, potency: potency),
+                    effect: effectCase(for: keyword, potency: boostedPotency),
                     remainingTicks: 0,
                     sourceActorID: sourceActorID
                 )
@@ -881,10 +952,18 @@ struct BattleState {
     ) -> [ActionEvent] {
         guard health(for: effectTarget) > 0, potency > 0 else { return [] }
 
+        let statBonus: Int
+        if let actor = combatant(for: sourceActorID) {
+            statBonus = statBonusForDamage(from: actor, keyword: .bleed)
+        } else {
+            statBonus = 0
+        }
+        let boostedPotency = potency + statBonus
+
         var events: [ActionEvent] = []
         if dealImmediateDamage {
             events.append(contentsOf: logDoTDamage(
-                applyDoTDamage(potency, keyword: .bleed, to: effectTarget, sourceActorID: sourceActorID),
+                applyDoTDamage(boostedPotency, keyword: .bleed, to: effectTarget, sourceActorID: sourceActorID),
                 keyword: .bleed,
                 target: effectTarget
             ))
@@ -894,7 +973,7 @@ struct BattleState {
         currentEffects.append(
             ActiveEffect(
                 id: nextEffectID,
-                effect: .bleed(potency),
+                effect: .bleed(boostedPotency),
                 remainingTicks: Effect.bleedDoTTickCount,
                 sourceActorID: sourceActorID
             )
@@ -1009,7 +1088,7 @@ struct BattleState {
 
     private func isEffectType(_ effect: Effect) -> Bool {
         switch effect {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .shield, .mitigation, .leech, .cleanse: return true
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .shield, .mitigation, .leech, .cleanse, .dodge: return true
         case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation: return false
         }
     }
@@ -1040,7 +1119,9 @@ struct BattleState {
         guard amount > 0, health(for: combatant) > 0 else { return [] }
         if hasActivePrevention(actor: combatant) { return [] }
 
-        let threshold = max(1, Int(ceil(Double(combatant.maxHealth) * 0.20)))
+        let baseThreshold = Double(maxHealth(for: combatant)) * 0.20
+        let agilityResist = 1.0 + Double(combatant.primaryStats.agility) * 0.01
+        let threshold = max(1, Int(ceil(baseThreshold * agilityResist)))
         var currentEffects = effects(for: combatant)
 
         let existingIndex = currentEffects.firstIndex { ae in
@@ -1123,7 +1204,9 @@ struct BattleState {
         }
         guard leechPct > 0 else { return [] }
 
-        let restored = Int(ceil(Double(damage) * leechPct))
+        let wisdomPercent = Double(actor.primaryStats.wisdom) * 0.001
+        let totalPct = leechPct + wisdomPercent
+        let restored = Int(ceil(Double(damage) * totalPct))
         guard restored > 0 else { return [] }
 
         applyHeal(restored, to: actor)
@@ -1153,8 +1236,30 @@ struct BattleState {
         damageKeyword: Keyword? = nil,
         sourceActorID: String? = nil
     ) -> (healthLost: Int, shieldEvents: [ActionEvent]) {
-        var remaining = amount
         var shieldEvents: [ActionEvent] = []
+
+        if amount > 0, health(for: combatant) > 0, let _ = sourceActorID {
+            if Double.random(in: 0...1, using: &rng) < dodgeChance(for: combatant) {
+                shieldEvents.append(nextEvent(
+                    kind: .effect,
+                    effectKind: .dodgeApplied,
+                    actorName: combatant.name,
+                    abilityName: "Dodge",
+                    target: combatant,
+                    amount: 0,
+                    keyword: .dodge
+                ))
+                return (0, shieldEvents)
+            }
+        }
+
+        let statBonus: Int
+        if let sourceActorID, let damageKeyword, let actor = self.combatant(for: sourceActorID) {
+            statBonus = statBonusForDamage(from: actor, keyword: damageKeyword)
+        } else {
+            statBonus = 0
+        }
+        var remaining = amount + statBonus
 
         var currentEffects = effects(for: combatant)
         var shieldIndexes: [Int] = []
@@ -1188,12 +1293,14 @@ struct BattleState {
             currentEffects.remove(at: index)
         }
 
-        let mitigationPct = currentEffects.reduce(0.0) { sum, ae in
+        let armorPct = currentEffects.reduce(0.0) { sum, ae in
             if case let .mitigation(_, p, _) = ae.effect { return sum + p }
             return sum
         }
-        if mitigationPct > 0 {
-            remaining = Int(ceil(Double(remaining) * max(0, 1 - mitigationPct)))
+        let toughnessPct = toughnessMitigationPct(for: combatant)
+        let combinedPct = max(0, min(1, armorPct + toughnessPct))
+        if combinedPct > 0 {
+            remaining = Int(ceil(Double(remaining) * (1 - combinedPct)))
         }
 
         setEffects(currentEffects, for: combatant)
@@ -1206,12 +1313,13 @@ struct BattleState {
             enemyHealth = max(0, enemyHealth - remaining)
         }
 
-        if amount > 0,
+        let dealt = amount + statBonus
+        if dealt > 0,
            let damageKeyword,
            damageKeyword == .stun || damageKeyword == .freeze,
            health(for: combatant) > 0 {
             shieldEvents.append(contentsOf: applyPreventionBuildup(
-                amount,
+                dealt,
                 keyword: damageKeyword,
                 to: combatant,
                 sourceActorID: sourceActorID
@@ -1222,10 +1330,13 @@ struct BattleState {
     }
 
     private mutating func applyHeal(_ amount: Int, to combatant: Combatant) {
+        let wisdomBonus = combatant.primaryStats.wisdom / 5
+        let total = amount + wisdomBonus
+        let effectiveMax = maxHealth(for: combatant)
         if combatant.id == hero.id {
-            heroHealth = min(hero.maxHealth, heroHealth + amount)
+            heroHealth = min(effectiveMax, heroHealth + total)
         } else if combatant.id == pet.id {
-            petHealth = min(pet.maxHealth, petHealth + amount)
+            petHealth = min(effectiveMax, petHealth + total)
         }
     }
 
