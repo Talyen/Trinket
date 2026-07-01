@@ -22,6 +22,10 @@ struct PlayerInventoryState: Equatable, Hashable {
         items.filter { $0.baseType.slot == slot }
     }
 
+    func hasItem(for slot: ItemSlot) -> Bool {
+        items.contains { $0.baseType.slot == slot }
+    }
+
     mutating func addRewardItem(from template: InventoryItem, for stage: Stage) {
         var randomNumberGenerator = SystemRandomNumberGenerator()
         addRewardItem(from: template, for: stage, using: &randomNumberGenerator)

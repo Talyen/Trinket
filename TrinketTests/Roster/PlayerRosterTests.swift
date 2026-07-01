@@ -198,6 +198,19 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertNil(loadout.itemID(for: .weapon))
     }
 
+    func testInventorySlotUnlocksWhenSlotItemExists() throws {
+        let weapon = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        var inventory = PlayerInventoryState.freshStart
+
+        XCTAssertFalse(inventory.hasItem(for: .weapon))
+        XCTAssertFalse(inventory.hasItem(for: .armor))
+
+        inventory.items.append(weapon)
+
+        XCTAssertTrue(inventory.hasItem(for: .weapon))
+        XCTAssertFalse(inventory.hasItem(for: .armor))
+    }
+
     // MARK: - Inventory rewards
 
     func testAddRewardItemIgnoresDuplicateID() throws {

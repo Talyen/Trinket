@@ -25,4 +25,19 @@ final class SmokeCollectionTests: TrinketUITestCase {
         app.buttons["Knight collection card"].tap()
         assertExists("Knight detail hero header")
     }
+
+    func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {
+        launchApp(arguments: [
+            TestLaunchArg.resetState,
+            TestLaunchArg.disableCloudSync
+        ] + TestLaunchArg.screen("hero:knight"))
+
+        scrollUntilVisible(app.descendants(matching: .any)["Weapon item slot"], swipingUp: true)
+        assertExists("Find a Weapon to Unlock")
+        assertExists("Find Armor to Unlock")
+        assertExists("Find a Trinket to Unlock")
+
+        app.descendants(matching: .any)["Weapon item slot"].tap()
+        XCTAssertFalse(app.navigationBars["Equip Weapon"].waitForExistence(timeout: 1))
+    }
 }

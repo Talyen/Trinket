@@ -242,6 +242,17 @@ enum ItemSlot: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
+    var unlockLabel: String {
+        switch self {
+        case .weapon:
+            return "Find a Weapon to Unlock"
+        case .armor:
+            return "Find Armor to Unlock"
+        case .trinket:
+            return "Find a Trinket to Unlock"
+        }
+    }
+
     struct VisualStyle {
         let accentColor: Color
 

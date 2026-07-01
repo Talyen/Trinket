@@ -8,7 +8,7 @@ struct EquipmentSlotSummaryGrid: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             ForEach(ItemSlot.allCases) { slot in
-                if let onSelect {
+                if let onSelect, !isLocked(slot) {
                     Button {
                         onSelect(slot)
                     } label: {
@@ -30,11 +30,17 @@ struct EquipmentSlotSummaryGrid: View {
 
     private func itemSlot(for slot: ItemSlot) -> some View {
         Group {
-            if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
+            if isLocked(slot) {
+                EmptyItemSlotCard(slot: slot, lockLabel: slot.unlockLabel, reservesLabelSpace: false)
+            } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
                 ItemCard(item: item, showsAffixCount: false, reservesLabelSpace: false)
             } else {
                 EmptyItemSlotCard(slot: slot, reservesLabelSpace: false)
             }
         }
+    }
+
+    private func isLocked(_ slot: ItemSlot) -> Bool {
+        !inventoryState.hasItem(for: slot)
     }
 }

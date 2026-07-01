@@ -34,7 +34,12 @@ struct EmptyAbilitySlotCard: View {
 
 struct EmptyItemSlotCard: View {
     let slot: ItemSlot
+    var lockLabel: String?
     var reservesLabelSpace: Bool = true
+
+    private var isLocked: Bool {
+        lockLabel != nil
+    }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -50,10 +55,29 @@ struct EmptyItemSlotCard: View {
                             .fill(TrinketDesign.Colors.appBackground)
                     }
                 }
+                .saturation(isLocked ? 0.15 : 1)
+                .opacity(isLocked ? 0.65 : 1)
                 .clipShape(TrinketDesign.cardShape)
+                .overlay {
+                    if let lockLabel {
+                        TrinketDesign.cardShape
+                            .fill(.black.opacity(0.35))
+                        VStack(spacing: 6) {
+                            Image(systemName: "lock.fill")
+                                .font(.title3.weight(.semibold))
+                            Text(lockLabel)
+                                .font(.caption.weight(.semibold))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                                .padding(.horizontal, 8)
+                        }
+                        .foregroundStyle(.white)
+                    }
+                }
                 .trinketCardSurface()
 
-            Text("Empty \(slot.rawValue)")
+            Text(title)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
@@ -62,6 +86,17 @@ struct EmptyItemSlotCard: View {
                 .trinketCardLabelSpace(reservesLabelSpace)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Empty \(slot.rawValue) slot")
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        if let lockLabel {
+            return "\(slot.rawValue) slot, \(lockLabel)"
+        }
+        return "Empty \(slot.rawValue) slot"
+    }
+
+    private var title: String {
+        isLocked ? slot.rawValue : "Empty \(slot.rawValue)"
     }
 }
