@@ -152,48 +152,54 @@ struct BattleView: View {
     }
 
     private var battlefield: some View {
-        VStack(spacing: 0) {
-            BattleCombatantPane(
-                combatant: battle.enemy,
-                health: battle.enemyHealth,
-                maxHealth: battle.enemy.maxHealth,
-                healthBarPlacement: .bottom,
-                events: feedbackEvents(for: battle.enemy),
-                reduceMotion: reduceMotion,
-                onRemoveEvent: removeFeedbackEvent
-            ) {
-                showDetails(for: battle.enemy)
-            }
-            .frame(maxHeight: .infinity)
+        GeometryReader { geometry in
+            let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
-            HStack(spacing: 0) {
+            VStack(spacing: layout.cardSpacing) {
                 BattleCombatantPane(
-                    combatant: battle.hero,
-                    health: battle.heroHealth,
-                    maxHealth: battle.hero.maxHealth,
-                    healthBarPlacement: .top,
-                    events: feedbackEvents(for: battle.hero),
+                    combatant: battle.enemy,
+                    health: battle.enemyHealth,
+                    maxHealth: battle.enemy.maxHealth,
+                    healthBarPlacement: .bottom,
+                    events: feedbackEvents(for: battle.enemy),
                     reduceMotion: reduceMotion,
                     onRemoveEvent: removeFeedbackEvent
                 ) {
-                    showDetails(for: battle.hero)
+                    showDetails(for: battle.enemy)
                 }
+                .frame(width: layout.enemySize.width, height: layout.enemySize.height)
 
-                BattleCombatantPane(
-                    combatant: battle.pet,
-                    health: battle.petHealth,
-                    maxHealth: battle.pet.maxHealth,
-                    healthBarPlacement: .top,
-                    events: feedbackEvents(for: battle.pet),
-                    reduceMotion: reduceMotion,
-                    onRemoveEvent: removeFeedbackEvent
-                ) {
-                    showDetails(for: battle.pet)
+                HStack(spacing: layout.cardSpacing) {
+                    BattleCombatantPane(
+                        combatant: battle.hero,
+                        health: battle.heroHealth,
+                        maxHealth: battle.hero.maxHealth,
+                        healthBarPlacement: .top,
+                        events: feedbackEvents(for: battle.hero),
+                        reduceMotion: reduceMotion,
+                        onRemoveEvent: removeFeedbackEvent
+                    ) {
+                        showDetails(for: battle.hero)
+                    }
+                    .frame(width: layout.partySize.width, height: layout.partySize.height)
+
+                    BattleCombatantPane(
+                        combatant: battle.pet,
+                        health: battle.petHealth,
+                        maxHealth: battle.pet.maxHealth,
+                        healthBarPlacement: .top,
+                        events: feedbackEvents(for: battle.pet),
+                        reduceMotion: reduceMotion,
+                        onRemoveEvent: removeFeedbackEvent
+                    ) {
+                        showDetails(for: battle.pet)
+                    }
+                    .frame(width: layout.partySize.width, height: layout.partySize.height)
                 }
             }
-            .frame(maxHeight: .infinity)
+            .padding(layout.outerPadding)
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
-        .ignoresSafeArea(edges: .top)
     }
 
     private func showDetails(for combatant: Combatant) {

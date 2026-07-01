@@ -1,47 +1,38 @@
 import SwiftUI
 
-enum BattleArtViewportLayout {
+enum BattleCardGridLayout {
     static let artAspectRatio: CGFloat = 3.0 / 4.0
+    static let outerPadding: CGFloat = 10
+    static let cardSpacing: CGFloat = 10
 
-    struct Placement: Equatable {
-        let size: CGSize
-        let origin: CGPoint
-
-        var center: CGPoint {
-            CGPoint(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
-        }
+    struct Metrics: Equatable {
+        let enemySize: CGSize
+        let partySize: CGSize
+        let outerPadding: CGFloat
+        let cardSpacing: CGFloat
     }
 
-    static func placement(in viewportSize: CGSize, focalPoint: UnitPoint) -> Placement {
-        guard viewportSize.width > 0, viewportSize.height > 0 else {
-            return Placement(size: .zero, origin: .zero)
+    static func metrics(in containerSize: CGSize) -> Metrics {
+        let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
+        let innerHeight = max(containerSize.height - 2 * outerPadding, 0)
+        guard innerWidth > 0, innerHeight > 0 else {
+            return Metrics(enemySize: .zero, partySize: .zero, outerPadding: outerPadding, cardSpacing: cardSpacing)
         }
 
-        let viewportRatio = viewportSize.width / viewportSize.height
-        let artSize: CGSize
-        if viewportRatio > artAspectRatio {
-            artSize = CGSize(width: viewportSize.width, height: viewportSize.width / artAspectRatio)
-        } else {
-            artSize = CGSize(width: viewportSize.height * artAspectRatio, height: viewportSize.height)
-        }
+        let maxPartyWidth = max((innerWidth - cardSpacing) / 2, 0)
+        let maxBalancedPartyWidth = max((innerHeight - cardSpacing) * artAspectRatio / 2, 0)
+        let partyWidth = min(maxPartyWidth, maxBalancedPartyWidth)
+        let partyHeight = partyWidth / artAspectRatio
 
-        let desiredFocalPoint = CGPoint(x: viewportSize.width / 2, y: viewportSize.height / 2)
-        let unclampedOrigin = CGPoint(
-            x: desiredFocalPoint.x - artSize.width * focalPoint.x,
-            y: desiredFocalPoint.y - artSize.height * focalPoint.y
+        let enemyHeight = max(innerHeight - partyHeight - cardSpacing, 0)
+        let enemyWidth = min(innerWidth, enemyHeight * artAspectRatio)
+
+        return Metrics(
+            enemySize: CGSize(width: enemyWidth, height: enemyWidth / artAspectRatio),
+            partySize: CGSize(width: partyWidth, height: partyHeight),
+            outerPadding: outerPadding,
+            cardSpacing: cardSpacing
         )
-
-        return Placement(
-            size: artSize,
-            origin: CGPoint(
-                x: clampedOrigin(unclampedOrigin.x, contentLength: artSize.width, viewportLength: viewportSize.width),
-                y: clampedOrigin(unclampedOrigin.y, contentLength: artSize.height, viewportLength: viewportSize.height)
-            )
-        )
-    }
-
-    private static func clampedOrigin(_ origin: CGFloat, contentLength: CGFloat, viewportLength: CGFloat) -> CGFloat {
-        min(max(origin, viewportLength - contentLength), 0)
     }
 }
 
@@ -49,31 +40,20 @@ struct BattleArtViewport: View {
     let combatant: Combatant
 
     var body: some View {
-        GeometryReader { geometry in
-            let artReference = combatant.artReference
-            let placement = BattleArtViewportLayout.placement(
-                in: geometry.size,
-                focalPoint: artReference?.focalPoint ?? .center
-            )
-
-            ZStack {
-                if let artReference {
-                    Image(artReference.imageName)
-                        .resizable()
-                        .interpolation(.medium)
-                        .scaledToFill()
-                        .frame(width: placement.size.width, height: placement.size.height)
-                        .position(placement.center)
-                        .accessibilityLabel(artReference.accessibilityLabel)
-                } else {
-                    placeholderArt
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .accessibilityLabel("\(combatant.name) placeholder art")
-                }
+        ZStack {
+            if let artReference = combatant.artReference {
+                Image(artReference.imageName)
+                    .resizable()
+                    .interpolation(.medium)
+                    .scaledToFill()
+                    .accessibilityLabel(artReference.accessibilityLabel)
+            } else {
+                placeholderArt
+                    .accessibilityLabel("\(combatant.name) placeholder art")
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            .clipped()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
     }
 
     private var placeholderArt: some View {
@@ -128,7 +108,8 @@ struct BattleCombatantPane: View {
                 .padding(.horizontal, 8)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
+            .trinketCardSurface()
+            .contentShape(TrinketDesign.cardShape)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(combatant.name) card")
             .accessibilityValue(healthText)

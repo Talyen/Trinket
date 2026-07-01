@@ -17,7 +17,6 @@
 		11F707F7833A236E4137A5AC /* AppEnvironmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2A11DAF9962C6785E6B814 /* AppEnvironmentTests.swift */; };
 		1512296463DD2CF36F2CFEB8 /* PlayerJourneyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 968937AE87F4AF4DA28A5823 /* PlayerJourneyStore.swift */; };
 		178045FB5FC25D56183B8C49 /* Homestead.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F44736054B20248E91E5B6 /* Homestead.swift */; };
-		1868B0A16BE893276AC7B10C /* BattleArtViewportLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718E92E474BB80722FF81C3A /* BattleArtViewportLayoutTests.swift */; };
 		18F4EE2EBD2E89F5BB56153A /* SmokeHeroDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FF5D3F90C0DF1F9954264E7 /* SmokeHeroDetailTests.swift */; };
 		1A5DF46E565CA6F89A4FBC77 /* CombatantDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 347BB1AB82B612306606BC5E /* CombatantDetail.swift */; };
 		1B17EF37C44E72F215CACD2F /* EmptySlots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA113D28663DD99A31408B3 /* EmptySlots.swift */; };
@@ -145,6 +144,7 @@
 		EE30D7D59F6902A352FD35F8 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEC947E893452FC5D8E2081 /* OptionsView.swift */; };
 		EE6011AE2C0BE69860F552DF /* KeywordDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */; };
 		F27756CBB55AB57711793F4C /* music_menu_3.m4a in Resources */ = {isa = PBXBuildFile; fileRef = BA72203384B18518CBD9713B /* music_menu_3.m4a */; };
+		F948894FA511AB1A697900CD /* BattleCardGridLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */; };
 		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
 		FAA47725F11C48BC843A3EFD /* OptionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B491A0A9519D754A3DAAF9 /* OptionsStore.swift */; };
 		FB3299762F0E055E1941347A /* SmokePlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43A50775733A11230CAAA95 /* SmokePlayTests.swift */; };
@@ -236,7 +236,6 @@
 		6D5EA88828F72B5DA0CA525F /* JourneyContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyContentTests.swift; sourceTree = "<group>"; };
 		6E05148A596023F71EC6F7C3 /* PlayerRosterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRosterStore.swift; sourceTree = "<group>"; };
 		714E26B9A8CB07A3165594C8 /* music_menu_2.m4a */ = {isa = PBXFileReference; path = music_menu_2.m4a; sourceTree = "<group>"; };
-		718E92E474BB80722FF81C3A /* BattleArtViewportLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleArtViewportLayoutTests.swift; sourceTree = "<group>"; };
 		766CB88EF7942D0B76F2F24B /* PlayerSaveSyncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncing.swift; sourceTree = "<group>"; };
 		769E5E691395F845BABD973F /* ItemSlotPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSlotPickerView.swift; sourceTree = "<group>"; };
 		77D9C77B3383418401FDD73C /* music_boss_iron_bear.m4a */ = {isa = PBXFileReference; path = music_boss_iron_bear.m4a; sourceTree = "<group>"; };
@@ -301,6 +300,7 @@
 		D77B1B572840FE4B65134F04 /* Smoke.xctestplan */ = {isa = PBXFileReference; path = Smoke.xctestplan; sourceTree = "<group>"; };
 		DDEEE7C69B927E5A5C87B01B /* PlayerSaveMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveMigrationTests.swift; sourceTree = "<group>"; };
 		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCardGridLayoutTests.swift; sourceTree = "<group>"; };
 		E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantHealthDetail.swift; sourceTree = "<group>"; };
 		E337C436B7698F74EADC51AE /* StageRewardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageRewardTests.swift; sourceTree = "<group>"; };
 		E475EE13E1487D90C6976139 /* BattleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleState.swift; sourceTree = "<group>"; };
@@ -507,7 +507,7 @@
 		957B2E0523CB0FC51D041B44 /* Battle */ = {
 			isa = PBXGroup;
 			children = (
-				718E92E474BB80722FF81C3A /* BattleArtViewportLayoutTests.swift */,
+				DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */,
 				C830DB0F9FAC0426BD7BBBB8 /* BattleEffectTests.swift */,
 				62375A0D4AD99EB4A1D32358 /* BattleSimulatorTests.swift */,
 				003A0737522A6E1EDF301911 /* BattleStateSchedulingTests.swift */,
@@ -1037,7 +1037,7 @@
 			files = (
 				11F707F7833A236E4137A5AC /* AppEnvironmentTests.swift in Sources */,
 				4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */,
-				1868B0A16BE893276AC7B10C /* BattleArtViewportLayoutTests.swift in Sources */,
+				F948894FA511AB1A697900CD /* BattleCardGridLayoutTests.swift in Sources */,
 				6E6ED2C8190DD877CF0E8E78 /* BattleEffectTests.swift in Sources */,
 				FC1C937AD1C4C47257B9D1BE /* BattleSimulatorTests.swift in Sources */,
 				381688F1CAF45AF5B8AE41ED /* BattleStateSchedulingTests.swift in Sources */,
