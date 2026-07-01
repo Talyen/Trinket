@@ -222,3 +222,36 @@ struct SavedInventoryState: Codable, Equatable {
         PlayerInventoryState(items: items.compactMap { $0.item() })
     }
 }
+
+struct SavedHomesteadState: Codable, Equatable {
+    var resources: [String: Int]
+    var nodeTiers: [String: Int]
+
+    init(_ homestead: PlayerHomesteadState) {
+        resources = Dictionary(
+            uniqueKeysWithValues: homestead.resources.map { ($0.key.rawValue, max($0.value, 0)) }
+        )
+        nodeTiers = Dictionary(
+            uniqueKeysWithValues: homestead.nodeTiers.map { ($0.key.rawValue, max($0.value, 0)) }
+        )
+    }
+
+    func homestead() -> PlayerHomesteadState {
+        var resolvedResources: [HomesteadResource: Int] = [:]
+        for (rawValue, quantity) in resources {
+            guard let resource = HomesteadResource(rawValue: rawValue), resource != .gold else { continue }
+            resolvedResources[resource] = max(quantity, 0)
+        }
+
+        let maxTiersByNode = Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.map { ($0.id, $0.maxTier) })
+        var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
+        for (rawValue, tier) in nodeTiers {
+            guard let nodeID = HomesteadNodeID(rawValue: rawValue),
+                  let maxTier = maxTiersByNode[nodeID]
+            else { continue }
+            resolvedNodeTiers[nodeID] = min(max(tier, 0), maxTier)
+        }
+
+        return PlayerHomesteadState(resources: resolvedResources, nodeTiers: resolvedNodeTiers)
+    }
+}

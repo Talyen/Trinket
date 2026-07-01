@@ -103,6 +103,7 @@ struct PlayView: View {
             )
             .id(activeBattle.id)
             .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .tabBar)
         } else {
             ChapterStageSelectView(
                 chapter: currentChapter,
@@ -188,6 +189,7 @@ struct PlayView: View {
     private func completeStage(_ stage: Stage, hero: Combatant, pet: Combatant, battleEarnedGold: Int = 0) {
         var roster = appState.roster.current
         var inventory = appState.inventory.current
+        var homestead = appState.homestead.current
         var journey = appState.journey.current
         StageCompletion.complete(
             stage,
@@ -197,10 +199,12 @@ struct PlayView: View {
             in: chapters,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
         appState.roster.current = roster
         appState.inventory.current = inventory
+        appState.homestead.current = homestead
         appState.journey.current = journey
         pendingScrollTarget = appState.journey.current.activeStageID ?? "chapter-2-locked"
     }
@@ -530,7 +534,6 @@ private struct StageDeckCardView: View {
     let card: StageDeckCard
     let onStageTap: (Stage) -> Void
 
-    @ViewBuilder
     var body: some View {
         switch card {
         case let .stage(node):

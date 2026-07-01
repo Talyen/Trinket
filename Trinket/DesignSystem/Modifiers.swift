@@ -41,6 +41,15 @@ struct CardLabelSpaceModifier: ViewModifier {
     }
 }
 
+struct PrimaryActionButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .buttonBorderShape(.roundedRectangle)
+    }
+}
+
 extension View {
     func trinketFloatingGlassControl() -> some View {
         modifier(FloatingGlassControlButtonModifier())
@@ -56,6 +65,10 @@ extension View {
 
     func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
         modifier(CardLabelSpaceModifier(isReserved: isReserved))
+    }
+
+    func trinketPrimaryActionButton() -> some View {
+        modifier(PrimaryActionButtonModifier())
     }
 }
 

@@ -34,10 +34,11 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v1Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 4)
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), Set(GameContent.heroes.map(\.id)))
         XCTAssertEqual(Set(migrated.roster.unlockedPetIDs), Set(GameContent.pets.map(\.id)))
         XCTAssertEqual(migrated.roster.gold, 12)
+        XCTAssertEqual(migrated.homestead.homestead(), .freshStart)
     }
 
     func testLoadV1JSONFromDiskMigratesToCurrentSchema() throws {
@@ -134,7 +135,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v1Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 4)
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertEqual(Set(migrated.roster.unlockedHeroIDs), ["knight", "wizard"])
         XCTAssertEqual(migrated.roster.unlockedPetIDs, ["bear"])
         XCTAssertEqual(migrated.roster.gold, 8)
@@ -155,6 +156,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
         XCTAssertEqual(migrated.journey, .initial)
         XCTAssertEqual(migrated.roster, SavedRosterState(.freshStart))
         XCTAssertEqual(migrated.inventory, SavedInventoryState(.freshStart))
+        XCTAssertEqual(migrated.homestead, SavedHomesteadState(.freshStart))
     }
 
     func testMigrateV2ToV3StampsModifiedAt() {
@@ -168,7 +170,22 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         let migrated = PlayerSaveMigration.migrate(v2Save)
 
-        XCTAssertEqual(migrated.schemaVersion, 4)
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertNotEqual(migrated.modifiedAt, .distantPast)
+    }
+
+    func testMigrateV4ToV5AddsFreshHomestead() {
+        let v4Save = PlayerSave(
+            schemaVersion: 4,
+            modifiedAt: Date(),
+            journey: .initial,
+            roster: SavedRosterState(.freshStart),
+            inventory: SavedInventoryState(.freshStart)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(v4Save)
+
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertEqual(migrated.homestead.homestead(), .freshStart)
     }
 }

@@ -10,6 +10,7 @@ final class AppState {
     var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
+    var homestead: PlayerHomesteadStore
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
@@ -44,6 +45,7 @@ final class AppState {
         musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
         roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
+        homestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
         options = resolvedOptions
         battle = BattleSession()
         journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)

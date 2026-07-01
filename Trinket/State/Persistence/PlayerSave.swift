@@ -1,13 +1,14 @@
 import Foundation
 
 struct PlayerSave: Codable, Equatable {
-    static let currentSchemaVersion = 4
+    static let currentSchemaVersion = 5
 
     var schemaVersion: Int
     var modifiedAt: Date
     var journey: JourneyProgressState
     var roster: SavedRosterState
     var inventory: SavedInventoryState
+    var homestead: SavedHomesteadState
 
     static var fresh: PlayerSave {
         PlayerSave(
@@ -15,7 +16,8 @@ struct PlayerSave: Codable, Equatable {
             modifiedAt: Date(),
             journey: .initial,
             roster: SavedRosterState(.freshStart),
-            inventory: SavedInventoryState(.freshStart)
+            inventory: SavedInventoryState(.freshStart),
+            homestead: SavedHomesteadState(.freshStart)
         )
     }
 
@@ -25,7 +27,8 @@ struct PlayerSave: Codable, Equatable {
             modifiedAt: Date(),
             journey: .initial,
             roster: SavedRosterState(.testSeed),
-            inventory: SavedInventoryState(.testSeed)
+            inventory: SavedInventoryState(.testSeed),
+            homestead: SavedHomesteadState(.testSeed)
         )
     }
 
@@ -34,13 +37,15 @@ struct PlayerSave: Codable, Equatable {
         modifiedAt: Date,
         journey: JourneyProgressState,
         roster: SavedRosterState,
-        inventory: SavedInventoryState
+        inventory: SavedInventoryState,
+        homestead: SavedHomesteadState = SavedHomesteadState(.freshStart)
     ) {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
         self.journey = journey
         self.roster = roster
         self.inventory = inventory
+        self.homestead = homestead
     }
 
     init(from decoder: Decoder) throws {
@@ -50,6 +55,8 @@ struct PlayerSave: Codable, Equatable {
         journey = try container.decode(JourneyProgressState.self, forKey: .journey)
         roster = try container.decode(SavedRosterState.self, forKey: .roster)
         inventory = try container.decode(SavedInventoryState.self, forKey: .inventory)
+        homestead = try container.decodeIfPresent(SavedHomesteadState.self, forKey: .homestead)
+            ?? SavedHomesteadState(.freshStart)
     }
 
     func playerRoster(inventoryItemIDs: Set<String>) -> PlayerRosterState {

@@ -25,14 +25,16 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(store.roster.activeHeroID, PlayerRosterState.starterHeroID)
         XCTAssertEqual(store.roster.activePetID, PlayerRosterState.starterPetID)
         XCTAssertEqual(store.inventory, .freshStart)
+        XCTAssertEqual(store.homestead, .freshStart)
         XCTAssertEqual(store.journey, .initial)
     }
 
-    func testPlayerSavePersistsJourneyRosterAndInventory() throws {
+    func testPlayerSavePersistsJourneyRosterInventoryAndHomestead() throws {
         let fileStore = makeFileStore()
         let firstStore = PlayerSaveStore(fileStore: fileStore)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
+        firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
         try firstStore.addRewardItem(
             from: XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic")),
             for: GameContent.chapters[0].stages[0]
@@ -43,6 +45,8 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         XCTAssertEqual(secondStore.roster.gold, 42)
         XCTAssertEqual(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP, 20)
+        XCTAssertEqual(secondStore.homestead.resources[.wood], 14)
+        XCTAssertEqual(secondStore.homestead.resources[.crystal], 2)
         XCTAssertNotNil(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(secondStore.journey.activeStageID, "chapter-1-stage-2")
     }
@@ -60,6 +64,7 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         XCTAssertEqual(store.roster, .freshStart)
         XCTAssertEqual(store.inventory, .freshStart)
+        XCTAssertEqual(store.homestead, .freshStart)
         XCTAssertEqual(store.journey, .initial)
     }
 
@@ -69,6 +74,7 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         XCTAssertEqual(store.roster, .testSeed)
         XCTAssertEqual(store.inventory, .testSeed)
+        XCTAssertEqual(store.homestead, .testSeed)
     }
 
     func testEquipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
@@ -117,5 +123,11 @@ private extension PlayerSaveStore {
         var updated = journey
         updated.complete(stage, in: chapters)
         journey = updated
+    }
+
+    func grantHomestead(_ rewards: [ResourceAmount]) {
+        var updated = homestead
+        updated.grant(rewards)
+        homestead = updated
     }
 }

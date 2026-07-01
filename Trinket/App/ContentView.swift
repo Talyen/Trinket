@@ -23,7 +23,7 @@ struct ContentView: View {
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 NavigationStack {
-                    PlaceholderTabView(title: "Homestead")
+                    HomesteadView()
                 }
             }
 

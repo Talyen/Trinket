@@ -8,6 +8,7 @@ enum PlayerSaveSanitizer {
             sanitized.roster,
             inventoryItemIDs: inventoryItemIDs(from: sanitized.inventory)
         )
+        sanitized.homestead = SavedHomesteadState(save.homestead.homestead())
         return sanitized
     }
 

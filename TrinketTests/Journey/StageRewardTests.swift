@@ -34,6 +34,7 @@ final class StageRewardTests: XCTestCase {
     func testCompletingStageGrantsGoldXPAndItems() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
@@ -47,6 +48,7 @@ final class StageRewardTests: XCTestCase {
             in: GameContent.chapters,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
 
@@ -54,9 +56,36 @@ final class StageRewardTests: XCTestCase {
         XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + firstStage.rewards.experience)
         XCTAssertEqual(roster.progression(for: pet).currentXP, petXPBefore + firstStage.rewards.experience)
         XCTAssertNotNil(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        XCTAssertEqual(homestead.resources[.wood], 8)
+        XCTAssertEqual(homestead.resources[.stone], 3)
         XCTAssertTrue(journey.hasClaimedRewards(for: firstStage))
         XCTAssertTrue(journey.isCompleted(firstStage))
         XCTAssertEqual(journey.activeStageID, "chapter-1-stage-2")
+    }
+
+    func testHomesteadBonusesAdjustMaterialRewards() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.hearth: 2, .lumberCamp: 2]
+        )
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            pet: pet,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(homestead.resources[.wood], 10)
+        XCTAssertEqual(homestead.resources[.stone], 4)
     }
 
     func testCompletingStageTwiceDoesNotDoubleRewards() throws {

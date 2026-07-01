@@ -98,11 +98,24 @@ struct StageReward: Hashable {
     let gold: Int
     let experience: Int
     let itemTemplateIDs: [String]
+    let materialRewards: [ResourceAmount]
+
+    init(
+        gold: Int,
+        experience: Int,
+        itemTemplateIDs: [String],
+        materialRewards: [ResourceAmount] = []
+    ) {
+        self.gold = gold
+        self.experience = experience
+        self.itemTemplateIDs = itemTemplateIDs
+        self.materialRewards = materialRewards
+    }
 
     static let empty = StageReward(gold: 0, experience: 0, itemTemplateIDs: [])
 
     var hasRewards: Bool {
-        gold > 0 || experience > 0 || !itemTemplateIDs.isEmpty
+        gold > 0 || experience > 0 || !itemTemplateIDs.isEmpty || !materialRewards.isEmpty
     }
 }
 

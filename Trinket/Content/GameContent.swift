@@ -617,7 +617,12 @@ enum GameContent {
                     title: "Moss Gate",
                     flavorText: "The old forest road narrows beneath a bright green canopy.",
                     encounter: .battle(enemyID: "goblin"),
-                    rewards: StageReward(gold: 12, experience: 20, itemTemplateIDs: ["shortsword-basic"])
+                    rewards: StageReward(
+                        gold: 12,
+                        experience: 20,
+                        itemTemplateIDs: ["shortsword-basic"],
+                        materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-2",
@@ -627,7 +632,12 @@ enum GameContent {
                     title: "Whispering Roots",
                     flavorText: "Something beneath the trail points you toward a safer path.",
                     encounter: .event,
-                    rewards: StageReward(gold: 8, experience: 12, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 8,
+                        experience: 12,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.food, 4), ResourceAmount(.herbs, 2)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-3",
@@ -637,7 +647,12 @@ enum GameContent {
                     title: "Tangled Thicket",
                     flavorText: "Briars close behind you as a brittle shape steps forward.",
                     encounter: .battle(enemyID: "skeleton"),
-                    rewards: StageReward(gold: 14, experience: 24, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 14,
+                        experience: 24,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 5)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-4",
@@ -647,7 +662,12 @@ enum GameContent {
                     title: "Lantern Cart",
                     flavorText: "A covered cart waits beside the trail, its little lantern still warm.",
                     encounter: .shop,
-                    rewards: StageReward(gold: 5, experience: 10, itemTemplateIDs: ["leather_armor-basic"])
+                    rewards: StageReward(
+                        gold: 5,
+                        experience: 10,
+                        itemTemplateIDs: ["leather_armor-basic"],
+                        materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.iron, 2)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-5",
@@ -657,7 +677,12 @@ enum GameContent {
                     title: "Sinking Glade",
                     flavorText: "The ground softens underfoot, and the glade begins to move.",
                     encounter: .battle(enemyID: "mud_elemental"),
-                    rewards: StageReward(gold: 18, experience: 30, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 18,
+                        experience: 30,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.stone, 9), ResourceAmount(.herbs, 3)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-6",
@@ -667,7 +692,12 @@ enum GameContent {
                     title: "Moonwell Rest",
                     flavorText: "Clear water gathers in a stone basin covered in silver leaves.",
                     encounter: .rest,
-                    rewards: StageReward(gold: 0, experience: 16, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 0,
+                        experience: 16,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.food, 8), ResourceAmount(.herbs, 5)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-7",
@@ -677,7 +707,12 @@ enum GameContent {
                     title: "Spore Lanterns",
                     flavorText: "Pale lights drift between the trees, each one trailing a bitter mist.",
                     encounter: .battle(enemyID: "plague_doctor"),
-                    rewards: StageReward(gold: 22, experience: 36, itemTemplateIDs: ["emerald_ring-basic"])
+                    rewards: StageReward(
+                        gold: 22,
+                        experience: 36,
+                        itemTemplateIDs: ["emerald_ring-basic"],
+                        materialRewards: [ResourceAmount(.herbs, 7), ResourceAmount(.crystal, 1)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-8",
@@ -687,7 +722,12 @@ enum GameContent {
                     title: "Foxfire Fork",
                     flavorText: "Two false trails glitter ahead before the forest reveals the true one.",
                     encounter: .event,
-                    rewards: StageReward(gold: 10, experience: 18, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 10,
+                        experience: 18,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.food, 6)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-9",
@@ -697,7 +737,12 @@ enum GameContent {
                     title: "Ironwood Watch",
                     flavorText: "An armored sentinel blocks the last rise before the heartwood.",
                     encounter: .battle(enemyID: "living_armor"),
-                    rewards: StageReward(gold: 26, experience: 42, itemTemplateIDs: [])
+                    rewards: StageReward(
+                        gold: 26,
+                        experience: 42,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.stone, 12), ResourceAmount(.iron, 5)]
+                    )
                 ),
                 Stage(
                     id: "chapter-1-stage-10",
@@ -707,7 +752,12 @@ enum GameContent {
                     title: "Heartwood Blight",
                     flavorText: "At the forest center, the oldest roots twist around a dark crown.",
                     encounter: .battle(enemyID: "the_blight_treant"),
-                    rewards: StageReward(gold: 40, experience: 60, itemTemplateIDs: ["longsword-astral"])
+                    rewards: StageReward(
+                        gold: 40,
+                        experience: 60,
+                        itemTemplateIDs: ["longsword-astral"],
+                        materialRewards: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 3)]
+                    )
                 )
             ]
         )

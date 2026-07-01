@@ -34,6 +34,15 @@ final class PlayerSaveStore {
         }
     }
 
+    var homestead: PlayerHomesteadState {
+        get { save.homestead.homestead() }
+        set {
+            save.homestead = SavedHomesteadState(newValue)
+            save = PlayerSaveSanitizer.sanitize(save)
+            persist()
+        }
+    }
+
     var currentSave: PlayerSave {
         save
     }
