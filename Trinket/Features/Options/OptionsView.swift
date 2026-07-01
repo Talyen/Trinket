@@ -81,14 +81,14 @@ struct OptionsView: View {
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
-        .confirmationDialog(
+        .alert(
             "Reset Game Progress?",
             isPresented: $isResetConfirmationPresented,
-            titleVisibility: .visible
         ) {
             Button("Reset Game Progress", role: .destructive) {
                 appState.resetGameplayProgress()
             }
+            Button("Cancel", role: .cancel) {}
         } message: {
             Text("This permanently deletes journey, roster, and inventory progress on this device and iCloud. Settings are kept.")
         }
