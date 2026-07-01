@@ -45,8 +45,8 @@ enum GameContent {
             slot: .weapon,
             keywords: [.bleed],
             weight: 10,
-            basic: ItemAffixPower(description: "Bleed 1 for 2 ticks.", effect: .damageOverTime(.bleed, 1, 2)),
-            astral: ItemAffixPower(description: "Bleed 2 for 3 ticks.", effect: .damageOverTime(.bleed, 2, 3))
+            basic: ItemAffixPower(description: "Deals 2 Bleed damage.", effect: .bleed(2)),
+            astral: ItemAffixPower(description: "Deals 4 Bleed damage.", effect: .bleed(4))
         ),
         ItemAffixDefinition(
             id: "venomous",
@@ -54,8 +54,8 @@ enum GameContent {
             slot: .weapon,
             keywords: [.poison],
             weight: 10,
-            basic: ItemAffixPower(description: "Poison 1 for 2 ticks.", effect: .damageOverTime(.poison, 1, 2)),
-            astral: ItemAffixPower(description: "Poison 2 for 3 ticks.", effect: .damageOverTime(.poison, 2, 3))
+            basic: ItemAffixPower(description: "Deals 2 Poison damage.", effect: .poison(2)),
+            astral: ItemAffixPower(description: "Deals 4 Poison damage.", effect: .poison(4))
         ),
         ItemAffixDefinition(
             id: "scorching",
@@ -63,8 +63,8 @@ enum GameContent {
             slot: .weapon,
             keywords: [.burn],
             weight: 10,
-            basic: ItemAffixPower(description: "Burn 1 for 2 ticks.", effect: .damageOverTime(.burn, 1, 2)),
-            astral: ItemAffixPower(description: "Burn 2 for 3 ticks.", effect: .damageOverTime(.burn, 2, 3))
+            basic: ItemAffixPower(description: "Deals 2 Burn damage.", effect: .burn(2)),
+            astral: ItemAffixPower(description: "Deals 4 Burn damage.", effect: .burn(4))
         ),
         ItemAffixDefinition(
             id: "concussive",
@@ -270,8 +270,8 @@ enum GameContent {
             slot: .trinket,
             keywords: [.poison],
             weight: 8,
-            basic: ItemAffixPower(description: "Poison 1 for 2 ticks.", effect: .damageOverTime(.poison, 1, 2)),
-            astral: ItemAffixPower(description: "Poison 2 for 4 ticks.", effect: .damageOverTime(.poison, 2, 4))
+            basic: ItemAffixPower(description: "Deals 2 Poison damage.", effect: .poison(2)),
+            astral: ItemAffixPower(description: "Deals 4 Poison damage.", effect: .poison(4))
         ),
         ItemAffixDefinition(
             id: "steadfast",
@@ -324,8 +324,8 @@ enum GameContent {
             slot: .trinket,
             keywords: [.burn],
             weight: 8,
-            basic: ItemAffixPower(description: "Burn 1 for 2 ticks.", effect: .damageOverTime(.burn, 1, 2)),
-            astral: ItemAffixPower(description: "Burn 2 for 4 ticks.", effect: .damageOverTime(.burn, 2, 4))
+            basic: ItemAffixPower(description: "Deals 2 Burn damage.", effect: .burn(2)),
+            astral: ItemAffixPower(description: "Deals 4 Burn damage.", effect: .burn(4))
         )
     ]
 

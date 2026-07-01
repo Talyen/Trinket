@@ -60,9 +60,23 @@ Abilities are the main source of combat actions and Keywords. Keep Abilities as 
 
 Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle on a shared tick clock. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
 
-Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Damage-over-time and other tick-based effects can fire on steps where nobody acts.
+Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed ticks can fire on steps where nobody acts.
 
-Implemented ability rules span the full `Effect` model (direct damage, damage over time, prevention, shields, mitigation, healing, leech, gold, cleanse). Legacy shorthand:
+Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, prevention, shields, mitigation, healing, leech, gold, cleanse). Ability copy describes DoTs as `Deals N Burn damage` (and likewise for Poison and Bleed) without tick language.
+
+### Burn, Poison, and Bleed
+
+These three keywords share a pattern: the ability effect deals its potency immediately on use, then the battle engine tracks ongoing decay at step start.
+
+| Keyword | On apply | Each step-start tick | Stacking | Block / Armor |
+|---|---|---|---|---|
+| `Burn` | Deal potency | Deal `floor(potency / 2)`, then set potency to that value | Merge into one stack per target | Bypassed |
+| `Poison` | Deal potency | Deal `potency - max(1, ceil(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Bypassed |
+| `Bleed` | Deal potency | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Bypassed |
+
+`Nature` is direct damage only; it is not a DoT keyword.
+
+`Cleanse` removes all active Burn, Poison, or Bleed instances matching the cleansed keyword.
 
 ## Items
 
@@ -93,11 +107,11 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
 | `Physical` | orange | `bolt.fill` | Direct weapon or body damage. |
-| `Burn` | red | `flame.fill` | Fire damage over time via `.damageOverTime`. |
-| `Poison` | dark green | `drop.triangle.fill` | Toxic damage over time via `.damageOverTime`. |
-| `Bleed` | dark red | `drop.fill` | Physical damage over time via `.damageOverTime`. |
+| `Burn` | red | `flame.fill` | Deals potency immediately, then decays by halving each step-start tick. Stacks merge. |
+| `Poison` | dark green | `drop.triangle.fill` | Deals potency immediately, then decays by 25% (minimum 1) each step-start tick. Stacks merge. |
+| `Bleed` | dark red | `drop.fill` | Deals potency immediately, then repeats the same damage for 3 step-start ticks. Each application is tracked separately. |
 | `Holy` | pale gold | `sun.max.fill` | Radiant holy damage type. |
-| `Nature` | emerald | `leaf.fill` | Nature and growth damage type. |
+| `Nature` | emerald | `leaf.fill` | Nature damage type (direct damage only). |
 
 ### Prevention (Keyword.category = .prevention)
 
@@ -110,8 +124,8 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
-| `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs all incoming damage (including DOTs) until buffer expires. |
-| `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming damage by a percentage. |
+| `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs incoming ability damage until buffer expires. Burn, Poison, and Bleed bypass Block. |
+| `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming ability damage by a percentage. Burn, Poison, and Bleed bypass Armor. |
 
 ### Restoration (Keyword.category = .restoration)
 
@@ -130,7 +144,9 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 
 All keyword effects are represented by the `Effect` tagged union and applied through `TargetedEffect` (effect + target: ability target, actor, hero, pet, or enemy):
 
-- `.damageOverTime(keyword, tickDamage, durationTicks)` — deals `tickDamage` per battle tick, affected by shield/mitigation
+- `.burn(potency)` — deals potency immediately, then decays per Burn rules above
+- `.poison(potency)` — deals potency immediately, then decays per Poison rules above
+- `.bleed(potency)` — deals potency immediately, then ticks per Bleed rules above
 - `.prevention(keyword, durationActions)` — skips the target's next `durationActions` scheduled actions; not reduced by passive tick decay
 - `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
 - `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`

@@ -4,7 +4,9 @@ import XCTest
 final class SavedEffectRoundtripTests: XCTestCase {
     func testAllEffectKindsRoundTrip() {
         let effects: [Effect] = [
-            .damageOverTime(.burn, 2, 3),
+            .burn(2),
+            .poison(3),
+            .bleed(4),
             .prevention(.stun, 1),
             .shield(.block, 5, 2),
             .mitigation(.armor, 0.5, 3),
@@ -25,9 +27,10 @@ final class SavedEffectRoundtripTests: XCTestCase {
         XCTAssertEqual(SavedEffect(effect).effect(), effect)
     }
 
-    func testInvalidKeywordReturnsNil() {
-        let saved = SavedEffect.damageOverTime(keyword: "not-a-keyword", tickDamage: 1, duration: 1)
-        XCTAssertNil(saved.effect())
+    func testActiveEffectRoundTrip() {
+        let active = ActiveEffect(id: 9, effect: .poison(6), remainingTicks: 0)
+        let roundTripped = SavedActiveEffect(active).activeEffect()
+        XCTAssertEqual(roundTripped, active)
     }
 
     func testInventoryItemWithAffixEffectsRoundTripsThroughSave() throws {

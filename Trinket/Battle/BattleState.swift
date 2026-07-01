@@ -203,13 +203,18 @@ struct BattleState {
             let stacks = group.map(\.effect)
             guard !stacks.isEmpty else { return nil }
 
-            let dotTotal = stacks.reduce(0) { sum, effect in
-                if case let .damageOverTime(_, d, _) = effect { return sum + d }
-                return sum
+            if stacks.contains(where: \.isDecayingDoT) {
+                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue) active")
             }
 
-            if dotTotal > 0 {
-                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(dotTotal) damage next tick, \(stacks.count) \(stacks.count == 1 ? "stack" : "stacks").")
+            let bleedTotal = group.reduce(0) { sum, activeEffect in
+                guard case let .bleed(potency) = activeEffect.effect, activeEffect.remainingTicks > 0 else {
+                    return sum
+                }
+                return sum + potency
+            }
+            if bleedTotal > 0 {
+                return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(bleedTotal) damage")
             }
 
             let shieldTotal = stacks.reduce(0) { sum, effect in
@@ -433,7 +438,7 @@ struct BattleState {
 
         let effectsToApply: [TargetedEffect] = ability.targetedEffects.isEmpty
             ? (ability.statusApplication.map {
-                [TargetedEffect(.damageOverTime($0.keyword, $0.tickDamage, $0.durationTicks), target: .abilityTarget)]
+                [TargetedEffect(Effect.effect(from: $0), target: .abilityTarget)]
             } ?? [])
             : ability.targetedEffects
 
@@ -446,14 +451,28 @@ struct BattleState {
             )
 
             switch effect {
-            case let .damageOverTime(keyword, tickDamage, durationTicks):
-                guard health(for: effectTarget) > 0 else { break }
-                let ae = ActiveEffect(id: nextEffectID, effect: effect, remainingTicks: durationTicks)
-                nextEffectID += 1
-                var currentEffects = effects(for: effectTarget)
-                currentEffects.append(ae)
-                setEffects(currentEffects, for: effectTarget)
-                appliedEffectLogs.append("\(effect.summary)")
+            case let .burn(potency):
+                events.append(contentsOf: applyDecayingDoT(
+                    keyword: .burn,
+                    potency: potency,
+                    to: effectTarget
+                ))
+                appliedEffectLogs.append(effect.summary)
+
+            case let .poison(potency):
+                events.append(contentsOf: applyDecayingDoT(
+                    keyword: .poison,
+                    potency: potency,
+                    to: effectTarget
+                ))
+                appliedEffectLogs.append(effect.summary)
+
+            case let .bleed(potency):
+                events.append(contentsOf: applyBleed(
+                    potency: potency,
+                    to: effectTarget
+                ))
+                appliedEffectLogs.append(effect.summary)
 
             case let .prevention(keyword, durationActions):
                 guard health(for: effectTarget) > 0 else { break }
@@ -660,30 +679,134 @@ struct BattleState {
         return events
     }
 
+    private mutating func applyDecayingDoT(
+        keyword: Keyword,
+        potency: Int,
+        to effectTarget: Combatant
+    ) -> [ActionEvent] {
+        guard health(for: effectTarget) > 0, potency > 0 else { return [] }
+
+        var events: [ActionEvent] = []
+        events.append(contentsOf: logDoTDamage(
+            applyDoTDamage(potency, keyword: keyword, to: effectTarget),
+            keyword: keyword,
+            target: effectTarget
+        ))
+
+        var currentEffects = effects(for: effectTarget)
+        if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
+            let existingPotency = currentEffects[index].effect.potency ?? 0
+            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + potency)
+        } else {
+            currentEffects.append(
+                ActiveEffect(
+                    id: nextEffectID,
+                    effect: effectCase(for: keyword, potency: potency),
+                    remainingTicks: 0
+                )
+            )
+            nextEffectID += 1
+        }
+        setEffects(currentEffects, for: effectTarget)
+        return events
+    }
+
+    private mutating func applyBleed(
+        potency: Int,
+        to effectTarget: Combatant
+    ) -> [ActionEvent] {
+        guard health(for: effectTarget) > 0, potency > 0 else { return [] }
+
+        var events: [ActionEvent] = []
+        events.append(contentsOf: logDoTDamage(
+            applyDoTDamage(potency, keyword: .bleed, to: effectTarget),
+            keyword: .bleed,
+            target: effectTarget
+        ))
+
+        var currentEffects = effects(for: effectTarget)
+        currentEffects.append(
+            ActiveEffect(
+                id: nextEffectID,
+                effect: .bleed(potency),
+                remainingTicks: Effect.bleedDoTTickCount
+            )
+        )
+        nextEffectID += 1
+        setEffects(currentEffects, for: effectTarget)
+        return events
+    }
+
+    private func effectCase(for keyword: Keyword, potency: Int) -> Effect {
+        switch keyword {
+        case .burn: return .burn(potency)
+        case .poison: return .poison(potency)
+        default: return .poison(potency)
+        }
+    }
+
+    private mutating func logDoTDamage(
+        _ result: (healthLost: Int, events: [ActionEvent]),
+        keyword: Keyword,
+        target: Combatant
+    ) -> [ActionEvent] {
+        var events = result.events
+        guard result.healthLost > 0 else { return events }
+
+        let event = nextEvent(
+            kind: .status,
+            effectKind: nil,
+            actorName: keyword.rawValue,
+            abilityName: keyword.rawValue,
+            target: target,
+            amount: result.healthLost,
+            keyword: keyword
+        )
+        events.append(event)
+        log.append(LogEntry(
+            id: event.id,
+            text: "\(target.name) takes \(result.healthLost) \(keyword.rawValue) damage."
+        ))
+        return events
+    }
+
     private mutating func tickEffects(_ effects: [ActiveEffect], target: Combatant) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
         var remaining = effects
 
+        guard health(for: target) > 0 else {
+            return (events, remaining)
+        }
+
+        for index in remaining.indices {
+            guard case let .bleed(potency) = remaining[index].effect, remaining[index].remainingTicks > 0 else {
+                continue
+            }
+
+            events.append(contentsOf: logDoTDamage(
+                applyDoTDamage(potency, keyword: .bleed, to: target),
+                keyword: .bleed,
+                target: target
+            ))
+            remaining[index].remainingTicks -= 1
+        }
+
+        for index in remaining.indices where remaining[index].effect.isDecayingDoT {
+            let nextPotency = remaining[index].effect.potencyAfterTick()
+            if nextPotency > 0 {
+                events.append(contentsOf: logDoTDamage(
+                    applyDoTDamage(nextPotency, keyword: remaining[index].keyword, to: target),
+                    keyword: remaining[index].keyword,
+                    target: target
+                ))
+                remaining[index].effect = effectCase(for: remaining[index].keyword, potency: nextPotency)
+            } else {
+                remaining[index].effect = effectCase(for: remaining[index].keyword, potency: 0)
+            }
+        }
+
         for ae in remaining {
             switch ae.effect {
-            case let .damageOverTime(keyword, tickDamage, _):
-                let (actualDamage, shieldEvents) = applyDamage(tickDamage, to: target)
-                events.append(contentsOf: shieldEvents)
-                let event = nextEvent(
-                    kind: .status,
-                    effectKind: nil,
-                    actorName: keyword.rawValue,
-                    abilityName: keyword.rawValue,
-                    target: target,
-                    amount: actualDamage,
-                    keyword: keyword
-                )
-                events.append(event)
-                log.append(LogEntry(
-                    id: event.id,
-                    text: "\(target.name) takes \(actualDamage) \(keyword.rawValue) damage."
-                ))
-
             case let .cleanse(cleanseKeyword, _):
                 if let removeKeyword = cleanseKeyword {
                     remaining.removeAll { $0.keyword == removeKeyword }
@@ -698,12 +821,20 @@ struct BattleState {
         }
 
         remaining = remaining.compactMap { ae in
-            if case .prevention = ae.effect {
+            switch ae.effect {
+            case .burn(0), .poison(0):
+                return nil
+            case .bleed:
+                return ae.remainingTicks > 0 ? ae : nil
+            case .burn, .poison:
                 return ae
+            case .prevention:
+                return ae
+            default:
+                var updated = ae
+                updated.remainingTicks -= 1
+                return updated.remainingTicks > 0 ? updated : nil
             }
-            var updated = ae
-            updated.remainingTicks -= 1
-            return updated.remainingTicks > 0 ? updated : nil
         }
 
         return (events, remaining)
@@ -711,9 +842,24 @@ struct BattleState {
 
     private func isEffectType(_ effect: Effect) -> Bool {
         switch effect {
-        case .damageOverTime, .prevention, .shield, .mitigation, .leech, .cleanse: return true
+        case .burn, .poison, .bleed, .prevention, .shield, .mitigation, .leech, .cleanse: return true
         case .instantHeal, .resourceGain: return false
         }
+    }
+
+    private mutating func applyDoTDamage(_ amount: Int, keyword _: Keyword, to combatant: Combatant) -> (healthLost: Int, events: [ActionEvent]) {
+        guard amount > 0 else { return (0, []) }
+
+        let remaining = amount
+        if combatant.id == hero.id {
+            heroHealth = max(0, heroHealth - remaining)
+        } else if combatant.id == pet.id {
+            petHealth = max(0, petHealth - remaining)
+        } else {
+            enemyHealth = max(0, enemyHealth - remaining)
+        }
+
+        return (remaining, [])
     }
 
     private mutating func applyDamage(_ amount: Int, to combatant: Combatant) -> (healthLost: Int, shieldEvents: [ActionEvent]) {

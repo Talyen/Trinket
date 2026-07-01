@@ -2,12 +2,33 @@ import XCTest
 @testable import Trinket
 
 final class EffectModelTests: XCTestCase {
-    func testDamageOverTimeEffect() {
-        let effect = Effect.damageOverTime(.poison, 2, 3)
-        XCTAssertEqual(effect.keyword, .poison)
-        XCTAssertEqual(effect.durationTicks, 3)
+    func testBurnEffect() {
+        let effect = Effect.burn(4)
+        XCTAssertEqual(effect.keyword, .burn)
+        XCTAssertEqual(effect.potency, 4)
+        XCTAssertEqual(effect.durationTicks, 0)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "Poison 2 for 3 ticks")
+        XCTAssertTrue(effect.isDecayingDoT)
+        XCTAssertEqual(effect.summary, "Deals 4 Burn damage")
+        XCTAssertEqual(effect.potencyAfterTick(), 2)
+    }
+
+    func testPoisonEffect() {
+        let effect = Effect.poison(8)
+        XCTAssertEqual(effect.keyword, .poison)
+        XCTAssertEqual(effect.potency, 8)
+        XCTAssertTrue(effect.isDecayingDoT)
+        XCTAssertEqual(effect.summary, "Deals 8 Poison damage")
+        XCTAssertEqual(effect.potencyAfterTick(), 6)
+    }
+
+    func testBleedEffect() {
+        let effect = Effect.bleed(3)
+        XCTAssertEqual(effect.keyword, .bleed)
+        XCTAssertEqual(effect.potency, 3)
+        XCTAssertEqual(effect.durationTicks, Effect.bleedDoTTickCount)
+        XCTAssertTrue(effect.isBleed)
+        XCTAssertEqual(effect.summary, "Deals 3 Bleed damage")
     }
 
     func testPreventionEffect() {
@@ -75,49 +96,37 @@ final class EffectModelTests: XCTestCase {
     }
 
     func testActiveEffectTracksRemainingTicks() {
-        let effect = Effect.damageOverTime(.burn, 1, 3)
+        let effect = Effect.bleed(3)
         var active = ActiveEffect(id: 1, effect: effect, remainingTicks: 3)
-        XCTAssertEqual(active.keyword, .burn)
+        XCTAssertEqual(active.keyword, .bleed)
+        XCTAssertEqual(active.remainingTicks, 3)
         active.remainingTicks -= 1
         XCTAssertEqual(active.remainingTicks, 2)
     }
 
-    func testEffectSummaryKeywords() {
-        let summaries = [
-            EffectSummary(keyword: .burn, text: "Burn: 2 damage next tick, 1 stack."),
-            EffectSummary(keyword: .block, text: "Block: 5 buffer, 2 ticks left."),
-            EffectSummary(keyword: .stun, text: "Stun: 1 actions prevented.")
-        ]
-        for summary in summaries {
-            XCTAssertEqual(summary.id, summary.keyword)
-        }
+    func testAbilitySummaryIncludesBurnEffect() {
+        let ability = Ability(
+            id: "test-dot",
+            name: "Test DOT",
+            tier: .skill,
+            directDamage: 3,
+            damageKeyword: .poison,
+            effects: [.poison(4)]
+        )
+        XCTAssertTrue(ability.summary.contains("Deals 4 Poison damage"))
     }
 
-    func testAbilityHasNoEffectsByDefault() {
-        let ability = Ability(id: "test", name: "Test", tier: .basic, directDamage: 1)
-        XCTAssertTrue(ability.effects.isEmpty)
-        XCTAssertNil(ability.statusApplication)
-        XCTAssertEqual(ability.damageKeyword, .physical)
-    }
-
-    func testAbilityWithEffects() {
-        let ability = Ability(id: "test-dot", name: "Test DOT", tier: .skill, directDamage: 3, damageKeyword: .poison, effects: [.damageOverTime(.poison, 1, 2)])
-        XCTAssertEqual(ability.effects.count, 1)
-        XCTAssertEqual(ability.damageKeyword, .poison)
-        XCTAssertEqual(ability.damage, 3)
-        XCTAssertEqual(ability.damageType, .poison)
-    }
-
-    func testAbilityKeywordsIncludeEffects() {
-        let ability = Ability(id: "test-kw", name: "Test KW", tier: .basic, directDamage: 1, effects: [.instantHeal(.health, 2)])
-        let kws = ability.keywords
-        XCTAssertTrue(kws.contains(.physical))
-        XCTAssertTrue(kws.contains(.health))
-    }
-
-    func testAbilitySummaryWithEffects() {
-        let ability = Ability(id: "test-summary", name: "Test", tier: .basic, directDamage: 2, damageKeyword: .holy, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2)])
+    func testAbilitySummaryWithDirectDamageAndEffect() {
+        let ability = Ability(
+            id: "test-summary",
+            name: "Test",
+            tier: .basic,
+            directDamage: 2,
+            damageKeyword: .holy,
+            statusApplication: nil,
+            effects: [.burn(2)]
+        )
         XCTAssertTrue(ability.summary.contains("2 Holy damage"))
-        XCTAssertTrue(ability.summary.contains("Burn 1 for 2 ticks"))
+        XCTAssertTrue(ability.summary.contains("Deals 2 Burn damage"))
     }
 }

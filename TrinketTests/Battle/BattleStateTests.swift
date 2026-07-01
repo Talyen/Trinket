@@ -47,16 +47,13 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(target.id, heroId)
     }
 
-    func testBurnDealsDamageForTwoTicksThenExpires() {
+    func testBurnDealsDamageAfterApplication() {
         var battle = BattleState(hero: GameContent.heroes[2], pet: wolfPet, enemy: defaultEnemy)
         _ = advance(&battle)
-        _ = advance(&battle)
-        let firstTick = advance(&battle)
-        let hasBurnFirst = firstTick.events.contains { $0.floatingText == "-1 Burn" }
-        XCTAssertTrue(hasBurnFirst)
-        let secondTick = advance(&battle)
-        let hasBurnSecond = secondTick.events.contains { $0.floatingText == "-1 Burn" }
-        XCTAssertTrue(hasBurnSecond)
+        let applyStep = advance(&battle)
+        XCTAssertTrue(applyStep.events.contains { $0.floatingText == "-2 Burn" })
+        let tickStep = advance(&battle)
+        XCTAssertTrue(tickStep.events.contains { $0.floatingText == "-1 Burn" })
     }
 
     func testPartyDefeatWhenBothHeroAndPetDie() {
@@ -82,7 +79,7 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(ability.damageKeyword, .poison)
         XCTAssertEqual(ability.damageType, .poison)
         let hasPoisonDot = ability.effects.contains {
-            if case .damageOverTime(.poison, _, _) = $0 { return true }
+            if case .poison = $0 { return true }
             return false
         }
         XCTAssertTrue(hasPoisonDot)
@@ -92,7 +89,7 @@ final class BattleStateTests: XCTestCase {
         let ability = Ability.serratedEdge
         XCTAssertEqual(ability.damageKeyword, .bleed)
         let hasBleedDot = ability.effects.contains {
-            if case .damageOverTime(.bleed, _, _) = $0 { return true }
+            if case .bleed = $0 { return true }
             return false
         }
         XCTAssertTrue(hasBleedDot)
@@ -156,13 +153,11 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBurnAndPoisonStackIndependently() {
-        let effect1 = Effect.damageOverTime(.burn, 1, 2)
-        let effect2 = Effect.damageOverTime(.poison, 2, 3)
         var battle = BattleState(
             hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: effect1, remainingTicks: 2),
-                ActiveEffect(id: 2, effect: effect2, remainingTicks: 3)
+                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .poison(4), remainingTicks: 0)
             ]
         )
         _ = advance(&battle)

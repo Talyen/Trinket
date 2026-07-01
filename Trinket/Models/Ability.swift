@@ -54,7 +54,9 @@ struct TargetedEffect: Hashable {
 }
 
 enum Effect: Hashable {
-    case damageOverTime(Keyword, Int, Int)
+    case burn(Int)
+    case poison(Int)
+    case bleed(Int)
     case prevention(Keyword, Int)
     case shield(Keyword, Int, Int)
     case mitigation(Keyword, Double, Int)
@@ -63,9 +65,13 @@ enum Effect: Hashable {
     case resourceGain(Keyword, Int)
     case cleanse(Keyword?, Int)
 
+    static let bleedDoTTickCount = 3
+
     var keyword: Keyword {
         switch self {
-        case let .damageOverTime(k, _, _): return k
+        case .burn: return .burn
+        case .poison: return .poison
+        case .bleed: return .bleed
         case let .prevention(k, _): return k
         case let .shield(k, _, _): return k
         case let .mitigation(k, _, _): return k
@@ -77,15 +83,22 @@ enum Effect: Hashable {
         }
     }
 
+    var potency: Int? {
+        switch self {
+        case let .burn(p), let .poison(p), let .bleed(p): return p
+        default: return nil
+        }
+    }
+
     var durationTicks: Int {
         switch self {
-        case let .damageOverTime(_, _, d): return d
+        case .bleed: return Self.bleedDoTTickCount
         case let .prevention(_, d): return d
         case let .shield(_, _, d): return d
         case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
         case let .cleanse(_, d): return d
-        case .instantHeal, .resourceGain: return 0
+        case .burn, .poison, .instantHeal, .resourceGain: return 0
         }
     }
 
@@ -96,10 +109,38 @@ enum Effect: Hashable {
         }
     }
 
+    var isDecayingDoT: Bool {
+        switch self {
+        case .burn, .poison: return true
+        default: return false
+        }
+    }
+
+    var isBleed: Bool {
+        if case .bleed = self { return true }
+        return false
+    }
+
+    func potencyAfterTick() -> Int {
+        switch self {
+        case let .burn(potency):
+            return potency / 2
+        case let .poison(potency):
+            let decrease = max(1, Int(ceil(Double(potency) * 0.25)))
+            return potency - decrease
+        default:
+            return 0
+        }
+    }
+
     var summary: String {
         switch self {
-        case let .damageOverTime(k, t, d):
-            return "\(k.rawValue) \(t) for \(d) ticks"
+        case let .burn(amount):
+            return "Deals \(amount) Burn damage"
+        case let .poison(amount):
+            return "Deals \(amount) Poison damage"
+        case let .bleed(amount):
+            return "Deals \(amount) Bleed damage"
         case let .prevention(k, d):
             return "\(k.rawValue) for \(d) actions"
         case let .shield(k, b, d):
@@ -121,17 +162,26 @@ enum Effect: Hashable {
 
     static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .damageOverTime, .prevention:
+        case .burn, .poison, .bleed, .prevention:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse:
             return .actor
+        }
+    }
+
+    static func effect(from status: StatusApplication) -> Effect {
+        switch status.keyword {
+        case .burn: return .burn(status.tickDamage)
+        case .poison: return .poison(status.tickDamage)
+        case .bleed: return .bleed(status.tickDamage)
+        default: return .poison(status.tickDamage)
         }
     }
 }
 
 struct ActiveEffect: Identifiable, Hashable {
     let id: Int
-    let effect: Effect
+    var effect: Effect
     var remainingTicks: Int
 
     var keyword: Keyword {
@@ -140,8 +190,10 @@ struct ActiveEffect: Identifiable, Hashable {
 
     var summary: String {
         switch effect {
-        case let .damageOverTime(k, t, _):
-            return "\(k.rawValue): \(t) damage next tick, \(remainingTicks) ticks left"
+        case .burn, .poison:
+            return "\(effect.keyword.rawValue) active"
+        case let .bleed(potency):
+            return "\(effect.keyword.rawValue): \(potency) damage, \(remainingTicks) ticks left"
         case let .prevention(k, _):
             return "\(k.rawValue): \(remainingTicks) actions prevented"
         case let .shield(k, b, _):
@@ -214,24 +266,24 @@ struct Ability: Identifiable, Hashable {
     static let blessedAegis = Ability(id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate, directDamage: 6, damageKeyword: .holy, statusApplication: nil, effects: [.shield(.block, 3, 2)])
     static let block = Ability(id: "block", name: "Block", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let bloodOffering = Ability(id: "blood-offering", name: "Blood Offering", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
-    static let bloodthorn = Ability(id: "bloodthorn", name: "Bloodthorn", tier: .ultimate, directDamage: 6, damageKeyword: .nature, statusApplication: nil, effects: [.damageOverTime(.poison, 1, 2), .instantHeal(.health, 2)])
+    static let bloodthorn = Ability(id: "bloodthorn", name: "Bloodthorn", tier: .ultimate, directDamage: 6, damageKeyword: .nature, statusApplication: nil, effects: [.poison(4), .instantHeal(.health, 2)])
     static let bountyShot = Ability(id: "bounty-shot", name: "Bounty Shot", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let bread = Ability(id: "bread", name: "Bread", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil, effects: [.instantHeal(.health, 1)])
     static let briarShield = Ability(id: "briar-shield", name: "Briar Shield", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.shield(.block, 2, 2)])
     static let burningBlade = Ability(id: "burning-blade", name: "Burning Blade", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
-    static let cauterize = Ability(id: "cauterize", name: "Cauterize", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2)])
-    static let cinderbloom = Ability(id: "cinderbloom", name: "Cinderbloom", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2), .damageOverTime(.nature, 1, 2)])
+    static let cauterize = Ability(id: "cauterize", name: "Cauterize", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.burn(4)])
+    static let cinderbloom = Ability(id: "cinderbloom", name: "Cinderbloom", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.burn(4)])
     static let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.cleanse(nil, 3)])
     static let coldSnap = Ability(id: "cold-snap", name: "Cold Snap", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.freeze, 1)])
-    static let combustion = Ability(id: "combustion", name: "Combustion", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 2, 3)])
+    static let combustion = Ability(id: "combustion", name: "Combustion", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.burn(8)])
     static let concussiveShot = Ability(id: "concussive-shot", name: "Concussive Shot", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.stun, 1)])
     static let crystalBulwark = Ability(id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.shield(.block, 4, 3)])
     static let darkPact = Ability(id: "dark-pact", name: "Dark Pact", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let exorcism = Ability(id: "exorcism", name: "Exorcism", tier: .ultimate, directDamage: 6, damageKeyword: .holy, statusApplication: nil)
     static let fangs = Ability(id: "fangs", name: "Fangs", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let faustianBargain = Ability(id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
-    static let fireArrow = Ability(id: "fire-arrow", name: "Fire Arrow", tier: .basic, directDamage: 1, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2)])
-    static let fireball = Ability(id: "fireball", name: "Fireball", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2)])
+    static let fireArrow = Ability(id: "fire-arrow", name: "Fire Arrow", tier: .basic, directDamage: 1, damageKeyword: .burn, statusApplication: nil, effects: [.burn(2)])
+    static let fireball = Ability(id: "fireball", name: "Fireball", tier: .skill, directDamage: 3, damageKeyword: .burn, statusApplication: nil, effects: [.burn(4)])
     static let frostbolt = Ability(id: "frostbolt", name: "Frostbolt", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.freeze, 1)])
     static let gamblersShot = Ability(id: "gamblers-shot", name: "Gambler's Shot", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let glacialWard = Ability(id: "glacial-ward", name: "Glacial Ward", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.shield(.block, 4, 3)])
@@ -242,11 +294,11 @@ struct Ability: Identifiable, Hashable {
     static let haste = Ability(id: "haste", name: "Haste", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let heal = Ability(id: "heal", name: "Heal", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let healthPotion = Ability(id: "health-potion", name: "Health Potion", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.instantHeal(.health, 3)])
-    static let hemorrhage = Ability(id: "hemorrhage", name: "Hemorrhage", tier: .ultimate, directDamage: 6, damageKeyword: .bleed, statusApplication: nil, effects: [.damageOverTime(.bleed, 2, 3), .leech(.leech, 0.25, 3)])
+    static let hemorrhage = Ability(id: "hemorrhage", name: "Hemorrhage", tier: .ultimate, directDamage: 6, damageKeyword: .bleed, statusApplication: nil, effects: [.bleed(6), .leech(.leech, 0.25, 3)])
     static let holyRadiance = Ability(id: "holy-radiance", name: "Holy Radiance", tier: .ultimate, directDamage: 6, damageKeyword: .holy, statusApplication: nil)
     static let iceShot = Ability(id: "ice-shot", name: "Ice Shot", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let judgment = Ability(id: "judgment", name: "Judgment", tier: .ultimate, directDamage: 6, damageKeyword: .holy, statusApplication: nil, effects: [.prevention(.stun, 1)])
-    static let kindling = Ability(id: "kindling", name: "Kindling", tier: .basic, directDamage: 1, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 1, 2)])
+    static let kindling = Ability(id: "kindling", name: "Kindling", tier: .basic, directDamage: 1, damageKeyword: .burn, statusApplication: nil, effects: [.burn(2)])
     static let libraryOwl = Ability(id: "library-owl", name: "Library Owl", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let lightningArrow = Ability(id: "lightning-arrow", name: "Lightning Arrow", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let lightningBolt = Ability(id: "lightning-bolt", name: "Lightning Bolt", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
@@ -256,24 +308,24 @@ struct Ability: Identifiable, Hashable {
     static let manaMoth = Ability(id: "mana-moth", name: "Mana Moth", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
     static let manaPotion = Ability(id: "mana-potion", name: "Mana Potion", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let manaShield = Ability(id: "mana-shield", name: "Mana Shield", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.shield(.block, 2, 2)])
-    static let meteor = Ability(id: "meteor", name: "Meteor", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 2, 3)])
+    static let meteor = Ability(id: "meteor", name: "Meteor", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.burn(8)])
     static let mixedPotion = Ability(id: "mixed-potion", name: "Mixed Potion", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
-    static let moltenBulwark = Ability(id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 2, 3)])
+    static let moltenBulwark = Ability(id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.burn(8)])
     static let packTactics = Ability(id: "pack-tactics", name: "Pack Tactics", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
     static let panaceaPotion = Ability(id: "panacea-potion", name: "Panacea Potion", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
-    static let phoenixFeather = Ability(id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.damageOverTime(.burn, 2, 3)])
+    static let phoenixFeather = Ability(id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate, directDamage: 6, damageKeyword: .burn, statusApplication: nil, effects: [.burn(8)])
     static let pixie = Ability(id: "pixie", name: "Pixie", tier: .ultimate, directDamage: 6, damageKeyword: .nature, statusApplication: nil, effects: [.instantHeal(.health, 2)])
     static let placeholderCard = Ability(id: "placeholder-card", name: "Placeholder Card", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let plateMail = Ability(id: "plate-mail", name: "Plate Mail", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.shield(.block, 3, 2)])
-    static let poisonDagger = Ability(id: "poison-dagger", name: "Poison Dagger", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.damageOverTime(.poison, 1, 2)])
+    static let poisonDagger = Ability(id: "poison-dagger", name: "Poison Dagger", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.poison(4)])
     static let prayer = Ability(id: "prayer", name: "Prayer", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.mitigation(.armor, 0.50, 2), .instantHeal(.health, 2)])
     static let raiseSkeleton = Ability(id: "raise-skeleton", name: "Raise Skeleton", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
     static let rayOfFrost = Ability(id: "ray-of-frost", name: "Ray of Frost", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.freeze, 1)])
     static let roulette = Ability(id: "roulette", name: "Roulette", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil)
     static let sanctifiedPlate = Ability(id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate, directDamage: 6, damageKeyword: .holy, statusApplication: nil)
     static let sapArrow = Ability(id: "sap-arrow", name: "Sap Arrow", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.stun, 1)])
-    static let serratedArrowhead = Ability(id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate, directDamage: 6, damageKeyword: .bleed, statusApplication: nil, effects: [.damageOverTime(.bleed, 1, 2)])
-    static let serratedEdge = Ability(id: "serrated-edge", name: "Serrated Edge", tier: .skill, directDamage: 3, damageKeyword: .bleed, statusApplication: nil, effects: [.damageOverTime(.bleed, 1, 2)])
+    static let serratedArrowhead = Ability(id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate, directDamage: 6, damageKeyword: .bleed, statusApplication: nil, effects: [.bleed(6)])
+    static let serratedEdge = Ability(id: "serrated-edge", name: "Serrated Edge", tier: .skill, directDamage: 3, damageKeyword: .bleed, statusApplication: nil, effects: [.bleed(3)])
     static let shieldBash = Ability(id: "shield-bash", name: "Shield Bash", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil, effects: [.prevention(.stun, 1)])
     static let shieldScarab = Ability(id: "shield-scarab", name: "Shield Scarab", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
     static let slash = Ability(id: "slash", name: "Slash", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
@@ -295,8 +347,8 @@ struct Ability: Identifiable, Hashable {
     )
     static let thornMail = Ability(id: "thorn-mail", name: "Thorn Mail", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.mitigation(.armor, 0.25, 3)])
     static let tithe = Ability(id: "tithe", name: "Tithe", tier: .skill, directDamage: 3, damageKeyword: .physical, statusApplication: nil)
-    static let venomArrow = Ability(id: "venom-arrow", name: "Venom Arrow", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.damageOverTime(.poison, 1, 2)])
-    static let venomFangs = Ability(id: "venom-fangs", name: "Venom Fangs", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.damageOverTime(.poison, 1, 2)])
+    static let venomArrow = Ability(id: "venom-arrow", name: "Venom Arrow", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.poison(4)])
+    static let venomFangs = Ability(id: "venom-fangs", name: "Venom Fangs", tier: .skill, directDamage: 3, damageKeyword: .poison, statusApplication: nil, effects: [.poison(4)])
     static let willOWisp = Ability(id: "will-o-wisp", name: "Will-o-Wisp", tier: .basic, directDamage: 1, damageKeyword: .physical, statusApplication: nil)
     static let wish = Ability(id: "wish", name: "Wish", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.resourceGain(.gold, 3)])
     static let wishingPotion = Ability(id: "wishing-potion", name: "Wishing Potion", tier: .ultimate, directDamage: 6, damageKeyword: .physical, statusApplication: nil, effects: [.resourceGain(.gold, 3)])

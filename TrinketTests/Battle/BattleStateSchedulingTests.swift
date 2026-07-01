@@ -150,11 +150,12 @@ final class BattleStateSchedulingTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.burn, 1, 2), remainingTicks: 2)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)
             ]
         )
 
         XCTAssertFalse(battle.enemyEffectSummaries.filter { $0.keyword == .burn }.isEmpty)
+        _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertTrue(battle.enemyEffectSummaries.filter { $0.keyword == .burn }.isEmpty)
@@ -169,11 +170,13 @@ final class BattleStateSchedulingTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.poison, 1, 2), remainingTicks: 2)
+                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)
             ]
         )
 
         XCTAssertFalse(battle.enemyEffectSummaries.filter { $0.keyword == .poison }.isEmpty)
+        _ = advance(&battle)
+        _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertTrue(battle.enemyEffectSummaries.filter { $0.keyword == .poison }.isEmpty)

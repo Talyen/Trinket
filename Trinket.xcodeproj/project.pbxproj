@@ -93,6 +93,7 @@
 		AB1B4B77DFDD051161492215 /* PlayerSaveReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC96E7654FE5410FCF57F2C /* PlayerSaveReconciler.swift */; };
 		AC98C409B0D78A6AC52F6BA3 /* LocalOnlyPlayerSaveSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */; };
 		AEDD4527F082E7ABA4521B8F /* AbilityCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71B79EAE04A82ABAD865742 /* AbilityCard.swift */; };
+		AFA562324D864A607B7BEF17 /* DoTMechanicsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1302847CA18F64EC241BA8C0 /* DoTMechanicsTests.swift */; };
 		B23C39B8E9A413269913DF5A /* BattleSubviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F7E4BE52697AB762D21587 /* BattleSubviews.swift */; };
 		B47074250012BAA11AF30B24 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23440CC93C6AF578800C827 /* Enums.swift */; };
 		B4962C96EF42788FC7DE308F /* HeroPetCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26520DF143853D0969FAECD /* HeroPetCatalogTests.swift */; };
@@ -167,6 +168,7 @@
 		0B865B185E48E642F8C4418E /* PlayerSave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSave.swift; sourceTree = "<group>"; };
 		0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalOnlyPlayerSaveSync.swift; sourceTree = "<group>"; };
+		1302847CA18F64EC241BA8C0 /* DoTMechanicsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoTMechanicsTests.swift; sourceTree = "<group>"; };
 		14019B868280979361212BB9 /* EnemyCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyCatalogTests.swift; sourceTree = "<group>"; };
 		1524241C62BF8C54E3A7CDF8 /* Trinket.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Trinket.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1532C41155B50F7FF36BB3E7 /* Enemy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enemy.swift; sourceTree = "<group>"; };
@@ -486,6 +488,7 @@
 				62375A0D4AD99EB4A1D32358 /* BattleSimulatorTests.swift */,
 				003A0737522A6E1EDF301911 /* BattleStateSchedulingTests.swift */,
 				5978C1EA252EEDBADA40D5C1 /* BattleStateTests.swift */,
+				1302847CA18F64EC241BA8C0 /* DoTMechanicsTests.swift */,
 				C036D108B8D8714857531934 /* EffectModelTests.swift */,
 				14019B868280979361212BB9 /* EnemyCatalogTests.swift */,
 				1622E57860C4D703995A478F /* KeywordTests.swift */,
@@ -986,6 +989,7 @@
 				FC1C937AD1C4C47257B9D1BE /* BattleSimulatorTests.swift in Sources */,
 				381688F1CAF45AF5B8AE41ED /* BattleStateSchedulingTests.swift in Sources */,
 				86D13A653AFF678C497E77F6 /* BattleStateTests.swift in Sources */,
+				AFA562324D864A607B7BEF17 /* DoTMechanicsTests.swift in Sources */,
 				34B0ABD5A43422308E908004 /* EffectModelTests.swift in Sources */,
 				832F4F613E5492807C8B5D84 /* EnemyCatalogTests.swift in Sources */,
 				CF563346E449A54767ACC2CC /* HeroHeaderLayoutTests.swift in Sources */,

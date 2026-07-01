@@ -1,7 +1,9 @@
 import Foundation
 
 enum SavedEffect: Codable, Equatable {
-    case damageOverTime(keyword: String, tickDamage: Int, duration: Int)
+    case burn(potency: Int)
+    case poison(potency: Int)
+    case bleed(potency: Int)
     case prevention(keyword: String, duration: Int)
     case shield(keyword: String, blockAmount: Int, duration: Int)
     case mitigation(keyword: String, percent: Double, duration: Int)
@@ -12,8 +14,12 @@ enum SavedEffect: Codable, Equatable {
 
     init(_ effect: Effect) {
         switch effect {
-        case let .damageOverTime(keyword, tickDamage, duration):
-            self = .damageOverTime(keyword: keyword.rawValue, tickDamage: tickDamage, duration: duration)
+        case let .burn(potency):
+            self = .burn(potency: potency)
+        case let .poison(potency):
+            self = .poison(potency: potency)
+        case let .bleed(potency):
+            self = .bleed(potency: potency)
         case let .prevention(keyword, duration):
             self = .prevention(keyword: keyword.rawValue, duration: duration)
         case let .shield(keyword, blockAmount, duration):
@@ -33,9 +39,12 @@ enum SavedEffect: Codable, Equatable {
 
     func effect() -> Effect? {
         switch self {
-        case let .damageOverTime(keywordRawValue, tickDamage, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .damageOverTime(keyword, tickDamage, duration)
+        case let .burn(potency):
+            return .burn(potency)
+        case let .poison(potency):
+            return .poison(potency)
+        case let .bleed(potency):
+            return .bleed(potency)
         case let .prevention(keywordRawValue, duration):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .prevention(keyword, duration)
@@ -58,5 +67,22 @@ enum SavedEffect: Codable, Equatable {
             let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
             return .cleanse(keyword, duration)
         }
+    }
+}
+
+struct SavedActiveEffect: Codable, Equatable {
+    let id: Int
+    let effect: SavedEffect
+    let remainingTicks: Int
+
+    init(_ activeEffect: ActiveEffect) {
+        id = activeEffect.id
+        effect = SavedEffect(activeEffect.effect)
+        remainingTicks = activeEffect.remainingTicks
+    }
+
+    func activeEffect() -> ActiveEffect? {
+        guard let effect = effect.effect() else { return nil }
+        return ActiveEffect(id: id, effect: effect, remainingTicks: remainingTicks)
     }
 }

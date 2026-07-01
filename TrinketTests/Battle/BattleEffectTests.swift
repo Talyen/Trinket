@@ -6,9 +6,17 @@ final class BattleEffectTests: XCTestCase {
         id: String,
         name: String,
         role: Combatant.Role,
-        maxHealth: Int = 20
+        maxHealth: Int = 20,
+        actionIntervalTicks: Int = 2
     ) -> Combatant {
-        Combatant(id: id, name: name, role: role, maxHealth: maxHealth, abilities: [])
+        Combatant(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
+            abilities: []
+        )
     }
 
     private func performActions(_ count: Int, on battle: inout BattleState) -> [BattleState.ActionEvent] {
@@ -197,43 +205,47 @@ final class BattleEffectTests: XCTestCase {
             directDamage: 0,
             effects: [.instantHeal(.health, 3)]
         )
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [heal])
-        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, actionIntervalTicks: 2, abilities: [heal])
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, actionIntervalTicks: 100)
         var battle = BattleState(
             hero: hero,
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.burn, 4, 1), remainingTicks: 1)
+                ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)
             ]
         )
 
         _ = battle.advanceOneStep()
+        XCTAssertEqual(battle.heroHealth, 8)
+
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 9)
+        XCTAssertEqual(battle.heroHealth, 10)
         XCTAssertTrue(events.contains { $0.effectKind == .instantHeal && $0.floatingText == "+3 Health" })
     }
 
     func testLeechHealsAttackerOnDamageDealt() {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [.slash])
-        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, actionIntervalTicks: 2, abilities: [.slash])
+        let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, actionIntervalTicks: 100)
         var battle = BattleState(
             hero: hero,
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.burn, 5, 1), remainingTicks: 1),
+                ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0),
                 ActiveEffect(id: 2, effect: .leech(.leech, 0.25, 3), remainingTicks: 3)
             ]
         )
 
         _ = battle.advanceOneStep()
+        XCTAssertEqual(battle.heroHealth, 8)
+
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 6)
+        XCTAssertEqual(battle.heroHealth, 8)
         XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
@@ -252,11 +264,11 @@ final class BattleEffectTests: XCTestCase {
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleState(
             hero: hero,
-            pet: pet,
-            enemy: enemy,
+            pet: passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 100),
+            enemy: passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, actionIntervalTicks: 100),
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.poison, 1, 5), remainingTicks: 5),
-                ActiveEffect(id: 2, effect: .damageOverTime(.burn, 1, 5), remainingTicks: 5)
+                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0)
             ]
         )
 
@@ -264,11 +276,11 @@ final class BattleEffectTests: XCTestCase {
         _ = battle.advanceOneStep()
 
         XCTAssertFalse(battle.activeHeroEffects.contains {
-            if case .damageOverTime(.poison, _, _) = $0.effect { return true }
+            if case .poison = $0.effect { return true }
             return false
         })
         XCTAssertTrue(battle.activeHeroEffects.contains {
-            if case .damageOverTime(.burn, _, _) = $0.effect { return true }
+            if case .burn = $0.effect { return true }
             return false
         })
     }
@@ -288,8 +300,8 @@ final class BattleEffectTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .damageOverTime(.burn, 1, 2), remainingTicks: 2),
-                ActiveEffect(id: 2, effect: .damageOverTime(.poison, 1, 2), remainingTicks: 2)
+                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0)
             ]
         )
 
