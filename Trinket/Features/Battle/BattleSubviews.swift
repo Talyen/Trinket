@@ -1,81 +1,189 @@
 import SwiftUI
 
-struct CombatantStatusCard: View {
-    enum Prominence {
-        case enemy
-        case party
+enum BattleArtViewportLayout {
+    static let artAspectRatio: CGFloat = 3.0 / 4.0
+
+    struct Placement: Equatable {
+        let size: CGSize
+        let origin: CGPoint
+
+        var center: CGPoint {
+            CGPoint(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
+        }
+    }
+
+    static func placement(in viewportSize: CGSize, focalPoint: UnitPoint) -> Placement {
+        guard viewportSize.width > 0, viewportSize.height > 0 else {
+            return Placement(size: .zero, origin: .zero)
+        }
+
+        let viewportRatio = viewportSize.width / viewportSize.height
+        let artSize: CGSize
+        if viewportRatio > artAspectRatio {
+            artSize = CGSize(width: viewportSize.width, height: viewportSize.width / artAspectRatio)
+        } else {
+            artSize = CGSize(width: viewportSize.height * artAspectRatio, height: viewportSize.height)
+        }
+
+        let desiredFocalPoint = CGPoint(x: viewportSize.width / 2, y: viewportSize.height / 2)
+        let unclampedOrigin = CGPoint(
+            x: desiredFocalPoint.x - artSize.width * focalPoint.x,
+            y: desiredFocalPoint.y - artSize.height * focalPoint.y
+        )
+
+        return Placement(
+            size: artSize,
+            origin: CGPoint(
+                x: clampedOrigin(unclampedOrigin.x, contentLength: artSize.width, viewportLength: viewportSize.width),
+                y: clampedOrigin(unclampedOrigin.y, contentLength: artSize.height, viewportLength: viewportSize.height)
+            )
+        )
+    }
+
+    private static func clampedOrigin(_ origin: CGFloat, contentLength: CGFloat, viewportLength: CGFloat) -> CGFloat {
+        min(max(origin, viewportLength - contentLength), 0)
+    }
+}
+
+struct BattleArtViewport: View {
+    let combatant: Combatant
+
+    var body: some View {
+        GeometryReader { geometry in
+            let artReference = combatant.artReference
+            let placement = BattleArtViewportLayout.placement(
+                in: geometry.size,
+                focalPoint: artReference?.focalPoint ?? .center
+            )
+
+            ZStack {
+                if let artReference {
+                    Image(artReference.imageName)
+                        .resizable()
+                        .interpolation(.medium)
+                        .scaledToFill()
+                        .frame(width: placement.size.width, height: placement.size.height)
+                        .position(placement.center)
+                        .accessibilityLabel(artReference.accessibilityLabel)
+                } else {
+                    placeholderArt
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .accessibilityLabel("\(combatant.name) placeholder art")
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .clipped()
+        }
+    }
+
+    private var placeholderArt: some View {
+        let style: TrinketDesign.CardPlaceholderStyle
+        switch combatant.role {
+        case .hero: style = .hero
+        case .pet: style = .pet
+        case .enemy: style = .enemy
+        }
+
+        return ZStack {
+            style.color.opacity(0.18)
+
+            Image(systemName: style.symbolName)
+                .font(.system(size: 48, weight: .semibold))
+                .foregroundStyle(style.color)
+                .symbolRenderingMode(.hierarchical)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+struct BattleCombatantPane: View {
+    enum HealthBarPlacement {
+        case top
+        case bottom
     }
 
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
-    let prominence: Prominence
-    let cardWidth: CGFloat
-    let showsText: Bool
-    var isPaused: Bool = false
+    let healthBarPlacement: HealthBarPlacement
+    let events: [BattleState.ActionEvent]
+    let reduceMotion: Bool
+    let onRemoveEvent: (Int) -> Void
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                BattleArtCard(
-                    combatant: combatant,
-                    showsText: showsText,
-                    isPaused: isPaused
-                )
-                .frame(width: cardWidth)
+            ZStack {
+                BattleArtViewport(combatant: combatant)
 
-                CombatHealthBar(
-                    health: health,
-                    maxHealth: maxHealth,
-                    fillColor: combatant.healthBarColor
+                healthScrim
+
+                healthBar
+
+                CombatFeedbackOverlay(
+                    events: events,
+                    reduceMotion: reduceMotion,
+                    onRemoveEvent: onRemoveEvent
                 )
-                .accessibilityHidden(true)
+                .padding(.horizontal, 8)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(combatant.name) card")
             .accessibilityValue(healthText)
             .accessibilityHint("Shows details")
         }
         .buttonStyle(.plain)
-        .frame(maxWidth: prominence == .enemy ? .infinity : cardWidth)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("\(combatant.name) card")
     }
 
     private var healthText: String {
         "\(health)/\(maxHealth) HP"
     }
-}
 
-struct BattleArtCard: View {
-    let combatant: Combatant
-    let showsText: Bool
-    var isPaused: Bool = false
-
-    var body: some View {
-        TrinketDesign.cardShape
-            .aspectRatio(3.0 / 4.0, contentMode: .fit)
-            .overlay {
-                ZStack(alignment: .bottom) {
-                    CombatantArtwork(combatant: combatant, variant: .card)
-                        .clipShape(TrinketDesign.cardShape)
-
-                    if showsText {
-                        Rectangle()
-                            // UIStyleCheck: allow - battle art labels need readable material over artwork.
-                            .fill(.ultraThinMaterial)
-                            .frame(maxHeight: 60)
-
-                        Text(combatant.name)
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .multilineTextAlignment(.center)
-                            .shadow(color: .black.opacity(0.45), radius: 3, y: 1)
-                            .padding(12)
-                    }
-                }
+    private var healthBar: some View {
+        VStack {
+            if healthBarPlacement == .bottom {
+                Spacer(minLength: 0)
             }
-            .trinketCardSurface()
+
+            CombatHealthBar(
+                health: health,
+                maxHealth: maxHealth,
+                fillColor: combatant.healthBarColor
+            )
+            .accessibilityHidden(true)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+
+            if healthBarPlacement == .top {
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private var healthScrim: some View {
+        VStack {
+            if healthBarPlacement == .bottom {
+                Spacer(minLength: 0)
+            }
+
+            LinearGradient(
+                // UIStyleCheck: allow - battle health bars need readable contrast over full-bleed art.
+                colors: [Color.black.opacity(0.42), .clear],
+                startPoint: healthBarPlacement == .top ? .top : .bottom,
+                endPoint: healthBarPlacement == .top ? .bottom : .top
+            )
+            .frame(height: 54)
+
+            if healthBarPlacement == .top {
+                Spacer(minLength: 0)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

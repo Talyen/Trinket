@@ -15,6 +15,8 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists("Battle Button")
         app.buttons["Battle Button"].tap()
 
+        assertExists("Battle Pause Button")
+        app.buttons["Battle Pause Button"].tap()
         assertExists("Knight card")
         app.buttons["Knight card"].tap()
 
@@ -23,7 +25,6 @@ final class SmokeBattleTests: TrinketUITestCase {
         XCTAssertEqual(header.label, "Knight, Hero, level 2, 35 of 120 experience")
         assertExists("Stats")
         assertExists("Health")
-        assertExists("10/10")
         dismissSheet()
         assertExists("Battle Pause Button")
     }

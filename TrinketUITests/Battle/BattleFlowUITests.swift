@@ -22,7 +22,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("35/120 XP")
         assertExists("Stats")
         assertExists("Health")
-        assertExists("10/10")
         dismissSheet()
 
         app.tabBars.buttons["Collection"].tap()

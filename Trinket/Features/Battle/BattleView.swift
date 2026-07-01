@@ -21,7 +21,6 @@ struct BattleView: View {
     private let onRestartBattle: () -> Void
     private let onVictoryContinue: ((Int) -> Void)?
     private let onShowCombatantDetail: (CombatantCardDetail) -> Void
-    private let feedbackLifetime: TimeInterval = 1.0
 
     @State private var victorySummary: BattleVictorySummary?
 
@@ -84,8 +83,9 @@ struct BattleView: View {
             }
         }
         .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle(isShowingVictory ? "Victory" : isShowingDefeat ? "Defeat" : "Battle")
+        .navigationTitle(isShowingVictory ? "Victory" : isShowingDefeat ? "Defeat" : "")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackgroundVisibility(isShowingVictory || isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 4) {
@@ -152,38 +152,79 @@ struct BattleView: View {
     }
 
     private var battlefield: some View {
-        GeometryReader { geometry in
-            let availableWidth = geometry.size.width
-            let spacing: CGFloat = 18
-            let enemyWidth = availableWidth * 0.40
-            let partyWidth = (availableWidth - spacing) * 0.45
+        VStack(spacing: 0) {
+            BattleCombatantPane(
+                combatant: battle.enemy,
+                health: battle.enemyHealth,
+                maxHealth: battle.enemy.maxHealth,
+                healthBarPlacement: .bottom,
+                events: feedbackEvents(for: battle.enemy),
+                reduceMotion: reduceMotion,
+                onRemoveEvent: removeFeedbackEvent
+            ) {
+                showDetails(for: battle.enemy)
+            }
+            .frame(maxHeight: .infinity)
 
-            VStack(spacing: spacing) {
-                cardWithOverlay(
-                    combatant: battle.enemy,
-                    health: battle.enemyHealth,
-                    cardWidth: enemyWidth,
-                    isEnemy: true
-                )
+            HStack(spacing: 0) {
+                BattleCombatantPane(
+                    combatant: battle.hero,
+                    health: battle.heroHealth,
+                    maxHealth: battle.hero.maxHealth,
+                    healthBarPlacement: .top,
+                    events: feedbackEvents(for: battle.hero),
+                    reduceMotion: reduceMotion,
+                    onRemoveEvent: removeFeedbackEvent
+                ) {
+                    showDetails(for: battle.hero)
+                }
 
-                HStack(alignment: .top, spacing: spacing) {
-                    cardWithOverlay(
-                        combatant: battle.hero,
-                        health: battle.heroHealth,
-                        cardWidth: partyWidth,
-                        isEnemy: false
-                    )
-
-                    cardWithOverlay(
-                        combatant: battle.pet,
-                        health: battle.petHealth,
-                        cardWidth: partyWidth,
-                        isEnemy: false
-                    )
+                BattleCombatantPane(
+                    combatant: battle.pet,
+                    health: battle.petHealth,
+                    maxHealth: battle.pet.maxHealth,
+                    healthBarPlacement: .top,
+                    events: feedbackEvents(for: battle.pet),
+                    reduceMotion: reduceMotion,
+                    onRemoveEvent: removeFeedbackEvent
+                ) {
+                    showDetails(for: battle.pet)
                 }
             }
-            .padding(20)
+            .frame(maxHeight: .infinity)
         }
+        .ignoresSafeArea(edges: .top)
+    }
+
+    private func showDetails(for combatant: Combatant) {
+        let health: Int
+        if combatant.id == battle.enemy.id {
+            health = battle.enemyHealth
+        } else if combatant.id == battle.hero.id {
+            health = battle.heroHealth
+        } else {
+            health = battle.petHealth
+        }
+
+        onShowCombatantDetail(details(
+            for: combatant,
+            health: health,
+            activeEffectSummaries: effectSummaries(for: combatant)
+        ))
+    }
+
+    private func effectSummaries(for combatant: Combatant) -> [EffectSummary] {
+        if combatant.id == battle.enemy.id { return battle.enemyEffectSummaries }
+        if combatant.id == battle.hero.id { return battle.heroEffectSummaries }
+        return battle.petEffectSummaries
+    }
+
+    private func feedbackEvents(for combatant: Combatant) -> [BattleState.ActionEvent] {
+        activeFeedbackEvents.filter { $0.targetID == combatant.id }
+    }
+
+    private func removeFeedbackEvent(_ id: Int) {
+        activeFeedbackEvents.removeAll { $0.id == id }
     }
 
     private var canAutoAdvanceBattle: Bool {
@@ -225,39 +266,6 @@ struct BattleView: View {
             health: health,
             activeEffectSummaries: activeEffectSummaries
         )
-    }
-
-    private func cardWithOverlay(combatant: Combatant, health: Int, cardWidth: CGFloat, isEnemy: Bool) -> some View {
-        ZStack(alignment: .top) {
-            CombatantStatusCard(
-                combatant: combatant,
-                health: health,
-                maxHealth: combatant.maxHealth,
-                prominence: isEnemy ? .enemy : .party,
-                cardWidth: cardWidth,
-                showsText: false,
-                isPaused: isBattlePaused
-            ) {
-                onShowCombatantDetail(details(
-                    for: combatant,
-                    health: health,
-                    activeEffectSummaries: combatant.id == battle.enemy.id
-                        ? battle.enemyEffectSummaries
-                        : combatant.id == battle.hero.id
-                        ? battle.heroEffectSummaries
-                        : battle.petEffectSummaries
-                ))
-            }
-
-            CombatFeedbackOverlay(
-                events: activeFeedbackEvents.filter { $0.targetID == combatant.id },
-                reduceMotion: reduceMotion,
-                onRemoveEvent: { id in
-                    activeFeedbackEvents.removeAll { $0.id == id }
-                }
-            )
-            .padding(.top, 10)
-        }
     }
 
     private func progression(for combatant: Combatant) -> CombatantProgression {
