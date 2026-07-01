@@ -6,6 +6,7 @@ struct PlayView: View {
     @State private var selectedCombatantDetail: CombatantCollectionDetailSelection?
     @State private var stageMessage: StageMapMessage?
     @State private var pendingScrollTarget: String?
+    @State private var pauseBeforeSheet: Bool?
 
     private var chapters: [Chapter] {
         GameContent.chapters
@@ -28,7 +29,11 @@ struct PlayView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
         }
-        .sheet(item: $selectedCombatantDetail) { selection in
+        .sheet(item: $selectedCombatantDetail, onDismiss: {
+            guard appState.battle.activeBattle != nil else { return }
+            appState.battle.isPaused = pauseBeforeSheet ?? false
+            pauseBeforeSheet = nil
+        }) { selection in
             CombatantCollectionDetailSheet(selection: selection)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
@@ -91,6 +96,7 @@ struct PlayView: View {
                     completeActiveBattle(activeBattle, battleEarnedGold: battleEarnedGold)
                 },
                 onShowCombatantDetail: { detail in
+                    pauseBeforeSheet = appState.battle.isPaused
                     appState.battle.isPaused = true
                     selectedCombatantDetail = CombatantCollectionDetailSelection(battleSnapshot: detail)
                 }
