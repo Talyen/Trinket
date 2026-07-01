@@ -44,10 +44,12 @@ struct CollectionView: View {
                         ForEach(appState.roster.collectionHeroes) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,
-                                isLocked: !appState.roster.isUnlocked(combatant)
+                                isLocked: !appState.roster.isUnlocked(combatant),
+                                cardWidth: nil
                             ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .hero, combatantID: combatant.id)
                             }
+                            .collectionShelfCardWidth()
                         }
                     }
                 }
@@ -76,10 +78,12 @@ struct CollectionView: View {
                         ForEach(appState.roster.collectionPets) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,
-                                isLocked: !appState.roster.isUnlocked(combatant)
+                                isLocked: !appState.roster.isUnlocked(combatant),
+                                cardWidth: nil
                             ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .pet, combatantID: combatant.id)
                             }
+                            .collectionShelfCardWidth()
                         }
                     }
                 }
@@ -110,7 +114,7 @@ struct CollectionView: View {
                                 selectedItem = item
                             } label: {
                                 ItemCard(item: item, showsAffixCount: false)
-                                    .frame(width: 130)
+                                    .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
@@ -148,11 +152,17 @@ struct CollectionView: View {
 
     private func horizontalShelf<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 16) {
+            LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
                 content()
             }
-            .padding(.horizontal, 20)
+            .scrollTargetLayout()
+            .contentMargins(
+                .horizontal,
+                TrinketDesign.Metrics.collectionShelfHorizontalMargin,
+                for: .scrollContent
+            )
             .padding(.vertical, 4)
         }
+        .scrollTargetBehavior(.viewAligned)
     }
 }

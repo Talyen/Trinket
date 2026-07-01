@@ -54,7 +54,7 @@ struct SearchView: View {
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
-                                    .frame(width: 130)
+                                    .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(combatant.name) collection card")
@@ -73,7 +73,7 @@ struct SearchView: View {
                                 )
                             } label: {
                                 CombatantCard(combatant: combatant)
-                                    .frame(width: 130)
+                                    .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(combatant.name) collection card")
@@ -86,7 +86,7 @@ struct SearchView: View {
                                 selectedItem = item
                             } label: {
                                 ItemCard(item: item, showsAffixCount: true)
-                                    .frame(width: 130)
+                                    .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
@@ -157,14 +157,20 @@ struct SearchResultSection<Item: Identifiable, Content: View>: View {
     var body: some View {
         Section(title) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
                     ForEach(items) { item in
                         content(item)
                     }
                 }
-                .padding(.horizontal, 20)
+                .scrollTargetLayout()
+                .contentMargins(
+                    .horizontal,
+                    TrinketDesign.Metrics.collectionShelfHorizontalMargin,
+                    for: .scrollContent
+                )
                 .padding(.vertical, 4)
             }
+            .scrollTargetBehavior(.viewAligned)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 12, trailing: 0))
         }
     }

@@ -18,6 +18,9 @@ enum TrinketDesign {
     enum Metrics {
         static let cardLabelReservedHeight: CGFloat = 38
         static let statBarHeight: CGFloat = 7
+        static let collectionShelfHorizontalMargin: CGFloat = 20
+        static let collectionShelfCardSpacing: CGFloat = 16
+        static let collectionShelfPeekRatio: CGFloat = 0.2
     }
 
     static let cardShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -49,5 +52,16 @@ enum TrinketDesign {
         static let enemy = CardPlaceholderStyle(color: .red, symbolName: "flame.fill")
         static let item = CardPlaceholderStyle(color: .orange, symbolName: "shippingbox.fill")
         static let ability = CardPlaceholderStyle(color: .indigo, symbolName: "bolt.fill")
+    }
+}
+
+extension View {
+    func collectionShelfCardWidth() -> some View {
+        containerRelativeFrame(.horizontal) { length, _ in
+            let margin = TrinketDesign.Metrics.collectionShelfHorizontalMargin
+            let spacing = TrinketDesign.Metrics.collectionShelfCardSpacing
+            let peek = TrinketDesign.Metrics.collectionShelfPeekRatio
+            return (length - 2 * margin - spacing) / (2 + peek)
+        }
     }
 }
