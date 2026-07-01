@@ -21,7 +21,7 @@ final class MusicDirectorTests: XCTestCase {
     func testNormalBattlePreviewPlaysBattleTrack() throws {
         let route = director.route(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "goblin"),
+            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
             sceneIsActive: true,
             musicVolume: 0.75
@@ -31,7 +31,7 @@ final class MusicDirectorTests: XCTestCase {
         XCTAssertEqual(request.track.kind, .battle)
         XCTAssertEqual(request.resumeKey.contextKind, .battle)
         XCTAssertEqual(request.resumeKey.stageID, "chapter-1-stage-1")
-        XCTAssertEqual(request.resumeKey.enemyID, "goblin")
+        XCTAssertEqual(request.resumeKey.enemyID, "skeleton")
     }
 
     func testBossBattlePreviewPlaysBossTrack() throws {
@@ -54,7 +54,7 @@ final class MusicDirectorTests: XCTestCase {
             stageID: "chapter-1-stage-1",
             hero: GameContent.heroes[0],
             pet: GameContent.pets[0],
-            enemy: GameContent.enemy(matching: "goblin")?.combatant
+            enemy: GameContent.enemy(matching: "skeleton")?.combatant
         )
 
         let route = director.route(
@@ -67,7 +67,7 @@ final class MusicDirectorTests: XCTestCase {
 
         let request = try trackRequest(from: route)
         XCTAssertEqual(request.track.kind, .battle)
-        XCTAssertEqual(request.resumeKey.enemyID, "goblin")
+        XCTAssertEqual(request.resumeKey.enemyID, "skeleton")
     }
 
     func testLeavingPlayReturnsToMenuEvenWithActiveBattle() throws {
@@ -94,7 +94,7 @@ final class MusicDirectorTests: XCTestCase {
     func testInactiveSceneSilencesAndPreservesPosition() {
         let route = director.route(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "goblin"),
+            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
             sceneIsActive: false,
             musicVolume: 0.75
@@ -106,7 +106,7 @@ final class MusicDirectorTests: XCTestCase {
     func testMutedMusicSilencesAndPreservesPosition() {
         let route = director.route(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "goblin"),
+            preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
             sceneIsActive: true,
             musicVolume: 0

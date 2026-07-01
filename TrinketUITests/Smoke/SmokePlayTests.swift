@@ -19,7 +19,7 @@ final class SmokePlayTests: TrinketUITestCase {
         let header = app.descendants(matching: .any)["Stage Preview Header"]
         XCTAssertTrue(header.label.contains("Enemy"))
         assertExists("Stage 1-1")
-        assertExists("Goblin")
+        assertExists("Skeleton")
         assertExists("Party")
         assertExists("Selected Hero Card")
         assertExists("Selected Pet Card")

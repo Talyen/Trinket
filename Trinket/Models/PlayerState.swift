@@ -94,7 +94,6 @@ struct PlayerRosterState: Equatable {
                 "wildcard": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "bear": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "frost_whelp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-                "imp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "panther": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "phoenix": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),

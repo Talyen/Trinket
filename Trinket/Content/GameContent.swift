@@ -478,18 +478,6 @@ enum GameContent {
             primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 3, intellect: 9, wisdom: 3)
         ),
         Combatant(
-            id: "imp",
-            name: "Imp",
-            role: .pet,
-            maxHealth: 6,
-            abilityChoices: AbilityChoices(
-                basics: [.willOWisp, .fangs],
-                skills: [.darkPact, .fireball],
-                ultimates: [.combustion, .faustianBargain]
-            ),
-            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 3, intellect: 9, wisdom: 4)
-        ),
-        Combatant(
             id: "lizard_scout",
             name: "Lizard Scout",
             role: .pet,
@@ -588,8 +576,6 @@ enum GameContent {
     ]
 
     static let enemies: [Enemy] = [
-        Enemy(combatant: Combatant(id: "goblin", name: "Goblin", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.slash, .smite, .blessedAegis], primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 3, intellect: 2, wisdom: 2))),
-        Enemy(combatant: Combatant(id: "imp_enemy", name: "Imp", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.willOWisp, .fireball, .combustion], primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 2, intellect: 6, wisdom: 2))),
         Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.bash, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 6, agility: 3, toughness: 8, intellect: 1, wisdom: 2))),
         Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.stab, .poisonDagger, .hemorrhage], primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 5, intellect: 3, wisdom: 2))),
         Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: Enemy.defaultMaxHealth, abilities: [.block, .briarShield, .goldenPlate], primaryStats: PrimaryStats(strength: 4, agility: 3, toughness: 9, intellect: 3, wisdom: 3))),
@@ -616,7 +602,7 @@ enum GameContent {
                     stageNumber: 1,
                     title: "Moss Gate",
                     flavorText: "The old forest road narrows beneath a bright green canopy.",
-                    encounter: .battle(enemyID: "goblin"),
+                    encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
                         gold: 12,
                         experience: 20,

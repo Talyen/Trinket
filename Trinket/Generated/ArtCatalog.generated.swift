@@ -99,12 +99,6 @@ enum ArtCatalog {
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Frost Whelp pet"
         ),
-        "imp": CombatantArtReference(
-            imageName: "pet_imp_card",
-            thumbnailImageName: "pet_imp_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Imp pet"
-        ),
         "lizard_scout": CombatantArtReference(
             imageName: "pet_lizard_scout_card",
             thumbnailImageName: "pet_lizard_scout_card_thumb",
@@ -146,18 +140,6 @@ enum ArtCatalog {
             thumbnailImageName: "pet_mana_moth_card_thumb",
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Mana Moth pet"
-        ),
-        "goblin": CombatantArtReference(
-            imageName: "enemy_goblin_card",
-            thumbnailImageName: "enemy_goblin_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Goblin enemy"
-        ),
-        "imp_enemy": CombatantArtReference(
-            imageName: "enemy_imp_enemy_card",
-            thumbnailImageName: "enemy_imp_enemy_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Imp enemy"
         ),
         "living_armor": CombatantArtReference(
             imageName: "enemy_living_armor_card",

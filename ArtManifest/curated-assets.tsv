@@ -10,7 +10,6 @@ combatant	wizard	hero_wizard_card	Raw Assets/Heroes/Wizard.png	0.50	0.50	Full ar
 combatant	wolf	pet_wolf_card	Raw Assets/Pets/Wolf.jpeg	0.50	0.36	Full art of the Wolf pet
 combatant	bear	pet_bear_card	Raw Assets/Pets/Bear.jpeg	0.50	0.50	Full art of the Bear pet
 combatant	frost_whelp	pet_frost_whelp_card	Raw Assets/Pets/Frost Whelp.jpeg	0.50	0.50	Full art of the Frost Whelp pet
-combatant	imp	pet_imp_card	Raw Assets/Pets/Imp.png	0.50	0.50	Full art of the Imp pet
 combatant	lizard_scout	pet_lizard_scout_card	Raw Assets/Pets/Lizard Scout.png	0.50	0.50	Full art of the Lizard Scout pet
 combatant	panther	pet_panther_card	Raw Assets/Pets/Panther.jpeg	0.50	0.50	Full art of the Panther pet
 combatant	phoenix	pet_phoenix_card	Raw Assets/Pets/Phoenix.jpeg	0.50	0.50	Full art of the Phoenix pet
@@ -159,8 +158,6 @@ item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50	Item
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50	Empty armor slot frame
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50	Empty trinket slot frame
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50	Empty weapon slot frame
-combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50	Full art of the Goblin enemy
-combatant	imp_enemy	enemy_imp_enemy_card	Raw Assets/Enemies/Imp.png	0.50	0.50	Full art of the Imp enemy
 combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50	Full art of the Living Armor enemy
 combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.png	0.50	0.50	Full art of the Mimic enemy
 combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.png	0.50	0.50	Full art of the Mud Elemental enemy
