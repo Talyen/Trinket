@@ -95,6 +95,44 @@ final class StageRewardTests: XCTestCase {
         XCTAssertEqual(homestead.resources[.stone], 4)
     }
 
+    func testHomesteadFoodBonusUsesFirstMatchingNodeRule() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 2, .chickenCoop: 2]
+        )
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let foodStage = Stage(
+            id: "food-test-stage",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            flavorText: "Test",
+            encounter: .event,
+            rewards: StageReward(
+                gold: 0,
+                experience: 0,
+                itemTemplateIDs: [],
+                materialRewards: [ResourceAmount(.food, 4)]
+            )
+        )
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: foodStage,
+            hero: hero,
+            pet: pet,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(homestead.resources[.food], 5)
+    }
+
     func testCompletingStageTwiceDoesNotDoubleRewards() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])

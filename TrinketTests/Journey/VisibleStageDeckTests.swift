@@ -27,6 +27,46 @@ final class VisibleStageDeckTests: XCTestCase {
         XCTAssertEqual(activeNode.state, .active)
     }
 
+    func testFirstActiveStageOmitsPreviousCard() {
+        var progress = JourneyProgressState.initial
+        let firstStage = chapter.stages[0]
+        progress.activeStageID = firstStage.id
+
+        let deck = VisibleStageDeck(
+            chapters: GameContent.chapters,
+            chapter: chapter,
+            progress: progress
+        )
+
+        XCTAssertEqual(deck.cards.count, 2)
+        XCTAssertEqual(deck.scrollTargetID, firstStage.id)
+
+        guard case let .stage(activeNode) = deck.cards[0] else {
+            return XCTFail("Expected active stage as first card")
+        }
+        XCTAssertEqual(activeNode.stage.id, firstStage.id)
+        XCTAssertEqual(activeNode.state, .active)
+    }
+
+    func testEmptyChapterProducesEmptyDeck() {
+        let emptyChapter = Chapter(
+            id: "empty-chapter",
+            number: 99,
+            title: "Empty",
+            theme: .verdantForest,
+            stages: []
+        )
+
+        let deck = VisibleStageDeck(
+            chapters: GameContent.chapters,
+            chapter: emptyChapter,
+            progress: .initial
+        )
+
+        XCTAssertTrue(deck.cards.isEmpty)
+        XCTAssertNil(deck.scrollTargetID)
+    }
+
     func testFinalStageDeckIncludesChapterGate() {
         var progress = JourneyProgressState.initial
         let finalStage = chapter.stages[9]

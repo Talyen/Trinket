@@ -48,4 +48,52 @@ final class HomesteadStateTests: XCTestCase {
         XCTAssertFalse(homestead.buildOrUpgrade(definition, roster: &roster))
         XCTAssertEqual(homestead.tier(for: .blacksmithForge), 0)
     }
+
+    func testAdjustedMaterialRewardsAddsGranaryBonusForAllMaterials() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 3]
+        )
+
+        let adjusted = homestead.adjustedMaterialRewards([
+            ResourceAmount(.wood, 8),
+            ResourceAmount(.stone, 3)
+        ])
+
+        XCTAssertEqual(adjusted.first { $0.resource == .wood }?.quantity, 9)
+        XCTAssertEqual(adjusted.first { $0.resource == .stone }?.quantity, 4)
+    }
+
+    func testAdjustedMaterialRewardsAddsFoodBonusFromChickenCoop() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.chickenCoop: 2]
+        )
+
+        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 5)])
+
+        XCTAssertEqual(adjusted.first { $0.resource == .food }?.quantity, 6)
+    }
+
+    func testAdjustedMaterialRewardsAddsHerbBonusFromHerbGarden() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.herbGarden: 2]
+        )
+
+        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.herbs, 2)])
+
+        XCTAssertEqual(adjusted.first { $0.resource == .herbs }?.quantity, 3)
+    }
+
+    func testAdjustedMaterialRewardsIgnoresGoldMaterials() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 3]
+        )
+
+        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.gold, 10)])
+
+        XCTAssertTrue(adjusted.isEmpty)
+    }
 }

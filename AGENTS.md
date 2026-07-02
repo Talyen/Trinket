@@ -100,6 +100,8 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`
 - **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
 - **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Golden paths:** pin outcome counters (ticks, health, victory/defeat); assert event *semantics* (status kinds, milestones) rather than full log fingerprints.
+- **Ability descriptions:** `AbilityDescriptionFormatterTests` guards catalog prose; prefer focused examples over duplicating full catalog loops elsewhere.
+- **Homestead rewards:** test `PlayerHomesteadState.adjustedMaterialRewards` directly, then stage-completion integration for end-to-end grants.
 - **Battle UI flow:** use `BattleRun.outcome` and `BattleRun.makeVictorySummary()` — keep outcome logic out of SwiftUI views.
 - **Launch screens:** collection deep links live on `AppState.initialCollectionCombatantDetail` / `initialCollectionItemID`, not `AppEnvironment.shared` in views.
 - **Content invariants:** loop `GameContent` for catalog tests (unique IDs, art refs, stage→enemy links).
