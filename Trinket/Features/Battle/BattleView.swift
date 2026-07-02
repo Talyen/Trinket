@@ -222,7 +222,9 @@ struct BattleView: View {
         guard canAutoAdvanceBattle else { return }
 
         let step = battle.advanceOneStep()
-        step.events.forEach(appendFeedbackEvent)
+        step.events
+            .filter { $0.kind != .milestone }
+            .forEach(appendFeedbackEvent)
 
         if battle.isEnemyDefeated {
             victorySummary = makeVictorySummary()

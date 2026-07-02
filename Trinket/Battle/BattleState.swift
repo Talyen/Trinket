@@ -12,7 +12,8 @@ import Foundation
 ///   `activeHeroEffects`/`activePetEffects`/`activeEnemyEffects`,
 ///   `heroActionCount`/`petActionCount`/`enemyActionCount`,
 ///   `heroEffectSummaries`/`petEffectSummaries`/`enemyEffectSummaries`
-/// - Global state: `tickCount`, `actionCount`, `log`, `gold`, `earnedGold`
+/// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`
+/// - Derived: `log`
 /// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
 ///   `isPartyDefeated`, `isBattleOver`
 /// - AI helper: `enemyAttackTarget`
@@ -26,7 +27,7 @@ import Foundation
 ///   `CombatantRuntime`s)
 /// - Effect application rules live on the `BattleEffectHandler` structs in
 ///   `EffectHandlers.swift`; this type only orchestrates dispatch
-/// - Combat log lines are assembled by `BattleLogBuilder`
+/// - Combat log lines are derived from the event stream by `BattleLogReducer`
 /// - Effect summaries are built by `EffectSummaryBuilder`
 /// - Floating-text chrome is formatted by `ActionEventFormatter`
 struct BattleState {
@@ -42,12 +43,11 @@ struct BattleState {
 
     private(set) var tickCount: Int
     private(set) var actionCount: Int
-    private(set) var log: [LogEntry]
+    private(set) var events: [ActionEvent]
     private(set) var gold: Int
 
     private var roster: BattleRoster
     private var nextEventID: Int
-    private var nextLogEntryID: Int
     private var nextEffectID: Int
     private var rng: SeededRandomNumberGenerator
     private var hasLoggedDefeat: Bool
@@ -55,6 +55,13 @@ struct BattleState {
     private let initialGold: Int
     private let heroModifiers: CombatModifierProfile
     private let petModifiers: CombatModifierProfile
+
+    var log: [LogEntry] {
+        BattleLogReducer.entries(
+            from: events,
+            matchup: BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        )
+    }
 
     static let defaultRNGSeed: UInt64 = 0
 
@@ -98,7 +105,6 @@ struct BattleState {
         )
 
         nextEventID = 0
-        nextLogEntryID = 1
         nextEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
@@ -110,9 +116,8 @@ struct BattleState {
         self.initialGold = initialGold
         gold = initialGold
 
-        log = [
-            LogEntry(id: 0, text: "\(hero.name) and \(pet.name) face \(resolvedEnemy.name).")
-        ]
+        events = []
+        _ = appendMilestone(.battleStarted)
     }
 
     // MARK: - Per-combatant state accessors (delegate to roster)
@@ -302,8 +307,7 @@ struct BattleState {
         var events = applyAllEffectTicks()
 
         if isBattleOver {
-            appendDefeatLogIfNeeded()
-            appendPartyDefeatLogIfNeeded()
+            events.append(contentsOf: appendDefeatMilestonesIfNeeded())
             return .ended(events: events)
         }
 
@@ -322,8 +326,7 @@ struct BattleState {
             events.append(contentsOf: performAction(actor: actor, abilityTarget: abilityTarget))
         }
 
-        appendDefeatLogIfNeeded()
-        appendPartyDefeatLogIfNeeded()
+        events.append(contentsOf: appendDefeatMilestonesIfNeeded())
 
         if isBattleOver {
             return .ended(events: events)
@@ -403,19 +406,6 @@ struct BattleState {
             events.append(contentsOf: applyLeechFromDamage(dealt, sourceActorID: actor.id))
         }
 
-        if ability.directDamage > 0 {
-            let event = nextEvent(
-                kind: .ability,
-                effectKind: nil,
-                actorName: actor.name,
-                abilityName: ability.name,
-                target: abilityTarget,
-                amount: dealt,
-                keyword: ability.damageKeyword
-            )
-            events.append(event)
-        }
-
         var appliedEffectLogs: [String] = []
         var pairedDamageHits: [(Keyword, Int)] = []
         if ability.directDamage > 0 {
@@ -451,15 +441,18 @@ struct BattleState {
             }
         }
 
-        let logLine = BattleLogBuilder.lineForAction(
-            actorName: actor.name,
-            abilityName: ability.name,
-            dealt: dealt,
-            damageKeyword: ability.damageKeyword,
-            targetName: abilityTarget.name,
-            appliedEffectSummaries: appliedEffectLogs
+        events.append(
+            nextEvent(
+                kind: .ability,
+                effectKind: nil,
+                actorName: actor.name,
+                abilityName: ability.name,
+                target: abilityTarget,
+                amount: dealt,
+                keyword: ability.damageKeyword,
+                appliedEffectSummaries: appliedEffectLogs
+            )
         )
-        appendLog(logLine)
 
         recordAction(for: actor)
         return events
@@ -639,7 +632,6 @@ struct BattleState {
             keyword: keyword
         )
         events.append(event)
-        appendLog("\(target.name) takes \(result.healthLost) \(keyword.rawValue) damage.")
         return events
     }
 
@@ -971,15 +963,17 @@ struct BattleState {
 
     mutating func nextEvent(
         kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectKind?,
+        effectKind: ActionEvent.EffectKind? = nil,
         actorName: String,
         abilityName: String,
         target: Combatant,
         amount: Int,
-        keyword: Keyword
+        keyword: Keyword,
+        appliedEffectSummaries: [String] = [],
+        milestone: ActionEvent.Milestone? = nil
     ) -> ActionEvent {
         nextEventID += 1
-        return ActionEvent(
+        let event = ActionEvent(
             id: nextEventID,
             kind: kind,
             effectKind: effectKind,
@@ -988,24 +982,37 @@ struct BattleState {
             targetID: target.id,
             targetName: target.name,
             amount: amount,
-            keyword: keyword
+            keyword: keyword,
+            appliedEffectSummaries: appliedEffectSummaries,
+            milestone: milestone
+        )
+        events.append(event)
+        return event
+    }
+
+    @discardableResult
+    private mutating func appendMilestone(_ milestone: ActionEvent.Milestone) -> ActionEvent {
+        nextEvent(
+            kind: .milestone,
+            actorName: "",
+            abilityName: "",
+            target: enemy,
+            amount: 0,
+            keyword: .physical,
+            milestone: milestone
         )
     }
 
-    private mutating func appendLog(_ text: String) {
-        log.append(LogEntry(id: nextLogEntryID, text: text))
-        nextLogEntryID += 1
-    }
-
-    private mutating func appendDefeatLogIfNeeded() {
-        guard isEnemyDefeated, !hasLoggedDefeat else { return }
-        hasLoggedDefeat = true
-        appendLog("\(enemy.name) is defeated.")
-    }
-
-    private mutating func appendPartyDefeatLogIfNeeded() {
-        guard isPartyDefeated, !hasLoggedPartyDefeat else { return }
-        hasLoggedPartyDefeat = true
-        appendLog("Your party has been defeated by \(enemy.name).")
+    private mutating func appendDefeatMilestonesIfNeeded() -> [ActionEvent] {
+        var milestones: [ActionEvent] = []
+        if isEnemyDefeated, !hasLoggedDefeat {
+            hasLoggedDefeat = true
+            milestones.append(appendMilestone(.enemyDefeated))
+        }
+        if isPartyDefeated, !hasLoggedPartyDefeat {
+            hasLoggedPartyDefeat = true
+            milestones.append(appendMilestone(.partyDefeated))
+        }
+        return milestones
     }
 }

@@ -71,6 +71,13 @@ enum ActionEventFormatter {
             )
         case .effect:
             return displayForEffect(event)
+        case .milestone:
+            return ActionEventDisplay(
+                emphasis: .generic,
+                keyword: event.keyword,
+                text: "",
+                secondaryText: nil
+            )
         }
     }
 

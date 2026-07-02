@@ -11,7 +11,7 @@ private struct BattleSimulationMetricsAccumulator {
                 abilityDamage += event.amount
             case .status:
                 statusDamage += event.amount
-            case .effect:
+            case .effect, .milestone:
                 break
             }
 
