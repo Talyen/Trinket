@@ -4,12 +4,12 @@ import Foundation
 
 struct BurnHandler: BattleEffectHandler {
     let kind: EffectKind = .burn
-    func tick(_ active: ActiveEffect, on target: Combatant, in state: inout BattleState) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
         guard case .burn = active.effect else { return EffectTickOutcome() }
         let nextPotency = active.effect.potencyAfterTick()
         if nextPotency > 0 {
-            let events = state.logDoTDamage(
-                state.applyDoTDamage(nextPotency, keyword: .burn, to: target, sourceActorID: active.sourceActorID),
+            let events = context.logDoTDamage(
+                context.applyDoTDamage(nextPotency, keyword: .burn, to: target, sourceActorID: active.sourceActorID),
                 keyword: .burn,
                 target: target
             )
@@ -33,16 +33,16 @@ struct BurnHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .burn(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = state.shouldSkipImmediateDoT(
+        let skipImmediate = context.shouldSkipImmediateDoT(
             potency: potency,
             keyword: .burn,
             pairedDamageHits: pairedDamageHits
         )
-        let events = state.applyDecayingDoT(
+        let events = context.applyDecayingDoT(
             keyword: .burn,
             potency: potency,
             to: target,
@@ -55,12 +55,12 @@ struct BurnHandler: BattleEffectHandler {
 
 struct PoisonHandler: BattleEffectHandler {
     let kind: EffectKind = .poison
-    func tick(_ active: ActiveEffect, on target: Combatant, in state: inout BattleState) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
         guard case .poison = active.effect else { return EffectTickOutcome() }
         let nextPotency = active.effect.potencyAfterTick()
         if nextPotency > 0 {
-            let events = state.logDoTDamage(
-                state.applyDoTDamage(nextPotency, keyword: .poison, to: target, sourceActorID: active.sourceActorID),
+            let events = context.logDoTDamage(
+                context.applyDoTDamage(nextPotency, keyword: .poison, to: target, sourceActorID: active.sourceActorID),
                 keyword: .poison,
                 target: target
             )
@@ -84,16 +84,16 @@ struct PoisonHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .poison(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = state.shouldSkipImmediateDoT(
+        let skipImmediate = context.shouldSkipImmediateDoT(
             potency: potency,
             keyword: .poison,
             pairedDamageHits: pairedDamageHits
         )
-        let events = state.applyDecayingDoT(
+        let events = context.applyDecayingDoT(
             keyword: .poison,
             potency: potency,
             to: target,
@@ -106,12 +106,12 @@ struct PoisonHandler: BattleEffectHandler {
 
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
-    func tick(_ active: ActiveEffect, on target: Combatant, in state: inout BattleState) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTicks > 0 else {
             return EffectTickOutcome()
         }
-        let events = state.logDoTDamage(
-            state.applyDoTDamage(potency, keyword: .bleed, to: target, sourceActorID: active.sourceActorID),
+        let events = context.logDoTDamage(
+            context.applyDoTDamage(potency, keyword: .bleed, to: target, sourceActorID: active.sourceActorID),
             keyword: .bleed,
             target: target
         )
@@ -140,16 +140,16 @@ struct BleedHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = state.shouldSkipImmediateDoT(
+        let skipImmediate = context.shouldSkipImmediateDoT(
             potency: potency,
             keyword: .bleed,
             pairedDamageHits: pairedDamageHits
         )
-        let events = state.applyBleed(
+        let events = context.applyBleed(
             potency: potency,
             to: target,
             sourceActorID: source.id,
@@ -178,22 +178,22 @@ struct PreventionHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .prevention(keyword, duration) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        guard state.rosterHealth(for: target) > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard context.health(of: target) > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
         let preventionEffect = Effect.prevention(keyword, duration)
         let ae = ActiveEffect(
-            id: state.consumeNextEffectID(),
+            id: context.consumeNextEffectID(),
             effect: preventionEffect,
             remainingTicks: duration,
             sourceActorID: source.id
         )
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         currentEffects.append(ae)
-        state.rosterSetActiveEffects(currentEffects, for: target)
-        let event = state.nextEvent(
+        context.setActiveEffects(currentEffects, for: target)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .preventionApplied,
             actorName: source.name,
@@ -226,24 +226,24 @@ struct ShieldHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .shield(keyword, buffer, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
         guard case let .shield(adjustedKeyword, adjustedBuffer, adjustedDuration) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let ae = ActiveEffect(
-            id: state.consumeNextEffectID(),
+            id: context.consumeNextEffectID(),
             effect: .shield(adjustedKeyword, adjustedBuffer, adjustedDuration),
             remainingTicks: adjustedDuration,
             sourceActorID: source.id
         )
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         currentEffects.append(ae)
-        state.rosterSetActiveEffects(currentEffects, for: target)
-        let event = state.nextEvent(
+        context.setActiveEffects(currentEffects, for: target)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,
             actorName: source.name,
@@ -276,24 +276,24 @@ struct MitigationHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .mitigation(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
         guard case let .mitigation(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let ae = ActiveEffect(
-            id: state.consumeNextEffectID(),
+            id: context.consumeNextEffectID(),
             effect: .mitigation(adjustedKeyword, adjustedPercent, adjustedDuration),
             remainingTicks: adjustedDuration,
             sourceActorID: source.id
         )
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         currentEffects.append(ae)
-        state.rosterSetActiveEffects(currentEffects, for: target)
-        let event = state.nextEvent(
+        context.setActiveEffects(currentEffects, for: target)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .mitigationApplied,
             actorName: source.name,
@@ -321,19 +321,19 @@ struct DodgeHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .dodge(keyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let ae = ActiveEffect(
-            id: state.consumeNextEffectID(),
+            id: context.consumeNextEffectID(),
             effect: effect,
             remainingTicks: durationTicks,
             sourceActorID: source.id
         )
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         currentEffects.append(ae)
-        state.rosterSetActiveEffects(currentEffects, for: target)
+        context.setActiveEffects(currentEffects, for: target)
         return EffectApplyOutcome(events: [], didApply: true)
     }
 }
@@ -358,24 +358,24 @@ struct LeechHandler: BattleEffectHandler {
         ability _: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .leech(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
         guard case let .leech(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
         let ae = ActiveEffect(
-            id: state.consumeNextEffectID(),
+            id: context.consumeNextEffectID(),
             effect: .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             remainingTicks: adjustedDuration + wisdomTicks,
             sourceActorID: source.id
         )
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         currentEffects.append(ae)
-        state.rosterSetActiveEffects(currentEffects, for: target)
+        context.setActiveEffects(currentEffects, for: target)
         _ = keyword
         return EffectApplyOutcome(events: [], didApply: true)
     }
@@ -390,12 +390,12 @@ struct InstantHealHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        state.applyHeal(amount, to: target, sourceActorID: source.id)
-        let event = state.nextEvent(
+        context.applyHeal(amount, to: target, sourceActorID: source.id)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .instantHeal,
             actorName: source.name,
@@ -415,12 +415,12 @@ struct ResourceGainHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        state.addGold(amount, sourceActorID: source.id)
-        let event = state.nextEvent(
+        context.addGold(amount, sourceActorID: source.id)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,
             actorName: source.name,
@@ -450,11 +450,11 @@ struct CleanseHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .cleanse(targetKeyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
 
         if let removeKeyword = targetKeyword {
             currentEffects.removeAll { $0.keyword == removeKeyword }
@@ -464,15 +464,15 @@ struct CleanseHandler: BattleEffectHandler {
 
         if durationTicks > 0 {
             let ae = ActiveEffect(
-                id: state.consumeNextEffectID(),
+                id: context.consumeNextEffectID(),
                 effect: effect,
                 remainingTicks: durationTicks,
                 sourceActorID: source.id
             )
             currentEffects.append(ae)
         }
-        state.rosterSetActiveEffects(currentEffects, for: target)
-        let event = state.nextEvent(
+        context.setActiveEffects(currentEffects, for: target)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
             actorName: source.name,
@@ -492,16 +492,16 @@ struct CleanseRandomHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         let debuffs = currentEffects.filter(\.effect.isRemovableDebuff)
         if let removed = debuffs.randomElement() {
             currentEffects.removeAll { $0.id == removed.id }
         }
-        state.rosterSetActiveEffects(currentEffects, for: target)
-        let event = state.nextEvent(
+        context.setActiveEffects(currentEffects, for: target)
+        let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
             actorName: source.name,
@@ -523,17 +523,17 @@ struct DealDamageHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .dealDamage(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let (typedDamage, typedEvents) = state.applyDamage(amount, to: target)
+        let (typedDamage, typedEvents) = context.applyDamage(amount, to: target)
         var allEvents = typedEvents
         if typedDamage > 0 || amount > 0 {
             pairedDamageHits.append((keyword, amount))
         }
         if typedDamage > 0 {
-            allEvents.append(state.nextEvent(
+            allEvents.append(context.nextEvent(
                 kind: .ability,
                 effectKind: nil,
                 actorName: source.name,
@@ -543,7 +543,7 @@ struct DealDamageHandler: BattleEffectHandler {
                 keyword: keyword
             ))
             if target.id != source.id {
-                allEvents.append(contentsOf: state.applyLeechFromDamage(typedDamage, sourceActorID: source.id))
+                allEvents.append(contentsOf: context.applyLeechFromDamage(typedDamage, sourceActorID: source.id))
             }
         }
         return EffectApplyOutcome(events: allEvents, didApply: true)
@@ -557,11 +557,11 @@ struct HalveMitigationHandler: BattleEffectHandler {
         ability: Ability,
         source _: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .halveMitigation(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        var currentEffects = state.rosterActiveEffects(for: target)
+        var currentEffects = context.activeEffects(for: target)
         for index in currentEffects.indices {
             if case let .mitigation(mitigationKeyword, percent, duration) = currentEffects[index].effect,
                mitigationKeyword == keyword {
@@ -572,7 +572,7 @@ struct HalveMitigationHandler: BattleEffectHandler {
                 )
             }
         }
-        state.rosterSetActiveEffects(currentEffects, for: target)
+        context.setActiveEffects(currentEffects, for: target)
         _ = ability
         return EffectApplyOutcome(events: [], didApply: true)
     }
@@ -600,12 +600,12 @@ struct PreventionBuildupHandler: BattleEffectHandler {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         // Buildup is created by `applyDamage` when stun/freeze damage lands;
         // an ability that targets `.preventionBuildup` directly is a no-op.
-        _ = effect; _ = ability; _ = source; _ = target; _ = state; _ = pairedDamageHits
+        _ = effect; _ = ability; _ = source; _ = target; _ = context; _ = pairedDamageHits
         return EffectApplyOutcome(events: [], didApply: false)
     }
 }

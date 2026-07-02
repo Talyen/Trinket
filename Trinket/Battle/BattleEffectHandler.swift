@@ -49,17 +49,13 @@ protocol BattleEffectHandler: Sendable {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in state: inout BattleState,
+        in context: inout BattleMutationContext,
         pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome
-    /// Per-tick work for a single active effect. The default
-    /// implementation does nothing — only `BleedHandler`, `BurnHandler`,
-    /// and `PoisonHandler` override it. Other effect kinds defer their
-    /// duration decrement to the generic pass in `BattleState.tickEffects`.
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,
-        in state: inout BattleState
+        in context: inout BattleMutationContext
     ) -> EffectTickOutcome
     /// Builds the player-facing summary line for a stack of active effects
     /// of this kind, all sharing the same `keyword`. Returning `nil` means
@@ -73,9 +69,9 @@ extension BattleEffectHandler {
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,
-        in state: inout BattleState
+        in context: inout BattleMutationContext
     ) -> EffectTickOutcome {
-        _ = active; _ = target; _ = state
+        _ = active; _ = target; _ = context
         return EffectTickOutcome()
     }
 

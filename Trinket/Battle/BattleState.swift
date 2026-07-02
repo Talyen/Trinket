@@ -43,7 +43,7 @@ struct BattleState {
 
     private(set) var tickCount: Int
     private(set) var actionCount: Int
-    private(set) var events: [ActionEvent]
+    var events: [ActionEvent]
     private(set) var gold: Int
 
     var roster: BattleRoster
@@ -52,9 +52,8 @@ struct BattleState {
     var rng: SeededRandomNumberGenerator
     private var hasLoggedDefeat: Bool
     private var hasLoggedPartyDefeat: Bool
+    let combatBuild: BattleCombatBuild
     private let initialGold: Int
-    private let heroModifiers: CombatModifierProfile
-    private let petModifiers: CombatModifierProfile
 
     var log: [LogEntry] {
         BattleLogReducer.entries(
@@ -81,8 +80,12 @@ struct BattleState {
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
         self.enemy = resolvedEnemy
-        self.heroModifiers = heroModifiers
-        self.petModifiers = petModifiers
+        self.combatBuild = BattleCombatBuild(
+            hero: hero,
+            pet: pet,
+            heroModifiers: heroModifiers,
+            petModifiers: petModifiers
+        )
 
         let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
         rng = SeededRandomNumberGenerator(seed: seed)
@@ -211,13 +214,30 @@ struct BattleState {
         roster.update(runtime)
     }
 
-    // MARK: - Effect-handler accessors
+    // MARK: - Mutation context
 
-    //
-    // These are intentionally `internal` (not `private`) so the
-    // `BattleEffectHandler` implementations in `EffectHandlers.swift` can
-    // read and mutate battle state without going through `performAction`
-    // itself.
+    func makeMutationContext() -> BattleMutationContext {
+        BattleMutationContext(
+            roster: roster,
+            rng: rng,
+            nextEffectID: nextEffectID,
+            nextEventID: nextEventID,
+            events: events,
+            gold: gold,
+            build: combatBuild
+        )
+    }
+
+    mutating func applyMutationContext(_ context: BattleMutationContext) {
+        roster = context.roster
+        rng = context.rng
+        nextEffectID = context.nextEffectID
+        nextEventID = context.nextEventID
+        events = context.events
+        gold = context.gold
+    }
+
+    // MARK: - Effect-handler accessors (legacy; prefer BattleMutationContext)
 
     /// Returns the current health of `combatant` from the roster.
     func rosterHealth(for combatant: Combatant) -> Int {
@@ -234,49 +254,19 @@ struct BattleState {
         roster.setActiveEffects(effects, for: combatant)
     }
 
-    /// Returns the next free effect ID and increments the counter. Used by
-    /// every handler that adds a new `ActiveEffect`.
+    /// Returns the next free effect ID and increments the counter.
     mutating func consumeNextEffectID() -> Int {
         let id = nextEffectID
         nextEffectID += 1
         return id
     }
 
-    /// Adds `amount` to the battle's gold. Used by `ResourceGainHandler`.
     mutating func addGold(_ amount: Int, sourceActorID: String) {
-        gold += amount + modifiers(for: sourceActorID).goldGainedBonus
-    }
-
-    func modifiers(for combatantID: String) -> CombatModifierProfile {
-        if combatantID == hero.id { return heroModifiers }
-        if combatantID == pet.id { return petModifiers }
-        return .zero
+        gold += amount + combatBuild.modifiers(for: sourceActorID).goldGainedBonus
     }
 
     func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
-        let profile = modifiers(for: sourceID)
-        switch effect {
-        case let .shield(keyword, buffer, durationTicks):
-            return .shield(
-                keyword,
-                buffer + profile.blockGrantedBonus,
-                durationTicks + profile.blockDurationBonus
-            )
-        case let .mitigation(keyword, percent, durationTicks):
-            return .mitigation(
-                keyword,
-                percent + profile.armorGrantedBonus,
-                durationTicks + profile.armorDurationBonus
-            )
-        case let .leech(keyword, percent, durationTicks):
-            return .leech(
-                keyword,
-                percent + profile.leechGrantedBonus,
-                durationTicks + profile.leechDurationBonus
-            )
-        default:
-            return effect
-        }
+        combatBuild.adjustedOutgoingEffect(effect, sourceID: sourceID)
     }
 
     // MARK: - Turn loop
@@ -412,6 +402,7 @@ struct BattleState {
             } ?? [])
             : ability.targetedEffects
 
+        var context = makeMutationContext()
         for targetedEffect in effectsToApply {
             let effect = targetedEffect.effect
             let effectTarget = resolveEffectTarget(
@@ -426,7 +417,7 @@ struct BattleState {
                 ability: ability,
                 source: actor,
                 target: effectTarget,
-                in: &self,
+                in: &context,
                 pairedDamageHits: &pairedDamageHits
             )
             events.append(contentsOf: outcome.events)
@@ -434,6 +425,7 @@ struct BattleState {
                 appliedEffectLogs.append(effect.summary)
             }
         }
+        applyMutationContext(context)
 
         events.append(
             nextEvent(
@@ -514,121 +506,6 @@ struct BattleState {
         return events
     }
 
-    mutating func applyDecayingDoT(
-        keyword: Keyword,
-        potency: Int,
-        to effectTarget: Combatant,
-        sourceActorID: String,
-        dealImmediateDamage: Bool
-    ) -> [ActionEvent] {
-        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
-        let statBonus: Int
-        if let actor = roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: keyword)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
-
-        var events: [ActionEvent] = []
-        if dealImmediateDamage {
-            events.append(contentsOf: logDoTDamage(
-                applyDoTDamage(boostedPotency, keyword: keyword, to: effectTarget, sourceActorID: sourceActorID),
-                keyword: keyword,
-                target: effectTarget
-            ))
-        }
-
-        var currentEffects = roster.activeEffects(for: effectTarget)
-        if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
-            let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + boostedPotency)
-            if currentEffects[index].sourceActorID == nil {
-                currentEffects[index].sourceActorID = sourceActorID
-            }
-        } else {
-            currentEffects.append(
-                ActiveEffect(
-                    id: nextEffectID,
-                    effect: effectCase(for: keyword, potency: boostedPotency),
-                    remainingTicks: 0,
-                    sourceActorID: sourceActorID
-                )
-            )
-            nextEffectID += 1
-        }
-        roster.setActiveEffects(currentEffects, for: effectTarget)
-        return events
-    }
-
-    mutating func applyBleed(
-        potency: Int,
-        to effectTarget: Combatant,
-        sourceActorID: String,
-        dealImmediateDamage: Bool
-    ) -> [ActionEvent] {
-        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
-
-        let statBonus: Int
-        if let actor = roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: .bleed)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
-
-        var events: [ActionEvent] = []
-        if dealImmediateDamage {
-            events.append(contentsOf: logDoTDamage(
-                applyDoTDamage(boostedPotency, keyword: .bleed, to: effectTarget, sourceActorID: sourceActorID),
-                keyword: .bleed,
-                target: effectTarget
-            ))
-        }
-
-        var currentEffects = roster.activeEffects(for: effectTarget)
-        currentEffects.append(
-            ActiveEffect(
-                id: nextEffectID,
-                effect: .bleed(boostedPotency),
-                remainingTicks: Effect.bleedDoTTickCount + modifiers(for: sourceActorID).bleedDurationBonus,
-                sourceActorID: sourceActorID
-            )
-        )
-        nextEffectID += 1
-        roster.setActiveEffects(currentEffects, for: effectTarget)
-        return events
-    }
-
-    private func effectCase(for keyword: Keyword, potency: Int) -> Effect {
-        switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        default: return .poison(potency)
-        }
-    }
-
-    mutating func logDoTDamage(
-        _ result: (healthLost: Int, events: [ActionEvent]),
-        keyword: Keyword,
-        target: Combatant
-    ) -> [ActionEvent] {
-        var events = result.events
-        guard result.healthLost > 0 else { return events }
-
-        let event = nextEvent(
-            kind: .status,
-            effectKind: nil,
-            actorName: keyword.rawValue,
-            abilityName: keyword.rawValue,
-            target: target,
-            amount: result.healthLost,
-            keyword: keyword
-        )
-        events.append(event)
-        return events
-    }
-
     private mutating func tickEffects(_ effects: [ActiveEffect], target: Combatant) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
         var remaining = effects
@@ -641,9 +518,10 @@ struct BattleState {
         // `PoisonHandler` deal damage and update their own potency or
         // remaining ticks. Other kinds return a no-op outcome.
         var toRemove: [Int] = []
+        var context = makeMutationContext()
         for index in remaining.indices {
             guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
-            let outcome = handler.tick(remaining[index], on: target, in: &self)
+            let outcome = handler.tick(remaining[index], on: target, in: &context)
             events.append(contentsOf: outcome.events)
             if let updated = outcome.updatedStack {
                 remaining[index] = updated
@@ -652,6 +530,7 @@ struct BattleState {
                 toRemove.append(index)
             }
         }
+        applyMutationContext(context)
         if !toRemove.isEmpty {
             let removeSet = Set(toRemove)
             remaining = remaining.enumerated().compactMap { index, ae in
