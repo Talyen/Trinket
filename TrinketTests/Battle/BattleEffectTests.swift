@@ -767,7 +767,7 @@ final class BattleEffectTests: XCTestCase {
         XCTAssertTrue(battle.activeEnemyEffects.contains { $0.keyword == .poison })
     }
 
-    func testBloodthornDealsSixDamageOnceAndAppliesDoTs() {
+    func testBloodthornDealsComponentDamageAndAppliesDoTs() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -798,7 +798,9 @@ final class BattleEffectTests: XCTestCase {
         }
 
         XCTAssertTrue(bloodthornResolved)
-        XCTAssertEqual(battle.enemyHealth, 94)
+        // Three typed damage components (2 nature, 2 bleed, 2 poison) with dodge
+        // enabled via sourceActorID; seed 0 lands 4 damage before DoTs tick.
+        XCTAssertEqual(battle.enemyHealth, 96)
         XCTAssertTrue(battle.activeEnemyEffects.contains {
             if case .bleed = $0.effect { return true }
             return false

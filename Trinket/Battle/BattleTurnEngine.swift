@@ -50,25 +50,39 @@ enum BattleTurnEngine {
         }
 
         var events: [ActionEvent] = []
+        var totalDealtToAbilityTarget = 0
+        var pairedDirectDamage: [(Keyword, Int)] = []
 
-        let (dealt, damageEvents) = state.applyDamage(
-            ability.directDamage,
-            to: abilityTarget,
-            damageKeyword: ability.damageKeyword,
-            sourceActorID: actor.id
-        )
-        events.append(contentsOf: damageEvents)
-        if dealt > 0 {
-            events.append(contentsOf: state.applyLeechFromDamage(dealt, sourceActorID: actor.id))
+        for component in ability.damageComponents {
+            let damageTarget = resolveEffectTarget(
+                component.target,
+                actor: actor,
+                abilityTarget: abilityTarget,
+                state: state
+            )
+            let (dealt, damageEvents) = state.applyDamage(
+                component.amount,
+                to: damageTarget,
+                damageKeyword: component.keyword,
+                sourceActorID: actor.id
+            )
+            events.append(contentsOf: damageEvents)
+            if dealt > 0, damageTarget.id != actor.id {
+                events.append(contentsOf: state.applyLeechFromDamage(dealt, sourceActorID: actor.id))
+            }
+            if component.amount > 0 {
+                pairedDirectDamage.append((component.keyword, component.amount))
+            }
+            if component.target == .abilityTarget {
+                totalDealtToAbilityTarget += dealt
+            }
         }
 
         var appliedEffectLogs: [String] = []
         let effectsToApply = ability.targetedEffects
 
         var context = state.makeMutationContext()
-        if ability.directDamage > 0 {
-            context.pairedDirectDamage = [(ability.damageKeyword, ability.directDamage)]
-        }
+        context.pairedDirectDamage = pairedDirectDamage
         for targetedEffect in effectsToApply {
             let effect = targetedEffect.effect
             let effectTarget = resolveEffectTarget(
@@ -100,8 +114,8 @@ enum BattleTurnEngine {
                 actorName: actor.name,
                 abilityName: ability.name,
                 target: abilityTarget,
-                amount: dealt,
-                keyword: ability.damageKeyword,
+                amount: totalDealtToAbilityTarget,
+                keyword: ability.logDamageKeyword,
                 appliedEffectSummaries: appliedEffectLogs
             )
         )

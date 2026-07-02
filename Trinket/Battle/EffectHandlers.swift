@@ -497,7 +497,7 @@ struct DealDamageHandler: BattleEffectHandler {
         in context: inout BattleMutationContext
     ) -> EffectApplyOutcome {
         guard case let .dealDamage(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let (typedDamage, typedEvents) = context.applyDamage(amount, to: target)
+        let (typedDamage, typedEvents) = context.applyDamage(amount, to: target, damageKeyword: keyword)
         var allEvents = typedEvents
         if typedDamage > 0 || amount > 0 {
             context.pairedDirectDamage.append((keyword, amount))

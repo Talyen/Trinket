@@ -8,6 +8,18 @@ enum EffectTarget: Hashable {
     case pet
 }
 
+struct DamageComponent: Hashable {
+    let amount: Int
+    let keyword: Keyword
+    let target: EffectTarget
+
+    init(_ amount: Int, keyword: Keyword = .physical, target: EffectTarget = .abilityTarget) {
+        self.amount = amount
+        self.keyword = keyword
+        self.target = target
+    }
+}
+
 struct TargetedEffect: Hashable {
     let effect: Effect
     let target: EffectTarget

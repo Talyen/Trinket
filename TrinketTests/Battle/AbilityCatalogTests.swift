@@ -53,37 +53,57 @@ final class AbilityCatalogTests: XCTestCase {
         }
     }
 
-    func testDoTPairingMatchesDirectDamage() {
+    func testDoTPairingMatchesDamageComponents() {
         for ability in AbilityCatalog.all {
-            guard ability.directDamage > 0 else { continue }
-            switch ability.damageKeyword {
-            case .burn:
-                XCTAssertTrue(
-                    ability.effects.contains {
-                        if case let .burn(potency) = $0 { return potency == ability.directDamage }
-                        return false
-                    },
-                    "\(ability.id) should pair Burn direct damage with .burn(\(ability.directDamage))"
-                )
-            case .poison:
-                XCTAssertTrue(
-                    ability.effects.contains {
-                        if case let .poison(potency) = $0 { return potency == ability.directDamage }
-                        return false
-                    },
-                    "\(ability.id) should pair Poison direct damage with .poison(\(ability.directDamage))"
-                )
-            case .bleed:
-                XCTAssertTrue(
-                    ability.effects.contains {
-                        if case let .bleed(potency) = $0 { return potency == ability.directDamage }
-                        return false
-                    },
-                    "\(ability.id) should pair Bleed direct damage with .bleed(\(ability.directDamage))"
-                )
-            default:
-                continue
+            for component in ability.damageComponents where component.target == .abilityTarget {
+                switch component.keyword {
+                case .burn:
+                    XCTAssertTrue(
+                        ability.effects.contains {
+                            if case let .burn(potency) = $0 { return potency == component.amount }
+                            return false
+                        },
+                        "\(ability.id) should pair Burn damage with .burn(\(component.amount))"
+                    )
+                case .poison:
+                    XCTAssertTrue(
+                        ability.effects.contains {
+                            if case let .poison(potency) = $0 { return potency == component.amount }
+                            return false
+                        },
+                        "\(ability.id) should pair Poison damage with .poison(\(component.amount))"
+                    )
+                case .bleed:
+                    XCTAssertTrue(
+                        ability.effects.contains {
+                            if case let .bleed(potency) = $0 { return potency == component.amount }
+                            return false
+                        },
+                        "\(ability.id) should pair Bleed damage with .bleed(\(component.amount))"
+                    )
+                default:
+                    continue
+                }
             }
+        }
+    }
+
+    func testBloodthornUsesDamageComponents() {
+        XCTAssertEqual(Ability.bloodthorn.damageComponents.count, 3)
+        XCTAssertEqual(Ability.bloodthorn.directDamage, 6)
+        XCTAssertEqual(Ability.fireball.directDamage, 3)
+        XCTAssertEqual(Ability.fireball.damageKeyword, .burn)
+    }
+
+    func testCatalogDoesNotUseDealDamageEffects() {
+        for ability in AbilityCatalog.all {
+            XCTAssertFalse(
+                ability.effects.contains {
+                    if case .dealDamage = $0 { return true }
+                    return false
+                },
+                "\(ability.id) should express damage through damageComponents, not dealDamage effects"
+            )
         }
     }
 
