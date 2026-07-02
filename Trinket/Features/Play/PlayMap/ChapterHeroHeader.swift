@@ -46,6 +46,7 @@ struct ChapterHeroHeader: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
+            .accessibilityIdentifier(AccessibilityID.Play.chapterHeader(number: chapter.number))
         }
         .frame(height: height)
         .frame(maxWidth: .infinity)

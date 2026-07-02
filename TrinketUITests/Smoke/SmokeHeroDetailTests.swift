@@ -3,9 +3,14 @@ import XCTest
 final class SmokeHeroDetailTests: TrinketUITestCase {
     func testKnightHeroDetailRenders() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        assertExists("Knight detail hero header")
-        assertExists("Stats")
-        assertExists("Health")
+        combatantDetail.assertLoaded(for: "Knight")
+        assertCombatantDetailSections()
+    }
+
+    func testRogueHeroDetailLaunchScreenOpensDetail() {
+        launchApp(arguments: TestLaunchArg.allForScreen("hero:rogue"))
+        combatantDetail.assertLoaded(for: "Rogue")
+        assertExists("Rogue")
     }
 
     func testKnightHeroDetailShowsLockedSkillUnlockLevel() {
@@ -15,9 +20,9 @@ final class SmokeHeroDetailTests: TrinketUITestCase {
 
     func testKnightHeroHeaderSurvivesScrollCycle() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        assertExists("Knight detail hero header")
+        combatantDetail.assertLoaded(for: "Knight")
 
-        let header = app.descendants(matching: .any)["Knight detail hero header"]
+        let header = combatantDetail.header(for: "Knight")
         let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
         let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
         start.press(forDuration: 0.1, thenDragTo: end)

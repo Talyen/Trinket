@@ -27,6 +27,7 @@ struct ChapterStageSelectView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
             .background(TrinketDesign.Colors.appBackground)
+            .accessibilityIdentifier(AccessibilityID.Screen.play)
         }
         .toolbar(.hidden, for: .navigationBar)
     }

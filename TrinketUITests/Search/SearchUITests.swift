@@ -2,39 +2,35 @@ import XCTest
 
 final class SearchUITests: TrinketUITestCase {
     func testSearchFlow() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        launchApp(arguments: TestLaunchArg.allForTab("search"))
+        search.assertEmptyState()
 
-        app.tabBars.buttons["Search"].tap()
-        assertExists("Heroes, Pets, and Items")
-
-        let searchField = app.searchFields.firstMatch
+        let searchField = search.searchField
         assertExists(searchField)
         searchField.tap()
         searchField.typeText("Knight")
 
-        assertExists("Knight collection card")
-        app.buttons["Knight collection card"].tap()
-        assertExists("Stats")
-        assertExists("Health")
+        assertButtonExists("Knight collection card")
+        collection.openCombatantCard(named: "Knight")
+        assertCombatantDetailSections()
         goBack()
 
         searchField.tap()
         clearAndEnterText(searchField, "Wolf")
-        assertExists("Wolf collection card")
-        app.buttons["Wolf collection card"].tap()
-        assertExists("Stats")
-        assertExists("Health")
+        assertButtonExists("Wolf collection card")
+        collection.openCombatantCard(named: "Wolf")
+        assertCombatantDetailSections()
         goBack()
 
         searchField.tap()
         clearAndEnterText(searchField, "Wand")
         assertItemCardExists("Wand")
-        app.buttons.matching(identifier: "Wand item card").firstMatch.tap()
+        collection.openItemCard(named: "Wand")
         assertExists("Wand")
         goBack()
 
         searchField.tap()
         clearAndEnterText(searchField, "xyz123")
-        assertExists("No Results Found")
+        search.assertNoResults()
     }
 }

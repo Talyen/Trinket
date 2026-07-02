@@ -37,10 +37,34 @@ enum TestLaunchArg {
 class TrinketUITestCase: XCTestCase {
     private(set) var app: XCUIApplication!
 
+    var play: PlayScreen { PlayScreen(app: app) }
+    var collection: CollectionScreen { CollectionScreen(app: app) }
+    var combatantDetail: CombatantDetailScreen { CombatantDetailScreen(app: app) }
+    var tabBar: TabBar { TabBar(app: app) }
+    var homestead: HomesteadScreen { HomesteadScreen(app: app) }
+    var search: SearchScreen { SearchScreen(app: app) }
+    var options: OptionsScreen { OptionsScreen(app: app) }
+
     func launchApp(arguments: [String] = []) {
         app = XCUIApplication()
         app.launchArguments = arguments
         app.launch()
+    }
+
+    func button(_ identifier: String) -> XCUIElement {
+        app.buttons[identifier]
+    }
+
+    func any(_ identifier: String) -> XCUIElement {
+        app.descendants(matching: .any)[identifier]
+    }
+
+    func assertButtonExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+        XCTAssertTrue(button(identifier).waitForExistence(timeout: timeout), "Button '\(identifier)' not found", file: file, line: line)
+    }
+
+    func assertCombatantDetailSections(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+        combatantDetail.assertSections(timeout: timeout, file: file, line: line)
     }
 
     func assertExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {

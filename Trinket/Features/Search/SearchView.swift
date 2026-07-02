@@ -31,6 +31,7 @@ struct SearchView: View {
                 "Heroes, Pets, and Items",
                 systemImage: "magnifyingglass"
             )
+            .accessibilityIdentifier(AccessibilityID.Search.emptyState)
         } else {
             let results = getSearchResults(for: trimmedQuery, rosterState: rosterState, inventoryState: inventoryState)
 
@@ -40,6 +41,7 @@ struct SearchView: View {
                     systemImage: "questionmark.magnifyingglass",
                     description: Text("No match for \"\(searchText)\" .")
                 )
+                .accessibilityIdentifier(AccessibilityID.Search.noResults)
             } else {
                 List {
                     if !results.heroes.isEmpty {

@@ -4,37 +4,36 @@ final class BattleFlowUITests: TrinketUITestCase {
     func testBattleFlowAndCombatLoops() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
-        assertExists("Play")
-        app.buttons["Stage 1-1 Node"].tap()
-        assertExists("Battle Button")
-        app.buttons["Battle Button"].tap()
+        play.assertLoaded()
+        play.openStage("Stage 1-1 Node")
+        assertButtonExists("Battle Button")
+        button("Battle Button").tap()
 
-        assertExists("Battle Pause Button")
+        assertButtonExists("Battle Pause Button")
 
         assertExists("Knight card")
         assertExists("Wolf card")
         assertExists("Battle Menu")
 
-        app.buttons["Knight card"].tap()
-        let knightHeader = app.descendants(matching: .any)["Knight detail hero header"]
+        button("Knight card").tap()
+        let knightHeader = combatantDetail.header(for: "Knight")
         assertExists(knightHeader)
         XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
-        assertExists("Stats")
-        assertExists("Health")
+        assertCombatantDetailSections()
         dismissSheet()
 
-        app.tabBars.buttons["Collection"].tap()
+        tabBar.selectCollection()
         assertExists("Knight")
-        app.tabBars.buttons["Play"].tap()
+        tabBar.selectPlay()
 
         assertExists("Victory", timeout: 15)
 
         assertExists("Experience")
         assertExists("Rewards")
-        assertExists("Continue Button")
+        assertButtonExists("Continue Button")
 
-        app.buttons["Battle Menu"].tap()
+        button("Battle Menu").tap()
         assertExists("Combat Log")
-        XCTAssertFalse(app.buttons["Retreat"].exists)
+        XCTAssertFalse(button("Retreat").exists)
     }
 }

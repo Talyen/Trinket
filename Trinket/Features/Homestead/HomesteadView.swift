@@ -42,6 +42,7 @@ struct HomesteadView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Homestead")
         .navigationBarTitleDisplayMode(.large)
+        .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .sensoryFeedback(.success, trigger: upgradeEventCount)
     }
 

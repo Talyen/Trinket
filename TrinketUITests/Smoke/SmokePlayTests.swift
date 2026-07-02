@@ -4,42 +4,42 @@ final class SmokePlayTests: TrinketUITestCase {
     func testPlayMapRendersChapterOne() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
-        assertExists("Play")
-        assertExists("The Verdant Forest")
-        assertExists("Stage 1-1 Node")
-        XCTAssertFalse(app.descendants(matching: .any)["Chapter 2 Locked"].exists)
+        play.assertLoaded()
+        play.assertChapterHeader(number: 1)
+        assertButtonExists("Stage 1-1 Node")
+        XCTAssertFalse(any("Chapter 2 Locked").exists)
     }
 
     func testActiveStagePreviewAppears() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
-        app.buttons["Stage 1-1 Node"].tap()
+        play.openStage("Stage 1-1 Node")
 
         assertExists("Stage Preview Header")
-        let header = app.descendants(matching: .any)["Stage Preview Header"]
+        let header = any("Stage Preview Header")
         XCTAssertTrue(header.label.contains("Enemy"))
         assertExists("Stage 1-1")
         assertExists("Skeleton")
         assertExists("Party")
         assertExists("Selected Hero Card")
         assertExists("Selected Pet Card")
-        assertExists("Battle Button")
+        assertButtonExists("Battle Button")
         XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
     }
 
     func testNonBattleStubStageCanComplete() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
 
-        app.buttons["Stage 1-2 Node"].tap()
+        play.openStage("Stage 1-2 Node")
         assertExists("Stage Preview Header")
-        let header = app.descendants(matching: .any)["Stage Preview Header"]
+        let header = any("Stage Preview Header")
         assertExists("Stage 1-2")
         XCTAssertTrue(header.label.contains("Mystery"))
-        assertExists("Continue Button")
-        app.buttons["Continue Button"].tap()
+        assertButtonExists("Continue Button")
+        button("Continue Button").tap()
 
-        assertExists("Stage 1-3 Node")
-        XCTAssertFalse(app.buttons["Stage 1-2 Node"].exists)
+        assertButtonExists("Stage 1-3 Node")
+        XCTAssertFalse(button("Stage 1-2 Node").exists)
         assertExists("Stage 1-2 Node")
         XCTAssertFalse(app.alerts.element.exists)
     }
@@ -57,7 +57,7 @@ final class SmokePlayTests: TrinketUITestCase {
             "chapter-1-stage-9"
         ]))
 
-        assertExists("Stage 1-10 Node")
+        assertButtonExists("Stage 1-10 Node")
         assertExists("Chapter 2 Locked")
     }
 }

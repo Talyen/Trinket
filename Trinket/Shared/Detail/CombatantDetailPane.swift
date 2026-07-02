@@ -49,8 +49,12 @@ struct CombatantDetailPane: View {
                     .accessibilityIdentifier("\(combatant.name) detail hero header")
 
                     VStack(alignment: .leading, spacing: 0) {
-                        section("Stats") {
-                            statRow("Health", value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)")
+                        section("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
+                            statRow(
+                                "Health",
+                                value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)",
+                                accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
+                            )
                             statRow("Strength", value: formattedStat(base: combatant.primaryStats.strength, effective: effectiveCombatant.primaryStats.strength))
                             statRow("Agility", value: formattedStat(base: combatant.primaryStats.agility, effective: effectiveCombatant.primaryStats.agility))
                             statRow("Toughness", value: formattedStat(base: combatant.primaryStats.toughness, effective: effectiveCombatant.primaryStats.toughness))
@@ -112,13 +116,14 @@ struct CombatantDetailPane: View {
         }
     }
 
-    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func section<Content: View>(_ title: String, sectionID: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
+                .accessibilityIdentifier(sectionID ?? title)
 
             content()
                 .padding(.horizontal, 20)
@@ -134,7 +139,7 @@ struct CombatantDetailPane: View {
         return "\(base) → \(effective)"
     }
 
-    private func statRow(_ title: String, value: String) -> some View {
+    private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {
         LabeledContent {
             Text(value)
                 .font(.body.monospacedDigit())
@@ -144,6 +149,7 @@ struct CombatantDetailPane: View {
                 .font(.body)
                 .foregroundStyle(.primary)
         }
+        .accessibilityIdentifier(accessibilityIdentifier ?? title)
     }
 
     private struct ScrollState: Equatable {

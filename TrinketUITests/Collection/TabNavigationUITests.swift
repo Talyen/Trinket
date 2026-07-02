@@ -1,92 +1,94 @@
 import XCTest
 
 final class TabNavigationUITests: TrinketUITestCase {
-    func testTabNavigationAndInspectionFlow() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testHeroDetailEquipmentAndAbilities() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.assertLoaded()
+        collection.openHeroesCategory()
+        assertButtonExists("Knight collection card")
+        collection.openCombatantCard(named: "Knight")
 
-        assertExists("Play")
-
-        app.tabBars.buttons["Collection"].tap()
-        assertExists("Heroes collection category")
-        app.buttons["Heroes collection category"].tap()
-        assertExists("Knight collection card")
-        app.buttons["Knight collection card"].tap()
-
-        let knightHeader = app.descendants(matching: .any)["Knight detail hero header"]
+        let knightHeader = combatantDetail.header(for: "Knight")
         assertExists(knightHeader)
         XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
-        assertExists("Stats")
-        assertExists("Health")
+        assertCombatantDetailSections()
 
-        scrollUntilVisible(app.buttons["Weapon item slot"], swipingUp: true)
-        assertExists("Weapon item slot")
-        assertExists("Armor item slot")
-        assertExists("Trinket item slot")
+        scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
+        assertButtonExists("Weapon item slot")
+        assertButtonExists("Armor item slot")
+        assertButtonExists("Trinket item slot")
 
-        app.buttons["Weapon item slot"].tap()
+        button("Weapon item slot").tap()
         assertExists("Equip Weapon")
         XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 5))
         dismissSheet()
 
-        scrollUntilVisible(app.buttons["Basic ability slot"], swipingUp: false)
-        assertExists("Basic ability slot")
-        app.buttons["Basic ability slot"].tap()
+        scrollUntilVisible(button("Basic ability slot"), swipingUp: false)
+        assertButtonExists("Basic ability slot")
+        button("Basic ability slot").tap()
         assertExists("Basic")
-        app.buttons["Basic Shield Bash ability card"].tap()
+        button("Basic Shield Bash ability card").tap()
         assertExists("Shield Bash")
 
-        app.buttons["Basic ability slot"].tap()
+        button("Basic ability slot").tap()
         assertExists("Basic")
-        app.buttons["Basic Bash ability card"].tap()
+        button("Basic Bash ability card").tap()
         assertExists("Bash")
 
         dismissSheet()
         dismissSheet()
 
-        assertExists("Knight collection card")
+        assertButtonExists("Knight collection card")
         goBack()
+    }
 
-        assertExists("Pets collection category")
-        app.buttons["Pets collection category"].tap()
-        assertExists("Wolf collection card")
-        assertExists("Bear collection card")
-        app.buttons["Wolf collection card"].tap()
+    func testPetDetailInspection() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.openPetsCategory()
+        assertButtonExists("Wolf collection card")
+        assertButtonExists("Bear collection card")
+        collection.openCombatantCard(named: "Wolf")
 
-        let wolfHeader = app.descendants(matching: .any)["Wolf detail hero header"]
+        let wolfHeader = combatantDetail.header(for: "Wolf")
         assertExists(wolfHeader)
         XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 100 experience")
-        assertExists("Stats")
-        assertExists("Health")
+        assertCombatantDetailSections()
 
         dismissSheet()
-        assertExists("Wolf collection card")
+        assertButtonExists("Wolf collection card")
         goBack()
+    }
 
-        assertExists("Inventory collection category")
-        app.buttons["Inventory collection category"].tap()
+    func testInventoryItemInspection() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.openInventoryCategory()
         assertItemCardExistsAfterScroll("Wand", maxAttempts: 24)
-        app.buttons.matching(identifier: "Wand item card").firstMatch.tap()
+        collection.openItemCard(named: "Wand")
 
         assertExists("Wand")
         assertExists("Affixes")
 
         goBack()
         goBack()
+    }
 
-        app.tabBars.buttons["Homestead"].tap()
-        assertExists("Homestead")
+    func testTabBarRoundTrip() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        play.assertLoaded()
 
-        app.tabBars.buttons["Options"].tap()
-        assertExists("Options Screen")
+        tabBar.selectHomestead()
+        homestead.assertLoaded()
 
-        app.tabBars.buttons["Play"].tap()
-        assertExists("Play")
+        tabBar.selectOptions()
+        options.assertLoaded()
+
+        tabBar.selectPlay()
+        play.assertLoaded()
     }
 
     func testInventoryGridLayout() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Collection"].tap()
-        app.buttons["Inventory collection category"].tap()
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.openInventoryCategory()
         assertExists("Inventory filter")
         assertItemCardExists("Crossbow")
         assertItemCardExistsAfterScroll("Wand", maxAttempts: 24)
