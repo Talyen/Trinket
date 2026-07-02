@@ -42,4 +42,26 @@ final class PlayerJourneyStoreTests: XCTestCase {
 
         XCTAssertEqual(journeyStore.mapScrollRequest?.targetID, "chapter-1-stage-3")
     }
+
+    func testCompleteStageWriteThroughToSaveStore() throws {
+        let journeyStore = PlayerJourneyStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+
+        journeyStore.complete(stage, in: GameContent.chapters)
+
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        XCTAssertEqual(reloaded.journey.activeStageID, "chapter-1-stage-2")
+        XCTAssertTrue(reloaded.journey.completedStageIDs.contains(stage.id))
+    }
+
+    func testMarkRewardsClaimedWriteThroughToSaveStore() throws {
+        let journeyStore = PlayerJourneyStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        journeyStore.complete(stage, in: GameContent.chapters)
+
+        journeyStore.markRewardsClaimed(for: stage)
+
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        XCTAssertTrue(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
+    }
 }

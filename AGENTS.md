@@ -99,6 +99,9 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`
 - **Handler tests:** dispatch through `EffectHandlers.all`; use `CombatantFixtures` for setup.
 - **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
 - **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.
+- **Golden paths:** pin outcome counters (ticks, health, victory/defeat); assert event *semantics* (status kinds, milestones) rather than full log fingerprints.
+- **Battle UI flow:** use `BattleRun.outcome` and `BattleRun.makeVictorySummary()` — keep outcome logic out of SwiftUI views.
+- **Launch screens:** collection deep links live on `AppState.initialCollectionCombatantDetail` / `initialCollectionItemID`, not `AppEnvironment.shared` in views.
 - **Content invariants:** loop `GameContent` for catalog tests (unique IDs, art refs, stage→enemy links).
 - **Do not unit-test:** log prose formatting details, `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
 

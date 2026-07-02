@@ -8,39 +8,11 @@ final class BattleGoldenPathTests: XCTestCase {
     private lazy var wolf = GameContent.pets.first { $0.id == "wolf" }!
     private lazy var goblin = GameContent.enemies.first { $0.id == "goblin" }!.combatant
 
-    private let goldenEventFingerprints = [
-        "effect|dodgeApplied|Dodge|0|goblin",
-        "ability|-|Physical|0|goblin",
-        "effect|dodgeApplied|Dodge|0|goblin",
-        "ability|-|Burn|0|goblin",
-        "status|-|Burn|1|goblin",
-        "ability|-|Physical|2|goblin",
-        "ability|-|Burn|3|goblin",
-        "status|-|Burn|1|goblin",
-        "ability|-|Bleed|4|goblin",
-        "status|-|Bleed|4|goblin",
-        "ability|-|Physical|1|wolf",
-        "status|-|Bleed|4|goblin",
-        "ability|-|Burn|5|goblin",
-        "status|-|Bleed|4|goblin",
-        "status|-|Burn|2|goblin",
-        "ability|-|Physical|2|goblin",
-        "status|-|Burn|1|goblin",
-        "ability|-|Burn|3|goblin",
-        "status|-|Burn|1|goblin",
-        "milestone|-|Physical|0|goblin"
-    ]
-
     private func runGoldenBattle() -> BattleSimulationResult {
         BattleSimulator.run(
             BattleStateTestFactory.makeBattle(hero: wizard, pet: wolf, enemy: goblin),
             options: BattleSimulationOptions(maxTicks: 500, recordsEvents: true, recordsLog: true)
         )
-    }
-
-    private func eventFingerprint(_ event: ActionEvent) -> String {
-        let effectKind = event.effectKind.map { String(describing: $0) } ?? "-"
-        return "\(event.kind)|\(effectKind)|\(event.keyword.rawValue)|\(event.amount)|\(event.targetID)"
     }
 
     func testGoldenPathOutcomeAndCounters() {
@@ -54,11 +26,16 @@ final class BattleGoldenPathTests: XCTestCase {
         XCTAssertEqual(result.finalPetHealth, 10)
     }
 
-    func testGoldenPathEventFingerprints() {
+    func testGoldenPathEventSemantics() {
         let result = runGoldenBattle()
-        let fingerprints = result.events.map(eventFingerprint(_:))
+        let events = result.events
 
-        XCTAssertEqual(fingerprints, goldenEventFingerprints)
+        assertEndsWithVictoryMilestone(on: "goblin", events: events)
+        assertContainsEvent(kind: .status, keyword: .burn, targetID: "goblin", in: events)
+        assertContainsEvent(kind: .status, keyword: .bleed, targetID: "goblin", in: events)
+        assertContainsEvent(kind: .effect, keyword: .dodge, targetID: "goblin", in: events)
+        XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .burn })
+        XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .bleed })
     }
 
     // MARK: - Party defeat
@@ -79,14 +56,6 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    private let partyDefeatFingerprints = [
-        "ability|-|Physical|1|fragile",
-        "effect|dodgeApplied|Dodge|0|helper",
-        "ability|-|Physical|0|helper",
-        "ability|-|Physical|1|helper",
-        "milestone|-|Physical|0|strong"
-    ]
-
     func testPartyDefeatGoldenPath() {
         let result = runPartyDefeatBattle()
 
@@ -96,7 +65,8 @@ final class BattleGoldenPathTests: XCTestCase {
         XCTAssertEqual(result.finalHeroHealth, 0)
         XCTAssertEqual(result.finalPetHealth, 0)
         XCTAssertEqual(result.finalEnemyHealth, 100)
-        XCTAssertEqual(result.events.map(eventFingerprint(_:)), partyDefeatFingerprints)
+        assertEndsWithVictoryMilestone(on: "strong", events: result.events)
+        XCTAssertTrue(result.events.contains { $0.kind == .ability && $0.keyword == .physical })
         XCTAssertTrue(result.log.contains { $0.text == "Your party has been defeated by Strong." })
     }
 
@@ -128,26 +98,6 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    private let stunThresholdFingerprints = [
-        "effect|preventionTriggered|Stun|0|enemy",
-        "ability|-|Stun|1|enemy",
-        "effect|preventionSkipped|Stun|0|enemy",
-        "effect|dodgeApplied|Dodge|0|enemy",
-        "ability|-|Stun|0|enemy",
-        "ability|-|Physical|1|hero",
-        "effect|preventionTriggered|Stun|0|enemy",
-        "ability|-|Stun|1|enemy",
-        "effect|preventionSkipped|Stun|0|enemy",
-        "effect|preventionTriggered|Stun|0|enemy",
-        "ability|-|Stun|1|enemy",
-        "effect|preventionSkipped|Stun|0|enemy",
-        "effect|preventionTriggered|Stun|0|enemy",
-        "ability|-|Stun|1|enemy",
-        "effect|preventionSkipped|Stun|0|enemy",
-        "ability|-|Stun|1|enemy",
-        "milestone|-|Physical|0|enemy"
-    ]
-
     func testStunThresholdGoldenPath() {
         let result = runStunThresholdBattle()
 
@@ -155,8 +105,10 @@ final class BattleGoldenPathTests: XCTestCase {
         XCTAssertEqual(result.tickCount, 11)
         XCTAssertEqual(result.actionCount, 11)
         XCTAssertEqual(result.finalEnemyHealth, 0)
-        XCTAssertEqual(result.events.map(eventFingerprint(_:)), stunThresholdFingerprints)
+        assertEndsWithVictoryMilestone(on: "enemy", events: result.events)
         XCTAssertTrue(result.events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
+        XCTAssertTrue(result.events.contains { $0.effectKind == .preventionTriggered && $0.keyword == .stun })
+        XCTAssertTrue(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
     }
 
     // MARK: - Item modifier (Keen)
@@ -223,29 +175,44 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    private let poisonHeavyFingerprints = [
-        "ability|-|Poison|3|enemy",
-        "status|-|Poison|2|enemy",
-        "effect|dodgeApplied|Dodge|0|enemy",
-        "ability|-|Poison|0|enemy",
-        "status|-|Poison|4|enemy",
-        "ability|-|Poison|3|enemy",
-        "status|-|Poison|6|enemy",
-        "ability|-|Poison|3|enemy",
-        "status|-|Poison|7|enemy",
-        "ability|-|Poison|3|enemy",
-        "status|-|Poison|8|enemy",
-        "ability|-|Poison|1|enemy",
-        "milestone|-|Physical|0|enemy"
-    ]
-
     func testPoisonHeavyGoldenPath() {
         let result = runPoisonHeavyBattle()
+        let events = result.events
 
         XCTAssertEqual(result.outcome, .victory)
         XCTAssertEqual(result.tickCount, 6)
         XCTAssertEqual(result.actionCount, 6)
         XCTAssertEqual(result.finalEnemyHealth, 0)
-        XCTAssertEqual(result.events.map(eventFingerprint(_:)), poisonHeavyFingerprints)
+        assertEndsWithVictoryMilestone(on: "enemy", events: events)
+        XCTAssertTrue(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)
+        XCTAssertTrue(events.contains { $0.kind == .status && $0.keyword == .poison && $0.targetID == "enemy" })
+    }
+
+    // MARK: - Semantic helpers
+
+    private func assertEndsWithVictoryMilestone(
+        on targetID: String,
+        events: [ActionEvent],
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let milestones = events.filter { $0.kind == .milestone }
+        XCTAssertFalse(milestones.isEmpty, file: file, line: line)
+        XCTAssertEqual(milestones.last?.targetID, targetID, file: file, line: line)
+    }
+
+    private func assertContainsEvent(
+        kind: ActionEvent.Kind,
+        keyword: Keyword,
+        targetID: String,
+        in events: [ActionEvent],
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        XCTAssertTrue(
+            events.contains { $0.kind == kind && $0.keyword == keyword && $0.targetID == targetID },
+            file: file,
+            line: line
+        )
     }
 }

@@ -14,6 +14,8 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
+    let initialCollectionCombatantDetail: CombatantCollectionDetailSelection?
+    let initialCollectionItemID: String?
 
     init(
         environment: AppEnvironment = .shared,
@@ -50,6 +52,8 @@ final class AppState {
         options = resolvedOptions
         battle = BattleSession()
         journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
+        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
+        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
         applyLaunchScreenActions(environment: env)
@@ -108,6 +112,28 @@ final class AppState {
             return .options
         case .none:
             return .play
+        }
+    }
+
+    private static func collectionCombatantDetail(
+        for launchScreen: LaunchScreen?
+    ) -> CombatantCollectionDetailSelection? {
+        switch launchScreen {
+        case let .heroDetail(id):
+            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
+        case let .petDetail(id):
+            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
+        case .itemDetail, .battle, .options, .none:
+            nil
+        }
+    }
+
+    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
+        switch launchScreen {
+        case let .itemDetail(id):
+            id
+        case .heroDetail, .petDetail, .battle, .options, .none:
+            nil
         }
     }
 }

@@ -1,5 +1,11 @@
 import SwiftUI
 
+enum BattleOutcome: Equatable {
+    case ongoing
+    case victory
+    case defeat
+}
+
 @MainActor
 @Observable
 final class BattleRun {
@@ -61,6 +67,31 @@ final class BattleRun {
 
     var isPartyDefeated: Bool {
         state.isPartyDefeated
+    }
+
+    var outcome: BattleOutcome {
+        if isEnemyDefeated { return .victory }
+        if isPartyDefeated { return .defeat }
+        return .ongoing
+    }
+
+    func makeVictorySummary() -> BattleVictorySummary {
+        let xpAwarded = configuration.stageReward?.experience ?? 0
+        let heroAfter = configuration.heroProgression.addingExperience(xpAwarded)
+        let petAfter = configuration.petProgression.addingExperience(xpAwarded)
+
+        return BattleVictorySummary(
+            stageGold: configuration.stageReward?.gold ?? 0,
+            battleGold: earnedGold,
+            experience: xpAwarded,
+            heroName: hero.name,
+            petName: pet.name,
+            itemNames: configuration.rewardItemNames,
+            heroProgressionBefore: configuration.heroProgression,
+            heroProgressionAfter: heroAfter,
+            petProgressionBefore: configuration.petProgression,
+            petProgressionAfter: petAfter
+        )
     }
 
     func reset(from configuration: ActiveBattleConfiguration) {

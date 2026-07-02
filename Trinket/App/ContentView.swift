@@ -17,8 +17,8 @@ struct ContentView: View {
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
                     CollectionView(
-                        initialCombatantDetail: Self.initialCollectionCombatantDetail(),
-                        initialItemID: Self.initialCollectionItemID()
+                        initialCombatantDetail: appState.initialCollectionCombatantDetail,
+                        initialItemID: appState.initialCollectionItemID
                     )
                 }
             }
@@ -82,25 +82,5 @@ struct ContentView: View {
             musicVolume: appState.options.musicVolume
         )
         appState.musicPlayer.update(route: route, volume: appState.options.musicVolume)
-    }
-
-    private static func initialCollectionCombatantDetail() -> CombatantCollectionDetailSelection? {
-        switch AppEnvironment.shared.launchScreen {
-        case let .heroDetail(id):
-            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
-        case let .petDetail(id):
-            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
-        case .itemDetail, .battle, .options, .none:
-            nil
-        }
-    }
-
-    private static func initialCollectionItemID() -> String? {
-        switch AppEnvironment.shared.launchScreen {
-        case let .itemDetail(id):
-            id
-        case .heroDetail, .petDetail, .battle, .options, .none:
-            nil
-        }
     }
 }

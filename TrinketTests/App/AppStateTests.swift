@@ -40,6 +40,35 @@ final class AppStateTests: XCTestCase {
         )
 
         XCTAssertEqual(state.selectedTab, .collection)
+        assertCollectionDetail(
+            state.initialCollectionCombatantDetail,
+            kind: .hero,
+            combatantID: "knight"
+        )
+        XCTAssertNil(state.initialCollectionItemID)
+    }
+
+    func testPetDetailLaunchScreenExposesCollectionCombatantDetail() {
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-launch-screen", "pet:wolf"])
+        )
+
+        XCTAssertEqual(state.selectedTab, .collection)
+        assertCollectionDetail(
+            state.initialCollectionCombatantDetail,
+            kind: .pet,
+            combatantID: "wolf"
+        )
+    }
+
+    func testItemDetailLaunchScreenExposesCollectionItemID() {
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
+        )
+
+        XCTAssertEqual(state.selectedTab, .collection)
+        XCTAssertNil(state.initialCollectionCombatantDetail)
+        XCTAssertEqual(state.initialCollectionItemID, "shortsword-basic")
     }
 
     func testBattleLaunchScreenDefaultsToPlayTab() {
@@ -175,5 +204,26 @@ final class AppStateTests: XCTestCase {
             sync: sync,
             fileStore: fileStore ?? makeFileStore()
         )
+    }
+
+    private func assertCollectionDetail(
+        _ selection: CombatantCollectionDetailSelection?,
+        kind: CombatantCollectionDetailSelection.Kind,
+        combatantID: String,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        guard let selection else {
+            XCTFail("Expected collection detail selection", file: file, line: line)
+            return
+        }
+
+        switch selection.source {
+        case let .collection(actualKind, actualID):
+            XCTAssertEqual(actualKind, kind, file: file, line: line)
+            XCTAssertEqual(actualID, combatantID, file: file, line: line)
+        case .battleSnapshot:
+            XCTFail("Expected collection detail, got battle snapshot", file: file, line: line)
+        }
     }
 }

@@ -7,13 +7,11 @@ final class PlayerInventoryStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PlayerInventoryStoreTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerInventoryStoreTests")
     }
 
     override func tearDown() async throws {
-        try? FileManager.default.removeItem(at: directoryURL)
+        SaveTestSupport.removeTempDirectory(directoryURL)
         try await super.tearDown()
     }
 
@@ -36,7 +34,7 @@ final class PlayerInventoryStoreTests: XCTestCase {
             displayName: "Armor",
             affixes: []
         )
-        let saveStore = PlayerSaveStore(fileStore: makeFileStore())
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         saveStore.inventory = PlayerInventoryState(items: [weapon, armor])
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
 
@@ -44,19 +42,33 @@ final class PlayerInventoryStoreTests: XCTestCase {
         XCTAssertEqual(inventoryStore.items(for: .armor).map(\.id), ["armor-item"])
     }
 
+    func testItemsForSlotReflectsPersistedInventory() throws {
+        let weaponBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .weapon })
+        let weapon = InventoryItem(
+            id: "persisted-weapon",
+            templateID: "weapon-template",
+            baseType: weaponBase,
+            rarity: .basic,
+            displayName: "Weapon",
+            affixes: []
+        )
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        saveStore.inventory = PlayerInventoryState(items: [weapon])
+
+        let reloadedStore = PlayerInventoryStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+
+        XCTAssertEqual(reloadedStore.items(for: .weapon).map(\.id), ["persisted-weapon"])
+    }
+
     func testAddRewardItemWriteThroughToSaveStore() throws {
-        let saveStore = PlayerSaveStore(fileStore: makeFileStore())
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
         let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]
 
         inventoryStore.addRewardItem(from: template, for: stage)
 
-        let reloaded = PlayerSaveStore(fileStore: makeFileStore())
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertNotNil(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-    }
-
-    private func makeFileStore() -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
     }
 }

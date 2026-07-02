@@ -208,11 +208,14 @@ struct BattleView: View {
 
         battleRun.advanceOneStep()
 
-        if battleRun.isEnemyDefeated {
-            victorySummary = makeVictorySummary()
+        switch battleRun.outcome {
+        case .victory:
+            victorySummary = battleRun.makeVictorySummary()
             isShowingVictory = true
-        } else if battleRun.isPartyDefeated {
+        case .defeat:
             isShowingDefeat = true
+        case .ongoing:
+            break
         }
     }
 
@@ -241,24 +244,5 @@ struct BattleView: View {
         if combatant.id == battleRun.hero.id { return configuration.heroEquipmentLoadout }
         if combatant.id == battleRun.pet.id { return configuration.petEquipmentLoadout }
         return EquipmentLoadout()
-    }
-
-    private func makeVictorySummary() -> BattleVictorySummary {
-        let xpAwarded = configuration.stageReward?.experience ?? 0
-        let heroAfter = configuration.heroProgression.addingExperience(xpAwarded)
-        let petAfter = configuration.petProgression.addingExperience(xpAwarded)
-
-        return BattleVictorySummary(
-            stageGold: configuration.stageReward?.gold ?? 0,
-            battleGold: battleRun.earnedGold,
-            experience: xpAwarded,
-            heroName: battleRun.hero.name,
-            petName: battleRun.pet.name,
-            itemNames: configuration.rewardItemNames,
-            heroProgressionBefore: configuration.heroProgression,
-            heroProgressionAfter: heroAfter,
-            petProgressionBefore: configuration.petProgression,
-            petProgressionAfter: petAfter
-        )
     }
 }

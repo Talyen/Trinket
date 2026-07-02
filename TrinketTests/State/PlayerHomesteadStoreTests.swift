@@ -51,4 +51,14 @@ final class PlayerHomesteadStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.homestead.tier(for: .blacksmithForge), 0)
         XCTAssertEqual(reloaded.roster.gold, 100)
     }
+
+    func testGrantResourcesWriteThroughToSaveStore() {
+        let homesteadStore = PlayerHomesteadStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+
+        homesteadStore.grant([ResourceAmount(.wood, 7), ResourceAmount(.crystal, 2)])
+
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        XCTAssertEqual(reloaded.homestead.resources[.wood], 7)
+        XCTAssertEqual(reloaded.homestead.resources[.crystal], 2)
+    }
 }
