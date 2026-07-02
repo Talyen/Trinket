@@ -37,13 +37,33 @@ enum TestLaunchArg {
 class TrinketUITestCase: XCTestCase {
     private(set) var app: XCUIApplication!
 
-    var play: PlayScreen { PlayScreen(app: app) }
-    var collection: CollectionScreen { CollectionScreen(app: app) }
-    var combatantDetail: CombatantDetailScreen { CombatantDetailScreen(app: app) }
-    var tabBar: TabBar { TabBar(app: app) }
-    var homestead: HomesteadScreen { HomesteadScreen(app: app) }
-    var search: SearchScreen { SearchScreen(app: app) }
-    var options: OptionsScreen { OptionsScreen(app: app) }
+    var play: PlayScreen {
+        PlayScreen(app: app)
+    }
+
+    var collection: CollectionScreen {
+        CollectionScreen(app: app)
+    }
+
+    var combatantDetail: CombatantDetailScreen {
+        CombatantDetailScreen(app: app)
+    }
+
+    var tabBar: TabBar {
+        TabBar(app: app)
+    }
+
+    var homestead: HomesteadScreen {
+        HomesteadScreen(app: app)
+    }
+
+    var search: SearchScreen {
+        SearchScreen(app: app)
+    }
+
+    var options: OptionsScreen {
+        OptionsScreen(app: app)
+    }
 
     func launchApp(arguments: [String] = []) {
         app = XCUIApplication()

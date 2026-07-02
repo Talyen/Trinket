@@ -3,7 +3,7 @@ import XCTest
 
 final class KeywordTests: XCTestCase {
     func testAllKeywordsAreCovered() {
-        let expected: Set = ["Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison", "Bleed", "Leech", "Nature", "Freeze", "Dodge"]
+        let expected: Set = ["Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison", "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge"]
         let actual = Set(Keyword.allCases.map(\.rawValue))
         XCTAssertEqual(expected, actual)
     }

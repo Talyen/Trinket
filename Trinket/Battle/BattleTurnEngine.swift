@@ -82,7 +82,7 @@ enum BattleTurnEngine {
         let effectsToApply = ability.targetedEffects
 
         var context = state.makeMutationContext()
-        context.pairedDirectDamage = pairedDirectDamage
+        let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
         for targetedEffect in effectsToApply {
             let effect = targetedEffect.effect
             let effectTarget = resolveEffectTarget(
@@ -98,6 +98,7 @@ enum BattleTurnEngine {
                 ability: ability,
                 source: actor,
                 target: effectTarget,
+                action: actionContext,
                 in: &context
             )
             events.append(contentsOf: outcome.events)

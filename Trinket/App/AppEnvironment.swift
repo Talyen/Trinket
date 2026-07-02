@@ -104,8 +104,7 @@ struct AppEnvironment {
             if let idx = arguments.firstIndex(of: "-battle-tick-interval"),
                arguments.indices.contains(idx + 1),
                let value = TimeInterval(arguments[idx + 1]),
-               value > 0
-            {
+               value > 0 {
                 return value
             }
             if isRunningTests {

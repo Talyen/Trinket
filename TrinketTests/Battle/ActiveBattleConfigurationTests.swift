@@ -52,7 +52,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: stage.encounter.battleEnemyID!)?.combatant)
+        let enemy = try XCTUnwrap(try GameContent.enemy(matching: XCTUnwrap(stage.encounter.battleEnemyID))?.combatant)
 
         let configuration = ActiveBattleConfiguration.make(
             stageID: stage.id,

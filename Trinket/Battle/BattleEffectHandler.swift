@@ -8,9 +8,7 @@ struct EffectApplyOutcome {
     var events: [ActionEvent] = []
 
     /// When `true`, the caller should append `effect.summary` to the
-    /// log-line buffer. The `preventionBuildup` handler returns `false`
-    /// because it does no work during apply (the buildup is created
-    /// inside `applyDamage` when stun/freeze damage lands).
+    /// log-line buffer.
     var didApply: Bool = true
 }
 
@@ -27,8 +25,7 @@ struct EffectTickOutcome {
     var updatedStack: ActiveEffect?
 
     /// When `true`, the caller should drop this active effect from the
-    /// list after the per-handler tick pass. The bleed/burn/poison
-    /// handlers set this once their potency or remaining ticks reach 0.
+    /// list after the per-handler tick pass.
     var removeAfter: Bool = false
 }
 
@@ -43,6 +40,7 @@ protocol BattleEffectHandler: Sendable {
         ability: Ability,
         source: Combatant,
         target: Combatant,
+        action: ActionApplyContext,
         in context: inout BattleMutationContext
     ) -> EffectApplyOutcome
     func tick(
@@ -59,8 +57,8 @@ protocol BattleEffectHandler: Sendable {
 
 extension BattleEffectHandler {
     /// Default: decrement `remainingTicks` for tickable buffs and debuffs that
-    /// do not override `tick`. Burn, Poison, Bleed, Cleanse, Prevention, and
-    /// PreventionBuildup provide their own tick behavior.
+    /// do not override `tick`. Burn, Poison, Bleed, and PreventionBuildup
+    /// provide their own tick behavior.
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,

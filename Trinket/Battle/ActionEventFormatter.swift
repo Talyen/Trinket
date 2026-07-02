@@ -170,6 +170,20 @@ enum ActionEventFormatter {
                 text: "Purge \(event.keyword.rawValue)",
                 secondaryText: nil
             )
+        case .leechApplied:
+            return ActionEventDisplay(
+                emphasis: .buff,
+                keyword: event.keyword,
+                text: "+\(event.amount)% \(event.keyword.rawValue)",
+                secondaryText: nil
+            )
+        case .mitigationHalved:
+            return ActionEventDisplay(
+                emphasis: .buff,
+                keyword: event.keyword,
+                text: "Halve \(event.keyword.rawValue)",
+                secondaryText: nil
+            )
         case .dodgeApplied:
             return ActionEventDisplay(
                 emphasis: .dodge,

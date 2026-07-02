@@ -25,7 +25,7 @@ struct Ability: Identifiable, Hashable {
         self.name = name
         self.tier = tier
         self.damageComponents = damageComponents
-        self.descriptionOverride = description
+        descriptionOverride = description
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {

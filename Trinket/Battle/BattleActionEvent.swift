@@ -30,6 +30,8 @@ struct ActionEvent: Identifiable, Equatable {
         case cleanseApplied
         case purgeApplied
         case dodgeApplied
+        case leechApplied
+        case mitigationHalved
     }
 
     let id: Int

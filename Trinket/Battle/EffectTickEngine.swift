@@ -49,10 +49,6 @@ enum EffectTickEngine {
             }
         }
 
-        if context.didReplaceActiveEffects {
-            remaining = context.activeEffects(for: target)
-        }
-
         state.applyMutationContext(context)
         if !toRemove.isEmpty {
             let removeSet = Set(toRemove)

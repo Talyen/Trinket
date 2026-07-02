@@ -9,8 +9,8 @@ enum AbilityCatalog {
     static let antivenomPotion = Ability(
         id: "antivenom-potion", name: "Antivenom Potion", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.cleanse(.poison)),
-        TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.cleanse(.poison)),
+            TargetedEffect(.instantHeal(.health, 2))
         ]
     )
     static let anvil = Ability(
@@ -72,8 +72,8 @@ enum AbilityCatalog {
     static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.shield(.block, 3, 6)),
-        TargetedEffect(.mitigation(.armor, 0.25, 6))
+            TargetedEffect(.shield(.block, 3, 6)),
+            TargetedEffect(.mitigation(.armor, 0.25, 6))
         ]
     )
     static let burningBlade = Ability(
@@ -85,8 +85,8 @@ enum AbilityCatalog {
         id: "cauterize", name: "Cauterize", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
-        TargetedEffect(.burn(3)),
-        TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.burn(3)),
+            TargetedEffect(.instantHeal(.health, 2))
         ]
     )
     static let cinderbloom = Ability(
@@ -97,8 +97,8 @@ enum AbilityCatalog {
     static let cleanse = Ability(
         id: "cleanse", name: "Cleanse", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.cleanse(nil)),
-        TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.cleanse(nil)),
+            TargetedEffect(.instantHeal(.health, 2))
         ]
     )
     static let coldSnap = Ability(
@@ -119,15 +119,15 @@ enum AbilityCatalog {
     static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.shield(.block, 5, 6)),
-        TargetedEffect(.mitigation(.armor, 0.35, 6))
+            TargetedEffect(.shield(.block, 5, 6)),
+            TargetedEffect(.mitigation(.armor, 0.35, 6))
         ]
     )
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.instantHeal(.health, 3)),
-        TargetedEffect(.standardLeechBuff)
+            TargetedEffect(.instantHeal(.health, 3)),
+            TargetedEffect(.standardLeechBuff)
         ]
     )
     static let exorcism = Ability(
@@ -173,7 +173,7 @@ enum AbilityCatalog {
         description: "Gain Block and deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
         targetedEffects: [
-        TargetedEffect(.shield(.block, 4, 6))
+            TargetedEffect(.shield(.block, 4, 6))
         ]
     )
     static let gold = Ability(
@@ -183,8 +183,8 @@ enum AbilityCatalog {
     static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.mitigation(.armor, 0.30, 6)),
-        TargetedEffect(.resourceGain(.gold, 4))
+            TargetedEffect(.mitigation(.armor, 0.30, 6)),
+            TargetedEffect(.resourceGain(.gold, 4))
         ]
     )
     static let graspingVines = Ability(
@@ -209,8 +209,8 @@ enum AbilityCatalog {
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [
-        TargetedEffect(.bleed(6)),
-        TargetedEffect(.standardLeechBuff)
+            TargetedEffect(.bleed(6)),
+            TargetedEffect(.standardLeechBuff)
         ]
     )
     static let holyRadiance = Ability(
@@ -247,8 +247,8 @@ enum AbilityCatalog {
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.resourceGain(.gold, 3)),
-        TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.resourceGain(.gold, 3)),
+            TargetedEffect(.instantHeal(.health, 2))
         ]
     )
     static let manaBerries = Ability(
@@ -262,8 +262,8 @@ enum AbilityCatalog {
     static let manaPotion = Ability(
         id: "mana-potion", name: "Mana Potion", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.resourceGain(.gold, 2)),
-        TargetedEffect(.shield(.block, 2, 6))
+            TargetedEffect(.resourceGain(.gold, 2)),
+            TargetedEffect(.shield(.block, 2, 6))
         ]
     )
     static let manaShield = Ability(
@@ -280,8 +280,8 @@ enum AbilityCatalog {
         description: "Gain Block and deal 3 Burn damage.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
-        TargetedEffect(.shield(.block, 4, 6)),
-        TargetedEffect(.burn(3))
+            TargetedEffect(.shield(.block, 4, 6)),
+            TargetedEffect(.burn(3))
         ]
     )
     static let packTactics = Ability(
@@ -292,23 +292,23 @@ enum AbilityCatalog {
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.cleanse(nil)),
-        TargetedEffect(.instantHeal(.health, 4))
+            TargetedEffect(.cleanse(nil)),
+            TargetedEffect(.instantHeal(.health, 4))
         ]
     )
     static let phoenixFeather = Ability(
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [
-        TargetedEffect(.burn(6)),
-        TargetedEffect(.instantHeal(.health, 3))
+            TargetedEffect(.burn(6)),
+            TargetedEffect(.instantHeal(.health, 3))
         ]
     )
     static let plateMail = Ability(
         id: "plate-mail", name: "Plate Mail", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.shield(.block, 4, 6)),
-        TargetedEffect(.mitigation(.armor, 0.30, 6))
+            TargetedEffect(.shield(.block, 4, 6)),
+            TargetedEffect(.mitigation(.armor, 0.30, 6))
         ]
     )
     static let poisonDagger = Ability(
@@ -319,8 +319,8 @@ enum AbilityCatalog {
     static let prayer = Ability(
         id: "prayer", name: "Prayer", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.instantHeal(.health, 2)),
-        TargetedEffect(.cleanseRandom)
+            TargetedEffect(.instantHeal(.health, 2)),
+            TargetedEffect(.cleanseRandom)
         ]
     )
     static let rayOfFrost = Ability(
@@ -336,8 +336,8 @@ enum AbilityCatalog {
     static let sanctifiedPlate = Ability(
         id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.mitigation(.armor, 0.30, 6)),
-        TargetedEffect(.instantHeal(.health, 2))
+            TargetedEffect(.mitigation(.armor, 0.30, 6)),
+            TargetedEffect(.instantHeal(.health, 2))
         ]
     )
     static let sapArrow = Ability(
@@ -362,29 +362,29 @@ enum AbilityCatalog {
     )
     static let slash = Ability(
         id: "slash", name: "Slash", tier: .basic,
-        damageComponents: [DamageComponent(1)],
+        damageComponents: [DamageComponent(1)]
     )
     static let smellingSalts = Ability(
         id: "smelling-salts", name: "Smelling Salts", tier: .basic,
         targetedEffects: [
-        TargetedEffect(.cleanse(.stun)),
-        TargetedEffect(.instantHeal(.health, 1))
+            TargetedEffect(.cleanse(.stun)),
+            TargetedEffect(.instantHeal(.health, 1))
         ]
     )
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .holy)],
+        damageComponents: [DamageComponent(3, keyword: .holy)]
     )
     static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.shield(.block, 3, 6)),
-        TargetedEffect(.mitigation(.armor, 0.20, 6))
+            TargetedEffect(.shield(.block, 3, 6)),
+            TargetedEffect(.mitigation(.armor, 0.20, 6))
         ]
     )
     static let stab = Ability(
         id: "stab", name: "Stab", tier: .basic,
-        damageComponents: [DamageComponent(1)],
+        damageComponents: [DamageComponent(1)]
     )
     static let steal = Ability(
         id: "steal", name: "Steal", tier: .skill,
@@ -412,15 +412,15 @@ enum AbilityCatalog {
         description: "Gain Armor and deal 2 Bleed damage.",
         damageComponents: [DamageComponent(2, keyword: .bleed)],
         targetedEffects: [
-        TargetedEffect(.mitigation(.armor, 0.25, 6)),
-        TargetedEffect(.bleed(2))
+            TargetedEffect(.mitigation(.armor, 0.25, 6)),
+            TargetedEffect(.bleed(2))
         ]
     )
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.resourceGain(.gold, 2)),
-        TargetedEffect(.instantHeal(.health, 1))
+            TargetedEffect(.resourceGain(.gold, 2)),
+            TargetedEffect(.instantHeal(.health, 1))
         ]
     )
     static let venomArrow = Ability(
@@ -434,82 +434,82 @@ enum AbilityCatalog {
         targetedEffects: [TargetedEffect(.poison(3))]
     )
     static let all: [Ability] = [
-            acidPotion,
-            antivenomPotion,
-            anvil,
-            apple,
-            bash,
-            blackjack,
-            blessedAegis,
-            block,
-            bloodOffering,
-            bloodthorn,
-            bountyShot,
-            bread,
-            briarShield,
-            burningBlade,
-            cauterize,
-            cinderbloom,
-            cleanse,
-            coldSnap,
-            combustion,
-            concussiveShot,
-            crystalBulwark,
-            darkPact,
-            exorcism,
-            fangs,
-            faustianBargain,
-            fireArrow,
-            fireball,
-            frostbolt,
-            gamblersShot,
-            glacialWard,
-            gold,
-            goldenPlate,
-            graspingVines,
-            haste,
-            heal,
-            healthPotion,
-            hemorrhage,
-            holyRadiance,
-            iceShot,
-            judgment,
-            kindling,
-            lightningArrow,
-            lightningBolt,
-            luckPotion,
-            manaBerries,
-            manaCrystals,
-            manaPotion,
-            manaShield,
-            meteor,
-            moltenBulwark,
-            packTactics,
-            panaceaPotion,
-            phoenixFeather,
-            plateMail,
-            poisonDagger,
-            prayer,
-            rayOfFrost,
-            roulette,
-            sanctifiedPlate,
-            sapArrow,
-            serratedArrowhead,
-            serratedEdge,
-            shieldBash,
-            slash,
-            smellingSalts,
-            smite,
-            spikedShield,
-            stab,
-            steal,
-            stoneskinPotion,
-            sunburst,
-            sunderArmor,
-            thornMail,
-            tithe,
-            venomArrow,
-            venomFangs
+        acidPotion,
+        antivenomPotion,
+        anvil,
+        apple,
+        bash,
+        blackjack,
+        blessedAegis,
+        block,
+        bloodOffering,
+        bloodthorn,
+        bountyShot,
+        bread,
+        briarShield,
+        burningBlade,
+        cauterize,
+        cinderbloom,
+        cleanse,
+        coldSnap,
+        combustion,
+        concussiveShot,
+        crystalBulwark,
+        darkPact,
+        exorcism,
+        fangs,
+        faustianBargain,
+        fireArrow,
+        fireball,
+        frostbolt,
+        gamblersShot,
+        glacialWard,
+        gold,
+        goldenPlate,
+        graspingVines,
+        haste,
+        heal,
+        healthPotion,
+        hemorrhage,
+        holyRadiance,
+        iceShot,
+        judgment,
+        kindling,
+        lightningArrow,
+        lightningBolt,
+        luckPotion,
+        manaBerries,
+        manaCrystals,
+        manaPotion,
+        manaShield,
+        meteor,
+        moltenBulwark,
+        packTactics,
+        panaceaPotion,
+        phoenixFeather,
+        plateMail,
+        poisonDagger,
+        prayer,
+        rayOfFrost,
+        roulette,
+        sanctifiedPlate,
+        sapArrow,
+        serratedArrowhead,
+        serratedEdge,
+        shieldBash,
+        slash,
+        smellingSalts,
+        smite,
+        spikedShield,
+        stab,
+        steal,
+        stoneskinPotion,
+        sunburst,
+        sunderArmor,
+        thornMail,
+        tithe,
+        venomArrow,
+        venomFangs
     ]
 
     static func ability(id: String) -> Ability? {

@@ -142,7 +142,7 @@ final class ActionEventFormatterTests: XCTestCase {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .cleanseApplied, keyword: .stun)
         )
-        XCTAssertEqual(display.text, "Cleanse Stun")
+        XCTAssertEqual(display.text, "Cleanse Stunned")
         XCTAssertEqual(display.emphasis, .cleanse)
     }
 

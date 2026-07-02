@@ -15,7 +15,7 @@ enum AbilityBuilder {
         if let dot = pairedDoT(keyword: keyword, potency: amount) {
             targetedEffects.insert(TargetedEffect(dot), at: 0)
         }
-        let ability = Ability(
+        return Ability(
             id: id,
             name: name,
             tier: tier,
@@ -23,7 +23,6 @@ enum AbilityBuilder {
             damageComponents: damageComponents,
             targetedEffects: targetedEffects
         )
-        return ability
     }
 
     static func buffOnly(
