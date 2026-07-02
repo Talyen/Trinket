@@ -30,6 +30,12 @@ struct BackgroundArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct EncounterArtReference: Hashable {
+    let imageName: String
+    let thumbnailImageName: String?
+    let accessibilityLabel: String
+}
+
 
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
@@ -242,12 +248,6 @@ enum ArtCatalog {
             thumbnailImageName: "pet_shield_scarab_card_thumb",
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Shield Scarab pet"
-        ),
-        "imp": CombatantArtReference(
-            imageName: "pet_imp_card",
-            thumbnailImageName: "pet_imp_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Imp pet"
         ),
     ]
 
@@ -886,6 +886,109 @@ enum ArtCatalog {
         "wishingWell": BackgroundArtReference(
             imageName: "bg_homestead_wishing_well",
             accessibilityLabel: "Wishing well at the Homestead"
+        ),
+    ]
+
+    static let encounterArtByID: [String: EncounterArtReference] = [
+        "mystery-amethyst-geode": EncounterArtReference(
+            imageName: "encounter_mystery_amethyst_geode",
+            thumbnailImageName: "encounter_mystery_amethyst_geode_thumb",
+            accessibilityLabel: "Mystery event art showing a glowing amethyst geode"
+        ),
+        "mystery-bioluminescent-mushrooms": EncounterArtReference(
+            imageName: "encounter_mystery_bioluminescent_mushrooms",
+            thumbnailImageName: "encounter_mystery_bioluminescent_mushrooms_thumb",
+            accessibilityLabel: "Mystery event art showing bioluminescent mushrooms"
+        ),
+        "mystery-circle-of-glowing-mushrooms": EncounterArtReference(
+            imageName: "encounter_mystery_circle_of_glowing_mushrooms",
+            thumbnailImageName: "encounter_mystery_circle_of_glowing_mushrooms_thumb",
+            accessibilityLabel: "Mystery event art showing a circle of glowing mushrooms"
+        ),
+        "mystery-dusty-shelves-in-tower": EncounterArtReference(
+            imageName: "encounter_mystery_dusty_shelves_in_tower",
+            thumbnailImageName: "encounter_mystery_dusty_shelves_in_tower_thumb",
+            accessibilityLabel: "Mystery event art showing dusty shelves in a tower"
+        ),
+        "mystery-field-of-glowing-mana-berries": EncounterArtReference(
+            imageName: "encounter_mystery_field_of_glowing_mana_berries",
+            thumbnailImageName: "encounter_mystery_field_of_glowing_mana_berries_thumb",
+            accessibilityLabel: "Mystery event art showing glowing mana berries"
+        ),
+        "mystery-gold-coins-among-bones": EncounterArtReference(
+            imageName: "encounter_mystery_gold_coins_among_bones",
+            thumbnailImageName: "encounter_mystery_gold_coins_among_bones_thumb",
+            accessibilityLabel: "Mystery event art showing gold coins among bones"
+        ),
+        "mystery-leather-book-floats": EncounterArtReference(
+            imageName: "encounter_mystery_leather_book_floats",
+            thumbnailImageName: "encounter_mystery_leather_book_floats_thumb",
+            accessibilityLabel: "Mystery event art showing a floating leather book"
+        ),
+        "mystery-leather-bundle-between-roots": EncounterArtReference(
+            imageName: "encounter_mystery_leather_bundle_between_roots",
+            thumbnailImageName: "encounter_mystery_leather_bundle_between_roots_thumb",
+            accessibilityLabel: "Mystery event art showing a leather bundle between roots"
+        ),
+        "mystery-narrow-pass-through-peaks": EncounterArtReference(
+            imageName: "encounter_mystery_narrow_pass_through_peaks",
+            thumbnailImageName: "encounter_mystery_narrow_pass_through_peaks_thumb",
+            accessibilityLabel: "Mystery event art showing a narrow pass through peaks"
+        ),
+        "mystery-oak-tree-with-face": EncounterArtReference(
+            imageName: "encounter_mystery_oak_tree_with_face",
+            thumbnailImageName: "encounter_mystery_oak_tree_with_face_thumb",
+            accessibilityLabel: "Mystery event art showing an oak tree with a face"
+        ),
+        "mystery-pond-reflects-gnarled-trees": EncounterArtReference(
+            imageName: "encounter_mystery_pond_reflects_gnarled_trees",
+            thumbnailImageName: "encounter_mystery_pond_reflects_gnarled_trees_thumb",
+            accessibilityLabel: "Mystery event art showing a pond reflecting gnarled trees"
+        ),
+        "mystery-pool-of-water-steams": EncounterArtReference(
+            imageName: "encounter_mystery_pool_of_water_steams",
+            thumbnailImageName: "encounter_mystery_pool_of_water_steams_thumb",
+            accessibilityLabel: "Mystery event art showing a steaming pool of water"
+        ),
+        "mystery-smoldering-crater": EncounterArtReference(
+            imageName: "encounter_mystery_smoldering_crater",
+            thumbnailImageName: "encounter_mystery_smoldering_crater_thumb",
+            accessibilityLabel: "Mystery event art showing a smoldering crater"
+        ),
+        "mystery-sunlight-breaks-canopy": EncounterArtReference(
+            imageName: "encounter_mystery_sunlight_breaks_canopy",
+            thumbnailImageName: "encounter_mystery_sunlight_breaks_canopy_thumb",
+            accessibilityLabel: "Mystery event art showing sunlight breaking through a canopy"
+        ),
+        "mystery-vines-carpet-mosaic-floors": EncounterArtReference(
+            imageName: "encounter_mystery_vines_carpet_mosaic_floors",
+            thumbnailImageName: "encounter_mystery_vines_carpet_mosaic_floors_thumb",
+            accessibilityLabel: "Mystery event art showing vines over mosaic floors"
+        ),
+        "mystery-weathered-stone-altar": EncounterArtReference(
+            imageName: "encounter_mystery_weathered_stone_altar",
+            thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb",
+            accessibilityLabel: "Mystery event art showing a weathered stone altar"
+        ),
+        "destination-merchant-shop": EncounterArtReference(
+            imageName: "encounter_destination_merchant_shop",
+            thumbnailImageName: "encounter_destination_merchant_shop_thumb",
+            accessibilityLabel: "Destination art showing a merchant shop"
+        ),
+        "destination-alchemist-shop": EncounterArtReference(
+            imageName: "encounter_destination_alchemist_shop",
+            thumbnailImageName: "encounter_destination_alchemist_shop_thumb",
+            accessibilityLabel: "Destination art showing an alchemist shop"
+        ),
+        "destination-campfire": EncounterArtReference(
+            imageName: "encounter_destination_campfire",
+            thumbnailImageName: "encounter_destination_campfire_thumb",
+            accessibilityLabel: "Destination art showing a campfire"
+        ),
+        "destination-corruption-altar": EncounterArtReference(
+            imageName: "encounter_destination_corruption_altar",
+            thumbnailImageName: "encounter_destination_corruption_altar_thumb",
+            accessibilityLabel: "Destination art showing a corruption altar"
         ),
     ]
 

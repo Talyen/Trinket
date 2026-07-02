@@ -2,22 +2,12 @@ import SwiftUI
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedStage: Stage?
     @State private var stageMessage: StageMapMessage?
 
     var body: some View {
         @Bindable var battle = appState.battle
 
         content
-            .sheet(item: $selectedStage) { stage in
-                StagePreviewSheet(
-                    stage: stage,
-                    chapter: GameContent.chapter(containing: stage),
-                    onPrimaryAction: { handlePrimaryAction(for: stage) }
-                )
-                .presentationDetents([.large])
-                .presentationDragIndicator(.hidden)
-            }
             .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
                 appState.battle.restorePauseAfterOverlay()
             }, content: { selection in
@@ -37,9 +27,6 @@ struct PlayView: View {
                 guard newValue == nil else { return }
                 appState.journey.requestMapScroll(to: appState.mapScrollFocusID(for: appState.journey.current))
             }
-            .onChange(of: selectedStage?.id) { _, _ in
-                appState.battle.setMusicPreview(for: selectedStage)
-            }
     }
 
     @ViewBuilder
@@ -58,7 +45,7 @@ struct PlayView: View {
 
     private func handleStageTap(_ stage: Stage) {
         if appState.journey.current.isActive(stage) {
-            selectedStage = stage
+            handlePrimaryAction(for: stage)
         }
     }
 
@@ -73,12 +60,9 @@ struct PlayView: View {
                 inventory: appState.inventory
             ) {
                 stageMessage = message
-            } else {
-                selectedStage = nil
             }
         case .event, .shop, .rest:
             appState.completeStage(stage, hero: appState.roster.activeHero, pet: appState.roster.activePet)
-            selectedStage = nil
         }
     }
 }

@@ -167,7 +167,6 @@ combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50	Full art
 combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50	Full art of the Will-o-Wisp enemy
 combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of the Pixie pet
 combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
-combatant	imp	pet_imp_card	Raw Assets/Pets/Imp.png	0.50	0.50	Full art of the Imp pet
 background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50	Lush green canopy and winding forest path of the Verdant Forest
 background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.jpeg	0.50	0.50	Golden wheat field at the Homestead
 background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.jpeg	0.50	0.50	Green herb garden at the Homestead
@@ -178,3 +177,23 @@ background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.
 background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.jpeg	0.50	0.50	Blue crystal garden at the Homestead
 background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.jpeg	0.50	0.50	Runesmith workshop at the Homestead
 background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50	Wishing well at the Homestead
+encounter	mystery-amethyst-geode	encounter_mystery_amethyst_geode	Raw Assets/Mystery Events/Amethyst Geode.jpeg	0.50	0.50	Mystery event art showing a glowing amethyst geode
+encounter	mystery-bioluminescent-mushrooms	encounter_mystery_bioluminescent_mushrooms	Raw Assets/Mystery Events/Bioluminescent Mushrooms.jpeg	0.50	0.50	Mystery event art showing bioluminescent mushrooms
+encounter	mystery-circle-of-glowing-mushrooms	encounter_mystery_circle_of_glowing_mushrooms	Raw Assets/Mystery Events/Circle of Glowing Mushrooms.jpeg	0.50	0.50	Mystery event art showing a circle of glowing mushrooms
+encounter	mystery-dusty-shelves-in-tower	encounter_mystery_dusty_shelves_in_tower	Raw Assets/Mystery Events/Dusty Shelves in Tower.jpeg	0.50	0.50	Mystery event art showing dusty shelves in a tower
+encounter	mystery-field-of-glowing-mana-berries	encounter_mystery_field_of_glowing_mana_berries	Raw Assets/Mystery Events/Field of Glowing Mana Berries.jpeg	0.50	0.50	Mystery event art showing glowing mana berries
+encounter	mystery-gold-coins-among-bones	encounter_mystery_gold_coins_among_bones	Raw Assets/Mystery Events/Gold Coins among Bones.jpeg	0.50	0.50	Mystery event art showing gold coins among bones
+encounter	mystery-leather-book-floats	encounter_mystery_leather_book_floats	Raw Assets/Mystery Events/Leather Book Floats.jpeg	0.50	0.50	Mystery event art showing a floating leather book
+encounter	mystery-leather-bundle-between-roots	encounter_mystery_leather_bundle_between_roots	Raw Assets/Mystery Events/Leather Bundle Between Roots.jpeg	0.50	0.50	Mystery event art showing a leather bundle between roots
+encounter	mystery-narrow-pass-through-peaks	encounter_mystery_narrow_pass_through_peaks	Raw Assets/Mystery Events/Narrow Pass Through Peaks.jpeg	0.50	0.50	Mystery event art showing a narrow pass through peaks
+encounter	mystery-oak-tree-with-face	encounter_mystery_oak_tree_with_face	Raw Assets/Mystery Events/Oak Tree with Face.jpeg	0.50	0.50	Mystery event art showing an oak tree with a face
+encounter	mystery-pond-reflects-gnarled-trees	encounter_mystery_pond_reflects_gnarled_trees	Raw Assets/Mystery Events/Pond Reflects Gnarled Trees.jpeg	0.50	0.50	Mystery event art showing a pond reflecting gnarled trees
+encounter	mystery-pool-of-water-steams	encounter_mystery_pool_of_water_steams	Raw Assets/Mystery Events/Pool of Water Steams.jpeg	0.50	0.50	Mystery event art showing a steaming pool of water
+encounter	mystery-smoldering-crater	encounter_mystery_smoldering_crater	Raw Assets/Mystery Events/Smoldering Crater.jpeg	0.50	0.50	Mystery event art showing a smoldering crater
+encounter	mystery-sunlight-breaks-canopy	encounter_mystery_sunlight_breaks_canopy	Raw Assets/Mystery Events/Sunlight Breaks Canopy.jpeg	0.50	0.50	Mystery event art showing sunlight breaking through a canopy
+encounter	mystery-vines-carpet-mosaic-floors	encounter_mystery_vines_carpet_mosaic_floors	Raw Assets/Mystery Events/Vines Carpet Mosaic Floors.jpeg	0.50	0.50	Mystery event art showing vines over mosaic floors
+encounter	mystery-weathered-stone-altar	encounter_mystery_weathered_stone_altar	Raw Assets/Mystery Events/Weathered Stone Altar.jpeg	0.50	0.50	Mystery event art showing a weathered stone altar
+encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Assets/Destinations/Merchant's Shop.jpeg	0.50	0.50	Destination art showing a merchant shop
+encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50	Destination art showing an alchemist shop
+encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50	Destination art showing a campfire
+encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50	Destination art showing a corruption altar

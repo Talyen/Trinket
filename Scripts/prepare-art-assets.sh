@@ -34,6 +34,7 @@ abilities_temp=$(mktemp)
 items_temp=$(mktemp)
 slot_backgrounds_temp=$(mktemp)
 backgrounds_temp=$(mktemp)
+encounters_temp=$(mktemp)
 active_assets_temp=$(mktemp)
 processed_count=0
 
@@ -50,7 +51,7 @@ heic_from_source() {
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -70,12 +71,6 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
     exit 1
   fi
 
-  source_file="$source_path"
-  if [[ ! -f "$source_file" ]]; then
-    echo "Missing source file for '$id': $source_path" >&2
-    exit 1
-  fi
-
   # Track active assets for pruning
   printf '%s\n' "$asset_name" >> "$active_assets_temp"
   printf '%s\n' "${asset_name}_thumb" >> "$active_assets_temp"
@@ -88,6 +83,12 @@ while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibi
   thumb_asset="${asset_name}_thumb"
   thumb_imageset="$asset_catalog/${thumb_asset}.imageset"
   thumb_output_file="$thumb_imageset/${thumb_asset}.heic"
+
+  source_file="$source_path"
+  if [[ ! -f "$source_file" ]]; then
+    echo "Missing source file for '$id': $source_path" >&2
+    exit 1
+  fi
 
   local needs_convert=true
   if [[ -f "$output_file" && -f "$thumb_output_file" && "$source_file" -ot "$output_file" && "$source_file" -ot "$thumb_output_file" ]]; then
@@ -184,6 +185,14 @@ SWIFT
             accessibilityLabel: "$escaped_label"
         ),
 SWIFT
+  elif [[ "$kind" == "encounter" ]]; then
+    cat >> "$encounters_temp" <<SWIFT
+        "$escaped_id": EncounterArtReference(
+            imageName: "$escaped_asset",
+            thumbnailImageName: "$escaped_thumb",
+            accessibilityLabel: "$escaped_label"
+        ),
+SWIFT
   fi
 
   processed_count=$((processed_count + 1))
@@ -222,6 +231,12 @@ struct BackgroundArtReference: Hashable {
     let accessibilityLabel: String
 }
 
+struct EncounterArtReference: Hashable {
+    let imageName: String
+    let thumbnailImageName: String?
+    let accessibilityLabel: String
+}
+
 
 enum ArtCatalog {
     static let combatantArtByID: [String: CombatantArtReference] = [
@@ -242,6 +257,10 @@ $(cat "$slot_backgrounds_temp")
 
     static let backgroundArtByID: [String: BackgroundArtReference] = [
 $(cat "$backgrounds_temp")
+    ]
+
+    static let encounterArtByID: [String: EncounterArtReference] = [
+$(cat "$encounters_temp")
     ]
 
 }
@@ -278,7 +297,7 @@ SWIFT
     local name="${foldername%.imageset}"
     
     case "$name" in
-      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*)
+      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*)
         if ! grep -qx "$name" "$active_assets_temp"; then
           echo "Pruning orphaned asset: $foldername"
           rm -rf "$dir"
@@ -287,7 +306,7 @@ SWIFT
     esac
   done
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$active_assets_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$active_assets_temp"
 
 echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."
 

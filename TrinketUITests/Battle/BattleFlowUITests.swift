@@ -6,8 +6,6 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         play.assertLoaded()
         play.openStage("Stage 1-1 Node")
-        assertButtonExists("Battle Button")
-        button("Battle Button").tap()
 
         assertButtonExists("Battle Pause Button")
 
@@ -23,7 +21,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet()
 
         tabBar.selectCollection()
-        assertExists("Knight")
+        assertExists("Knight collection card")
         tabBar.selectPlay()
 
         assertExists("Victory", timeout: 15)

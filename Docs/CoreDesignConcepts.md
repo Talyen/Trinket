@@ -13,7 +13,7 @@ Trinket is a portrait-first fantasy idle auto-battler. The core loop centers on 
 The current play path is:
 
 ```text
-Play -> Chapter Map -> Active Stage Preview -> Battle or Encounter
+Play -> Chapter Journey -> Battle or Encounter
 ```
 
 Combat is idle by default. A Hero and Pet alternate abilities against a single Enemy.
@@ -28,13 +28,13 @@ Play -> Heroes -> Inventory -> Homestead -> Options
 
 ## Chapters And Stages
 
-The core journey is a linear chapter map that flows from immersive chapter art into a compact horizontal stage rail. Chapter 1 is `The Verdant Forest`. Stages are identified by chapter/stage number and encounter type rather than authored stage titles. The rail should keep the current path scannable with concise stage identity, subdued completed/locked state indicators, and a native primary action for the active stage. Avoid duplicating metadata or placing narrative flavor text in the rail; fuller context belongs in the preview/detail surface. Only the active stage is playable; recently completed stages remain visible as history, the next stage appears locked, and farther future stages are implied by the continuing path until the player approaches them.
+The core journey is chapter-scoped vertical progression. Chapter 1 is `The Verdant Forest`. The Play tab shows one chapter at a time, starting with immersive full-bleed chapter art that collapses into a compact pinned chapter header while the player scrolls through that chapter's stages. All stages in the current chapter are visible. Completed stages compress into history rows, the active stage is a large inline card with the primary encounter action, and future stages remain visible with real art/details but locked actions. The next chapter appears as a locked teaser after the current chapter's final stage; completed chapters can be browsed later as history but are not replayable in the current loop.
 
 Each stage has a predefined encounter type: Battle, Event, Shop, or Rest. Battle stages launch the authored enemy. Event, Shop, and Rest stages can appear in the path before their full systems exist, using a placeholder completion action so the chapter never dead-ends.
 
-Tapping the active stage action opens a large native stage preview sheet modeled after combatant details: full encounter art when available, stage/type identity, stage flavor, card-based Hero/Pet party swap controls, and the primary encounter action. Hero/Pet loadout and equipment editing still belongs in Heroes/Inventory. Do not preview possible rewards in this sheet.
+The active stage action launches immediately from the inline card: Battle starts combat; Event, Shop, and Rest run their placeholder completion action. Active stage cards can include a compact Hero/Pet picker for party swapping, but Hero/Pet loadout and equipment editing still belongs in Heroes/Inventory. Do not preview possible rewards on stage cards.
 
-Stage completion advances persistent journey progress, grants stub rewards once, and returns to the map. The map should auto-center the newly active node so the next action is obvious. End-of-chapter stages should connect forward into a locked next-chapter destination only when the final stage is part of the visible path, even before that chapter has authored content.
+Stage completion advances persistent journey progress, grants stub rewards once, and returns to the journey. The journey should scroll the newly active stage into a comfortable reading position so the next action is obvious. End-of-chapter stages should connect forward into a locked next-chapter destination even before that chapter has authored content.
 
 ## Heroes
 
