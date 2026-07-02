@@ -66,6 +66,10 @@ All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-deploy.sh`, 
 Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example after edits: `./Scripts/test.sh ui SmokeCollectionTests`; exact rerun without source changes: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
 - **Speed Tip**: Avoid running `ci-locally.sh` or `test-deploy.sh` during active development. They run the entire unit/UI suite and delay iteration. Compile with `build.sh` or run simulator previews.
 
+## Unit Tests
+
+Shared helpers in `TrinketTests/Support/`: `SaveTestSupport` (temp save dirs), `AppTestSupport` (`makeAppState`), `CombatantFixtures` (minimal combatants). Battle rules: `BattleStateTestFactory` + seed `0`. Prefer unit tests for pure logic and store orchestration; use UI tests for `Features/*` views. Do not unit-test log prose, `TrinketDesign` styling, AVFoundation, or CloudKit sync internals.
+
 ## UI Tests
 
 Smoke in `TrinketUITests/Smoke/`; deploy flows in `{Collection,Battle,Search}/`. One assertion per method; split at ~20 lines. `TestLaunchArg` + `LaunchScreen` (`AppTypes.swift`), parsed in `AppEnvironment`; helpers `allForScreen`, `allForTab`, `completedStages`. Args: `-reset-state` (default), `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle`), `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory`→`.collection`), `-completed-stages` (comma IDs). No `play:`/Search screen deep links. Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. `Player*Store`/UserDefaults; keep `-reset-state` unless testing persistence.
