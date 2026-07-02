@@ -7,14 +7,6 @@ struct ChapterStageSelectView: View {
     let progress: JourneyProgressState
     let onStageTap: (Stage) -> Void
 
-    private var totalCount: Int {
-        chapter.stages.count
-    }
-
-    private var completedCount: Int {
-        chapter.stages.filter { progress.isCompleted($0) }.count
-    }
-
     var body: some View {
         GeometryReader { geometry in
             let headerHeight = Self.headerHeight(for: geometry.size.height)
@@ -22,8 +14,6 @@ struct ChapterStageSelectView: View {
             VStack(spacing: 0) {
                 ChapterHeroHeader(
                     chapter: chapter,
-                    completedCount: completedCount,
-                    totalCount: totalCount,
                     height: headerHeight
                 )
 
@@ -54,6 +44,6 @@ struct ChapterStageSelectView: View {
     }
 
     private static func headerHeight(for availableHeight: CGFloat) -> CGFloat {
-        min(max(availableHeight * 0.54, 320), 450)
+        min(max(availableHeight * 0.66, 390), 560)
     }
 }

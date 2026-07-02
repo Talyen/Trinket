@@ -162,7 +162,6 @@ final class StageRewardTests: XCTestCase {
             chapterID: "chapter-1",
             chapterNumber: 1,
             stageNumber: 99,
-            title: "Test",
             flavorText: "Test",
             encounter: .event,
             rewards: StageReward(gold: 10, experience: 15, itemTemplateIDs: ["missing-template"])

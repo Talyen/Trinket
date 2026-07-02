@@ -165,8 +165,8 @@ struct StagePreviewSheet: View {
             )
         case .event:
             return StagePreviewSubject(
-                type: "Mystery",
-                name: stage.title,
+                type: "Event",
+                name: "Mystery",
                 symbolName: stage.encounter.symbolName,
                 tint: chapter.theme.secondaryTint,
                 combatant: nil

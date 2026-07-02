@@ -6,110 +6,64 @@ struct StageNodeView: View {
     var onPrimaryAction: (() -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
-                encounterBadge
+        VStack(alignment: .leading, spacing: 10) {
+            Text(stage.mapLabel)
+                .font(.headline.weight(state == .active ? .bold : .semibold))
+                .foregroundStyle(titleStyle)
+                .lineLimit(1)
+                .minimumScaleFactor(0.86)
 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(metadataLabel)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(labelStyle)
-
-                    Text(statusTitle)
-                        .font(.title3.weight(state == .active ? .bold : .semibold))
-                        .foregroundStyle(titleStyle)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.84)
-                }
-
-                Spacer(minLength: 0)
-            }
-
-            Spacer(minLength: 0)
-
-            if state == .active {
-                Button {
-                    onPrimaryAction?()
-                } label: {
-                    Text(stage.encounter.primaryActionTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-                .tint(encounterTint)
-                .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
-                .accessibilityHint("Opens the stage preview.")
-            }
+            control
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, minHeight: 188, maxHeight: 232, alignment: .topLeading)
-        .background(tintLayer)
-        .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .stroke(nodeStroke, lineWidth: state == .active ? 1.5 : 1)
-        }
-        .shadow(color: shadowColor, radius: 4, y: 2)
-    }
-
-    private var labelStyle: Color {
-        state == .active ? .primary : .secondary
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, minHeight: 86, alignment: .topLeading)
     }
 
     private var titleStyle: Color {
         state == .future ? .secondary : .primary
     }
 
-    private var tintLayer: Color {
-        switch state {
-        case .active, .completed, .justCompleted:
-            return Color(.secondarySystemBackground)
-        case .future:
-            return Color(.tertiarySystemBackground).opacity(0.68)
+    @ViewBuilder
+    private var control: some View {
+        if state == .active {
+            Button {
+                onPrimaryAction?()
+            } label: {
+                Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)
+                    .frame(maxWidth: .infinity)
+            }
+            .trinketPrimaryActionButton()
+            .controlSize(.regular)
+            .tint(encounterTint)
+            .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+            .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title)")
+            .accessibilityHint("Opens the stage preview.")
+        } else {
+            Label(statusLabel, systemImage: statusSymbolName)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(statusTint)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(chipBackground, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
-    }
-
-    private var nodeStroke: Color {
-        state == .active ? encounterTint.opacity(0.68) : Color.secondary.opacity(0.18)
-    }
-
-    private var shadowColor: Color {
-        .black.opacity(0.05)
-    }
-
-    private var encounterBadge: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(badgeFill)
-                .frame(width: 52, height: 52)
-
-            Image(systemName: badgeSymbolName)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(badgeTint)
-                .frame(width: 52, height: 52)
-        }
-        .accessibilityHidden(true)
     }
 
     private var encounterTint: Color {
         stage.encounter.mapTint
     }
 
-    private var badgeFill: Color {
-        Color.secondary.opacity(0.12)
-    }
-
-    private var badgeTint: Color {
+    private var statusTint: Color {
         switch state {
         case .active:
             return encounterTint
         case .completed, .justCompleted:
-            return TrinketDesign.Colors.success
+            return TrinketDesign.Colors.success.opacity(0.86)
         case .future:
             return .secondary
         }
     }
 
-    private var badgeSymbolName: String {
+    private var statusSymbolName: String {
         switch state {
         case .completed, .justCompleted:
             return "checkmark.circle.fill"
@@ -120,17 +74,15 @@ struct StageNodeView: View {
         }
     }
 
-    private var statusTitle: String {
+    private var chipBackground: Color {
         switch state {
-        case .active, .completed, .justCompleted:
-            return stage.title
+        case .active:
+            return encounterTint.opacity(0.12)
+        case .completed, .justCompleted:
+            return TrinketDesign.Colors.success.opacity(0.12)
         case .future:
-            return "Unknown Path"
+            return Color.secondary.opacity(0.10)
         }
-    }
-
-    private var metadataLabel: String {
-        "\(stage.mapLabel) · \(statusLabel)"
     }
 
     private var statusLabel: String {

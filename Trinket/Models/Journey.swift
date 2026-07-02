@@ -31,14 +31,9 @@ struct Stage: Identifiable, Hashable {
     let chapterID: String
     let chapterNumber: Int
     let stageNumber: Int
-    let title: String
     let flavorText: String
     let encounter: StageEncounter
     let rewards: StageReward
-
-    var displayTitle: String {
-        "Stage \(chapterNumber)-\(stageNumber): \(title)"
-    }
 }
 
 enum StageEncounter: Hashable {

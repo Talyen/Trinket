@@ -18,7 +18,7 @@ struct StageDeckView: View {
                                 onStageTap: onStageTap
                             )
                             .containerRelativeFrame(.horizontal) { length, _ in
-                                min(max(length - 56, 292), 340)
+                                min(max(length * 0.46, 176), 220)
                             }
                             .id(card.id)
                         }
@@ -29,7 +29,7 @@ struct StageDeckView: View {
                 .contentMargins(.horizontal, 20, for: .scrollContent)
                 .scrollTargetBehavior(.viewAligned)
             }
-            .padding(.top, 22)
+            .padding(.top, 18)
             .padding(.bottom, 28)
             .onAppear {
                 scrollToDeckTarget(with: proxy)

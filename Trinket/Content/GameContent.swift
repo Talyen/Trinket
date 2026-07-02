@@ -343,7 +343,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 1,
-                    title: "Moss Gate",
                     flavorText: "The old forest road narrows beneath a bright green canopy.",
                     encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
@@ -358,7 +357,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 2,
-                    title: "Whispering Roots",
                     flavorText: "Something beneath the trail points you toward a safer path.",
                     encounter: .event,
                     rewards: StageReward(
@@ -373,7 +371,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 3,
-                    title: "Tangled Thicket",
                     flavorText: "Briars close behind you as a brittle shape steps forward.",
                     encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
@@ -388,7 +385,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 4,
-                    title: "Lantern Cart",
                     flavorText: "A covered cart waits beside the trail, its little lantern still warm.",
                     encounter: .shop,
                     rewards: StageReward(
@@ -403,7 +399,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 5,
-                    title: "Sinking Glade",
                     flavorText: "The ground softens underfoot, and the glade begins to move.",
                     encounter: .battle(enemyID: "mud_elemental"),
                     rewards: StageReward(
@@ -418,7 +413,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 6,
-                    title: "Moonwell Rest",
                     flavorText: "Clear water gathers in a stone basin covered in silver leaves.",
                     encounter: .rest,
                     rewards: StageReward(
@@ -433,7 +427,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 7,
-                    title: "Spore Lanterns",
                     flavorText: "Pale lights drift between the trees, each one trailing a bitter mist.",
                     encounter: .battle(enemyID: "plague_doctor"),
                     rewards: StageReward(
@@ -448,7 +441,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 8,
-                    title: "Foxfire Fork",
                     flavorText: "Two false trails glitter ahead before the forest reveals the true one.",
                     encounter: .event,
                     rewards: StageReward(
@@ -463,7 +455,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 9,
-                    title: "Ironwood Watch",
                     flavorText: "An armored sentinel blocks the last rise before the heartwood.",
                     encounter: .battle(enemyID: "living_armor"),
                     rewards: StageReward(
@@ -478,7 +469,6 @@ enum GameContent {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 10,
-                    title: "Heartwood Blight",
                     flavorText: "At the forest center, the oldest roots twist around a dark crown.",
                     encounter: .battle(enemyID: "the_blight_treant"),
                     rewards: StageReward(
