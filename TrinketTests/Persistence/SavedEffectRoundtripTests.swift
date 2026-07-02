@@ -64,6 +64,6 @@ final class SavedEffectRoundtripTests: XCTestCase {
 
         XCTAssertEqual(restored.id, item.id)
         XCTAssertEqual(restored.affixes.count, 1)
-        XCTAssertEqual(restored.affixes[0].effect, affix.effect)
+        XCTAssertEqual(restored.affixes[0].description, affix.description)
     }
 }

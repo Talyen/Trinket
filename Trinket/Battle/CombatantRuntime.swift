@@ -27,15 +27,20 @@ struct CombatantRuntime: Hashable {
     /// Number of times this combatant has acted so far in the battle.
     var actionCount: Int
 
+    /// Flat maximum-health bonus from equipped item affixes.
+    let maximumHealthBonus: Int
+
     init(
         combatant: Combatant,
         initialHealth: Int? = nil,
         initialActiveEffects: [ActiveEffect] = [],
         initialActionSpeed: ActionSpeed? = nil,
-        initialNextReadyAtTick: Int? = nil
+        initialNextReadyAtTick: Int? = nil,
+        maximumHealthBonus: Int = 0
     ) {
         self.combatant = combatant
-        currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness)
+        self.maximumHealthBonus = maximumHealthBonus
+        currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
         activeEffects = initialActiveEffects
 
         let speed = initialActionSpeed ?? CombatantRuntime.defaultActionSpeed(for: combatant)
@@ -59,7 +64,7 @@ struct CombatantRuntime: Hashable {
     }
 
     var maxHealth: Int {
-        combatant.maxHealth + combatant.primaryStats.toughness
+        combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus
     }
 
     var primaryStats: PrimaryStats {

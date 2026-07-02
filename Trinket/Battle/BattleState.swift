@@ -53,6 +53,8 @@ struct BattleState {
     private var hasLoggedDefeat: Bool
     private var hasLoggedPartyDefeat: Bool
     private let initialGold: Int
+    private let heroModifiers: CombatModifierProfile
+    private let petModifiers: CombatModifierProfile
 
     static let defaultRNGSeed: UInt64 = 0
 
@@ -64,12 +66,16 @@ struct BattleState {
         activeHeroEffects: [ActiveEffect] = [],
         activePetEffects: [ActiveEffect] = [],
         initialGold: Int = 0,
+        heroModifiers: CombatModifierProfile = .zero,
+        petModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64? = nil
     ) {
         self.hero = hero
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
         self.enemy = resolvedEnemy
+        self.heroModifiers = heroModifiers
+        self.petModifiers = petModifiers
 
         let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
         rng = SeededRandomNumberGenerator(seed: seed)
@@ -78,8 +84,16 @@ struct BattleState {
         actionCount = 0
 
         roster = BattleRoster(
-            hero: CombatantRuntime(combatant: hero, initialActiveEffects: activeHeroEffects),
-            pet: CombatantRuntime(combatant: pet, initialActiveEffects: activePetEffects),
+            hero: CombatantRuntime(
+                combatant: hero,
+                initialActiveEffects: activeHeroEffects,
+                maximumHealthBonus: heroModifiers.maximumHealthBonus
+            ),
+            pet: CombatantRuntime(
+                combatant: pet,
+                initialActiveEffects: activePetEffects,
+                maximumHealthBonus: petModifiers.maximumHealthBonus
+            ),
             enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
         )
 
@@ -230,8 +244,40 @@ struct BattleState {
     }
 
     /// Adds `amount` to the battle's gold. Used by `ResourceGainHandler`.
-    mutating func addGold(_ amount: Int) {
-        gold += amount
+    mutating func addGold(_ amount: Int, sourceActorID: String) {
+        gold += amount + modifiers(for: sourceActorID).goldGainedBonus
+    }
+
+    func modifiers(for combatantID: String) -> CombatModifierProfile {
+        if combatantID == hero.id { return heroModifiers }
+        if combatantID == pet.id { return petModifiers }
+        return .zero
+    }
+
+    func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
+        let profile = modifiers(for: sourceID)
+        switch effect {
+        case let .shield(keyword, buffer, durationTicks):
+            return .shield(
+                keyword,
+                buffer + profile.blockGrantedBonus,
+                durationTicks + profile.blockDurationBonus
+            )
+        case let .mitigation(keyword, percent, durationTicks):
+            return .mitigation(
+                keyword,
+                percent + profile.armorGrantedBonus,
+                durationTicks + profile.armorDurationBonus
+            )
+        case let .leech(keyword, percent, durationTicks):
+            return .leech(
+                keyword,
+                percent + profile.leechGrantedBonus,
+                durationTicks + profile.leechDurationBonus
+            )
+        default:
+            return effect
+        }
     }
 
     // MARK: - Turn loop
@@ -546,7 +592,7 @@ struct BattleState {
             ActiveEffect(
                 id: nextEffectID,
                 effect: .bleed(boostedPotency),
-                remainingTicks: Effect.bleedDoTTickCount,
+                remainingTicks: Effect.bleedDoTTickCount + modifiers(for: sourceActorID).bleedDurationBonus,
                 sourceActorID: sourceActorID
             )
         )
@@ -665,7 +711,14 @@ struct BattleState {
     ) -> (healthLost: Int, events: [ActionEvent]) {
         guard amount > 0 else { return (0, []) }
 
-        let (healthLost, damageEvents) = applyDamage(amount, to: combatant)
+        let (healthLost, damageEvents) = applyDamage(
+            amount,
+            to: combatant,
+            damageKeyword: keyword,
+            sourceActorID: sourceActorID,
+            applyStatBonus: false,
+            applyDodge: false
+        )
         var events = damageEvents
         if healthLost > 0, let sourceActorID {
             events.append(contentsOf: applyLeechFromDamage(healthLost, sourceActorID: sourceActorID))
@@ -771,7 +824,8 @@ struct BattleState {
 
         let wisdomPercent = Double(actorCombatant.primaryStats.wisdom) * 0.001
         let totalPct = leechPct + wisdomPercent
-        let restored = Int(ceil(Double(damage) * totalPct))
+        var restored = Int(ceil(Double(damage) * totalPct))
+        restored += modifiers(for: sourceActorID).leechHealingBonus
         guard restored > 0 else { return [] }
 
         applyHeal(restored, to: actorCombatant)
@@ -792,11 +846,14 @@ struct BattleState {
         _ amount: Int,
         to combatant: Combatant,
         damageKeyword: Keyword? = nil,
-        sourceActorID: String? = nil
+        sourceActorID: String? = nil,
+        applyStatBonus: Bool = true,
+        applyItemBonus: Bool = true,
+        applyDodge: Bool = true
     ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
         var damageEvents: [ActionEvent] = []
 
-        if amount > 0, roster.health(for: combatant) > 0, sourceActorID != nil {
+        if applyDodge, amount > 0, roster.health(for: combatant) > 0, sourceActorID != nil {
             if Double.random(in: 0 ... 1, using: &rng) < combatant.primaryStats.dodgeChance {
                 damageEvents.append(nextEvent(
                     kind: .effect,
@@ -812,12 +869,15 @@ struct BattleState {
         }
 
         let statBonus: Int
+        let itemBonus: Int
         if let sourceActorID, let damageKeyword, let actor = roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: damageKeyword)
+            statBonus = applyStatBonus ? actor.primaryStats.statBonusForDamage(keyword: damageKeyword) : 0
+            itemBonus = applyItemBonus ? modifiers(for: sourceActorID).damageDealtBonus(for: damageKeyword) : 0
         } else {
             statBonus = 0
+            itemBonus = 0
         }
-        var remaining = amount + statBonus
+        var remaining = amount + statBonus + itemBonus
 
         var currentEffects = roster.activeEffects(for: combatant)
         var shieldIndexes: [Int] = []
@@ -861,13 +921,20 @@ struct BattleState {
             remaining = Int(ceil(Double(remaining) * (1 - combinedPct)))
         }
 
+        if let damageKeyword, remaining > 0 {
+            let reduction = modifiers(for: combatant.id).damageTakenReduction(for: damageKeyword)
+            if reduction > 0 {
+                remaining = Int(ceil(Double(remaining) * (1 - reduction)))
+            }
+        }
+
         roster.setActiveEffects(currentEffects, for: combatant)
 
         var runtime = runtime(for: combatant)
         let healthLost = runtime.takeRawDamage(remaining)
         updateRuntime(runtime)
 
-        let dealt = amount + statBonus
+        let dealt = amount + statBonus + itemBonus
         if dealt > 0,
            let damageKeyword,
            damageKeyword == .stun || damageKeyword == .freeze,
@@ -883,9 +950,10 @@ struct BattleState {
         return (healthLost, damageEvents)
     }
 
-    mutating func applyHeal(_ amount: Int, to combatant: Combatant) {
+    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
+        let bonus = sourceActorID.map { modifiers(for: $0).healthRestoredBonus } ?? 0
         var runtime = runtime(for: combatant)
-        runtime.heal(amount)
+        runtime.heal(amount + bonus)
         updateRuntime(runtime)
     }
 

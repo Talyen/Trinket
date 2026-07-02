@@ -10,7 +10,6 @@ struct ItemAffix: Identifiable, Equatable, Hashable {
     let title: String
     let description: String
     let keywords: Set<Keyword>
-    let effect: Effect?
 }
 
 extension ItemAffix {
@@ -18,8 +17,7 @@ extension ItemAffix {
         id: "placeholder",
         title: "Placeholder",
         description: "No effect yet.",
-        keywords: [],
-        effect: nil
+        keywords: []
     )
 
     var sortedKeywords: [Keyword] {
@@ -29,7 +27,7 @@ extension ItemAffix {
 
 struct ItemAffixPower: Equatable, Hashable {
     let description: String
-    let effect: Effect?
+    let modifiers: [AffixModifier]
 }
 
 struct ItemAffixDefinition: Identifiable, Equatable, Hashable {
@@ -41,21 +39,22 @@ struct ItemAffixDefinition: Identifiable, Equatable, Hashable {
     let basic: ItemAffixPower
     let astral: ItemAffixPower
 
-    func resolved(for rarity: Rarity) -> ItemAffix {
-        let power: ItemAffixPower
+    func power(for rarity: Rarity) -> ItemAffixPower {
         switch rarity {
         case .basic:
-            power = basic
+            return basic
         case .astral:
-            power = astral
+            return astral
         }
+    }
 
+    func resolved(for rarity: Rarity) -> ItemAffix {
+        let power = power(for: rarity)
         return ItemAffix(
             id: id,
             title: title,
             description: power.description,
-            keywords: keywords,
-            effect: power.effect
+            keywords: keywords
         )
     }
 }

@@ -33,6 +33,8 @@ struct BattleView: View {
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryState: PlayerInventoryState = .initial,
+        heroModifiers: CombatModifierProfile = .zero,
+        petModifiers: CombatModifierProfile = .zero,
         stageReward: StageReward? = nil,
         rewardItemNames: [String] = [],
         isBattlePaused: Binding<Bool>,
@@ -52,7 +54,13 @@ struct BattleView: View {
         self.onRestartBattle = onRestartBattle
         self.onVictoryContinue = onVictoryContinue
         self.onShowCombatantDetail = onShowCombatantDetail
-        _battle = State(initialValue: BattleState(hero: hero, pet: pet, enemy: enemy))
+        _battle = State(initialValue: BattleState(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            heroModifiers: heroModifiers,
+            petModifiers: petModifiers
+        ))
         _isBattlePaused = isBattlePaused
         _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())

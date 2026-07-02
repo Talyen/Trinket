@@ -22,6 +22,18 @@ struct CombatantDetailPane: View {
 
     private let scrollCoordinateSpaceName = "CombatantDetailScroll"
 
+    private var combatBuild: CombatBuild {
+        CombatBuildResolver.build(
+            combatant: combatant,
+            equipmentLoadout: equipmentLoadout,
+            inventory: inventoryState
+        )
+    }
+
+    private var effectiveCombatant: Combatant {
+        combatBuild.combatant
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let baseHeaderHeight = HeroHeaderLayout.headerHeight(forWidth: geometry.size.width)
@@ -38,12 +50,12 @@ struct CombatantDetailPane: View {
 
                     VStack(alignment: .leading, spacing: 0) {
                         section("Stats") {
-                            statRow("Health", value: "\(currentHealth)/\(combatant.maxHealth)")
-                            statRow("Strength", value: "\(combatant.primaryStats.strength)")
-                            statRow("Agility", value: "\(combatant.primaryStats.agility)")
-                            statRow("Toughness", value: "\(combatant.primaryStats.toughness)")
-                            statRow("Intellect", value: "\(combatant.primaryStats.intellect)")
-                            statRow("Wisdom", value: "\(combatant.primaryStats.wisdom)")
+                            statRow("Health", value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)")
+                            statRow("Strength", value: formattedStat(base: combatant.primaryStats.strength, effective: effectiveCombatant.primaryStats.strength))
+                            statRow("Agility", value: formattedStat(base: combatant.primaryStats.agility, effective: effectiveCombatant.primaryStats.agility))
+                            statRow("Toughness", value: formattedStat(base: combatant.primaryStats.toughness, effective: effectiveCombatant.primaryStats.toughness))
+                            statRow("Intellect", value: formattedStat(base: combatant.primaryStats.intellect, effective: effectiveCombatant.primaryStats.intellect))
+                            statRow("Wisdom", value: formattedStat(base: combatant.primaryStats.wisdom, effective: effectiveCombatant.primaryStats.wisdom))
                         }
 
                         if !activeEffectSummaries.isEmpty {
@@ -114,7 +126,12 @@ struct CombatantDetailPane: View {
     }
 
     private var currentHealth: Int {
-        battleHealth ?? combatant.maxHealth
+        battleHealth ?? combatBuild.effectiveMaxHealth
+    }
+
+    private func formattedStat(base: Int, effective: Int) -> String {
+        guard effective != base else { return "\(base)" }
+        return "\(base) → \(effective)"
     }
 
     private func statRow(_ title: String, value: String) -> some View {

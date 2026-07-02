@@ -230,10 +230,14 @@ struct ShieldHandler: BattleEffectHandler {
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .shield(keyword, buffer, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        guard case let .shield(adjustedKeyword, adjustedBuffer, adjustedDuration) = adjusted else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let ae = ActiveEffect(
             id: state.consumeNextEffectID(),
-            effect: effect,
-            remainingTicks: durationTicks,
+            effect: .shield(adjustedKeyword, adjustedBuffer, adjustedDuration),
+            remainingTicks: adjustedDuration,
             sourceActorID: source.id
         )
         var currentEffects = state.rosterActiveEffects(for: target)
@@ -245,8 +249,8 @@ struct ShieldHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: buffer,
-            keyword: keyword
+            amount: adjustedBuffer,
+            keyword: adjustedKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -276,10 +280,14 @@ struct MitigationHandler: BattleEffectHandler {
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .mitigation(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        guard case let .mitigation(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let ae = ActiveEffect(
             id: state.consumeNextEffectID(),
-            effect: effect,
-            remainingTicks: durationTicks,
+            effect: .mitigation(adjustedKeyword, adjustedPercent, adjustedDuration),
+            remainingTicks: adjustedDuration,
             sourceActorID: source.id
         )
         var currentEffects = state.rosterActiveEffects(for: target)
@@ -291,8 +299,8 @@ struct MitigationHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: Int(percent * 100),
-            keyword: keyword
+            amount: Int(adjustedPercent * 100),
+            keyword: adjustedKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -354,11 +362,15 @@ struct LeechHandler: BattleEffectHandler {
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .leech(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        let adjusted = state.adjustedOutgoingEffect(effect, sourceID: source.id)
+        guard case let .leech(adjustedKeyword, adjustedPercent, adjustedDuration) = adjusted else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let wisdomTicks = source.primaryStats.wisdom / 20
         let ae = ActiveEffect(
             id: state.consumeNextEffectID(),
-            effect: effect,
-            remainingTicks: durationTicks + wisdomTicks,
+            effect: .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
+            remainingTicks: adjustedDuration + wisdomTicks,
             sourceActorID: source.id
         )
         var currentEffects = state.rosterActiveEffects(for: target)
@@ -382,7 +394,7 @@ struct InstantHealHandler: BattleEffectHandler {
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        state.applyHeal(amount, to: target)
+        state.applyHeal(amount, to: target, sourceActorID: source.id)
         let event = state.nextEvent(
             kind: .effect,
             effectKind: .instantHeal,
@@ -407,7 +419,7 @@ struct ResourceGainHandler: BattleEffectHandler {
         pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        state.addGold(amount)
+        state.addGold(amount, sourceActorID: source.id)
         let event = state.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,

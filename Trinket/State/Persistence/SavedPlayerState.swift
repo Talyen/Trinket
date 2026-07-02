@@ -47,14 +47,20 @@ struct SavedItemAffix: Codable, Equatable {
     var title: String
     var description: String
     var keywordRawValues: [String]
-    var effect: SavedEffect?
 
     init(_ affix: ItemAffix) {
         id = affix.id
         title = affix.title
         description = affix.description
         keywordRawValues = affix.keywords.map(\.rawValue).sorted()
-        effect = affix.effect.map(SavedEffect.init)
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        description = try container.decode(String.self, forKey: .description)
+        keywordRawValues = try container.decode([String].self, forKey: .keywordRawValues)
     }
 
     func affix() -> ItemAffix? {
@@ -63,9 +69,15 @@ struct SavedItemAffix: Codable, Equatable {
             id: id,
             title: title,
             description: description,
-            keywords: keywords,
-            effect: effect?.effect()
+            keywords: keywords
         )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case description
+        case keywordRawValues
     }
 }
 

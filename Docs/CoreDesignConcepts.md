@@ -90,7 +90,7 @@ Inventory Items have a base type, a shared slot (`Weapon`, `Armor`, or `Trinket`
 
 Affixes are eligible when their slot matches the base item slot and at least one affix Keyword matches the base item's Keyword Affinities. Items cannot roll duplicate affix IDs, but multiple affixes can share the same Keyword. Affixes are positive-only. Item names stay as the base item name to keep inventory grids readable.
 
-Equipped Items do not affect combat stats or rules yet. Affix `Effect` values are authored so combat integration can be added later as a separate balance pass.
+Equipped items apply keyword-wide combat modifiers and flat primary-stat bonuses at battle entry. Affix descriptions use plain language such as "Increases Bleed damage dealt by 1" or "Increases Agility by 2". Modifiers stack across affixes and items; stats from gear merge into effective primary stats for the battle while keyword bonuses apply at each relevant combat resolution.
 
 ## Keywords
 

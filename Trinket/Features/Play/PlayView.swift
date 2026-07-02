@@ -67,6 +67,8 @@ struct PlayView: View {
                 heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
                 petEquipmentLoadout: activeBattle.petEquipmentLoadout,
                 inventoryState: activeBattle.inventoryState,
+                heroModifiers: activeBattle.heroModifiers,
+                petModifiers: activeBattle.petModifiers,
                 stageReward: activeBattle.stageReward,
                 rewardItemNames: activeBattle.rewardItemNames,
                 isBattlePaused: Binding(
@@ -78,10 +80,15 @@ struct PlayView: View {
                     appState.battle.activeBattle = nil
                 },
                 onRestartBattle: {
-                    appState.battle.activeBattle = ActiveBattleConfiguration(
+                    guard
+                        let hero = appState.roster.heroes.first(where: { $0.id == activeBattle.hero.id }),
+                        let pet = appState.roster.pets.first(where: { $0.id == activeBattle.pet.id })
+                    else { return }
+
+                    appState.battle.activeBattle = ActiveBattleConfiguration.make(
                         stageID: activeBattle.stageID,
-                        hero: activeBattle.hero,
-                        pet: activeBattle.pet,
+                        hero: hero,
+                        pet: pet,
                         enemy: activeBattle.enemy,
                         heroProgression: activeBattle.heroProgression,
                         petProgression: activeBattle.petProgression,
@@ -145,7 +152,7 @@ struct PlayView: View {
         let rewardItemNames = stage.rewards.itemTemplateIDs.compactMap { templateID in
             GameContent.itemTemplate(matching: templateID)?.displayName
         }
-        appState.battle.activeBattle = ActiveBattleConfiguration(
+        appState.battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
             hero: hero,
             pet: pet,

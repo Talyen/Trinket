@@ -18,7 +18,9 @@ enum BattleStateTestFactory {
         activeEnemyEffects: [ActiveEffect] = [],
         activeHeroEffects: [ActiveEffect] = [],
         activePetEffects: [ActiveEffect] = [],
-        initialGold: Int = 0
+        initialGold: Int = 0,
+        heroModifiers: CombatModifierProfile = .zero,
+        petModifiers: CombatModifierProfile = .zero
     ) -> BattleState {
         BattleState(
             hero: hero,
@@ -28,6 +30,8 @@ enum BattleStateTestFactory {
             activeHeroEffects: activeHeroEffects,
             activePetEffects: activePetEffects,
             initialGold: initialGold,
+            heroModifiers: heroModifiers,
+            petModifiers: petModifiers,
             rngSeed: 0
         )
     }
