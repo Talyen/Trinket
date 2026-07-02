@@ -112,7 +112,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(active.remainingTicks, 2)
     }
 
-    func testAbilityUsesPlayerFacingDescription() {
+    func testAbilityUsesGeneratedDescription() {
         let ability = Ability.rayOfFrost
         XCTAssertEqual(ability.summary, "Deal 1 Freeze damage.")
     }

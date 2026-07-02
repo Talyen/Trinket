@@ -1,0 +1,96 @@
+import Foundation
+
+enum AbilityValidator {
+    struct Issue: Equatable, CustomStringConvertible {
+        let abilityID: String
+        let message: String
+
+        var description: String {
+            "\(abilityID): \(message)"
+        }
+    }
+
+    static let descriptionOverrideIDs: Set<String> = [
+        "blackjack",
+        "grasping-vines",
+        "judgment",
+        "glacial-ward",
+        "molten-bulwark",
+        "thorn-mail"
+    ]
+
+    static func validate(_ ability: Ability) -> [Issue] {
+        var issues: [Issue] = []
+
+        if ability.effects.contains(where: { if case .dealDamage = $0 { return true }; return false }) {
+            issues.append(Issue(abilityID: ability.id, message: "uses dealDamage effects instead of damageComponents"))
+        }
+
+        for component in ability.damageComponents where component.target == .abilityTarget {
+            switch component.keyword {
+            case .burn:
+                if !ability.effects.contains(where: { if case let .burn(p) = $0 { return p == component.amount }; return false }) {
+                    issues.append(Issue(abilityID: ability.id, message: "missing paired .burn(\(component.amount))"))
+                }
+            case .poison:
+                if !ability.effects.contains(where: { if case let .poison(p) = $0 { return p == component.amount }; return false }) {
+                    issues.append(Issue(abilityID: ability.id, message: "missing paired .poison(\(component.amount))"))
+                }
+            case .bleed:
+                if !ability.effects.contains(where: { if case let .bleed(p) = $0 { return p == component.amount }; return false }) {
+                    issues.append(Issue(abilityID: ability.id, message: "missing paired .bleed(\(component.amount))"))
+                }
+            default:
+                continue
+            }
+        }
+
+        let enemyDamageTotal = ability.damageComponents
+            .filter { $0.target == .abilityTarget }
+            .reduce(0) { $0 + $1.amount }
+
+        if enemyDamageTotal > 0, let issue = tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id) {
+            issues.append(issue)
+        }
+
+        let generated = AbilityDescriptionFormatter.format(ability)
+        if ability.descriptionOverride != nil {
+            if !descriptionOverrideIDs.contains(ability.id) {
+                issues.append(Issue(abilityID: ability.id, message: "unexpected description override; generated copy is '\(generated)'"))
+            }
+        } else if generated != ability.summary {
+            issues.append(Issue(abilityID: ability.id, message: "summary '\(ability.summary)' does not match generated '\(generated)'"))
+        }
+
+        return issues
+    }
+
+    static func validateCatalog() -> [Issue] {
+        AbilityCatalog.all.flatMap(validate)
+    }
+
+    private static func tierDamageIssue(tier: AbilityTier, total: Int, abilityID: String) -> Issue? {
+        let allowed: Set<Int>
+        switch tier {
+        case .basic:
+            allowed = [1]
+        case .skill:
+            allowed = [3]
+        case .ultimate:
+            allowed = [2, 3, 6]
+        }
+
+        if allowed.contains(total) || allowsMultiComponentTotal(abilityID: abilityID, total: total) {
+            return nil
+        }
+
+        return Issue(
+            abilityID: abilityID,
+            message: "enemy damage total \(total) is unusual for \(tier.rawValue) tier"
+        )
+    }
+
+    private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
+        abilityID == "bloodthorn" && total == 6
+    }
+}

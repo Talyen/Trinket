@@ -106,47 +106,7 @@ enum Effect: Hashable {
     }
 
     var summary: String {
-        switch self {
-        case let .burn(amount):
-            return statusPhrase(for: .burn, amount: amount)
-        case let .poison(amount):
-            return statusPhrase(for: .poison, amount: amount)
-        case let .bleed(amount):
-            return statusPhrase(for: .bleed, amount: amount)
-        case let .prevention(keyword, _):
-            return "applies \(keyword.statusAlias ?? keyword.rawValue)"
-        case let .preventionBuildup(keyword, _, _):
-            return "applies \(keyword.rawValue) Build-up"
-        case .shield(.block, _, _):
-            return "gain Block"
-        case .mitigation(.armor, _, _):
-            return "gain Armor"
-        case let .instantHeal(.health, amount):
-            return "restore \(amount) Health"
-        case .leech:
-            return "gain Leech"
-        case let .resourceGain(.gold, amount):
-            return "gain \(amount) Gold"
-        case let .cleanse(keyword?, _):
-            return "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
-        case .cleanse(nil, _):
-            return "cleanse all debuffs"
-        case .cleanseRandom:
-            return "cleanse a random debuff"
-        case let .dealDamage(keyword, amount):
-            return "deal \(amount) \(keyword.rawValue) damage"
-        case .halveMitigation(.armor):
-            return "reduce enemy Armor by half"
-        case .dodge:
-            return "gain Dodge"
-        default:
-            return keyword.rawValue
-        }
-    }
-
-    private func statusPhrase(for keyword: Keyword, amount _: Int) -> String {
-        let alias = keyword.statusAlias ?? keyword.rawValue
-        return "applies \(alias)"
+        EffectPresentation.applyPhrase(for: self)
     }
 
     static func defaultTarget(for effect: Effect) -> EffectTarget {

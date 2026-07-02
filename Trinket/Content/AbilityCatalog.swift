@@ -3,13 +3,11 @@ import Foundation
 enum AbilityCatalog {
     static let acidPotion = Ability(
         id: "acid-potion", name: "Acid Potion", tier: .skill,
-        description: "Deal 3 Poison damage and applies Poisoned.",
         damageComponents: [DamageComponent(3, keyword: .poison)],
         targetedEffects: [TargetedEffect(.poison(3))]
     )
     static let antivenomPotion = Ability(
         id: "antivenom-potion", name: "Antivenom Potion", tier: .skill,
-        description: "Cleanse Poisoned and restore 2 Health.",
         targetedEffects: [
         TargetedEffect(.cleanse(.poison, 0)),
         TargetedEffect(.instantHeal(.health, 2))
@@ -17,18 +15,15 @@ enum AbilityCatalog {
     )
     static let anvil = Ability(
         id: "anvil", name: "Anvil", tier: .basic,
-        description: "Deal 1 Stun damage.",
         damageComponents: [DamageComponent(1, keyword: .stun)],
         targetedEffects: []
     )
     static let apple = Ability(
         id: "apple", name: "Apple", tier: .basic,
-        description: "Restore 1 Health.",
         targetedEffects: [TargetedEffect(.instantHeal(.health, 1))]
     )
     static let bash = Ability(
         id: "bash", name: "Bash", tier: .basic,
-        description: "Deal 1 Stun damage.",
         damageComponents: [DamageComponent(1, keyword: .stun)],
         targetedEffects: []
     )
@@ -40,24 +35,20 @@ enum AbilityCatalog {
     )
     static let blessedAegis = Ability(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
-        description: "Deal 6 Holy damage and gain Block.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.shield(.block, 4, 6))]
     )
     static let block = Ability(
         id: "block", name: "Block", tier: .basic,
-        description: "Gain Block.",
         targetedEffects: [TargetedEffect(.shield(.block, 2, 6))]
     )
     static let bloodOffering = Ability(
         id: "blood-offering", name: "Blood Offering", tier: .skill,
-        description: "Lose 2 Health and gain Leech.",
         damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
         targetedEffects: [TargetedEffect(.standardLeechBuff)]
     )
     static let bloodthorn = Ability(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
-        description: "Deal 2 Nature, 2 Bleed, and 2 Poison damage and gain Leech.",
         damageComponents: [
             DamageComponent(2, keyword: .nature),
             DamageComponent(2, keyword: .bleed),
@@ -71,18 +62,15 @@ enum AbilityCatalog {
     )
     static let bountyShot = Ability(
         id: "bounty-shot", name: "Bounty Shot", tier: .basic,
-        description: "Deal 1 Physical damage and gain 1 Gold.",
         damageComponents: [DamageComponent(1)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
     static let bread = Ability(
         id: "bread", name: "Bread", tier: .basic,
-        description: "Restore 1 Health.",
         targetedEffects: [TargetedEffect(.instantHeal(.health, 1))]
     )
     static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
-        description: "Gain Block and gain Armor.",
         targetedEffects: [
         TargetedEffect(.shield(.block, 3, 6)),
         TargetedEffect(.mitigation(.armor, 0.25, 6))
@@ -90,13 +78,11 @@ enum AbilityCatalog {
     )
     static let burningBlade = Ability(
         id: "burning-blade", name: "Burning Blade", tier: .skill,
-        description: "Deal 3 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(3))]
     )
     static let cauterize = Ability(
         id: "cauterize", name: "Cauterize", tier: .skill,
-        description: "Deal 3 Burn damage, applies Burning, and restore 2 Health.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
         TargetedEffect(.burn(3)),
@@ -105,13 +91,11 @@ enum AbilityCatalog {
     )
     static let cinderbloom = Ability(
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
-        description: "Deal 3 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(3))]
     )
     static let cleanse = Ability(
         id: "cleanse", name: "Cleanse", tier: .skill,
-        description: "Cleanse all debuffs and restore 2 Health.",
         targetedEffects: [
         TargetedEffect(.cleanse(nil, 0)),
         TargetedEffect(.instantHeal(.health, 2))
@@ -119,25 +103,21 @@ enum AbilityCatalog {
     )
     static let coldSnap = Ability(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
-        description: "Deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
         targetedEffects: []
     )
     static let combustion = Ability(
         id: "combustion", name: "Combustion", tier: .ultimate,
-        description: "Deal 6 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(6))]
     )
     static let concussiveShot = Ability(
         id: "concussive-shot", name: "Concussive Shot", tier: .ultimate,
-        description: "Deal 6 Stun damage.",
         damageComponents: [DamageComponent(6, keyword: .stun)],
         targetedEffects: []
     )
     static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
-        description: "Gain Block and gain Armor.",
         targetedEffects: [
         TargetedEffect(.shield(.block, 5, 6)),
         TargetedEffect(.mitigation(.armor, 0.35, 6))
@@ -145,7 +125,6 @@ enum AbilityCatalog {
     )
     static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        description: "Restore 3 Health and gain Leech.",
         targetedEffects: [
         TargetedEffect(.instantHeal(.health, 3)),
         TargetedEffect(.standardLeechBuff)
@@ -153,19 +132,16 @@ enum AbilityCatalog {
     )
     static let exorcism = Ability(
         id: "exorcism", name: "Exorcism", tier: .ultimate,
-        description: "Deal 6 Holy damage and cleanse all debuffs.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.cleanse(nil, 0), target: .abilityTarget)]
     )
     static let fangs = Ability(
         id: "fangs", name: "Fangs", tier: .basic,
-        description: "Deal 1 Bleed damage and applies Bleeding.",
         damageComponents: [DamageComponent(1, keyword: .bleed)],
         targetedEffects: [TargetedEffect(.bleed(1))]
     )
     static let faustianBargain = Ability(
         id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
-        description: "Lose 3 Health, deal 6 Physical damage, and gain 3 Gold.",
         damageComponents: [
             DamageComponent(6, keyword: .physical),
             DamageComponent(3, keyword: .physical, target: .actor)
@@ -174,25 +150,21 @@ enum AbilityCatalog {
     )
     static let fireArrow = Ability(
         id: "fire-arrow", name: "Fire Arrow", tier: .basic,
-        description: "Deal 1 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(1))]
     )
     static let fireball = Ability(
         id: "fireball", name: "Fireball", tier: .skill,
-        description: "Deal 3 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(3))]
     )
     static let frostbolt = Ability(
         id: "frostbolt", name: "Frostbolt", tier: .skill,
-        description: "Deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
         targetedEffects: []
     )
     static let gamblersShot = Ability(
         id: "gamblers-shot", name: "Gambler's Shot", tier: .basic,
-        description: "Deal 1 Physical damage and gain 1 Gold.",
         damageComponents: [DamageComponent(1)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
@@ -206,12 +178,10 @@ enum AbilityCatalog {
     )
     static let gold = Ability(
         id: "gold", name: "Gold", tier: .basic,
-        description: "Gain 1 Gold.",
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
     static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
-        description: "Gain Armor and gain 4 Gold.",
         targetedEffects: [
         TargetedEffect(.mitigation(.armor, 0.30, 6)),
         TargetedEffect(.resourceGain(.gold, 4))
@@ -225,22 +195,18 @@ enum AbilityCatalog {
     )
     static let haste = Ability(
         id: "haste", name: "Haste", tier: .skill,
-        description: "Gain Armor.",
         targetedEffects: [TargetedEffect(.mitigation(.armor, 0.25, 6))]
     )
     static let heal = Ability(
         id: "heal", name: "Heal", tier: .skill,
-        description: "Restore 3 Health.",
         targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
     )
     static let healthPotion = Ability(
         id: "health-potion", name: "Health Potion", tier: .skill,
-        description: "Restore 3 Health.",
         targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
     )
     static let hemorrhage = Ability(
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
-        description: "Deal 6 Bleed damage, applies Bleeding, and gain Leech.",
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [
         TargetedEffect(.bleed(6)),
@@ -249,13 +215,11 @@ enum AbilityCatalog {
     )
     static let holyRadiance = Ability(
         id: "holy-radiance", name: "Holy Radiance", tier: .ultimate,
-        description: "Deal 6 Holy damage and restore 3 Health.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.instantHeal(.health, 3))]
     )
     static let iceShot = Ability(
         id: "ice-shot", name: "Ice Shot", tier: .basic,
-        description: "Deal 1 Freeze damage.",
         damageComponents: [DamageComponent(1, keyword: .freeze)],
         targetedEffects: []
     )
@@ -267,25 +231,21 @@ enum AbilityCatalog {
     )
     static let kindling = Ability(
         id: "kindling", name: "Kindling", tier: .basic,
-        description: "Deal 1 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(1))]
     )
     static let lightningArrow = Ability(
         id: "lightning-arrow", name: "Lightning Arrow", tier: .skill,
-        description: "Deal 3 Nature damage.",
         damageComponents: [DamageComponent(3, keyword: .nature)],
         targetedEffects: []
     )
     static let lightningBolt = Ability(
         id: "lightning-bolt", name: "Lightning Bolt", tier: .skill,
-        description: "Deal 3 Nature damage.",
         damageComponents: [DamageComponent(3, keyword: .nature)],
         targetedEffects: []
     )
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Gain 3 Gold and restore 2 Health.",
         targetedEffects: [
         TargetedEffect(.resourceGain(.gold, 3)),
         TargetedEffect(.instantHeal(.health, 2))
@@ -293,17 +253,14 @@ enum AbilityCatalog {
     )
     static let manaBerries = Ability(
         id: "mana-berries", name: "Mana Berries", tier: .basic,
-        description: "Gain 1 Gold.",
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
     static let manaCrystals = Ability(
         id: "mana-crystals", name: "Mana Crystals", tier: .basic,
-        description: "Gain 1 Gold.",
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )
     static let manaPotion = Ability(
         id: "mana-potion", name: "Mana Potion", tier: .skill,
-        description: "Gain 2 Gold and gain Block.",
         targetedEffects: [
         TargetedEffect(.resourceGain(.gold, 2)),
         TargetedEffect(.shield(.block, 2, 6))
@@ -311,12 +268,10 @@ enum AbilityCatalog {
     )
     static let manaShield = Ability(
         id: "mana-shield", name: "Mana Shield", tier: .skill,
-        description: "Gain Block.",
         targetedEffects: [TargetedEffect(.shield(.block, 3, 6))]
     )
     static let meteor = Ability(
         id: "meteor", name: "Meteor", tier: .ultimate,
-        description: "Deal 6 Burn damage and applies Burning.",
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [TargetedEffect(.burn(6))]
     )
@@ -331,13 +286,11 @@ enum AbilityCatalog {
     )
     static let packTactics = Ability(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
-        description: "Deal 3 Physical damage and gain Leech.",
         damageComponents: [DamageComponent(3)],
         targetedEffects: [TargetedEffect(.standardLeechBuff)]
     )
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
-        description: "Cleanse all debuffs and restore 4 Health.",
         targetedEffects: [
         TargetedEffect(.cleanse(nil, 0)),
         TargetedEffect(.instantHeal(.health, 4))
@@ -345,7 +298,6 @@ enum AbilityCatalog {
     )
     static let phoenixFeather = Ability(
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
-        description: "Deal 6 Burn damage, applies Burning, and restore 3 Health.",
         damageComponents: [DamageComponent(6, keyword: .burn)],
         targetedEffects: [
         TargetedEffect(.burn(6)),
@@ -354,7 +306,6 @@ enum AbilityCatalog {
     )
     static let plateMail = Ability(
         id: "plate-mail", name: "Plate Mail", tier: .ultimate,
-        description: "Gain Block and gain Armor.",
         targetedEffects: [
         TargetedEffect(.shield(.block, 4, 6)),
         TargetedEffect(.mitigation(.armor, 0.30, 6))
@@ -362,13 +313,11 @@ enum AbilityCatalog {
     )
     static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        description: "Deal 3 Poison damage and applies Poisoned.",
         damageComponents: [DamageComponent(3, keyword: .poison)],
         targetedEffects: [TargetedEffect(.poison(3))]
     )
     static let prayer = Ability(
         id: "prayer", name: "Prayer", tier: .skill,
-        description: "Restore 2 Health and cleanse a random debuff.",
         targetedEffects: [
         TargetedEffect(.instantHeal(.health, 2)),
         TargetedEffect(.cleanseRandom)
@@ -376,19 +325,16 @@ enum AbilityCatalog {
     )
     static let rayOfFrost = Ability(
         id: "ray-of-frost", name: "Ray of Frost", tier: .basic,
-        description: "Deal 1 Freeze damage.",
         damageComponents: [DamageComponent(1, keyword: .freeze)],
         targetedEffects: []
     )
     static let roulette = Ability(
         id: "roulette", name: "Roulette", tier: .skill,
-        description: "Deal 3 Physical damage and gain 3 Gold.",
         damageComponents: [DamageComponent(3)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))]
     )
     static let sanctifiedPlate = Ability(
         id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate,
-        description: "Gain Armor and restore 2 Health.",
         targetedEffects: [
         TargetedEffect(.mitigation(.armor, 0.30, 6)),
         TargetedEffect(.instantHeal(.health, 2))
@@ -396,36 +342,30 @@ enum AbilityCatalog {
     )
     static let sapArrow = Ability(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill,
-        description: "Deal 3 Stun damage.",
         damageComponents: [DamageComponent(3, keyword: .stun)],
         targetedEffects: []
     )
     static let serratedArrowhead = Ability(
         id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate,
-        description: "Deal 6 Bleed damage and applies Bleeding.",
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [TargetedEffect(.bleed(6))]
     )
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        description: "Deal 3 Bleed damage and applies Bleeding.",
         damageComponents: [DamageComponent(3, keyword: .bleed)],
         targetedEffects: [TargetedEffect(.bleed(3))]
     )
     static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
-        description: "Deal 1 Stun damage.\nGain 1 Block.",
         damageComponents: [DamageComponent(1, keyword: .stun)],
         targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
     )
     static let slash = Ability(
         id: "slash", name: "Slash", tier: .basic,
-        description: "Deal 1 Physical damage.",
         damageComponents: [DamageComponent(1)],
     )
     static let smellingSalts = Ability(
         id: "smelling-salts", name: "Smelling Salts", tier: .basic,
-        description: "Cleanse Stunned and restore 1 Health.",
         targetedEffects: [
         TargetedEffect(.cleanse(.stun, 0)),
         TargetedEffect(.instantHeal(.health, 1))
@@ -433,12 +373,10 @@ enum AbilityCatalog {
     )
     static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        description: "Deal 3 Holy damage.",
         damageComponents: [DamageComponent(3, keyword: .holy)],
     )
     static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
-        description: "Gain Block and gain Armor.",
         targetedEffects: [
         TargetedEffect(.shield(.block, 3, 6)),
         TargetedEffect(.mitigation(.armor, 0.20, 6))
@@ -446,23 +384,19 @@ enum AbilityCatalog {
     )
     static let stab = Ability(
         id: "stab", name: "Stab", tier: .basic,
-        description: "Deal 1 Physical damage.",
         damageComponents: [DamageComponent(1)],
     )
     static let steal = Ability(
         id: "steal", name: "Steal", tier: .skill,
-        description: "Deal 3 Physical damage and gain 3 Gold.",
         damageComponents: [DamageComponent(3)],
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 3))]
     )
     static let stoneskinPotion = Ability(
         id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
-        description: "Gain Armor.",
         targetedEffects: [TargetedEffect(.mitigation(.armor, 0.30, 6))]
     )
     static let sunburst = Ability(
         id: "sunburst", name: "Sunburst", tier: .ultimate,
-        description: "Deal 6 Holy damage and restore 2 Health.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.instantHeal(.health, 2))]
     )
@@ -470,7 +404,6 @@ enum AbilityCatalog {
         id: "sunder-armor",
         name: "Sunder Armor",
         tier: .skill,
-        description: "Deal 3 Physical damage and reduce enemy Armor by half.",
         damageComponents: [DamageComponent(3)],
         targetedEffects: [TargetedEffect(.halveMitigation(.armor), target: .enemy)]
     )
@@ -485,7 +418,6 @@ enum AbilityCatalog {
     )
     static let tithe = Ability(
         id: "tithe", name: "Tithe", tier: .skill,
-        description: "Gain 2 Gold and restore 1 Health.",
         targetedEffects: [
         TargetedEffect(.resourceGain(.gold, 2)),
         TargetedEffect(.instantHeal(.health, 1))
@@ -493,13 +425,11 @@ enum AbilityCatalog {
     )
     static let venomArrow = Ability(
         id: "venom-arrow", name: "Venom Arrow", tier: .skill,
-        description: "Deal 3 Poison damage and applies Poisoned.",
         damageComponents: [DamageComponent(3, keyword: .poison)],
         targetedEffects: [TargetedEffect(.poison(3))]
     )
     static let venomFangs = Ability(
         id: "venom-fangs", name: "Venom Fangs", tier: .skill,
-        description: "Deal 3 Poison damage and applies Poisoned.",
         damageComponents: [DamageComponent(3, keyword: .poison)],
         targetedEffects: [TargetedEffect(.poison(3))]
     )

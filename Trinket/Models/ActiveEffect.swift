@@ -18,28 +18,7 @@ struct ActiveEffect: Identifiable, Hashable {
     }
 
     var summary: String {
-        switch effect {
-        case .burn, .poison:
-            return effect.keyword.statusAlias ?? effect.keyword.rawValue
-        case let .bleed(potency):
-            return "\(effect.keyword.statusAlias ?? effect.keyword.rawValue): \(potency) damage"
-        case let .prevention(keyword, _):
-            return keyword.statusAlias ?? keyword.rawValue
-        case let .preventionBuildup(keyword, amount, threshold):
-            return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
-        case let .shield(k, b, _):
-            return "\(k.rawValue): \(b) buffer"
-        case let .mitigation(k, p, _):
-            return "\(k.rawValue): \(Int(p * 100))%"
-        case .leech:
-            return "Leech"
-        case .cleanse:
-            return "Cleanse"
-        case .dodge:
-            return "Dodge"
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
-            return ""
-        }
+        EffectPresentation.activePhrase(for: self)
     }
 }
 

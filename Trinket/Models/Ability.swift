@@ -5,7 +5,7 @@ struct Ability: Identifiable, Hashable {
     let name: String
     let tier: AbilityTier
     let damageComponents: [DamageComponent]
-    let description: String
+    let descriptionOverride: String?
     let targetedEffects: [TargetedEffect]
 
     var effects: [Effect] {
@@ -16,7 +16,7 @@ struct Ability: Identifiable, Hashable {
         id: String,
         name: String,
         tier: AbilityTier,
-        description: String,
+        description: String? = nil,
         damageComponents: [DamageComponent] = [],
         effects: [Effect] = [],
         targetedEffects: [TargetedEffect]? = nil
@@ -24,8 +24,8 @@ struct Ability: Identifiable, Hashable {
         self.id = id
         self.name = name
         self.tier = tier
-        self.description = description
         self.damageComponents = damageComponents
+        self.descriptionOverride = description
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {
@@ -39,7 +39,7 @@ struct Ability: Identifiable, Hashable {
         tier: AbilityTier,
         directDamage: Int,
         damageKeyword: Keyword = .physical,
-        description: String,
+        description: String? = nil,
         effects: [Effect] = [],
         targetedEffects: [TargetedEffect]? = nil
     ) {
@@ -55,6 +55,10 @@ struct Ability: Identifiable, Hashable {
             effects: effects,
             targetedEffects: targetedEffects
         )
+    }
+
+    var generatedDescription: String {
+        AbilityDescriptionFormatter.format(self)
     }
 
     var directDamage: Int {
@@ -93,6 +97,6 @@ struct Ability: Identifiable, Hashable {
     }
 
     var summary: String {
-        description
+        descriptionOverride ?? generatedDescription
     }
 }

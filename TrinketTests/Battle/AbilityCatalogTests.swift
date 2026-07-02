@@ -107,10 +107,36 @@ final class AbilityCatalogTests: XCTestCase {
         }
     }
 
-    func testDescriptionsAreNonEmpty() {
+    func testCatalogPassesValidation() {
+        let issues = AbilityValidator.validateCatalog()
+        XCTAssertTrue(issues.isEmpty, issues.map(\.description).joined(separator: "\n"))
+    }
+
+    func testAbilityBuilderMatchesDirectHitPattern() {
+        let built = AbilityBuilder.directHit(
+            id: "fireball",
+            name: "Fireball",
+            tier: .skill,
+            amount: 3,
+            keyword: .burn
+        )
+        XCTAssertEqual(built.damageComponents, Ability.fireball.damageComponents)
+        XCTAssertEqual(built.targetedEffects, Ability.fireball.targetedEffects)
+        XCTAssertEqual(built.summary, Ability.fireball.summary)
+    }
+
+    func testSummariesAreNonEmpty() {
         for ability in AbilityCatalog.all {
-            XCTAssertFalse(ability.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            XCTAssertEqual(ability.summary, ability.description)
+            XCTAssertFalse(ability.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+    }
+
+    func testDescriptionOverridesAreAllowlisted() {
+        for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
+            XCTAssertTrue(
+                AbilityValidator.descriptionOverrideIDs.contains(ability.id),
+                "\(ability.id) should not carry a manual description override"
+            )
         }
     }
 
