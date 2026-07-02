@@ -10,7 +10,6 @@ RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 MODE="unit"
 NO_BUILD=false
 USED_FAST_ALIAS=false
-INCLUDE_SYNC=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -36,7 +35,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     include-sync|--include-sync)
-      INCLUDE_SYNC=true
+      echo "Warning: --include-sync is deprecated; sync coordinator tests now run in default unit mode." >&2
       shift
       ;;
     no-build|--no-build)
@@ -100,10 +99,6 @@ if [[ "$MODE" == "unit" ]]; then
   else
     echo "Running only unit tests (TrinketTests)..."
     TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
-    if [[ "$INCLUDE_SYNC" == "false" ]]; then
-      TEST_TARGET_FLAG+=(-skip-testing:TrinketTests/PlayerSaveSyncCoordinatorTests)
-      echo "Skipping debounced sync coordinator tests (use --include-sync or test-deploy for full unit coverage)."
-    fi
   fi
 elif [[ "$MODE" == "smoke" ]]; then
   TEST_TARGET_FLAG=(-testPlan Smoke)

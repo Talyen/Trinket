@@ -7,13 +7,11 @@ final class PlayerSaveStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PlayerSaveStoreTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerSaveStoreTests")
     }
 
     override func tearDown() async throws {
-        try? FileManager.default.removeItem(at: directoryURL)
+        SaveTestSupport.removeTempDirectory(directoryURL)
         try await super.tearDown()
     }
 
@@ -92,7 +90,7 @@ final class PlayerSaveStoreTests: XCTestCase {
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
+        SaveTestSupport.makeFileStore(directoryURL: directoryURL)
     }
 
     private func makeStore() -> PlayerSaveStore {

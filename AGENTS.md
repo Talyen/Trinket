@@ -67,21 +67,48 @@ All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`,
 
 | Tier | Command | What runs | When |
 |------|---------|-----------|------|
-| Unit | `test.sh unit` | `TrinketTests` minus debounced sync coordinator tests (~9s) | Every logic change |
-| Unit + sync | `test.sh unit --include-sync` | All unit tests | Pre-merge / nightly |
+| Unit | `test.sh unit` | All `TrinketTests` | Every logic change |
 | UI smoke | `test.sh smoke` | `Smoke.xctestplan` — 9 `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
 | Targeted UI | `test.sh ui <Class>` | One UI class | Focused UI iteration |
 | Full UI | `test.sh ui` | All `TrinketUITests` including exhaustive flows | Pre-merge |
 | Integration | `test.sh all` | `Integration.xctestplan` — unit + all UI in one run | Nightly / manual |
 
-`Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit (with sync) → full UI once (smoke is a subset, not rerun). Debounced `PlayerSaveSyncCoordinatorTests` are skipped in default `unit` runs; `test-deploy.sh` and CI main/exhaustive include them.
+`Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
 Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
 ## Unit Tests
 
-Shared helpers in `TrinketTests/Support/`: `SaveTestSupport` (temp save dirs), `AppTestSupport` (`makeAppState`), `CombatantFixtures` (minimal combatants). Battle rules: `BattleStateTestFactory` + seed `0`. Prefer unit tests for pure logic and store orchestration; use UI tests for `Features/*` views. Do not unit-test log prose, `TrinketDesign` styling, AVFoundation, or CloudKit sync internals. `PlayerSaveSyncCoordinatorTests` exercise real debounce timing and are excluded from default `unit` runs.
+Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`Battle/`, `Persistence/`, `State/`, etc.). SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
+
+### Shared helpers (`TrinketTests/Support/`)
+
+| Helper | Use for |
+|--------|---------|
+| `SaveTestSupport` | Temp save directories, `PlayerSaveFileStore` / `PlayerSaveStore` factories |
+| `AppTestSupport` | `makeAppState` with injectable `sync`, `fileStore`, `userDefaults` |
+| `CombatantFixtures` | Minimal combatants and abilities for handler/model tests |
+| `BattleStateTestFactory` | **Always** use for RNG-sensitive battle tests (`rngSeed: 0`) |
+| `BattleTestFixtures` | Integration tick helpers, `standardParty`, effect predicates |
+
+### Conventions
+
+- **Naming:** `test<Behavior>When<Condition>` — e.g. `testLocalMutationSchedulesDebouncedUpload`.
+- **Battle rules:** `BattleStateTestFactory.makeBattle(...)` instead of raw `BattleState(...)`.
+- **Handler tests:** dispatch through `EffectHandlers.all`; use `CombatantFixtures` for setup.
+- **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
+- **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.
+- **Content invariants:** loop `GameContent` for catalog tests (unique IDs, art refs, stage→enemy links).
+- **Do not unit-test:** log prose formatting details, `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
+
+### Definition of done (new features)
+
+1. Rules/models → at least one focused unit test.
+2. New `Player*Store` API → write-through persistence test.
+3. New catalog content → invariant test in the matching `*CatalogTests` class.
+4. New user flow → `accessibilityIdentifier` + one smoke UI test.
+5. Run `./Scripts/test.sh unit <TestClass>` before commit.
 
 ## UI Tests
 

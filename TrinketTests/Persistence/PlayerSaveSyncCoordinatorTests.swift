@@ -6,16 +6,15 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     private var directoryURL: URL!
     private let earlier = Date(timeIntervalSince1970: 1600000000)
     private let later = Date(timeIntervalSince1970: 1800000000)
+    private let testUploadDebounce: Duration = .milliseconds(10)
 
     override func setUp() async throws {
         try await super.setUp()
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PlayerSaveSyncCoordinatorTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerSaveSyncCoordinatorTests")
     }
 
     override func tearDown() async throws {
-        try? FileManager.default.removeItem(at: directoryURL)
+        SaveTestSupport.removeTempDirectory(directoryURL)
         try await super.tearDown()
     }
 
@@ -117,7 +116,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         let uploadCountBeforeDelay = await mock.uploadedSaveCount()
         XCTAssertEqual(uploadCountBeforeDelay, 0)
 
-        try await Task.sleep(for: .seconds(2.1))
+        await waitForUploadCount(1, on: mock)
 
         let uploads = await mock.uploadedSavesSnapshot()
         XCTAssertEqual(uploads.count, 1)
@@ -140,7 +139,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         let coordinator = makeCoordinator(sync: mock, store: store)
 
         await coordinator.pullAndReconcile()
-        try await Task.sleep(for: .seconds(2.1))
+        await waitPastUploadDebounce()
 
         XCTAssertEqual(store.roster.gold, 77)
         let uploadCount = await mock.uploadedSaveCount()
@@ -177,20 +176,58 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await coordinator.pullAndReconcile()
         store.roster = updatedRoster(store.roster, gold: 12)
 
-        try await Task.sleep(for: .seconds(2.1))
-
-        XCTAssertEqual(coordinator.status, .offline)
+        await waitForCoordinatorStatus(.offline, on: coordinator)
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
+        SaveTestSupport.makeFileStore(directoryURL: directoryURL)
     }
 
     private func makeCoordinator(
         sync: MockPlayerSaveSync,
         store: PlayerSaveStore
     ) -> PlayerSaveSyncCoordinator {
-        PlayerSaveSyncCoordinator(sync: sync, playerSaveStore: store)
+        PlayerSaveSyncCoordinator(
+            sync: sync,
+            playerSaveStore: store,
+            uploadDebounceInterval: testUploadDebounce
+        )
+    }
+
+    private func waitForUploadCount(
+        _ expected: Int,
+        on mock: MockPlayerSaveSync,
+        timeout: Duration = .seconds(1)
+    ) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while clock.now < deadline {
+            if await mock.uploadedSaveCount() >= expected {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        XCTFail("Timed out waiting for \(expected) upload(s)")
+    }
+
+    private func waitForCoordinatorStatus(
+        _ expected: PlayerSaveSyncStatus,
+        on coordinator: PlayerSaveSyncCoordinator,
+        timeout: Duration = .seconds(1)
+    ) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while clock.now < deadline {
+            if coordinator.status == expected {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        XCTFail("Timed out waiting for status \(String(describing: expected))")
+    }
+
+    private func waitPastUploadDebounce() async {
+        try? await Task.sleep(for: testUploadDebounce + .milliseconds(20))
     }
 
     private func makeSave(modifiedAt: Date, gold: Int) -> PlayerSave {

@@ -19,7 +19,8 @@ final class AppState {
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         sync: (any PlayerSaveSyncing)? = nil,
-        fileStore: PlayerSaveFileStore? = nil
+        fileStore: PlayerSaveFileStore? = nil,
+        userDefaults: UserDefaults? = nil
     ) {
         let env = environment
         let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
@@ -34,7 +35,7 @@ final class AppState {
         }
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
-        let resolvedOptions = OptionsStore()
+        let resolvedOptions = OptionsStore(defaults: userDefaults ?? .standard)
         if let themeOverride = env.themeOverride {
             resolvedOptions.theme = themeOverride
         }

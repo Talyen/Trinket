@@ -38,8 +38,8 @@ echo "=== Style check ==="
 ./Scripts/test.sh style
 
 echo ""
-echo "=== Unit tests (including sync) ==="
-./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit --include-sync
+echo "=== Unit tests ==="
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit
 
 echo ""
 echo "=== Full UI tests ==="

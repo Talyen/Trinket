@@ -13,12 +13,14 @@ enum AppTestSupport {
         arguments: [String] = [],
         fileStore: PlayerSaveFileStore? = nil,
         directoryURL: URL,
-        sync: LocalOnlyPlayerSaveSync = defaultSync
+        sync: (any PlayerSaveSyncing)? = nil,
+        userDefaults: UserDefaults? = nil
     ) -> AppState {
         AppState(
             environment: makeEnvironment(arguments: arguments),
-            sync: sync,
-            fileStore: fileStore ?? SaveTestSupport.makeFileStore(directoryURL: directoryURL)
+            sync: sync ?? defaultSync,
+            fileStore: fileStore ?? SaveTestSupport.makeFileStore(directoryURL: directoryURL),
+            userDefaults: userDefaults
         )
     }
 }

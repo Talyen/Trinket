@@ -7,6 +7,7 @@ final class PlayerSaveSyncCoordinator {
     private(set) var status: PlayerSaveSyncStatus = .idle
 
     private let sync: any PlayerSaveSyncing
+    private let uploadDebounceInterval: Duration
     private weak var playerSaveStore: PlayerSaveStore?
     private var uploadTask: Task<Void, Never>?
     private var isApplyingRemoteSave = false
@@ -15,8 +16,13 @@ final class PlayerSaveSyncCoordinator {
         category: "CloudSync"
     )
 
-    init(sync: any PlayerSaveSyncing, playerSaveStore: PlayerSaveStore) {
+    init(
+        sync: any PlayerSaveSyncing,
+        playerSaveStore: PlayerSaveStore,
+        uploadDebounceInterval: Duration = .seconds(2)
+    ) {
         self.sync = sync
+        self.uploadDebounceInterval = uploadDebounceInterval
         self.playerSaveStore = playerSaveStore
         playerSaveStore.onLocalSave = { [weak self] save in
             self?.scheduleUpload(for: save)
@@ -92,8 +98,9 @@ final class PlayerSaveSyncCoordinator {
         guard !isApplyingRemoteSave else { return }
 
         uploadTask?.cancel()
+        let debounceInterval = uploadDebounceInterval
         uploadTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: debounceInterval)
             guard !Task.isCancelled else { return }
             await self?.upload(save)
         }
