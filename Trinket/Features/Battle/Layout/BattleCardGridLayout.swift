@@ -22,16 +22,17 @@ enum BattleCardGridLayout {
 
         let maxPartyWidth = max((innerWidth - cardSpacing) / 2, 0)
         let maxBalancedPartyWidth = max(
-            ((innerHeight - cardSpacing) * artAspectRatio - cardSpacing) / 3,
+            ((innerHeight - cardSpacing) * artAspectRatio + cardSpacing) / 3,
             0
         )
         let partyWidth = min(maxPartyWidth, maxBalancedPartyWidth)
         let partyHeight = partyWidth / artAspectRatio
 
-        let rowWidth = min(innerWidth, 2 * partyWidth + cardSpacing)
+        let partyRowWidth = min(innerWidth, 2 * partyWidth + cardSpacing)
+        let enemyWidth = max(partyRowWidth - 2 * cardSpacing, 0)
 
         return Metrics(
-            enemySize: CGSize(width: rowWidth, height: rowWidth / artAspectRatio),
+            enemySize: CGSize(width: enemyWidth, height: enemyWidth / artAspectRatio),
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing
