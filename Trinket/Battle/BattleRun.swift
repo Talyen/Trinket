@@ -19,17 +19,49 @@ final class BattleRun {
         )
     }
 
-    var log: [LogEntry] { state.log }
-    var hero: Combatant { state.hero }
-    var pet: Combatant { state.pet }
-    var enemy: Combatant { state.enemy }
-    var heroHealth: Int { state.heroHealth }
-    var petHealth: Int { state.petHealth }
-    var enemyHealth: Int { state.enemyHealth }
-    var earnedGold: Int { state.earnedGold }
-    var isBattleOver: Bool { state.isBattleOver }
-    var isEnemyDefeated: Bool { state.isEnemyDefeated }
-    var isPartyDefeated: Bool { state.isPartyDefeated }
+    var log: [LogEntry] {
+        state.log
+    }
+
+    var hero: Combatant {
+        state.hero
+    }
+
+    var pet: Combatant {
+        state.pet
+    }
+
+    var enemy: Combatant {
+        state.enemy
+    }
+
+    var heroHealth: Int {
+        state.heroHealth
+    }
+
+    var petHealth: Int {
+        state.petHealth
+    }
+
+    var enemyHealth: Int {
+        state.enemyHealth
+    }
+
+    var earnedGold: Int {
+        state.earnedGold
+    }
+
+    var isBattleOver: Bool {
+        state.isBattleOver
+    }
+
+    var isEnemyDefeated: Bool {
+        state.isEnemyDefeated
+    }
+
+    var isPartyDefeated: Bool {
+        state.isPartyDefeated
+    }
 
     func reset(from configuration: ActiveBattleConfiguration) {
         state = BattleState(

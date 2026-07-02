@@ -10,6 +10,7 @@ struct BattleMutationContext: CombatPipelineHost {
     var events: [ActionEvent]
     var gold: Int
     var pairedDirectDamage: [(Keyword, Int)] = []
+    var didReplaceActiveEffects = false
     let build: BattleCombatBuild
 
     func modifiers(for combatantID: String) -> CombatModifierProfile {
@@ -165,43 +166,14 @@ struct BattleMutationContext: CombatPipelineHost {
         sourceActorID: String,
         dealImmediateDamage: Bool
     ) -> [ActionEvent] {
-        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
-        let statBonus: Int
-        if let actor = roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: keyword)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
-
-        var collected: [ActionEvent] = []
-        if dealImmediateDamage {
-            collected.append(contentsOf: logDoTDamage(
-                applyDoTDamage(boostedPotency, keyword: keyword, to: effectTarget, sourceActorID: sourceActorID),
-                keyword: keyword,
-                target: effectTarget
-            ))
-        }
-
-        var currentEffects = roster.activeEffects(for: effectTarget)
-        if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
-            let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + boostedPotency)
-            if currentEffects[index].sourceActorID == nil {
-                currentEffects[index].sourceActorID = sourceActorID
-            }
-        } else {
-            currentEffects.append(
-                ActiveEffect(
-                    id: consumeNextEffectID(),
-                    effect: effectCase(for: keyword, potency: boostedPotency),
-                    remainingTicks: 0,
-                    sourceActorID: sourceActorID
-                )
-            )
-        }
-        roster.setActiveEffects(currentEffects, for: effectTarget)
-        return collected
+        DoTApplicator.applyDecayingDoT(
+            keyword: keyword,
+            potency: potency,
+            to: effectTarget,
+            sourceActorID: sourceActorID,
+            dealImmediateDamage: dealImmediateDamage,
+            in: &self
+        )
     }
 
     mutating func applyBleed(
@@ -210,44 +182,13 @@ struct BattleMutationContext: CombatPipelineHost {
         sourceActorID: String,
         dealImmediateDamage: Bool
     ) -> [ActionEvent] {
-        guard roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
-
-        let statBonus: Int
-        if let actor = roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: .bleed)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
-
-        var collected: [ActionEvent] = []
-        if dealImmediateDamage {
-            collected.append(contentsOf: logDoTDamage(
-                applyDoTDamage(boostedPotency, keyword: .bleed, to: effectTarget, sourceActorID: sourceActorID),
-                keyword: .bleed,
-                target: effectTarget
-            ))
-        }
-
-        var currentEffects = roster.activeEffects(for: effectTarget)
-        currentEffects.append(
-            ActiveEffect(
-                id: consumeNextEffectID(),
-                effect: .bleed(boostedPotency),
-                remainingTicks: Effect.bleedDoTTickCount + modifiers(for: sourceActorID).bleedDurationBonus,
-                sourceActorID: sourceActorID
-            )
+        DoTApplicator.applyBleed(
+            potency: potency,
+            to: effectTarget,
+            sourceActorID: sourceActorID,
+            dealImmediateDamage: dealImmediateDamage,
+            in: &self
         )
-        roster.setActiveEffects(currentEffects, for: effectTarget)
-        return collected
-    }
-
-    private func effectCase(for keyword: Keyword, potency: Int) -> Effect {
-        switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        default: return .poison(potency)
-        }
     }
 }
 

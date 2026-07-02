@@ -76,7 +76,7 @@ struct BattleState {
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.randomNormalCombatant
         self.enemy = resolvedEnemy
-        self.combatBuild = BattleCombatBuild(
+        combatBuild = BattleCombatBuild(
             hero: hero,
             pet: pet,
             heroModifiers: heroModifiers,
@@ -197,6 +197,26 @@ struct BattleState {
         EffectSummaryBuilder.build(for: activeEffects(of: combatant))
     }
 
+    func health(for role: Combatant.Role) -> Int {
+        switch role {
+        case .hero: roster.hero.currentHealth
+        case .pet: roster.pet.currentHealth
+        case .enemy: roster.enemy.currentHealth
+        }
+    }
+
+    func activeEffects(for role: Combatant.Role) -> [ActiveEffect] {
+        switch role {
+        case .hero: roster.hero.activeEffects
+        case .pet: roster.pet.activeEffects
+        case .enemy: roster.enemy.activeEffects
+        }
+    }
+
+    func effectSummaries(for role: Combatant.Role) -> [EffectSummary] {
+        EffectSummaryBuilder.build(for: activeEffects(for: role))
+    }
+
     var enemyEffectSummaries: [EffectSummary] {
         EffectSummaryBuilder.build(for: activeEnemyEffects)
     }
@@ -243,38 +263,6 @@ struct BattleState {
         nextEventID = context.nextEventID
         events = context.events
         gold = context.gold
-    }
-
-    // MARK: - Effect-handler accessors (legacy; prefer BattleMutationContext)
-
-    /// Returns the current health of `combatant` from the roster.
-    func rosterHealth(for combatant: Combatant) -> Int {
-        roster.health(for: combatant)
-    }
-
-    /// Returns the active effects of `combatant` from the roster.
-    func rosterActiveEffects(for combatant: Combatant) -> [ActiveEffect] {
-        roster.activeEffects(for: combatant)
-    }
-
-    /// Replaces the active effects of `combatant` in the roster.
-    mutating func rosterSetActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
-        roster.setActiveEffects(effects, for: combatant)
-    }
-
-    /// Returns the next free effect ID and increments the counter.
-    mutating func consumeNextEffectID() -> Int {
-        let id = nextEffectID
-        nextEffectID += 1
-        return id
-    }
-
-    mutating func addGold(_ amount: Int, sourceActorID: String) {
-        gold += amount + combatBuild.modifiers(for: sourceActorID).goldGainedBonus
-    }
-
-    func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
-        combatBuild.adjustedOutgoingEffect(effect, sourceID: sourceID)
     }
 
     // MARK: - Turn loop

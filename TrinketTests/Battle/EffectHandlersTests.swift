@@ -217,9 +217,10 @@ final class EffectHandlersTests: XCTestCase {
 
     func testCleanseSpecificKeywordRemovesMatchingEffects() {
         var battle = makeBattle()
-        battle.rosterSetActiveEffects(
+        BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
-            for: battle.hero
+            for: battle.hero,
+            on: &battle
         )
         let outcome = dispatch(.cleanse(.poison, 0), ability: ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
@@ -229,13 +230,14 @@ final class EffectHandlersTests: XCTestCase {
 
     func testCleanseAllRemovesAllDebuffs() {
         var battle = makeBattle()
-        battle.rosterSetActiveEffects(
+        BattleStateTestFactory.seedActiveEffects(
             [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
                 ActiveEffect(id: 3, effect: .shield(.block, 5, 6), remainingTicks: 6)
             ],
-            for: battle.hero
+            for: battle.hero,
+            on: &battle
         )
         let outcome = dispatch(.cleanse(nil, 0), ability: ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
@@ -246,9 +248,10 @@ final class EffectHandlersTests: XCTestCase {
 
     func testCleanseWithDurationAddsActiveEffect() {
         var battle = makeBattle()
-        battle.rosterSetActiveEffects(
+        BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
-            for: battle.hero
+            for: battle.hero,
+            on: &battle
         )
         let outcome = dispatch(.cleanse(.poison, 3), ability: ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
@@ -260,12 +263,13 @@ final class EffectHandlersTests: XCTestCase {
 
     func testCleanseRandomRemovesOneDebuff() {
         var battle = makeBattle()
-        battle.rosterSetActiveEffects(
+        BattleStateTestFactory.seedActiveEffects(
             [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0)
             ],
-            for: battle.hero
+            for: battle.hero,
+            on: &battle
         )
         let outcome = dispatch(.cleanseRandom, ability: ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
@@ -304,9 +308,10 @@ final class EffectHandlersTests: XCTestCase {
 
     func testHalveMitigationHandlerHalvesArmor() {
         var battle = makeBattle()
-        battle.rosterSetActiveEffects(
+        BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)],
-            for: battle.enemy
+            for: battle.enemy,
+            on: &battle
         )
         let outcome = dispatch(.halveMitigation(.armor), ability: ability(), source: battle.hero, target: battle.enemy, battle: &battle)
         XCTAssertTrue(outcome.didApply)
@@ -327,7 +332,7 @@ final class EffectHandlersTests: XCTestCase {
 
     // MARK: - Tick
 
-    func testBleedTickDealsDamageAndDecrementsRemainingTicks() throws {
+    func testBleedTickDealsDamageAndDecrementsRemainingTicks() {
         var battle = makeBattle()
         let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 3, sourceActorID: "hero")
         var outcome = dispatchTick(bleed, target: battle.enemy, battle: &battle)
@@ -336,7 +341,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
-    func testBleedTickWithZeroRemainingTicksIsNoOp() throws {
+    func testBleedTickWithZeroRemainingTicksIsNoOp() {
         var battle = makeBattle()
         let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(bleed, target: battle.enemy, battle: &battle)
@@ -344,7 +349,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertNil(outcome.updatedStack)
     }
 
-    func testBleedTickAtOneRemainingTickMarksForRemoval() throws {
+    func testBleedTickAtOneRemainingTickMarksForRemoval() {
         var battle = makeBattle()
         let bleed = ActiveEffect(id: 1, effect: .bleed(3), remainingTicks: 1, sourceActorID: "hero")
         let outcome = dispatchTick(bleed, target: battle.enemy, battle: &battle)
@@ -353,7 +358,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertTrue(outcome.removeAfter)
     }
 
-    func testBurnTickHalvesPotency() throws {
+    func testBurnTickHalvesPotency() {
         var battle = makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(burn, target: battle.enemy, battle: &battle)
@@ -362,7 +367,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
-    func testBurnTickAtPotencyTwoGoesToOne() throws {
+    func testBurnTickAtPotencyTwoGoesToOne() {
         var battle = makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(burn, target: battle.enemy, battle: &battle)
@@ -371,7 +376,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
-    func testBurnTickAtPotencyOneIsMarkedForRemoval() throws {
+    func testBurnTickAtPotencyOneIsMarkedForRemoval() {
         var battle = makeBattle()
         let burn = ActiveEffect(id: 1, effect: .burn(1), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(burn, target: battle.enemy, battle: &battle)
@@ -380,7 +385,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertTrue(outcome.removeAfter)
     }
 
-    func testPoisonTickDecaysPotency() throws {
+    func testPoisonTickDecaysPotency() {
         var battle = makeBattle()
         let poison = ActiveEffect(id: 1, effect: .poison(8), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(poison, target: battle.enemy, battle: &battle)
@@ -390,7 +395,7 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
-    func testPoisonTickAtPotencyTwoIsMarkedForRemoval() throws {
+    func testPoisonTickAtPotencyTwoIsMarkedForRemoval() {
         var battle = makeBattle()
         let poison = ActiveEffect(id: 1, effect: .poison(2), remainingTicks: 0, sourceActorID: "hero")
         let outcome = dispatchTick(poison, target: battle.enemy, battle: &battle)
@@ -400,14 +405,12 @@ final class EffectHandlersTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
-    func testDefaultTickReturnsEmptyOutcome() throws {
+    func testDefaultTickDecrementsDurationForTickableBuffs() {
         var battle = makeBattle()
-        // Handlers that don't override `tick` (e.g. ShieldHandler) fall
-        // back to the default empty outcome.
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6, sourceActorID: "hero")
         let outcome = dispatchTick(shield, target: battle.enemy, battle: &battle)
         XCTAssertTrue(outcome.events.isEmpty)
-        XCTAssertNil(outcome.updatedStack)
+        XCTAssertEqual(outcome.updatedStack?.remainingTicks, 5)
         XCTAssertFalse(outcome.removeAfter)
     }
 }

@@ -48,43 +48,16 @@ enum EffectTickEngine {
                 toRemove.append(index)
             }
         }
+
+        if context.didReplaceActiveEffects {
+            remaining = context.activeEffects(for: target)
+        }
+
         state.applyMutationContext(context)
         if !toRemove.isEmpty {
             let removeSet = Set(toRemove)
             remaining = remaining.enumerated().compactMap { index, ae in
                 removeSet.contains(index) ? nil : ae
-            }
-        }
-
-        for ae in remaining {
-            switch ae.effect {
-            case let .cleanse(cleanseKeyword, _):
-                if let removeKeyword = cleanseKeyword {
-                    remaining.removeAll { $0.keyword == removeKeyword }
-                } else {
-                    remaining.removeAll { $0.effect.isTickable }
-                }
-                remaining.append(ae)
-
-            default:
-                break
-            }
-        }
-
-        remaining = remaining.compactMap { ae in
-            switch ae.effect {
-            case .burn(0), .poison(0):
-                return nil
-            case .bleed:
-                return ae.remainingTicks > 0 ? ae : nil
-            case .burn, .poison:
-                return ae
-            case .prevention, .preventionBuildup:
-                return ae
-            default:
-                var updated = ae
-                updated.remainingTicks -= 1
-                return updated.remainingTicks > 0 ? updated : nil
             }
         }
 

@@ -78,6 +78,19 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 
 `Cleanse` removes active Burn, Poison, Bleed, or prevention instances matching the cleansed keyword (or all debuffs when unspecified).
 
+### Battle simulation architecture
+
+Combat rules live in `Trinket/Battle/`. `BattleState.advanceOneStep()` is the single simulation entry point and follows this contract:
+
+1. Increment `tickCount` and run effect ticks for all living combatants in order: enemy, hero, pet.
+2. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
+3. Otherwise pick the next ready actor (at most one acts per step) using roster scheduling rules.
+4. Execute that actor's turn (or consume prevention), append defeat milestones if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
+
+Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleMutationContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
+
+Regression coverage: `BattleGoldenPathTests` pins deterministic outcomes for fixed matchups with RNG seed `0` via `BattleStateTestFactory`.
+
 ## Items
 
 Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the top-level Inventory tab and can also appear through Hero/Pet item loadout flows.

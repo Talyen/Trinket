@@ -75,6 +75,13 @@ struct BattleView: View {
             )
             .presentationDetents([.medium])
         }
+        .onChange(of: configuration.id) { _, _ in
+            battleRun.reset(from: configuration)
+            isShowingVictory = false
+            isShowingDefeat = false
+            victorySummary = nil
+            timelineStartDate = Date()
+        }
     }
 
     private var hasStageProgression: Bool {

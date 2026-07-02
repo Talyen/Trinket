@@ -9,6 +9,7 @@ protocol CombatPipelineHost {
     var events: [ActionEvent] { get set }
 
     func modifiers(for combatantID: String) -> CombatModifierProfile
+    // swiftlint:disable:next function_parameter_count
     mutating func nextEvent(
         kind: ActionEvent.Kind,
         effectKind: ActionEvent.EffectKind?,

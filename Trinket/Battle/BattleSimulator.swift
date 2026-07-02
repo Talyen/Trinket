@@ -74,9 +74,9 @@ enum BattleSimulator {
     }
 
     /// Drives an already-constructed `BattleState` to completion or
-    /// `options.resolvedMaxTicks`. This is the single core implementation
-    /// shared by every entry point. Determinism is controlled by the seed
-    /// already baked into `BattleState.rng`.
+    /// `options.resolvedMaxTicks`. Determinism is controlled by the seed
+    /// already baked into `BattleState.rng`. Prefer
+    /// `BattleStateTestFactory.makeBattle(...)` in tests (seed `0`).
     static func run(
         _ initialBattle: BattleState,
         options: BattleSimulationOptions = BattleSimulationOptions()

@@ -35,4 +35,13 @@ enum BattleStateTestFactory {
             rngSeed: 0
         )
     }
+
+    /// Seeds active effects on a combatant for unit tests.
+    static func seedActiveEffects(
+        _ effects: [ActiveEffect],
+        for combatant: Combatant,
+        on battle: inout BattleState
+    ) {
+        battle.roster.setActiveEffects(effects, for: combatant)
+    }
 }

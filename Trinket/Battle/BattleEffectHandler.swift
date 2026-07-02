@@ -58,14 +58,27 @@ protocol BattleEffectHandler: Sendable {
 }
 
 extension BattleEffectHandler {
-    /// Default: this kind has no per-tick work.
+    /// Default: decrement `remainingTicks` for tickable buffs and debuffs that
+    /// do not override `tick`. Burn, Poison, Bleed, Cleanse, Prevention, and
+    /// PreventionBuildup provide their own tick behavior.
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,
         in context: inout BattleMutationContext
     ) -> EffectTickOutcome {
-        _ = active; _ = target; _ = context
-        return EffectTickOutcome()
+        _ = target; _ = context
+        switch active.effect {
+        case .burn, .poison, .bleed, .cleanse, .prevention, .preventionBuildup:
+            return EffectTickOutcome()
+        default:
+            guard active.effect.isTickable else { return EffectTickOutcome() }
+            var updated = active
+            updated.remainingTicks -= 1
+            return EffectTickOutcome(
+                updatedStack: updated,
+                removeAfter: updated.remainingTicks <= 0
+            )
+        }
     }
 
     /// Default: this kind has no player-facing summary. Instant effects
