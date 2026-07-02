@@ -1,90 +1,55 @@
 import SwiftUI
 
 struct BattleView: View {
+    @Environment(AppState.self) private var appState
     @State private var battle: BattleState
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
     @State private var isShowingDefeat = false
     @State private var timelineStartDate: Date
     @State private var activeFeedbackEvents: [ActionEvent] = []
-    @Binding var isBattlePaused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private let heroProgression: CombatantProgression
-    private let petProgression: CombatantProgression
-    private let heroEquipmentLoadout: EquipmentLoadout
-    private let petEquipmentLoadout: EquipmentLoadout
-    private let inventoryState: PlayerInventoryState
-    private let stageReward: StageReward?
-    private let rewardItemNames: [String]
-    private let onEndBattle: () -> Void
-    private let onRestartBattle: () -> Void
-    private let onVictoryContinue: ((Int) -> Void)?
-    private let onShowCombatantDetail: (CombatantCardDetail) -> Void
+    private let configuration: ActiveBattleConfiguration
 
     @State private var victorySummary: BattleVictorySummary?
 
-    init(
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant? = nil,
-        heroProgression: CombatantProgression = .initial,
-        petProgression: CombatantProgression = .initial,
-        heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
-        petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
-        inventoryState: PlayerInventoryState = .initial,
-        heroModifiers: CombatModifierProfile = .zero,
-        petModifiers: CombatModifierProfile = .zero,
-        stageReward: StageReward? = nil,
-        rewardItemNames: [String] = [],
-        isBattlePaused: Binding<Bool>,
-        onEndBattle: @escaping () -> Void,
-        onRestartBattle: @escaping () -> Void,
-        onVictoryContinue: ((Int) -> Void)? = nil,
-        onShowCombatantDetail: @escaping (CombatantCardDetail) -> Void
-    ) {
-        self.heroProgression = heroProgression
-        self.petProgression = petProgression
-        self.heroEquipmentLoadout = heroEquipmentLoadout
-        self.petEquipmentLoadout = petEquipmentLoadout
-        self.inventoryState = inventoryState
-        self.stageReward = stageReward
-        self.rewardItemNames = rewardItemNames
-        self.onEndBattle = onEndBattle
-        self.onRestartBattle = onRestartBattle
-        self.onVictoryContinue = onVictoryContinue
-        self.onShowCombatantDetail = onShowCombatantDetail
+    init(configuration: ActiveBattleConfiguration) {
+        self.configuration = configuration
         _battle = State(initialValue: BattleState(
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            heroModifiers: heroModifiers,
-            petModifiers: petModifiers
+            hero: configuration.hero,
+            pet: configuration.pet,
+            enemy: configuration.enemy,
+            heroModifiers: configuration.heroModifiers,
+            petModifiers: configuration.petModifiers
         ))
-        _isBattlePaused = isBattlePaused
         _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())
     }
 
     var body: some View {
+        @Bindable var battleSession = appState.battle
+
         Group {
             if isShowingVictory, let victorySummary {
                 VictoryView(
                     enemyName: battle.enemy.name,
                     summary: victorySummary,
-                    primaryActionTitle: onVictoryContinue == nil ? "Battle Again" : "Continue",
+                    primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
                     onPrimaryAction: {
-                        if let onVictoryContinue {
-                            onVictoryContinue(victorySummary.battleGold)
+                        if hasStageProgression {
+                            appState.completeActiveBattle(configuration, battleEarnedGold: victorySummary.battleGold)
                         } else {
-                            onRestartBattle()
+                            appState.battle.restartBattle(using: appState.roster)
                         }
                     }
                 )
             } else if isShowingDefeat {
                 DefeatView(
                     enemyName: battle.enemy.name,
-                    onBattleAgain: onRestartBattle
+                    onBattleAgain: {
+                        appState.battle.restartBattle(using: appState.roster)
+                    }
                 )
             } else {
                 battlefieldWithTimeline
@@ -99,9 +64,9 @@ struct BattleView: View {
                 HStack(spacing: 4) {
                     if !isShowingVictory, !isShowingDefeat {
                         Button {
-                            isBattlePaused.toggle()
+                            battleSession.isPaused.toggle()
                         } label: {
-                            Image(systemName: isBattlePaused ? "play.fill" : "pause.fill")
+                            Image(systemName: battleSession.isPaused ? "play.fill" : "pause.fill")
                                 .contentTransition(.symbolEffect(.replace))
                         }
                         .accessibilityIdentifier("Battle Pause Button")
@@ -117,6 +82,10 @@ struct BattleView: View {
             )
             .presentationDetents([.medium])
         }
+    }
+
+    private var hasStageProgression: Bool {
+        configuration.stageID != nil
     }
 
     private var battlefieldWithTimeline: some View {
@@ -140,7 +109,7 @@ struct BattleView: View {
                 Divider()
 
                 Button(role: .destructive) {
-                    onEndBattle()
+                    appState.battle.endBattle()
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }
@@ -220,7 +189,7 @@ struct BattleView: View {
             health = battle.petHealth
         }
 
-        onShowCombatantDetail(details(
+        appState.battle.presentCombatantDetail(details(
             for: combatant,
             health: health,
             activeEffectSummaries: effectSummaries(for: combatant)
@@ -246,7 +215,7 @@ struct BattleView: View {
             !battle.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
-            !isBattlePaused
+            !appState.battle.isPaused
     }
 
     private func advanceBattleTick() {
@@ -276,39 +245,39 @@ struct BattleView: View {
             combatant: combatant,
             progression: progression(for: combatant),
             equipmentLoadout: equipmentLoadout(for: combatant),
-            inventoryState: inventoryState,
+            inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries
         )
     }
 
     private func progression(for combatant: Combatant) -> CombatantProgression {
-        if combatant.id == battle.hero.id { return heroProgression }
-        if combatant.id == battle.pet.id { return petProgression }
+        if combatant.id == battle.hero.id { return configuration.heroProgression }
+        if combatant.id == battle.pet.id { return configuration.petProgression }
         return .initial
     }
 
     private func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
-        if combatant.id == battle.hero.id { return heroEquipmentLoadout }
-        if combatant.id == battle.pet.id { return petEquipmentLoadout }
+        if combatant.id == battle.hero.id { return configuration.heroEquipmentLoadout }
+        if combatant.id == battle.pet.id { return configuration.petEquipmentLoadout }
         return EquipmentLoadout()
     }
 
     private func makeVictorySummary() -> BattleVictorySummary {
-        let xpAwarded = stageReward?.experience ?? 0
-        let heroAfter = heroProgression.addingExperience(xpAwarded)
-        let petAfter = petProgression.addingExperience(xpAwarded)
+        let xpAwarded = configuration.stageReward?.experience ?? 0
+        let heroAfter = configuration.heroProgression.addingExperience(xpAwarded)
+        let petAfter = configuration.petProgression.addingExperience(xpAwarded)
 
         return BattleVictorySummary(
-            stageGold: stageReward?.gold ?? 0,
+            stageGold: configuration.stageReward?.gold ?? 0,
             battleGold: battle.earnedGold,
             experience: xpAwarded,
             heroName: battle.hero.name,
             petName: battle.pet.name,
-            itemNames: rewardItemNames,
-            heroProgressionBefore: heroProgression,
+            itemNames: configuration.rewardItemNames,
+            heroProgressionBefore: configuration.heroProgression,
             heroProgressionAfter: heroAfter,
-            petProgressionBefore: petProgression,
+            petProgressionBefore: configuration.petProgression,
             petProgressionAfter: petAfter
         )
     }

@@ -121,6 +121,24 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.journey.current, .initial)
     }
 
+    func testCompleteStageUpdatesStoresAndRequestsMapScroll() throws {
+        let state = makeAppState(environment: makeEnvironment())
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        let initialGold = state.roster.current.gold
+
+        let scrollTarget = state.completeStage(
+            stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet
+        )
+
+        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
+        XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
+        XCTAssertGreaterThan(state.roster.current.gold, initialGold)
+        XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
+        XCTAssertEqual(state.journey.mapScrollRequest?.targetID, "chapter-1-stage-2")
+    }
+
     private func makeFileStore() -> PlayerSaveFileStore {
         PlayerSaveFileStore(directoryURL: directoryURL)
     }

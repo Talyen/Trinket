@@ -9,7 +9,9 @@ struct ContentView: View {
 
         TabView(selection: $state.selectedTab) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
-                PlayView()
+                NavigationStack {
+                    PlayView()
+                }
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {

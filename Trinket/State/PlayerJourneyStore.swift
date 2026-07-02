@@ -25,4 +25,16 @@ final class PlayerJourneyStore {
         updated.markRewardsClaimed(for: stage)
         current = updated
     }
+
+    var mapScrollRequest: MapScrollRequest?
+
+    func requestMapScroll(to targetID: String) {
+        mapScrollRequest = MapScrollRequest(targetID: targetID)
+    }
+
+    func clearMapScrollRequest(_ request: MapScrollRequest) {
+        if mapScrollRequest?.id == request.id {
+            mapScrollRequest = nil
+        }
+    }
 }

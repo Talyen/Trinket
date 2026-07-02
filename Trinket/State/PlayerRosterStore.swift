@@ -101,4 +101,16 @@ final class PlayerRosterStore {
     func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
         current.battleConfiguredCombatant(combatant)
     }
+
+    var activeHero: Combatant {
+        heroes.first { $0.id == current.activeHeroID } ??
+            heroes.first ??
+            collectionHeroes[0]
+    }
+
+    var activePet: Combatant {
+        pets.first { $0.id == current.activePetID } ??
+            pets.first ??
+            collectionPets[0]
+    }
 }
