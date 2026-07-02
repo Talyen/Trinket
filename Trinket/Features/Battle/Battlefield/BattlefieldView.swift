@@ -31,5 +31,6 @@ struct BattlefieldView: View {
             onCombatantTap(configuration.combatant)
         }
         .frame(width: size.width, height: size.height)
+        .clipShape(TrinketDesign.cardShape)
     }
 }
