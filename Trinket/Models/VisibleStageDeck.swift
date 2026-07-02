@@ -65,7 +65,10 @@ struct VisibleStageDeck {
     }
 
     private static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {
-        GameContent.nextChapter(after: chapter) ?? placeholderGateChapter(after: chapter)
+        guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),
+              chapters.indices.contains(chapterIndex + 1)
+        else { return placeholderGateChapter(after: chapter) }
+        return chapters[chapterIndex + 1]
     }
 
     private static func placeholderGateChapter(after chapter: Chapter) -> Chapter {

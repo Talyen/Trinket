@@ -46,8 +46,16 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(appState.battle.preview?.enemyID, "skeleton")
     }
 
-    func testPauseForOverlayRestoresPreviousPauseState() {
+    func testPauseForOverlayRestoresPreviousPauseState() throws {
         let appState = makeAppState()
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = appState.battle.startBattle(
+            stage: stage,
+            hero: appState.roster.activeHero,
+            pet: appState.roster.activePet,
+            roster: appState.roster,
+            inventory: appState.inventory
+        )
         appState.battle.isPaused = false
 
         appState.battle.pauseForOverlay()

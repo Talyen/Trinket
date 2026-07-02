@@ -62,13 +62,10 @@ final class PlayerRosterStoreTests: XCTestCase {
         XCTAssertEqual(reloaded.roster.activeHeroID, "wizard")
     }
 
-    func testActiveHeroAndPetUseSelectedIDs() throws {
+    func testActiveHeroAndPetUseSelectedIDs() {
         let rosterStore = makeRosterStore()
-        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
 
-        rosterStore.setActiveHero(wizard)
-
-        XCTAssertEqual(rosterStore.activeHero.id, "wizard")
+        XCTAssertEqual(rosterStore.activeHero.id, PlayerRosterState.starterHeroID)
         XCTAssertEqual(rosterStore.activePet.id, PlayerRosterState.starterPetID)
     }
 

@@ -36,10 +36,10 @@ extension AppState {
         return scrollTarget
     }
 
-    func completeActiveBattle(_ battle: ActiveBattleConfiguration, battleEarnedGold: Int) {
-        if let stageID = battle.stageID,
+    func completeActiveBattle(_ configuration: ActiveBattleConfiguration, battleEarnedGold: Int) {
+        if let stageID = configuration.stageID,
            let stage = GameContent.chapters.flatMap(\.stages).first(where: { $0.id == stageID }) {
-            completeStage(stage, hero: battle.hero, pet: battle.pet, battleEarnedGold: battleEarnedGold)
+            completeStage(stage, hero: configuration.hero, pet: configuration.pet, battleEarnedGold: battleEarnedGold)
         } else if battleEarnedGold > 0 {
             roster.grantGold(battleEarnedGold)
         }
