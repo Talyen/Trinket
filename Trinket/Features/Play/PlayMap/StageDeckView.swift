@@ -9,12 +9,7 @@ struct StageDeckView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            VStack(alignment: .leading, spacing: 18) {
-                Text("Current Path")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 20)
-
+            VStack(alignment: .leading, spacing: 0) {
                 ScrollView(.horizontal) {
                     LazyHStack(alignment: .center, spacing: 14) {
                         ForEach(deck.cards) { card in
@@ -70,15 +65,15 @@ struct StageDeckCardView: View {
         switch card {
         case let .stage(node):
             if node.state == .active {
-                Button {
-                    onStageTap(node.stage)
-                } label: {
-                    StageNodeView(stage: node.stage, state: node.state)
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+                StageNodeView(
+                    stage: node.stage,
+                    state: node.state,
+                    onPrimaryAction: {
+                        onStageTap(node.stage)
+                    }
+                )
+                .accessibilityElement(children: .contain)
                 .accessibilityLabel(accessibilityLabel(for: node))
-                .accessibilityHint("Opens the stage preview.")
             } else {
                 StageNodeView(stage: node.stage, state: node.state)
                     .accessibilityElement(children: .combine)

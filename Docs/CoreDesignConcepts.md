@@ -28,7 +28,7 @@ Play -> Heroes -> Inventory -> Homestead -> Options
 
 ## Chapters And Stages
 
-The core journey is a linear chapter map that flows downward from the chapter header through centered rounded path nodes. Chapter 1 is `The Verdant Forest`, with authored stages labeled as `Stage 1-1`, `Stage 1-2`, and so on in model and accessibility copy, while the visible map nodes use compact labels like `1-1` and `1-2` with an encounter-type SF Symbol. Only the active stage is playable; recently completed stages remain visible as history, the next stage appears locked, and farther future stages are implied by the continuing path until the player approaches them.
+The core journey is a linear chapter map that flows from the chapter header into a horizontal stage carousel. Chapter 1 is `The Verdant Forest`. The carousel cards should keep the current path scannable with concise stage identity, encounter type or state, and the primary next action. Avoid duplicating metadata or placing narrative flavor text in the carousel; fuller context belongs in the preview/detail surface. Only the active stage is playable; recently completed stages remain visible as history, the next stage appears locked, and farther future stages are implied by the continuing path until the player approaches them.
 
 Each stage has a predefined encounter type: Battle, Event, Shop, or Rest. Battle stages launch the authored enemy. Event, Shop, and Rest stages can appear in the path before their full systems exist, using a placeholder completion action so the chapter never dead-ends.
 

@@ -35,7 +35,7 @@ struct ChapterHeroHeader: View {
                 .accessibilityHidden(true)
             }
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Chapter \(chapter.number)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.82))
@@ -46,27 +46,10 @@ struct ChapterHeroHeader: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.76)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("Chapter Progress")
-                            .font(.caption.weight(.semibold))
-
-                        Spacer()
-
-                        Text("\(completedCount)/\(totalCount) Cleared")
-                            .font(.caption.weight(.medium))
-                    }
-                    .foregroundStyle(.white.opacity(0.86))
-
-                    ProgressView(value: Double(completedCount), total: Double(totalCount))
-                        .tint(chapter.theme.secondaryTint)
-                        .progressViewStyle(.linear)
-                }
-                .frame(maxWidth: 360)
-                .accessibilityElement(children: .combine)
+                progressPanel
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, metadataBottomPadding)
+            .padding(.bottom, 20)
         }
         .frame(height: height)
         .frame(maxWidth: .infinity)
@@ -74,7 +57,48 @@ struct ChapterHeroHeader: View {
         .accessibilityElement(children: .contain)
     }
 
-    private var metadataBottomPadding: CGFloat {
-        min(max(height * 0.40, 144), 184)
+    private var progressPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Chapter Progress")
+                    .font(.caption.weight(.semibold))
+
+                Spacer()
+
+                Text("\(completedCount)/\(totalCount) Cleared")
+                    .font(.caption.weight(.medium).monospacedDigit())
+            }
+            .foregroundStyle(.white.opacity(0.9))
+
+            ProgressView(value: Double(completedCount), total: Double(totalCount))
+                .tint(chapter.theme.secondaryTint)
+                .progressViewStyle(.linear)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: 360)
+        .background(progressPanelBackground)
+        .clipShape(TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(.white.opacity(reduceTransparency ? 0.18 : 0.12), lineWidth: 1)
+        }
+        .progressGlassEffect(isEnabled: !reduceTransparency)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var progressPanelBackground: some ShapeStyle {
+        reduceTransparency ? AnyShapeStyle(Color.black.opacity(0.58)) : AnyShapeStyle(.thinMaterial)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func progressGlassEffect(isEnabled: Bool) -> some View {
+        if isEnabled {
+            glassEffect(.regular)
+        } else {
+            self
+        }
     }
 }

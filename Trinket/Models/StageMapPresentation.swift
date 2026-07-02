@@ -53,7 +53,7 @@ struct StageMapMessage: Identifiable {
 
 extension Stage {
     var mapLabel: String {
-        "\(chapterNumber)-\(stageNumber)"
+        "Stage \(chapterNumber)-\(stageNumber)"
     }
 }
 
