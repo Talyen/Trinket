@@ -88,8 +88,12 @@ struct BattleView: View {
         configuration.stageID != nil
     }
 
+    private var battleTickInterval: TimeInterval {
+        AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
+    }
+
     private var battlefieldWithTimeline: some View {
-        TimelineView(.periodic(from: timelineStartDate, by: 0.8)) { context in
+        TimelineView(.periodic(from: timelineStartDate, by: battleTickInterval)) { context in
             battlefield
                 .onChange(of: context.date) { _, _ in
                     advanceBattleTick()

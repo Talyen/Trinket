@@ -2,16 +2,14 @@ import XCTest
 
 final class SmokeCollectionTests: TrinketUITestCase {
     func testCollectionScreenRenders() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Collection"].tap()
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
         assertExists("Inventory collection category")
     }
 
     func testHeroesGridRenders() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Collection"].tap()
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
         app.buttons["Heroes collection category"].tap()
         assertExists("Knight collection card")
         assertExists("Wizard collection card")

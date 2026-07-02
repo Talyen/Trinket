@@ -40,12 +40,20 @@ FIRST_TARGET="${TARGETS[1]}"
 REMAINING=("${TARGETS[@]:2}")
 
 echo "=== UI iteration: $FIRST_TARGET ==="
-./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui "$FIRST_TARGET"
+if [[ "$FIRST_TARGET" == Smoke* ]]; then
+  ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" smoke "$FIRST_TARGET"
+else
+  ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui "$FIRST_TARGET"
+fi
 
 for target in "${REMAINING[@]}"; do
   echo ""
   echo "=== UI iteration: $target ==="
-  ./Scripts/test.sh --no-build ui "$target"
+  if [[ "$target" == Smoke* ]]; then
+    ./Scripts/test.sh --no-build smoke "$target"
+  else
+    ./Scripts/test.sh --no-build ui "$target"
+  fi
 done
 
 echo ""

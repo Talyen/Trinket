@@ -11,6 +11,11 @@ struct AppEnvironment {
     let disableAudio: Bool
     let themeOverride: TrinketDesign.AppTheme?
     let completedStageIDs: [String]
+    /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
+    let battleTickInterval: TimeInterval?
+
+    static let defaultBattleTickInterval: TimeInterval = 0.8
+    static let testBattleTickInterval: TimeInterval = 0.05
 
     private init(
         launchTab: AppTab?,
@@ -20,7 +25,8 @@ struct AppEnvironment {
         disableCloudSync: Bool,
         disableAudio: Bool,
         themeOverride: TrinketDesign.AppTheme?,
-        completedStageIDs: [String]
+        completedStageIDs: [String],
+        battleTickInterval: TimeInterval?
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
@@ -30,6 +36,7 @@ struct AppEnvironment {
         self.disableAudio = disableAudio
         self.themeOverride = themeOverride
         self.completedStageIDs = completedStageIDs
+        self.battleTickInterval = battleTickInterval
     }
 
     private static func load() -> AppEnvironment {
@@ -93,6 +100,20 @@ struct AppEnvironment {
                 .filter { !$0.isEmpty }
         }()
 
+        let battleTickInterval: TimeInterval? = {
+            if let idx = arguments.firstIndex(of: "-battle-tick-interval"),
+               arguments.indices.contains(idx + 1),
+               let value = TimeInterval(arguments[idx + 1]),
+               value > 0
+            {
+                return value
+            }
+            if isRunningTests {
+                return Self.testBattleTickInterval
+            }
+            return nil
+        }()
+
         return AppEnvironment(
             launchTab: tab,
             launchScreen: screen,
@@ -101,7 +122,8 @@ struct AppEnvironment {
             disableCloudSync: disableCloudSync || reset || isRunningTests,
             disableAudio: disableAudio || isRunningTests,
             themeOverride: themeOverride,
-            completedStageIDs: completedStageIDs
+            completedStageIDs: completedStageIDs,
+            battleTickInterval: battleTickInterval
         )
     }
 }

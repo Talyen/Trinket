@@ -2,8 +2,7 @@ import XCTest
 
 final class SmokeOptionsTests: TrinketUITestCase {
     func testOptionsTab() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Options"].tap()
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
 
         assertExists("Options Screen")
         assertExists("Theme Picker")

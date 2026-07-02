@@ -102,6 +102,35 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertTrue(env.disableAudio)
     }
 
+    func testRunningUnderXCTestUsesFastBattleTickInterval() {
+        let env = parse(
+            arguments: [],
+            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
+        )
+        XCTAssertEqual(env.battleTickInterval, AppEnvironment.testBattleTickInterval)
+    }
+
+    func testBattleTickIntervalParsesExplicitValue() {
+        let env = parse(arguments: ["-battle-tick-interval", "0.25"])
+        XCTAssertEqual(env.battleTickInterval, 0.25)
+    }
+
+    func testBattleTickIntervalExplicitOverridesXCTestDefault() {
+        let env = parse(
+            arguments: ["-battle-tick-interval", "0.4"],
+            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
+        )
+        XCTAssertEqual(env.battleTickInterval, 0.4)
+    }
+
+    func testInvalidBattleTickIntervalIgnored() {
+        let env = parse(
+            arguments: ["-battle-tick-interval", "not-a-number"],
+            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
+        )
+        XCTAssertEqual(env.battleTickInterval, AppEnvironment.testBattleTickInterval)
+    }
+
     func testCompletedStagesParsesCommaSeparatedIDs() {
         let env = parse(arguments: ["-completed-stages", "chapter-1-stage-1,chapter-1-stage-2"])
         XCTAssertEqual(env.completedStageIDs, ["chapter-1-stage-1", "chapter-1-stage-2"])
@@ -123,6 +152,7 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(env.disableAudio)
         XCTAssertNil(env.themeOverride)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
+        XCTAssertNil(env.battleTickInterval)
     }
 
     private func parse(

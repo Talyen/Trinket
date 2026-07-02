@@ -19,7 +19,7 @@ enum TestLaunchArg {
 
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
         var args = reset ? testLaunchArgs : []
-        args.append(tab)
+        args.append(contentsOf: ["-selectedTab", tab])
         return args
     }
 
@@ -65,10 +65,12 @@ class TrinketUITestCase: XCTestCase {
 
     func goBack() {
         let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
-        if navBackButton.waitForExistence(timeout: 5) {
+        guard navBackButton.waitForExistence(timeout: 5) else { return }
+        if navBackButton.isHittable {
+            navBackButton.tap()
+        } else {
             navBackButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
-        RunLoop.current.run(until: Date().addingTimeInterval(0.2))
     }
 
     func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, maxAttempts: Int = 8, file _: StaticString = #file, line _: UInt = #line) {
@@ -78,7 +80,7 @@ class TrinketUITestCase: XCTestCase {
             } else {
                 dragInDetailList(fromY: 0.62, toY: 0.84)
             }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+            _ = element.waitForExistence(timeout: 0.25)
         }
     }
 
@@ -91,13 +93,13 @@ class TrinketUITestCase: XCTestCase {
     func dismissSheet() {
         let closeButton = app.navigationBars.buttons["Close"]
         if closeButton.waitForExistence(timeout: 2), closeButton.isHittable {
-            closeButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+            closeButton.tap()
+            _ = closeButton.waitForNonExistence(timeout: 3)
         } else {
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
             let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
             start.press(forDuration: 0.1, thenDragTo: end)
-            RunLoop.current.run(until: Date().addingTimeInterval(1.0))
+            _ = closeButton.waitForNonExistence(timeout: 3)
         }
     }
 
