@@ -27,7 +27,8 @@ final class BattleGoldenPathTests: XCTestCase {
         "ability|-|Physical|2|goblin",
         "status|-|Burn|1|goblin",
         "ability|-|Burn|3|goblin",
-        "status|-|Burn|1|goblin"
+        "status|-|Burn|1|goblin",
+        "milestone|-|Physical|0|goblin"
     ]
 
     private let goldenLogText = """
