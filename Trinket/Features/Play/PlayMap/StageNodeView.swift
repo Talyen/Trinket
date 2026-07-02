@@ -6,17 +6,48 @@ struct StageNodeView: View {
     var onPrimaryAction: (() -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(stage.mapLabel)
-                .font(.headline.weight(state == .active ? .bold : .semibold))
-                .foregroundStyle(titleStyle)
-                .lineLimit(1)
-                .minimumScaleFactor(0.86)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(iconBackground)
+                        .frame(width: 44, height: 44)
 
+                    Image(systemName: statusSymbolName)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(statusTint)
+                }
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(stage.mapLabel)
+                        .font(.headline.weight(state == .active ? .bold : .semibold))
+                        .foregroundStyle(titleStyle)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.86)
+
+                    Text(stage.encounter.title)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(statusTint)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            Spacer(minLength: 0)
             control
         }
-        .padding(.vertical, 6)
-        .frame(maxWidth: .infinity, minHeight: 86, alignment: .topLeading)
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 138, alignment: .topLeading)
+        .background(surfaceBackground)
+        .clipShape(TrinketDesign.cardShape)
+        .overlay {
+            TrinketDesign.cardShape
+                .stroke(borderColor, lineWidth: borderWidth)
+        }
+        .shadow(color: shadowColor, radius: shadowRadius, y: shadowYOffset)
+        .contentShape(TrinketDesign.cardShape)
     }
 
     private var titleStyle: Color {
@@ -83,6 +114,55 @@ struct StageNodeView: View {
         case .future:
             return Color.secondary.opacity(0.10)
         }
+    }
+
+    private var iconBackground: Color {
+        switch state {
+        case .active:
+            return encounterTint.opacity(0.14)
+        case .completed, .justCompleted:
+            return TrinketDesign.Colors.success.opacity(0.12)
+        case .future:
+            return Color.secondary.opacity(0.10)
+        }
+    }
+
+    private var surfaceBackground: Color {
+        switch state {
+        case .active:
+            return Color(.secondarySystemBackground)
+        case .completed, .justCompleted:
+            return Color(.tertiarySystemBackground).opacity(0.72)
+        case .future:
+            return Color(.tertiarySystemBackground).opacity(0.56)
+        }
+    }
+
+    private var borderColor: Color {
+        switch state {
+        case .active:
+            return encounterTint.opacity(0.42)
+        case .completed, .justCompleted:
+            return TrinketDesign.Colors.success.opacity(0.24)
+        case .future:
+            return Color.secondary.opacity(0.16)
+        }
+    }
+
+    private var borderWidth: CGFloat {
+        state == .active ? 1.5 : 1
+    }
+
+    private var shadowColor: Color {
+        state == .active ? Color.black.opacity(0.10) : Color.clear
+    }
+
+    private var shadowRadius: CGFloat {
+        state == .active ? 6 : 0
+    }
+
+    private var shadowYOffset: CGFloat {
+        state == .active ? 3 : 0
     }
 
     private var statusLabel: String {
