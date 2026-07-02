@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "E553A354-9EE9-47F1-8B41-26ED7EF6771F",
+      "id" : "C1D2E3F4-A5B6-7890-CDEF-1234567890AB",
       "name" : "Default Configuration",
       "options" : {}
     }
@@ -11,18 +11,6 @@
   },
   "testTargets" : [
     {
-      "automaticallyIncludesTests" : false,
-      "selectedTests" : [
-        "SmokeBattleTests",
-        "SmokeCollectionTests",
-        "SmokeHeroDetailTests",
-        "SmokeHomesteadTests",
-        "SmokeItemDetailTests",
-        "SmokeOptionsTests",
-        "SmokePetDetailTests",
-        "SmokePlayTests",
-        "SmokeSearchTests"
-      ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",
         "identifier" : "A76BC34F8DE0E1847F8183C5",

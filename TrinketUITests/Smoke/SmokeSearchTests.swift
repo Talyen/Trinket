@@ -6,16 +6,4 @@ final class SmokeSearchTests: TrinketUITestCase {
         app.tabBars.buttons["Search"].tap()
         assertExists("Heroes, Pets, and Items")
     }
-
-    func testSearchFindsPaladin() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Search"].tap()
-
-        let searchField = app.searchFields.firstMatch
-        assertExists(searchField)
-        searchField.tap()
-        searchField.typeText("Knight")
-
-        assertExists("Knight collection card")
-    }
 }

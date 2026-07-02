@@ -51,7 +51,34 @@ final class AppState {
         journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
+        applyLaunchScreenActions(environment: env)
     }
+
+    private func applyLaunchScreenActions(environment: AppEnvironment) {
+        switch environment.launchScreen {
+        case .battle:
+            startLaunchBattle()
+        case .heroDetail, .petDetail, .itemDetail, .options, .none:
+            break
+        }
+    }
+
+    private func startLaunchBattle() {
+        guard let stage = GameContent.chapters
+            .flatMap(\.stages)
+            .first(where: { $0.id == Self.launchBattleStageID })
+        else { return }
+
+        _ = battle.startBattle(
+            stage: stage,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            roster: roster,
+            inventory: inventory
+        )
+    }
+
+    private static let launchBattleStageID = "chapter-1-stage-1"
 
     func resetGameplayProgress() {
         playerSave.resetGameplayProgress()

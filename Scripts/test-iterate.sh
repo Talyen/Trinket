@@ -1,0 +1,52 @@
+#!/bin/zsh
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+# Fast UI iteration: build once, run a smoke class, then optional exhaustive class.
+#
+# Examples:
+#   ./Scripts/test-iterate.sh SmokeCollectionTests
+#   ./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests
+#   ./Scripts/test-iterate.sh BattleFlowUITests --no-build
+
+NO_BUILD_FLAG=()
+TARGETS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --no-build)
+      NO_BUILD_FLAG+=("$1")
+      shift
+      ;;
+    --fast|-f)
+      echo "Warning: --fast is deprecated; use --no-build." >&2
+      NO_BUILD_FLAG+=("--no-build")
+      shift
+      ;;
+    *)
+      TARGETS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+  echo "Usage: $0 <SmokeClass> [ExhaustiveClass] [--no-build]"
+  exit 1
+fi
+
+FIRST_TARGET="${TARGETS[1]}"
+REMAINING=("${TARGETS[@]:2}")
+
+echo "=== UI iteration: $FIRST_TARGET ==="
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui "$FIRST_TARGET"
+
+for target in "${REMAINING[@]}"; do
+  echo ""
+  echo "=== UI iteration: $target ==="
+  ./Scripts/test.sh --no-build ui "$target"
+done
+
+echo ""
+echo "=== UI iteration complete ==="

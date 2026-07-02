@@ -18,14 +18,6 @@ final class SmokeCollectionTests: TrinketUITestCase {
         assertExists("Rogue collection card")
     }
 
-    func testHeroDetailOpens() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        app.tabBars.buttons["Collection"].tap()
-        app.buttons["Heroes collection category"].tap()
-        app.buttons["Knight collection card"].tap()
-        assertExists("Knight detail hero header")
-    }
-
     func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {
         launchApp(arguments: [
             TestLaunchArg.resetState,

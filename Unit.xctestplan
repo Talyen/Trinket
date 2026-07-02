@@ -1,0 +1,22 @@
+{
+  "configurations" : [
+    {
+      "id" : "B8E2F4A1-3C5D-4E9F-8A2B-1D6C7E8F9012",
+      "name" : "Default Configuration",
+      "options" : {}
+    }
+  ],
+  "defaultOptions" : {
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Trinket.xcodeproj",
+        "identifier" : "B49A29077FD105628976E325",
+        "name" : "TrinketTests"
+      }
+    }
+  ],
+  "version" : 1
+}

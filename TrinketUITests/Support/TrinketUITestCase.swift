@@ -28,6 +28,10 @@ enum TestLaunchArg {
         args.append(contentsOf: self.screen(screen))
         return args
     }
+
+    static func allForBattle(reset: Bool = true) -> [String] {
+        allForScreen("battle", reset: reset)
+    }
 }
 
 class TrinketUITestCase: XCTestCase {
@@ -44,6 +48,17 @@ class TrinketUITestCase: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)
     }
 
+    func assertItemCardExists(_ itemName: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+        let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Item card '\(itemName)' not found", file: file, line: line)
+    }
+
+    func assertItemCardExistsAfterScroll(_ itemName: String, maxAttempts: Int = 16, file: StaticString = #file, line: UInt = #line) {
+        let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
+        scrollUntilVisible(card, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
+        XCTAssertTrue(card.exists, "Item card '\(itemName)' not found", file: file, line: line)
+    }
+
     func assertExists(_ element: XCUIElement, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element not found", file: file, line: line)
     }
@@ -56,8 +71,8 @@ class TrinketUITestCase: XCTestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.2))
     }
 
-    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, file _: StaticString = #file, line _: UInt = #line) {
-        for _ in 0 ..< 8 where !element.exists {
+    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, maxAttempts: Int = 8, file _: StaticString = #file, line _: UInt = #line) {
+        for _ in 0 ..< maxAttempts where !element.exists {
             if swipingUp {
                 dragInDetailList(fromY: 0.84, toY: 0.62)
             } else {
@@ -84,5 +99,17 @@ class TrinketUITestCase: XCTestCase {
             start.press(forDuration: 0.1, thenDragTo: end)
             RunLoop.current.run(until: Date().addingTimeInterval(1.0))
         }
+    }
+
+    func clearAndEnterText(_ element: XCUIElement, _ text: String) {
+        guard let stringValue = element.value as? String else {
+            element.typeText(text)
+            return
+        }
+
+        element.tap()
+        let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
+        element.typeText(deleteString)
+        element.typeText(text)
     }
 }

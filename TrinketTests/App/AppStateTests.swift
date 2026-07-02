@@ -50,6 +50,25 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
+    func testBattleLaunchScreenStartsStageOneOne() {
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-launch-screen", "battle"])
+        )
+
+        XCTAssertNotNil(state.battle.activeBattle)
+        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+    }
+
+    func testSeedTestProgressPopulatesInventory() {
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
+        )
+
+        XCTAssertFalse(state.inventory.current.items.isEmpty)
+        XCTAssertTrue(state.inventory.current.items.contains { $0.displayName == "Longsword" })
+        XCTAssertTrue(state.inventory.current.items.contains { $0.displayName == "Wand" })
+    }
+
     func testOptionsLaunchScreenDefaultsToOptionsTab() {
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-launch-screen", "options"])

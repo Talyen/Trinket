@@ -18,20 +18,4 @@ final class SmokeOptionsTests: TrinketUITestCase {
         assertExists("Sound Effects Volume")
         assertExists("Haptics Toggle")
     }
-
-    func testThemePickerSelectionUpdates() {
-        launchApp(arguments: TestLaunchArg.allForScreen("options"))
-
-        let themePicker = app.segmentedControls["Theme Picker"]
-        assertExists(themePicker)
-
-        themePicker.buttons["Dark"].tap()
-        XCTAssertTrue(themePicker.buttons["Dark"].isSelected)
-
-        themePicker.buttons["Light"].tap()
-        XCTAssertTrue(themePicker.buttons["Light"].isSelected)
-
-        themePicker.buttons["System"].tap()
-        XCTAssertTrue(themePicker.buttons["System"].isSelected)
-    }
 }

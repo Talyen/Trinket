@@ -52,24 +52,37 @@ Key patterns:
 
 ## Commands & Verification
 
-All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs xcodegen unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
+All under `./Scripts/`: `generate.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs xcodegen unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
 
 | Change | Check |
 |--------|-------|
 | One-screen layout | `build.sh` or `run-simulator.sh` |
 | Styling | `check-ui-style.sh` + smoke |
 | Rules/models | `test.sh unit <Tests>` |
-| Multi-step UI | `test.sh ui <TestClass>` |
+| Multi-step UI | `test-iterate.sh <SmokeClass> [ExhaustiveClass]` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
 
-Tiers: **smoke** → **targeted full-UI** (`TestClass[/testMethod]`) → **full UI** (deploy). No `test.sh ui`/`all` during iteration. Example after edits: `./Scripts/test.sh ui SmokeCollectionTests`; exact rerun without source changes: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
-- **Speed Tip**: Avoid running `ci-locally.sh` or `test-deploy.sh` during active development. They run the entire unit/UI suite and delay iteration. Compile with `build.sh` or run simulator previews.
+**Test tiers** (fast → thorough):
+
+| Tier | Command | What runs | When |
+|------|---------|-----------|------|
+| Unit | `test.sh unit` | `TrinketTests` minus debounced sync coordinator tests (~9s) | Every logic change |
+| Unit + sync | `test.sh unit --include-sync` | All unit tests | Pre-merge / nightly |
+| UI smoke | `test.sh smoke` | `Smoke.xctestplan` — 9 `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
+| Targeted UI | `test.sh ui <Class>` | One UI class | Focused UI iteration |
+| Full UI | `test.sh ui` | All `TrinketUITests` including exhaustive flows | Pre-merge |
+| Integration | `test.sh all` | `Integration.xctestplan` — unit + all UI in one run | Nightly / manual |
+
+`Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit (with sync) → full UI once (smoke is a subset, not rerun). Debounced `PlayerSaveSyncCoordinatorTests` are skipped in default `unit` runs; `test-deploy.sh` and CI main/exhaustive include them.
+
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/{Battle,Journey,Item}/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]`. `BattleSimulator` in `Trinket/Battle/BattleSimulator.swift`. Focused diffs; `ci-locally.sh` before push.
+- **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
 ## Unit Tests
 
-Shared helpers in `TrinketTests/Support/`: `SaveTestSupport` (temp save dirs), `AppTestSupport` (`makeAppState`), `CombatantFixtures` (minimal combatants). Battle rules: `BattleStateTestFactory` + seed `0`. Prefer unit tests for pure logic and store orchestration; use UI tests for `Features/*` views. Do not unit-test log prose, `TrinketDesign` styling, AVFoundation, or CloudKit sync internals.
+Shared helpers in `TrinketTests/Support/`: `SaveTestSupport` (temp save dirs), `AppTestSupport` (`makeAppState`), `CombatantFixtures` (minimal combatants). Battle rules: `BattleStateTestFactory` + seed `0`. Prefer unit tests for pure logic and store orchestration; use UI tests for `Features/*` views. Do not unit-test log prose, `TrinketDesign` styling, AVFoundation, or CloudKit sync internals. `PlayerSaveSyncCoordinatorTests` exercise real debounce timing and are excluded from default `unit` runs.
 
 ## UI Tests
 
-Smoke in `TrinketUITests/Smoke/`; deploy flows in `{Collection,Battle,Search}/`. One assertion per method; split at ~20 lines. `TestLaunchArg` + `LaunchScreen` (`AppTypes.swift`), parsed in `AppEnvironment`; helpers `allForScreen`, `allForTab`, `completedStages`. Args: `-reset-state` (default), `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle`), `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory`→`.collection`), `-completed-stages` (comma IDs). No `play:`/Search screen deep links. Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. `Player*Store`/UserDefaults; keep `-reset-state` unless testing persistence.
+**Smoke** (`TrinketUITests/Smoke/`): lean per-screen checks via `Smoke.xctestplan`. **Exhaustive** (`Collection/`, `Battle/`, `Search/`): multi-step journeys only in `test.sh ui` / `test-deploy.sh`. One assertion theme per smoke method; split at ~20 lines. `TestLaunchArg` + `LaunchScreen` (`AppTypes.swift`), parsed in `AppEnvironment`; helpers `allForScreen`, `allForBattle`, `completedStages`. Args: `-reset-state` (default), `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` starts stage 1-1), `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory`→`.collection`), `-completed-stages` (comma IDs). Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. `Player*Store`/UserDefaults; keep `-reset-state` unless testing persistence.

@@ -10,6 +10,7 @@ RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 MODE="unit"
 NO_BUILD=false
 USED_FAST_ALIAS=false
+INCLUDE_SYNC=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     smoke|--smoke)
       MODE="smoke"
+      shift
+      ;;
+    include-sync|--include-sync)
+      INCLUDE_SYNC=true
       shift
       ;;
     no-build|--no-build)
@@ -82,6 +87,7 @@ fi
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
 if [[ "$MODE" == "unit" ]]; then
+  TEST_TARGET_FLAG=(-testPlan Unit)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted unit tests..."
     for target in "${TARGETS[@]}"; do
@@ -93,13 +99,18 @@ if [[ "$MODE" == "unit" ]]; then
     done
   else
     echo "Running only unit tests (TrinketTests)..."
-    TEST_TARGET_FLAG=(-only-testing:TrinketTests)
+    TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
+    if [[ "$INCLUDE_SYNC" == "false" ]]; then
+      TEST_TARGET_FLAG+=(-skip-testing:TrinketTests/PlayerSaveSyncCoordinatorTests)
+      echo "Skipping debounced sync coordinator tests (use --include-sync or test-deploy for full unit coverage)."
+    fi
   fi
 elif [[ "$MODE" == "smoke" ]]; then
-  echo "Running smoke tests via Xcode Test Plan..."
+  echo "Running UI smoke tests via Smoke test plan..."
   TEST_TARGET_FLAG=(-testPlan Smoke)
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
+  TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Running targeted UI tests..."
     for target in "${TARGETS[@]}"; do
@@ -111,7 +122,7 @@ elif [[ "$MODE" == "ui" ]]; then
     done
   else
     echo "Running only UI tests (TrinketUITests)..."
-    TEST_TARGET_FLAG=(-only-testing:TrinketUITests)
+    TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 else

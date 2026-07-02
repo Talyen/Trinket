@@ -31,8 +31,14 @@
       onlyGenerateCoverageForSpecifiedTargets = "NO">
       <TestPlans>
          <TestPlanReference
+            reference = "container:Unit.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
             default = "YES"
             reference = "container:Smoke.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:FullUI.xctestplan">
          </TestPlanReference>
          <TestPlanReference
             reference = "container:Integration.xctestplan">
