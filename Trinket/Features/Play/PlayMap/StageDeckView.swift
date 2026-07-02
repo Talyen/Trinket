@@ -11,14 +11,20 @@ struct StageDeckView: View {
         ScrollViewReader { proxy in
             VStack(alignment: .leading, spacing: 0) {
                 ScrollView(.horizontal) {
-                    LazyHStack(alignment: .center, spacing: 14) {
-                        ForEach(deck.cards) { card in
+                    LazyHStack(alignment: .top, spacing: 14) {
+                        ForEach(Array(deck.cards.enumerated()), id: \.element.id) { index, card in
                             StageDeckCardView(
                                 card: card,
                                 onStageTap: onStageTap
                             )
                             .containerRelativeFrame(.horizontal) { length, _ in
-                                min(max(length * 0.46, 176), 220)
+                                min(max(length * 0.62, 228), 280)
+                            }
+                            .overlay(alignment: .topTrailing) {
+                                if index < deck.cards.count - 1 {
+                                    StageRouteConnectorSegment(tint: connectorTint(after: card))
+                                        .offset(x: 21, y: 34)
+                                }
                             }
                             .id(card.id)
                         }
@@ -54,6 +60,34 @@ struct StageDeckView: View {
                 proxy.scrollTo(target, anchor: .center)
             }
         }
+    }
+
+    private func connectorTint(after card: StageDeckCard) -> Color {
+        switch card {
+        case let .stage(node):
+            switch node.state {
+            case .completed, .justCompleted:
+                return TrinketDesign.Colors.success.opacity(0.48)
+            case .active:
+                return node.stage.encounter.mapTint.opacity(0.38)
+            case .future:
+                return Color.secondary.opacity(0.22)
+            }
+        case .chapterGate:
+            return Color.secondary.opacity(0.22)
+        }
+    }
+}
+
+private struct StageRouteConnectorSegment: View {
+    let tint: Color
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
+            .fill(tint)
+            .frame(width: 28, height: 3)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 }
 
