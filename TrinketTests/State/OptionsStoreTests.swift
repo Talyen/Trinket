@@ -22,7 +22,11 @@ final class OptionsStoreTests: XCTestCase {
     func testDefaultsWhenNoStoredValues() {
         let store = OptionsStore(defaults: defaults)
 
+        #if targetEnvironment(simulator)
+        XCTAssertEqual(store.musicVolume, 0, accuracy: 0.001)
+        #else
         XCTAssertEqual(store.musicVolume, 0.75, accuracy: 0.001)
+        #endif
         XCTAssertEqual(store.effectsVolume, 0.85, accuracy: 0.001)
         XCTAssertTrue(store.hapticsEnabled)
         XCTAssertEqual(store.theme, .dark)

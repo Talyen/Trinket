@@ -22,7 +22,7 @@ final class OptionsStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? 0.75
+        musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? Self.defaultMusicVolume
         effectsVolume = defaults.object(forKey: Self.effectsVolumeKey) as? Double ?? 0.85
         hapticsEnabled = defaults.object(forKey: Self.hapticsEnabledKey) as? Bool ?? true
         if let raw = defaults.string(forKey: Self.themeKey),
@@ -37,4 +37,12 @@ final class OptionsStore {
     private static let effectsVolumeKey = "options.effectsVolume"
     private static let hapticsEnabledKey = "options.hapticsEnabled"
     private static let themeKey = "options.theme"
+
+    private static var defaultMusicVolume: Double {
+        #if targetEnvironment(simulator)
+        return 0
+        #else
+        return 0.75
+        #endif
+    }
 }

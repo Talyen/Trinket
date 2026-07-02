@@ -205,6 +205,7 @@
 		D78954FC66153D11DB8496CE /* BattleSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */; };
 		D7CB3898092D5EBEBA980400 /* ChapterStageSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F600F8987D9536A536F5C513 /* ChapterStageSelectView.swift */; };
 		D88ABDB4447ECCEB93B6DDF6 /* HomesteadStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34615BEC027FC6A2FF83197E /* HomesteadStateTests.swift */; };
+		D982735BF7852C7ABE63F9C4 /* OverscrollHeroContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D4DBE9BF333FB476749C1A4 /* OverscrollHeroContainer.swift */; };
 		D9D36FA84DBB6918CBF8565F /* DefensiveBuffHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82F5BF0E4A0A57586F4D2C43 /* DefensiveBuffHandlers.swift */; };
 		DADCDE448587F4820BE03CD5 /* StageMapPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCD65710AA06B20FC3BF8D3 /* StageMapPresentation.swift */; };
 		DAE36E734A12F7895D44B123 /* music_battle_2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F586133A7383F3D2E7BD70A8 /* music_battle_2.m4a */; };
@@ -328,6 +329,7 @@
 		365F8B4B42A8B4B938E3BDE4 /* AppStatePlayFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStatePlayFlowTests.swift; sourceTree = "<group>"; };
 		3A5B278493C828E4924FA9CB /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
 		3CEC947E893452FC5D8E2081 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
+		3D4DBE9BF333FB476749C1A4 /* OverscrollHeroContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverscrollHeroContainer.swift; sourceTree = "<group>"; };
 		3D8CABFB14B1AB535F450557 /* StageCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCompletion.swift; sourceTree = "<group>"; };
 		3D95750D1BE5D470216E8B9A /* RestorationHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationHandlers.swift; sourceTree = "<group>"; };
 		4012A1AE6C63CE8396809643 /* SavedPlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPlayerState.swift; sourceTree = "<group>"; };
@@ -702,6 +704,7 @@
 				C0DB18CAC8448AE724D5B9BE /* EquipmentSlotSummaryGrid.swift */,
 				4DDBE5745A194C412DB428CB /* HeroHeaderLayout.swift */,
 				769E5E691395F845BABD973F /* ItemSlotPickerView.swift */,
+				3D4DBE9BF333FB476749C1A4 /* OverscrollHeroContainer.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -1430,6 +1433,7 @@
 				6828CEEBA77131DE9D7E7285 /* MusicPlayer.swift in Sources */,
 				FAA47725F11C48BC843A3EFD /* OptionsStore.swift in Sources */,
 				EE30D7D59F6902A352FD35F8 /* OptionsView.swift in Sources */,
+				D982735BF7852C7ABE63F9C4 /* OverscrollHeroContainer.swift in Sources */,
 				04BA2F361BBC978B87818C72 /* PartyPickerSheet.swift in Sources */,
 				4DF6741EDD1CB7A57E01A54F /* PartySelectionCard.swift in Sources */,
 				3AB0340125D10F66A14E0CD4 /* PetsGridView.swift in Sources */,

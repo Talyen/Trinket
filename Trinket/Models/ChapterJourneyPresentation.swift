@@ -7,13 +7,16 @@ struct ChapterJourneyPresentation {
 
     init(chapters: [Chapter], chapter: Chapter, progress: JourneyProgressState) {
         self.chapter = chapter
-        rows = chapter.stages.map { stage in
-            .stage(VisibleStageNode(
+        rows = chapter.stages.compactMap { stage -> ChapterJourneyRow? in
+            let state = Self.state(for: stage, progress: progress)
+            guard state != .completed, state != .justCompleted else { return nil }
+
+            return .stage(VisibleStageNode(
                 stage: stage,
-                state: Self.state(for: stage, progress: progress)
+                state: state
             ))
         } + [.chapterGate(Self.gateChapter(after: chapter, in: chapters))]
-        scrollTargetID = progress.activeStageID ?? progress.lastCompletedStageID
+        scrollTargetID = progress.activeStageID
     }
 
     private static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {

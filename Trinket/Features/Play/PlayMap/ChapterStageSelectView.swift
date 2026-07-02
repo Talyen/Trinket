@@ -5,6 +5,8 @@ struct ChapterStageSelectView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var partyPicker: PartyPickerKind?
 
+    private let scrollCoordinateSpaceName = "ChapterJourneyScroll"
+
     let chapter: Chapter
     let progress: JourneyProgressState
     let onStageTap: (Stage) -> Void
@@ -13,27 +15,26 @@ struct ChapterStageSelectView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    ChapterJourneyHero(chapter: chapter)
+                    ChapterJourneyHero(
+                        chapter: chapter,
+                        coordinateSpaceName: scrollCoordinateSpaceName
+                    )
 
-                    LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        Section {
-                            VStack(spacing: 14) {
-                                ForEach(presentation.rows) { row in
-                                    rowView(row)
-                                        .id(row.id)
-                                        .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
-                                }
-                            }
-                            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                            .padding(.top, 18)
-                            .padding(.bottom, 28)
-                        } header: {
-                            CompactChapterHeader(chapter: chapter)
+                    LazyVStack(alignment: .leading, spacing: 14) {
+                        ForEach(presentation.rows) { row in
+                            rowView(row)
+                                .id(row.id)
+                                .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
                         }
                     }
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .padding(.top, 18)
+                    .padding(.bottom, 28)
                 }
             }
             .scrollIndicators(.hidden)
+            .coordinateSpace(name: scrollCoordinateSpaceName)
+            .ignoresSafeArea(edges: .top)
             .background(TrinketDesign.Colors.appBackground)
             .accessibilityIdentifier(AccessibilityID.Screen.play)
             .onAppear {
@@ -61,6 +62,7 @@ struct ChapterStageSelectView: View {
         }
         .background(TrinketDesign.Colors.appBackground)
         .toolbar(.hidden, for: .navigationBar)
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
 
     private var presentation: ChapterJourneyPresentation {
@@ -136,90 +138,56 @@ private struct ChapterJourneyHero: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let chapter: Chapter
+    let coordinateSpaceName: String
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
-                .visualEffect { content, proxy in
-                    let minY = proxy.frame(in: .scrollView).minY
-                    let pullDistance = max(minY, 0)
-                    return content
-                        .scaleEffect(1 + pullDistance / 900)
-                        .offset(y: min(minY, 0) * 0.18)
+        GeometryReader { geometry in
+            let baseHeight = max(480, geometry.size.height * 0.70)
+
+            OverscrollHeroContainer(
+                baseHeight: baseHeight,
+                coordinateSpaceName: coordinateSpaceName
+            ) {
+                ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
+            } overlay: {
+                ZStack(alignment: .bottomLeading) {
+                    LinearGradient(
+                        colors: [
+                            .black.opacity(0.06),
+                            .clear,
+                            .black.opacity(0.92)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Chapter \(chapter.number)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.84))
+
+                        Text(chapter.title)
+                            .font(.largeTitle.weight(.bold))
+                            .foregroundStyle(.white)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.76)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .shadow(color: .black.opacity(0.48), radius: 8, y: 2)
+                    .accessibilityIdentifier(AccessibilityID.Play.chapterHeader(number: chapter.number))
                 }
-
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.64)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-            .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Chapter \(chapter.number)")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.84))
-
-                Text(chapter.title)
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.76)
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.bottom, 28)
-            .accessibilityIdentifier(AccessibilityID.Play.chapterHeader(number: chapter.number))
         }
-        .frame(height: 360)
         .frame(maxWidth: .infinity)
+        .containerRelativeFrame(.vertical) { length, _ in
+            max(480, length * 0.70)
+        }
         .clipped()
         .ignoresSafeArea(edges: .top)
         .accessibilityElement(children: .contain)
-    }
-}
-
-private struct CompactChapterHeader: View {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
-    let chapter: Chapter
-
-    var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
-                .saturation(0.88)
-                .brightness(-0.06)
-
-            Rectangle()
-                .fill(.black.opacity(0.36))
-                .accessibilityHidden(true)
-
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Chapter \(chapter.number)")
-                        .font(.caption.weight(.semibold))
-                    Text(chapter.title.isEmpty ? "Next Chapter" : chapter.title)
-                        .font(.headline.weight(.bold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.82)
-                }
-                .foregroundStyle(.white)
-
-                Spacer()
-
-                Image(systemName: "chevron.down.circle.fill")
-                    .font(.title3.weight(.semibold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.white.opacity(0.84))
-                    .accessibilityHidden(true)
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, 10)
-        }
-        .frame(height: 68)
-        .frame(maxWidth: .infinity)
-        .clipped()
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Chapter \(chapter.number), \(chapter.title)")
     }
 }
 
@@ -566,8 +534,8 @@ private struct JourneyScrollTransition: ViewModifier {
         if isEnabled {
             content.scrollTransition(.interactive, axis: .vertical) { view, phase in
                 view
-                    .opacity(phase.isIdentity ? 1 : 0.72)
-                    .scaleEffect(phase.isIdentity ? 1 : 0.97)
+                    .scaleEffect(phase.isIdentity ? 1.03 : 0.94)
+                    .blur(radius: min(abs(phase.value) * 0.75, 0.75))
             }
         } else {
             content
