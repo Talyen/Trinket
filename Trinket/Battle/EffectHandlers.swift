@@ -34,14 +34,9 @@ struct BurnHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .burn(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = context.shouldSkipImmediateDoT(
-            potency: potency,
-            keyword: .burn,
-            pairedDamageHits: pairedDamageHits
-        )
+        let skipImmediate = context.shouldSkipImmediateDoT(potency: potency, keyword: .burn)
         let events = context.applyDecayingDoT(
             keyword: .burn,
             potency: potency,
@@ -85,14 +80,9 @@ struct PoisonHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .poison(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = context.shouldSkipImmediateDoT(
-            potency: potency,
-            keyword: .poison,
-            pairedDamageHits: pairedDamageHits
-        )
+        let skipImmediate = context.shouldSkipImmediateDoT(potency: potency, keyword: .poison)
         let events = context.applyDecayingDoT(
             keyword: .poison,
             potency: potency,
@@ -141,14 +131,9 @@ struct BleedHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = context.shouldSkipImmediateDoT(
-            potency: potency,
-            keyword: .bleed,
-            pairedDamageHits: pairedDamageHits
-        )
+        let skipImmediate = context.shouldSkipImmediateDoT(potency: potency, keyword: .bleed)
         let events = context.applyBleed(
             potency: potency,
             to: target,
@@ -179,7 +164,6 @@ struct PreventionHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .prevention(keyword, duration) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         guard context.health(of: target) > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
@@ -227,7 +211,6 @@ struct ShieldHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .shield(keyword, buffer, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -277,7 +260,6 @@ struct MitigationHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .mitigation(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -322,7 +304,6 @@ struct DodgeHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .dodge(keyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let ae = ActiveEffect(
@@ -359,7 +340,6 @@ struct LeechHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .leech(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -391,7 +371,6 @@ struct InstantHealHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         context.applyHeal(amount, to: target, sourceActorID: source.id)
@@ -416,7 +395,6 @@ struct ResourceGainHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         context.addGold(amount, sourceActorID: source.id)
@@ -451,7 +429,6 @@ struct CleanseHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .cleanse(targetKeyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
@@ -493,7 +470,6 @@ struct CleanseRandomHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
         let debuffs = currentEffects.filter(\.effect.isRemovableDebuff)
@@ -524,13 +500,12 @@ struct DealDamageHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .dealDamage(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let (typedDamage, typedEvents) = context.applyDamage(amount, to: target)
         var allEvents = typedEvents
         if typedDamage > 0 || amount > 0 {
-            pairedDamageHits.append((keyword, amount))
+            context.pairedDirectDamage.append((keyword, amount))
         }
         if typedDamage > 0 {
             allEvents.append(context.nextEvent(
@@ -558,7 +533,6 @@ struct HalveMitigationHandler: BattleEffectHandler {
         source _: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits _: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         guard case let .halveMitigation(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
@@ -601,11 +575,10 @@ struct PreventionBuildupHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
     ) -> EffectApplyOutcome {
         // Buildup is created by `applyDamage` when stun/freeze damage lands;
         // an ability that targets `.preventionBuildup` directly is a no-op.
-        _ = effect; _ = ability; _ = source; _ = target; _ = context; _ = pairedDamageHits
+        _ = effect; _ = ability; _ = source; _ = target; _ = context
         return EffectApplyOutcome(events: [], didApply: false)
     }
 }

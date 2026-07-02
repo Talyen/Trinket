@@ -12,12 +12,6 @@ struct EffectApplyOutcome {
     /// because it does no work during apply (the buildup is created
     /// inside `applyDamage` when stun/freeze damage lands).
     var didApply: Bool = true
-
-    /// Additional `(keyword, amount)` pairs the caller should track in its
-    /// paired-damage-hit dedup set. `dealDamage` and `directDamage` both
-    /// push their own pair; DoT handlers read the set to decide whether
-    /// to skip the initial damage tick.
-    var pairedDamageHits: [(Keyword, Int)] = []
 }
 
 /// Result of dispatching a single `ActiveEffect` through a
@@ -49,8 +43,7 @@ protocol BattleEffectHandler: Sendable {
         ability: Ability,
         source: Combatant,
         target: Combatant,
-        in context: inout BattleMutationContext,
-        pairedDamageHits: inout [(Keyword, Int)]
+        in context: inout BattleMutationContext
     ) -> EffectApplyOutcome
     func tick(
         _ active: ActiveEffect,

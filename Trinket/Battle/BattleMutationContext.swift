@@ -9,6 +9,7 @@ struct BattleMutationContext: CombatPipelineHost {
     var nextEventID: Int
     var events: [ActionEvent]
     var gold: Int
+    var pairedDirectDamage: [(Keyword, Int)] = []
     let build: BattleCombatBuild
 
     func modifiers(for combatantID: String) -> CombatModifierProfile {
@@ -37,12 +38,8 @@ struct BattleMutationContext: CombatPipelineHost {
         build.adjustedOutgoingEffect(effect, sourceID: sourceID)
     }
 
-    func shouldSkipImmediateDoT(
-        potency: Int,
-        keyword: Keyword,
-        pairedDamageHits: [(Keyword, Int)]
-    ) -> Bool {
-        pairedDamageHits.contains(where: { $0 == (keyword, potency) })
+    func shouldSkipImmediateDoT(potency: Int, keyword: Keyword) -> Bool {
+        pairedDirectDamage.contains(where: { $0 == (keyword, potency) })
     }
 
     mutating func addGold(_ amount: Int, sourceActorID: String) {

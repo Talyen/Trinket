@@ -136,9 +136,9 @@ struct CombatantRuntime: Hashable {
     static func defaultActionSpeed(for combatant: Combatant) -> ActionSpeed {
         let base: Int
         switch combatant.role {
-        case .hero: base = BattleState.defaultHeroActionIntervalTicks
-        case .pet: base = BattleState.defaultPetActionIntervalTicks
-        case .enemy: base = BattleState.defaultEnemyActionIntervalTicks
+        case .hero: base = BattleTiming.heroActionIntervalTicks
+        case .pet: base = BattleTiming.petActionIntervalTicks
+        case .enemy: base = BattleTiming.enemyActionIntervalTicks
         }
         let resolvedBase = combatant.actionIntervalTicks ?? base
         var speed = ActionSpeed(baseIntervalTicks: resolvedBase)

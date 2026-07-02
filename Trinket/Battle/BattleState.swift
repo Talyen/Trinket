@@ -31,10 +31,6 @@ import Foundation
 /// - Effect summaries are built by `EffectSummaryBuilder`
 /// - Floating-text chrome is formatted by `ActionEventFormatter`
 struct BattleState {
-    static let defaultHeroActionIntervalTicks: Int = 2
-    static let defaultPetActionIntervalTicks: Int = 2
-    static let defaultEnemyActionIntervalTicks: Int = 6
-
     let hero: Combatant
     let pet: Combatant
     let enemy: Combatant
@@ -42,7 +38,7 @@ struct BattleState {
     // MARK: - Global mutable state (lives on BattleState itself)
 
     private(set) var tickCount: Int
-    private(set) var actionCount: Int
+    var actionCount: Int
     var events: [ActionEvent]
     private(set) var gold: Int
 
@@ -189,6 +185,18 @@ struct BattleState {
         roster.enemyAttackTarget
     }
 
+    func health(of combatant: Combatant) -> Int {
+        roster.health(for: combatant)
+    }
+
+    func activeEffects(of combatant: Combatant) -> [ActiveEffect] {
+        roster.activeEffects(for: combatant)
+    }
+
+    func effectSummaries(of combatant: Combatant) -> [EffectSummary] {
+        EffectSummaryBuilder.build(for: activeEffects(of: combatant))
+    }
+
     var enemyEffectSummaries: [EffectSummary] {
         EffectSummaryBuilder.build(for: activeEnemyEffects)
     }
@@ -288,14 +296,14 @@ struct BattleState {
         guard !isBattleOver else { return .ended(events: []) }
 
         tickCount += 1
-        var events = applyAllEffectTicks()
+        var events = EffectTickEngine.tickAll(state: &self)
 
         if isBattleOver {
             events.append(contentsOf: appendDefeatMilestonesIfNeeded())
             return .ended(events: events)
         }
 
-        guard let actor = readyCombatants().first else {
+        guard let actor = BattleTurnEngine.readyCombatants(in: self).first else {
             return .effectsOnly(events: events)
         }
 
@@ -305,9 +313,9 @@ struct BattleState {
 
         let abilityTarget = actor.role == .enemy ? enemyAttackTarget : enemy
         if hasActivePrevention(actor: actor) {
-            events.append(contentsOf: consumePrevention(for: actor))
+            events.append(contentsOf: BattleTurnEngine.consumePrevention(for: actor, state: &self))
         } else {
-            events.append(contentsOf: performAction(actor: actor, abilityTarget: abilityTarget))
+            events.append(contentsOf: BattleTurnEngine.performAction(actor: actor, abilityTarget: abilityTarget, state: &self))
         }
 
         events.append(contentsOf: appendDefeatMilestonesIfNeeded())
@@ -319,265 +327,11 @@ struct BattleState {
         return .acted(actor, events: events)
     }
 
-    private func readyCombatants() -> [Combatant] {
-        roster.readyCombatants(atTick: tickCount).map(\.combatant)
-    }
-
     func hasActivePrevention(actor: Combatant) -> Bool {
         roster.activeEffects(for: actor).contains(where: {
             if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
             return false
         })
-    }
-
-    private mutating func consumePrevention(for actor: Combatant) -> [ActionEvent] {
-        var currentEffects = roster.activeEffects(for: actor)
-        var events: [ActionEvent] = []
-
-        if let index = currentEffects.firstIndex(where: {
-            if case .prevention = $0.effect { return true }
-            return false
-        }) {
-            let effect = currentEffects[index]
-            let event = nextEvent(
-                kind: .effect,
-                effectKind: .preventionSkipped,
-                actorName: effect.keyword.rawValue,
-                abilityName: effect.keyword.rawValue,
-                target: actor,
-                amount: 0,
-                keyword: effect.keyword
-            )
-            events.append(event)
-
-            if effect.remainingTicks <= 1 {
-                currentEffects.remove(at: index)
-            } else {
-                currentEffects[index].remainingTicks -= 1
-            }
-        }
-
-        roster.setActiveEffects(currentEffects, for: actor)
-        recordAction(for: actor)
-        return events
-    }
-
-    private mutating func recordAction(for actor: Combatant) {
-        actionCount += 1
-        var runtime = runtime(for: actor)
-        runtime.markActed(atTick: tickCount)
-        updateRuntime(runtime)
-    }
-
-    private mutating func performAction(actor: Combatant, abilityTarget: Combatant) -> [ActionEvent] {
-        let turnNumber = runtime(for: actor).actionCount + 1
-
-        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber) else {
-            recordAction(for: actor)
-            return []
-        }
-
-        var events: [ActionEvent] = []
-
-        let (dealt, damageEvents) = applyDamage(
-            ability.directDamage,
-            to: abilityTarget,
-            damageKeyword: ability.damageKeyword,
-            sourceActorID: actor.id
-        )
-        events.append(contentsOf: damageEvents)
-        if dealt > 0 {
-            events.append(contentsOf: applyLeechFromDamage(dealt, sourceActorID: actor.id))
-        }
-
-        var appliedEffectLogs: [String] = []
-        var pairedDamageHits: [(Keyword, Int)] = []
-        if ability.directDamage > 0 {
-            pairedDamageHits.append((ability.damageKeyword, ability.directDamage))
-        }
-
-        let effectsToApply: [TargetedEffect] = ability.targetedEffects.isEmpty
-            ? (ability.statusApplication.map {
-                [TargetedEffect(Effect.effect(from: $0), target: .abilityTarget)]
-            } ?? [])
-            : ability.targetedEffects
-
-        var context = makeMutationContext()
-        for targetedEffect in effectsToApply {
-            let effect = targetedEffect.effect
-            let effectTarget = resolveEffectTarget(
-                targetedEffect.target,
-                actor: actor,
-                abilityTarget: abilityTarget
-            )
-
-            guard let handler = EffectHandlers.all[effect.kind] else { continue }
-            let outcome = handler.apply(
-                effect,
-                ability: ability,
-                source: actor,
-                target: effectTarget,
-                in: &context,
-                pairedDamageHits: &pairedDamageHits
-            )
-            events.append(contentsOf: outcome.events)
-            if outcome.didApply {
-                appliedEffectLogs.append(effect.summary)
-            }
-        }
-        applyMutationContext(context)
-
-        events.append(
-            nextEvent(
-                kind: .ability,
-                effectKind: nil,
-                actorName: actor.name,
-                abilityName: ability.name,
-                target: abilityTarget,
-                amount: dealt,
-                keyword: ability.damageKeyword,
-                appliedEffectSummaries: appliedEffectLogs
-            )
-        )
-
-        recordAction(for: actor)
-        return events
-    }
-
-    func shouldSkipImmediateDoT(
-        potency: Int,
-        keyword: Keyword,
-        pairedDamageHits: [(Keyword, Int)]
-    ) -> Bool {
-        pairedDamageHits.contains(where: { $0 == (keyword, potency) })
-    }
-
-    private func resolveEffectTarget(
-        _ target: EffectTarget,
-        actor: Combatant,
-        abilityTarget: Combatant
-    ) -> Combatant {
-        switch target {
-        case .abilityTarget:
-            return abilityTarget
-        case .actor:
-            return actor
-        case .enemy:
-            return enemy
-        case .hero:
-            return hero
-        case .pet:
-            return pet
-        }
-    }
-
-    private func selectedAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
-        let tier = preferredTier(for: turnNumber)
-        return actor.abilityLoadout.ability(for: tier)
-            ?? actor.abilityLoadout.basic
-            ?? actor.abilities.first
-    }
-
-    private func preferredTier(for turnNumber: Int) -> AbilityTier {
-        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) { return .ultimate }
-        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) { return .skill }
-        return .basic
-    }
-
-    private mutating func applyAllEffectTicks() -> [ActionEvent] {
-        var events: [ActionEvent] = []
-
-        let enemyResult = tickEffects(activeEnemyEffects, target: enemy)
-        roster.setActiveEffects(enemyResult.updated, for: enemy)
-        events.append(contentsOf: enemyResult.events)
-
-        if isHeroAlive {
-            let heroResult = tickEffects(activeHeroEffects, target: hero)
-            roster.setActiveEffects(heroResult.updated, for: hero)
-            events.append(contentsOf: heroResult.events)
-        }
-
-        if isPetAlive {
-            let petResult = tickEffects(activePetEffects, target: pet)
-            roster.setActiveEffects(petResult.updated, for: pet)
-            events.append(contentsOf: petResult.events)
-        }
-
-        return events
-    }
-
-    private mutating func tickEffects(_ effects: [ActiveEffect], target: Combatant) -> (events: [ActionEvent], updated: [ActiveEffect]) {
-        var events: [ActionEvent] = []
-        var remaining = effects
-
-        guard roster.health(for: target) > 0 else {
-            return (events, remaining)
-        }
-
-        // Phase 1: per-handler tick. `BleedHandler`, `BurnHandler`, and
-        // `PoisonHandler` deal damage and update their own potency or
-        // remaining ticks. Other kinds return a no-op outcome.
-        var toRemove: [Int] = []
-        var context = makeMutationContext()
-        for index in remaining.indices {
-            guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
-            let outcome = handler.tick(remaining[index], on: target, in: &context)
-            events.append(contentsOf: outcome.events)
-            if let updated = outcome.updatedStack {
-                remaining[index] = updated
-            }
-            if outcome.removeAfter {
-                toRemove.append(index)
-            }
-        }
-        applyMutationContext(context)
-        if !toRemove.isEmpty {
-            let removeSet = Set(toRemove)
-            remaining = remaining.enumerated().compactMap { index, ae in
-                removeSet.contains(index) ? nil : ae
-            }
-        }
-
-        // Phase 2: cleanse removal pass. Cleanses strip matching effects
-        // and then re-add themselves so their own `remainingTicks` keeps
-        // decrementing in the generic pass below.
-        for ae in remaining {
-            switch ae.effect {
-            case let .cleanse(cleanseKeyword, _):
-                if let removeKeyword = cleanseKeyword {
-                    remaining.removeAll { $0.keyword == removeKeyword }
-                } else {
-                    remaining.removeAll { $0.effect.isTickable }
-                }
-                remaining.append(ae)
-
-            default:
-                break
-            }
-        }
-
-        // Phase 3: generic duration decrement for effects not handled by
-        // a per-handler `tick`. Bleed, burn, poison, prevention, and
-        // preventionBuildup opt out (their lifecycle is managed by phase
-        // 1 or by their own remainingTicks=0 self-removal).
-        remaining = remaining.compactMap { ae in
-            switch ae.effect {
-            case .burn(0), .poison(0):
-                return nil
-            case .bleed:
-                return ae.remainingTicks > 0 ? ae : nil
-            case .burn, .poison:
-                return ae
-            case .prevention, .preventionBuildup:
-                return ae
-            default:
-                var updated = ae
-                updated.remainingTicks -= 1
-                return updated.remainingTicks > 0 ? updated : nil
-            }
-        }
-
-        return (events, remaining)
     }
 
     // MARK: - Combat pipeline (see CombatPipeline.swift)

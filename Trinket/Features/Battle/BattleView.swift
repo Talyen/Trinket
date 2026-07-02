@@ -2,12 +2,11 @@ import SwiftUI
 
 struct BattleView: View {
     @Environment(AppState.self) private var appState
-    @State private var battle: BattleState
+    @State private var battleRun: BattleRun
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
     @State private var isShowingDefeat = false
     @State private var timelineStartDate: Date
-    @State private var activeFeedbackEvents: [ActionEvent] = []
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let configuration: ActiveBattleConfiguration
@@ -16,13 +15,7 @@ struct BattleView: View {
 
     init(configuration: ActiveBattleConfiguration) {
         self.configuration = configuration
-        _battle = State(initialValue: BattleState(
-            hero: configuration.hero,
-            pet: configuration.pet,
-            enemy: configuration.enemy,
-            heroModifiers: configuration.heroModifiers,
-            petModifiers: configuration.petModifiers
-        ))
+        _battleRun = State(initialValue: BattleRun(configuration: configuration))
         _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())
     }
@@ -33,7 +26,7 @@ struct BattleView: View {
         Group {
             if isShowingVictory, let victorySummary {
                 VictoryView(
-                    enemyName: battle.enemy.name,
+                    enemyName: battleRun.enemy.name,
                     summary: victorySummary,
                     primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
                     onPrimaryAction: {
@@ -46,7 +39,7 @@ struct BattleView: View {
                 )
             } else if isShowingDefeat {
                 DefeatView(
-                    enemyName: battle.enemy.name,
+                    enemyName: battleRun.enemy.name,
                     onBattleAgain: {
                         appState.battle.restartBattle(using: appState.roster)
                     }
@@ -78,7 +71,7 @@ struct BattleView: View {
         }
         .sheet(isPresented: $isShowingBattleLog) {
             BattleLogSheet(
-                entries: battle.log
+                entries: battleRun.log
             )
             .presentationDetents([.medium])
         }
@@ -134,42 +127,42 @@ struct BattleView: View {
 
             VStack(spacing: layout.cardSpacing) {
                 BattleCombatantPane(
-                    combatant: battle.enemy,
-                    health: battle.enemyHealth,
-                    maxHealth: battle.enemy.maxHealth,
+                    combatant: battleRun.enemy,
+                    health: battleRun.enemyHealth,
+                    maxHealth: battleRun.enemy.maxHealth,
                     healthBarPlacement: .bottom,
-                    events: feedbackEvents(for: battle.enemy),
+                    events: feedbackEvents(for: battleRun.enemy),
                     reduceMotion: reduceMotion,
-                    onRemoveEvent: removeFeedbackEvent
+                    onRemoveEvent: battleRun.removeFeedbackEvent
                 ) {
-                    showDetails(for: battle.enemy)
+                    showDetails(for: battleRun.enemy)
                 }
                 .frame(width: layout.enemySize.width, height: layout.enemySize.height)
 
                 HStack(spacing: layout.cardSpacing) {
                     BattleCombatantPane(
-                        combatant: battle.hero,
-                        health: battle.heroHealth,
-                        maxHealth: battle.hero.maxHealth,
+                        combatant: battleRun.hero,
+                        health: battleRun.heroHealth,
+                        maxHealth: battleRun.hero.maxHealth,
                         healthBarPlacement: .top,
-                        events: feedbackEvents(for: battle.hero),
+                        events: feedbackEvents(for: battleRun.hero),
                         reduceMotion: reduceMotion,
-                        onRemoveEvent: removeFeedbackEvent
+                        onRemoveEvent: battleRun.removeFeedbackEvent
                     ) {
-                        showDetails(for: battle.hero)
+                        showDetails(for: battleRun.hero)
                     }
                     .frame(width: layout.partySize.width, height: layout.partySize.height)
 
                     BattleCombatantPane(
-                        combatant: battle.pet,
-                        health: battle.petHealth,
-                        maxHealth: battle.pet.maxHealth,
+                        combatant: battleRun.pet,
+                        health: battleRun.petHealth,
+                        maxHealth: battleRun.pet.maxHealth,
                         healthBarPlacement: .top,
-                        events: feedbackEvents(for: battle.pet),
+                        events: feedbackEvents(for: battleRun.pet),
                         reduceMotion: reduceMotion,
-                        onRemoveEvent: removeFeedbackEvent
+                        onRemoveEvent: battleRun.removeFeedbackEvent
                     ) {
-                        showDetails(for: battle.pet)
+                        showDetails(for: battleRun.pet)
                     }
                     .frame(width: layout.partySize.width, height: layout.partySize.height)
                 }
@@ -180,39 +173,24 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant) {
-        let health: Int
-        if combatant.id == battle.enemy.id {
-            health = battle.enemyHealth
-        } else if combatant.id == battle.hero.id {
-            health = battle.heroHealth
-        } else {
-            health = battle.petHealth
-        }
-
         appState.battle.presentCombatantDetail(details(
             for: combatant,
-            health: health,
-            activeEffectSummaries: effectSummaries(for: combatant)
+            health: battleRun.health(for: combatant),
+            activeEffectSummaries: battleRun.effectSummaries(for: combatant)
         ))
     }
 
-    private func effectSummaries(for combatant: Combatant) -> [EffectSummary] {
-        if combatant.id == battle.enemy.id { return battle.enemyEffectSummaries }
-        if combatant.id == battle.hero.id { return battle.heroEffectSummaries }
-        return battle.petEffectSummaries
-    }
-
     private func feedbackEvents(for combatant: Combatant) -> [ActionEvent] {
-        activeFeedbackEvents.filter { $0.targetID == combatant.id }
+        battleRun.activeFeedbackEvents.filter { $0.targetID == combatant.id }
     }
 
     private func removeFeedbackEvent(_ id: Int) {
-        activeFeedbackEvents.removeAll { $0.id == id }
+        battleRun.activeFeedbackEvents.removeAll { $0.id == id }
     }
 
     private var canAutoAdvanceBattle: Bool {
         !isShowingBattleLog &&
-            !battle.isBattleOver &&
+            !battleRun.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
             !appState.battle.isPaused
@@ -221,21 +199,14 @@ struct BattleView: View {
     private func advanceBattleTick() {
         guard canAutoAdvanceBattle else { return }
 
-        let step = battle.advanceOneStep()
-        step.events
-            .filter { $0.kind != .milestone }
-            .forEach(appendFeedbackEvent)
+        battleRun.advanceOneStep()
 
-        if battle.isEnemyDefeated {
+        if battleRun.isEnemyDefeated {
             victorySummary = makeVictorySummary()
             isShowingVictory = true
-        } else if battle.isPartyDefeated {
+        } else if battleRun.isPartyDefeated {
             isShowingDefeat = true
         }
-    }
-
-    private func appendFeedbackEvent(_ event: ActionEvent) {
-        activeFeedbackEvents.append(event)
     }
 
     private func details(
@@ -254,14 +225,14 @@ struct BattleView: View {
     }
 
     private func progression(for combatant: Combatant) -> CombatantProgression {
-        if combatant.id == battle.hero.id { return configuration.heroProgression }
-        if combatant.id == battle.pet.id { return configuration.petProgression }
+        if combatant.id == battleRun.hero.id { return configuration.heroProgression }
+        if combatant.id == battleRun.pet.id { return configuration.petProgression }
         return .initial
     }
 
     private func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
-        if combatant.id == battle.hero.id { return configuration.heroEquipmentLoadout }
-        if combatant.id == battle.pet.id { return configuration.petEquipmentLoadout }
+        if combatant.id == battleRun.hero.id { return configuration.heroEquipmentLoadout }
+        if combatant.id == battleRun.pet.id { return configuration.petEquipmentLoadout }
         return EquipmentLoadout()
     }
 
@@ -272,10 +243,10 @@ struct BattleView: View {
 
         return BattleVictorySummary(
             stageGold: configuration.stageReward?.gold ?? 0,
-            battleGold: battle.earnedGold,
+            battleGold: battleRun.earnedGold,
             experience: xpAwarded,
-            heroName: battle.hero.name,
-            petName: battle.pet.name,
+            heroName: battleRun.hero.name,
+            petName: battleRun.pet.name,
             itemNames: configuration.rewardItemNames,
             heroProgressionBefore: configuration.heroProgression,
             heroProgressionAfter: heroAfter,

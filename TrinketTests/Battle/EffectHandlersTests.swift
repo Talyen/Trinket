@@ -61,8 +61,7 @@ final class EffectHandlersTests: XCTestCase {
             ability: ability,
             source: source,
             target: target,
-            in: &context,
-            pairedDamageHits: &hits
+            in: &context
         )
         battle.applyMutationContext(context)
         return outcome
@@ -105,15 +104,15 @@ final class EffectHandlersTests: XCTestCase {
     func testBurnHandlerSkipsInitialDamageWhenPaired() throws {
         var battle = makeBattle()
         let enemy = battle.enemy
-        var hits: [(Keyword, Int)] = [(.burn, 3)]
+        var hits: [(Keyword, Int)] = []
         var context = battle.makeMutationContext()
+        context.pairedDirectDamage = [(.burn, 3)]
         let outcome = try XCTUnwrap(EffectHandlers.all[.burn]?.apply(
             .burn(3),
             ability: ability(),
             source: battle.hero,
             target: enemy,
-            in: &context,
-            pairedDamageHits: &hits
+            in: &context
         ))
         battle.applyMutationContext(context)
         XCTAssertTrue(outcome.didApply)
@@ -289,18 +288,16 @@ final class EffectHandlersTests: XCTestCase {
 
     func testDealDamageHandlerAppendsToPairedDamageHits() throws {
         var battle = makeBattle()
-        var hits: [(Keyword, Int)] = []
         var context = battle.makeMutationContext()
         _ = try XCTUnwrap(EffectHandlers.all[.dealDamage]?.apply(
             .dealDamage(.bleed, 3),
             ability: ability(),
             source: battle.hero,
             target: battle.enemy,
-            in: &context,
-            pairedDamageHits: &hits
+            in: &context
         ))
+        XCTAssertTrue(context.pairedDirectDamage.contains(where: { $0 == (.bleed, 3) }))
         battle.applyMutationContext(context)
-        XCTAssertTrue(hits.contains(where: { $0 == (.bleed, 3) }))
     }
 
     // MARK: - Debuff

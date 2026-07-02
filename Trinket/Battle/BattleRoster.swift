@@ -1,5 +1,11 @@
 import Foundation
 
+enum BattleParticipant: CaseIterable {
+    case hero
+    case pet
+    case enemy
+}
+
 /// Collection of the three `CombatantRuntime`s participating in a battle:
 /// the hero, the pet, and the enemy. Provides dispatch by role or by
 /// `Combatant` identity, plus the ready-actor picker used by the turn loop.
@@ -15,6 +21,30 @@ struct BattleRoster {
     /// All three runtimes, in role order (hero, pet, enemy).
     var allRuntimes: [CombatantRuntime] {
         [hero, pet, enemy]
+    }
+
+    subscript(participant: BattleParticipant) -> CombatantRuntime {
+        get {
+            switch participant {
+            case .hero: return hero
+            case .pet: return pet
+            case .enemy: return enemy
+            }
+        }
+        set {
+            switch participant {
+            case .hero: hero = newValue
+            case .pet: pet = newValue
+            case .enemy: enemy = newValue
+            }
+        }
+    }
+
+    func participant(for combatant: Combatant) -> BattleParticipant? {
+        if combatant.id == hero.id { return .hero }
+        if combatant.id == pet.id { return .pet }
+        if combatant.id == enemy.id { return .enemy }
+        return nil
     }
 
     // MARK: - Dispatch by Combatant identity
