@@ -206,6 +206,44 @@ final class BattleStateSchedulingTests: XCTestCase {
         XCTAssertEqual(battle.earnedGold, 1)
     }
 
+    func testSkillFiresOnTurn3UltimateOnTurn6() {
+        let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1, description: "Basic")
+        let skill = Ability(id: "skill", name: "SkillAtk", tier: .skill, directDamage: 3, description: "Skill")
+        let ultimate = Ability(id: "ultimate", name: "UltAtk", tier: .ultimate, directDamage: 6, description: "Ultimate")
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 10,
+            abilities: [basic, skill, ultimate]
+        )
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 1000,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+
+        var heroAbilityNames: [String] = []
+        var safety = 0
+        while heroAbilityNames.count < 6, safety < 40 {
+            let step = battle.advanceOneStep()
+            heroAbilityNames.append(
+                contentsOf: step.events
+                    .filter { $0.actorName == "Hero" && $0.kind == .ability }
+                    .map(\.abilityName)
+            )
+            safety += 1
+            if battle.isBattleOver { break }
+        }
+
+        XCTAssertEqual(heroAbilityNames, ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
+    }
+
     private var defaultEnemy: Combatant {
         GameContent.enemies.first!.combatant
     }

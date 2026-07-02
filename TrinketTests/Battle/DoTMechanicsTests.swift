@@ -2,23 +2,6 @@ import XCTest
 @testable import Trinket
 
 final class DoTMechanicsTests: XCTestCase {
-    private func passiveCombatant(
-        id: String,
-        name: String,
-        role: Combatant.Role,
-        maxHealth: Int = 100,
-        actionIntervalTicks: Int = 100
-    ) -> Combatant {
-        Combatant(
-            id: id,
-            name: name,
-            role: role,
-            maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
-            abilities: []
-        )
-    }
-
     private func isolatedBattle(
         heroAbilities: [Ability] = [],
         enemyEffects: [ActiveEffect] = [],
@@ -34,8 +17,8 @@ final class DoTMechanicsTests: XCTestCase {
                 actionIntervalTicks: heroActionIntervalTicks,
                 abilities: heroAbilities
             ),
-            pet: passiveCombatant(id: "pet", name: "Pet", role: .pet),
-            enemy: passiveCombatant(id: "enemy", name: "Enemy", role: .enemy),
+            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: enemyEffects,
             activeHeroEffects: heroEffects
         )
@@ -182,8 +165,8 @@ final class DoTMechanicsTests: XCTestCase {
                 actionIntervalTicks: 2,
                 abilities: [burnAbility(potency: 4)]
             ),
-            pet: passiveCombatant(id: "pet", name: "Pet", role: .pet),
-            enemy: passiveCombatant(id: "enemy", name: "Enemy", role: .enemy),
+            pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
                 ActiveEffect(id: 1, effect: .shield(.block, 20, 5), remainingTicks: 5),
                 ActiveEffect(id: 2, effect: .mitigation(.armor, 0.50, 5), remainingTicks: 5)

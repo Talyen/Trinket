@@ -47,6 +47,18 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(target.id, heroId)
     }
 
+    func testEnemyTargetsPetWhenHeroDead() {
+        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 1, actionIntervalTicks: 2)
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1, actionIntervalTicks: 2)
+        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+
+        BattleTestFixtures.advanceTicks(6, on: &battle)
+
+        XCTAssertFalse(battle.isHeroAlive)
+        XCTAssertEqual(battle.enemyAttackTarget.id, pet.id)
+    }
+
     func testBurnDealsDamageAfterApplication() {
         let hero = Combatant(
             id: "hero",

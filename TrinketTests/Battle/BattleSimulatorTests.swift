@@ -92,4 +92,22 @@ final class BattleSimulatorTests: XCTestCase {
             result.metrics.abilityDamage + result.metrics.statusDamage
         )
     }
+
+    func testVictoryLogMessage() throws {
+        let hero = GameContent.heroes[2]
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
+        let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
+
+        XCTAssertTrue(result.log.contains { $0.text.contains("is defeated.") })
+    }
+
+    func testDefeatLogMessage() {
+        let hero = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
+        let pet = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
+        let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
+        let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
+
+        XCTAssertTrue(result.log.contains { $0.text.contains("Your party has been defeated") })
+    }
 }
