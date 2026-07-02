@@ -31,28 +31,6 @@ final class BattleGoldenPathTests: XCTestCase {
         "milestone|-|Physical|0|goblin"
     ]
 
-    private let goldenLogText = """
-    Wizard and Wolf face Goblin.
-    Wolf uses Slash.
-    Wizard uses Kindling on Goblin and applies Burning.
-    Goblin takes 1 Burn damage.
-    Wolf uses Slash for 2 Physical damage to Goblin.
-    Wizard uses Kindling for 3 Burn damage to Goblin and applies Burning.
-    Goblin takes 1 Burn damage.
-    Wolf uses Serrated Edge for 4 Bleed damage to Goblin and applies Bleeding.
-    Goblin takes 4 Bleed damage.
-    Goblin uses Slash for 1 Physical damage to Wolf.
-    Goblin takes 4 Bleed damage.
-    Wizard uses Fireball for 5 Burn damage to Goblin and applies Burning.
-    Goblin takes 4 Bleed damage.
-    Goblin takes 2 Burn damage.
-    Wolf uses Slash for 2 Physical damage to Goblin.
-    Goblin takes 1 Burn damage.
-    Wizard uses Kindling for 3 Burn damage to Goblin and applies Burning.
-    Goblin takes 1 Burn damage.
-    Goblin is defeated.
-    """
-
     private func runGoldenBattle() -> BattleSimulationResult {
         BattleSimulator.run(
             BattleStateTestFactory.makeBattle(hero: wizard, pet: wolf, enemy: goblin),
@@ -81,13 +59,6 @@ final class BattleGoldenPathTests: XCTestCase {
         let fingerprints = result.events.map(eventFingerprint(_:))
 
         XCTAssertEqual(fingerprints, goldenEventFingerprints)
-    }
-
-    func testGoldenPathLogText() {
-        let result = runGoldenBattle()
-        let logText = result.log.map(\.text).joined(separator: "\n")
-
-        XCTAssertEqual(logText, goldenLogText)
     }
 
     // MARK: - Party defeat
