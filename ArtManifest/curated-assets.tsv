@@ -150,21 +150,21 @@ item	wand-basic	item_wand_basic	Raw Assets/Gear/Wand - Basic.jpeg	0.50	0.50	Item
 slot_background	armor	slot_armor	Raw Assets/Gear/Gear Slot Backgrounds/Body Slot.jpeg	0.50	0.50	Empty armor slot frame
 slot_background	trinket	slot_trinket	Raw Assets/Gear/Gear Slot Backgrounds/Amulet Slot.jpeg	0.50	0.50	Empty trinket slot frame
 slot_background	weapon	slot_weapon	Raw Assets/Gear/Gear Slot Backgrounds/Main Hand Slot.jpeg	0.50	0.50	Empty weapon slot frame
-combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpeg	0.50	0.50	Full art of the Living Armor enemy
-combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.png	0.50	0.50	Full art of the Mimic enemy
-combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.png	0.50	0.50	Full art of the Mud Elemental enemy
-combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpeg	0.50	0.50	Full art of the Necromancer enemy
-combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpeg	0.50	0.50	Full art of the Plague Doctor enemy
+combatant	living_armor	enemy_living_armor_card	Raw Assets/Enemies/Living Armor.jpg	0.50	0.50	Full art of the Living Armor enemy
+combatant	mimic	enemy_mimic_card	Raw Assets/Enemies/Mimic.jpg	0.50	0.50	Full art of the Mimic enemy
+combatant	mud_elemental	enemy_mud_elemental_card	Raw Assets/Enemies/Mud Elemental.jpg	0.50	0.50	Full art of the Mud Elemental enemy
+combatant	necromancer	enemy_necromancer_card	Raw Assets/Enemies/Necromancer.jpg	0.50	0.50	Full art of the Necromancer enemy
+combatant	plague_doctor	enemy_plague_doctor_card	Raw Assets/Enemies/Plague Doctor.jpg	0.50	0.50	Full art of the Plague Doctor enemy
 combatant	skeleton	enemy_skeleton_card	Raw Assets/Enemies/Skeleton.jpeg	0.50	0.50	Full art of the Skeleton enemy
-combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpeg	0.50	0.50	Full art of the Blight Treant enemy
-combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpeg	0.50	0.50	Full art of the Forge Golem enemy
-combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpeg	0.50	0.50	Full art of the Frostwarden enemy
-combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpeg	0.50	0.50	Full art of the Iron Bear enemy
+combatant	the_blight_treant	enemy_the_blight_treant_card	Raw Assets/Enemies/Bosses/The Blight Treant.jpg	0.50	0.50	Full art of the Blight Treant enemy
+combatant	the_forge_golem	enemy_the_forge_golem_card	Raw Assets/Enemies/Bosses/The Forge Golem.jpg	0.50	0.50	Full art of the Forge Golem enemy
+combatant	the_frostwarden	enemy_the_frostwarden_card	Raw Assets/Enemies/Bosses/The Frostwarden.jpg	0.50	0.50	Full art of the Frostwarden enemy
+combatant	the_iron_bear	enemy_the_iron_bear_card	Raw Assets/Enemies/Bosses/The Iron Bear.jpg	0.50	0.50	Full art of the Iron Bear enemy
 combatant	fire_elemental	enemy_fire_elemental_card	Raw Assets/Enemies/Fire Elemental.jpeg	0.50	0.50	Full art of the Fire Elemental enemy
 combatant	frost_elemental	enemy_frost_elemental_card	Raw Assets/Enemies/Frost Elemental.jpeg	0.50	0.50	Full art of the Frost Elemental enemy
 combatant	goblin	enemy_goblin_card	Raw Assets/Enemies/Goblin.jpeg	0.50	0.50	Full art of the Goblin enemy
-combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpeg	0.50	0.50	Full art of the Slime enemy
-combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpeg	0.50	0.50	Full art of the Will-o-Wisp enemy
+combatant	slime	enemy_slime_card	Raw Assets/Enemies/Slime.jpg	0.50	0.50	Full art of the Slime enemy
+combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	0.50	0.50	Full art of the Will-o-Wisp enemy
 combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of the Pixie pet
 combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
 combatant	imp	pet_imp_card	Raw Assets/Pets/Imp.png	0.50	0.50	Full art of the Imp pet
