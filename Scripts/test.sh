@@ -192,6 +192,9 @@ if [[ "$NO_BUILD" == "true" ]]; then
   ACTION="test-without-building"
 fi
 
+TEST_WALL_SECONDS=0
+SECONDS=0
+
 xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
@@ -201,6 +204,19 @@ xcodebuild "$ACTION" \
   "${TEST_TARGET_FLAG[@]}" \
   "${PARALLEL_FLAGS[@]}"
 
+TEST_WALL_SECONDS=$SECONDS
+
 if [[ "$NO_BUILD" == "false" ]]; then
   touch "$BUILD_STAMP"
+fi
+
+if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+  ./Scripts/test-timing.sh record \
+    --mode "$MODE" \
+    --wall "$TEST_WALL_SECONDS" \
+    --xcresult "$RESULT_BUNDLE_PATH" \
+    $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
+    "${TARGETS[@]}"
+  echo ""
+  echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
 fi
