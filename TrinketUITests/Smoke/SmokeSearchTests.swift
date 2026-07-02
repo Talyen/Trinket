@@ -1,8 +1,11 @@
 import XCTest
 
-final class SmokeSearchTests: TrinketUITestCase {
+final class SmokeSearchTests: SeededSmokeUITestCase {
+    override class var launchArguments: [String] {
+        TestLaunchArg.allForTab("search")
+    }
+
     func testSearchTabExists() {
-        launchApp(arguments: TestLaunchArg.allForTab("search"))
         search.assertEmptyState()
     }
 }

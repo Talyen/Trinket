@@ -1,8 +1,9 @@
 name: Trinket CI
 
-# Automatic CI is paused until GitHub Actions budget is available.
-# Re-enable pull_request and push triggers below when ready.
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
     inputs:
       scope:
@@ -43,16 +44,28 @@ jobs:
       - name: Unit tests
         run: ./Scripts/test.sh unit
 
+      - name: Assert unit timing budget
+        if: success()
+        run: ./Scripts/test-timing.sh assert-budget --mode unit --max-wall 120
+
       - name: UI smoke tests
         run: ./Scripts/test.sh smoke
 
+      - name: Assert smoke timing budget
+        if: success()
+        run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 200
+
       - name: Sync coordinator tests
-        if: github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.ref_name == 'main'
+        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
         run: ./Scripts/test.sh --no-build unit PlayerSaveSyncCoordinatorTests
 
       - name: Full UI tests
-        if: github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.ref_name == 'main'
+        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
         run: ./Scripts/test.sh --no-build ui
+
+      - name: Assert UI timing budget
+        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
+        run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 600
 
       - name: Upload timing log
         if: always()

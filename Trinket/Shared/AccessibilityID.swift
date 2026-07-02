@@ -21,4 +21,14 @@ enum AccessibilityID {
         static let emptyState = "Search Empty State"
         static let noResults = "Search No Results"
     }
+
+    enum Homestead {
+        static func node(title: String) -> String {
+            "\(title) Homestead Node"
+        }
+
+        static func nodeDetail(title: String) -> String {
+            "\(title) Homestead Detail"
+        }
+    }
 }

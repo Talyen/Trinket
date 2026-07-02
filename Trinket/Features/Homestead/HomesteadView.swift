@@ -264,7 +264,7 @@ private struct HomesteadProjectCard: View {
             }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("\(definition.title) Homestead Node")
+        .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
     private var trailingSymbolName: String {
@@ -453,6 +453,7 @@ private struct HomesteadNodeDetailView: View {
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .sensoryFeedback(.success, trigger: upgradeEventCount)
     }
 

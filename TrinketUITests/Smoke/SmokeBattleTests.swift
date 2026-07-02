@@ -1,8 +1,11 @@
 import XCTest
 
-final class SmokeBattleTests: TrinketUITestCase {
+final class SmokeBattleTests: SeededSmokeUITestCase {
+    override class var launchArguments: [String] {
+        TestLaunchArg.allForBattle()
+    }
+
     func testBattleLaunchScreenStartsStageOneOne() {
-        launchApp(arguments: TestLaunchArg.allForBattle())
-        assertExists("Battle Pause Button")
+        assertButtonExists("Battle Pause Button")
     }
 }

@@ -60,7 +60,11 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func assertButtonExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
-        XCTAssertTrue(button(identifier).waitForExistence(timeout: timeout), "Button '\(identifier)' not found", file: file, line: line)
+        let element = button(identifier)
+        guard element.waitForExistence(timeout: timeout) else {
+            fail("Button '\(identifier)' not found", file: file, line: line)
+            return
+        }
     }
 
     func assertCombatantDetailSections(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
@@ -69,22 +73,34 @@ class TrinketUITestCase: XCTestCase {
 
     func assertExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
         let element = app.descendants(matching: .any)[identifier]
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element '\(identifier)' not found", file: file, line: line)
+        guard element.waitForExistence(timeout: timeout) else {
+            fail("Element '\(identifier)' not found", file: file, line: line)
+            return
+        }
     }
 
     func assertItemCardExists(_ itemName: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
         let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
-        XCTAssertTrue(card.waitForExistence(timeout: timeout), "Item card '\(itemName)' not found", file: file, line: line)
+        guard card.waitForExistence(timeout: timeout) else {
+            fail("Item card '\(itemName)' not found", file: file, line: line)
+            return
+        }
     }
 
     func assertItemCardExistsAfterScroll(_ itemName: String, maxAttempts: Int = 16, file: StaticString = #file, line: UInt = #line) {
         let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
         scrollUntilVisible(card, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
-        XCTAssertTrue(card.exists, "Item card '\(itemName)' not found", file: file, line: line)
+        guard card.exists else {
+            fail("Item card '\(itemName)' not found", file: file, line: line)
+            return
+        }
     }
 
     func assertExists(_ element: XCUIElement, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
-        XCTAssertTrue(element.waitForExistence(timeout: timeout), "Element not found", file: file, line: line)
+        guard element.waitForExistence(timeout: timeout) else {
+            fail("Element not found", file: file, line: line)
+            return
+        }
     }
 
     func goBack() {
@@ -137,5 +153,17 @@ class TrinketUITestCase: XCTestCase {
         let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
         element.typeText(deleteString)
         element.typeText(text)
+    }
+
+    func fail(_ message: String, file: StaticString = #file, line: UInt = #line) {
+        attachScreenshotOnFailure()
+        XCTFail(message, file: file, line: line)
+    }
+
+    private func attachScreenshotOnFailure() {
+        guard let app else { return }
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }

@@ -31,6 +31,20 @@ struct HomesteadScreen {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.homestead]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Homestead screen not found", file: file, line: line)
     }
+
+    func openNode(named title: String) {
+        app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: title)].tap()
+    }
+
+    func assertNodeDetail(
+        named title: String,
+        timeout: TimeInterval = 5,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.descendants(matching: .any)[AccessibilityID.Homestead.nodeDetail(title: title)]
+        XCTAssertTrue(element.waitForExistence(timeout: timeout), "\(title) homestead detail not found", file: file, line: line)
+    }
 }
 
 struct SearchScreen {

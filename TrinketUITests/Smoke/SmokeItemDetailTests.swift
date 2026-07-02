@@ -1,8 +1,11 @@
 import XCTest
 
-final class SmokeItemDetailTests: TrinketUITestCase {
+final class SmokeItemDetailTests: SeededSmokeUITestCase {
+    override class var launchArguments: [String] {
+        TestLaunchArg.allForScreen("item:longsword-basic")
+    }
+
     func testLongswordBasicItemDetailRenders() {
-        launchApp(arguments: TestLaunchArg.allForScreen("item:longsword-basic"))
         assertExists("Longsword")
         assertExists("Affixes")
     }

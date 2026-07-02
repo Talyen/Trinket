@@ -14,12 +14,14 @@ Usage:
   ./Scripts/test-timing.sh [report] [--mode MODE] [--last N] [--top N]
   ./Scripts/test-timing.sh record --mode MODE --wall SECONDS --xcresult PATH [--no-build] [TARGET ...]
   ./Scripts/test-timing.sh ingest MODE [--wall SECONDS]
+  ./Scripts/test-timing.sh assert-budget --mode MODE --max-wall SECONDS [--skip-if-missing]
 
 Read per-run and per-test timings from the local JSONL log. No tests are executed.
 
-  report     Show recent runs and slow-test hotspots (default command).
-  record     Append one run to the log (called automatically by test.sh).
-  ingest     Backfill the log from an existing .xcresult bundle on disk.
+  report         Show recent runs and slow-test hotspots (default command).
+  record         Append one run to the log (called automatically by test.sh).
+  ingest         Backfill the log from an existing .xcresult bundle on disk.
+  assert-budget  Fail if the latest run for MODE exceeded the wall-clock budget.
 
 Log file: .DerivedData/TestResults/timing-log.jsonl
 EOF
@@ -320,10 +322,64 @@ def cmd_report(args: list[str]) -> None:
         )
 
 
+def cmd_assert_budget(args: list[str]) -> None:
+    mode = ""
+    max_wall = None
+    skip_if_missing = False
+
+    index = 0
+    while index < len(args):
+        token = args[index]
+        if token == "--mode" and index + 1 < len(args):
+            mode = args[index + 1]
+            index += 2
+            continue
+        if token == "--max-wall" and index + 1 < len(args):
+            max_wall = float(args[index + 1])
+            index += 2
+            continue
+        if token == "--skip-if-missing":
+            skip_if_missing = True
+            index += 1
+            continue
+        index += 1
+
+    if not mode or max_wall is None:
+        raise SystemExit("assert-budget requires --mode and --max-wall")
+
+    entries = [entry for entry in load_entries() if entry.get("mode") == mode]
+    if not entries:
+        if skip_if_missing:
+            print(f"No timing entries for mode '{mode}'; skipping budget check.")
+            return
+        raise SystemExit(f"No timing entries for mode '{mode}' in {log_path}")
+
+    latest = entries[-1]
+    wall_seconds = latest.get("wall_seconds")
+    if wall_seconds is None:
+        wall_seconds = latest.get("summary", {}).get("xcresult_seconds")
+
+    if wall_seconds is None:
+        raise SystemExit(f"Latest '{mode}' timing entry has no wall-clock duration")
+
+    if float(wall_seconds) > max_wall:
+        raise SystemExit(
+            f"Timing budget exceeded for '{mode}': "
+            f"{format_seconds(float(wall_seconds))} > {format_seconds(max_wall)}"
+        )
+
+    print(
+        f"Timing budget OK for '{mode}': "
+        f"{format_seconds(float(wall_seconds))} <= {format_seconds(max_wall)}"
+    )
+
+
 if command == "record":
     cmd_record(sys.argv[3:])
 elif command == "ingest":
     cmd_ingest(sys.argv[3:])
+elif command == "assert-budget":
+    cmd_assert_budget(sys.argv[3:])
 elif command == "report":
     cmd_report(sys.argv[3:])
 else:
@@ -338,7 +394,7 @@ case "$COMMAND" in
   -h|--help|help)
     usage
     ;;
-  record|ingest|report)
+  record|ingest|report|assert-budget)
   run_python "$COMMAND" "$RESULTS_DIR" "$@"
     ;;
   *)

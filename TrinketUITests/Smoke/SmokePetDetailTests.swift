@@ -1,8 +1,11 @@
 import XCTest
 
-final class SmokePetDetailTests: TrinketUITestCase {
+final class SmokePetDetailTests: SeededSmokeUITestCase {
+    override class var launchArguments: [String] {
+        TestLaunchArg.allForScreen("pet:wolf")
+    }
+
     func testWolfPetDetailRenders() {
-        launchApp(arguments: TestLaunchArg.allForScreen("pet:wolf"))
         combatantDetail.assertLoaded(for: "Wolf")
         assertCombatantDetailSections()
     }
