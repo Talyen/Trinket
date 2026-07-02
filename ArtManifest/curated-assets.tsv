@@ -169,3 +169,12 @@ combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of 
 combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
 combatant	imp	pet_imp_card	Raw Assets/Pets/Imp.png	0.50	0.50	Full art of the Imp pet
 background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50	Lush green canopy and winding forest path of the Verdant Forest
+background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.jpeg	0.50	0.50	Golden wheat field at the Homestead
+background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.jpeg	0.50	0.50	Green herb garden at the Homestead
+background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.jpeg	0.50	0.50	Wooden chicken coop at the Homestead
+background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Pasture.jpeg	0.50	0.50	Open pasture at the Homestead
+background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith's Forge.jpeg	0.50	0.50	Blacksmith forge at the Homestead
+background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.jpeg	0.50	0.50	Alchemy lab at the Homestead
+background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.jpeg	0.50	0.50	Blue crystal garden at the Homestead
+background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.jpeg	0.50	0.50	Runesmith workshop at the Homestead
+background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50	Wishing well at the Homestead

@@ -75,7 +75,7 @@ final class StageRewardTests: XCTestCase {
         var inventory = PlayerInventoryState(items: [])
         var homestead = PlayerHomesteadState(
             resources: [:],
-            nodeTiers: [.hearth: 2, .lumberCamp: 2]
+            nodeTiers: [.wheatField: 3]
         )
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
@@ -91,7 +91,7 @@ final class StageRewardTests: XCTestCase {
             journey: &journey
         )
 
-        XCTAssertEqual(homestead.resources[.wood], 10)
+        XCTAssertEqual(homestead.resources[.wood], 9)
         XCTAssertEqual(homestead.resources[.stone], 4)
     }
 

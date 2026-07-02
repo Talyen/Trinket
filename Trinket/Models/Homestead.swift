@@ -40,11 +40,11 @@ enum HomesteadResource: String, CaseIterable, Codable, Hashable, Identifiable {
     var tint: Color {
         switch self {
         case .wood: return .brown
-        case .stone: return .gray
-        case .iron: return .secondary
+        case .stone: return Color(red: 0.58, green: 0.54, blue: 0.48)
+        case .iron: return Color(red: 0.30, green: 0.39, blue: 0.48)
         case .food: return .orange
         case .herbs: return .green
-        case .crystal: return .purple
+        case .crystal: return .cyan
         case .gold: return Keyword.gold.visualStyle.color
         }
     }
@@ -65,13 +65,15 @@ struct ResourceAmount: Codable, Hashable, Identifiable {
 }
 
 enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiable {
-    case hearth
-    case lumberCamp
-    case stoneYard
-    case garden
-    case blacksmithWorkshop
-    case alchemistsLab
-    case arcaneTower
+    case wheatField
+    case herbGarden
+    case chickenCoop
+    case pasture
+    case blacksmithForge
+    case alchemyLab
+    case crystalGarden
+    case runesmithWorkshop
+    case wishingWell
 
     var id: String {
         rawValue
@@ -143,9 +145,9 @@ struct PlayerHomesteadState: Codable, Equatable, Hashable {
                 .crystal: 4
             ],
             nodeTiers: [
-                .hearth: 1,
-                .lumberCamp: 1,
-                .stoneYard: 1
+                .wheatField: 1,
+                .herbGarden: 1,
+                .chickenCoop: 1
             ]
         )
     }
@@ -213,21 +215,22 @@ struct PlayerHomesteadState: Codable, Equatable, Hashable {
 
     private func adjustedQuantity(for reward: ResourceAmount) -> Int {
         var quantity = reward.quantity
-        if tier(for: .hearth) >= 2 {
+        if tier(for: .wheatField) >= 3 || tier(for: .wishingWell) >= 2 {
             quantity += 1
         }
         switch reward.resource {
-        case .wood where tier(for: .lumberCamp) >= 2:
+        case .food where tier(for: .wheatField) >= 2:
             quantity += 1
-        case .stone where tier(for: .stoneYard) >= 2:
+        case .food where tier(for: .chickenCoop) >= 2:
             quantity += 1
-        case .food where tier(for: .garden) >= 2,
-             .herbs where tier(for: .garden) >= 2:
+        case .food where tier(for: .pasture) >= 2:
             quantity += 1
-        case .iron where tier(for: .blacksmithWorkshop) >= 2:
+        case .herbs where tier(for: .herbGarden) >= 2:
             quantity += 1
-        case .crystal where tier(for: .arcaneTower) >= 2:
+        case .iron where tier(for: .blacksmithForge) >= 2:
             quantity += 1
+        case .crystal where tier(for: .crystalGarden) >= 2:
+            quantity += tier(for: .runesmithWorkshop) >= 2 ? 2 : 1
         default:
             break
         }

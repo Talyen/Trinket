@@ -851,6 +851,42 @@ enum ArtCatalog {
             imageName: "bg_verdant_forest",
             accessibilityLabel: "Lush green canopy and winding forest path of the Verdant Forest"
         ),
+        "wheatField": BackgroundArtReference(
+            imageName: "bg_homestead_wheat_field",
+            accessibilityLabel: "Golden wheat field at the Homestead"
+        ),
+        "herbGarden": BackgroundArtReference(
+            imageName: "bg_homestead_herb_garden",
+            accessibilityLabel: "Green herb garden at the Homestead"
+        ),
+        "chickenCoop": BackgroundArtReference(
+            imageName: "bg_homestead_chicken_coop",
+            accessibilityLabel: "Wooden chicken coop at the Homestead"
+        ),
+        "pasture": BackgroundArtReference(
+            imageName: "bg_homestead_pasture",
+            accessibilityLabel: "Open pasture at the Homestead"
+        ),
+        "blacksmithForge": BackgroundArtReference(
+            imageName: "bg_homestead_blacksmith_forge",
+            accessibilityLabel: "Blacksmith forge at the Homestead"
+        ),
+        "alchemyLab": BackgroundArtReference(
+            imageName: "bg_homestead_alchemy_lab",
+            accessibilityLabel: "Alchemy lab at the Homestead"
+        ),
+        "crystalGarden": BackgroundArtReference(
+            imageName: "bg_homestead_crystal_garden",
+            accessibilityLabel: "Blue crystal garden at the Homestead"
+        ),
+        "runesmithWorkshop": BackgroundArtReference(
+            imageName: "bg_homestead_runesmith_workshop",
+            accessibilityLabel: "Runesmith workshop at the Homestead"
+        ),
+        "wishingWell": BackgroundArtReference(
+            imageName: "bg_homestead_wishing_well",
+            accessibilityLabel: "Wishing well at the Homestead"
+        ),
     ]
 
 }

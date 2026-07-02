@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "bg_homestead_alchemy_lab.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

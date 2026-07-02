@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "bg_homestead_crystal_garden.heic",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

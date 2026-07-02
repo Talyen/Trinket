@@ -3,168 +3,168 @@ import SwiftUI
 extension GameContent {
     static let homesteadNodes: [HomesteadNodeDefinition] = [
         HomesteadNodeDefinition(
-            id: .hearth,
-            title: "Hearth",
-            summary: "The warm center of the Homestead and the trunk for future growth.",
-            symbolName: "flame.fill",
-            tint: .red,
+            id: .wheatField,
+            title: "Wheat Field",
+            summary: "A first field that turns quiet earth into dependable stores.",
+            symbolName: "leaf.fill",
+            tint: .orange,
             branch: .trunk,
             prerequisites: [],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.stone, 6)],
+                    cost: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 4)],
                     bonus: HomesteadBonus(
-                        title: "Homestead Founded",
-                        description: "Unlocks the first construction projects."
+                        title: "First Rows",
+                        description: "Stages can award Food for Homestead projects."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.stone, 16), ResourceAmount(.food, 8)],
+                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 8), ResourceAmount(.gold, 14)],
                     bonus: HomesteadBonus(
-                        title: "Settled Rhythm",
+                        title: "Steady Harvest",
+                        description: "Food rewards from stages gain +1 when present."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 16), ResourceAmount(.food, 18), ResourceAmount(.gold, 28)],
+                    bonus: HomesteadBonus(
+                        title: "Granary Rhythm",
                         description: "Material rewards from stages gain +1 when present."
                     )
-                ),
-                HomesteadNodeTier(
-                    tier: 3,
-                    cost: [ResourceAmount(.wood, 40), ResourceAmount(.stone, 28), ResourceAmount(.iron, 10), ResourceAmount(.gold, 45)],
-                    bonus: HomesteadBonus(
-                        title: "Village Anchor",
-                        description: "Unlocks advanced Homestead branches and reinforces resource gains."
-                    )
                 )
             ]
         ),
         HomesteadNodeDefinition(
-            id: .lumberCamp,
-            title: "Lumber Camp",
-            summary: "A practical camp that turns forest routes into steady building supplies.",
-            symbolName: "tree.fill",
-            tint: .brown,
-            branch: .left,
-            prerequisites: [HomesteadNodeRequirement(.hearth)],
-            tiers: [
-                HomesteadNodeTier(
-                    tier: 1,
-                    cost: [ResourceAmount(.wood, 8), ResourceAmount(.gold, 10)],
-                    bonus: HomesteadBonus(
-                        title: "Wood Routes",
-                        description: "Stages can award Wood for Homestead construction."
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 2,
-                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.stone, 8), ResourceAmount(.gold, 20)],
-                    bonus: HomesteadBonus(
-                        title: "Better Axes",
-                        description: "Wood rewards from stages gain +1 when present."
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 3,
-                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 18), ResourceAmount(.iron, 6), ResourceAmount(.gold, 35)],
-                    bonus: HomesteadBonus(
-                        title: "Seasoned Crew",
-                        description: "Wood-heavy projects become easier to sustain."
-                    )
-                )
-            ]
-        ),
-        HomesteadNodeDefinition(
-            id: .stoneYard,
-            title: "Stone Yard",
-            summary: "A quarry yard for durable walls, roads, and future workshops.",
-            symbolName: "mountain.2.fill",
-            tint: .gray,
-            branch: .right,
-            prerequisites: [HomesteadNodeRequirement(.hearth)],
-            tiers: [
-                HomesteadNodeTier(
-                    tier: 1,
-                    cost: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 10), ResourceAmount(.gold, 12)],
-                    bonus: HomesteadBonus(
-                        title: "Stone Routes",
-                        description: "Stages can award Stone for sturdier construction."
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 2,
-                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 24), ResourceAmount(.gold, 24)],
-                    bonus: HomesteadBonus(
-                        title: "Cut Stone",
-                        description: "Stone rewards from stages gain +1 when present."
-                    )
-                ),
-                HomesteadNodeTier(
-                    tier: 3,
-                    cost: [ResourceAmount(.stone, 44), ResourceAmount(.iron, 8), ResourceAmount(.gold, 38)],
-                    bonus: HomesteadBonus(
-                        title: "Foundation Work",
-                        description: "Major buildings gain a stronger construction base."
-                    )
-                )
-            ]
-        ),
-        HomesteadNodeDefinition(
-            id: .garden,
-            title: "Garden",
-            summary: "A living branch for food stores, herbs, and gentler journey support.",
+            id: .herbGarden,
+            title: "Herb Garden",
+            summary: "A small medicinal garden for tonics, reagents, and green magic.",
             symbolName: "leaf.fill",
             tint: .green,
             branch: .left,
-            prerequisites: [HomesteadNodeRequirement(.lumberCamp)],
+            prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 6), ResourceAmount(.food, 8), ResourceAmount(.gold, 16)],
+                    cost: [ResourceAmount(.wood, 12), ResourceAmount(.food, 6), ResourceAmount(.gold, 10)],
                     bonus: HomesteadBonus(
-                        title: "Seed Beds",
-                        description: "Stages can award Food and Herbs."
+                        title: "Seeded Beds",
+                        description: "Stages can award Herbs for support projects."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 28), ResourceAmount(.food, 18), ResourceAmount(.herbs, 8), ResourceAmount(.gold, 28)],
+                    cost: [ResourceAmount(.wood, 22), ResourceAmount(.food, 12), ResourceAmount(.herbs, 8), ResourceAmount(.gold, 22)],
                     bonus: HomesteadBonus(
                         title: "Tended Rows",
-                        description: "Food and Herb rewards from stages gain +1 when present."
+                        description: "Herb rewards from stages gain +1 when present."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 18), ResourceAmount(.food, 28), ResourceAmount(.herbs, 16), ResourceAmount(.gold, 42)],
+                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.herbs, 20), ResourceAmount(.gold, 38)],
                     bonus: HomesteadBonus(
-                        title: "Harvest Stores",
-                        description: "Rest and Event rewards can lean further into Food and Herbs."
+                        title: "Medicinal Stores",
+                        description: "Rest and event rewards can lean further into Herbs."
                     )
                 )
             ]
         ),
         HomesteadNodeDefinition(
-            id: .blacksmithWorkshop,
-            title: "Blacksmith's Workshop",
-            summary: "A forge for metalwork, item support, and focused Physical power.",
+            id: .chickenCoop,
+            title: "Chicken Coop",
+            summary: "A lively coop that keeps simple supplies moving between runs.",
+            symbolName: "bird.fill",
+            tint: .yellow,
+            branch: .right,
+            prerequisites: [HomesteadNodeRequirement(.wheatField)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 14), ResourceAmount(.food, 8), ResourceAmount(.gold, 12)],
+                    bonus: HomesteadBonus(
+                        title: "Morning Feed",
+                        description: "Food can appear more often in early Homestead rewards."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.food, 16), ResourceAmount(.gold, 24)],
+                    bonus: HomesteadBonus(
+                        title: "Full Nesting Boxes",
+                        description: "Food rewards from stages gain +1 when present."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.food, 28), ResourceAmount(.gold, 40)],
+                    bonus: HomesteadBonus(
+                        title: "Kitchen Supply",
+                        description: "Future Homestead tuning can support repeatable meal rewards."
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .pasture,
+            title: "Pasture",
+            summary: "Open grazing land for larger stores and slower, stronger support.",
+            symbolName: "mountain.2.fill",
+            tint: .mint,
+            branch: .right,
+            prerequisites: [HomesteadNodeRequirement(.chickenCoop, tier: 2)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 12), ResourceAmount(.food, 14), ResourceAmount(.gold, 18)],
+                    bonus: HomesteadBonus(
+                        title: "Grazing Fence",
+                        description: "Food spending supports larger late Homestead projects."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 18), ResourceAmount(.food, 24), ResourceAmount(.gold, 34)],
+                    bonus: HomesteadBonus(
+                        title: "Healthy Stock",
+                        description: "Food rewards from stages gain +1 when present."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.wood, 40), ResourceAmount(.stone, 28), ResourceAmount(.food, 40), ResourceAmount(.iron, 6), ResourceAmount(.gold, 52)],
+                    bonus: HomesteadBonus(
+                        title: "Trade Herd",
+                        description: "Future reward tuning can turn excess Food into broader supplies."
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .blacksmithForge,
+            title: "Blacksmith's Forge",
+            summary: "A working forge for hardware, weapons, and stronger construction.",
             symbolName: "hammer.fill",
             tint: .orange,
             branch: .right,
             prerequisites: [
-                HomesteadNodeRequirement(.stoneYard),
-                HomesteadNodeRequirement(.lumberCamp)
+                HomesteadNodeRequirement(.chickenCoop),
+                HomesteadNodeRequirement(.herbGarden)
             ],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.wood, 22), ResourceAmount(.stone, 18), ResourceAmount(.iron, 8), ResourceAmount(.gold, 24)],
+                    cost: [ResourceAmount(.wood, 20), ResourceAmount(.stone, 20), ResourceAmount(.iron, 6), ResourceAmount(.gold, 24)],
                     bonus: HomesteadBonus(
-                        title: "Working Forge",
+                        title: "Working Bellows",
                         description: "Stages can award Iron for advanced construction."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 28), ResourceAmount(.iron, 18), ResourceAmount(.gold, 40)],
+                    cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 30), ResourceAmount(.iron, 16), ResourceAmount(.gold, 42)],
                     bonus: HomesteadBonus(
                         title: "Sharper Tools",
                         description: "Iron rewards from stages gain +1 when present."
@@ -172,29 +172,29 @@ extension GameContent {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.stone, 42), ResourceAmount(.iron, 32), ResourceAmount(.crystal, 4), ResourceAmount(.gold, 60)],
+                    cost: [ResourceAmount(.stone, 46), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 4), ResourceAmount(.gold, 64)],
                     bonus: HomesteadBonus(
-                        title: "Tempered Edge",
-                        description: "Future combat tuning can grant a small Physical damage bonus."
+                        title: "Tempered Work",
+                        description: "Future combat tuning can grant small Physical support."
                     )
                 )
             ]
         ),
         HomesteadNodeDefinition(
-            id: .alchemistsLab,
-            title: "Alchemist's Lab",
-            summary: "A precise workspace for herbs, tonics, and restorative experiments.",
+            id: .alchemyLab,
+            title: "Alchemy Lab",
+            summary: "A precise workspace for reagents, tonics, and restorative experiments.",
             symbolName: "testtube.2",
             tint: .mint,
             branch: .left,
             prerequisites: [
-                HomesteadNodeRequirement(.garden, tier: 2),
-                HomesteadNodeRequirement(.stoneYard)
+                HomesteadNodeRequirement(.herbGarden, tier: 2),
+                HomesteadNodeRequirement(.blacksmithForge)
             ],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 18), ResourceAmount(.food, 12), ResourceAmount(.herbs, 14), ResourceAmount(.gold, 28)],
+                    cost: [ResourceAmount(.stone, 18), ResourceAmount(.food, 10), ResourceAmount(.herbs, 14), ResourceAmount(.gold, 28)],
                     bonus: HomesteadBonus(
                         title: "Herbal Workbench",
                         description: "Unlocks Herb spending for support upgrades."
@@ -202,7 +202,7 @@ extension GameContent {
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 3), ResourceAmount(.gold, 44)],
+                    cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 3), ResourceAmount(.gold, 46)],
                     bonus: HomesteadBonus(
                         title: "Restorative Notes",
                         description: "Future utility tuning can improve rest and healing rewards."
@@ -210,7 +210,7 @@ extension GameContent {
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 10), ResourceAmount(.herbs, 42), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 66)],
+                    cost: [ResourceAmount(.iron, 10), ResourceAmount(.herbs, 42), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 68)],
                     bonus: HomesteadBonus(
                         title: "Refined Reagents",
                         description: "Future combat tuning can support Health, Poison, or Nature effects."
@@ -219,39 +219,112 @@ extension GameContent {
             ]
         ),
         HomesteadNodeDefinition(
-            id: .arcaneTower,
-            title: "Arcane Tower",
-            summary: "A late branch for crystal work, rare rewards, and magical study.",
+            id: .crystalGarden,
+            title: "Crystal Garden",
+            summary: "A luminous garden where rare formations grow around quiet magic.",
             symbolName: "sparkles",
-            tint: .purple,
-            branch: .right,
-            prerequisites: [
-                HomesteadNodeRequirement(.hearth, tier: 3),
-                HomesteadNodeRequirement(.blacksmithWorkshop, tier: 2)
-            ],
+            tint: .cyan,
+            branch: .left,
+            prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
-                    cost: [ResourceAmount(.stone, 30), ResourceAmount(.iron, 14), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 45)],
+                    cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 18), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 42)],
                     bonus: HomesteadBonus(
-                        title: "Crystal Focus",
-                        description: "Unlocks Crystal spending for magical Homestead upgrades."
+                        title: "Crystal Shoots",
+                        description: "Stages can award Crystal for magical Homestead upgrades."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
-                    cost: [ResourceAmount(.stone, 42), ResourceAmount(.iron, 22), ResourceAmount(.crystal, 16), ResourceAmount(.gold, 70)],
+                    cost: [ResourceAmount(.stone, 38), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 14), ResourceAmount(.gold, 64)],
                     bonus: HomesteadBonus(
-                        title: "Resonant Study",
+                        title: "Resonant Growth",
                         description: "Crystal rewards from stages gain +1 when present."
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
-                    cost: [ResourceAmount(.iron, 34), ResourceAmount(.herbs, 24), ResourceAmount(.crystal, 30), ResourceAmount(.gold, 100)],
+                    cost: [ResourceAmount(.iron, 18), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 88)],
                     bonus: HomesteadBonus(
-                        title: "Attuned Spire",
-                        description: "Future combat tuning can support non-Physical keyword bonuses."
+                        title: "Blue Bloom",
+                        description: "Future magical tuning can support non-Physical keyword bonuses."
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .runesmithWorkshop,
+            title: "Runesmith's Workshop",
+            summary: "A careful workshop where metalwork and crystal study meet.",
+            symbolName: "wand.and.sparkles",
+            tint: .indigo,
+            branch: .right,
+            prerequisites: [
+                HomesteadNodeRequirement(.blacksmithForge, tier: 2),
+                HomesteadNodeRequirement(.crystalGarden)
+            ],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 52)],
+                    bonus: HomesteadBonus(
+                        title: "Etched Tools",
+                        description: "Crystal spending begins to reinforce crafted upgrades."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.stone, 42), ResourceAmount(.iron, 28), ResourceAmount(.crystal, 20), ResourceAmount(.gold, 76)],
+                    bonus: HomesteadBonus(
+                        title: "Resonant Runes",
+                        description: "Crystal rewards from stages gain another +1 when present."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.iron, 44), ResourceAmount(.herbs, 24), ResourceAmount(.crystal, 34), ResourceAmount(.gold, 110)],
+                    bonus: HomesteadBonus(
+                        title: "Attuned Craft",
+                        description: "Future item tuning can support magical equipment paths."
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .wishingWell,
+            title: "Wishing Well",
+            summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
+            symbolName: "drop.circle.fill",
+            tint: .blue,
+            branch: .trunk,
+            prerequisites: [
+                HomesteadNodeRequirement(.crystalGarden, tier: 2),
+                HomesteadNodeRequirement(.runesmithWorkshop, tier: 2)
+            ],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 18), ResourceAmount(.gold, 70)],
+                    bonus: HomesteadBonus(
+                        title: "Clear Water",
+                        description: "Late Homestead rewards can lean into rarer materials."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.stone, 56), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 110)],
+                    bonus: HomesteadBonus(
+                        title: "Answered Wish",
+                        description: "Material rewards from stages gain +1 when present."
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.iron, 46), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 44), ResourceAmount(.gold, 160)],
+                    bonus: HomesteadBonus(
+                        title: "Lucky Return",
+                        description: "Future reward tuning can occasionally improve rare drops."
                     )
                 )
             ]
