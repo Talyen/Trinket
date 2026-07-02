@@ -123,6 +123,15 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
+    func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 12, file: StaticString = #file, line: UInt = #line) {
+        let element = app.descendants(matching: .any)[identifier]
+        scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
+        guard element.exists else {
+            fail("Element '\(identifier)' not found after scroll", file: file, line: line)
+            return
+        }
+    }
+
     func goBack() {
         let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
         guard navBackButton.waitForExistence(timeout: 5) else { return }

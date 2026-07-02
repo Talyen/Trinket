@@ -55,11 +55,11 @@ struct CombatantDetailPane: View {
                                 value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)",
                                 accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
                             )
-                            statRow("Strength", value: formattedStat(base: combatant.primaryStats.strength, effective: effectiveCombatant.primaryStats.strength))
-                            statRow("Agility", value: formattedStat(base: combatant.primaryStats.agility, effective: effectiveCombatant.primaryStats.agility))
-                            statRow("Toughness", value: formattedStat(base: combatant.primaryStats.toughness, effective: effectiveCombatant.primaryStats.toughness))
-                            statRow("Intellect", value: formattedStat(base: combatant.primaryStats.intellect, effective: effectiveCombatant.primaryStats.intellect))
-                            statRow("Wisdom", value: formattedStat(base: combatant.primaryStats.wisdom, effective: effectiveCombatant.primaryStats.wisdom))
+                            statRow("Strength", value: "\(effectiveCombatant.primaryStats.strength)")
+                            statRow("Agility", value: "\(effectiveCombatant.primaryStats.agility)")
+                            statRow("Toughness", value: "\(effectiveCombatant.primaryStats.toughness)")
+                            statRow("Intellect", value: "\(effectiveCombatant.primaryStats.intellect)")
+                            statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
                         }
 
                         if !activeEffectSummaries.isEmpty {
@@ -133,12 +133,6 @@ struct CombatantDetailPane: View {
     private var currentHealth: Int {
         battleHealth ?? combatBuild.effectiveMaxHealth
     }
-
-    private func formattedStat(base: Int, effective: Int) -> String {
-        guard effective != base else { return "\(base)" }
-        return "\(base) → \(effective)"
-    }
-
     private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {
         LabeledContent {
             Text(value)

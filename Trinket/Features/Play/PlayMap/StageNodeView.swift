@@ -57,7 +57,7 @@ struct StageNodeView: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(iconBackground)
 
-            Image(systemName: statusSymbolName)
+            Image(systemName: style.symbolName)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(statusTint)
                 .symbolRenderingMode(.hierarchical)
@@ -78,12 +78,12 @@ struct StageNodeView: View {
             }
             .trinketPrimaryActionButton()
             .controlSize(.regular)
-            .tint(encounterTint)
-            .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+            .tint(stage.encounter.mapTint)
+            .accessibilityIdentifier(StageMapID.stageNode(for: stage))
             .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title), \(stageSubtitle)")
             .accessibilityHint("Opens the stage preview.")
         } else {
-            Label(statusLabel, systemImage: statusSymbolName)
+            Label(style.label, systemImage: style.symbolName)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(statusTint)
                 .frame(maxWidth: .infinity)
@@ -105,8 +105,8 @@ struct StageNodeView: View {
         }
     }
 
-    private var encounterTint: Color {
-        stage.encounter.mapTint
+    private var style: StageNodeStyle {
+        StageNodeStyle.style(for: state, encounter: stage.encounter)
     }
 
     private var titleStyle: Color {
@@ -120,7 +120,7 @@ struct StageNodeView: View {
     private var statusTint: Color {
         switch state {
         case .active:
-            return encounterTint
+            return stage.encounter.mapTint
         case .completed, .justCompleted:
             return TrinketDesign.Colors.success.opacity(0.86)
         case .future:
@@ -128,21 +128,10 @@ struct StageNodeView: View {
         }
     }
 
-    private var statusSymbolName: String {
-        switch state {
-        case .active:
-            return stage.encounter.symbolName
-        case .completed, .justCompleted:
-            return "checkmark.circle.fill"
-        case .future:
-            return "lock.fill"
-        }
-    }
-
     private var iconBackground: Color {
         switch state {
         case .active:
-            return encounterTint.opacity(0.14)
+            return stage.encounter.mapTint.opacity(0.14)
         case .completed, .justCompleted:
             return TrinketDesign.Colors.success.opacity(0.12)
         case .future:
@@ -164,7 +153,7 @@ struct StageNodeView: View {
     private var borderColor: Color {
         switch state {
         case .active:
-            return encounterTint.opacity(0.46)
+            return stage.encounter.mapTint.opacity(0.46)
         case .completed, .justCompleted:
             return TrinketDesign.Colors.success.opacity(0.24)
         case .future:
@@ -191,22 +180,11 @@ struct StageNodeView: View {
     private var chipBackground: Color {
         switch state {
         case .active:
-            return encounterTint.opacity(0.12)
+            return stage.encounter.mapTint.opacity(0.12)
         case .completed, .justCompleted:
             return TrinketDesign.Colors.success.opacity(0.12)
         case .future:
             return Color.secondary.opacity(0.10)
-        }
-    }
-
-    private var statusLabel: String {
-        switch state {
-        case .active:
-            return stage.encounter.title
-        case .completed, .justCompleted:
-            return "Cleared"
-        case .future:
-            return "Locked"
         }
     }
 }

@@ -38,7 +38,15 @@ struct PlayView: View {
             ChapterStageSelectView(
                 chapter: appState.playChapter,
                 progress: appState.journey.current,
-                onStageTap: handleStageTap
+                activeHero: appState.roster.activeHero,
+                activePet: appState.roster.activePet,
+                heroes: appState.roster.heroes,
+                pets: appState.roster.pets,
+                activeHeroID: appState.roster.current.activeHeroID,
+                activePetID: appState.roster.current.activePetID,
+                onStageTap: handleStageTap,
+                onSetActiveHero: { appState.roster.setActiveHero($0) },
+                onSetActivePet: { appState.roster.setActivePet($0) }
             )
         }
     }

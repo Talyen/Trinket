@@ -298,18 +298,6 @@ enum GameContent {
                 ultimates: [.crystalBulwark, .plateMail]
             ),
             primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 11, intellect: 1, wisdom: 3)
-        ),
-        Combatant(
-            id: "imp",
-            name: "Imp",
-            role: .pet,
-            maxHealth: 6,
-            abilityChoices: AbilityChoices(
-                basics: [.kindling, .fangs],
-                skills: [.fireball, .darkPact],
-                ultimates: [.combustion, .faustianBargain]
-            ),
-            primaryStats: PrimaryStats(strength: 4, agility: 7, toughness: 2, intellect: 9, wisdom: 4)
         )
     ]
 

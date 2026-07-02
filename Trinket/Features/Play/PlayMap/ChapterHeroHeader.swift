@@ -11,15 +11,7 @@ struct ChapterHeroHeader: View {
             ZStack {
                 TrinketDesign.Colors.appBackground
 
-                if !reduceTransparency,
-                   let bgImageName = ArtCatalog.backgroundArtByID[chapter.id]?.imageName {
-                    Image(bgImageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped()
-                        .accessibilityHidden(true)
-                }
+                ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
 
                 LinearGradient(
                     colors: [

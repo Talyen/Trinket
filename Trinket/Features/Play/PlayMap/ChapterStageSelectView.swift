@@ -9,7 +9,41 @@ struct ChapterStageSelectView: View {
 
     let chapter: Chapter
     let progress: JourneyProgressState
+    let activeHero: Combatant
+    let activePet: Combatant
+    let heroes: [Combatant]
+    let pets: [Combatant]
+    let activeHeroID: String
+    let activePetID: String
     let onStageTap: (Stage) -> Void
+    let onSetActiveHero: (Combatant) -> Void
+    let onSetActivePet: (Combatant) -> Void
+
+    init(
+        chapter: Chapter,
+        progress: JourneyProgressState,
+        activeHero: Combatant,
+        activePet: Combatant,
+        heroes: [Combatant],
+        pets: [Combatant],
+        activeHeroID: String,
+        activePetID: String,
+        onStageTap: @escaping (Stage) -> Void,
+        onSetActiveHero: @escaping (Combatant) -> Void,
+        onSetActivePet: @escaping (Combatant) -> Void
+    ) {
+        self.chapter = chapter
+        self.progress = progress
+        self.activeHero = activeHero
+        self.activePet = activePet
+        self.heroes = heroes
+        self.pets = pets
+        self.activeHeroID = activeHeroID
+        self.activePetID = activePetID
+        self.onStageTap = onStageTap
+        self.onSetActiveHero = onSetActiveHero
+        self.onSetActivePet = onSetActivePet
+    }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -79,8 +113,8 @@ struct ChapterStageSelectView: View {
         case let .stage(node):
             JourneyStageRow(
                 node: node,
-                activeHero: appState.roster.activeHero,
-                activePet: appState.roster.activePet,
+                activeHero: activeHero,
+                activePet: activePet,
                 onHeroPicker: { partyPicker = .hero },
                 onPetPicker: { partyPicker = .pet },
                 onPrimaryAction: { onStageTap(node.stage) }
@@ -109,27 +143,27 @@ struct ChapterStageSelectView: View {
     private func combatants(for picker: PartyPickerKind) -> [Combatant] {
         switch picker {
         case .hero:
-            return appState.roster.heroes
+            return heroes
         case .pet:
-            return appState.roster.pets
+            return pets
         }
     }
 
     private func selectedID(for picker: PartyPickerKind) -> String {
         switch picker {
         case .hero:
-            return appState.roster.current.activeHeroID
+            return activeHeroID
         case .pet:
-            return appState.roster.current.activePetID
+            return activePetID
         }
     }
 
     private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
         switch picker {
         case .hero:
-            appState.roster.setActiveHero(combatant)
+            onSetActiveHero(combatant)
         case .pet:
-            appState.roster.setActivePet(combatant)
+            onSetActivePet(combatant)
         }
     }
 }
@@ -188,27 +222,6 @@ private struct ChapterJourneyHero: View {
         .clipped()
         .ignoresSafeArea(edges: .top)
         .accessibilityElement(children: .contain)
-    }
-}
-
-private struct ChapterArt: View {
-    let chapter: Chapter
-    let reduceTransparency: Bool
-
-    var body: some View {
-        ZStack {
-            chapter.theme.tint.opacity(0.22)
-
-            if !reduceTransparency,
-               let bgImageName = ArtCatalog.backgroundArtByID[chapter.id]?.imageName {
-                Image(bgImageName)
-                    .resizable()
-                    .scaledToFill()
-                    .accessibilityHidden(true)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
     }
 }
 
@@ -280,7 +293,7 @@ private struct ActiveStageCard: View {
             }
             .trinketPrimaryActionButton()
             .tint(stage.encounter.mapTint)
-            .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+            .accessibilityIdentifier(StageMapID.stageNode(for: stage))
             .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title)")
             .sensoryFeedback(.selection, trigger: actionFeedbackTrigger)
         }
@@ -319,7 +332,7 @@ private struct LockedStageCard: View {
                 .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+        .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), locked \(stage.encounter.title), \(stage.encounterSubjectName)")
     }
 }
@@ -361,128 +374,12 @@ private struct CompletedStageRow: View {
         .padding(12)
         .background(Color(.tertiarySystemBackground).opacity(0.54), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("Stage \(stage.chapterNumber)-\(stage.stageNumber) Node")
+        .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), complete, \(stage.encounterSubjectName)")
     }
 }
 
-private struct StageStatusHeader: View {
-    let stage: Stage
-    let state: StageNodeState
 
-    var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Label(stage.encounter.title, systemImage: state.symbolName(for: stage))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(state.tint(for: stage))
-                .labelStyle(.titleAndIcon)
-
-            Spacer(minLength: 8)
-
-            Text(stage.mapLabel)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
-
-        Text(stage.encounterSubjectName)
-            .font(.title3.weight(.bold))
-            .foregroundStyle(state == .future ? .secondary : .primary)
-            .lineLimit(2)
-            .minimumScaleFactor(0.86)
-    }
-}
-
-private struct EncounterArtwork: View {
-    let stage: Stage
-    let isLocked: Bool
-
-    var body: some View {
-        ZStack {
-            if let art = stage.encounterArtReference {
-                Image(art.thumbnailImageName ?? art.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .saturation(isLocked ? 0.48 : 1)
-                    .opacity(isLocked ? 0.72 : 1)
-                    .accessibilityLabel(art.accessibilityLabel)
-            } else {
-                stage.encounter.mapTint.opacity(0.14)
-                Image(systemName: stage.encounter.symbolName)
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(stage.encounter.mapTint)
-                    .symbolRenderingMode(.hierarchical)
-                    .accessibilityHidden(true)
-            }
-
-            if isLocked {
-                Rectangle()
-                    .fill(.black.opacity(0.22))
-                    .accessibilityHidden(true)
-
-                Label("Locked", systemImage: "lock.fill")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.black.opacity(0.36), in: Capsule())
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .clipped()
-    }
-}
-
-private struct ActivePartyPickerRow: View {
-    let hero: Combatant
-    let pet: Combatant
-    let onHeroPicker: () -> Void
-    let onPetPicker: () -> Void
-
-    var body: some View {
-        HStack(spacing: 10) {
-            CompactPartyButton(title: "Hero", combatant: hero, onSelect: onHeroPicker)
-            CompactPartyButton(title: "Pet", combatant: pet, onSelect: onPetPicker)
-        }
-    }
-}
-
-private struct CompactPartyButton: View {
-    let title: String
-    let combatant: Combatant
-    let onSelect: () -> Void
-
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 8) {
-                CombatantArtwork(combatant: combatant, variant: .card)
-                    .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Text(combatant.name)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 4)
-
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-            }
-            .padding(8)
-            .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("\(title) Party Picker")
-        .accessibilityLabel("\(title), \(combatant.name)")
-    }
-}
 
 private struct JourneyChapterGate: View {
     let chapter: Chapter
@@ -522,58 +419,9 @@ private struct JourneyChapterGate: View {
                 .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("Chapter \(chapter.number) Locked")
+        .accessibilityIdentifier(StageMapID.chapterLocked(chapter))
         .accessibilityLabel("Chapter \(chapter.number), locked")
     }
 }
 
-private struct JourneyScrollTransition: ViewModifier {
-    let isEnabled: Bool
 
-    func body(content: Content) -> some View {
-        if isEnabled {
-            content.scrollTransition(.interactive, axis: .vertical) { view, phase in
-                view
-                    .scaleEffect(phase.isIdentity ? 1.03 : 0.94)
-                    .blur(radius: min(abs(phase.value) * 0.75, 0.75))
-            }
-        } else {
-            content
-        }
-    }
-}
-
-private extension StageEncounter {
-    var artAspectRatio: CGFloat {
-        switch self {
-        case .battle:
-            return 1
-        case .event, .shop, .rest:
-            return 4.0 / 3.0
-        }
-    }
-}
-
-private extension StageNodeState {
-    func symbolName(for stage: Stage) -> String {
-        switch self {
-        case .active:
-            return stage.encounter.symbolName
-        case .completed, .justCompleted:
-            return "checkmark.circle.fill"
-        case .future:
-            return "lock.fill"
-        }
-    }
-
-    func tint(for stage: Stage) -> Color {
-        switch self {
-        case .active:
-            return stage.encounter.mapTint
-        case .completed, .justCompleted:
-            return TrinketDesign.Colors.success
-        case .future:
-            return .secondary
-        }
-    }
-}

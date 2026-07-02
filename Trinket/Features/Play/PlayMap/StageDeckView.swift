@@ -111,13 +111,13 @@ struct StageDeckCardView: View {
             } else {
                 StageNodeView(stage: node.stage, state: node.state)
                     .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("Stage \(node.stage.chapterNumber)-\(node.stage.stageNumber) Node")
+                    .accessibilityIdentifier(StageMapID.stageNode(for: node.stage))
                     .accessibilityLabel(accessibilityLabel(for: node))
             }
         case let .chapterGate(chapter):
             ChapterGateCardView(chapter: chapter)
                 .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("Chapter \(chapter.number) Locked")
+                .accessibilityIdentifier(StageMapID.chapterLocked(chapter))
                 .accessibilityLabel("Chapter \(chapter.number), locked")
         }
     }
