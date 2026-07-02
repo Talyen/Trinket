@@ -63,11 +63,7 @@ enum BattleTurnEngine {
         }
 
         var appliedEffectLogs: [String] = []
-        let effectsToApply: [TargetedEffect] = ability.targetedEffects.isEmpty
-            ? (ability.statusApplication.map {
-                [TargetedEffect(Effect.effect(from: $0), target: .abilityTarget)]
-            } ?? [])
-            : ability.targetedEffects
+        let effectsToApply = ability.targetedEffects
 
         var context = state.makeMutationContext()
         if ability.directDamage > 0 {

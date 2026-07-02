@@ -37,6 +37,7 @@
 		2BF4E72201FBD88218D03D9A /* CombatPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA8BF8FF93DD1379E4DB812 /* CombatPipeline.swift */; };
 		2CA3D242D2D61C8D795CD130 /* AbilityTierPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF4265C96C40FA204B6FBCF3 /* AbilityTierPickerSheet.swift */; };
 		2F69665B3C9BED8030C553CE /* SeededRandomNumberGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B84FDFE6027513E5DC73E8 /* SeededRandomNumberGenerator.swift */; };
+		2FC6EEDFF35F8B1316AF68A4 /* AbilityLoadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E6926997266DF1B59FC6ECA /* AbilityLoadout.swift */; };
 		3053162A7F2673D9819621A9 /* PlayerInventoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4362E34D0EBFEC0161B41D12 /* PlayerInventoryStoreTests.swift */; };
 		3053ECE7D253C0B6E5536E88 /* MusicModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568CA731A0659B6B990993E3 /* MusicModels.swift */; };
 		31254003BDFA01AAF1EDB152 /* ExperienceBarSegmentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7305773ADC230EBA65FB0A0 /* ExperienceBarSegmentsTests.swift */; };
@@ -111,6 +112,7 @@
 		8BD03FC0796658295F9F4780 /* BattleRosterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C4D50FADF880BDD7F906E /* BattleRosterTests.swift */; };
 		8CB2B5231C90DFAAEAD03096 /* EffectHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB34D1D4670238D0F5FDA8AC /* EffectHandlers.swift */; };
 		8D85CF63EFB5707D87D4EBE1 /* PlayerSaveReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FADE52B6934F24A407CABB /* PlayerSaveReconcilerTests.swift */; };
+		8F0C1BF362D1EB2E09D38EDC /* ActiveEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = E59A9FA1820FD7DCB3EAFFF7 /* ActiveEffect.swift */; };
 		8F4B05322F9DA9D389DDC505 /* music_battle_3.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A036509514F16E54AF1B8F5E /* music_battle_3.m4a */; };
 		96E51495701F82082C0C1F44 /* SmokeCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE0DB7E80868E33B5F827DB /* SmokeCollectionTests.swift */; };
 		97CC981C9842EDA07152AA3A /* MusicDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C55218B0202C07C8ADF98E68 /* MusicDirectorTests.swift */; };
@@ -142,7 +144,9 @@
 		BA8E7EE4C04A26945E262726 /* AppStatePlayFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365F8B4B42A8B4B938E3BDE4 /* AppStatePlayFlowTests.swift */; };
 		BB33F5B0A916F9457D64396D /* music_battle_1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6B4E8FD77E55437261556342 /* music_battle_1.m4a */; };
 		BC9C45ECBB823F9356789E87 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32679C1A9BAE8ADE74DBFD34 /* ContentView.swift */; };
+		BD06E4B710CD9738D50D9C54 /* AbilityCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6158147859D7B5C9C43E2845 /* AbilityCatalog.swift */; };
 		BD139CD142E1F4873E643191 /* PlayerHomesteadStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A2C1FD0D8858F75471705A /* PlayerHomesteadStoreTests.swift */; };
+		BEF03ACACDA7738CAA623D33 /* Effect.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAA9BB06EC8B0FA78E657DAD /* Effect.swift */; };
 		C02A14CACDFA3B55550636F4 /* PlayerSaveSyncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766CB88EF7942D0B76F2F24B /* PlayerSaveSyncing.swift */; };
 		C0661CA85EC3C684B645087A /* ItemGenerationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A6868CF214763A40480F37 /* ItemGenerationTests.swift */; };
 		C0A4A9DDD830A67EE2F5AFF5 /* AbilitySummaryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CA1D20B1A35114D2B61598 /* AbilitySummaryGrid.swift */; };
@@ -179,6 +183,7 @@
 		DB43434C1290C0EFD6BDD271 /* ArtCatalog.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B17566A405416D98A55797 /* ArtCatalog.generated.swift */; };
 		DB4EA834D7244C953F25B3A8 /* ChapterGateCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 714F7893C025C5D39239B018 /* ChapterGateCardView.swift */; };
 		DC3745E5DFB65DEFA7F851BA /* SmokeOptionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070C5D1C2FECD6197CE16AB8 /* SmokeOptionsTests.swift */; };
+		DEEFA5AF7364F0D32E2E65C3 /* AbilityCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C58336172DAD9122A21FC2 /* AbilityCatalogTests.swift */; };
 		DF9CB2AA8BA23DEE836FF522 /* music_boss_iron_bear.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 77D9C77B3383418401FDD73C /* music_boss_iron_bear.m4a */; };
 		E0B0375856644938DA605D7B /* CombatantCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2AEFB3AF37B08FB51448330 /* CombatantCard.swift */; };
 		E0EB076D66E2472949FADF82 /* BattleStateTestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD49FF24A7D1708EEA66339 /* BattleStateTestFactory.swift */; };
@@ -238,6 +243,7 @@
 		07D085E43AD59B3FC98C0630 /* VisibleStageDeckTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleStageDeckTests.swift; sourceTree = "<group>"; };
 		0B865B185E48E642F8C4418E /* PlayerSave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSave.swift; sourceTree = "<group>"; };
 		0C8054CDBEF807CB2C9DA57B /* ItemModifierBattleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemModifierBattleTests.swift; sourceTree = "<group>"; };
+		0E6926997266DF1B59FC6ECA /* AbilityLoadout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityLoadout.swift; sourceTree = "<group>"; };
 		0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalOnlyPlayerSaveSync.swift; sourceTree = "<group>"; };
 		126EDDC3A4870F418C31534D /* ActionEventFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionEventFormatter.swift; sourceTree = "<group>"; };
@@ -306,6 +312,7 @@
 		5A78D4906737C37A4BF10D10 /* TrinketUITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketUITestCase.swift; sourceTree = "<group>"; };
 		5A7EBBA846F540333707272B /* PlayerSaveSyncCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncCoordinatorTests.swift; sourceTree = "<group>"; };
 		60D15D0BBE17B8209C0E1D04 /* SavedEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedEffect.swift; sourceTree = "<group>"; };
+		6158147859D7B5C9C43E2845 /* AbilityCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityCatalog.swift; sourceTree = "<group>"; };
 		62375A0D4AD99EB4A1D32358 /* BattleSimulatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSimulatorTests.swift; sourceTree = "<group>"; };
 		64ED3F56EC6B7BDEA6E9ABA3 /* SavedEffectRoundtripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedEffectRoundtripTests.swift; sourceTree = "<group>"; };
 		689F890BEAFA00EEE0981578 /* SmokeBattleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeBattleTests.swift; sourceTree = "<group>"; };
@@ -333,6 +340,7 @@
 		86BB382C7061493015E04850 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		86E45F04BF076FEE8AF6123D /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
 		87841683BEB70D6891DEFE69 /* CombatantCollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailView.swift; sourceTree = "<group>"; };
+		87C58336172DAD9122A21FC2 /* AbilityCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityCatalogTests.swift; sourceTree = "<group>"; };
 		88933A8D01774EC496B15421 /* BattleGoldenPathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleGoldenPathTests.swift; sourceTree = "<group>"; };
 		899EEFA79785C3120C8C8E1E /* MusicDirector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDirector.swift; sourceTree = "<group>"; };
 		89B84FDFE6027513E5DC73E8 /* SeededRandomNumberGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandomNumberGenerator.swift; sourceTree = "<group>"; };
@@ -394,6 +402,7 @@
 		C7B564718B8D5A2471C70B61 /* SmokeSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeSearchTests.swift; sourceTree = "<group>"; };
 		C830DB0F9FAC0426BD7BBBB8 /* BattleEffectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleEffectTests.swift; sourceTree = "<group>"; };
 		C9DCF85128AEC8577B0356E0 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
+		CAA9BB06EC8B0FA78E657DAD /* Effect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Effect.swift; sourceTree = "<group>"; };
 		CC5723CAC2F97F81EBF7CD91 /* BattleEffectHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleEffectHandler.swift; sourceTree = "<group>"; };
 		D1D30B98EECEDB98A3608EDB /* music_menu_1.m4a */ = {isa = PBXFileReference; path = music_menu_1.m4a; sourceTree = "<group>"; };
 		D5AECD5201167B93A91DFF3C /* PartyPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyPickerSheet.swift; sourceTree = "<group>"; };
@@ -411,6 +420,7 @@
 		E475EE13E1487D90C6976139 /* BattleState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleState.swift; sourceTree = "<group>"; };
 		E4B491A0A9519D754A3DAAF9 /* OptionsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsStore.swift; sourceTree = "<group>"; };
 		E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSession.swift; sourceTree = "<group>"; };
+		E59A9FA1820FD7DCB3EAFFF7 /* ActiveEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEffect.swift; sourceTree = "<group>"; };
 		E5E562DF7B8DF2DDCC61BD54 /* ItemAffixCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemAffixCatalogTests.swift; sourceTree = "<group>"; };
 		E6A2C1FD0D8858F75471705A /* PlayerHomesteadStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHomesteadStoreTests.swift; sourceTree = "<group>"; };
 		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
@@ -610,10 +620,13 @@
 			isa = PBXGroup;
 			children = (
 				5352B490AF92FFE0D7753298 /* Ability.swift */,
+				0E6926997266DF1B59FC6ECA /* AbilityLoadout.swift */,
+				E59A9FA1820FD7DCB3EAFFF7 /* ActiveEffect.swift */,
 				26AE7A325D5344AF030C3332 /* Combatant.swift */,
 				347BB1AB82B612306606BC5E /* CombatantDetail.swift */,
 				A27C2AD04E7B31E6D84823D4 /* CombatBuildResolver.swift */,
 				9915332E21F01BDD8CD71FD4 /* CombatModifierProfile.swift */,
+				CAA9BB06EC8B0FA78E657DAD /* Effect.swift */,
 				8D67B8E819C24931D49C5B13 /* Effect+Properties.swift */,
 				1532C41155B50F7FF36BB3E7 /* Enemy.swift */,
 				F23440CC93C6AF578800C827 /* Enums.swift */,
@@ -653,6 +666,7 @@
 		957B2E0523CB0FC51D041B44 /* Battle */ = {
 			isa = PBXGroup;
 			children = (
+				87C58336172DAD9122A21FC2 /* AbilityCatalogTests.swift */,
 				BA5CE5AB7F95A698F2C6350E /* ActionEventFormatterTests.swift */,
 				F9D7159B5F1DC16EA97A4203 /* ActiveBattleConfigurationTests.swift */,
 				DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */,
@@ -739,6 +753,7 @@
 		A57E1181F9FA3B782BEEE2D4 /* Content */ = {
 			isa = PBXGroup;
 			children = (
+				6158147859D7B5C9C43E2845 /* AbilityCatalog.swift */,
 				429D8A44231746AA8118D5EA /* GameContent.swift */,
 				FF30F06AC70277058FF91C43 /* HomesteadContent.swift */,
 				57805DC891EE1BD349EC528B /* ItemAffixCatalog.swift */,
@@ -1140,11 +1155,14 @@
 			files = (
 				E65ED3179E4512091FFA65C8 /* Ability.swift in Sources */,
 				AEDD4527F082E7ABA4521B8F /* AbilityCard.swift in Sources */,
+				BD06E4B710CD9738D50D9C54 /* AbilityCatalog.swift in Sources */,
+				2FC6EEDFF35F8B1316AF68A4 /* AbilityLoadout.swift in Sources */,
 				C0A4A9DDD830A67EE2F5AFF5 /* AbilitySummaryGrid.swift in Sources */,
 				2CA3D242D2D61C8D795CD130 /* AbilityTierPickerSheet.swift in Sources */,
 				9FECAB869C8A611556966C1C /* ActionEventFormatter.swift in Sources */,
 				004112EE5EE91CBC2EEA5BA2 /* ActionSpeed.swift in Sources */,
 				E74F7746473D291F0B93322F /* ActiveBattleConfiguration.swift in Sources */,
+				8F0C1BF362D1EB2E09D38EDC /* ActiveEffect.swift in Sources */,
 				3300AE189FC1CA8B733509D2 /* AppEnvironment.swift in Sources */,
 				72509F61E3C2ABC3E205B64E /* AppState+PlayFlow.swift in Sources */,
 				C5E0C9B4A62F0F758A820E15 /* AppState.swift in Sources */,
@@ -1189,6 +1207,7 @@
 				BC9C45ECBB823F9356789E87 /* ContentView.swift in Sources */,
 				0C861BA51234E124ABDBBC4C /* DoTApplicator.swift in Sources */,
 				5ABCF82DDAA0DEF0E23F6A13 /* Effect+Properties.swift in Sources */,
+				BEF03ACACDA7738CAA623D33 /* Effect.swift in Sources */,
 				8CB2B5231C90DFAAEAD03096 /* EffectHandlers.swift in Sources */,
 				18561CF857911C0CDAC90090 /* EffectSummaryBuilder.swift in Sources */,
 				E59DF35E546C9CAC2CFD77F6 /* EffectTickEngine.swift in Sources */,
@@ -1262,6 +1281,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEEFA5AF7364F0D32E2E65C3 /* AbilityCatalogTests.swift in Sources */,
 				89002AB2C06DEF8149B67DF4 /* ActionEventFormatterTests.swift in Sources */,
 				6BCB5220378B08D2C2A0F9F3 /* ActiveBattleConfigurationTests.swift in Sources */,
 				11F707F7833A236E4137A5AC /* AppEnvironmentTests.swift in Sources */,

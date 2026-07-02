@@ -747,16 +747,16 @@ final class BattleEffectTests: XCTestCase {
         XCTAssertTrue(events.contains { ActionEventFormatter.display(for: $0).text == "Cleanse Stun" } == false)
     }
 
-    func testLegacyStatusApplicationPath() {
-        let legacy = Ability(
+    func testPoisonEffectAppliesThroughTargetedEffects() {
+        let poisonAbility = Ability(
             id: "legacy",
             name: "Legacy",
             tier: .basic,
             directDamage: 1,
             description: "Legacy",
-            statusApplication: StatusApplication(keyword: .poison, durationTicks: 2, tickDamage: 2)
+            targetedEffects: [TargetedEffect(.poison(2))]
         )
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [legacy])
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [poisonAbility])
         let pet = passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
