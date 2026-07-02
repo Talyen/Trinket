@@ -22,21 +22,19 @@ struct HomesteadView: View {
                     roster: rosterState
                 )
 
-                HomesteadUnlockMap(
-                    definitions: GameContent.homesteadNodes,
-                    homestead: homesteadState,
-                    roster: rosterState,
-                    recentUpgradeID: recentUpgradeID
-                )
-                .padding(.horizontal, 20)
-
-                HomesteadProjectShelf(
-                    definitions: GameContent.homesteadNodes,
-                    homestead: homesteadState,
-                    roster: rosterState,
-                    recentUpgradeID: recentUpgradeID,
-                    onBuild: buildOrUpgrade
-                )
+                ForEach(HomesteadNodeCategory.allCases) { category in
+                    let definitions = definitions(in: category)
+                    if !definitions.isEmpty {
+                        HomesteadProjectShelf(
+                            category: category,
+                            definitions: definitions,
+                            homestead: homesteadState,
+                            roster: rosterState,
+                            recentUpgradeID: recentUpgradeID,
+                            onBuild: buildOrUpgrade
+                        )
+                    }
+                }
             }
             .padding(.top, 12)
             .padding(.bottom, 112)
@@ -56,6 +54,10 @@ struct HomesteadView: View {
         withAnimation(.snappy) {
             recentUpgradeID = definition.id
         }
+    }
+
+    private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
+        GameContent.homesteadNodes.filter { $0.category == category }
     }
 }
 
@@ -99,10 +101,6 @@ private struct HomesteadProjectStatus {
 
     func hasEnough(_ amount: ResourceAmount) -> Bool {
         balance(for: amount) >= amount.quantity
-    }
-
-    func shortfall(for amount: ResourceAmount) -> Int {
-        max(0, amount.quantity - balance(for: amount))
     }
 }
 
@@ -149,220 +147,8 @@ private struct HomesteadResourceWallet: View {
     }
 }
 
-private struct HomesteadUnlockMap: View {
-    let definitions: [HomesteadNodeDefinition]
-    let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
-    let recentUpgradeID: HomesteadNodeID?
-
-    private let nodeSize: CGFloat = 54
-
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(edgePairs, id: \.id) { edge in
-                    if let start = mapPosition(for: edge.from),
-                       let end = mapPosition(for: edge.to) {
-                        HomesteadMapConnector(
-                            start: point(for: start, in: geometry.size),
-                            end: point(for: end, in: geometry.size),
-                            isActive: homestead.tier(for: edge.from) > 0 && homestead.isUnlocked(definition(for: edge.to))
-                        )
-                    }
-                }
-
-                ForEach(definitions) { definition in
-                    if let position = mapPosition(for: definition.id) {
-                        NavigationLink {
-                            HomesteadNodeDetailView(definition: definition)
-                        } label: {
-                            HomesteadMapNode(
-                                definition: definition,
-                                status: HomesteadProjectStatus(
-                                    definition: definition,
-                                    homestead: homestead,
-                                    roster: roster
-                                ),
-                                isRecentlyUpgraded: recentUpgradeID == definition.id
-                            )
-                        }
-                        // UIStyleCheck: allow - Map nodes are icon-like navigation controls, not textual buttons.
-                        .buttonStyle(.plain)
-                        .frame(width: nodeSize, height: nodeSize)
-                        .position(point(for: position, in: geometry.size))
-                        .accessibilityIdentifier("\(definition.title) Homestead Map Node")
-                    }
-                }
-            }
-        }
-        .frame(height: 278)
-        .trinketCardSurface()
-        .accessibilityElement(children: .contain)
-    }
-
-    private var edgePairs: [HomesteadMapEdge] {
-        definitions.flatMap { definition in
-            definition.prerequisites.map {
-                HomesteadMapEdge(from: $0.nodeID, to: definition.id)
-            }
-        }
-    }
-
-    private func definition(for id: HomesteadNodeID) -> HomesteadNodeDefinition {
-        definitions.first { $0.id == id } ?? definitions[0]
-    }
-
-    private func point(for position: HomesteadMapPosition, in size: CGSize) -> CGPoint {
-        CGPoint(
-            x: size.width * position.x,
-            y: size.height * position.y
-        )
-    }
-
-    private func mapPosition(for id: HomesteadNodeID) -> HomesteadMapPosition? {
-        switch id {
-        case .wheatField:
-            return HomesteadMapPosition(x: 0.50, y: 0.10)
-        case .herbGarden:
-            return HomesteadMapPosition(x: 0.20, y: 0.28)
-        case .chickenCoop:
-            return HomesteadMapPosition(x: 0.80, y: 0.28)
-        case .alchemyLab:
-            return HomesteadMapPosition(x: 0.20, y: 0.48)
-        case .blacksmithForge:
-            return HomesteadMapPosition(x: 0.50, y: 0.48)
-        case .pasture:
-            return HomesteadMapPosition(x: 0.80, y: 0.48)
-        case .crystalGarden:
-            return HomesteadMapPosition(x: 0.28, y: 0.69)
-        case .runesmithWorkshop:
-            return HomesteadMapPosition(x: 0.72, y: 0.69)
-        case .wishingWell:
-            return HomesteadMapPosition(x: 0.50, y: 0.90)
-        }
-    }
-}
-
-private struct HomesteadMapPosition {
-    let x: CGFloat
-    let y: CGFloat
-}
-
-private struct HomesteadMapEdge: Hashable, Identifiable {
-    let from: HomesteadNodeID
-    let to: HomesteadNodeID
-
-    var id: String {
-        "\(from.rawValue)-\(to.rawValue)"
-    }
-}
-
-private struct HomesteadMapConnector: View {
-    let start: CGPoint
-    let end: CGPoint
-    let isActive: Bool
-
-    var body: some View {
-        Path { path in
-            path.move(to: start)
-            path.addLine(to: end)
-        }
-        .stroke(
-            isActive ? AnyShapeStyle(TrinketDesign.Colors.success.opacity(0.58)) : AnyShapeStyle(Color.secondary.opacity(0.22)),
-            style: StrokeStyle(lineWidth: isActive ? 3 : 2, lineCap: .round)
-        )
-        .animation(.snappy, value: isActive)
-        .accessibilityHidden(true)
-    }
-}
-
-private struct HomesteadMapNode: View {
-    let definition: HomesteadNodeDefinition
-    let status: HomesteadProjectStatus
-    let isRecentlyUpgraded: Bool
-
-    var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ZStack {
-                if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
-                    Image(art.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .saturation(status.isUnlocked ? 1 : 0.08)
-                        .opacity(status.isUnlocked ? 0.92 : 0.42)
-                        .clipShape(Circle())
-                } else {
-                    Circle()
-                        .fill(backgroundStyle)
-                    Image(systemName: symbolName)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(symbolColor)
-                }
-            }
-            .overlay {
-                Circle()
-                    .fill(status.isUnlocked ? definition.tint.opacity(0.10) : Color(.systemBackground).opacity(0.42))
-            }
-            .overlay {
-                Circle()
-                    .stroke(borderColor, lineWidth: isRecentlyUpgraded ? 3 : 1)
-            }
-
-            if status.isComplete {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(TrinketDesign.Colors.success)
-                    .background(Circle().fill(Color(.systemBackground)))
-            } else if !status.isUnlocked {
-                Image(systemName: "lock.fill")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(4)
-                    .background(Circle().fill(Color(.systemBackground)))
-            }
-        }
-        .scaleEffect(isRecentlyUpgraded ? 1.08 : 1)
-        .animation(.snappy, value: isRecentlyUpgraded)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(definition.title), \(accessibilityStatus)")
-    }
-
-    private var backgroundStyle: AnyShapeStyle {
-        if !status.isUnlocked {
-            return AnyShapeStyle(Color(.tertiarySystemBackground))
-        }
-        if status.currentTier > 0 {
-            return AnyShapeStyle(definition.tint.opacity(0.18))
-        }
-        return AnyShapeStyle(Color(.secondarySystemBackground))
-    }
-
-    private var borderColor: Color {
-        if isRecentlyUpgraded { return TrinketDesign.Colors.success }
-        if status.isComplete { return TrinketDesign.Colors.success.opacity(0.65) }
-        if status.canBuildOrUpgrade { return definition.tint }
-        return .secondary.opacity(0.24)
-    }
-
-    private var symbolName: String {
-        status.isUnlocked ? definition.symbolName : "lock.fill"
-    }
-
-    private var symbolColor: Color {
-        if !status.isUnlocked { return .secondary }
-        if status.currentTier == 0 { return definition.tint.opacity(0.76) }
-        return definition.tint
-    }
-
-    private var accessibilityStatus: String {
-        if !status.isUnlocked { return "locked" }
-        if status.isComplete { return "complete" }
-        if status.currentTier == 0 { return "unbuilt" }
-        return "tier \(status.currentTier) of \(definition.maxTier)"
-    }
-}
-
 private struct HomesteadProjectShelf: View {
+    let category: HomesteadNodeCategory
     let definitions: [HomesteadNodeDefinition]
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
@@ -371,7 +157,7 @@ private struct HomesteadProjectShelf: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Projects")
+            Text(category.rawValue)
                 .font(.headline)
                 .padding(.horizontal, 20)
 
@@ -414,6 +200,11 @@ private struct HomesteadProjectCard: View {
                 HomesteadNodeDetailView(definition: definition)
             } label: {
                 VStack(alignment: .leading, spacing: 12) {
+                    HomesteadBuildingArtwork(definition: definition)
+                        .aspectRatio(4.0 / 3.0, contentMode: .fit)
+                        .saturation(status.isUnlocked ? 1 : 0.1)
+                        .opacity(status.isUnlocked ? 1 : 0.56)
+
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(definition.title)
@@ -435,11 +226,6 @@ private struct HomesteadProjectCard: View {
                             isUnlocked: status.isUnlocked
                         )
                     }
-
-                    HomesteadBuildingArtwork(definition: definition)
-                        .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                        .saturation(status.isUnlocked ? 1 : 0.1)
-                        .opacity(status.isUnlocked ? 1 : 0.56)
 
                     if let nextTier = status.nextTier {
                         HomesteadCompactCostChips(
@@ -501,7 +287,7 @@ private struct HomesteadTierPips: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(1...maxTier, id: \.self) { tier in
+            ForEach(1 ... maxTier, id: \.self) { tier in
                 Capsule(style: .continuous)
                     .fill(fillColor(for: tier))
                     .frame(width: tier <= currentTier ? 26 : 18, height: 6)
@@ -525,27 +311,61 @@ private struct HomesteadCompactCostChips: View {
     var body: some View {
         FlowLayout(spacing: 6, lineSpacing: 6) {
             ForEach(cost) { amount in
-                let enough = status.hasEnough(amount)
+                let balance = status.balance(for: amount)
                 HStack(spacing: 5) {
                     Image(systemName: amount.resource.symbolName)
                         .font(.caption2.weight(.semibold))
-                    Text("\(amount.quantity)")
-                        .font(.caption.monospacedDigit().weight(.semibold))
-                    if enough {
-                        Image(systemName: "checkmark")
-                            .font(.caption2.weight(.bold))
-                    }
+                        .foregroundStyle(amount.resource.tint)
+
+                    Text(amount.resource.displayName)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.78)
+
+                    HomesteadRequirementCountText(
+                        balance: balance,
+                        required: amount.quantity,
+                        font: .caption.monospacedDigit().weight(.semibold)
+                    )
                 }
-                .foregroundStyle(enough ? amount.resource.tint : .secondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
                 .background {
                     Capsule(style: .continuous)
-                        .fill(enough ? amount.resource.tint.opacity(0.12) : Color(.tertiarySystemBackground))
+                        .fill(status.hasEnough(amount) ? amount.resource.tint.opacity(0.12) : Color(.tertiarySystemBackground))
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("\(amount.resource.displayName), \(status.balance(for: amount)) available, \(amount.quantity) required")
             }
+        }
+    }
+}
+
+private struct HomesteadRequirementCountText: View {
+    let balance: Int
+    let required: Int
+    let font: Font
+
+    private var hasEnough: Bool {
+        balance >= required
+    }
+
+    var body: some View {
+        if hasEnough {
+            Text("\(balance)/\(required)")
+                .font(font)
+                .foregroundStyle(TrinketDesign.Colors.success)
+                .contentTransition(.numericText())
+        } else {
+            HStack(spacing: 0) {
+                Text("\(balance)")
+                    .foregroundStyle(TrinketDesign.Colors.destructive)
+                Text("/\(required)")
+                    .foregroundStyle(.secondary)
+            }
+            .font(font)
+            .contentTransition(.numericText())
         }
     }
 }
@@ -730,7 +550,6 @@ private struct HomesteadRequirementList: View {
         VStack(spacing: 8) {
             ForEach(cost) { amount in
                 let balance = status.balance(for: amount)
-                let shortfall = status.shortfall(for: amount)
                 HStack(spacing: 10) {
                     Image(systemName: amount.resource.symbolName)
                         .foregroundStyle(amount.resource.tint)
@@ -738,15 +557,11 @@ private struct HomesteadRequirementList: View {
                     Text(amount.resource.displayName)
                         .font(.subheadline)
                     Spacer()
-                    if shortfall == 0 {
-                        Label("\(amount.quantity)", systemImage: "checkmark")
-                            .font(.subheadline.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(TrinketDesign.Colors.success)
-                    } else {
-                        Text("\(balance) / \(amount.quantity)")
-                            .font(.subheadline.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
+                    HomesteadRequirementCountText(
+                        balance: balance,
+                        required: amount.quantity,
+                        font: .subheadline.monospacedDigit().weight(.semibold)
+                    )
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("\(amount.resource.displayName), \(balance) available, \(amount.quantity) required")
@@ -791,14 +606,14 @@ private struct FlowLayout: Layout {
     let spacing: CGFloat
     let lineSpacing: CGFloat
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
         let rows = rows(for: subviews, proposal: proposal)
         let width = proposal.width ?? rows.map(\.width).max() ?? 0
         let height = rows.map(\.height).reduce(0, +) + CGFloat(max(rows.count - 1, 0)) * lineSpacing
         return CGSize(width: width, height: height)
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
         let rows = rows(for: subviews, proposal: ProposedViewSize(width: bounds.width, height: proposal.height))
         var y = bounds.minY
 

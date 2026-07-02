@@ -106,8 +106,19 @@ if [[ "$MODE" == "unit" ]]; then
     fi
   fi
 elif [[ "$MODE" == "smoke" ]]; then
-  echo "Running UI smoke tests via Smoke test plan..."
   TEST_TARGET_FLAG=(-testPlan Smoke)
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    echo "Running targeted UI smoke tests via Smoke test plan..."
+    for target in "${TARGETS[@]}"; do
+      if [[ "$target" == TrinketUITests* ]]; then
+        TEST_TARGET_FLAG+=("-only-testing:$target")
+      else
+        TEST_TARGET_FLAG+=("-only-testing:TrinketUITests/$target")
+      fi
+    done
+  else
+    echo "Running UI smoke tests via Smoke test plan..."
+  fi
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
@@ -127,7 +138,7 @@ elif [[ "$MODE" == "ui" ]]; then
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
-    echo "Target filters are only supported for unit or ui mode."
+    echo "Target filters are only supported for unit, ui, or smoke mode."
     echo "Usage: $0 [unit | ui | all | style | smoke] [--no-build] [TestClass[/testMethod] ...]"
     exit 1
   fi

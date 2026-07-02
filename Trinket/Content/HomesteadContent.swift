@@ -8,7 +8,7 @@ extension GameContent {
             summary: "A first field that turns quiet earth into dependable stores.",
             symbolName: "leaf.fill",
             tint: .orange,
-            branch: .trunk,
+            category: .farming,
             prerequisites: [],
             tiers: [
                 HomesteadNodeTier(
@@ -43,7 +43,7 @@ extension GameContent {
             summary: "A small medicinal garden for tonics, reagents, and green magic.",
             symbolName: "leaf.fill",
             tint: .green,
-            branch: .left,
+            category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
                 HomesteadNodeTier(
@@ -78,7 +78,7 @@ extension GameContent {
             summary: "A lively coop that keeps simple supplies moving between runs.",
             symbolName: "bird.fill",
             tint: .yellow,
-            branch: .right,
+            category: .farming,
             prerequisites: [HomesteadNodeRequirement(.wheatField)],
             tiers: [
                 HomesteadNodeTier(
@@ -113,7 +113,7 @@ extension GameContent {
             summary: "Open grazing land for larger stores and slower, stronger support.",
             symbolName: "mountain.2.fill",
             tint: .mint,
-            branch: .right,
+            category: .farming,
             prerequisites: [HomesteadNodeRequirement(.chickenCoop, tier: 2)],
             tiers: [
                 HomesteadNodeTier(
@@ -148,7 +148,7 @@ extension GameContent {
             summary: "A working forge for hardware, weapons, and stronger construction.",
             symbolName: "hammer.fill",
             tint: .orange,
-            branch: .right,
+            category: .crafting,
             prerequisites: [
                 HomesteadNodeRequirement(.chickenCoop),
                 HomesteadNodeRequirement(.herbGarden)
@@ -186,7 +186,7 @@ extension GameContent {
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
             symbolName: "testtube.2",
             tint: .mint,
-            branch: .left,
+            category: .research,
             prerequisites: [
                 HomesteadNodeRequirement(.herbGarden, tier: 2),
                 HomesteadNodeRequirement(.blacksmithForge)
@@ -224,7 +224,7 @@ extension GameContent {
             summary: "A luminous garden where rare formations grow around quiet magic.",
             symbolName: "sparkles",
             tint: .cyan,
-            branch: .left,
+            category: .research,
             prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
             tiers: [
                 HomesteadNodeTier(
@@ -259,7 +259,7 @@ extension GameContent {
             summary: "A careful workshop where metalwork and crystal study meet.",
             symbolName: "wand.and.sparkles",
             tint: .indigo,
-            branch: .right,
+            category: .crafting,
             prerequisites: [
                 HomesteadNodeRequirement(.blacksmithForge, tier: 2),
                 HomesteadNodeRequirement(.crystalGarden)
@@ -297,7 +297,7 @@ extension GameContent {
             summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
             symbolName: "drop.circle.fill",
             tint: .blue,
-            branch: .trunk,
+            category: .research,
             prerequisites: [
                 HomesteadNodeRequirement(.crystalGarden, tier: 2),
                 HomesteadNodeRequirement(.runesmithWorkshop, tier: 2)

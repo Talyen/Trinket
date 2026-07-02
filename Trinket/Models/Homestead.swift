@@ -44,7 +44,7 @@ enum HomesteadResource: String, CaseIterable, Codable, Hashable, Identifiable {
         case .iron: return Color(red: 0.30, green: 0.39, blue: 0.48)
         case .food: return .orange
         case .herbs: return .green
-        case .crystal: return .cyan
+        case .crystal: return .blue
         case .gold: return Keyword.gold.visualStyle.color
         }
     }
@@ -90,10 +90,14 @@ struct HomesteadNodeRequirement: Hashable {
     }
 }
 
-enum HomesteadNodeBranch: Hashable {
-    case trunk
-    case left
-    case right
+enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable {
+    case farming = "Farming"
+    case crafting = "Crafting"
+    case research = "Research"
+
+    var id: String {
+        rawValue
+    }
 }
 
 struct HomesteadBonus: Hashable {
@@ -113,7 +117,7 @@ struct HomesteadNodeDefinition: Identifiable, Hashable {
     let summary: String
     let symbolName: String
     let tint: Color
-    let branch: HomesteadNodeBranch
+    let category: HomesteadNodeCategory
     let prerequisites: [HomesteadNodeRequirement]
     let tiers: [HomesteadNodeTier]
 
