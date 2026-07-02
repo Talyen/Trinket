@@ -51,7 +51,7 @@ struct InventoryGridView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(TrinketDesign.Metrics.contentMargin)
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Inventory")

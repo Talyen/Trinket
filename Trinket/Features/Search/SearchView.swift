@@ -165,7 +165,7 @@ struct SearchResultSection<Item: Identifiable, Content: View>: View {
                     }
                 }
                 .scrollTargetLayout()
-                .padding(.vertical, 4)
+                .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
             }
             .contentMargins(
                 .horizontal,

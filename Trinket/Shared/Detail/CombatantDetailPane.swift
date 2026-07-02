@@ -121,12 +121,12 @@ struct CombatantDetailPane: View {
             Text(title)
                 .font(.headline)
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.top, TrinketDesign.Metrics.contentTopPadding)
                 .accessibilityIdentifier(sectionID ?? title)
 
             content()
-                .padding(.horizontal, 20)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         }
     }
 

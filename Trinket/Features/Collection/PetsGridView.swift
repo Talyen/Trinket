@@ -26,7 +26,7 @@ struct PetsGridView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding(TrinketDesign.Metrics.contentMargin)
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Pets")

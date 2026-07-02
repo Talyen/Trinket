@@ -15,12 +15,11 @@ struct CollectionView: View {
     }
 
     var body: some View {
-        let rosterState = appState.roster.current
         let inventoryState = appState.inventory.current
 
         ScrollView {
-            VStack(spacing: 28) {
-                VStack(alignment: .leading, spacing: 12) {
+            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     NavigationLink {
                         HeroesGridView()
                     } label: {
@@ -33,7 +32,7 @@ struct CollectionView: View {
                                 .foregroundStyle(.secondary)
                             Spacer()
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -45,7 +44,8 @@ struct CollectionView: View {
                             CollectionCombatantButton(
                                 combatant: combatant,
                                 isLocked: !appState.roster.isUnlocked(combatant),
-                                cardWidth: nil
+                                cardWidth: nil,
+                                showsName: false
                             ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .hero, combatantID: combatant.id)
                             }
@@ -54,7 +54,7 @@ struct CollectionView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     NavigationLink {
                         PetsGridView()
                     } label: {
@@ -67,7 +67,7 @@ struct CollectionView: View {
                                 .foregroundStyle(.secondary)
                             Spacer()
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -79,7 +79,8 @@ struct CollectionView: View {
                             CollectionCombatantButton(
                                 combatant: combatant,
                                 isLocked: !appState.roster.isUnlocked(combatant),
-                                cardWidth: nil
+                                cardWidth: nil,
+                                showsName: false
                             ) {
                                 selectedCombatant = CombatantCollectionDetailSelection(kind: .pet, combatantID: combatant.id)
                             }
@@ -88,7 +89,7 @@ struct CollectionView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     NavigationLink {
                         InventoryGridView()
                     } label: {
@@ -101,7 +102,7 @@ struct CollectionView: View {
                                 .foregroundStyle(.secondary)
                             Spacer()
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -113,7 +114,7 @@ struct CollectionView: View {
                             Button {
                                 selectedItem = item
                             } label: {
-                                ItemCard(item: item, showsAffixCount: false)
+                                ItemCard(item: item, showsAffixCount: false, showsName: false)
                                     .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
@@ -122,8 +123,8 @@ struct CollectionView: View {
                     }
                 }
             }
-            .padding(.top, 16)
-            .padding(.bottom, 24)
+            .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
+            .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle("Collection")
@@ -156,7 +157,7 @@ struct CollectionView: View {
                 content()
             }
             .scrollTargetLayout()
-            .padding(.vertical, 4)
+            .padding(.vertical, TrinketDesign.Metrics.shelfVerticalPadding)
         }
         .contentMargins(
             .horizontal,

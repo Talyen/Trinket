@@ -29,7 +29,7 @@ struct StagePreviewHeader: View {
                 .allowsHitTesting(false)
 
                 titleBlock
-                    .padding(20)
+                    .padding(TrinketDesign.Metrics.contentMargin)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(maxHeight: .infinity, alignment: .bottom)
             }

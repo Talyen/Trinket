@@ -23,9 +23,15 @@ enum TrinketDesign {
     enum Metrics {
         static let cardLabelReservedHeight: CGFloat = 38
         static let statBarHeight: CGFloat = 7
-        static let collectionShelfHorizontalMargin: CGFloat = 20
+        static let contentMargin: CGFloat = 20
+        static let contentTopPadding: CGFloat = 24
+        static let compactContentTopPadding: CGFloat = 16
+        static let sectionSpacing: CGFloat = 24
+        static let sectionHeaderSpacing: CGFloat = 10
+        static let shelfVerticalPadding: CGFloat = 4
+        static let collectionShelfHorizontalMargin: CGFloat = contentMargin
         static let collectionShelfCardSpacing: CGFloat = 16
-        static let collectionShelfPeekRatio: CGFloat = 0.2
+        static let collectionShelfPeekRatio: CGFloat = 0.08
     }
 
     static let cardShape = RoundedRectangle(cornerRadius: 12, style: .continuous)

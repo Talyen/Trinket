@@ -87,8 +87,8 @@ struct StagePreviewSheet: View {
                 .font(.body)
                 .foregroundStyle(.primary)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.top, TrinketDesign.Metrics.contentTopPadding)
     }
 
     private var partySection: some View {
@@ -121,8 +121,8 @@ struct StagePreviewSheet: View {
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.top, TrinketDesign.Metrics.contentTopPadding)
     }
 
     private var primaryActionBar: some View {
@@ -138,7 +138,7 @@ struct StagePreviewSheet: View {
             .controlSize(.large)
             .tint(chapter.theme.tint)
             .accessibilityIdentifier("\(stage.encounter.primaryActionTitle) Button")
-            .padding(.horizontal, 20)
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.vertical, 12)
         }
         .background(TrinketDesign.Colors.appBackground)

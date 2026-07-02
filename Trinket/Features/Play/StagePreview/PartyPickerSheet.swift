@@ -37,7 +37,7 @@ struct PartyPickerSheet: View {
                         .accessibilityIdentifier("\(combatant.name) party option")
                     }
                 }
-                .padding(20)
+                .padding(TrinketDesign.Metrics.contentMargin)
             }
             .background(TrinketDesign.Colors.appBackground)
             .navigationTitle("Choose \(kind.rawValue)")

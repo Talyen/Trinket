@@ -32,7 +32,7 @@ struct ChapterGateCardView: View {
 
             Spacer(minLength: 0)
         }
-        .padding(20)
+        .padding(TrinketDesign.Metrics.contentMargin)
         .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 272, alignment: .topLeading)
         .background(Color(.tertiarySystemBackground).opacity(0.68))
         .clipShape(TrinketDesign.cardShape)

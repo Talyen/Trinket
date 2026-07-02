@@ -32,7 +32,7 @@ struct StageDeckView: View {
                     .scrollTargetLayout()
                 }
                 .scrollIndicators(.hidden)
-                .contentMargins(.horizontal, 20, for: .scrollContent)
+                .contentMargins(.horizontal, TrinketDesign.Metrics.contentMargin, for: .scrollContent)
                 .scrollTargetBehavior(.viewAligned)
             }
             .padding(.top, 18)

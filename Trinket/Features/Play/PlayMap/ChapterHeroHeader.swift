@@ -44,8 +44,8 @@ struct ChapterHeroHeader: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.76)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.bottom, TrinketDesign.Metrics.contentMargin)
             .accessibilityIdentifier(AccessibilityID.Play.chapterHeader(number: chapter.number))
         }
         .frame(height: height)

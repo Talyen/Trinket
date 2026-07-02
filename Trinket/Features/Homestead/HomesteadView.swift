@@ -144,7 +144,7 @@ private struct HomesteadResourceWallet: View {
                 .accessibilityLabel("\(resource.displayName), \(homestead.balance(for: resource, roster: roster))")
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
     }
 }
 
@@ -160,7 +160,7 @@ private struct HomesteadProjectShelf: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(category.rawValue)
                 .font(.headline)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .top, spacing: 16) {
@@ -182,7 +182,7 @@ private struct HomesteadProjectShelf: View {
                 }
                 .scrollTargetLayout()
             }
-            .contentMargins(.horizontal, 20, for: .scrollContent)
+            .contentMargins(.horizontal, TrinketDesign.Metrics.contentMargin, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned)
             .scrollIndicators(.hidden)
         }
@@ -448,7 +448,7 @@ private struct HomesteadNodeDetailView: View {
                     .disabled(!status.canBuildOrUpgrade)
                 }
             }
-            .padding(20)
+            .padding(TrinketDesign.Metrics.contentMargin)
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(definition.title)

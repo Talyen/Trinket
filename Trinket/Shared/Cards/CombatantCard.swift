@@ -3,6 +3,7 @@ import SwiftUI
 struct CombatantCard: View {
     let combatant: Combatant
     var isLocked: Bool = false
+    var showsName: Bool = true
 
     var body: some View {
         VStack(spacing: 8) {
@@ -29,13 +30,15 @@ struct CombatantCard: View {
                 }
                 .trinketCardSurface()
 
-            Text(combatant.name)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(isLocked ? .secondary : .primary)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 4)
-                .trinketCardLabelSpace()
+            if showsName {
+                Text(combatant.name)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(isLocked ? .secondary : .primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 4)
+                    .trinketCardLabelSpace()
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
@@ -53,16 +56,17 @@ struct CollectionCombatantButton: View {
     let combatant: Combatant
     let isLocked: Bool
     var cardWidth: CGFloat? = 130
+    var showsName: Bool = true
     let onSelect: () -> Void
 
     var body: some View {
         Button(action: onSelect) {
             Group {
                 if let cardWidth {
-                    CombatantCard(combatant: combatant, isLocked: isLocked)
+                    CombatantCard(combatant: combatant, isLocked: isLocked, showsName: showsName)
                         .frame(width: cardWidth)
                 } else {
-                    CombatantCard(combatant: combatant, isLocked: isLocked)
+                    CombatantCard(combatant: combatant, isLocked: isLocked, showsName: showsName)
                 }
             }
         }
