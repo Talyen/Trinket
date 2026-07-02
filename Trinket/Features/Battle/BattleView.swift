@@ -184,10 +184,6 @@ struct BattleView: View {
         battleRun.activeFeedbackEvents.filter { $0.targetID == combatant.id }
     }
 
-    private func removeFeedbackEvent(_ id: Int) {
-        battleRun.activeFeedbackEvents.removeAll { $0.id == id }
-    }
-
     private var canAutoAdvanceBattle: Bool {
         !isShowingBattleLog &&
             !battleRun.isBattleOver &&
