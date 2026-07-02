@@ -2,8 +2,9 @@ import CoreGraphics
 
 enum BattleCardGridLayout {
     static let artAspectRatio: CGFloat = 3.0 / 4.0
-    static let outerPadding: CGFloat = 10
-    static let cardSpacing: CGFloat = 10
+    static let gutter: CGFloat = 12
+    static let outerPadding: CGFloat = gutter
+    static let cardSpacing: CGFloat = gutter
 
     struct Metrics: Equatable {
         let enemySize: CGSize
@@ -20,15 +21,17 @@ enum BattleCardGridLayout {
         }
 
         let maxPartyWidth = max((innerWidth - cardSpacing) / 2, 0)
-        let maxBalancedPartyWidth = max((innerHeight - cardSpacing) * artAspectRatio / 2, 0)
+        let maxBalancedPartyWidth = max(
+            ((innerHeight - cardSpacing) * artAspectRatio - cardSpacing) / 3,
+            0
+        )
         let partyWidth = min(maxPartyWidth, maxBalancedPartyWidth)
         let partyHeight = partyWidth / artAspectRatio
 
-        let enemyHeight = max(innerHeight - partyHeight - cardSpacing, 0)
-        let enemyWidth = min(innerWidth, enemyHeight * artAspectRatio)
+        let rowWidth = min(innerWidth, 2 * partyWidth + cardSpacing)
 
         return Metrics(
-            enemySize: CGSize(width: enemyWidth, height: enemyWidth / artAspectRatio),
+            enemySize: CGSize(width: rowWidth, height: rowWidth / artAspectRatio),
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing
