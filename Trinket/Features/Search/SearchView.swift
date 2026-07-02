@@ -165,13 +165,13 @@ struct SearchResultSection<Item: Identifiable, Content: View>: View {
                     }
                 }
                 .scrollTargetLayout()
-                .contentMargins(
-                    .horizontal,
-                    TrinketDesign.Metrics.collectionShelfHorizontalMargin,
-                    for: .scrollContent
-                )
                 .padding(.vertical, 4)
             }
+            .contentMargins(
+                .horizontal,
+                TrinketDesign.Metrics.collectionShelfHorizontalMargin,
+                for: .scrollContent
+            )
             .scrollTargetBehavior(.viewAligned)
             .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 12, trailing: 0))
         }

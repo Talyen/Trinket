@@ -156,13 +156,13 @@ struct CollectionView: View {
                 content()
             }
             .scrollTargetLayout()
-            .contentMargins(
-                .horizontal,
-                TrinketDesign.Metrics.collectionShelfHorizontalMargin,
-                for: .scrollContent
-            )
             .padding(.vertical, 4)
         }
+        .contentMargins(
+            .horizontal,
+            TrinketDesign.Metrics.collectionShelfHorizontalMargin,
+            for: .scrollContent
+        )
         .scrollTargetBehavior(.viewAligned)
     }
 }
