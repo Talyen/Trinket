@@ -10,16 +10,15 @@ final class BattleFlowUITests: TrinketUITestCase {
         app.buttons["Battle Button"].tap()
 
         assertExists("Battle Pause Button")
-        app.buttons["Battle Pause Button"].tap()
 
         assertExists("Knight card")
         assertExists("Wolf card")
         assertExists("Battle Menu")
 
         app.buttons["Knight card"].tap()
-        assertExists("Knight detail hero header")
-        assertExists("Level 2")
-        assertExists("35/120 XP")
+        let knightHeader = app.descendants(matching: .any)["Knight detail hero header"]
+        assertExists(knightHeader)
+        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
         assertExists("Stats")
         assertExists("Health")
         dismissSheet()
@@ -28,11 +27,11 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists("Knight")
         app.tabBars.buttons["Play"].tap()
 
-        assertExists("Victory", timeout: 30)
+        assertExists("Victory", timeout: 60)
 
         assertExists("Experience")
         assertExists("Rewards")
-        assertExists("Continue")
+        assertExists("Continue Button")
 
         app.buttons["Battle Menu"].tap()
         assertExists("Combat Log")

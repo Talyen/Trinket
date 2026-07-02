@@ -295,6 +295,7 @@ struct VictoryView: View {
                 VStack(spacing: 8) {
                     Text("Victory")
                         .font(.largeTitle.bold())
+                        .accessibilityIdentifier("Victory")
 
                     Text("\(enemyName) is defeated.")
                         .font(.headline)
@@ -367,6 +368,7 @@ struct VictoryView: View {
                 // UIStyleCheck: allow - victory uses the native prominent primary action.
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .accessibilityIdentifier("\(primaryActionTitle) Button")
                 .padding(.top, 8)
             }
             .padding(24)
@@ -452,6 +454,7 @@ struct VictoryRewardSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
+                .accessibilityIdentifier(title)
 
             content
         }
