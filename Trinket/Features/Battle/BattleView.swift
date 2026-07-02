@@ -95,7 +95,8 @@ struct BattleView: View {
     private var battlefieldWithTimeline: some View {
         TimelineView(.periodic(from: timelineStartDate, by: battleTickInterval)) { context in
             battlefield
-                .onChange(of: context.date) { _, _ in
+                .onChange(of: context.date) { _, date in
+                    battleRun.pruneExpiredFeedback(at: date)
                     advanceBattleTick()
                 }
         }
@@ -136,51 +137,44 @@ struct BattleView: View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
-            VStack(spacing: layout.cardSpacing) {
-                BattleCombatantPane(
-                    combatant: battleRun.enemy,
+            BattlefieldView(
+                layout: layout,
+                enemyPane: paneConfiguration(
+                    for: battleRun.enemy,
                     health: battleRun.enemyHealth,
-                    maxHealth: battleRun.enemy.maxHealth,
-                    healthBarPlacement: .bottom,
-                    events: feedbackEvents(for: battleRun.enemy),
-                    reduceMotion: reduceMotion,
-                    onRemoveEvent: battleRun.removeFeedbackEvent
-                ) {
-                    showDetails(for: battleRun.enemy)
-                }
-                .frame(width: layout.enemySize.width, height: layout.enemySize.height)
-
-                HStack(spacing: layout.cardSpacing) {
-                    BattleCombatantPane(
-                        combatant: battleRun.hero,
+                    healthBarPlacement: .bottom
+                ),
+                partyPanes: [
+                    paneConfiguration(
+                        for: battleRun.hero,
                         health: battleRun.heroHealth,
-                        maxHealth: battleRun.hero.maxHealth,
-                        healthBarPlacement: .top,
-                        events: feedbackEvents(for: battleRun.hero),
-                        reduceMotion: reduceMotion,
-                        onRemoveEvent: battleRun.removeFeedbackEvent
-                    ) {
-                        showDetails(for: battleRun.hero)
-                    }
-                    .frame(width: layout.partySize.width, height: layout.partySize.height)
-
-                    BattleCombatantPane(
-                        combatant: battleRun.pet,
+                        healthBarPlacement: .top
+                    ),
+                    paneConfiguration(
+                        for: battleRun.pet,
                         health: battleRun.petHealth,
-                        maxHealth: battleRun.pet.maxHealth,
-                        healthBarPlacement: .top,
-                        events: feedbackEvents(for: battleRun.pet),
-                        reduceMotion: reduceMotion,
-                        onRemoveEvent: battleRun.removeFeedbackEvent
-                    ) {
-                        showDetails(for: battleRun.pet)
-                    }
-                    .frame(width: layout.partySize.width, height: layout.partySize.height)
-                }
-            }
-            .padding(layout.outerPadding)
+                        healthBarPlacement: .top
+                    )
+                ],
+                reduceMotion: reduceMotion,
+                onCombatantTap: showDetails(for:)
+            )
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
+    }
+
+    private func paneConfiguration(
+        for combatant: Combatant,
+        health: Int,
+        healthBarPlacement: BattleCombatantPane.HealthBarPlacement
+    ) -> BattleCombatantPaneConfiguration {
+        BattleCombatantPaneConfiguration(
+            combatant: combatant,
+            health: health,
+            maxHealth: combatant.maxHealth,
+            healthBarPlacement: healthBarPlacement,
+            events: feedbackEvents(for: combatant)
+        )
     }
 
     private func showDetails(for combatant: Combatant) {

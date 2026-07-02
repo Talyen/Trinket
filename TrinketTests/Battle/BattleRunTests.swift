@@ -120,6 +120,42 @@ final class BattleRunTests: XCTestCase {
         XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
+    func testPruneExpiredFeedbackRemovesEventsPastDisplayDuration() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(
+            id: "pet",
+            role: .pet,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 100,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let run = BattleRun(configuration: configuration)
+
+        _ = run.advanceOneStep()
+        let eventID = try XCTUnwrap(run.activeFeedbackEvents.first?.id)
+        let now = Date()
+
+        run.pruneExpiredFeedback(at: now)
+        XCTAssertTrue(run.activeFeedbackEvents.contains { $0.id == eventID })
+
+        run.pruneExpiredFeedback(
+            at: now.addingTimeInterval(CombatFeedbackTiming.displayDuration + 0.1)
+        )
+        XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+    }
+
     func testOutcomeReportsOngoingDuringBattle() {
         let hero = CombatantFixtures.combatant(
             id: "hero",

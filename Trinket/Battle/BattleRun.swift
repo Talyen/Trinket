@@ -11,6 +11,7 @@ enum BattleOutcome: Equatable {
 final class BattleRun {
     private(set) var state: BattleState
     var activeFeedbackEvents: [ActionEvent] = []
+    private var feedbackDisplayedAt: [Int: Date] = [:]
 
     let configuration: ActiveBattleConfiguration
 
@@ -103,18 +104,33 @@ final class BattleRun {
             petModifiers: configuration.petModifiers
         )
         activeFeedbackEvents = []
+        feedbackDisplayedAt = [:]
     }
 
     func removeFeedbackEvent(_ id: Int) {
         activeFeedbackEvents.removeAll { $0.id == id }
+        feedbackDisplayedAt.removeValue(forKey: id)
+    }
+
+    func pruneExpiredFeedback(at date: Date = .now) {
+        let expiredIDs = feedbackDisplayedAt.compactMap { eventID, displayedAt in
+            date.timeIntervalSince(displayedAt) >= CombatFeedbackTiming.displayDuration ? eventID : nil
+        }
+        for eventID in expiredIDs {
+            removeFeedbackEvent(eventID)
+        }
     }
 
     @discardableResult
     func advanceOneStep() -> BattleStep {
         let step = state.advanceOneStep()
+        let displayedAt = Date.now
         step.events
             .filter { $0.kind != .milestone }
-            .forEach { activeFeedbackEvents.append($0) }
+            .forEach {
+                activeFeedbackEvents.append($0)
+                feedbackDisplayedAt[$0.id] = displayedAt
+            }
         return step
     }
 
