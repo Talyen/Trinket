@@ -1,8 +1,9 @@
 import CoreGraphics
 
 enum BattleCardGridLayout {
-    static let artAspectRatio: CGFloat = 3.0 / 4.0
-    static let gutter: CGFloat = 12
+    static let enemyAspectRatio: CGFloat = 1
+    static let partyAspectRatio: CGFloat = 3.0 / 4.0
+    static let gutter: CGFloat = 8
     static let outerPadding: CGFloat = gutter
     static let cardSpacing: CGFloat = gutter
 
@@ -20,19 +21,22 @@ enum BattleCardGridLayout {
             return Metrics(enemySize: .zero, partySize: .zero, outerPadding: outerPadding, cardSpacing: cardSpacing)
         }
 
-        let maxPartyWidth = max((innerWidth - cardSpacing) / 2, 0)
-        let maxBalancedPartyWidth = max(
-            ((innerHeight - cardSpacing) * artAspectRatio + cardSpacing) / 3,
+        let maxPartyWidthForAvailableWidth = max((innerWidth - cardSpacing) / 2, 0)
+        let maxPartyWidthForAvailableHeight = max(
+            (
+                innerHeight - cardSpacing * (1 + 1 / enemyAspectRatio)
+            ) / (
+                2 / enemyAspectRatio + 1 / partyAspectRatio
+            ),
             0
         )
-        let partyWidth = min(maxPartyWidth, maxBalancedPartyWidth)
-        let partyHeight = partyWidth / artAspectRatio
+        let partyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
+        let partyHeight = partyWidth / partyAspectRatio
 
         let partyRowWidth = min(innerWidth, 2 * partyWidth + cardSpacing)
-        let enemyWidth = max(partyRowWidth - 2 * cardSpacing, 0)
 
         return Metrics(
-            enemySize: CGSize(width: enemyWidth, height: enemyWidth / artAspectRatio),
+            enemySize: CGSize(width: partyRowWidth, height: partyRowWidth / enemyAspectRatio),
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing
