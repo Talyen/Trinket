@@ -282,6 +282,18 @@ struct BattleState {
 
     // MARK: - Turn loop
 
+    /// Advances the battle by one global tick.
+    ///
+    /// **Tick contract**
+    /// 1. Increment `tickCount` and run effect ticks for all living combatants
+    ///    in order: enemy, then hero, then pet.
+    /// 2. If the battle ended during effect ticks, emit defeat milestones and
+    ///    return `.ended`.
+    /// 3. Otherwise pick the next ready actor (at most one acts per step) using
+    ///    roster scheduling rules.
+    /// 4. Execute that actor's turn (or consume prevention), append defeat
+    ///    milestones if needed, and return `.acted`, `.effectsOnly`, or
+    ///    `.ended`.
     @discardableResult
     mutating func advanceOneStep() -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
