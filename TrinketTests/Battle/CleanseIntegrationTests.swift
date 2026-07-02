@@ -3,7 +3,7 @@ import XCTest
 
 /// Integration tests for cleanse abilities through full battle ticks.
 final class CleanseIntegrationTests: XCTestCase {
-    func testCleanseAllRemovesAllEffects() {
+    func testCleanseAllRemovesDebuffsWhenAbilityFires() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -25,25 +25,17 @@ final class CleanseIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertTrue(
-            battle.activeHeroEffects.allSatisfy {
-                if case .cleanse(nil, _) = $0.effect { return true }
-                return false
-            }
-        )
+        XCTAssertFalse(battle.activeHeroEffects.contains(where: \.effect.isRemovableDebuff))
     }
 
-    /// Locks in the existing behavior: a `cleanse(.keyword, duration)` entry
-    /// removes matching effects on its first tick and then itself remains
-    /// (continuing to tick down its `remainingTicks`).
-    func testCleanseSpecificKeywordRemovesMatchingEffectsOnFirstTick() {
+    func testCleanseSpecificKeywordRemovesMatchingDebuffsOnUse() {
         let cleansePoison = Ability(
             id: "cleanse-poison",
             name: "Cleanse Poison",
             tier: .basic,
             directDamage: 0,
             description: "Cleanse Poisoned.",
-            effects: [.cleanse(.poison, 3)]
+            effects: [.cleanse(.poison)]
         )
         let hero = Combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
@@ -70,9 +62,6 @@ final class CleanseIntegrationTests: XCTestCase {
         XCTAssertTrue(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
     }
 
-    /// Locks in the existing behavior: a `cleanse(nil, duration)` ability use
-    /// removes every debuff (`isRemovableDebuff`) but leaves defensive
-    /// effects like shields in place.
     func testCleanseAllRemovesAllDebuffsButLeavesShields() {
         let cleanseAll = Ability(
             id: "cleanse-all",
@@ -80,7 +69,7 @@ final class CleanseIntegrationTests: XCTestCase {
             tier: .basic,
             directDamage: 0,
             description: "Cleanse all.",
-            effects: [.cleanse(nil, 0)]
+            effects: [.cleanse(nil)]
         )
         let hero = Combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
@@ -107,42 +96,5 @@ final class CleanseIntegrationTests: XCTestCase {
         XCTAssertFalse(battle.hasHeroEffect { if case .poison = $0 { return true }; return false })
         XCTAssertFalse(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
         XCTAssertTrue(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
-    }
-
-    /// Locks in the existing behavior: a `cleanse` with `durationTicks > 0`
-    /// keeps ticking down for that many ticks after removing its targets.
-    func testCleanseContinuesToTickAfterRemovingEffects() {
-        let cleansePoison = Ability(
-            id: "cleanse-poison-3",
-            name: "Cleanse Poison",
-            tier: .basic,
-            directDamage: 0,
-            description: "Cleanse Poisoned.",
-            effects: [.cleanse(.poison, 3)]
-        )
-        let hero = Combatant(
-            id: "hero", name: "Hero", role: .hero, maxHealth: 20,
-            actionIntervalTicks: 2,
-            abilities: [cleansePoison]
-        )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
-        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
-        var battle = BattleTestFixtures.standardParty(
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)
-            ]
-        )
-
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-
-        let cleanseEffects = battle.activeHeroEffects.filter {
-            if case .cleanse(.poison, _) = $0.effect { return true }
-            return false
-        }
-        XCTAssertFalse(cleanseEffects.isEmpty)
     }
 }

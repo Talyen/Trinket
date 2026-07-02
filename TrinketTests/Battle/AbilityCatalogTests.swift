@@ -95,18 +95,6 @@ final class AbilityCatalogTests: XCTestCase {
         XCTAssertEqual(Ability.fireball.damageKeyword, .burn)
     }
 
-    func testCatalogDoesNotUseDealDamageEffects() {
-        for ability in AbilityCatalog.all {
-            XCTAssertFalse(
-                ability.effects.contains {
-                    if case .dealDamage = $0 { return true }
-                    return false
-                },
-                "\(ability.id) should express damage through damageComponents, not dealDamage effects"
-            )
-        }
-    }
-
     func testCatalogPassesValidation() {
         let issues = AbilityValidator.validateCatalog()
         XCTAssertTrue(issues.isEmpty, issues.map(\.description).joined(separator: "\n"))

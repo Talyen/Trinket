@@ -3,7 +3,7 @@ import Foundation
 /// One-to-one categorization of every `Effect` case. Used by handler dispatch
 /// tables and per-effect summary builders instead of pattern-matching on the
 /// enum directly.
-enum EffectKind: Hashable {
+enum EffectKind: Hashable, CaseIterable {
     case burn
     case poison
     case bleed
@@ -16,7 +16,8 @@ enum EffectKind: Hashable {
     case resourceGain
     case cleanse
     case cleanseRandom
-    case dealDamage
+    case purge
+    case purgeRandom
     case halveMitigation
     case dodge
 }
@@ -38,44 +39,56 @@ extension Effect {
         case .resourceGain: return .resourceGain
         case .cleanse: return .cleanse
         case .cleanseRandom: return .cleanseRandom
-        case .dealDamage: return .dealDamage
+        case .purge: return .purge
+        case .purgeRandom: return .purgeRandom
         case .halveMitigation: return .halveMitigation
         case .dodge: return .dodge
         }
     }
 
     /// True when this effect represents a debuff that `cleanse` is allowed to
-    /// strip. Mirrors the prior `BattleState.isRemovableDebuff(_:)` definition
-    /// so the existing tests continue to pass.
+    /// strip from allies.
     var isRemovableDebuff: Bool {
         switch self {
         case .burn, .poison, .bleed, .prevention, .preventionBuildup:
             return true
-        case .shield, .mitigation, .leech, .cleanse, .dodge,
-             .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
+        case .shield, .mitigation, .leech, .cleanse, .purge, .dodge,
+             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation:
+            return false
+        }
+    }
+
+    /// True when this effect represents a buff that `purge` is allowed to
+    /// strip from enemies.
+    var isRemovableBuff: Bool {
+        switch self {
+        case .shield, .mitigation, .leech, .dodge:
+            return true
+        default:
             return false
         }
     }
 
     /// True when this effect occupies a slot on the combatant and ticks down
     /// its `remainingTicks` over time. Used by the "decrement duration" pass
-    /// in `tickEffects`. Mirrors the prior `BattleState.isEffectType(_:)`
-    /// definition.
+    /// in `tickEffects`.
     var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .prevention, .preventionBuildup,
-             .shield, .mitigation, .leech, .cleanse, .dodge:
+             .shield, .mitigation, .leech, .dodge:
             return true
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
+        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+             .purge, .purgeRandom, .halveMitigation:
             return false
         }
     }
 
     /// True when this effect resolves immediately and never occupies a slot
-    /// on the combatant. Mirrors the prior `Effect.isInstant` definition.
+    /// on the combatant.
     var isInstant: Bool {
         switch self {
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
+        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+             .purge, .purgeRandom, .halveMitigation:
             return true
         default:
             return false

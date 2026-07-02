@@ -28,6 +28,7 @@ struct ActionEvent: Identifiable, Equatable {
         case preventionApplied
         case preventionTriggered
         case cleanseApplied
+        case purgeApplied
         case dodgeApplied
     }
 

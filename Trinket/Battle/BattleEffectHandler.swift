@@ -68,7 +68,7 @@ extension BattleEffectHandler {
     ) -> EffectTickOutcome {
         _ = target; _ = context
         switch active.effect {
-        case .burn, .poison, .bleed, .cleanse, .prevention, .preventionBuildup:
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup:
             return EffectTickOutcome()
         default:
             guard active.effect.isTickable else { return EffectTickOutcome() }

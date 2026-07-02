@@ -15,21 +15,20 @@ final class SavedEffectRoundtripTests: XCTestCase {
             .instantHeal(.nature, 10),
             .leech(.leech, Effect.standardLeechPercent, Effect.standardLeechDuration),
             .resourceGain(.gold, 3),
-            .cleanse(.poison, 1),
-            .dealDamage(.holy, 2),
+            .cleanse(.poison),
+            .cleanse(nil),
             .cleanseRandom,
-            .halveMitigation(.armor)
+            .purge(.block),
+            .purge(nil),
+            .purgeRandom,
+            .halveMitigation(.armor),
+            .dodge(.dodge, 3)
         ]
 
         for effect in effects {
             let roundTripped = SavedEffect(effect).effect()
             XCTAssertEqual(roundTripped, effect)
         }
-    }
-
-    func testCleanseAllRoundTrip() {
-        let effect = Effect.cleanse(nil, 1)
-        XCTAssertEqual(SavedEffect(effect).effect(), effect)
     }
 
     func testActiveEffectRoundTrip() {

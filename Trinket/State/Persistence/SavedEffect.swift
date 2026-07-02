@@ -11,9 +11,10 @@ enum SavedEffect: Codable, Equatable {
     case instantHeal(keyword: String, amount: Int)
     case leech(keyword: String, percent: Double, duration: Int)
     case resourceGain(keyword: String, amount: Int)
-    case cleanse(keyword: String?, duration: Int)
-    case dealDamage(keyword: String, amount: Int)
+    case cleanse(keyword: String?)
     case cleanseRandom
+    case purge(keyword: String?)
+    case purgeRandom
     case halveMitigation(keyword: String)
     case dodge(keyword: String, duration: Int)
 
@@ -39,12 +40,14 @@ enum SavedEffect: Codable, Equatable {
             self = .leech(keyword: keyword.rawValue, percent: percent, duration: duration)
         case let .resourceGain(keyword, amount):
             self = .resourceGain(keyword: keyword.rawValue, amount: amount)
-        case let .cleanse(keyword, duration):
-            self = .cleanse(keyword: keyword?.rawValue, duration: duration)
-        case let .dealDamage(keyword, amount):
-            self = .dealDamage(keyword: keyword.rawValue, amount: amount)
+        case let .cleanse(keyword):
+            self = .cleanse(keyword: keyword?.rawValue)
         case .cleanseRandom:
             self = .cleanseRandom
+        case let .purge(keyword):
+            self = .purge(keyword: keyword?.rawValue)
+        case .purgeRandom:
+            self = .purgeRandom
         case let .halveMitigation(keyword):
             self = .halveMitigation(keyword: keyword.rawValue)
         case let .dodge(keyword, duration):
@@ -81,14 +84,16 @@ enum SavedEffect: Codable, Equatable {
         case let .resourceGain(keywordRawValue, amount):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .resourceGain(keyword, amount)
-        case let .cleanse(keywordRawValue, duration):
+        case let .cleanse(keywordRawValue):
             let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
-            return .cleanse(keyword, duration)
-        case let .dealDamage(keywordRawValue, amount):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .dealDamage(keyword, amount)
+            return .cleanse(keyword)
         case .cleanseRandom:
             return .cleanseRandom
+        case let .purge(keywordRawValue):
+            let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
+            return .purge(keyword)
+        case .purgeRandom:
+            return .purgeRandom
         case let .halveMitigation(keywordRawValue):
             guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
             return .halveMitigation(keyword)

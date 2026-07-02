@@ -41,9 +41,10 @@ enum Effect: Hashable {
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
-    case cleanse(Keyword?, Int)
-    case dealDamage(Keyword, Int)
+    case cleanse(Keyword?)
     case cleanseRandom
+    case purge(Keyword?)
+    case purgeRandom
     case halveMitigation(Keyword)
     case dodge(Keyword, Int)
 
@@ -64,9 +65,10 @@ enum Effect: Hashable {
         case let .instantHeal(k, _): return k
         case let .leech(k, _, _): return k
         case let .resourceGain(k, _): return k
-        case let .cleanse(k?, _): return k
-        case .cleanse(nil, _), .cleanseRandom: return .health
-        case let .dealDamage(k, _): return k
+        case let .cleanse(k?): return k
+        case .cleanse(nil), .cleanseRandom: return .health
+        case let .purge(k?): return k
+        case .purge(nil), .purgeRandom: return .purge
         case let .halveMitigation(k): return k
         case .dodge: return .dodge
         }
@@ -75,7 +77,6 @@ enum Effect: Hashable {
     var potency: Int? {
         switch self {
         case let .burn(p), let .poison(p), let .bleed(p): return p
-        case let .dealDamage(_, amount): return amount
         default: return nil
         }
     }
@@ -87,9 +88,9 @@ enum Effect: Hashable {
         case let .shield(_, _, d): return d
         case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
-        case let .cleanse(_, d): return d
         case let .dodge(_, d): return d
-        case .burn, .poison, .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation, .preventionBuildup: return 0
+        case .burn, .poison, .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+             .purge, .purgeRandom, .halveMitigation, .preventionBuildup: return 0
         }
     }
 
@@ -111,7 +112,7 @@ enum Effect: Hashable {
 
     static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .dealDamage, .halveMitigation:
+        case .burn, .poison, .bleed, .prevention, .preventionBuildup, .halveMitigation, .purge, .purgeRandom:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom, .dodge:
             return .actor

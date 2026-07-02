@@ -88,19 +88,35 @@ final class EffectModelTests: XCTestCase {
     }
 
     func testCleanseSpecificEffect() {
-        let effect = Effect.cleanse(.stun, 3)
+        let effect = Effect.cleanse(.stun)
         XCTAssertEqual(effect.keyword, .stun)
-        XCTAssertEqual(effect.durationTicks, 3)
-        XCTAssertFalse(effect.isInstant)
+        XCTAssertEqual(effect.durationTicks, 0)
+        XCTAssertTrue(effect.isInstant)
         XCTAssertEqual(effect.summary, "cleanse Stunned")
     }
 
     func testCleanseAllEffect() {
-        let effect = Effect.cleanse(nil, 3)
+        let effect = Effect.cleanse(nil)
         XCTAssertEqual(effect.keyword, .health)
-        XCTAssertEqual(effect.durationTicks, 3)
-        XCTAssertFalse(effect.isInstant)
+        XCTAssertEqual(effect.durationTicks, 0)
+        XCTAssertTrue(effect.isInstant)
         XCTAssertEqual(effect.summary, "cleanse all debuffs")
+    }
+
+    func testPurgeSpecificEffect() {
+        let effect = Effect.purge(.block)
+        XCTAssertEqual(effect.keyword, .block)
+        XCTAssertEqual(effect.durationTicks, 0)
+        XCTAssertTrue(effect.isInstant)
+        XCTAssertEqual(effect.summary, "purge Block")
+    }
+
+    func testPurgeAllEffect() {
+        let effect = Effect.purge(nil)
+        XCTAssertEqual(effect.keyword, .purge)
+        XCTAssertEqual(effect.durationTicks, 0)
+        XCTAssertTrue(effect.isInstant)
+        XCTAssertEqual(effect.summary, "purge all buffs")
     }
 
     func testActiveEffectTracksRemainingTicks() {
@@ -135,51 +151,57 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Effect.instantHeal(.health, 1).kind, .instantHeal)
         XCTAssertEqual(Effect.leech(.leech, 0.1, 6).kind, .leech)
         XCTAssertEqual(Effect.resourceGain(.gold, 1).kind, .resourceGain)
-        XCTAssertEqual(Effect.cleanse(.poison, 0).kind, .cleanse)
-        XCTAssertEqual(Effect.cleanse(nil, 0).kind, .cleanse)
+        XCTAssertEqual(Effect.cleanse(.poison).kind, .cleanse)
+        XCTAssertEqual(Effect.cleanse(nil).kind, .cleanse)
         XCTAssertEqual(Effect.cleanseRandom.kind, .cleanseRandom)
-        XCTAssertEqual(Effect.dealDamage(.physical, 1).kind, .dealDamage)
+        XCTAssertEqual(Effect.purge(.block).kind, .purge)
+        XCTAssertEqual(Effect.purge(nil).kind, .purge)
+        XCTAssertEqual(Effect.purgeRandom.kind, .purgeRandom)
         XCTAssertEqual(Effect.halveMitigation(.armor).kind, .halveMitigation)
         XCTAssertEqual(Effect.dodge(.dodge, 3).kind, .dodge)
     }
 
     func testEffectKindIsUniquePerCase() {
-        // New Effect cases must add a matching EffectKind case.
-        let allKinds = Set<EffectKind>([
-            .burn, .poison, .bleed, .prevention, .preventionBuildup,
-            .shield, .mitigation, .instantHeal, .leech, .resourceGain,
-            .cleanse, .cleanseRandom, .dealDamage, .halveMitigation, .dodge
-        ])
-        XCTAssertEqual(allKinds.count, 15)
+        XCTAssertEqual(Set(EffectKind.allCases).count, EffectKind.allCases.count)
     }
 
     // MARK: - isRemovableDebuff
 
     func testIsRemovableDebuffMatchesPriorDefinition() {
-        // debuffs
         XCTAssertTrue(Effect.burn(1).isRemovableDebuff)
         XCTAssertTrue(Effect.poison(1).isRemovableDebuff)
         XCTAssertTrue(Effect.bleed(1).isRemovableDebuff)
         XCTAssertTrue(Effect.prevention(.stun, 1).isRemovableDebuff)
         XCTAssertTrue(Effect.preventionBuildup(.stun, 1, 10).isRemovableDebuff)
-        // non-debuffs
         XCTAssertFalse(Effect.shield(.block, 1, 6).isRemovableDebuff)
         XCTAssertFalse(Effect.mitigation(.armor, 0.25, 6).isRemovableDebuff)
         XCTAssertFalse(Effect.leech(.leech, 0.1, 6).isRemovableDebuff)
-        XCTAssertFalse(Effect.cleanse(.poison, 0).isRemovableDebuff)
-        XCTAssertFalse(Effect.cleanse(nil, 0).isRemovableDebuff)
+        XCTAssertFalse(Effect.cleanse(.poison).isRemovableDebuff)
+        XCTAssertFalse(Effect.cleanse(nil).isRemovableDebuff)
         XCTAssertFalse(Effect.dodge(.dodge, 3).isRemovableDebuff)
         XCTAssertFalse(Effect.instantHeal(.health, 1).isRemovableDebuff)
         XCTAssertFalse(Effect.resourceGain(.gold, 1).isRemovableDebuff)
-        XCTAssertFalse(Effect.dealDamage(.physical, 1).isRemovableDebuff)
         XCTAssertFalse(Effect.cleanseRandom.isRemovableDebuff)
+        XCTAssertFalse(Effect.purge(.block).isRemovableDebuff)
+        XCTAssertFalse(Effect.purgeRandom.isRemovableDebuff)
         XCTAssertFalse(Effect.halveMitigation(.armor).isRemovableDebuff)
+    }
+
+    // MARK: - isRemovableBuff
+
+    func testIsRemovableBuffMatchesDefinition() {
+        XCTAssertTrue(Effect.shield(.block, 1, 6).isRemovableBuff)
+        XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isRemovableBuff)
+        XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
+        XCTAssertTrue(Effect.dodge(.dodge, 3).isRemovableBuff)
+        XCTAssertFalse(Effect.burn(1).isRemovableBuff)
+        XCTAssertFalse(Effect.poison(1).isRemovableBuff)
+        XCTAssertFalse(Effect.prevention(.stun, 1).isRemovableBuff)
     }
 
     // MARK: - isTickable
 
     func testIsTickableMatchesPriorDefinition() {
-        // ticking effects
         XCTAssertTrue(Effect.burn(1).isTickable)
         XCTAssertTrue(Effect.poison(1).isTickable)
         XCTAssertTrue(Effect.bleed(1).isTickable)
@@ -188,14 +210,14 @@ final class EffectModelTests: XCTestCase {
         XCTAssertTrue(Effect.shield(.block, 1, 6).isTickable)
         XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isTickable)
         XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isTickable)
-        XCTAssertTrue(Effect.cleanse(.poison, 0).isTickable)
-        XCTAssertTrue(Effect.cleanse(nil, 0).isTickable)
         XCTAssertTrue(Effect.dodge(.dodge, 3).isTickable)
-        // instant effects
         XCTAssertFalse(Effect.instantHeal(.health, 1).isTickable)
         XCTAssertFalse(Effect.resourceGain(.gold, 1).isTickable)
-        XCTAssertFalse(Effect.dealDamage(.physical, 1).isTickable)
+        XCTAssertFalse(Effect.cleanse(.poison).isTickable)
+        XCTAssertFalse(Effect.cleanse(nil).isTickable)
         XCTAssertFalse(Effect.cleanseRandom.isTickable)
+        XCTAssertFalse(Effect.purge(.block).isTickable)
+        XCTAssertFalse(Effect.purgeRandom.isTickable)
         XCTAssertFalse(Effect.halveMitigation(.armor).isTickable)
     }
 }

@@ -36,6 +36,8 @@ struct ActionEventDisplay: Equatable {
         case resourceGain
         /// Cleanse applied.
         case cleanse
+        /// Purge applied.
+        case purge
         /// Stun/freeze applied, triggered, or skipped.
         case prevention
         /// Dodge — the attacker missed.
@@ -158,7 +160,14 @@ enum ActionEventFormatter {
             return ActionEventDisplay(
                 emphasis: .cleanse,
                 keyword: event.keyword,
-                text: "Cleanse \(event.keyword.rawValue)",
+                text: "Cleanse \(event.keyword.statusAlias ?? event.keyword.rawValue)",
+                secondaryText: nil
+            )
+        case .purgeApplied:
+            return ActionEventDisplay(
+                emphasis: .purge,
+                keyword: event.keyword,
+                text: "Purge \(event.keyword.rawValue)",
                 secondaryText: nil
             )
         case .dodgeApplied:

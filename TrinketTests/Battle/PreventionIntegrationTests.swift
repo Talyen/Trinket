@@ -251,14 +251,14 @@ final class PreventionIntegrationTests: XCTestCase {
         }
     }
 
-    func testCleanseStunRemovesBuildupAndActiveState() {
+    func testCleanseStunRemovesBuildupOnHero() {
         let cleanseAbility = Ability(
             id: "test-cleanse",
             name: "Test Cleanse",
             tier: .basic,
             directDamage: 0,
             description: "Cleanse Stunned.",
-            targetedEffects: [TargetedEffect(.cleanse(.stun, 0), target: .abilityTarget)]
+            targetedEffects: [TargetedEffect(.cleanse(.stun))]
         )
         let hero = Combatant(
             id: "hero",
@@ -274,18 +274,13 @@ final class PreventionIntegrationTests: XCTestCase {
             hero: hero,
             pet: pet,
             enemy: enemy,
-            activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .prevention(.stun, 1), remainingTicks: 1)
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0)
             ]
         )
 
         BattleTestFixtures.advanceTicks(1, on: &battle)
 
-        XCTAssertFalse(battle.hasEnemyEffect { effect in
-            if case .prevention(.stun, _) = effect { return true }
-            return false
-        }, "Cleanse removed active prevention")
-        XCTAssertFalse(battle.hasEnemyEffect { $0.isPreventionBuildup }, "Cleanse removed buildup")
+        XCTAssertFalse(battle.hasHeroEffect { $0.isPreventionBuildup }, "Cleanse removed buildup")
     }
 }

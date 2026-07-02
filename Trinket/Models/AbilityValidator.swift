@@ -22,8 +22,28 @@ enum AbilityValidator {
     static func validate(_ ability: Ability) -> [Issue] {
         var issues: [Issue] = []
 
-        if ability.effects.contains(where: { if case .dealDamage = $0 { return true }; return false }) {
-            issues.append(Issue(abilityID: ability.id, message: "uses dealDamage effects instead of damageComponents"))
+        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet]
+        let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
+
+        for targetedEffect in ability.targetedEffects {
+            switch targetedEffect.effect {
+            case .cleanse, .cleanseRandom:
+                if !allyTargets.contains(targetedEffect.target) {
+                    issues.append(Issue(
+                        abilityID: ability.id,
+                        message: "cleanse effects must target allies (.actor, .hero, or .pet)"
+                    ))
+                }
+            case .purge, .purgeRandom:
+                if !enemyTargets.contains(targetedEffect.target) {
+                    issues.append(Issue(
+                        abilityID: ability.id,
+                        message: "purge effects must target enemies (.abilityTarget or .enemy)"
+                    ))
+                }
+            default:
+                continue
+            }
         }
 
         for component in ability.damageComponents where component.target == .abilityTarget {

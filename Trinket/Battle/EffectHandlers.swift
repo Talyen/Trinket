@@ -391,39 +391,42 @@ struct ResourceGainHandler: BattleEffectHandler {
     }
 }
 
-// MARK: - Cleanse handlers
+// MARK: - Cleanse and purge handlers
+
+enum EffectRemoval {
+    static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) {
+        if let keyword {
+            effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableDebuff }
+        } else {
+            effects.removeAll { $0.effect.isRemovableDebuff }
+        }
+    }
+
+    static func removeRandomDebuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {
+        let debuffs = effects.filter(\.effect.isRemovableDebuff)
+        guard let removed = debuffs.randomElement(using: &rng) else { return nil }
+        effects.removeAll { $0.id == removed.id }
+        return removed.keyword
+    }
+
+    static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) {
+        if let keyword {
+            effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableBuff }
+        } else {
+            effects.removeAll { $0.effect.isRemovableBuff }
+        }
+    }
+
+    static func removeRandomBuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {
+        let buffs = effects.filter(\.effect.isRemovableBuff)
+        guard let removed = buffs.randomElement(using: &rng) else { return nil }
+        effects.removeAll { $0.id == removed.id }
+        return removed.keyword
+    }
+}
 
 struct CleanseHandler: BattleEffectHandler {
     let kind: EffectKind = .cleanse
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let maxTicks = stacks.compactMap { eff -> Int? in
-            if case let .cleanse(_, d) = eff.effect { return eff.remainingTicks > 0 ? eff.remainingTicks : d }
-            return nil
-        }.min() ?? 0
-        return EffectSummary(keyword: keyword, text: "Cleanse: \(maxTicks) ticks left.")
-    }
-
-    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
-        guard case let .cleanse(targetKeyword, _) = active.effect else { return EffectTickOutcome() }
-        var effects = context.activeEffects(for: target)
-
-        if let removeKeyword = targetKeyword {
-            effects.removeAll { $0.keyword == removeKeyword }
-        } else {
-            effects.removeAll { $0.effect.isTickable }
-        }
-
-        var updated = active
-        updated.remainingTicks -= 1
-        if updated.remainingTicks > 0 {
-            effects.append(updated)
-        }
-
-        context.setActiveEffects(effects, for: target)
-        context.didReplaceActiveEffects = true
-        return EffectTickOutcome(removeAfter: true)
-    }
-
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -431,19 +434,11 @@ struct CleanseHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleMutationContext
     ) -> EffectApplyOutcome {
-        guard case let .cleanse(targetKeyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard case let .cleanse(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
-
-        if let removeKeyword = targetKeyword {
-            currentEffects.removeAll { $0.keyword == removeKeyword }
-        } else {
-            currentEffects.removeAll { $0.effect.isRemovableDebuff }
-        }
-
+        removeDebuffs(from: &currentEffects, keyword: targetKeyword)
         context.setActiveEffects(currentEffects, for: target)
-        if durationTicks > 0 {
-            context.appendEffect(effect, to: target, sourceID: source.id, remainingTicks: durationTicks)
-        }
+        let eventKeyword = targetKeyword ?? .health
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
@@ -451,9 +446,13 @@ struct CleanseHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: targetKeyword ?? .health
+            keyword: eventKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
+    }
+
+    private func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) {
+        EffectRemoval.removeDebuffs(from: &effects, keyword: keyword)
     }
 }
 
@@ -467,11 +466,9 @@ struct CleanseRandomHandler: BattleEffectHandler {
         in context: inout BattleMutationContext
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
-        let debuffs = currentEffects.filter(\.effect.isRemovableDebuff)
-        if let removed = debuffs.randomElement() {
-            currentEffects.removeAll { $0.id == removed.id }
-        }
+        let removedKeyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng)
         context.setActiveEffects(currentEffects, for: target)
+        let eventKeyword = removedKeyword ?? .health
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
@@ -479,16 +476,14 @@ struct CleanseRandomHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: .health
+            keyword: eventKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
 
-// MARK: - Damage and debuff handlers
-
-struct DealDamageHandler: BattleEffectHandler {
-    let kind: EffectKind = .dealDamage
+struct PurgeHandler: BattleEffectHandler {
+    let kind: EffectKind = .purge
     func apply(
         _ effect: Effect,
         ability: Ability,
@@ -496,29 +491,51 @@ struct DealDamageHandler: BattleEffectHandler {
         target: Combatant,
         in context: inout BattleMutationContext
     ) -> EffectApplyOutcome {
-        guard case let .dealDamage(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let (typedDamage, typedEvents) = context.applyDamage(amount, to: target, damageKeyword: keyword)
-        var allEvents = typedEvents
-        if typedDamage > 0 || amount > 0 {
-            context.pairedDirectDamage.append((keyword, amount))
-        }
-        if typedDamage > 0 {
-            allEvents.append(context.nextEvent(
-                kind: .ability,
-                effectKind: nil,
-                actorName: source.name,
-                abilityName: ability.name,
-                target: target,
-                amount: typedDamage,
-                keyword: keyword
-            ))
-            if target.id != source.id {
-                allEvents.append(contentsOf: context.applyLeechFromDamage(typedDamage, sourceActorID: source.id))
-            }
-        }
-        return EffectApplyOutcome(events: allEvents, didApply: true)
+        guard case let .purge(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        var currentEffects = context.activeEffects(for: target)
+        EffectRemoval.removeBuffs(from: &currentEffects, keyword: targetKeyword)
+        context.setActiveEffects(currentEffects, for: target)
+        let eventKeyword = targetKeyword ?? .purge
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .purgeApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: 0,
+            keyword: eventKeyword
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
+
+struct PurgeRandomHandler: BattleEffectHandler {
+    let kind: EffectKind = .purgeRandom
+    func apply(
+        _: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        in context: inout BattleMutationContext
+    ) -> EffectApplyOutcome {
+        var currentEffects = context.activeEffects(for: target)
+        let removedKeyword = EffectRemoval.removeRandomBuff(from: &currentEffects, using: &context.rng)
+        context.setActiveEffects(currentEffects, for: target)
+        let eventKeyword = removedKeyword ?? .purge
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .purgeApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: 0,
+            keyword: eventKeyword
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}
+
+// MARK: - Damage and debuff handlers
 
 struct HalveMitigationHandler: BattleEffectHandler {
     let kind: EffectKind = .halveMitigation
@@ -597,7 +614,8 @@ enum EffectHandlers {
         .resourceGain: ResourceGainHandler(),
         .cleanse: CleanseHandler(),
         .cleanseRandom: CleanseRandomHandler(),
-        .dealDamage: DealDamageHandler(),
+        .purge: PurgeHandler(),
+        .purgeRandom: PurgeRandomHandler(),
         .halveMitigation: HalveMitigationHandler(),
         .dodge: DodgeHandler()
     ]

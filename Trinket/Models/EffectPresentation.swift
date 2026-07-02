@@ -25,14 +25,18 @@ enum EffectPresentation {
             return "gain Leech"
         case let .resourceGain(.gold, amount):
             return "gain \(amount) Gold"
-        case let .cleanse(keyword?, _):
+        case let .cleanse(keyword?):
             return "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
-        case .cleanse(nil, _):
+        case .cleanse(nil):
             return "cleanse all debuffs"
         case .cleanseRandom:
             return "cleanse a random debuff"
-        case let .dealDamage(keyword, amount):
-            return "deal \(amount) \(keyword.rawValue) damage"
+        case let .purge(keyword?):
+            return "purge \(keyword.rawValue)"
+        case .purge(nil):
+            return "purge all buffs"
+        case .purgeRandom:
+            return "purge a random buff"
         case .halveMitigation(.armor):
             return "reduce enemy Armor by half"
         case .dodge:
@@ -59,11 +63,9 @@ enum EffectPresentation {
             return "\(keyword.rawValue): \(Int(percent * 100))%"
         case .leech:
             return "Leech"
-        case .cleanse:
-            return "Cleanse"
         case .dodge:
             return "Dodge"
-        case .instantHeal, .resourceGain, .dealDamage, .cleanseRandom, .halveMitigation:
+        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }
     }

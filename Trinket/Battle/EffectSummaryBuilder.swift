@@ -17,8 +17,7 @@ enum EffectSummaryBuilder {
         .preventionBuildup,
         .prevention,
         .leech,
-        .dodge,
-        .cleanse, .cleanseRandom
+        .dodge
     ]
 
     /// Returns one `EffectSummary` per keyword that has at least one active

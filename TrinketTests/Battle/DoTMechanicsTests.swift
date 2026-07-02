@@ -180,7 +180,7 @@ final class DoTMechanicsTests: XCTestCase {
     }
 
     func testCleanseRemovesMergedPoisonStack() {
-        let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison, 3)])
+        let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison)])
         var battle = isolatedBattle(
             heroAbilities: [cleanse],
             heroEffects: [ActiveEffect(id: 1, effect: .poison(6), remainingTicks: 0)],

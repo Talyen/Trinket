@@ -9,7 +9,7 @@ enum AbilityCatalog {
     static let antivenomPotion = Ability(
         id: "antivenom-potion", name: "Antivenom Potion", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.cleanse(.poison, 0)),
+        TargetedEffect(.cleanse(.poison)),
         TargetedEffect(.instantHeal(.health, 2))
         ]
     )
@@ -97,7 +97,7 @@ enum AbilityCatalog {
     static let cleanse = Ability(
         id: "cleanse", name: "Cleanse", tier: .skill,
         targetedEffects: [
-        TargetedEffect(.cleanse(nil, 0)),
+        TargetedEffect(.cleanse(nil)),
         TargetedEffect(.instantHeal(.health, 2))
         ]
     )
@@ -133,7 +133,7 @@ enum AbilityCatalog {
     static let exorcism = Ability(
         id: "exorcism", name: "Exorcism", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .holy)],
-        targetedEffects: [TargetedEffect(.cleanse(nil, 0), target: .abilityTarget)]
+        targetedEffects: [TargetedEffect(.purge(nil))]
     )
     static let fangs = Ability(
         id: "fangs", name: "Fangs", tier: .basic,
@@ -292,7 +292,7 @@ enum AbilityCatalog {
     static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
         targetedEffects: [
-        TargetedEffect(.cleanse(nil, 0)),
+        TargetedEffect(.cleanse(nil)),
         TargetedEffect(.instantHeal(.health, 4))
         ]
     )
@@ -367,7 +367,7 @@ enum AbilityCatalog {
     static let smellingSalts = Ability(
         id: "smelling-salts", name: "Smelling Salts", tier: .basic,
         targetedEffects: [
-        TargetedEffect(.cleanse(.stun, 0)),
+        TargetedEffect(.cleanse(.stun)),
         TargetedEffect(.instantHeal(.health, 1))
         ]
     )
