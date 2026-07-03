@@ -82,11 +82,11 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
     }
 }
 
-/// Controls whether `resolveHeal` emits combat-log events. Handlers with
-/// custom log lines use `.silent` until `HealingEngine` owns formatting.
+/// Controls whether `HealingEngine.resolveHeal` emits combat-log events.
 public enum HealLogPolicy: Equatable, Hashable, Sendable {
     case silent
     case leech
+    case instantHeal(actorName: String, abilityName: String, keyword: Keyword, displayAmount: Int)
 }
 
 /// Describes one heal application.

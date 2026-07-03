@@ -71,7 +71,7 @@ public struct PreventionBuildupHandler: BattleEffectHandler {
         guard case let .preventionBuildup(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let events = CombatPipeline.applyPreventionBuildup(
+        let events = PreventionEngine.applyBuildup(
             amount,
             keyword: keyword,
             to: target,

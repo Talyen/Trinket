@@ -237,11 +237,12 @@ public struct LeechStep: DamageStep {
               let sourceActorID = state.sourceActorID,
               sourceActorID != state.combatant.id
         else { return }
-        state.damageEvents.append(contentsOf: CombatPipeline.applyLeechFromDamage(
+        let leechOutcome = HealingEngine.leechFromDamage(
             state.healthLost,
             sourceActorID: sourceActorID,
             in: &context
-        ))
+        )
+        state.damageEvents.append(contentsOf: leechOutcome.events)
     }
 }
 
@@ -259,7 +260,7 @@ public struct PreventionBuildupStep: DamageStep {
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
-        state.damageEvents.append(contentsOf: CombatPipeline.applyPreventionBuildup(
+        state.damageEvents.append(contentsOf: PreventionEngine.applyBuildup(
             state.postMitigationDamage,
             keyword: damageKeyword,
             to: state.combatant,

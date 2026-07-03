@@ -133,7 +133,22 @@ public extension BattleEngineContext {
     }
 
     mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
-        CombatPipeline.resolveHeal(request, in: &self)
+        HealingEngine.resolveHeal(request, in: &self)
+    }
+
+    mutating func applyPreventionBuildup(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?
+    ) -> [ActionEvent] {
+        PreventionEngine.applyBuildup(
+            amount,
+            keyword: keyword,
+            to: combatant,
+            sourceActorID: sourceActorID,
+            in: &self
+        )
     }
 
     mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
@@ -141,7 +156,7 @@ public extension BattleEngineContext {
     }
 
     mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
-        CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &self)
+        HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &self).events
     }
 
     mutating func applyDoTDamage(

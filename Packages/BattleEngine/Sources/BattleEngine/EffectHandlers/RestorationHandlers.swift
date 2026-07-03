@@ -14,17 +14,21 @@ public struct InstantHealHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        context.applyHeal(amount, to: target, sourceActorID: source.id)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .instantHeal,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: amount,
-            keyword: keyword
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: amount,
+                target: target,
+                sourceActorID: source.id,
+                logAs: .instantHeal(
+                    actorName: source.name,
+                    abilityName: ability.name,
+                    keyword: keyword,
+                    displayAmount: amount
+                )
+            ),
+            in: &context
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        return EffectApplyOutcome(events: outcome.events, didApply: true)
     }
 }
 

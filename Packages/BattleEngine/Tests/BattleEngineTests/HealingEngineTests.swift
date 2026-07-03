@@ -1,0 +1,85 @@
+import XCTest
+import BattleEngine
+import TrinketCore
+import TrinketContent
+
+final class HealingEngineTests: XCTestCase {
+    private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {
+        let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
+        let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            enemy: CombatantRuntime(combatant: target, initialActiveEffects: [])
+        )
+        return BattleEngineContext(
+            roster: roster,
+            rng: SeededRandomNumberGenerator(seed: seed),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+        )
+    }
+
+    func testResolveHealSilentEmitsNoEvents() {
+        var context = makeContext(seed: 0)
+        _ = CombatPipeline.applyDamage(10, to: context.roster.enemy.combatant, in: &context)
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
+            in: &context
+        )
+        XCTAssertGreaterThan(outcome.healthRestored, 0)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
+
+    func testResolveHealInstantHealPolicyEmitsEvent() {
+        var context = makeContext(seed: 0)
+        let target = context.roster.enemy.combatant
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(
+                amount: 3,
+                target: target,
+                sourceActorID: "source",
+                logAs: .instantHeal(
+                    actorName: "Hero",
+                    abilityName: "Heal",
+                    keyword: .health,
+                    displayAmount: 3
+                )
+            ),
+            in: &context
+        )
+        XCTAssertEqual(outcome.events.count, 1)
+        XCTAssertEqual(outcome.events.first?.effectKind, .instantHeal)
+        XCTAssertEqual(outcome.events.first?.amount, 3)
+    }
+
+    func testLeechFromDamageHealsAndSetsLeechedFlag() {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        var context = makeContext(seed: 0)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+        let before = context.roster.hero.currentHealth
+        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        XCTAssertTrue(outcome.flags.contains(.leeched))
+        XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
+        XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
+    }
+
+    func testCombatPipelineResolveHealDelegatesToHealingEngine() {
+        var context = makeContext(seed: 0)
+        let pipelineOutcome = CombatPipeline.resolveHeal(
+            HealRequest(amount: 5, target: context.roster.enemy.combatant),
+            in: &context
+        )
+        var fresh = makeContext(seed: 0)
+        let engineOutcome = HealingEngine.resolveHeal(
+            HealRequest(amount: 5, target: fresh.roster.enemy.combatant),
+            in: &fresh
+        )
+        XCTAssertEqual(pipelineOutcome.healthRestored, engineOutcome.healthRestored)
+    }
+}
