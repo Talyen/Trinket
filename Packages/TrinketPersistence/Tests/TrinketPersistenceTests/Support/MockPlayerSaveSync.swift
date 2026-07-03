@@ -15,6 +15,7 @@ actor MockPlayerSaveSync: PlayerSaveSyncing {
     private var fetchCount = 0
     private var subscribeInvocations = 0
     private var uploadWaiters: [CheckedContinuation<Void, Never>] = []
+    private var storedChangeTag: String?
 
     func setAccountStatus(_ status: PlayerSaveAccountStatus) {
         accountStatusResult = status
@@ -22,6 +23,7 @@ actor MockPlayerSaveSync: PlayerSaveSyncing {
 
     func setRemoteSave(_ remote: RemotePlayerSave?) {
         remoteSave = remote
+        storedChangeTag = remote?.recordChangeTag
     }
 
     func setFetchError(_ error: Error?) {
@@ -73,13 +75,22 @@ actor MockPlayerSaveSync: PlayerSaveSyncing {
         return remoteSave
     }
 
-    func upload(_ save: PlayerSave) async throws {
+    func upload(_ save: PlayerSave, replacingRecordChangeTag expectedTag: String?) async throws -> String? {
         await Task.yield()
         if let uploadError {
             throw uploadError
         }
+        if let expectedTag,
+           let storedChangeTag,
+           expectedTag != storedChangeTag,
+           let remoteSave
+        {
+            throw PlayerSaveSyncError.recordConflict(remoteSave)
+        }
         uploadedSaves.append(save)
+        storedChangeTag = "tag-\(uploadedSaves.count)"
         resumeUploadWaiters()
+        return storedChangeTag
     }
 
     func subscribeToChanges() async throws {

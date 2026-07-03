@@ -102,16 +102,16 @@ public struct LeechHandler: BattleEffectHandler {
     public let kind: EffectKind = .leech
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let totalPct = stacks.reduce(0.0) { sum, effect in
-            if case let .leech(_, percent, _) = effect.effect { return sum + percent }
-            return sum
+        let percent = stacks.reduce(0.0) { maxPercent, effect in
+            if case let .leech(_, value, _) = effect.effect { return max(maxPercent, value) }
+            return maxPercent
         }
-        guard totalPct > 0 else { return nil }
+        guard percent > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
             if case let .leech(_, _, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(totalPct * 100))% leech, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(maxTicks) ticks left.")
     }
 
     public func apply(
@@ -128,6 +128,9 @@ public struct LeechHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
+        var effects = context.activeEffects(for: target)
+        effects.removeAll { if case .leech = $0.effect { return true }; return false }
+        context.setActiveEffects(effects, for: target)
         context.appendEffect(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             to: target,

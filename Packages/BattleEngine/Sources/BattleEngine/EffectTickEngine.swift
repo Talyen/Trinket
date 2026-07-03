@@ -38,6 +38,7 @@ public enum EffectTickEngine {
 
         var toRemove: [Int] = []
         for index in remaining.indices {
+            guard context.roster.health(for: target) > 0 else { break }
             guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
             let outcome = handler.tick(remaining[index], on: target, in: &context)
             events.append(contentsOf: outcome.events)

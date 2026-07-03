@@ -12,11 +12,12 @@ public final class PlayerSaveStore {
         category: "PlayerSave"
     )
     public var onLocalSave: ((PlayerSave) -> Void)?
+    public var onRemoteSaveApplied: (() -> Void)?
 
     public var journey: JourneyProgressState {
         get { save.journey }
         set {
-            save.journey = newValue
+            save.journey = PlayerSaveSanitizer.sanitizeJourney(newValue)
             persist()
         }
     }
@@ -58,6 +59,12 @@ public final class PlayerSaveStore {
         save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
     }
 
+    public func performBatchMutation(_ update: (inout PlayerSave) -> Void) {
+        update(&save)
+        save = PlayerSaveSanitizer.sanitize(save)
+        persist()
+    }
+
     public func resetGameplayProgress() {
         save = .fresh
         persist()
@@ -75,6 +82,7 @@ public final class PlayerSaveStore {
         } catch {
             logger.error("Failed to persist remote save locally: \(error.localizedDescription, privacy: .public)")
         }
+        onRemoteSaveApplied?()
     }
 
     private func persist() {

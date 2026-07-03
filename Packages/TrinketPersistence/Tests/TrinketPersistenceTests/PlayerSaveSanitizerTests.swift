@@ -29,6 +29,21 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         XCTAssertEqual(sanitized.items.map(\.id), ["shared-id", "unique-id"])
     }
 
+    func testSanitizeJourneyClampsInvalidStageAndChapterIDs() {
+        var journey = JourneyProgressState.initial
+        journey.activeChapterID = "missing-chapter"
+        journey.activeStageID = "missing-stage"
+        journey.completedStageIDs = ["chapter-1-stage-1", "missing-stage"]
+        journey.claimedRewardStageIDs = ["missing-reward"]
+
+        let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
+
+        XCTAssertEqual(sanitized.activeChapterID, "chapter-1")
+        XCTAssertEqual(sanitized.activeStageID, "chapter-1-stage-1")
+        XCTAssertEqual(sanitized.completedStageIDs, ["chapter-1-stage-1"])
+        XCTAssertTrue(sanitized.claimedRewardStageIDs.isEmpty)
+    }
+
     func testSanitizeRosterFiltersInvalidUnlockIDs() {
         let roster = SavedRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,

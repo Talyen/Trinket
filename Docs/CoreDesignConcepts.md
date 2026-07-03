@@ -76,6 +76,8 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 
 `Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also apply `Frozen`/`Stunned` prevention via `.prevention`; prevention always consumes exactly one scheduled action regardless of damage amount.
 
+Stun and Freeze prevention buildup uses damage after mitigation and item reduction, but **before** shield absorption. A fully blocked hit still adds buildup from that post-mitigation amount — shields protect health, not control meters.
+
 `Cleanse` removes active Burn, Poison, Bleed, or prevention instances matching the cleansed keyword (or all debuffs when unspecified).
 
 ### Battle simulation architecture

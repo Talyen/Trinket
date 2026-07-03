@@ -80,6 +80,22 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechApplied })
     }
 
+    func testLeechHandlerReplacesExistingLeechInsteadOfStacking() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        _ = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        XCTAssertTrue(outcome.didApply)
+        let leechStacks = battle.activeEffects(of: battle.hero).filter { $0.effect.keyword == .leech }
+        XCTAssertEqual(leechStacks.count, 1)
+    }
+
+    func testCleanseWithoutDebuffsDoesNotApply() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
+
     // MARK: - Restoration
 
     func testInstantHealHandlerHealsTarget() {
@@ -90,7 +106,7 @@ final class EffectHandlersApplyTests: XCTestCase {
         let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
         XCTAssertGreaterThan(battle.health(of: battle.hero), before)
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .instantHeal && $0.amount == 5 })
+        XCTAssertEqual(outcome.events.first?.amount, battle.health(of: battle.hero) - before)
     }
 
     func testResourceGainHandlerAddsGold() {

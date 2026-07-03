@@ -114,7 +114,7 @@ package struct DamageBonusStep: DamageStep {
     }
 }
 
-/// Step 3: iterates the target's active shield effects, absorbing as much
+/// Step 5: iterates the target's active shield effects, absorbing as much
 /// of `remaining` as each shield can cover, emitting `.shieldAbsorbed`
 /// events, and mutating the effects list. Depleted shields are removed.
 package struct ShieldAbsorptionStep: DamageStep {
@@ -164,8 +164,8 @@ package struct ShieldAbsorptionStep: DamageStep {
     }
 }
 
-/// Step 4: applies armor (from active `.mitigation` effects) plus passive
-/// toughness mitigation, capped at 100%.
+/// Step 3: applies armor (from active `.mitigation` effects) plus passive
+/// toughness mitigation, capped at 100%. Runs before item reduction and shields.
 package struct MitigationStep: DamageStep {
     public static let stepName = "Mitigation"
     public static let phase: DamagePhase = .resolution
@@ -186,9 +186,9 @@ package struct MitigationStep: DamageStep {
     }
 }
 
-/// Step 5: applies the target's `damageTakenReduction` for the damage
-/// keyword, if any. Records `buildupDamage` for stun/freeze buildup before
-/// shields absorb damage.
+/// Step 4: applies the target's `damageTakenReduction` for the damage
+/// keyword, if any. Records `buildupDamage` for stun/freeze buildup after
+/// mitigation and item reduction, but before shields absorb damage.
 package struct ItemReductionStep: DamageStep {
     public static let stepName = "ItemReduction"
     public static let phase: DamagePhase = .resolution
@@ -252,7 +252,7 @@ package struct LeechStep: DamageStep {
 }
 
 /// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
-/// buildup against the target using post-mitigation damage.
+/// buildup against the target using post-mitigation, pre-shield damage.
 package struct ControlMeterStep: DamageStep {
     public static let stepName = "ControlMeter"
     public static let phase: DamagePhase = .post

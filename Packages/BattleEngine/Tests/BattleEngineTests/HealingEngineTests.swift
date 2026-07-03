@@ -54,7 +54,7 @@ final class HealingEngineTests: XCTestCase {
         )
         XCTAssertEqual(outcome.events.count, 1)
         XCTAssertEqual(outcome.events.first?.effectKind, .instantHeal)
-        XCTAssertEqual(outcome.events.first?.amount, 3)
+        XCTAssertEqual(outcome.events.first?.amount, outcome.healthRestored)
     }
 
     func testLeechFromDamageHealsAndSetsLeechedFlag() {
@@ -66,7 +66,8 @@ final class HealingEngineTests: XCTestCase {
         let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
         XCTAssertTrue(outcome.flags.contains(.leeched))
         XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
+        XCTAssertEqual(outcome.healthRestored, context.roster.hero.currentHealth - before)
+        XCTAssertEqual(outcome.events.first?.amount, outcome.healthRestored)
     }
 
     func testContextResolveHealDelegatesToHealingEngine() {

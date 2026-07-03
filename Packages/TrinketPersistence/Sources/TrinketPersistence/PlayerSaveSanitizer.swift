@@ -11,6 +11,47 @@ public enum PlayerSaveSanitizer {
             inventory: inventory
         )
         sanitized.homestead = SavedHomesteadState(save.homestead.homestead())
+        sanitized.journey = sanitizeJourney(save.journey)
+        return sanitized
+    }
+
+    public static func sanitizeJourney(
+        _ journey: JourneyProgressState,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> JourneyProgressState {
+        let validChapterIDs = Set(chapters.map(\.id))
+        let validStageIDs = Set(chapters.flatMap { $0.stages.map(\.id) })
+
+        var sanitized = journey
+        sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
+        sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filter { validStageIDs.contains($0) }
+
+        if let lastCompleted = journey.lastCompletedStageID,
+           validStageIDs.contains(lastCompleted)
+        {
+            sanitized.lastCompletedStageID = lastCompleted
+        } else {
+            sanitized.lastCompletedStageID = sanitized.completedStageIDs.sorted().last
+        }
+
+        if validChapterIDs.contains(sanitized.activeChapterID) {
+            // keep
+        } else {
+            sanitized.activeChapterID = chapters.first?.id ?? JourneyProgressState.initial.activeChapterID
+        }
+
+        if let activeStageID = sanitized.activeStageID,
+           validStageIDs.contains(activeStageID),
+           !sanitized.completedStageIDs.contains(activeStageID)
+        {
+            sanitized.activeStageID = activeStageID
+        } else {
+            sanitized.activeStageID = chapters
+                .flatMap(\.stages)
+                .first { !sanitized.completedStageIDs.contains($0.id) }?
+                .id
+        }
+
         return sanitized
     }
 

@@ -16,7 +16,7 @@ package enum HealingEngine {
         switch request.logAs {
         case .silent, .leech:
             break
-        case let .instantHeal(actorName, abilityName, keyword, displayAmount):
+        case let .instantHeal(actorName, abilityName, keyword, _):
             events.append(
                 context.nextEvent(
                     kind: .effect,
@@ -24,7 +24,7 @@ package enum HealingEngine {
                     actorName: actorName,
                     abilityName: abilityName,
                     target: request.target,
-                    amount: displayAmount,
+                    amount: restored,
                     keyword: keyword
                 )
             )
@@ -41,22 +41,26 @@ package enum HealingEngine {
         guard damage > 0, let actor = context.roster.combatant(for: sourceActorID) else { return .empty }
         let actorCombatant = actor.combatant
 
-        let leechPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { sum, activeEffect in
-            if case let .leech(_, percent, _) = activeEffect.effect { return sum + percent }
-            return sum
+        let leechPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { maxPercent, activeEffect in
+            if case let .leech(_, percent, _) = activeEffect.effect { return max(maxPercent, percent) }
+            return maxPercent
         }
         guard leechPct > 0 else { return .empty }
 
-        let wisdomPercent = Double(actorCombatant.primaryStats.wisdom) * 0.001
-        let totalPct = leechPct + wisdomPercent
-        var restored = Int(ceil(Double(damage) * totalPct))
+        var restored = Int(ceil(Double(damage) * leechPct))
         restored += context.modifiers(for: sourceActorID).leechHealingBonus
         guard restored > 0 else { return .empty }
 
-        _ = resolveHeal(
-            HealRequest(amount: restored, target: actorCombatant, logAs: .silent),
+        let healOutcome = resolveHeal(
+            HealRequest(
+                amount: restored,
+                target: actorCombatant,
+                sourceActorID: sourceActorID,
+                logAs: .silent
+            ),
             in: &context
         )
+        guard healOutcome.healthRestored > 0 else { return .empty }
 
         let event = context.nextEvent(
             kind: .effect,
@@ -64,11 +68,11 @@ package enum HealingEngine {
             actorName: actorCombatant.name,
             abilityName: "Leech",
             target: actorCombatant,
-            amount: restored,
+            amount: healOutcome.healthRestored,
             keyword: .leech,
             appliedEffectSummaries: [],
             milestone: nil
         )
-        return CombatOutcome(healthDelta: restored, events: [event], flags: [.leeched])
+        return CombatOutcome(healthDelta: healOutcome.healthRestored, events: [event], flags: [.leeched])
     }
 }

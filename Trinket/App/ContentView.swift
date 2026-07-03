@@ -70,6 +70,11 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             refreshMusicRoute(scenePhase: newPhase)
+            if newPhase == .active {
+                Task {
+                    await appState.syncCoordinator.pullAndReconcile()
+                }
+            }
         }
     }
 

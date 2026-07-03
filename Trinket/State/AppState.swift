@@ -57,6 +57,9 @@ final class AppState {
         initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
         initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
+        resolvedPlayerSave.onRemoteSaveApplied = { [weak self] in
+            self?.battle.endBattle()
+        }
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
         applyLaunchScreenActions(environment: env)
     }
@@ -89,6 +92,11 @@ final class AppState {
 
     func resetGameplayProgress() {
         playerSave.resetGameplayProgress()
+        battle.endBattle()
+        journey.mapScrollRequest = nil
+        Task {
+            await syncCoordinator.uploadImmediately(playerSave.currentSave)
+        }
     }
 
     private func seedJourneyProgress(completedStageIDs: [String]) {

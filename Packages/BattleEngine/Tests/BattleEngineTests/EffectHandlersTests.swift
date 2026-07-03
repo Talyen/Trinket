@@ -9,7 +9,7 @@ final class EffectHandlersTests: XCTestCase {
         for kind in EffectKind.allCases {
             XCTAssertNotNil(EffectHandlers.all[kind], "Missing handler for \(kind)")
             XCTAssertEqual(EffectHandlers.all[kind]?.kind, kind)
-            XCTAssertEqual(EffectHandlers.handler(for: kind).kind, kind)
+            XCTAssertEqual(EffectHandlers.handler(for: kind)?.kind, kind)
         }
     }
 }

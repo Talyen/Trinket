@@ -11,9 +11,10 @@ public final class PlayerSaveSyncCoordinator {
     private let uploadDebounceInterval: Duration
     private weak var playerSaveStore: PlayerSaveStore?
     private var uploadTask: Task<Void, Never>?
-    private var isUploading = false
     private var pendingUploadSave: PlayerSave?
+    private var isProcessingUploads = false
     private var isApplyingRemoteSave = false
+    private var lastKnownRemoteChangeTag: String?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "CloudSync"
@@ -45,6 +46,12 @@ public final class PlayerSaveSyncCoordinator {
         await reconcileOnLaunch()
     }
 
+    public func uploadImmediately(_ save: PlayerSave) async {
+        pendingUploadSave = save
+        uploadTask?.cancel()
+        await processUploadQueue()
+    }
+
     private func reconcileOnLaunch() async {
         guard let playerSaveStore else { return }
 
@@ -61,19 +68,22 @@ public final class PlayerSaveSyncCoordinator {
         do {
             let local = playerSaveStore.currentSave
             let remote = try await sync.fetchRemoteSave()
+            if let remote {
+                lastKnownRemoteChangeTag = remote.recordChangeTag
+            }
             let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
 
             switch outcome {
             case .keepLocal:
                 status = .upToDate
             case let .applyRemote(remoteSave):
-                isApplyingRemoteSave = true
-                playerSaveStore.applyRemoteSave(remoteSave)
-                isApplyingRemoteSave = false
+                applyRemoteSave(remoteSave)
                 status = .upToDate
             case .uploadLocal:
-                try await sync.upload(local)
-                status = .upToDate
+                await enqueueUpload(local)
+            case let .applyMerged(mergedSave):
+                applyRemoteSave(mergedSave)
+                await enqueueUpload(mergedSave)
             }
         } catch {
             logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
@@ -106,26 +116,31 @@ public final class PlayerSaveSyncCoordinator {
         uploadTask = Task { [weak self] in
             try? await Task.sleep(for: debounceInterval)
             guard !Task.isCancelled else { return }
-            await self?.uploadPendingSaves()
+            await self?.processUploadQueue()
         }
     }
 
-    private func uploadPendingSaves() async {
-        guard !isUploading else { return }
-        isUploading = true
-        defer { isUploading = false }
+    private func enqueueUpload(_ save: PlayerSave) async {
+        pendingUploadSave = save
+        await processUploadQueue()
+    }
+
+    private func processUploadQueue() async {
+        guard !isProcessingUploads else { return }
+        isProcessingUploads = true
+        defer { isProcessingUploads = false }
 
         while let save = pendingUploadSave {
             pendingUploadSave = nil
-            await upload(save)
+            await performUpload(save)
         }
 
         if pendingUploadSave != nil {
-            await uploadPendingSaves()
+            await processUploadQueue()
         }
     }
 
-    private func upload(_ save: PlayerSave) async {
+    private func performUpload(_ save: PlayerSave) async {
         status = .syncing
 
         switch await sync.accountStatus() {
@@ -137,11 +152,41 @@ public final class PlayerSaveSyncCoordinator {
         }
 
         do {
-            try await sync.upload(save)
+            let newTag = try await sync.upload(save, replacingRecordChangeTag: lastKnownRemoteChangeTag)
+            lastKnownRemoteChangeTag = newTag
             status = .upToDate
+        } catch let error as PlayerSaveSyncError {
+            switch error {
+            case let .recordConflict(remote):
+                await resolveUploadConflict(local: save, remote: remote)
+            }
         } catch {
             logger.error("Upload failed: \(error.localizedDescription, privacy: .public)")
             status = .offline
         }
+    }
+
+    private func resolveUploadConflict(local: PlayerSave, remote: RemotePlayerSave) async {
+        guard let playerSaveStore else { return }
+
+        let merged = PlayerSaveMerger.merge(local, remote.save)
+        applyRemoteSave(merged)
+        lastKnownRemoteChangeTag = remote.recordChangeTag
+
+        do {
+            let newTag = try await sync.upload(merged, replacingRecordChangeTag: remote.recordChangeTag)
+            lastKnownRemoteChangeTag = newTag
+            status = .upToDate
+        } catch {
+            logger.error("Upload failed after merge: \(error.localizedDescription, privacy: .public)")
+            status = .offline
+        }
+    }
+
+    private func applyRemoteSave(_ remoteSave: PlayerSave) {
+        guard let playerSaveStore else { return }
+        isApplyingRemoteSave = true
+        playerSaveStore.applyRemoteSave(remoteSave)
+        isApplyingRemoteSave = false
     }
 }

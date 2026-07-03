@@ -15,9 +15,9 @@ public struct CleanseHandler: BattleEffectHandler {
     ) -> EffectApplyOutcome {
         guard case let .cleanse(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
-        EffectRemoval.removeDebuffs(from: &currentEffects, keyword: targetKeyword)
+        let removed = EffectRemoval.removeDebuffs(from: &currentEffects, keyword: targetKeyword)
+        guard removed else { return EffectApplyOutcome(events: [], didApply: false) }
         context.setActiveEffects(currentEffects, for: target)
-        let eventKeyword = targetKeyword ?? .health
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
@@ -25,7 +25,7 @@ public struct CleanseHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: eventKeyword
+            keyword: targetKeyword ?? .health
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -44,8 +44,8 @@ public struct CleanseRandomHandler: BattleEffectHandler {
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
         let removedKeyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng)
+        guard let removedKeyword else { return EffectApplyOutcome(events: [], didApply: false) }
         context.setActiveEffects(currentEffects, for: target)
-        let eventKeyword = removedKeyword ?? .health
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .cleanseApplied,
@@ -53,7 +53,7 @@ public struct CleanseRandomHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: eventKeyword
+            keyword: removedKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -72,9 +72,9 @@ public struct PurgeHandler: BattleEffectHandler {
     ) -> EffectApplyOutcome {
         guard case let .purge(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
-        EffectRemoval.removeBuffs(from: &currentEffects, keyword: targetKeyword)
+        let removed = EffectRemoval.removeBuffs(from: &currentEffects, keyword: targetKeyword)
+        guard removed else { return EffectApplyOutcome(events: [], didApply: false) }
         context.setActiveEffects(currentEffects, for: target)
-        let eventKeyword = targetKeyword ?? .purge
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .purgeApplied,
@@ -82,7 +82,7 @@ public struct PurgeHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: eventKeyword
+            keyword: targetKeyword ?? .purge
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }
@@ -101,8 +101,8 @@ public struct PurgeRandomHandler: BattleEffectHandler {
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
         let removedKeyword = EffectRemoval.removeRandomBuff(from: &currentEffects, using: &context.rng)
+        guard let removedKeyword else { return EffectApplyOutcome(events: [], didApply: false) }
         context.setActiveEffects(currentEffects, for: target)
-        let eventKeyword = removedKeyword ?? .purge
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .purgeApplied,
@@ -110,7 +110,7 @@ public struct PurgeRandomHandler: BattleEffectHandler {
             abilityName: ability.name,
             target: target,
             amount: 0,
-            keyword: eventKeyword
+            keyword: removedKeyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)
     }

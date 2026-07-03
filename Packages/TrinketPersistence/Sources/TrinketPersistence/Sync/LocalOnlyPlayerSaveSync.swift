@@ -13,8 +13,9 @@ public struct LocalOnlyPlayerSaveSync: PlayerSaveSyncing {
         return nil
     }
 
-    public func upload(_: PlayerSave) async throws {
+    public func upload(_: PlayerSave, replacingRecordChangeTag _: String?) async throws -> String? {
         await Task.yield()
+        return nil
     }
 
     public func subscribeToChanges() async throws {

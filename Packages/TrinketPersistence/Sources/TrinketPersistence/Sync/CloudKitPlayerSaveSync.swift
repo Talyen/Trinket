@@ -52,12 +52,18 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
         }
     }
 
-    public func upload(_ save: PlayerSave) async throws {
+    public func upload(_ save: PlayerSave, replacingRecordChangeTag: String?) async throws -> String? {
         let database = container.privateCloudDatabase
         let recordID = CKRecord.ID(recordName: Self.recordName)
         let record: CKRecord
 
         if let existing = try? await database.record(for: recordID) {
+            if let expectedTag = replacingRecordChangeTag,
+               let actualTag = existing.recordChangeTag,
+               actualTag != expectedTag
+            {
+                throw PlayerSaveSyncError.recordConflict(try remoteSave(from: existing))
+            }
             record = existing
         } else {
             record = CKRecord(recordType: Self.recordType, recordID: recordID)
@@ -74,7 +80,15 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
         record["modifiedAt"] = save.modifiedAt
         record["schemaVersion"] = Int64(save.schemaVersion)
 
-        _ = try await database.save(record)
+        do {
+            let saved = try await database.save(record)
+            return saved.recordChangeTag
+        } catch let error as CKError where error.code == .serverRecordChanged {
+            if let serverRecord = error.userInfo[CKRecordChangedErrorServerRecordKey] as? CKRecord {
+                throw PlayerSaveSyncError.recordConflict(try remoteSave(from: serverRecord))
+            }
+            throw error
+        }
     }
 
     public func subscribeToChanges() async throws {

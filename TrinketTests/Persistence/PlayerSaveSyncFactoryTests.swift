@@ -85,8 +85,9 @@ private struct StubPlayerSaveSync: PlayerSaveSyncing {
         return nil
     }
 
-    func upload(_: PlayerSave) async throws {
+    func upload(_: PlayerSave, replacingRecordChangeTag _: String?) async throws -> String? {
         await Task.yield()
+        return nil
     }
 
     func subscribeToChanges() async throws {

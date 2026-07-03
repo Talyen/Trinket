@@ -3,12 +3,15 @@ import TrinketCore
 import TrinketContent
 
 public enum EffectRemoval {
-    public static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) {
+    @discardableResult
+    public static func removeDebuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
+        let before = effects.count
         if let keyword {
             effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableDebuff }
         } else {
             effects.removeAll { $0.effect.isRemovableDebuff }
         }
+        return effects.count < before
     }
 
     public static func removeRandomDebuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {
@@ -18,12 +21,15 @@ public enum EffectRemoval {
         return removed.keyword
     }
 
-    public static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) {
+    @discardableResult
+    public static func removeBuffs(from effects: inout [ActiveEffect], keyword: Keyword?) -> Bool {
+        let before = effects.count
         if let keyword {
             effects.removeAll { $0.keyword == keyword && $0.effect.isRemovableBuff }
         } else {
             effects.removeAll { $0.effect.isRemovableBuff }
         }
+        return effects.count < before
     }
 
     public static func removeRandomBuff(from effects: inout [ActiveEffect], using rng: inout SeededRandomNumberGenerator) -> Keyword? {

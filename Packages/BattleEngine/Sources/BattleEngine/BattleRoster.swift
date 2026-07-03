@@ -128,12 +128,15 @@ public struct BattleRoster {
 
     // MARK: - Targeting
 
-    /// The combatant the enemy prefers to attack: prefers the hero when both
-    /// are alive, otherwise the one with higher health.
+    /// The combatant the enemy prefers to attack: the living party member with
+    /// the highest current health, preferring the hero when both are alive and tied.
     public var enemyAttackTarget: Combatant {
-        if !hero.isAlive { return pet.combatant }
-        if !pet.isAlive { return hero.combatant }
-        return hero.currentHealth >= pet.currentHealth ? hero.combatant : pet.combatant
+        if hero.isAlive && pet.isAlive {
+            return hero.currentHealth >= pet.currentHealth ? hero.combatant : pet.combatant
+        }
+        if hero.isAlive { return hero.combatant }
+        if pet.isAlive { return pet.combatant }
+        return hero.combatant
     }
 
     public var isPartyDefeated: Bool {

@@ -1,5 +1,6 @@
 import Foundation
 import TrinketContent
+import TrinketPersistence
 
 extension AppState {
     var playChapter: Chapter {
@@ -27,10 +28,12 @@ extension AppState {
             in: GameContent.chapters,
             context: &context
         )
-        roster.current = context.roster
-        inventory.current = context.inventory
-        homestead.current = context.homestead
-        journey.current = context.journey
+        playerSave.performBatchMutation { save in
+            save.roster = SavedRosterState(context.roster)
+            save.inventory = SavedInventoryState(context.inventory)
+            save.homestead = SavedHomesteadState(context.homestead)
+            save.journey = context.journey
+        }
 
         let scrollTarget = mapScrollFocusID(for: context.journey)
         journey.requestMapScroll(to: scrollTarget)

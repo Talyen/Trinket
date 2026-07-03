@@ -15,6 +15,12 @@ public struct RemotePlayerSave: Equatable, Sendable {
 public protocol PlayerSaveSyncing: Sendable {
     func accountStatus() async -> PlayerSaveAccountStatus
     func fetchRemoteSave() async throws -> RemotePlayerSave?
-    func upload(_ save: PlayerSave) async throws
+    func upload(_ save: PlayerSave, replacingRecordChangeTag: String?) async throws -> String?
     func subscribeToChanges() async throws
+}
+
+public extension PlayerSaveSyncing {
+    func upload(_ save: PlayerSave) async throws {
+        _ = try await upload(save, replacingRecordChangeTag: nil)
+    }
 }

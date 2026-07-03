@@ -29,9 +29,7 @@ package enum DoTApplicator {
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
             currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + potency)
-            if currentEffects[index].sourceActorID == nil {
-                currentEffects[index].sourceActorID = sourceActorID
-            }
+            currentEffects[index].sourceActorID = sourceActorID
         } else {
             currentEffects.append(
                 ActiveEffect(
