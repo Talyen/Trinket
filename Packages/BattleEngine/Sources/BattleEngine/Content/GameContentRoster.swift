@@ -1,0 +1,262 @@
+import Foundation
+import TrinketCore
+import TrinketContent
+
+import Foundation
+
+public enum GameContentRoster {
+    public static let heroes = [
+        Combatant(
+            id: "knight",
+            name: "Knight",
+            role: .hero,
+            maxHealth: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.bash, .shieldBash],
+                skills: [.smite, .spikedShield],
+                ultimates: [.blessedAegis, .crystalBulwark]
+            ),
+            primaryStats: PrimaryStats(strength: 8, agility: 4, toughness: 10, intellect: 2, wisdom: 3)
+        ),
+        Combatant(
+            id: "rogue",
+            name: "Rogue",
+            role: .hero,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.stab, .blackjack],
+                skills: [.poisonDagger, .serratedEdge],
+                ultimates: [.hemorrhage, .steal]
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 4, intellect: 3, wisdom: 2)
+        ),
+        Combatant(
+            id: "wizard",
+            name: "Wizard",
+            role: .hero,
+            maxHealth: 7,
+            maxMana: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.kindling, .rayOfFrost],
+                skills: [.fireball, .frostbolt],
+                ultimates: [.meteor, .glacialWard]
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 10, wisdom: 4)
+        ),
+        Combatant(
+            id: "alchemist",
+            name: "Alchemist",
+            role: .hero,
+            maxHealth: 9,
+            maxMana: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.smellingSalts, .apple],
+                skills: [.healthPotion, .antivenomPotion],
+                ultimates: [.panaceaPotion, .luckPotion]
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 7, wisdom: 8)
+        ),
+        Combatant(
+            id: "druid",
+            name: "Druid",
+            role: .hero,
+            maxHealth: 11,
+            maxMana: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.apple, .bread],
+                skills: [.briarShield, .graspingVines],
+                ultimates: [.bloodthorn, .faustianBargain]
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 7, intellect: 3, wisdom: 9)
+        ),
+        Combatant(
+            id: "ranger",
+            name: "Ranger",
+            role: .hero,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.bountyShot, .fireArrow],
+                skills: [.venomArrow, .sapArrow],
+                ultimates: [.packTactics, .concussiveShot]
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 8, toughness: 5, intellect: 2, wisdom: 4)
+        ),
+        Combatant(
+            id: "warlock",
+            name: "Warlock",
+            role: .hero,
+            maxHealth: 7,
+            maxMana: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.kindling, .fangs],
+                skills: [.bloodOffering, .darkPact],
+                ultimates: [.sunburst, .faustianBargain]
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 4, intellect: 9, wisdom: 6)
+        ),
+        Combatant(
+            id: "wildcard",
+            name: "Wildcard",
+            role: .hero,
+            maxHealth: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.gold, .manaBerries],
+                skills: [.haste, .roulette],
+                ultimates: [.faustianBargain, .luckPotion]
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 6, intellect: 5, wisdom: 6)
+        )
+    ]
+
+    public static let pets = [
+        Combatant(
+            id: "bear",
+            name: "Bear",
+            role: .pet,
+            maxHealth: 9,
+            abilityChoices: AbilityChoices(
+                basics: [.bash, .block],
+                skills: [.spikedShield, .sunderArmor],
+                ultimates: [.crystalBulwark, .thornMail]
+            ),
+            primaryStats: PrimaryStats(strength: 8, agility: 3, toughness: 10, intellect: 1, wisdom: 3)
+        ),
+        Combatant(
+            id: "frost_whelp",
+            name: "Frost Whelp",
+            role: .pet,
+            maxHealth: 6,
+            maxMana: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.rayOfFrost, .fangs],
+                skills: [.frostbolt, .coldSnap],
+                ultimates: [.glacialWard, .concussiveShot]
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 3, intellect: 9, wisdom: 3)
+        ),
+        Combatant(
+            id: "lizard_scout",
+            name: "Lizard Scout",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.stab, .blackjack],
+                skills: [.serratedEdge, .poisonDagger],
+                ultimates: [.hemorrhage, .steal]
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 8, toughness: 5, intellect: 3, wisdom: 3)
+        ),
+        Combatant(
+            id: "panther",
+            name: "Panther",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.slash, .fangs],
+                skills: [.serratedEdge, .haste],
+                ultimates: [.packTactics, .hemorrhage]
+            ),
+            primaryStats: PrimaryStats(strength: 7, agility: 8, toughness: 4, intellect: 2, wisdom: 3)
+        ),
+        Combatant(
+            id: "phoenix",
+            name: "Phoenix",
+            role: .pet,
+            maxHealth: 6,
+            maxMana: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.kindling, .fireArrow],
+                skills: [.fireball, .cauterize],
+                ultimates: [.phoenixFeather, .combustion]
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 8, wisdom: 7)
+        ),
+        Combatant(
+            id: "wolf",
+            name: "Wolf",
+            role: .pet,
+            maxHealth: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.slash, .fangs],
+                skills: [.serratedEdge, .venomFangs],
+                ultimates: [.packTactics, .concussiveShot]
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 5, intellect: 2, wisdom: 2)
+        ),
+        Combatant(
+            id: "golden_retriever",
+            name: "Golden Retriever",
+            role: .pet,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.gold, .bread],
+                skills: [.healthPotion, .bountyShot],
+                ultimates: [.luckPotion, .faustianBargain]
+            ),
+            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 6, intellect: 3, wisdom: 8)
+        ),
+        Combatant(
+            id: "library_owl",
+            name: "Library Owl",
+            role: .pet,
+            maxHealth: 6,
+            maxMana: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.smellingSalts, .kindling],
+                skills: [.cleanse, .prayer],
+                ultimates: [.panaceaPotion, .holyRadiance]
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 5, wisdom: 9)
+        ),
+        Combatant(
+            id: "risen_skeleton",
+            name: "Risen Skeleton",
+            role: .pet,
+            maxHealth: 7,
+            abilityChoices: AbilityChoices(
+                basics: [.slash, .fangs],
+                skills: [.darkPact, .bloodOffering],
+                ultimates: [.faustianBargain, .hemorrhage]
+            ),
+            primaryStats: PrimaryStats(strength: 6, agility: 5, toughness: 6, intellect: 5, wisdom: 3)
+        ),
+        Combatant(
+            id: "mana_moth",
+            name: "Mana Moth",
+            role: .pet,
+            maxHealth: 6,
+            maxMana: 10,
+            abilityChoices: AbilityChoices(
+                basics: [.manaBerries, .manaCrystals],
+                skills: [.manaPotion, .manaShield],
+                ultimates: [.luckPotion, .sunburst]
+            ),
+            primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 3, intellect: 7, wisdom: 7)
+        ),
+        Combatant(
+            id: "pixie",
+            name: "Pixie",
+            role: .pet,
+            maxHealth: 5,
+            maxMana: 6,
+            abilityChoices: AbilityChoices(
+                basics: [.apple, .bread],
+                skills: [.prayer, .cleanse],
+                ultimates: [.panaceaPotion, .sunburst]
+            ),
+            primaryStats: PrimaryStats(strength: 2, agility: 7, toughness: 3, intellect: 5, wisdom: 8)
+        ),
+        Combatant(
+            id: "shield_scarab",
+            name: "Shield Scarab",
+            role: .pet,
+            maxHealth: 8,
+            abilityChoices: AbilityChoices(
+                basics: [.block, .shieldBash],
+                skills: [.spikedShield, .stoneskinPotion],
+                ultimates: [.crystalBulwark, .plateMail]
+            ),
+            primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 11, intellect: 1, wisdom: 3)
+        )
+    ]
+}

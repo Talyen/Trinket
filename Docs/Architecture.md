@@ -8,11 +8,11 @@ High-level structure for Trinket and the planned Swift package migration.
 Trinket/
   App/              Shell, environment, tab routing
   Features/         SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  Battle/           Combat rules, effect handlers, simulator
+  Battle/           BattleRun, ActiveBattleConfiguration, victory UI wiring
   State/            Player*Store coordination + Persistence/
   Models/           Domain types
-  Content/          Hand-written catalogs + GameContent
-  Generated/        Codegen output (do not edit)
+  Content/          Journey roster/enemies/chapters + homestead (app-owned)
+  Generated/        Art/music codegen output (do not edit)
   Shared/           Reusable SwiftUI
   DesignSystem/     TrinketDesign
   Audio/            Music director
@@ -21,7 +21,7 @@ Trinket/
 Manifests and pipelines live outside the app folder:
 
 - `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Packages/TrinketContent/Sources/TrinketContent/Generated/`
-- `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh`
+- `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Trinket/Generated/ArtCatalog.generated.swift`
 - `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh`
 
 ## Generate workflow
@@ -78,7 +78,7 @@ Migration phases:
 1. **Phase 0** — codegen orchestration + CI drift check (done)
 2. **Phase 1** — `TrinketCore` package with leaf types: effects, enums, `PrimaryStats` (done)
 3. **Phase 2** — `TrinketContent` package (done)
-4. **Phase 3** — `BattleEngine` package
+4. **Phase 3** — `BattleEngine` package (done)
 5. **Phase 4** — `TrinketPersistence` package
 6. **Phase 5** — thin app target, optional `TrinketDesignSystem` package
 

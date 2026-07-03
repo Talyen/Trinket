@@ -13,6 +13,8 @@ packages:
     path: Packages/TrinketCore
   TrinketContent:
     path: Packages/TrinketContent
+  BattleEngine:
+    path: Packages/BattleEngine
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -28,6 +30,7 @@ targets:
     dependencies:
       - package: TrinketCore
       - package: TrinketContent
+      - package: BattleEngine
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket

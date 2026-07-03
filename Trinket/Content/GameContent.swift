@@ -1,4 +1,6 @@
 extension GameContent {
+    static let chapters: [Chapter] = GameContentChapters.chapters
+
     static let sampleInventoryItems: [InventoryItem] = itemBaseTypes.flatMap { base in
         Rarity.allCases.map { rarity in
             var randomNumberGenerator = SeededRandomNumberGenerator(
@@ -21,15 +23,6 @@ extension GameContent {
         text.utf8.reduce(14695981039346656037) { hash, byte in
             (hash ^ UInt64(byte)) &* 1099511628211
         }
-    }
-
-    static let heroes = GameContentRoster.heroes
-    static let pets = GameContentRoster.pets
-    static let enemies: [Enemy] = GameContentEnemies.enemies
-    static let chapters: [Chapter] = GameContentChapters.chapters
-
-    static func enemy(matching id: String) -> Enemy? {
-        enemies.first { $0.id == id }
     }
 
     static func chapter(containing stage: Stage) -> Chapter {
@@ -61,18 +54,4 @@ extension GameContent {
         "chapter-1-stage-6": ("destination-campfire", "Campfire"),
         "chapter-1-stage-8": ("mystery-vines-carpet-mosaic-floors", "Hidden Mosaic")
     ]
-}
-
-extension Combatant {
-    static var heroes: [Combatant] {
-        GameContent.heroes
-    }
-
-    static var pets: [Combatant] {
-        GameContent.pets
-    }
-
-    static var enemies: [Enemy] {
-        GameContent.enemies
-    }
 }

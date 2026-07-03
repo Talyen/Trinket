@@ -173,7 +173,7 @@ assert_no_build_is_fresh() {
   fi
 
   local newer_files=()
-  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent)
+  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent Packages/BattleEngine)
   local root
   for root in "${source_roots[@]}"; do
     if [[ -d "$root" ]]; then
@@ -263,6 +263,26 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
   )
   CONTENT_SECONDS=$SECONDS
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + CONTENT_SECONDS))
+
+  echo "Running BattleEngine package tests..."
+  BATTLE_SECONDS=0
+  SECONDS=0
+  (
+    cd Packages/BattleEngine
+    if [[ "$ACTION" == "test-without-building" ]]; then
+      xcodebuild test-without-building \
+        -scheme BattleEngine \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
+    else
+      xcodebuild test \
+        -scheme BattleEngine \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
+    fi
+  )
+  BATTLE_SECONDS=$SECONDS
+  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + BATTLE_SECONDS))
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then
