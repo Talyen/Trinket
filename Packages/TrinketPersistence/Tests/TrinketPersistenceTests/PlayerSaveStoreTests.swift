@@ -62,6 +62,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(store.inventory, .freshStart)
         XCTAssertEqual(store.homestead, .freshStart)
         XCTAssertEqual(store.journey, .initial)
+        XCTAssertEqual(store.currentSave.sessionGeneration, 1)
     }
 
     func testApplyTestSeedMatchesDeterministicUITestBaseline() throws {

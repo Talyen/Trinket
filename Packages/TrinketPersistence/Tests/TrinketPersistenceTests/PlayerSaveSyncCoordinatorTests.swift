@@ -26,6 +26,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
+        XCTAssertNotNil(fixture.coordinator.sessionToken)
         let fetchCount = await fixture.mock.fetchCallCount()
         let subscribeCount = await fixture.mock.subscribeInvocationCount()
         XCTAssertEqual(fetchCount, 1)
@@ -218,6 +219,17 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         }
 
         XCTAssertEqual(fixture.store.roster.gold, 12)
+    }
+
+    func testCloseSessionReleasesLeaseAndReturnsToClosed() async throws {
+        let fixture = try await makeSyncedFixture()
+        await fixture.coordinator.start()
+        XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
+
+        await fixture.coordinator.closeSession()
+
+        XCTAssertEqual(fixture.coordinator.sessionPhase, .closed)
+        XCTAssertNil(fixture.coordinator.sessionToken)
     }
 
     // MARK: - Fixtures

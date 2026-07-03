@@ -188,5 +188,22 @@ final class PlayerSaveMigrationTests: XCTestCase {
 
         XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertEqual(migrated.homestead.homestead(), .freshStart)
+        XCTAssertEqual(migrated.sessionGeneration, 0)
+    }
+
+    func testMigrateV5ToV6AddsSessionGeneration() {
+        let v5Save = PlayerSave(
+            schemaVersion: 5,
+            modifiedAt: Date(),
+            journey: .initial,
+            roster: SavedRosterState(.freshStart),
+            inventory: SavedInventoryState(.freshStart),
+            homestead: SavedHomesteadState(.freshStart)
+        )
+
+        let migrated = PlayerSaveMigration.migrate(v5Save)
+
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertEqual(migrated.sessionGeneration, 0)
     }
 }

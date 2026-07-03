@@ -49,7 +49,9 @@ public final class PlayerSaveStore {
     }
 
     public func resetGameplayProgress() throws {
-        try commitSave(.fresh)
+        var fresh = PlayerSave.fresh
+        fresh.sessionGeneration = save.sessionGeneration &+ 1
+        try commitSave(fresh)
     }
 
     public func applyTestSeed() throws {

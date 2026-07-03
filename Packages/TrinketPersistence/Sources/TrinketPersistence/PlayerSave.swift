@@ -1,10 +1,11 @@
 import Foundation
 
 public struct PlayerSave: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 6
 
     public var schemaVersion: Int
     public var modifiedAt: Date
+    public var sessionGeneration: UInt64
     public var journey: JourneyProgressState
     public var roster: SavedRosterState
     public var inventory: SavedInventoryState
@@ -14,6 +15,7 @@ public struct PlayerSave: Codable, Equatable, Sendable {
         PlayerSave(
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
+            sessionGeneration: 0,
             journey: .initial,
             roster: SavedRosterState(.freshStart),
             inventory: SavedInventoryState(.freshStart),
@@ -25,6 +27,7 @@ public struct PlayerSave: Codable, Equatable, Sendable {
         PlayerSave(
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
+            sessionGeneration: 0,
             journey: .initial,
             roster: SavedRosterState(.testSeed),
             inventory: SavedInventoryState(.testSeed),
@@ -35,6 +38,7 @@ public struct PlayerSave: Codable, Equatable, Sendable {
     public init(
         schemaVersion: Int,
         modifiedAt: Date,
+        sessionGeneration: UInt64 = 0,
         journey: JourneyProgressState,
         roster: SavedRosterState,
         inventory: SavedInventoryState,
@@ -42,6 +46,7 @@ public struct PlayerSave: Codable, Equatable, Sendable {
     ) {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
+        self.sessionGeneration = sessionGeneration
         self.journey = journey
         self.roster = roster
         self.inventory = inventory
@@ -52,6 +57,7 @@ public struct PlayerSave: Codable, Equatable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
         modifiedAt = try container.decodeIfPresent(Date.self, forKey: .modifiedAt) ?? .distantPast
+        sessionGeneration = try container.decodeIfPresent(UInt64.self, forKey: .sessionGeneration) ?? 0
         journey = try container.decode(JourneyProgressState.self, forKey: .journey)
         roster = try container.decode(SavedRosterState.self, forKey: .roster)
         inventory = try container.decode(SavedInventoryState.self, forKey: .inventory)

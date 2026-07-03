@@ -5,15 +5,18 @@ import os
 public enum PlayerSaveSessionPhase: Equatable {
     case bootstrapping
     case active
+    case closed
 }
 
 @MainActor
 @Observable
 public final class PlayerSaveSyncCoordinator {
     public private(set) var status: PlayerSaveSyncStatus = .idle
-    public private(set) var sessionPhase: PlayerSaveSessionPhase = .bootstrapping
+    public private(set) var sessionPhase: PlayerSaveSessionPhase = .closed
+    public private(set) var sessionToken: PlayerAccountSessionToken?
 
     private let sync: any PlayerSaveSyncing
+    private let sessionLease: any PlayerAccountSessionLeasing
     private weak var playerSaveStore: PlayerSaveStore?
     private var uploadTask: Task<Void, Never>?
     private var pendingUploadSave: PlayerSave?
@@ -27,9 +30,11 @@ public final class PlayerSaveSyncCoordinator {
 
     public init(
         sync: any PlayerSaveSyncing,
-        playerSaveStore: PlayerSaveStore
+        playerSaveStore: PlayerSaveStore,
+        sessionLease: any PlayerAccountSessionLeasing = LocalDeviceSessionLease()
     ) {
         self.sync = sync
+        self.sessionLease = sessionLease
         self.playerSaveStore = playerSaveStore
         playerSaveStore.onLocalSave = { [weak self] save in
             self?.noteLocalCheckpoint(save)
@@ -37,18 +42,50 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     public func start() async {
-        await reconcileOnLaunch()
+        guard sessionPhase != .active else { return }
+
+        if sessionToken == nil {
+            do {
+                sessionToken = try await sessionLease.acquireSession()
+            } catch {
+                logger.error("Failed to acquire account session: \(error.localizedDescription, privacy: .public)")
+                status = .error("Could not start a save session on this device.")
+                sessionPhase = .closed
+                return
+            }
+        }
+
+        if sessionPhase != .bootstrapping {
+            sessionPhase = .bootstrapping
+            await reconcileAtSessionStart()
+        }
+
         sessionPhase = .active
         await registerSubscriptionIfNeeded()
     }
 
     public func pullAndReconcile() async {
-        guard sessionPhase == .bootstrapping else { return }
-        await reconcileOnLaunch()
+        guard sessionPhase != .active else { return }
+        sessionPhase = .bootstrapping
+        await reconcileAtSessionStart()
     }
 
     public func syncNow() async {
         await checkpointUploadIfNeeded()
+    }
+
+    /// Ends the active session, checkpoints cloud state, and releases the lease.
+    public func closeSession() async {
+        guard sessionPhase == .active else { return }
+
+        await checkpointUploadIfNeeded()
+
+        if let sessionToken {
+            await sessionLease.releaseSession(sessionToken)
+            self.sessionToken = nil
+        }
+
+        sessionPhase = .closed
     }
 
     public func uploadImmediately(_ save: PlayerSave) async {
@@ -67,7 +104,7 @@ public final class PlayerSaveSyncCoordinator {
         pendingUploadSave = save
     }
 
-    private func reconcileOnLaunch() async {
+    private func reconcileAtSessionStart() async {
         guard let playerSaveStore else { return }
 
         status = .syncing
@@ -86,7 +123,7 @@ public final class PlayerSaveSyncCoordinator {
             if let remote {
                 lastKnownRemoteChangeTag = remote.recordChangeTag
             }
-            let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
+            let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
 
             switch outcome {
             case .keepLocal:
@@ -172,16 +209,16 @@ public final class PlayerSaveSyncCoordinator {
     private func resolveUploadConflict(local: PlayerSave, remote: RemotePlayerSave) async {
         guard let playerSaveStore else { return }
 
-        let merged = PlayerSaveMerger.merge(local, remote.save)
-        applyRemoteSave(merged)
+        let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: local, remote: remote.save)
+        applyRemoteSave(authoritative)
         lastKnownRemoteChangeTag = remote.recordChangeTag
 
         do {
-            let newTag = try await sync.upload(merged, replacingRecordChangeTag: remote.recordChangeTag)
+            let newTag = try await sync.upload(authoritative, replacingRecordChangeTag: remote.recordChangeTag)
             lastKnownRemoteChangeTag = newTag
             status = .upToDate
         } catch {
-            logger.error("Upload failed after merge: \(error.localizedDescription, privacy: .public)")
+            logger.error("Upload failed after authority resolution: \(error.localizedDescription, privacy: .public)")
             status = .offline
         }
     }

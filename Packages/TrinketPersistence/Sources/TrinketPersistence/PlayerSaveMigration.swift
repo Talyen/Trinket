@@ -20,6 +20,8 @@ public enum PlayerSaveMigration {
                 current = migrateV3ToV4(current)
             case 4:
                 current = migrateV4ToV5(current)
+            case 5:
+                current = migrateV5ToV6(current)
             default:
                 logger.warning(
                     "Unsupported player save schema version \(current.schemaVersion, privacy: .public). Starting fresh."
@@ -74,6 +76,14 @@ public enum PlayerSaveMigration {
         migrated.homestead = SavedHomesteadState(.freshStart)
         migrated.schemaVersion = 5
         logger.info("Migrated player save from schema v4 to v5.")
+        return migrated
+    }
+
+    private static func migrateV5ToV6(_ save: PlayerSave) -> PlayerSave {
+        var migrated = save
+        migrated.sessionGeneration = 0
+        migrated.schemaVersion = 6
+        logger.info("Migrated player save from schema v5 to v6.")
         return migrated
     }
 }
