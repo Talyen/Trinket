@@ -111,7 +111,7 @@ Keywords are the shared mechanic vocabulary across cards, abilities, enemies, it
 
 Every Keyword has one universal visual identity. Its color and symbol come from `Keyword.visualStyle` and are reused across inline descriptions, combat feedback, ability cards, item affixes, logs, and detail surfaces. Do not introduce one-off Keyword colors in feature views.
 
-All Keywords are defined in `Packages/TrinketCore/Sources/TrinketCore/GameEnums.swift`. Keyword colors and SF Symbols for UI live in `Trinket/Models/Enums.swift` (`Keyword.visualStyle`). Mechanics are wired through the unified `Effect` model (`Packages/TrinketContent/Sources/TrinketContent/Ability.swift`).
+All Keywords are defined in `Packages/TrinketCore/Sources/TrinketCore/GameEnums.swift`. Keyword colors and SF Symbols live in `Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Keyword+VisualStyle.swift` (`Keyword.visualStyle`). Mechanics are wired through the unified `Effect` model (`Packages/TrinketContent/Sources/TrinketContent/Ability.swift`).
 
 ### Damage Types (Keyword.category = .damageType)
 

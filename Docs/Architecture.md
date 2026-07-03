@@ -41,7 +41,7 @@ Manifests and pipelines live outside the app folder:
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, pets, enemies, abilities, affixes | `TrinketContent` | Hand-written + manifest-generated catalogs |
+| Heroes, pets, enemies, abilities, affixes, stages | `TrinketContent` | Roster hand-authored; abilities/affixes/stages manifest-generated |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
 | Shared UI chrome | `TrinketDesignSystem` | `TrinketDesign`, `ExperienceBar` |

@@ -50,6 +50,8 @@ TRACKED_PATHS=(
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogUltimate.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
 )
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then

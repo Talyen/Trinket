@@ -52,6 +52,8 @@ VALID_KEYWORDS = frozenset(
 )
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
+VALID_ROLES = frozenset({"hero", "pet"})
 
 
 @dataclass
@@ -96,6 +98,38 @@ class StageRow:
     experience: str
     item_templates: str
     materials: str
+
+
+@dataclass
+class CombatantRow:
+    id: str
+    name: str
+    role: str
+    max_health: str
+    max_mana: str
+    basics: str
+    skills: str
+    ultimates: str
+    strength: str
+    agility: str
+    toughness: str
+    intellect: str
+    wisdom: str
+
+
+@dataclass
+class EnemyRow:
+    id: str
+    name: str
+    max_health: str
+    is_boss: str
+    level: str
+    abilities: str
+    strength: str
+    agility: str
+    toughness: str
+    intellect: str
+    wisdom: str
 
 
 def read_tsv(path: Path) -> list[list[str]]:
@@ -177,6 +211,60 @@ def parse_stage_rows() -> list[StageRow]:
     for raw in lines[1:]:
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(StageRow(*padded[: len(expected)]))
+    return rows
+
+
+def parse_combatant_rows() -> list[CombatantRow]:
+    path = MANIFEST_DIR / "combatants.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = [
+        "id",
+        "name",
+        "role",
+        "max_health",
+        "max_mana",
+        "basics",
+        "skills",
+        "ultimates",
+        "strength",
+        "agility",
+        "toughness",
+        "intellect",
+        "wisdom",
+    ]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    rows: list[CombatantRow] = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(CombatantRow(*padded[: len(expected)]))
+    return rows
+
+
+def parse_enemy_rows() -> list[EnemyRow]:
+    path = MANIFEST_DIR / "enemies.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = [
+        "id",
+        "name",
+        "max_health",
+        "is_boss",
+        "level",
+        "abilities",
+        "strength",
+        "agility",
+        "toughness",
+        "intellect",
+        "wisdom",
+    ]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    rows: list[EnemyRow] = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(EnemyRow(*padded[: len(expected)]))
     return rows
 
 
@@ -454,6 +542,165 @@ def parse_generated_ability_symbols(path: Path) -> list[tuple[str, str]]:
     return [(match.group(1), enum_name) for match in re.finditer(r"static let (\w+) = AbilityBuilder", text)]
 
 
+def collect_ability_symbols() -> set[str]:
+    symbols: set[str] = set()
+    for tier in ("Basic", "Skill", "Ultimate"):
+        hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
+        generated_path = GENERATED_DIR / f"AbilityCatalog{tier}.generated.swift"
+        symbols.update(symbol for symbol, _ in parse_custom_ability_symbols(hand_path))
+        if generated_path.exists():
+            symbols.update(symbol for symbol, _ in parse_generated_ability_symbols(generated_path))
+    return symbols
+
+
+def parse_ability_symbol_list(raw: str) -> list[str]:
+    return [part.strip() for part in raw.split(",") if part.strip()]
+
+
+def ability_symbols_swift(raw: str) -> str:
+    symbols = parse_ability_symbol_list(raw)
+    return "[" + ", ".join(f".{symbol}" for symbol in symbols) + "]"
+
+
+def primary_stats_swift(row: CombatantRow | EnemyRow) -> str:
+    return (
+        f"PrimaryStats(strength: {row.strength}, agility: {row.agility}, "
+        f"toughness: {row.toughness}, intellect: {row.intellect}, wisdom: {row.wisdom})"
+    )
+
+
+def _validate_snake_id(label: str, value: str, row_id: str) -> None:
+    if not SNAKE_IDENTIFIER.match(value):
+        raise ValueError(
+            f"{label} '{value}' for {row_id} must use lowercase letters, numbers, and underscores"
+        )
+
+
+def _validate_positive_int(label: str, value: str, row_id: str) -> None:
+    if not value.isdigit():
+        raise ValueError(f"{label} for {row_id} must be an integer")
+    if int(value) < 0:
+        raise ValueError(f"{label} for {row_id} must be non-negative")
+
+
+def _validate_ability_symbols(raw: str, row_id: str, ability_symbols: set[str], expected_count: int | None = None) -> None:
+    symbols = parse_ability_symbol_list(raw)
+    if expected_count is not None and len(symbols) != expected_count:
+        raise ValueError(f"{row_id} must list exactly {expected_count} ability symbols")
+    for symbol in symbols:
+        _validate_swift_symbol("ability symbol", symbol, row_id)
+        if symbol not in ability_symbols:
+            raise ValueError(f"Unknown ability symbol '{symbol}' for {row_id}")
+
+
+def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate combatant id: {row.id}")
+        seen.add(row.id)
+
+        _validate_snake_id("combatant id", row.id, row.id)
+        _require_non_empty("combatant name", row.name, row.id)
+        if row.role not in VALID_ROLES:
+            raise ValueError(f"Invalid combatant role '{row.role}' for {row.id}")
+
+        _validate_positive_int("max_health", row.max_health, row.id)
+        _validate_positive_int("max_mana", row.max_mana, row.id)
+        for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
+            _validate_positive_int(stat, getattr(row, stat), row.id)
+
+        _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
+        _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
+        _validate_ability_symbols(row.ultimates, row.id, ability_symbols, expected_count=2)
+        render_party_combatant(row)
+
+
+def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate enemy id: {row.id}")
+        if row.id in combatant_ids:
+            raise ValueError(f"Enemy id '{row.id}' conflicts with a hero/pet combatant id")
+        seen.add(row.id)
+
+        _validate_snake_id("enemy id", row.id, row.id)
+        _require_non_empty("enemy name", row.name, row.id)
+        if row.is_boss not in {"true", "false"}:
+            raise ValueError(f"is_boss for {row.id} must be true or false")
+        _validate_positive_int("level", row.level, row.id)
+
+        if row.max_health not in {"", "default"} and not row.max_health.isdigit():
+            raise ValueError(f"max_health for {row.id} must be 'default' or an integer")
+
+        for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
+            _validate_positive_int(stat, getattr(row, stat), row.id)
+
+        _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
+        render_enemy(row)
+
+
+def render_party_combatant(row: CombatantRow) -> str:
+    max_mana_clause = ""
+    if row.max_mana and row.max_mana != "0":
+        max_mana_clause = f",\n            maxMana: {row.max_mana}"
+    return f"""        Combatant(
+            id: "{swift_escape(row.id)}",
+            name: "{swift_escape(row.name)}",
+            role: .{row.role},
+            maxHealth: {row.max_health}{max_mana_clause},
+            abilityChoices: AbilityChoices(
+                basics: {ability_symbols_swift(row.basics)},
+                skills: {ability_symbols_swift(row.skills)},
+                ultimates: {ability_symbols_swift(row.ultimates)}
+            ),
+            primaryStats: {primary_stats_swift(row)}
+        )"""
+
+
+def render_enemy(row: EnemyRow) -> str:
+    max_health = "Enemy.defaultMaxHealth" if row.max_health in {"", "default"} else row.max_health
+    boss_clause = ", isBoss: true" if row.is_boss == "true" else ""
+    level_clause = f", level: {row.level}" if row.level != "1" else ""
+    return (
+        f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
+        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {max_health}, "
+        f"abilities: {ability_symbols_swift(row.abilities)}, "
+        f"primaryStats: {primary_stats_swift(row)}){boss_clause}{level_clause})"
+    )
+
+
+def generate_roster_catalog(rows: list[CombatantRow]) -> None:
+    heroes = [row for row in rows if row.role == "hero"]
+    pets = [row for row in rows if row.role == "pet"]
+    hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
+    pet_blocks = ",\n".join(render_party_combatant(row) for row in pets)
+    body = (
+        "public enum GameContentRosterGenerated {\n"
+        "    public static let heroes: [Combatant] = [\n"
+        f"{hero_blocks}\n"
+        "    ]\n\n"
+        "    public static let pets: [Combatant] = [\n"
+        f"{pet_blocks}\n"
+        "    ]\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentRoster.generated.swift", body)
+
+
+def generate_enemies_catalog(rows: list[EnemyRow]) -> None:
+    enemy_blocks = ",\n".join(render_enemy(row) for row in rows)
+    body = (
+        "public enum GameContentEnemiesGenerated {\n"
+        "    public static let enemies: [Enemy] = [\n"
+        f"{enemy_blocks}\n"
+        "    ]\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentEnemies.generated.swift", body)
+
+
 def _require_non_empty(label: str, value: str, row_id: str) -> None:
     if not value.strip():
         raise ValueError(f"{label} is required for {row_id}")
@@ -609,7 +856,7 @@ def render_stage(row: StageRow) -> str:
                 )"""
 
 
-def validate_stage_rows(rows: list[StageRow]) -> None:
+def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None) -> None:
     seen_stage_ids: set[str] = set()
     chapters: dict[str, list[StageRow]] = {}
 
@@ -625,6 +872,8 @@ def validate_stage_rows(rows: list[StageRow]) -> None:
             raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
         if row.encounter == "battle" and not row.enemy_id.strip():
             raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
+        if row.encounter == "battle" and enemy_ids is not None and row.enemy_id not in enemy_ids:
+            raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
         if row.encounter != "battle" and row.enemy_id.strip():
             raise ValueError(f"enemy_id only allowed for battle encounters at {stage_id}")
 
@@ -696,14 +945,20 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
     write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
 
 
-def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow], list[StageRow]]:
+def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow], list[StageRow], list[CombatantRow], list[EnemyRow]]:
     affix_rows = parse_affix_rows()
     ability_rows = parse_ability_rows()
+    combatant_rows = parse_combatant_rows()
+    enemy_rows = parse_enemy_rows()
     stage_rows = parse_stage_rows()
+    ability_symbols = collect_ability_symbols()
+
     validate_affix_rows(affix_rows)
     validate_ability_rows(ability_rows)
-    validate_stage_rows(stage_rows)
-    return affix_rows, ability_rows, stage_rows
+    validate_combatant_rows(combatant_rows, ability_symbols)
+    validate_enemy_rows(enemy_rows, ability_symbols, {row.id for row in combatant_rows})
+    validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
+    return affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows
 
 
 def generate_ability_shorthand() -> None:
@@ -726,11 +981,13 @@ def generate_ability_shorthand() -> None:
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
     if command == "validate":
-        affix_rows, ability_rows, stage_rows = validate_manifests()
+        affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows = validate_manifests()
         print(
             f"Validated {len(affix_rows)} affixes, "
-            f"{len(ability_rows)} manifest abilities, and "
-            f"{len(stage_rows)} stages"
+            f"{len(ability_rows)} manifest abilities, "
+            f"{len(stage_rows)} stages, "
+            f"{len(combatant_rows)} combatants, and "
+            f"{len(enemy_rows)} enemies"
         )
         return 0
     if command == "shorthand":
@@ -738,16 +995,20 @@ def main() -> int:
         print("Generated AbilityShorthand.generated.swift")
         return 0
 
-    affix_rows, ability_rows, stage_rows = validate_manifests()
+    affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows = validate_manifests()
     generate_affix_catalog(affix_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
+    generate_roster_catalog(combatant_rows)
+    generate_enemies_catalog(enemy_rows)
     generate_ability_shorthand()
     print(
         f"Generated {len(affix_rows)} affixes, "
-        f"{len(ability_rows)} manifest abilities, and "
-        f"{len(stage_rows)} stages"
+        f"{len(ability_rows)} manifest abilities, "
+        f"{len(stage_rows)} stages, "
+        f"{len(combatant_rows)} combatants, and "
+        f"{len(enemy_rows)} enemies"
     )
     return 0
 

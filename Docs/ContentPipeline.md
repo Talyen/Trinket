@@ -7,10 +7,14 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
 - `ContentManifest/abilities.tsv`: manifest-driven abilities (`direct_hit`, `buff_only`, `multi_damage`).
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
+- `ContentManifest/combatants.tsv`: manifest-driven heroes and pets (ability choices + stats).
+- `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and pets from `combatants.tsv`.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
