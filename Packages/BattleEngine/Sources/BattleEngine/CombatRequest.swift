@@ -21,9 +21,9 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     /// Direct ability hit: full bonuses and dodge checks.
     public static let directAbilityHit = DamageOptions()
 
-    /// DoT tick: no dodge or stat bonus at resolution time (potency may already include bonuses).
+    /// DoT tick: stat and item bonuses at resolution time; no dodge.
     public static let doTTick = DamageOptions(
-        applyStatBonus: false,
+        applyStatBonus: true,
         applyItemBonus: true,
         applyDodge: false
     )

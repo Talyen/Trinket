@@ -93,14 +93,14 @@ final class CombatOutcomeTests: XCTestCase {
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
     }
 
-    func testDamageRequestDoTTickPresetDisablesDodgeAndStatBonus() {
+    func testDamageRequestDoTTickPresetAppliesBonusesWithoutDodge() {
         let preset = DamageRequest.doTTick(
             amount: 10,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .burn,
             sourceActorID: "source"
         )
-        XCTAssertFalse(preset.options.applyStatBonus)
+        XCTAssertTrue(preset.options.applyStatBonus)
         XCTAssertFalse(preset.options.applyDodge)
         XCTAssertTrue(preset.options.applyItemBonus)
     }

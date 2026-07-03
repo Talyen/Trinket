@@ -17,11 +17,13 @@ public struct DecayingDoTHandler: BattleEffectHandler {
         guard matches(active.effect) else { return EffectTickOutcome() }
         let nextPotency = active.effect.potencyAfterTick()
         if nextPotency > 0 {
-            let events = context.logDoTDamage(
-                context.applyDoTDamage(nextPotency, keyword: keyword, to: target, sourceActorID: active.sourceActorID),
+            let events = DoTDamage.resolveTick(
+                basePotency: nextPotency,
                 keyword: keyword,
-                target: target
-            )
+                target: target,
+                sourceActorID: active.sourceActorID,
+                in: &context
+            ).events
             var updated = active
             updated.effect = effectCase(potency: nextPotency)
             return EffectTickOutcome(events: events, updatedStack: updated)
@@ -82,11 +84,13 @@ public struct BleedHandler: BattleEffectHandler {
         guard case let .bleed(potency) = active.effect, active.remainingTicks > 0 else {
             return EffectTickOutcome()
         }
-        let events = context.logDoTDamage(
-            context.applyDoTDamage(potency, keyword: .bleed, to: target, sourceActorID: active.sourceActorID),
+        let events = DoTDamage.resolveTick(
+            basePotency: potency,
             keyword: .bleed,
-            target: target
-        )
+            target: target,
+            sourceActorID: active.sourceActorID,
+            in: &context
+        ).events
         var updated = active
         updated.remainingTicks -= 1
         return EffectTickOutcome(

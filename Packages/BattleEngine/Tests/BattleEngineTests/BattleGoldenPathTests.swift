@@ -21,8 +21,8 @@ final class BattleGoldenPathTests: XCTestCase {
         let result = runGoldenBattle()
 
         XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 10)
-        XCTAssertEqual(result.actionCount, 9)
+        XCTAssertEqual(result.tickCount, 12)
+        XCTAssertEqual(result.actionCount, 12)
         XCTAssertEqual(result.finalEnemyHealth, 0)
         XCTAssertEqual(result.finalHeroHealth, 10)
         XCTAssertEqual(result.finalPetHealth, 10)

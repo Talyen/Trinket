@@ -40,13 +40,11 @@ public enum CombatPipeline {
         sourceActorID: String?,
         in context: inout BattleEngineContext
     ) -> (healthLost: Int, events: [ActionEvent]) {
-        let outcome = resolveDamage(
-            .doTTick(
-                amount: amount,
-                target: combatant,
-                keyword: keyword,
-                sourceActorID: sourceActorID
-            ),
+        let outcome = DoTDamage.resolveTick(
+            basePotency: amount,
+            keyword: keyword,
+            target: combatant,
+            sourceActorID: sourceActorID,
             in: &context
         )
         return (outcome.healthLost, outcome.events)

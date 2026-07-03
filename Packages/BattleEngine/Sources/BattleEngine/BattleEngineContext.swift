@@ -107,6 +107,21 @@ public extension BattleEngineContext {
         return collected
     }
 
+    mutating func resolveDoTTick(
+        basePotency: Int,
+        keyword: Keyword,
+        target: Combatant,
+        sourceActorID: String?
+    ) -> CombatOutcome {
+        DoTDamage.resolveTick(
+            basePotency: basePotency,
+            keyword: keyword,
+            target: target,
+            sourceActorID: sourceActorID,
+            in: &self
+        )
+    }
+
     mutating func applyDamage(
         _ amount: Int,
         to combatant: Combatant,

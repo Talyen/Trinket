@@ -13,27 +13,22 @@ public enum DoTApplicator {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
-        let statBonus: Int
-        if let actor = context.roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: keyword)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
-            collected.append(contentsOf: context.logDoTDamage(
-                context.applyDoTDamage(boostedPotency, keyword: keyword, to: effectTarget, sourceActorID: sourceActorID),
+            collected.append(contentsOf: DoTDamage.resolveTick(
+                basePotency: potency,
                 keyword: keyword,
-                target: effectTarget
-            ))
+                target: effectTarget,
+                sourceActorID: sourceActorID,
+                in: &context
+            ).events)
         }
 
         var currentEffects = context.activeEffects(for: effectTarget)
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
-            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + boostedPotency)
+            currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + potency)
             if currentEffects[index].sourceActorID == nil {
                 currentEffects[index].sourceActorID = sourceActorID
             }
@@ -41,7 +36,7 @@ public enum DoTApplicator {
             currentEffects.append(
                 ActiveEffect(
                     id: context.consumeNextEffectID(),
-                    effect: effectCase(for: keyword, potency: boostedPotency),
+                    effect: effectCase(for: keyword, potency: potency),
                     remainingTicks: 0,
                     sourceActorID: sourceActorID
                 )
@@ -60,25 +55,19 @@ public enum DoTApplicator {
     ) -> [ActionEvent] {
         guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
 
-        let statBonus: Int
-        if let actor = context.roster.combatant(for: sourceActorID) {
-            statBonus = actor.primaryStats.statBonusForDamage(keyword: .bleed)
-        } else {
-            statBonus = 0
-        }
-        let boostedPotency = potency + statBonus
-
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
-            collected.append(contentsOf: context.logDoTDamage(
-                context.applyDoTDamage(boostedPotency, keyword: .bleed, to: effectTarget, sourceActorID: sourceActorID),
+            collected.append(contentsOf: DoTDamage.resolveTick(
+                basePotency: potency,
                 keyword: .bleed,
-                target: effectTarget
-            ))
+                target: effectTarget,
+                sourceActorID: sourceActorID,
+                in: &context
+            ).events)
         }
 
         context.appendEffect(
-            .bleed(boostedPotency),
+            .bleed(potency),
             to: effectTarget,
             sourceID: sourceActorID,
             remainingTicks: Effect.bleedDoTTickCount + context.modifiers(for: sourceActorID).bleedDurationBonus
