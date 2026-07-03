@@ -16,6 +16,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
     public let actionIntervalTicks: Int?
     public let abilityChoices: AbilityChoices
     public let primaryStats: PrimaryStats
+    public let growthArchetype: GrowthArchetype
 
     public var hasMana: Bool {
         maxMana > 0
@@ -29,7 +30,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         maxMana: Int = 0,
         actionIntervalTicks: Int? = nil,
         abilityChoices: AbilityChoices,
-        primaryStats: PrimaryStats = PrimaryStats()
+        primaryStats: PrimaryStats = PrimaryStats(),
+        growthArchetype: GrowthArchetype = .bruiser
     ) {
         self.id = id
         self.name = name
@@ -39,6 +41,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         self.actionIntervalTicks = actionIntervalTicks
         self.abilityChoices = abilityChoices
         self.primaryStats = primaryStats
+        self.growthArchetype = growthArchetype
     }
 
     public init(
@@ -49,7 +52,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
         maxMana: Int = 0,
         actionIntervalTicks: Int? = nil,
         abilities: [Ability],
-        primaryStats: PrimaryStats = PrimaryStats()
+        primaryStats: PrimaryStats = PrimaryStats(),
+        growthArchetype: GrowthArchetype = .bruiser
     ) {
         self.init(
             id: id,
@@ -59,7 +63,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: AbilityChoices(abilities: abilities),
-            primaryStats: primaryStats
+            primaryStats: primaryStats,
+            growthArchetype: growthArchetype
         )
     }
 
@@ -80,7 +85,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadout(loadout),
-            primaryStats: primaryStats
+            primaryStats: primaryStats,
+            growthArchetype: growthArchetype
         )
     }
 
@@ -93,7 +99,8 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout),
-            primaryStats: primaryStats
+            primaryStats: primaryStats,
+            growthArchetype: growthArchetype
         )
     }
 }

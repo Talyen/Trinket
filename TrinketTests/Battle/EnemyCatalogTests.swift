@@ -9,6 +9,8 @@ final class EnemyCatalogTests: XCTestCase {
         "the_iron_bear"
     ]
 
+    private let bossBaseHealth: Set<Int> = [22, 24, 25, 26]
+
     func testEnemyCount() {
         XCTAssertEqual(GameContent.enemies.count, 15)
     }
@@ -32,15 +34,23 @@ final class EnemyCatalogTests: XCTestCase {
         }
     }
 
-    func testEachEnemyHasDefaultLevel() {
+    func testEachEnemyHasAuthoredBaseHealth() {
         for enemy in GameContent.enemies {
-            XCTAssertEqual(enemy.level, Enemy.defaultLevel, "\(enemy.name) should use default level")
+            if enemy.isBoss {
+                XCTAssertTrue(
+                    bossBaseHealth.contains(enemy.maxHealth),
+                    "\(enemy.name) should use a boss base HP band"
+                )
+            } else {
+                XCTAssertGreaterThanOrEqual(enemy.maxHealth, 11, "\(enemy.name) should have fodder base HP")
+                XCTAssertLessThanOrEqual(enemy.maxHealth, 14, "\(enemy.name) should have fodder base HP")
+            }
         }
     }
 
-    func testEachEnemyHasDefaultHealth() {
+    func testEachEnemyHasGrowthArchetype() {
         for enemy in GameContent.enemies {
-            XCTAssertEqual(enemy.maxHealth, Enemy.defaultMaxHealth, "\(enemy.name) should use default max health")
+            XCTAssertFalse(enemy.combatant.growthArchetype.rawValue.isEmpty)
         }
     }
 
@@ -79,5 +89,16 @@ final class EnemyCatalogTests: XCTestCase {
 
     func testPlaceholderEnemyNotInCatalog() {
         XCTAssertNil(ArtCatalog.combatantArtByID["placeholder_enemy"])
+    }
+
+    func testAveragePlayerBaseHealthExceedsFodderEnemyBaseHealth() {
+        let heroAverage = Double(GameContent.heroes.map(\.maxHealth).reduce(0, +)) / Double(GameContent.heroes.count)
+        let petAverage = Double(GameContent.pets.map(\.maxHealth).reduce(0, +)) / Double(GameContent.pets.count)
+        let enemyAverage = Double(
+            GameContent.enemies.filter { !$0.isBoss }.map(\.maxHealth).reduce(0, +)
+        ) / Double(GameContent.enemies.filter { !$0.isBoss }.count)
+
+        XCTAssertGreaterThan(heroAverage, enemyAverage)
+        XCTAssertGreaterThan(petAverage, enemyAverage)
     }
 }

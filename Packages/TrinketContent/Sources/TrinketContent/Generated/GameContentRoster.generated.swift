@@ -8,89 +8,96 @@ public enum GameContentRosterGenerated {
             id: "knight",
             name: "Knight",
             role: .hero,
-            maxHealth: 10,
+            maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .shieldBash],
                 skills: [.smite, .spikedShield],
                 ultimates: [.blessedAegis, .plateMail]
             ),
-            primaryStats: PrimaryStats(strength: 8, agility: 4, toughness: 10, intellect: 2, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 11, intellect: 2, wisdom: 4),
+            growthArchetype: .tank
         ),
         Combatant(
             id: "rogue",
             name: "Rogue",
             role: .hero,
-            maxHealth: 8,
+            maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack],
                 skills: [.poisonDagger, .serratedEdge],
                 ultimates: [.hemorrhage, .concussiveShot]
             ),
-            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 4, intellect: 3, wisdom: 2)
+            primaryStats: PrimaryStats(strength: 5, agility: 11, toughness: 4, intellect: 3, wisdom: 6),
+            growthArchetype: .assassin
         ),
         Combatant(
             id: "wizard",
             name: "Wizard",
             role: .hero,
-            maxHealth: 7,
+            maxHealth: 14,
             maxMana: 10,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .rayOfFrost],
                 skills: [.fireball, .frostbolt],
                 ultimates: [.meteor, .glacialWard]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 10, wisdom: 4)
+            primaryStats: PrimaryStats(strength: 2, agility: 4, toughness: 3, intellect: 12, wisdom: 3),
+            growthArchetype: .mage
         ),
         Combatant(
             id: "alchemist",
             name: "Alchemist",
             role: .hero,
-            maxHealth: 9,
-            maxMana: 7,
+            maxHealth: 15,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.block, .manaCrystals],
                 skills: [.healthPotion, .acidPotion],
                 ultimates: [.panaceaPotion, .luckPotion]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 7, wisdom: 8)
+            primaryStats: PrimaryStats(strength: 2, agility: 5, toughness: 5, intellect: 8, wisdom: 10),
+            growthArchetype: .support
         ),
         Combatant(
             id: "druid",
             name: "Druid",
             role: .hero,
-            maxHealth: 11,
+            maxHealth: 17,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .slash],
                 skills: [.briarShield, .graspingVines],
                 ultimates: [.bloodthorn, .thornMail]
             ),
-            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 7, intellect: 3, wisdom: 9)
+            primaryStats: PrimaryStats(strength: 3, agility: 4, toughness: 8, intellect: 4, wisdom: 11),
+            growthArchetype: .support
         ),
         Combatant(
             id: "ranger",
             name: "Ranger",
             role: .hero,
-            maxHealth: 8,
+            maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.bountyShot, .fireArrow],
                 skills: [.venomArrow, .sapArrow],
                 ultimates: [.packTactics, .concussiveShot]
             ),
-            primaryStats: PrimaryStats(strength: 6, agility: 8, toughness: 5, intellect: 2, wisdom: 4)
+            primaryStats: PrimaryStats(strength: 6, agility: 10, toughness: 4, intellect: 2, wisdom: 6),
+            growthArchetype: .assassin
         ),
         Combatant(
             id: "warlock",
             name: "Warlock",
             role: .hero,
-            maxHealth: 7,
-            maxMana: 8,
+            maxHealth: 14,
+            maxMana: 9,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .fangs],
                 skills: [.bloodOffering, .darkPact],
                 ultimates: [.combustion, .faustianBargain]
             ),
-            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 4, intellect: 9, wisdom: 6)
+            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 10, wisdom: 7),
+            growthArchetype: .mage
         )
     ]
 
@@ -99,150 +106,162 @@ public enum GameContentRosterGenerated {
             id: "bear",
             name: "Bear",
             role: .pet,
-            maxHealth: 9,
+            maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block],
                 skills: [.spikedShield, .sunderArmor],
                 ultimates: [.plateMail, .thornMail]
             ),
-            primaryStats: PrimaryStats(strength: 8, agility: 3, toughness: 10, intellect: 1, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 10, intellect: 2, wisdom: 4),
+            growthArchetype: .tank
         ),
         Combatant(
             id: "frost_whelp",
             name: "Frost Whelp",
             role: .pet,
-            maxHealth: 6,
-            maxMana: 7,
+            maxHealth: 14,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.rayOfFrost, .iceShot],
                 skills: [.frostbolt, .coldSnap],
                 ultimates: [.glacialWard, .meteor]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 3, intellect: 9, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 10, wisdom: 4),
+            growthArchetype: .mage
         ),
         Combatant(
             id: "lizard_scout",
             name: "Lizard Scout",
             role: .pet,
-            maxHealth: 7,
+            maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack],
                 skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.hemorrhage, .steal]
             ),
-            primaryStats: PrimaryStats(strength: 5, agility: 8, toughness: 5, intellect: 3, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 5, agility: 10, toughness: 4, intellect: 4, wisdom: 5),
+            growthArchetype: .assassin
         ),
         Combatant(
             id: "panther",
             name: "Panther",
             role: .pet,
-            maxHealth: 7,
+            maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .fangs],
                 skills: [.serratedEdge, .haste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 7, agility: 8, toughness: 4, intellect: 2, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 5, intellect: 3, wisdom: 3),
+            growthArchetype: .bruiser
         ),
         Combatant(
             id: "phoenix",
             name: "Phoenix",
             role: .pet,
-            maxHealth: 6,
+            maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .bash],
                 skills: [.fireball, .cinderbloom],
                 ultimates: [.phoenixFeather, .combustion]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 8, wisdom: 7)
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 9, wisdom: 7),
+            growthArchetype: .mage
         ),
         Combatant(
             id: "wolf",
             name: "Wolf",
             role: .pet,
-            maxHealth: 6,
+            maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .fangs],
                 skills: [.serratedEdge, .haste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 5, intellect: 2, wisdom: 2)
+            primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 5, intellect: 2, wisdom: 4),
+            growthArchetype: .assassin
         ),
         Combatant(
             id: "golden_retriever",
             name: "Golden Retriever",
             role: .pet,
-            maxHealth: 8,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.gold, .apple],
                 skills: [.healthPotion, .tithe],
                 ultimates: [.luckPotion, .goldenPlate]
             ),
-            primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 6, intellect: 3, wisdom: 8)
+            primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 7, intellect: 3, wisdom: 9),
+            growthArchetype: .support
         ),
         Combatant(
             id: "library_owl",
             name: "Library Owl",
             role: .pet,
-            maxHealth: 6,
-            maxMana: 7,
+            maxHealth: 14,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.manaCrystals, .rayOfFrost],
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .exorcism]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 5, wisdom: 9)
+            primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 5, intellect: 7, wisdom: 10),
+            growthArchetype: .support
         ),
         Combatant(
             id: "risen_skeleton",
             name: "Risen Skeleton",
             role: .pet,
-            maxHealth: 7,
+            maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .blackjack],
                 skills: [.darkPact, .sunderArmor],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
-            primaryStats: PrimaryStats(strength: 6, agility: 5, toughness: 6, intellect: 5, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 7, agility: 5, toughness: 7, intellect: 5, wisdom: 4),
+            growthArchetype: .bruiser
         ),
         Combatant(
             id: "mana_moth",
             name: "Mana Moth",
             role: .pet,
-            maxHealth: 6,
-            maxMana: 10,
+            maxHealth: 14,
+            maxMana: 11,
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
                 ultimates: [.crystalBulwark, .combustion]
             ),
-            primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 3, intellect: 7, wisdom: 7)
+            primaryStats: PrimaryStats(strength: 3, agility: 7, toughness: 4, intellect: 9, wisdom: 7),
+            growthArchetype: .mage
         ),
         Combatant(
             id: "pixie",
             name: "Pixie",
             role: .pet,
-            maxHealth: 5,
-            maxMana: 6,
+            maxHealth: 14,
+            maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.gold, .kindling],
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
             ),
-            primaryStats: PrimaryStats(strength: 2, agility: 7, toughness: 3, intellect: 5, wisdom: 8)
+            primaryStats: PrimaryStats(strength: 2, agility: 8, toughness: 4, intellect: 6, wisdom: 8),
+            growthArchetype: .support
         ),
         Combatant(
             id: "shield_scarab",
             name: "Shield Scarab",
             role: .pet,
-            maxHealth: 8,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.block, .shieldBash],
                 skills: [.spikedShield, .stoneskinPotion],
                 ultimates: [.thornMail, .blessedAegis]
             ),
-            primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 11, intellect: 1, wisdom: 3)
+            primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 12, intellect: 2, wisdom: 4),
+            growthArchetype: .tank
         )
     ]
 }

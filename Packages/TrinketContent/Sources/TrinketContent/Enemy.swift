@@ -2,21 +2,17 @@ import Foundation
 import TrinketCore
 
 public struct Enemy: Identifiable, Hashable, Sendable {
-    public static let defaultMaxHealth: Int = 35
-    public static let defaultLevel: Int = 1
+    public static let fallbackMaxHealth: Int = 12
 
     public let combatant: Combatant
     public let isBoss: Bool
-    public let level: Int
 
     public init(
         combatant: Combatant,
-        isBoss: Bool = false,
-        level: Int = Enemy.defaultLevel
+        isBoss: Bool = false
     ) {
         self.combatant = combatant
         self.isBoss = isBoss
-        self.level = level
     }
 
     public var id: String {
@@ -36,8 +32,9 @@ public struct Enemy: Identifiable, Hashable, Sendable {
             id: "fallback-enemy",
             name: "Enemy",
             role: .enemy,
-            maxHealth: defaultMaxHealth,
-            abilities: [.slash]
+            maxHealth: fallbackMaxHealth,
+            abilities: [.slash],
+            growthArchetype: .bruiser
         )
     }
 }

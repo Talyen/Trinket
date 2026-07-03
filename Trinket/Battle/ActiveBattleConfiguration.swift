@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleEngine
 
 struct ActiveBattleConfiguration: Identifiable {
     let id = UUID()
@@ -6,6 +7,7 @@ struct ActiveBattleConfiguration: Identifiable {
     let hero: Combatant
     let pet: Combatant
     let enemy: Combatant?
+    let enemyEncounterLevel: Int?
     let heroProgression: CombatantProgression
     let petProgression: CombatantProgression
     let heroEquipmentLoadout: EquipmentLoadout
@@ -21,6 +23,7 @@ struct ActiveBattleConfiguration: Identifiable {
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
+        enemyEncounterLevel: Int? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
@@ -35,6 +38,7 @@ struct ActiveBattleConfiguration: Identifiable {
         self.hero = hero
         self.pet = pet
         self.enemy = enemy
+        self.enemyEncounterLevel = enemyEncounterLevel
         self.heroProgression = heroProgression
         self.petProgression = petProgression
         self.heroEquipmentLoadout = heroEquipmentLoadout
@@ -51,6 +55,7 @@ struct ActiveBattleConfiguration: Identifiable {
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
+        enemyEncounterLevel: Int? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
@@ -59,13 +64,15 @@ struct ActiveBattleConfiguration: Identifiable {
         stageReward: StageReward? = nil,
         rewardItemNames: [String] = []
     ) -> ActiveBattleConfiguration {
+        let scaledHero = CombatantLevelScaler.scale(combatant: hero, level: heroProgression.level)
+        let scaledPet = CombatantLevelScaler.scale(combatant: pet, level: petProgression.level)
         let heroBuild = CombatBuildResolver.build(
-            combatant: hero,
+            combatant: scaledHero,
             equipmentLoadout: heroEquipmentLoadout,
             inventory: inventoryState.items
         )
         let petBuild = CombatBuildResolver.build(
-            combatant: pet,
+            combatant: scaledPet,
             equipmentLoadout: petEquipmentLoadout,
             inventory: inventoryState.items
         )
@@ -74,6 +81,7 @@ struct ActiveBattleConfiguration: Identifiable {
             hero: heroBuild.combatant,
             pet: petBuild.combatant,
             enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
             heroProgression: heroProgression,
             petProgression: petProgression,
             heroEquipmentLoadout: heroEquipmentLoadout,

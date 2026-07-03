@@ -28,7 +28,8 @@ public enum CombatBuildResolver {
             maxMana: combatant.maxMana,
             actionIntervalTicks: combatant.actionIntervalTicks,
             abilityChoices: combatant.abilityChoices,
-            primaryStats: effectiveStats
+            primaryStats: effectiveStats,
+            growthArchetype: combatant.growthArchetype
         )
 
         return CombatBuild(combatant: builtCombatant, modifiers: profile)

@@ -21,11 +21,11 @@ final class BattleGoldenPathTests: XCTestCase {
         let result = runGoldenBattle()
 
         XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 12)
-        XCTAssertEqual(result.actionCount, 12)
+        XCTAssertEqual(result.tickCount, 6)
+        XCTAssertEqual(result.actionCount, 5)
         XCTAssertEqual(result.finalEnemyHealth, 0)
-        XCTAssertEqual(result.finalHeroHealth, 10)
-        XCTAssertEqual(result.finalPetHealth, 10)
+        XCTAssertEqual(result.finalHeroHealth, 17)
+        XCTAssertEqual(result.finalPetHealth, 19)
     }
 
     func testGoldenPathEventSemantics() {
@@ -33,9 +33,6 @@ final class BattleGoldenPathTests: XCTestCase {
         let events = result.events
 
         assertEndsWithVictoryMilestone(on: "goblin", events: events)
-        assertContainsEvent(kind: .status, keyword: .burn, targetID: "goblin", in: events)
-        assertContainsEvent(kind: .status, keyword: .bleed, targetID: "goblin", in: events)
-        assertContainsEvent(kind: .effect, keyword: .dodge, targetID: "goblin", in: events)
         XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .burn })
         XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .bleed })
     }

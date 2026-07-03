@@ -1,16 +1,16 @@
-id	name	max_health	is_boss	level	abilities	strength	agility	toughness	intellect	wisdom
-living_armor	Living Armor	default	false	1	bash,spikedShield,crystalBulwark	6	3	8	1	2
-mimic	Mimic	default	false	1	stab,poisonDagger,hemorrhage	5	6	5	3	2
-mud_elemental	Mud Elemental	default	false	1	block,briarShield,plateMail	4	3	9	3	3
-necromancer	Necromancer	default	false	1	manaBerries,darkPact,hemorrhage	3	5	3	6	4
-plague_doctor	Plague Doctor	default	false	1	fangs,venomFangs,serratedArrowhead	4	6	4	5	4
-skeleton	Skeleton	default	false	1	slash,smite,blessedAegis	5	4	4	2	2
-the_blight_treant	The Blight Treant	default	true	1	apple,graspingVines,bloodthorn	7	4	12	5	8
-the_forge_golem	The Forge Golem	default	true	1	bash,spikedShield,moltenBulwark	10	3	14	3	4
-the_frostwarden	The Frostwarden	default	true	1	rayOfFrost,frostbolt,glacialWard	4	6	6	12	5
-the_iron_bear	The Iron Bear	default	true	1	fangs,spikedShield,crystalBulwark	9	4	13	2	3
-goblin	Goblin	default	false	1	slash,sapArrow,packTactics	3	7	2	3	2
-fire_elemental	Fire Elemental	default	false	1	kindling,fireball,combustion	3	5	5	8	3
-frost_elemental	Frost Elemental	default	false	1	rayOfFrost,coldSnap,glacialWard	4	4	8	7	4
-slime	Slime	default	false	1	slash,briarShield,crystalBulwark	4	2	12	1	2
-will_o_wisp	Will-o-Wisp	default	false	1	kindling,cauterize,phoenixFeather	1	7	2	9	4
+id	name	max_health	is_boss	growth_archetype	abilities	strength	agility	toughness	intellect	wisdom
+living_armor	Living Armor	14	false	tank	bash,spikedShield,crystalBulwark	7	2	9	1	2
+mimic	Mimic	13	false	assassin	stab,poisonDagger,hemorrhage	5	7	5	2	5
+mud_elemental	Mud Elemental	14	false	tank	block,briarShield,plateMail	4	2	10	3	4
+necromancer	Necromancer	12	false	mage	manaBerries,darkPact,hemorrhage	2	5	3	8	6
+plague_doctor	Plague Doctor	12	false	support	fangs,venomFangs,serratedArrowhead	3	6	4	4	9
+skeleton	Skeleton	12	false	bruiser	slash,smite,blessedAegis	5	4	4	2	2
+the_blight_treant	The Blight Treant	24	true	tank	apple,graspingVines,bloodthorn	6	3	13	5	11
+the_forge_golem	The Forge Golem	26	true	tank	bash,spikedShield,moltenBulwark	12	2	14	2	3
+the_frostwarden	The Frostwarden	22	true	mage	rayOfFrost,frostbolt,glacialWard	3	5	7	13	5
+the_iron_bear	The Iron Bear	25	true	bruiser	fangs,spikedShield,crystalBulwark	11	3	12	2	2
+goblin	Goblin	11	false	assassin	slash,sapArrow,packTactics	3	8	3	2	2
+fire_elemental	Fire Elemental	12	false	mage	kindling,fireball,combustion	2	5	5	9	2
+frost_elemental	Frost Elemental	13	false	mage	rayOfFrost,coldSnap,glacialWard	3	4	7	8	3
+slime	Slime	14	false	tank	slash,briarShield,crystalBulwark	3	2	11	1	2
+will_o_wisp	Will-o-Wisp	11	false	mage	kindling,cauterize,phoenixFeather	2	8	4	9	3

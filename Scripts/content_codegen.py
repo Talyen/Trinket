@@ -71,6 +71,7 @@ SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 SNAKE_IDENTIFIER = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 VALID_ROLES = frozenset({"hero", "pet"})
+VALID_GROWTH_ARCHETYPES = frozenset({"tank", "assassin", "mage", "support", "bruiser"})
 
 
 @dataclass
@@ -124,6 +125,7 @@ class CombatantRow:
     role: str
     max_health: str
     max_mana: str
+    growth_archetype: str
     basics: str
     skills: str
     ultimates: str
@@ -140,7 +142,7 @@ class EnemyRow:
     name: str
     max_health: str
     is_boss: str
-    level: str
+    growth_archetype: str
     abilities: str
     strength: str
     agility: str
@@ -256,6 +258,7 @@ def parse_combatant_rows() -> list[CombatantRow]:
         "role",
         "max_health",
         "max_mana",
+        "growth_archetype",
         "basics",
         "skills",
         "ultimates",
@@ -283,7 +286,7 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "name",
         "max_health",
         "is_boss",
-        "level",
+        "growth_archetype",
         "abilities",
         "strength",
         "agility",
@@ -662,8 +665,12 @@ def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str])
         _require_non_empty("combatant name", row.name, row.id)
         if row.role not in VALID_ROLES:
             raise ValueError(f"Invalid combatant role '{row.role}' for {row.id}")
+        if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
+            raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
         _validate_positive_int("max_health", row.max_health, row.id)
+        if int(row.max_health) < 6:
+            raise ValueError(f"max_health for {row.id} must be at least 6")
         _validate_positive_int("max_mana", row.max_mana, row.id)
         for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
             _validate_positive_int(stat, getattr(row, stat), row.id)
@@ -687,10 +694,13 @@ def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combata
         _require_non_empty("enemy name", row.name, row.id)
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
-        _validate_positive_int("level", row.level, row.id)
+        if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
+            raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
-        if row.max_health not in {"", "default"} and not row.max_health.isdigit():
-            raise ValueError(f"max_health for {row.id} must be 'default' or an integer")
+        if not row.max_health.isdigit():
+            raise ValueError(f"max_health for {row.id} must be an integer")
+        if int(row.max_health) < 1:
+            raise ValueError(f"max_health for {row.id} must be positive")
 
         for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
             _validate_positive_int(stat, getattr(row, stat), row.id)
@@ -713,19 +723,19 @@ def render_party_combatant(row: CombatantRow) -> str:
                 skills: {ability_symbols_swift(row.skills)},
                 ultimates: {ability_symbols_swift(row.ultimates)}
             ),
-            primaryStats: {primary_stats_swift(row)}
+            primaryStats: {primary_stats_swift(row)},
+            growthArchetype: .{row.growth_archetype}
         )"""
 
 
 def render_enemy(row: EnemyRow) -> str:
-    max_health = "Enemy.defaultMaxHealth" if row.max_health in {"", "default"} else row.max_health
     boss_clause = ", isBoss: true" if row.is_boss == "true" else ""
-    level_clause = f", level: {row.level}" if row.level != "1" else ""
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
-        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {max_health}, "
+        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
-        f"primaryStats: {primary_stats_swift(row)}){boss_clause}{level_clause})"
+        f"primaryStats: {primary_stats_swift(row)}, "
+        f"growthArchetype: .{row.growth_archetype}){boss_clause})"
     )
 
 

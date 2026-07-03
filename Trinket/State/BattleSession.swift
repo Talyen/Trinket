@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import BattleEngine
 import TrinketContent
 
 @MainActor
@@ -40,10 +41,14 @@ final class BattleSession {
         inventory: PlayerInventoryStore
     ) -> StageMapMessage? {
         guard let enemyID = stage.encounter.battleEnemyID,
-              let enemy = GameContent.enemy(matching: enemyID)?.combatant
+              let catalogEnemy = GameContent.enemy(matching: enemyID),
+              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
+
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        let enemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
         preview = nil
         let rewardItemNames = stage.rewards.itemTemplateIDs.compactMap { templateID in
@@ -54,6 +59,7 @@ final class BattleSession {
             hero: hero,
             pet: pet,
             enemy: enemy,
+            enemyEncounterLevel: encounterLevel,
             heroProgression: roster.current.progression(for: hero),
             petProgression: roster.current.progression(for: pet),
             heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
@@ -78,6 +84,7 @@ final class BattleSession {
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
+            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             heroProgression: activeBattle.heroProgression,
             petProgression: activeBattle.petProgression,
             heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,

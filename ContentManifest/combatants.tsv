@@ -1,20 +1,20 @@
-id	name	role	max_health	max_mana	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
-knight	Knight	hero	10	0	bash,shieldBash	smite,spikedShield	blessedAegis,plateMail	8	4	10	2	3
-rogue	Rogue	hero	8	0	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	6	9	4	3	2
-wizard	Wizard	hero	7	10	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	10	4
-alchemist	Alchemist	hero	9	7	block,manaCrystals	healthPotion,acidPotion	panaceaPotion,luckPotion	3	5	5	7	8
-druid	Druid	hero	11	8	kindling,slash	briarShield,graspingVines	bloodthorn,thornMail	4	5	7	3	9
-ranger	Ranger	hero	8	0	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	8	5	2	4
-warlock	Warlock	hero	7	8	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	4	5	4	9	6
-bear	Bear	pet	9	0	bash,block	spikedShield,sunderArmor	plateMail,thornMail	8	3	10	1	3
-frost_whelp	Frost Whelp	pet	6	7	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,meteor	2	6	3	9	3
-lizard_scout	Lizard Scout	pet	7	0	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	8	5	3	3
-panther	Panther	pet	7	0	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	7	8	4	2	3
-phoenix	Phoenix	pet	6	8	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	3	5	4	8	7
-wolf	Wolf	pet	6	0	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	6	9	5	2	2
-golden_retriever	Golden Retriever	pet	8	0	gold,apple	healthPotion,tithe	luckPotion,goldenPlate	4	5	6	3	8
-library_owl	Library Owl	pet	6	7	manaCrystals,rayOfFrost	cleanse,heal	panaceaPotion,exorcism	2	6	4	5	9
-risen_skeleton	Risen Skeleton	pet	7	0	slash,blackjack	darkPact,sunderArmor	faustianBargain,hemorrhage	6	5	6	5	3
-mana_moth	Mana Moth	pet	6	10	manaBerries,manaCrystals	manaPotion,manaShield	crystalBulwark,combustion	3	6	3	7	7
-pixie	Pixie	pet	5	6	gold,kindling	cleanse,heal	panaceaPotion,sunburst	2	7	3	5	8
-shield_scarab	Shield Scarab	pet	8	0	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	11	1	3
+id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
+knight	Knight	hero	17	0	tank	bash,shieldBash	smite,spikedShield	blessedAegis,plateMail	9	3	11	2	4
+rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	5	11	4	3	6
+wizard	Wizard	hero	14	10	mage	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	12	3
+alchemist	Alchemist	hero	15	8	support	block,manaCrystals	healthPotion,acidPotion	panaceaPotion,luckPotion	2	5	5	8	10
+druid	Druid	hero	17	8	support	kindling,slash	briarShield,graspingVines	bloodthorn,thornMail	3	4	8	4	11
+ranger	Ranger	hero	14	0	assassin	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	10	4	2	6
+warlock	Warlock	hero	14	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7
+bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	plateMail,thornMail	9	3	10	2	4
+frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,meteor	2	6	4	10	4
+lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5
+panther	Panther	pet	15	0	bruiser	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	8	9	5	3	3
+phoenix	Phoenix	pet	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	2	6	4	9	7
+wolf	Wolf	pet	14	0	assassin	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	7	10	5	2	4
+golden_retriever	Golden Retriever	pet	16	0	support	gold,apple	healthPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9
+library_owl	Library Owl	pet	14	8	support	manaCrystals,rayOfFrost	cleanse,heal	panaceaPotion,exorcism	2	6	5	7	10
+risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	darkPact,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4
+mana_moth	Mana Moth	pet	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	crystalBulwark,combustion	3	7	4	9	7
+pixie	Pixie	pet	14	7	support	gold,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8
+shield_scarab	Shield Scarab	pet	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	12	2	4
