@@ -194,15 +194,21 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func clearAndEnterText(_ element: XCUIElement, _ text: String) {
-        guard let stringValue = element.value as? String else {
-            element.typeText(text)
-            return
-        }
+        replaceText(in: element, with: text)
+    }
 
+    func replaceText(in element: XCUIElement, with text: String) {
         element.tap()
-        let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
-        element.typeText(deleteString)
-        element.typeText(text)
+        let clearButton = element.buttons["Clear text"]
+        if clearButton.waitForExistence(timeout: 1) {
+            clearButton.tap()
+        } else if let stringValue = element.value as? String, !stringValue.isEmpty {
+            let deleteString = String(repeating: XCUIKeyboardKey.delete.rawValue, count: stringValue.count)
+            element.typeText(deleteString)
+        }
+        if !text.isEmpty {
+            element.typeText(text)
+        }
     }
 
     func fail(_ message: String, file: StaticString = #file, line: UInt = #line) {

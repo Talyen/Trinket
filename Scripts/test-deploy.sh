@@ -44,7 +44,7 @@ echo "=== Unit tests ==="
 echo ""
 echo "=== Full UI tests ==="
 ./Scripts/test.sh --no-build ui
-./Scripts/test-timing.sh assert-budget --mode ui --max-wall 1200
+./Scripts/test-timing.sh assert-budget --mode ui --max-wall 720
 
 echo ""
 echo "=== All deploy checks passed ==="

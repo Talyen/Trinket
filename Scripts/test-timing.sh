@@ -11,7 +11,7 @@ DEFAULT_TOP_TESTS=20
 usage() {
   cat <<'EOF'
 Usage:
-  ./Scripts/test-timing.sh [report] [--mode MODE] [--last N] [--top N]
+  ./Scripts/test-timing.sh [report] [--mode MODE] [--last N] [--top N] [--by-class]
   ./Scripts/test-timing.sh record --mode MODE --wall SECONDS --xcresult PATH [--no-build] [TARGET ...]
   ./Scripts/test-timing.sh ingest MODE [--wall SECONDS]
   ./Scripts/test-timing.sh assert-budget --mode MODE --max-wall SECONDS [--skip-if-missing]
@@ -241,6 +241,7 @@ def cmd_report(args: list[str]) -> None:
     mode_filter = None
     last_runs = 15
     top_tests = 20
+    by_class = False
 
     index = 0
     while index < len(args):
@@ -256,6 +257,10 @@ def cmd_report(args: list[str]) -> None:
         if token == "--top" and index + 1 < len(args):
             top_tests = int(args[index + 1])
             index += 2
+            continue
+        if token == "--by-class":
+            by_class = True
+            index += 1
             continue
         index += 1
 
@@ -321,6 +326,40 @@ def cmd_report(args: list[str]) -> None:
             f"{len(seconds):>5}  "
             f"{item['id']}"
         )
+
+    if by_class:
+        class_aggregates: dict[str, dict] = {}
+        for entry in entries:
+            for test in entry.get("tests", []):
+                test_id = test.get("id") or test.get("name")
+                if not test_id or "/" not in test_id:
+                    continue
+                class_name = test_id.split("/", 1)[0]
+                bucket = class_aggregates.setdefault(
+                    class_name,
+                    {"class": class_name, "seconds": [], "tests": 0},
+                )
+                bucket["seconds"].append(float(test.get("seconds") or 0.0))
+                bucket["tests"] += 1
+
+        class_ranked = sorted(
+            class_aggregates.values(),
+            key=lambda item: sum(item["seconds"]),
+            reverse=True,
+        )
+
+        print("")
+        print(f"Slow classes (by total logged duration across {len(entries)} runs)")
+        print("────────────────────────────────────────────────────────────────────────────")
+        print(f"{'Total':>8} {'Median':>8} {'Tests':>5}  Class")
+        for item in class_ranked:
+            seconds = item["seconds"]
+            print(
+                f"{format_seconds(sum(seconds)):>8} "
+                f"{format_seconds(median(seconds)):>8} "
+                f"{item['tests']:>5}  "
+                f"{item['class']}"
+            )
 
 
 def cmd_assert_budget(args: list[str]) -> None:

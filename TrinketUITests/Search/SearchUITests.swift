@@ -16,21 +16,19 @@ final class SearchUITests: TrinketUITestCase {
         goBack()
 
         searchField.tap()
-        clearAndEnterText(searchField, "Wolf")
+        replaceText(in: searchField, with: "Wolf")
         assertButtonExists("Wolf collection card")
         collection.openCombatantCard(named: "Wolf")
         assertCombatantDetailSections()
         goBack()
 
-        searchField.tap()
-        clearAndEnterText(searchField, "Wand")
+        replaceText(in: searchField, with: "Wand")
         assertItemCardExists("Wand")
         collection.openItemCard(named: "Wand")
         assertExists("Wand")
         goBack()
 
-        searchField.tap()
-        clearAndEnterText(searchField, "xyz123")
+        replaceText(in: searchField, with: "xyz123")
         search.assertNoResults()
     }
 }

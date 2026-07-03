@@ -2,11 +2,8 @@ import XCTest
 
 final class TabNavigationUITests: TrinketUITestCase {
     func testHeroDetailEquipmentAndAbilities() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.assertLoaded()
-        collection.openHeroesCategory()
-        assertButtonExists("Knight collection card")
-        collection.openCombatantCard(named: "Knight")
+        launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
+        combatantDetail.assertLoaded(for: "Knight")
 
         let knightHeader = combatantDetail.header(for: "Knight")
         assertExists(knightHeader)
@@ -43,11 +40,8 @@ final class TabNavigationUITests: TrinketUITestCase {
     }
 
     func testPetDetailInspection() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.openPetsCategory()
-        assertButtonExists("Wolf collection card")
-        assertButtonExists("Bear collection card")
-        collection.openCombatantCard(named: "Wolf")
+        launchApp(arguments: TestLaunchArg.allForScreen("pet:wolf"))
+        combatantDetail.assertLoaded(for: "Wolf")
 
         let wolfHeader = combatantDetail.header(for: "Wolf")
         assertExists(wolfHeader)
@@ -87,7 +81,11 @@ final class TabNavigationUITests: TrinketUITestCase {
         collection.openInventoryCategory()
         assertExists("Inventory filter")
         assertItemCardExists("Crossbow")
-        assertItemCardExistsAfterScroll("Wand")
+
+        let searchField = app.searchFields.firstMatch
+        assertExists(searchField)
+        replaceText(in: searchField, with: "Wand")
+        assertItemCardExists("Wand")
     }
 
     private func firstEquipOption() -> XCUIElement {

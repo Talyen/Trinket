@@ -184,7 +184,7 @@ jobs:
 
       - name: Assert smoke timing budget
         if: success() && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive'))
-        run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 480
+        run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 360
 
       - name: Full UI tests
         if: (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
@@ -194,7 +194,7 @@ jobs:
 
       - name: Assert UI timing budget
         if: success() && ((github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive'))
-        run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 1200
+        run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 720
 
       - name: Upload timing log
         if: always()
