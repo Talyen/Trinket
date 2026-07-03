@@ -11,9 +11,13 @@ on:
         required: true
         default: 'standard'
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    name: Build and test
+  gate:
+    name: Generate and style
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,17 +27,20 @@ jobs:
         with:
           xcode-version: '26.0'
 
-      - name: Install tooling
-        run: |
-          brew install xcodegen swiftlint swiftformat
-
-      - name: Cache DerivedData
+      - name: Cache Homebrew
         uses: actions/cache@v4
         with:
-          path: .DerivedData
-          key: deriveddata-${{ runner.os }}-xcode-26-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/swiftformat
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
           restore-keys: |
-            deriveddata-${{ runner.os }}-xcode-26-
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+
+      - name: Install tooling
+        run: brew install xcodegen swiftlint swiftformat
 
       - name: Generate project
         run: ./Scripts/generate.sh
@@ -44,36 +51,155 @@ jobs:
       - name: Style check
         run: ./Scripts/test.sh style
 
+  build:
+    name: Build for testing
+    needs: gate
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/swiftformat
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          restore-keys: |
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+
+      - name: Install tooling
+        run: brew install xcodegen swiftlint swiftformat
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-${{ runner.os }}-xcode-26-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+          restore-keys: |
+            deriveddata-${{ runner.os }}-xcode-26-
+
+      - name: Build for testing
+        run: ./Scripts/build-for-testing.sh
+
+  unit:
+    name: Unit tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/swiftformat
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          restore-keys: |
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+
+      - name: Install tooling
+        run: brew install xcodegen swiftlint swiftformat
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-${{ runner.os }}-xcode-26-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+          restore-keys: |
+            deriveddata-${{ runner.os }}-xcode-26-
+
       - name: Unit tests
-        run: ./Scripts/test.sh unit
+        env:
+          SKIP_GENERATE: 1
+        run: ./Scripts/test.sh --no-build unit
 
       - name: Assert unit timing budget
         if: success()
         run: ./Scripts/test-timing.sh assert-budget --mode unit --max-wall 300
 
+      - name: Upload timing log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-timing-unit
+          path: .DerivedData/TestResults/timing-log.jsonl
+          if-no-files-found: ignore
+
+  ui:
+    name: UI tests
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.0'
+
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            /opt/homebrew/Cellar/xcodegen
+            /opt/homebrew/Cellar/swiftlint
+            /opt/homebrew/Cellar/swiftformat
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          restore-keys: |
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+
+      - name: Install tooling
+        run: brew install xcodegen swiftlint swiftformat
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-${{ runner.os }}-xcode-26-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+          restore-keys: |
+            deriveddata-${{ runner.os }}-xcode-26-
+
       - name: UI smoke tests
-        run: ./Scripts/test.sh smoke
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive')
+        env:
+          SKIP_GENERATE: 1
+        run: ./Scripts/test.sh --no-build smoke
 
       - name: Assert smoke timing budget
-        if: success()
+        if: success() && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive'))
         run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 480
 
-      - name: Sync coordinator tests
-        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
-        run: ./Scripts/test.sh --no-build unit PlayerSaveSyncCoordinatorTests
-
       - name: Full UI tests
-        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
+        if: (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
+        env:
+          SKIP_GENERATE: 1
         run: ./Scripts/test.sh --no-build ui
 
       - name: Assert UI timing budget
-        if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
+        if: success() && ((github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive'))
         run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 1200
 
       - name: Upload timing log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-timing
+          name: test-timing-ui
           path: .DerivedData/TestResults/timing-log.jsonl
           if-no-files-found: ignore

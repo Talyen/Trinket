@@ -6,6 +6,9 @@ set -euo pipefail
 #   SIMULATOR_NAME
 #   SIMULATOR_UDID
 #   SIMULATOR_DESTINATION   e.g. platform=iOS Simulator,id=...
+#   SIMULATOR_POOL_UDIDS    populated by ensure_simulator_pool
+
+SIMULATOR_POOL_UDIDS=()
 
 PREFERRED_SIMULATOR_NAMES=(
   "iPhone 17 Pro"
@@ -108,17 +111,27 @@ PY
   SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
 }
 
-boot_simulator() {
+boot_simulator_udid() {
+  local udid="$1"
+  local name="${2:-Simulator}"
   local state
-  state="$(xcrun simctl list devices "$SIMULATOR_UDID" | awk -F '[()]' '/\('"${SIMULATOR_UDID}"'\)/ {print $2}')"
+  state="$(xcrun simctl list devices "$udid" | awk -F '[()]' '/\('"${udid}"'\)/ {print $2}')"
 
   if [[ "$state" != "Booted" ]]; then
-    echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
-    xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
-    xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+    echo "Booting $name ($udid)..."
+    xcrun simctl boot "$udid" 2>/dev/null || true
+    xcrun simctl bootstatus "$udid" -b
   else
-    echo "$SIMULATOR_NAME ($SIMULATOR_UDID) is already booted."
+    echo "$name ($udid) is already booted."
   fi
+}
+
+boot_simulator() {
+  boot_simulator_udid "$SIMULATOR_UDID" "$SIMULATOR_NAME"
+}
+
+destination_for_udid() {
+  echo "platform=iOS Simulator,id=$1"
 }
 
 verify_simulator_destination() {
@@ -151,4 +164,28 @@ ensure_test_simulator() {
   resolve_simulator "$force"
   boot_simulator
   verify_simulator_destination
+}
+
+ensure_simulator_pool() {
+  local count="${1:-1}"
+
+  if (( count < 1 )); then
+    echo "Simulator pool count must be >= 1." >&2
+    return 1
+  fi
+
+  SIMULATOR_POOL_UDIDS=()
+  ensure_test_simulator
+  SIMULATOR_POOL_UDIDS+=("$SIMULATOR_UDID")
+
+  local index
+  for (( index = 2; index <= count; index++ )); do
+    local clone_name="Trinket CI ${SIMULATOR_NAME} ${index}"
+    local clone_udid
+    clone_udid="$(xcrun simctl clone "$SIMULATOR_UDID" "$clone_name")"
+    boot_simulator_udid "$clone_udid" "$clone_name"
+    SIMULATOR_POOL_UDIDS+=("$clone_udid")
+  done
+
+  echo "Simulator pool (${#SIMULATOR_POOL_UDIDS[@]}): ${SIMULATOR_POOL_UDIDS[*]}"
 }

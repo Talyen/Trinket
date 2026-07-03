@@ -17,7 +17,7 @@ echo "=== Unit tests ==="
 
 echo ""
 echo "=== Smoke UI tests ==="
-./Scripts/test.sh smoke
+./Scripts/test.sh --no-build smoke
 ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 480
 
 echo ""

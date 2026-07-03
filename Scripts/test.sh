@@ -67,7 +67,7 @@ if [[ "$MODE" == "style" ]]; then
   exit 0
 fi
 
-if [[ "$NO_BUILD" == "false" ]]; then
+if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
   # Always run generate to validate manifests, refresh codegen, and update XcodeGen.
   ./Scripts/generate.sh
 fi
@@ -129,7 +129,12 @@ elif [[ "$MODE" == "smoke" ]]; then
   else
     echo "Running UI smoke tests via Smoke test plan..."
   fi
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-2}"
+  ensure_simulator_pool "$UI_PARALLEL_WORKERS"
+  PARALLEL_FLAGS=(
+    -parallel-testing-enabled YES
+    -maximum-parallel-testing-workers "$UI_PARALLEL_WORKERS"
+  )
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -145,7 +150,12 @@ elif [[ "$MODE" == "ui" ]]; then
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-2}"
+  ensure_simulator_pool "$UI_PARALLEL_WORKERS"
+  PARALLEL_FLAGS=(
+    -parallel-testing-enabled YES
+    -maximum-parallel-testing-workers "$UI_PARALLEL_WORKERS"
+  )
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit, ui, or smoke mode."
@@ -224,10 +234,62 @@ if [[ "$NO_BUILD" == "true" ]]; then
   ACTION="test-without-building"
 fi
 
-ensure_test_simulator
+run_package_tests() {
+  local xcodebuild_action="$1"
+  local packages=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
+  local pool_size=${#packages[@]}
+  local package
+  local index=0
+  local pids=()
+  local failed=0
+  local max_seconds=0
+
+  ensure_simulator_pool "$pool_size"
+
+  for package in "${packages[@]}"; do
+    local udid="${SIMULATOR_POOL_UDIDS[$((index + 1))]}"
+    local destination
+    destination="$(destination_for_udid "$udid")"
+    local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
+
+    (
+      echo "Running $package package tests on $udid..."
+      SECONDS=0
+      cd "Packages/$package"
+      xcodebuild "$xcodebuild_action" \
+        -scheme "$package" \
+        -destination "$destination" \
+        -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
+      echo "$SECONDS" >"$wall_file"
+    ) &
+    pids+=($!)
+    ((index++))
+  done
+
+  for pid in "${pids[@]}"; do
+    wait "$pid" || failed=1
+  done
+
+  for package in "${packages[@]}"; do
+    local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
+    if [[ -f "$wall_file" ]]; then
+      local seconds
+      seconds="$(<"$wall_file")"
+      (( seconds > max_seconds )) && max_seconds=$seconds
+      rm -f "$wall_file"
+    fi
+  done
+
+  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + max_seconds))
+  return "$failed"
+}
 
 TEST_WALL_SECONDS=0
 SECONDS=0
+
+if [[ "$MODE" == "unit" ]]; then
+  ensure_test_simulator
+fi
 
 run_xcodebuild xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
@@ -241,105 +303,8 @@ run_xcodebuild xcodebuild "$ACTION" \
 TEST_WALL_SECONDS=$SECONDS
 
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
-  echo "Running TrinketCore package tests..."
-  CORE_SECONDS=0
-  SECONDS=0
-  (
-    cd Packages/TrinketCore
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      xcodebuild test-without-building \
-        -scheme TrinketCore \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketCorePackage"
-    else
-      xcodebuild test \
-        -scheme TrinketCore \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketCorePackage"
-    fi
-  )
-  CORE_SECONDS=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + CORE_SECONDS))
-
-  echo "Running TrinketContent package tests..."
-  CONTENT_SECONDS=0
-  SECONDS=0
-  (
-    cd Packages/TrinketContent
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      xcodebuild test-without-building \
-        -scheme TrinketContent \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
-    else
-      xcodebuild test \
-        -scheme TrinketContent \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
-    fi
-  )
-  CONTENT_SECONDS=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + CONTENT_SECONDS))
-
-  echo "Running BattleEngine package tests..."
-  BATTLE_SECONDS=0
-  SECONDS=0
-  (
-    cd Packages/BattleEngine
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      xcodebuild test-without-building \
-        -scheme BattleEngine \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
-    else
-      xcodebuild test \
-        -scheme BattleEngine \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
-    fi
-  )
-  BATTLE_SECONDS=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + BATTLE_SECONDS))
-
-  echo "Running TrinketPersistence package tests..."
-  PERSISTENCE_SECONDS=0
-  SECONDS=0
-  (
-    cd Packages/TrinketPersistence
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      xcodebuild test-without-building \
-        -scheme TrinketPersistence \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketPersistencePackage"
-    else
-      xcodebuild test \
-        -scheme TrinketPersistence \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketPersistencePackage"
-    fi
-  )
-  PERSISTENCE_SECONDS=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + PERSISTENCE_SECONDS))
-
-  echo "Running TrinketDesignSystem package tests..."
-  DESIGN_SECONDS=0
-  SECONDS=0
-  (
-    cd Packages/TrinketDesignSystem
-    if [[ "$ACTION" == "test-without-building" ]]; then
-      xcodebuild test-without-building \
-        -scheme TrinketDesignSystem \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
-    else
-      xcodebuild test \
-        -scheme TrinketDesignSystem \
-        -destination "$SIMULATOR_DESTINATION" \
-        -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
-    fi
-  )
-  DESIGN_SECONDS=$SECONDS
-  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + DESIGN_SECONDS))
+  echo "Running package tests in parallel..."
+  run_package_tests "$ACTION" || exit 1
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then
