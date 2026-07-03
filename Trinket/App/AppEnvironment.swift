@@ -1,6 +1,6 @@
 import Foundation
 
-struct AppEnvironment: Sendable {
+struct AppEnvironment {
     static let shared = load()
 
     let launchTab: AppTab?

@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum AppTab: String, CaseIterable, Sendable {
+enum AppTab: String, CaseIterable {
     case play
     case collection
     case homestead
@@ -28,7 +28,7 @@ enum AppTab: String, CaseIterable, Sendable {
     }
 }
 
-enum LaunchScreen: Equatable, Sendable {
+enum LaunchScreen: Equatable {
     case heroDetail(String)
     case petDetail(String)
     case itemDetail(String)

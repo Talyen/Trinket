@@ -32,7 +32,7 @@ final class PlayerRosterTests: XCTestCase {
         let customLoadout = AbilityLoadout(
             basic: .shieldBash,
             skill: .spikedShield,
-            ultimate: .crystalBulwark
+            ultimate: .plateMail
         )
 
         roster.setLoadout(customLoadout, for: knight)
@@ -51,7 +51,7 @@ final class PlayerRosterTests: XCTestCase {
         let customLoadout = AbilityLoadout(
             basic: .shieldBash,
             skill: .spikedShield,
-            ultimate: .crystalBulwark
+            ultimate: .plateMail
         )
         roster.setLoadout(customLoadout, for: knight)
 
@@ -61,7 +61,7 @@ final class PlayerRosterTests: XCTestCase {
         roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 350)
         XCTAssertEqual(
             roster.battleConfiguredCombatant(knight).abilities.map(\.id),
-            ["shield-bash", "spiked-shield", "crystal-bulwark"]
+            ["shield-bash", "spiked-shield", "plate-mail"]
         )
     }
 
