@@ -91,11 +91,15 @@ public enum BattleSimulator {
         let tickLimit = options.resolvedMaxTicks
 
         while !battle.isBattleOver, battle.tickCount < tickLimit {
-            let tickEvents = battle.advanceOneStep().events
+            let tickEvents = battle.advanceOneStep(rebuildLog: options.rebuildLogEachStep).events
             metricsAccumulator.record(tickEvents)
             if options.recordsEvents {
                 capturedEvents.append(contentsOf: tickEvents)
             }
+        }
+
+        if options.recordsLog {
+            battle.syncLog()
         }
 
         let capturedLog = options.recordsLog ? battle.log : []

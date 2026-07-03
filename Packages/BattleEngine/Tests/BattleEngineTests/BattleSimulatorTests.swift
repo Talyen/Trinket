@@ -112,4 +112,20 @@ final class BattleSimulatorTests: XCTestCase {
 
         XCTAssertTrue(result.log.contains { $0.text.contains("Your party has been defeated") })
     }
+
+    func testDeferredLogRebuildMatchesEagerRebuild() {
+        let hero = GameContent.heroes[2]
+        let options = BattleSimulationOptions(seed: 42, rebuildLogEachStep: false)
+        let deferred = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy, options: options)
+        let eager = BattleSimulator.run(
+            hero: hero,
+            pet: wolfPet,
+            enemy: defaultEnemy,
+            options: BattleSimulationOptions(seed: 42, rebuildLogEachStep: true)
+        )
+
+        XCTAssertEqual(deferred.outcome, eager.outcome)
+        XCTAssertEqual(deferred.log.map(\.text), eager.log.map(\.text))
+        XCTAssertEqual(deferred.events.map(\.id), eager.events.map(\.id))
+    }
 }

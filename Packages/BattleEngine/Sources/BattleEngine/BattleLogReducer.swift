@@ -9,7 +9,19 @@ public enum BattleLogReducer {
         from events: [ActionEvent],
         matchup: BattleMatchup
     ) -> [LogEntry] {
-        events.enumerated().compactMap { index, event in
+        entries(from: events, startingAt: 0, matchup: matchup)
+    }
+
+    /// Appends log lines for events at and after `startIndex`. `LogEntry.id`
+    /// matches the event's index in the full stream.
+    public static func entries(
+        from events: [ActionEvent],
+        startingAt startIndex: Int,
+        matchup: BattleMatchup
+    ) -> [LogEntry] {
+        guard startIndex < events.count else { return [] }
+        return events[startIndex...].enumerated().compactMap { offset, event in
+            let index = startIndex + offset
             guard let text = line(for: event, matchup: matchup) else { return nil }
             return LogEntry(id: index, text: text)
         }

@@ -123,4 +123,50 @@ final class BattleLogReducerTests: XCTestCase {
             "Enemy is defeated."
         ])
     }
+
+    func testIncrementalEntriesMatchFullRebuild() {
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+
+        let events: [ActionEvent] = [
+            ActionEvent(
+                id: 1,
+                kind: .milestone,
+                actorName: "",
+                abilityName: "",
+                targetID: enemy.id,
+                targetName: enemy.name,
+                amount: 0,
+                keyword: .physical,
+                milestone: .battleStarted
+            ),
+            ActionEvent(
+                id: 2,
+                kind: .ability,
+                actorName: "Hero",
+                abilityName: "Slash",
+                targetID: enemy.id,
+                targetName: enemy.name,
+                amount: 3,
+                keyword: .physical
+            ),
+            ActionEvent(
+                id: 3,
+                kind: .status,
+                actorName: "Burn",
+                abilityName: "Burn",
+                targetID: enemy.id,
+                targetName: enemy.name,
+                amount: 2,
+                keyword: .burn
+            )
+        ]
+
+        let full = BattleLogReducer.entries(from: events, matchup: matchup)
+        let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0, matchup: matchup)
+        let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
+        XCTAssertEqual(firstBatch + secondBatch, full)
+    }
 }

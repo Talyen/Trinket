@@ -51,9 +51,12 @@ public struct BattleState {
     let combatBuild: BattleCombatBuild
     private let initialGold: Int
 
-    /// Cached combat log. Rebuilt once after each `advanceOneStep()` and after
-    /// standalone mutations via `withEngineContext` / pipeline helpers.
+    /// Cached combat log. Rebuilt incrementally after mutations; callers that
+    /// defer rebuilds should call `syncLog()` before reading.
     public private(set) var log: [LogEntry] = []
+
+    /// Number of trailing `events` already reflected in `log`.
+    private var loggedEventCount: Int = 0
 
     public static let defaultRNGSeed: UInt64 = 0
 
@@ -118,7 +121,7 @@ public struct BattleState {
         var context = makeEngineContext()
         _ = context.appendMilestone(.battleStarted, matchup: matchup)
         applyEngineContext(context)
-        rebuildLog()
+        rebuildLogFromScratch()
     }
 
     // MARK: - Per-combatant state accessors
@@ -224,7 +227,7 @@ public struct BattleState {
         var context = makeEngineContext()
         let result = try body(&context)
         applyEngineContext(context)
-        rebuildLog()
+        appendLogEntries()
         return result
     }
 
@@ -273,7 +276,7 @@ public struct BattleState {
     // MARK: - Turn loop
 
     @discardableResult
-    public mutating func advanceOneStep() -> BattleStep {
+    public mutating func advanceOneStep(rebuildLog: Bool = true) -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
 
         tickCount += 1
@@ -284,11 +287,35 @@ public struct BattleState {
             context: &context
         )
         applyEngineContext(context)
-        rebuildLog()
+        if rebuildLog {
+            appendLogEntries()
+        }
         return step
     }
 
-    private mutating func rebuildLog() {
+    /// Brings `log` in sync with `events`. No-op when already current.
+    public mutating func syncLog() {
+        appendLogEntries()
+    }
+
+    private mutating func appendLogEntries() {
+        guard loggedEventCount < events.count else {
+            if loggedEventCount > events.count {
+                rebuildLogFromScratch()
+            }
+            return
+        }
+
+        log.append(contentsOf: BattleLogReducer.entries(
+            from: events,
+            startingAt: loggedEventCount,
+            matchup: matchup
+        ))
+        loggedEventCount = events.count
+    }
+
+    private mutating func rebuildLogFromScratch() {
         log = BattleLogReducer.entries(from: events, matchup: matchup)
+        loggedEventCount = events.count
     }
 }

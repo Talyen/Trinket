@@ -8,19 +8,24 @@ public struct BattleSimulationOptions: Equatable {
     public let seed: UInt64?
     public let recordsEvents: Bool
     public let recordsLog: Bool
+    /// When `false` (default), `BattleSimulator` skips per-tick log rebuilds and
+    /// syncs the log once at the end when `recordsLog` is `true`.
+    public let rebuildLogEachStep: Bool
 
     public init(
         maxTicks: Int = 100,
         runCount: Int = 1,
         seed: UInt64? = nil,
         recordsEvents: Bool = true,
-        recordsLog: Bool = true
+        recordsLog: Bool = true,
+        rebuildLogEachStep: Bool = false
     ) {
         self.maxTicks = maxTicks
         self.runCount = runCount
         self.seed = seed
         self.recordsEvents = recordsEvents
         self.recordsLog = recordsLog
+        self.rebuildLogEachStep = rebuildLogEachStep
     }
 
     public var resolvedMaxTicks: Int {
