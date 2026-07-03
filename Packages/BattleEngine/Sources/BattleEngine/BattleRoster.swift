@@ -2,10 +2,23 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-public enum BattleParticipant: CaseIterable {
+public enum BattleParticipant: CaseIterable, Sendable {
     case hero
     case pet
     case enemy
+
+    /// Participants in effect-tick order for each global battle step.
+    public static let effectTickOrder: [BattleParticipant] = [.enemy, .hero, .pet]
+
+    /// Tiebreaker for ready-actor selection when schedule and interval tie:
+    /// hero (0) < pet (1) < enemy (2).
+    public var turnPriority: Int {
+        switch self {
+        case .hero: return 0
+        case .pet: return 1
+        case .enemy: return 2
+        }
+    }
 }
 
 /// Collection of the three `CombatantRuntime`s participating in a battle:
@@ -49,35 +62,25 @@ public struct BattleRoster {
     }
 
     public func participant(for combatant: Combatant) -> BattleParticipant? {
-        if combatant.id == hero.id { return .hero }
-        if combatant.id == pet.id { return .pet }
-        if combatant.id == enemy.id { return .enemy }
-        return nil
+        BattleParticipant.allCases.first { self[$0].id == combatant.id }
     }
 
     // MARK: - Dispatch by Combatant identity
 
     /// Returns the runtime whose `id` matches `combatant.id`, if any.
     public func runtime(for combatant: Combatant) -> CombatantRuntime? {
-        if combatant.id == hero.id { return hero }
-        if combatant.id == pet.id { return pet }
-        if combatant.id == enemy.id { return enemy }
-        return nil
+        participant(for: combatant).map { self[$0] }
     }
 
     /// Returns the runtime with the given `id`, if any.
     public func combatant(for id: String) -> CombatantRuntime? {
-        if id == hero.id { return hero }
-        if id == pet.id { return pet }
-        if id == enemy.id { return enemy }
-        return nil
+        allRuntimes.first { $0.id == id }
     }
 
     /// Replaces the runtime whose `id` matches `runtime.id`.
     public mutating func update(_ runtime: CombatantRuntime) {
-        if runtime.id == hero.id { hero = runtime }
-        else if runtime.id == pet.id { pet = runtime }
-        else if runtime.id == enemy.id { enemy = runtime }
+        guard let participant = participant(for: runtime.combatant) else { return }
+        self[participant] = runtime
     }
 
     // MARK: - Active effects accessors
@@ -87,9 +90,8 @@ public struct BattleRoster {
     }
 
     public mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
-        if combatant.id == hero.id { hero.activeEffects = effects }
-        else if combatant.id == pet.id { pet.activeEffects = effects }
-        else { enemy.activeEffects = effects }
+        guard let participant = participant(for: combatant) else { return }
+        self[participant].activeEffects = effects
     }
 
     // MARK: - Health accessors
@@ -105,16 +107,12 @@ public struct BattleRoster {
     // MARK: - Ready-actor picker
 
     /// Returns the runtimes that are eligible to act on `tick`, sorted by
-    /// `(nextReadyAtTick ascending, effectiveInterval descending, roleOrder
-    /// ascending)`. The role-order tiebreaker preserves the historical
-    /// hero < pet < enemy ordering used by the turn loop.
+    /// `(nextReadyAtTick ascending, effectiveInterval descending, turnPriority
+    /// ascending)`. `turnPriority` uses `BattleParticipant.turnPriority`
+    /// (hero < pet < enemy).
     public func readyCombatants(atTick tick: Int) -> [CombatantRuntime] {
-        let ordered: [(runtime: CombatantRuntime, roleOrder: Int)] = [
-            (hero, 0),
-            (pet, 1),
-            (enemy, 2)
-        ]
-        return ordered
+        BattleParticipant.allCases
+            .map { (runtime: self[$0], turnPriority: $0.turnPriority) }
             .filter { $0.runtime.isReady(atTick: tick) }
             .sorted { lhs, rhs in
                 if lhs.runtime.nextReadyAtTick != rhs.runtime.nextReadyAtTick {
@@ -123,7 +121,7 @@ public struct BattleRoster {
                 if lhs.runtime.actionSpeed.effectiveInterval != rhs.runtime.actionSpeed.effectiveInterval {
                     return lhs.runtime.actionSpeed.effectiveInterval > rhs.runtime.actionSpeed.effectiveInterval
                 }
-                return lhs.roleOrder < rhs.roleOrder
+                return lhs.turnPriority < rhs.turnPriority
             }
             .map(\.runtime)
     }
@@ -158,8 +156,7 @@ public struct BattleRoster {
     /// Mutates the runtime identified by `combatant` in place. A no-op
     /// when `combatant` is unknown.
     public mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
-        if combatant.id == hero.id { body(&hero) }
-        else if combatant.id == pet.id { body(&pet) }
-        else if combatant.id == enemy.id { body(&enemy) }
+        guard let participant = participant(for: combatant) else { return }
+        body(&self[participant])
     }
 }

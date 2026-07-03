@@ -6,32 +6,19 @@ public enum EffectTickEngine {
     public static func tickAll(context: inout BattleEngineContext, matchup: BattleMatchup) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
-        let enemyResult = tickEffects(
-            context.activeEffects(for: matchup.enemy),
-            target: matchup.enemy,
-            context: &context
-        )
-        context.setActiveEffects(enemyResult.updated, for: matchup.enemy)
-        events.append(contentsOf: enemyResult.events)
+        for participant in BattleParticipant.effectTickOrder {
+            let combatant = matchup.combatant(for: participant)
+            if participant != .enemy {
+                guard context.roster[participant].isAlive else { continue }
+            }
 
-        if context.roster.hero.isAlive {
-            let heroResult = tickEffects(
-                context.activeEffects(for: matchup.hero),
-                target: matchup.hero,
+            let result = tickEffects(
+                context.activeEffects(for: combatant),
+                target: combatant,
                 context: &context
             )
-            context.setActiveEffects(heroResult.updated, for: matchup.hero)
-            events.append(contentsOf: heroResult.events)
-        }
-
-        if context.roster.pet.isAlive {
-            let petResult = tickEffects(
-                context.activeEffects(for: matchup.pet),
-                target: matchup.pet,
-                context: &context
-            )
-            context.setActiveEffects(petResult.updated, for: matchup.pet)
-            events.append(contentsOf: petResult.events)
+            context.setActiveEffects(result.updated, for: combatant)
+            events.append(contentsOf: result.events)
         }
 
         return events

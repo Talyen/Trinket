@@ -47,6 +47,14 @@ public struct BattleMatchup: Equatable, Hashable {
         self.pet = pet
         self.enemy = enemy ?? Enemy.fallbackCombatant
     }
+
+    public func combatant(for participant: BattleParticipant) -> Combatant {
+        switch participant {
+        case .hero: return hero
+        case .pet: return pet
+        case .enemy: return enemy
+        }
+    }
 }
 
 public enum BattleSimulationOutcome: Equatable {

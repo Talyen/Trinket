@@ -49,6 +49,26 @@ final class BattleRosterTests: XCTestCase {
 
     // MARK: - Dispatch by Combatant identity
 
+    func testEffectTickOrderIsEnemyHeroPet() {
+        XCTAssertEqual(BattleParticipant.effectTickOrder, [.enemy, .hero, .pet])
+    }
+
+    func testTurnPriorityOrdersHeroBeforePetBeforeEnemy() {
+        XCTAssertLessThan(BattleParticipant.hero.turnPriority, BattleParticipant.pet.turnPriority)
+        XCTAssertLessThan(BattleParticipant.pet.turnPriority, BattleParticipant.enemy.turnPriority)
+    }
+
+    func testMatchupCombatantForParticipant() {
+        let hero = combatant(id: "hero", role: .hero)
+        let pet = combatant(id: "pet", role: .pet)
+        let enemy = combatant(id: "enemy", role: .enemy)
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+
+        XCTAssertEqual(matchup.combatant(for: .hero).id, "hero")
+        XCTAssertEqual(matchup.combatant(for: .pet).id, "pet")
+        XCTAssertEqual(matchup.combatant(for: .enemy).id, "enemy")
+    }
+
     func testRuntimeForReturnsMatching() {
         let hero = runtime(id: "hero", role: .hero)
         let pet = runtime(id: "pet", role: .pet)

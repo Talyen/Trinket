@@ -7,7 +7,8 @@ import TrinketContent
 ///
 /// **Tick contract**
 /// 1. `context.tickCount` is incremented at the start of each step.
-/// 2. Effect ticks run for living combatants in order: enemy, then hero, then pet.
+/// 2. Effect ticks run for living combatants in `BattleParticipant.effectTickOrder`
+///    (enemy, then hero, then pet; party members skip when defeated).
 /// 3. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
 /// 4. Otherwise pick the next ready actor (at most one acts per step) using roster
 ///    scheduling rules.
