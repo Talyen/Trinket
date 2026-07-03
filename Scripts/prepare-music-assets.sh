@@ -94,7 +94,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
       echo "Boss music '$id' must include boss_enemy_id." >&2
       exit 1
     fi
-    if ! grep -q "id: \"$boss_enemy_id\".*isBoss: true" Trinket/Content/GameContent.swift; then
+    if ! grep -q "id: \"$boss_enemy_id\".*isBoss: true" Trinket/Content/GameContentEnemies.swift; then
       echo "Boss music '$id' references missing or non-boss enemy '$boss_enemy_id'." >&2
       exit 1
     fi

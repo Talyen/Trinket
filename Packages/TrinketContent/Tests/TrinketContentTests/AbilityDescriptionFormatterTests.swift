@@ -1,5 +1,5 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
 
 final class AbilityDescriptionFormatterTests: XCTestCase {
     func testSlashFormatsPhysicalDamage() {

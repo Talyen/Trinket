@@ -20,7 +20,7 @@ Trinket/
 
 Manifests and pipelines live outside the app folder:
 
-- `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Trinket/Generated/`
+- `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Packages/TrinketContent/Sources/TrinketContent/Generated/`
 - `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh`
 - `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh`
 
@@ -35,11 +35,11 @@ Manifests and pipelines live outside the app folder:
 
 **Drift check:** `./Scripts/assert-generated-output.sh` (CI runs this after `generate.sh`).
 
-After editing `ContentManifest/` or custom `Trinket/Content/AbilityCatalog*.swift` files:
+After editing `ContentManifest/` or custom ability catalog files under `Packages/TrinketContent/Sources/TrinketContent/Content/`:
 
 ```sh
 ./Scripts/generate.sh
-git add Trinket/Generated/
+git add Packages/TrinketContent/Sources/TrinketContent/Generated/
 ```
 
 After editing art or music manifests:
@@ -77,7 +77,7 @@ Migration phases:
 
 1. **Phase 0** — codegen orchestration + CI drift check (done)
 2. **Phase 1** — `TrinketCore` package with leaf types: effects, enums, `PrimaryStats` (done)
-3. **Phase 2** — `TrinketContent` package
+3. **Phase 2** — `TrinketContent` package (done)
 4. **Phase 3** — `BattleEngine` package
 5. **Phase 4** — `TrinketPersistence` package
 6. **Phase 5** — thin app target, optional `TrinketDesignSystem` package

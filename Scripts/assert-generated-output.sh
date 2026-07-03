@@ -44,11 +44,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 TRACKED_PATHS=(
-  "Trinket/Generated/ItemAffixCatalog.generated.swift"
-  "Trinket/Generated/AbilityCatalogBasic.generated.swift"
-  "Trinket/Generated/AbilityCatalogSkill.generated.swift"
-  "Trinket/Generated/AbilityCatalogUltimate.generated.swift"
-  "Trinket/Generated/AbilityShorthand.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogBasic.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogSkill.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogUltimate.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift"
 )
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then

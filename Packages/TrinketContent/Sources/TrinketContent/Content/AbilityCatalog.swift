@@ -1,12 +1,13 @@
 import Foundation
+import TrinketCore
 
-enum AbilityCatalog {
-    static let all: [Ability] =
+public enum AbilityCatalog {
+    public static let all: [Ability] =
         AbilityCatalogBasic.all
             + AbilityCatalogSkill.all
             + AbilityCatalogUltimate.all
 
-    static func ability(id: String) -> Ability? {
+    public static func ability(id: String) -> Ability? {
         all.first { $0.id == id }
     }
 }

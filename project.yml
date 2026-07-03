@@ -11,6 +11,8 @@ fileGroups:
 packages:
   TrinketCore:
     path: Packages/TrinketCore
+  TrinketContent:
+    path: Packages/TrinketContent
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -25,6 +27,7 @@ targets:
       path: Trinket/Trinket.entitlements
     dependencies:
       - package: TrinketCore
+      - package: TrinketContent
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket

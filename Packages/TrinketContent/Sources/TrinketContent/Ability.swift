@@ -1,18 +1,19 @@
 import Foundation
+import TrinketCore
 
-struct Ability: Identifiable, Hashable {
-    let id: String
-    let name: String
-    let tier: AbilityTier
-    let damageComponents: [DamageComponent]
-    let descriptionOverride: String?
-    let targetedEffects: [TargetedEffect]
+public struct Ability: Identifiable, Hashable, Sendable {
+    public let id: String
+    public let name: String
+    public let tier: AbilityTier
+    public let damageComponents: [DamageComponent]
+    public let descriptionOverride: String?
+    public let targetedEffects: [TargetedEffect]
 
-    var effects: [Effect] {
+    public var effects: [Effect] {
         targetedEffects.map(\.effect)
     }
 
-    init(
+    public init(
         id: String,
         name: String,
         tier: AbilityTier,
@@ -33,7 +34,7 @@ struct Ability: Identifiable, Hashable {
         }
     }
 
-    init(
+    public init(
         id: String,
         name: String,
         tier: AbilityTier,
@@ -57,21 +58,21 @@ struct Ability: Identifiable, Hashable {
         )
     }
 
-    var generatedDescription: String {
+    public var generatedDescription: String {
         AbilityDescriptionFormatter.format(self)
     }
 
-    var directDamage: Int {
+    public var directDamage: Int {
         damageComponents
             .filter { $0.target == .abilityTarget }
             .reduce(0) { $0 + $1.amount }
     }
 
-    var damageKeyword: Keyword {
+    public var damageKeyword: Keyword {
         logDamageKeyword
     }
 
-    var logDamageKeyword: Keyword {
+    public var logDamageKeyword: Keyword {
         let targetComponents = damageComponents.filter { $0.target == .abilityTarget }
         let keywords = Set(targetComponents.map(\.keyword))
         if keywords.count == 1, let keyword = keywords.first {
@@ -80,15 +81,15 @@ struct Ability: Identifiable, Hashable {
         return targetComponents.first?.keyword ?? .physical
     }
 
-    var damage: Int {
+    public var damage: Int {
         directDamage
     }
 
-    var damageType: Keyword {
+    public var damageType: Keyword {
         damageKeyword
     }
 
-    var keywords: [Keyword] {
+    public var keywords: [Keyword] {
         var result = damageComponents.map(\.keyword)
         for targetedEffect in targetedEffects {
             result.append(targetedEffect.effect.keyword)
@@ -96,7 +97,7 @@ struct Ability: Identifiable, Hashable {
         return result
     }
 
-    var summary: String {
+    public var summary: String {
         descriptionOverride ?? generatedDescription
     }
 }

@@ -48,6 +48,7 @@ python3 Scripts/content_codegen.py validate
 
 echo "=== Generating content catalogs ==="
 python3 Scripts/content_codegen.py
+python3 Scripts/publicize_trinket_core.py Packages/TrinketContent/Sources/TrinketContent/Generated/*.swift
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   echo "=== Preparing art assets ==="

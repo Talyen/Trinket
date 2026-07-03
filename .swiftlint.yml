@@ -64,6 +64,7 @@ function_parameter_count:
 
 excluded:
   - Trinket/Generated
+  - Packages/TrinketContent/Sources/TrinketContent/Generated
   - .DerivedData
   - .build
 

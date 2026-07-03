@@ -1,7 +1,8 @@
 import Foundation
+import TrinketCore
 
-enum AbilityDescriptionFormatter {
-    static func format(_ ability: Ability) -> String {
+public enum AbilityDescriptionFormatter {
+    public static func format(_ ability: Ability) -> String {
         var clauses: [String] = []
 
         for component in ability.damageComponents where component.target == .actor {

@@ -173,7 +173,7 @@ assert_no_build_is_fresh() {
   fi
 
   local newer_files=()
-  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore)
+  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent)
   local root
   for root in "${source_roots[@]}"; do
     if [[ -d "$root" ]]; then
@@ -243,6 +243,26 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
   )
   CORE_SECONDS=$SECONDS
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + CORE_SECONDS))
+
+  echo "Running TrinketContent package tests..."
+  CONTENT_SECONDS=0
+  SECONDS=0
+  (
+    cd Packages/TrinketContent
+    if [[ "$ACTION" == "test-without-building" ]]; then
+      xcodebuild test-without-building \
+        -scheme TrinketContent \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
+    else
+      xcodebuild test \
+        -scheme TrinketContent \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
+    fi
+  )
+  CONTENT_SECONDS=$SECONDS
+  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + CONTENT_SECONDS))
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then

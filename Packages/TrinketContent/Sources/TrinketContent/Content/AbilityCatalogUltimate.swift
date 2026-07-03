@@ -1,12 +1,13 @@
 import Foundation
+import TrinketCore
 
-enum AbilityCatalogUltimate {
-    static let exorcism = Ability(
+public enum AbilityCatalogUltimate {
+    public static let exorcism = Ability(
         id: "exorcism", name: "Exorcism", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.purge(nil))]
     )
-    static let glacialWard = Ability(
+    public static let glacialWard = Ability(
         id: "glacial-ward", name: "Glacial Ward", tier: .ultimate,
         description: "Gain Block and deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
@@ -14,13 +15,13 @@ enum AbilityCatalogUltimate {
             TargetedEffect(.shield(.block, 4, 6))
         ]
     )
-    static let judgment = Ability(
+    public static let judgment = Ability(
         id: "judgment", name: "Judgment", tier: .ultimate,
         description: "Deal 6 Holy damage.\nGain 1 Block.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
         targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
     )
-    static let moltenBulwark = Ability(
+    public static let moltenBulwark = Ability(
         id: "molten-bulwark", name: "Molten Bulwark", tier: .ultimate,
         description: "Gain Block and deal 3 Burn damage.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
@@ -29,7 +30,7 @@ enum AbilityCatalogUltimate {
             TargetedEffect(.burn(3))
         ]
     )
-    static let thornMail = Ability(
+    public static let thornMail = Ability(
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
         description: "Gain Armor and deal 2 Bleed damage.",
         damageComponents: [DamageComponent(2, keyword: .bleed)],
@@ -39,7 +40,7 @@ enum AbilityCatalogUltimate {
         ]
     )
 
-    static let all: [Ability] = [
+    public static let all: [Ability] = [
         exorcism,
         glacialWard,
         judgment,

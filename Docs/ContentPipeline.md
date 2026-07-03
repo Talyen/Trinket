@@ -6,10 +6,10 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
 - `ContentManifest/abilities.tsv`: manifest-driven abilities (`direct_hit`, `buff_only`, `multi_damage`).
-- `Trinket/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
-- `Trinket/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
-- `Trinket/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
-- `Trinket/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
+- `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
 
@@ -72,4 +72,4 @@ After changing manifests or custom tier files:
 ./Scripts/build.sh
 ```
 
-Generated files are committed so the app builds without rerunning the generator. CI fails if `Trinket/Generated/` drifts from the manifests.
+Generated files are committed so the app builds without rerunning the generator. CI fails if catalog generated output under `Packages/TrinketContent/` drifts from the manifests.
