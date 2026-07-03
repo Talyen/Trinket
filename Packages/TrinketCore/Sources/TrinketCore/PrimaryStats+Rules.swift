@@ -36,4 +36,13 @@ public extension PrimaryStats {
     public var dotResistanceMultiplier: Double {
         max(0.25, 1.0 - Double(toughness) * 0.005)
     }
+
+    /// Stun/freeze prevention buildup threshold for a combatant with the given
+    /// effective max health (`base max + toughness`). Mirrors the prior
+    /// `CombatPipeline.preventionThreshold(for:)` formula.
+    public func preventionThreshold(baseMaxHealth: Int) -> Int {
+        let baseThreshold = Double(baseMaxHealth) * 0.20
+        let agilityResist = 1.0 + Double(agility) * 0.01
+        return max(1, Int(ceil(baseThreshold * agilityResist)))
+    }
 }

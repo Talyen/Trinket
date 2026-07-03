@@ -81,9 +81,7 @@ public enum CombatPipeline {
     }
 
     private static func preventionThreshold(for combatant: Combatant) -> Int {
-        let baseThreshold = Double(maxHealth(for: combatant)) * 0.20
-        let agilityResist = 1.0 + Double(combatant.primaryStats.agility) * 0.01
-        return max(1, Int(ceil(baseThreshold * agilityResist)))
+        combatant.primaryStats.preventionThreshold(baseMaxHealth: maxHealth(for: combatant))
     }
 
     private static func existingBuildupAmount(

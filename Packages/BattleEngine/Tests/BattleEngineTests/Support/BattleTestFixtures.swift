@@ -135,6 +135,58 @@ enum BattleTestFixtures {
         }
         return nil
     }
+
+    // MARK: - Stat integration
+
+    static func statHero(
+        id: String = "hero",
+        abilities: [Ability],
+        stats: PrimaryStats = PrimaryStats(),
+        maxHealth: Int = 20,
+        actionIntervalTicks: Int = 2
+    ) -> Combatant {
+        Combatant(
+            id: id,
+            name: id.capitalized,
+            role: .hero,
+            maxHealth: maxHealth,
+            actionIntervalTicks: actionIntervalTicks,
+            abilities: abilities,
+            primaryStats: stats
+        )
+    }
+
+    static func statBattle(
+        hero: Combatant,
+        enemy: Combatant? = nil
+    ) -> BattleState {
+        standardParty(
+            hero: hero,
+            pet: passiveCombatant(id: "pet", name: "Pet", role: .pet),
+            enemy: enemy ?? passiveCombatant(
+                id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100
+            )
+        )
+    }
+
+    static func advanceUntilActorActs(
+        _ actorID: String,
+        on battle: inout BattleState,
+        maxSteps: Int = 20
+    ) -> BattleStep? {
+        for _ in 0 ..< maxSteps {
+            let step = battle.advanceOneStep()
+            if case let .acted(actor, _) = step, actor.id == actorID {
+                return step
+            }
+            if battle.isBattleOver { break }
+        }
+        return nil
+    }
+
+    static func firstAbilityEvent(in step: BattleStep) -> ActionEvent? {
+        step.events.first { $0.kind == .ability }
+    }
 }
 
 // MARK: - Effect predicates
