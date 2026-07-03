@@ -88,6 +88,17 @@ final class HomesteadStateTests: XCTestCase {
         XCTAssertEqual(adjusted.first { $0.resource == .herbs }?.quantity, 3)
     }
 
+    func testAdjustedMaterialRewardsStacksFoodBonusesFromMultipleBuildings() {
+        let homestead = PlayerHomesteadState(
+            resources: [:],
+            nodeTiers: [.wheatField: 2, .chickenCoop: 2]
+        )
+
+        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 4)])
+
+        XCTAssertEqual(adjusted.first { $0.resource == .food }?.quantity, 6)
+    }
+
     func testAdjustedMaterialRewardsIgnoresGoldMaterials() {
         let homestead = PlayerHomesteadState(
             resources: [:],

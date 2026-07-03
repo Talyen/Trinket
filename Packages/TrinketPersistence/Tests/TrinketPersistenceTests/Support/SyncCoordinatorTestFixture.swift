@@ -1,14 +1,13 @@
-import Foundation
+import XCTest
+import TrinketCore
+import TrinketContent
 @testable import TrinketPersistence
 
 @MainActor
 struct SyncCoordinatorTestFixture {
-    static let defaultUploadDebounce: Duration = .milliseconds(10)
-
     let mock: MockPlayerSaveSync
     let store: PlayerSaveStore
     let coordinator: PlayerSaveSyncCoordinator
-    let uploadDebounce: Duration
 
     static func make(
         directoryURL: URL,
@@ -16,8 +15,7 @@ struct SyncCoordinatorTestFixture {
         remoteSave: RemotePlayerSave? = nil,
         accountStatus: PlayerSaveAccountStatus = .available,
         fetchError: Error? = nil,
-        uploadError: Error? = nil,
-        uploadDebounce: Duration = defaultUploadDebounce
+        uploadError: Error? = nil
     ) async throws -> SyncCoordinatorTestFixture {
         let mock = MockPlayerSaveSync()
         await mock.setAccountStatus(accountStatus)
@@ -32,19 +30,13 @@ struct SyncCoordinatorTestFixture {
         let store = PlayerSaveStore(fileStore: fileStore)
         let coordinator = PlayerSaveSyncCoordinator(
             sync: mock,
-            playerSaveStore: store,
-            uploadDebounceInterval: uploadDebounce
+            playerSaveStore: store
         )
 
         return SyncCoordinatorTestFixture(
             mock: mock,
             store: store,
-            coordinator: coordinator,
-            uploadDebounce: uploadDebounce
+            coordinator: coordinator
         )
-    }
-
-    func waitPastUploadDebounce() async {
-        try? await Task.sleep(for: uploadDebounce + .milliseconds(20))
     }
 }

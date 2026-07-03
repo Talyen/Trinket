@@ -44,11 +44,18 @@ public struct ResourceGainHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        let loggedAmount: Int
         switch keyword {
         case .mana:
             context.restoreMana(amount, to: target, sourceActorID: source.id)
+            loggedAmount = amount
+        case .gold:
+            let bonus = context.modifiers(for: source.id).goldGainedBonus
+            context.addGold(amount, sourceActorID: source.id)
+            loggedAmount = amount + bonus
         default:
             context.addGold(amount, sourceActorID: source.id)
+            loggedAmount = amount
         }
         let event = context.nextEvent(
             kind: .effect,
@@ -56,7 +63,7 @@ public struct ResourceGainHandler: BattleEffectHandler {
             actorName: source.name,
             abilityName: ability.name,
             target: target,
-            amount: amount,
+            amount: loggedAmount,
             keyword: keyword
         )
         return EffectApplyOutcome(events: [event], didApply: true)

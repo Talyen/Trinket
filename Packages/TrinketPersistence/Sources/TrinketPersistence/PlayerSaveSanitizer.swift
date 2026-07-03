@@ -15,6 +15,26 @@ public enum PlayerSaveSanitizer {
         return sanitized
     }
 
+    public static func validate(_ save: PlayerSave) throws {
+        guard save.roster.gold >= 0 else {
+            throw PlayerSavePersistenceError.invalidSave("Roster gold cannot be negative.")
+        }
+        for (_, amount) in save.homestead.resources where amount < 0 {
+            throw PlayerSavePersistenceError.invalidSave("Homestead resources cannot be negative.")
+        }
+    }
+
+    public static func latestStageID(
+        in completedStageIDs: Set<String>,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> String? {
+        chapters
+            .flatMap(\.stages)
+            .map(\.id)
+            .filter { completedStageIDs.contains($0) }
+            .last
+    }
+
     public static func sanitizeJourney(
         _ journey: JourneyProgressState,
         chapters: [Chapter] = GameContent.chapters
@@ -25,14 +45,7 @@ public enum PlayerSaveSanitizer {
         var sanitized = journey
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
         sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filter { validStageIDs.contains($0) }
-
-        if let lastCompleted = journey.lastCompletedStageID,
-           validStageIDs.contains(lastCompleted)
-        {
-            sanitized.lastCompletedStageID = lastCompleted
-        } else {
-            sanitized.lastCompletedStageID = sanitized.completedStageIDs.sorted().last
-        }
+        sanitized.lastCompletedStageID = latestStageID(in: sanitized.completedStageIDs, chapters: chapters)
 
         if validChapterIDs.contains(sanitized.activeChapterID) {
             // keep

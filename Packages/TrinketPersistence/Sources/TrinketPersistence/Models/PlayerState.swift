@@ -183,6 +183,15 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
+        let newlyEquipped = Set(loadout.itemIDsBySlot.values)
+        for (combatantID, var otherLoadout) in equipmentLoadouts where combatantID != combatant.id {
+            for slot in ItemSlot.allCases {
+                if let itemID = otherLoadout.itemID(for: slot), newlyEquipped.contains(itemID) {
+                    otherLoadout.unequip(slot)
+                }
+            }
+            equipmentLoadouts[combatantID] = otherLoadout
+        }
         equipmentLoadouts[combatant.id] = loadout
     }
 

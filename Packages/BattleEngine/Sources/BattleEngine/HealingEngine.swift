@@ -8,6 +8,7 @@ package enum HealingEngine {
         _ request: HealRequest,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
+        guard context.roster.health(for: request.target) > 0 else { return .empty }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         var restored = 0
         context.roster.mutateRuntime(for: request.target) { restored = $0.heal(request.amount + bonus) }
@@ -38,7 +39,10 @@ package enum HealingEngine {
         sourceActorID: String,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
-        guard damage > 0, let actor = context.roster.combatant(for: sourceActorID) else { return .empty }
+        guard damage > 0,
+              let actor = context.roster.combatant(for: sourceActorID),
+              context.roster.health(for: actor.combatant) > 0
+        else { return .empty }
         let actorCombatant = actor.combatant
 
         let leechPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { maxPercent, activeEffect in

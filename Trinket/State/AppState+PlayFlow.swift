@@ -28,11 +28,15 @@ extension AppState {
             in: GameContent.chapters,
             context: &context
         )
-        playerSave.performBatchMutation { save in
-            save.roster = SavedRosterState(context.roster)
-            save.inventory = SavedInventoryState(context.inventory)
-            save.homestead = SavedHomesteadState(context.homestead)
-            save.journey = context.journey
+        do {
+            try playerSave.performBatchMutation { save in
+                save.roster = SavedRosterState(context.roster)
+                save.inventory = SavedInventoryState(context.inventory)
+                save.homestead = SavedHomesteadState(context.homestead)
+                save.journey = context.journey
+            }
+        } catch {
+            return mapScrollFocusID(for: journey.current)
         }
 
         let scrollTarget = mapScrollFocusID(for: context.journey)

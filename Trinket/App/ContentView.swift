@@ -70,9 +70,9 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             refreshMusicRoute(scenePhase: newPhase)
-            if newPhase == .active {
+            if newPhase == .background {
                 Task {
-                    await appState.syncCoordinator.pullAndReconcile()
+                    await appState.syncCoordinator.checkpointUploadIfNeeded()
                 }
             }
         }

@@ -234,7 +234,7 @@ final class BattleRunTests: XCTestCase {
             _ = run.advanceOneStep()
         }
 
-        let summary = run.makeVictorySummary()
+        let summary = run.makeVictorySummary(homestead: .freshStart)
 
         XCTAssertEqual(summary.stageGold, 12)
         XCTAssertEqual(summary.experience, 8)

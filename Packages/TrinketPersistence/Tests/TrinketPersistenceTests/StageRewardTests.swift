@@ -99,7 +99,7 @@ final class StageRewardTests: XCTestCase {
         XCTAssertEqual(homestead.resources[.stone], 4)
     }
 
-    func testHomesteadFoodBonusUsesFirstMatchingNodeRule() throws {
+    func testHomesteadFoodBonusesStackFromMultipleBuildings() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
         var homestead = PlayerHomesteadState(
@@ -134,7 +134,7 @@ final class StageRewardTests: XCTestCase {
             journey: &journey
         )
 
-        XCTAssertEqual(homestead.resources[.food], 5)
+        XCTAssertEqual(homestead.resources[.food], 6)
     }
 
     func testCompletingStageTwiceDoesNotDoubleRewards() throws {

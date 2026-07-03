@@ -70,8 +70,16 @@ struct VictoryView: View {
             )
         }
 
+        ForEach(summary.materialRewards.filter { $0.quantity > 0 }, id: \.resource) { reward in
+            BattleOutcomeRewardRow(
+                symbolName: reward.resource.symbolName,
+                tint: reward.resource.tint,
+                text: "+\(reward.quantity) \(reward.resource.displayName)"
+            )
+        }
+
         if summary.itemNames.isEmpty {
-            if summary.totalGold == 0 {
+            if summary.totalGold == 0, summary.materialRewards.allSatisfy({ $0.quantity <= 0 }) {
                 BattleOutcomeRewardRow(
                     symbolName: "bag",
                     tint: .secondary,

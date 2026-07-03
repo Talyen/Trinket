@@ -16,7 +16,18 @@ struct ChapterJourneyPresentation {
                 state: state
             ))
         } + [.chapterGate(Self.gateChapter(after: chapter, in: chapters))]
-        scrollTargetID = progress.activeStageID
+        scrollTargetID = Self.scrollFocusID(for: progress, chapter: chapter, chapters: chapters)
+    }
+
+    private static func scrollFocusID(
+        for progress: JourneyProgressState,
+        chapter: Chapter,
+        chapters: [Chapter]
+    ) -> String {
+        if let activeStageID = progress.activeStageID {
+            return activeStageID
+        }
+        return StageMapID.chapterGate(for: gateChapter(after: chapter, in: chapters))
     }
 
     private static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {

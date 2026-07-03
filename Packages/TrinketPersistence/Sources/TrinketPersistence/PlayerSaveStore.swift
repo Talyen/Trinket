@@ -11,42 +11,27 @@ public final class PlayerSaveStore {
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
     )
+    public private(set) var lastPersistenceError: PlayerSavePersistenceError?
     public var onLocalSave: ((PlayerSave) -> Void)?
-    public var onRemoteSaveApplied: (() -> Void)?
 
     public var journey: JourneyProgressState {
         get { save.journey }
-        set {
-            save.journey = PlayerSaveSanitizer.sanitizeJourney(newValue)
-            persist()
-        }
+        set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
     }
 
     public var roster: PlayerRosterState {
         get { resolvedRoster() }
-        set {
-            save.roster = SavedRosterState(newValue)
-            save = PlayerSaveSanitizer.sanitize(save)
-            persist()
-        }
+        set { mutate { $0.roster = SavedRosterState(newValue) } }
     }
 
     public var inventory: PlayerInventoryState {
         get { save.inventory.inventory() }
-        set {
-            save.inventory = SavedInventoryState(newValue)
-            save = PlayerSaveSanitizer.sanitize(save)
-            persist()
-        }
+        set { mutate { $0.inventory = SavedInventoryState(newValue) } }
     }
 
     public var homestead: PlayerHomesteadState {
         get { save.homestead.homestead() }
-        set {
-            save.homestead = SavedHomesteadState(newValue)
-            save = PlayerSaveSanitizer.sanitize(save)
-            persist()
-        }
+        set { mutate { $0.homestead = SavedHomesteadState(newValue) } }
     }
 
     public var currentSave: PlayerSave {
@@ -59,40 +44,48 @@ public final class PlayerSaveStore {
         save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
     }
 
-    public func performBatchMutation(_ update: (inout PlayerSave) -> Void) {
-        update(&save)
-        save = PlayerSaveSanitizer.sanitize(save)
-        persist()
+    public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
+        try mutateThrowing(update)
     }
 
-    public func resetGameplayProgress() {
-        save = .fresh
-        persist()
+    public func resetGameplayProgress() throws {
+        try commitSave(.fresh)
     }
 
-    public func applyTestSeed() {
-        save = .testSeed
-        persist()
+    public func applyTestSeed() throws {
+        try commitSave(.testSeed)
     }
 
-    public func applyRemoteSave(_ remoteSave: PlayerSave) {
-        save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
+    public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
+        let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
+        try commitSave(migrated)
+    }
+
+    private func mutate(_ update: (inout PlayerSave) -> Void) {
         do {
-            try fileStore.save(save)
+            try mutateThrowing(update)
+        } catch let error as PlayerSavePersistenceError {
+            lastPersistenceError = error
+            logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
         } catch {
-            logger.error("Failed to persist remote save locally: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
         }
-        onRemoteSaveApplied?()
     }
 
-    private func persist() {
-        save = save.markedLocalMutation()
-        do {
-            try fileStore.save(save)
-            onLocalSave?(save)
-        } catch {
-            logger.error("Failed to persist local save: \(error.localizedDescription, privacy: .public)")
-        }
+    private func mutateThrowing(_ update: (inout PlayerSave) -> Void) throws {
+        var candidate = save
+        update(&candidate)
+        candidate = PlayerSaveSanitizer.sanitize(candidate)
+        try commitSave(candidate)
+    }
+
+    private func commitSave(_ candidate: PlayerSave) throws {
+        let persisted = PlayerSaveSanitizer.sanitize(candidate.markedLocalMutation())
+        try PlayerSaveSanitizer.validate(persisted)
+        try fileStore.save(persisted)
+        save = persisted
+        lastPersistenceError = nil
+        onLocalSave?(save)
     }
 
     private func resolvedRoster() -> PlayerRosterState {

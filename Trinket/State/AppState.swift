@@ -35,7 +35,7 @@ final class AppState {
 
         let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
         if env.seedTestProgress {
-            resolvedPlayerSave.applyTestSeed()
+            try? resolvedPlayerSave.applyTestSeed()
         }
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
@@ -57,9 +57,6 @@ final class AppState {
         initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
         initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
         selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
-        resolvedPlayerSave.onRemoteSaveApplied = { [weak self] in
-            self?.battle.endBattle()
-        }
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
         if let mapScrollTarget = env.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
@@ -94,7 +91,7 @@ final class AppState {
     private static let launchBattleStageID = "chapter-1-stage-1"
 
     func resetGameplayProgress() {
-        playerSave.resetGameplayProgress()
+        try? playerSave.resetGameplayProgress()
         battle.endBattle()
         journey.mapScrollRequest = nil
         Task {

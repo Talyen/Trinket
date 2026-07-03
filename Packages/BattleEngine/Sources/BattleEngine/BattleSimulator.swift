@@ -13,14 +13,15 @@ private struct BattleSimulationMetricsAccumulator {
             switch event.kind {
             case .ability:
                 abilityDamage += event.amount
+                actorDamage[event.actorName, default: 0] += event.amount
+                keywordDamage[event.keyword, default: 0] += event.amount
             case .status:
                 statusDamage += event.amount
+                actorDamage[event.actorName, default: 0] += event.amount
+                keywordDamage[event.keyword, default: 0] += event.amount
             case .effect, .milestone:
                 break
             }
-
-            actorDamage[event.actorName, default: 0] += event.amount
-            keywordDamage[event.keyword, default: 0] += event.amount
         }
     }
 
@@ -94,6 +95,9 @@ public enum BattleSimulator {
     ) -> BattleSimulationResult {
         var battle = initialBattle
         var capturedEvents: [ActionEvent] = []
+        if options.recordsEvents {
+            capturedEvents = battle.events
+        }
         var metricsAccumulator = BattleSimulationMetricsAccumulator()
         let tickLimit = options.resolvedMaxTicks
         let useIncrementalLog = options.recordsLog && options.rebuildLogEachStep

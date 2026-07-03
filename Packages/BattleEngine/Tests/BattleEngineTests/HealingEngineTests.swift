@@ -70,6 +70,27 @@ final class HealingEngineTests: XCTestCase {
         XCTAssertEqual(outcome.events.first?.amount, outcome.healthRestored)
     }
 
+    func testLeechFromDamageDoesNotReviveDefeatedSource() {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        var context = makeContext(seed: 0)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+        let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
+        XCTAssertEqual(outcome.healthRestored, 0)
+        XCTAssertEqual(context.roster.hero.currentHealth, 0)
+    }
+
+    func testResolveHealIgnoresDefeatedTarget() {
+        var context = makeContext(seed: 0)
+        context.roster.mutateRuntime(for: context.roster.enemy.combatant) { $0.currentHealth = 0 }
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
+            in: &context
+        )
+        XCTAssertEqual(outcome.healthRestored, 0)
+        XCTAssertEqual(context.roster.enemy.currentHealth, 0)
+    }
+
     func testContextResolveHealDelegatesToHealingEngine() {
         var context = makeContext(seed: 0)
         let contextOutcome = context.resolveHeal(

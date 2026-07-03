@@ -21,7 +21,7 @@ final class PlayerSaveStoreBatchTests: XCTestCase {
         var persistCount = 0
         store.onLocalSave = { _ in persistCount += 1 }
 
-        store.performBatchMutation { save in
+        try store.performBatchMutation { save in
             save.roster.gold = 50
             save.journey.completedStageIDs.insert("chapter-1-stage-1")
         }

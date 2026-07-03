@@ -183,7 +183,7 @@ struct BattleView: View {
         return BattleCombatantPaneConfiguration(
             combatant: combatant,
             health: health,
-            maxHealth: combatant.maxHealth,
+            maxHealth: battleRun.maxHealth(for: combatant),
             mana: mana,
             maxMana: maxMana,
             healthBarPlacement: healthBarPlacement,
@@ -218,7 +218,7 @@ struct BattleView: View {
 
         switch battleRun.outcome {
         case .victory:
-            victorySummary = battleRun.makeVictorySummary()
+            victorySummary = battleRun.makeVictorySummary(homestead: appState.homestead.current)
             isShowingVictory = true
         case .defeat:
             isShowingDefeat = true

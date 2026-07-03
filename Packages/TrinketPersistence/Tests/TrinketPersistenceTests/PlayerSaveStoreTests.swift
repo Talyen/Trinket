@@ -56,7 +56,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         store.advanceJourneyToStage("chapter-1-stage-2")
 
-        store.resetGameplayProgress()
+        try store.resetGameplayProgress()
 
         XCTAssertEqual(store.roster, .freshStart)
         XCTAssertEqual(store.inventory, .freshStart)
@@ -64,9 +64,9 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(store.journey, .initial)
     }
 
-    func testApplyTestSeedMatchesDeterministicUITestBaseline() {
+    func testApplyTestSeedMatchesDeterministicUITestBaseline() throws {
         let store = makeStore()
-        store.applyTestSeed()
+        try store.applyTestSeed()
 
         XCTAssertEqual(store.roster, .testSeed)
         XCTAssertEqual(store.inventory, .testSeed)
@@ -85,6 +85,41 @@ final class PlayerSaveStoreTests: XCTestCase {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
 
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
+    }
+
+    func testPersistFailureLeavesSaveUnchanged() throws {
+        let fileStore = makeFileStore()
+        let store = makeStore()
+        store.grantGold(10)
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o555))],
+            ofItemAtPath: directoryURL.path
+        )
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: NSNumber(value: Int16(0o755))],
+                ofItemAtPath: directoryURL.path
+            )
+        }
+
+        store.grantGold(5)
+
+        XCTAssertEqual(store.roster.gold, 10)
+        XCTAssertEqual(store.lastPersistenceError, .writeFailed)
+
+        let reloaded = PlayerSaveStore(fileStore: fileStore)
+        XCTAssertEqual(reloaded.roster.gold, 10)
+    }
+
+    func testSanitizerUsesCatalogOrderForLastCompletedStage() {
+        var journey = JourneyProgressState.initial
+        journey.completedStageIDs = ["chapter-1-stage-9", "chapter-1-stage-10"]
+        journey.lastCompletedStageID = "chapter-1-stage-9"
+
+        let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
+
+        XCTAssertEqual(sanitized.lastCompletedStageID, "chapter-1-stage-10")
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {

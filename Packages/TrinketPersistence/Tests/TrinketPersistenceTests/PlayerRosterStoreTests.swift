@@ -48,7 +48,7 @@ final class PlayerRosterStoreTests: XCTestCase {
 
     func testSetActiveHeroWriteThroughToSaveStore() throws {
         let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        saveStore.applyTestSeed()
+        try saveStore.applyTestSeed()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
 

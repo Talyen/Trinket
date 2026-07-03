@@ -66,21 +66,18 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         if tier(for: .wheatField) >= 3 || tier(for: .wishingWell) >= 2 {
             quantity += 1
         }
-        switch reward.resource {
-        case .food where tier(for: .wheatField) >= 2:
+        if reward.resource == .food {
+            if tier(for: .wheatField) >= 2 { quantity += 1 }
+            if tier(for: .chickenCoop) >= 2 { quantity += 1 }
+            if tier(for: .pasture) >= 2 { quantity += 1 }
+        } else if reward.resource == .herbs, tier(for: .herbGarden) >= 2 {
             quantity += 1
-        case .food where tier(for: .chickenCoop) >= 2:
+        } else if reward.resource == .iron, tier(for: .blacksmithForge) >= 2 {
             quantity += 1
-        case .food where tier(for: .pasture) >= 2:
-            quantity += 1
-        case .herbs where tier(for: .herbGarden) >= 2:
-            quantity += 1
-        case .iron where tier(for: .blacksmithForge) >= 2:
-            quantity += 1
-        case .crystal where tier(for: .crystalGarden) >= 2:
-            quantity += tier(for: .runesmithWorkshop) >= 2 ? 2 : 1
-        default:
-            break
+        } else if reward.resource == .crystal {
+            if tier(for: .crystalGarden) >= 2 {
+                quantity += tier(for: .runesmithWorkshop) >= 2 ? 2 : 1
+            }
         }
         return quantity
     }

@@ -2,13 +2,18 @@ import Foundation
 import Observation
 import os
 
+public enum PlayerSaveSessionPhase: Equatable {
+    case bootstrapping
+    case active
+}
+
 @MainActor
 @Observable
 public final class PlayerSaveSyncCoordinator {
     public private(set) var status: PlayerSaveSyncStatus = .idle
+    public private(set) var sessionPhase: PlayerSaveSessionPhase = .bootstrapping
 
     private let sync: any PlayerSaveSyncing
-    private let uploadDebounceInterval: Duration
     private weak var playerSaveStore: PlayerSaveStore?
     private var uploadTask: Task<Void, Never>?
     private var pendingUploadSave: PlayerSave?
@@ -22,34 +27,44 @@ public final class PlayerSaveSyncCoordinator {
 
     public init(
         sync: any PlayerSaveSyncing,
-        playerSaveStore: PlayerSaveStore,
-        uploadDebounceInterval: Duration = .seconds(2)
+        playerSaveStore: PlayerSaveStore
     ) {
         self.sync = sync
-        self.uploadDebounceInterval = uploadDebounceInterval
         self.playerSaveStore = playerSaveStore
         playerSaveStore.onLocalSave = { [weak self] save in
-            self?.scheduleUpload(for: save)
+            self?.noteLocalCheckpoint(save)
         }
     }
 
     public func start() async {
         await reconcileOnLaunch()
+        sessionPhase = .active
         await registerSubscriptionIfNeeded()
     }
 
     public func pullAndReconcile() async {
+        guard sessionPhase == .bootstrapping else { return }
         await reconcileOnLaunch()
     }
 
     public func syncNow() async {
-        await reconcileOnLaunch()
+        await checkpointUploadIfNeeded()
     }
 
     public func uploadImmediately(_ save: PlayerSave) async {
         pendingUploadSave = save
         uploadTask?.cancel()
         await processUploadQueue()
+    }
+
+    public func checkpointUploadIfNeeded() async {
+        guard sessionPhase == .active, let playerSaveStore else { return }
+        await enqueueUpload(playerSaveStore.currentSave)
+    }
+
+    private func noteLocalCheckpoint(_ save: PlayerSave) {
+        guard sessionPhase == .active else { return }
+        pendingUploadSave = save
     }
 
     private func reconcileOnLaunch() async {
@@ -107,21 +122,9 @@ public final class PlayerSaveSyncCoordinator {
         }
     }
 
-    private func scheduleUpload(for save: PlayerSave) {
-        guard !isApplyingRemoteSave else { return }
-
-        pendingUploadSave = save
-        uploadTask?.cancel()
-        let debounceInterval = uploadDebounceInterval
-        uploadTask = Task { [weak self] in
-            try? await Task.sleep(for: debounceInterval)
-            guard !Task.isCancelled else { return }
-            await self?.processUploadQueue()
-        }
-    }
-
     private func enqueueUpload(_ save: PlayerSave) async {
         pendingUploadSave = save
+        uploadTask?.cancel()
         await processUploadQueue()
     }
 
@@ -186,7 +189,12 @@ public final class PlayerSaveSyncCoordinator {
     private func applyRemoteSave(_ remoteSave: PlayerSave) {
         guard let playerSaveStore else { return }
         isApplyingRemoteSave = true
-        playerSaveStore.applyRemoteSave(remoteSave)
+        do {
+            try playerSaveStore.applyRemoteSave(remoteSave)
+        } catch {
+            logger.error("Failed to apply remote save locally: \(error.localizedDescription, privacy: .public)")
+            status = .error("Could not apply cloud save on this device.")
+        }
         isApplyingRemoteSave = false
     }
 }

@@ -7,6 +7,7 @@ struct BattleVictorySummary: Equatable {
     let heroName: String
     let petName: String
     let itemNames: [String]
+    let materialRewards: [ResourceAmount]
     let heroProgressionBefore: CombatantProgression
     let heroProgressionAfter: CombatantProgression
     let petProgressionBefore: CombatantProgression

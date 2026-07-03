@@ -25,8 +25,8 @@ final class CloudSyncAppDelegate: NSObject, UIApplicationDelegate {
         }
 
         Task { @MainActor in
-            await syncCoordinator.pullAndReconcile()
-            completionHandler(.newData)
+            await syncCoordinator.checkpointUploadIfNeeded()
+            completionHandler(.noData)
         }
     }
 }

@@ -46,7 +46,7 @@ public enum PlayerSaveMerger {
         completed: Set<String>
     ) -> String? {
         let candidates = [local, remote].compactMap { $0 }.filter { completed.contains($0) }
-        return candidates.max()
+        return PlayerSaveSanitizer.latestStageID(in: Set(candidates), chapters: GameContent.chapters)
     }
 
     private static func mergeRoster(_ local: SavedRosterState, _ remote: SavedRosterState) -> SavedRosterState {

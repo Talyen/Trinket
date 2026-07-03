@@ -25,13 +25,17 @@ public final class PlayerHomesteadStore {
 
     public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> Bool {
         var didUpgrade = false
-        saveStore.performBatchMutation { save in
-            var homestead = save.homestead.homestead()
-            var rosterState = save.playerRoster(inventoryItemIDs: Set(save.inventory.items.map(\.id)))
-            guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
-            save.homestead = SavedHomesteadState(homestead)
-            save.roster = SavedRosterState(rosterState)
-            didUpgrade = true
+        do {
+            try saveStore.performBatchMutation { save in
+                var homestead = save.homestead.homestead()
+                var rosterState = save.playerRoster(inventoryItemIDs: Set(save.inventory.items.map(\.id)))
+                guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
+                save.homestead = SavedHomesteadState(homestead)
+                save.roster = SavedRosterState(rosterState)
+                didUpgrade = true
+            }
+        } catch {
+            return false
         }
         return didUpgrade
     }

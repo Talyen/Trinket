@@ -25,6 +25,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.coordinator.start()
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
+        XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
         let fetchCount = await fixture.mock.fetchCallCount()
         let subscribeCount = await fixture.mock.subscribeInvocationCount()
         XCTAssertEqual(fetchCount, 1)
@@ -117,23 +118,39 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         )
 
         await fixture.coordinator.pullAndReconcile()
-        await fixture.waitPastUploadDebounce()
 
         XCTAssertEqual(fixture.store.roster.gold, 77)
         let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(uploadCount, 0)
     }
 
-    // MARK: - Debounced upload
+    func testPullAndReconcileIgnoredDuringActiveSession() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
+        )
+        await fixture.coordinator.start()
+        XCTAssertEqual(fixture.store.roster.gold, 99)
 
-    func testLocalMutationSchedulesDebouncedUpload() async throws {
-        let fixture = try await makeSyncedFixture()
+        fixture.store.setGoldForTests(55)
+        await fixture.mock.setRemoteSave(SaveTestSupport.makeRemote(modifiedAt: later, gold: 12))
         await fixture.coordinator.pullAndReconcile()
+
+        XCTAssertEqual(fixture.store.roster.gold, 55)
+    }
+
+    // MARK: - Checkpoint upload
+
+    func testLocalMutationDuringActiveSessionDefersUploadUntilCheckpoint() async throws {
+        let fixture = try await makeSyncedFixture()
+        await fixture.coordinator.start()
         fixture.store.setGoldForTests(33)
 
-        let uploadCountBeforeDelay = await fixture.mock.uploadedSaveCount()
-        XCTAssertEqual(uploadCountBeforeDelay, 0)
+        let uploadCountBeforeCheckpoint = await fixture.mock.uploadedSaveCount()
+        XCTAssertEqual(uploadCountBeforeCheckpoint, 0)
 
+        await fixture.coordinator.checkpointUploadIfNeeded()
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
 
         let uploads = await fixture.mock.uploadedSavesSnapshot()
@@ -142,30 +159,29 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
     }
 
-    func testRapidMutationsCoalesceToSingleUpload() async throws {
+    func testRapidMutationsUploadLatestCheckpoint() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.start()
         fixture.store.grantGoldForTests(10)
         fixture.store.grantGoldForTests(5)
 
+        await fixture.coordinator.checkpointUploadIfNeeded()
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
-        await fixture.waitPastUploadDebounce()
 
         let uploads = await fixture.mock.uploadedSavesSnapshot()
         XCTAssertEqual(uploads.count, 1)
         XCTAssertEqual(uploads.first?.roster.gold, 15)
     }
 
-    func testUnavailableAccountDuringDebouncedUploadSetsStatus() async throws {
+    func testUnavailableAccountDuringCheckpointSetsStatus() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.start()
         await fixture.mock.setAccountStatus(.unavailable("iCloud is signed out."))
         fixture.store.setGoldForTests(20)
 
-        await AsyncTestSupport.waitUntil("iCloud unavailable status after debounced upload") {
-            fixture.coordinator.status == .iCloudUnavailable("iCloud is signed out.")
-        }
+        await fixture.coordinator.checkpointUploadIfNeeded()
 
+        XCTAssertEqual(fixture.coordinator.status, .iCloudUnavailable("iCloud is signed out."))
         let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(uploadCount, 0)
     }
@@ -192,8 +208,10 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0),
             uploadError: MockSyncError.uploadFailed
         )
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.start()
         fixture.store.setGoldForTests(12)
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
 
         await AsyncTestSupport.waitUntil("offline status after upload failure") {
             fixture.coordinator.status == .offline

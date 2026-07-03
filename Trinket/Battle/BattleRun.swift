@@ -93,10 +93,13 @@ final class BattleRun {
         return .ongoing
     }
 
-    func makeVictorySummary() -> BattleVictorySummary {
+    func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {
         let xpAwarded = configuration.stageReward?.experience ?? 0
         let heroAfter = configuration.heroProgression.addingExperience(xpAwarded)
         let petAfter = configuration.petProgression.addingExperience(xpAwarded)
+        let materialRewards = homestead.adjustedMaterialRewards(
+            configuration.stageReward?.materialRewards ?? []
+        )
 
         return BattleVictorySummary(
             stageGold: configuration.stageReward?.gold ?? 0,
@@ -105,6 +108,7 @@ final class BattleRun {
             heroName: hero.name,
             petName: pet.name,
             itemNames: configuration.rewardItemNames,
+            materialRewards: materialRewards,
             heroProgressionBefore: configuration.heroProgression,
             heroProgressionAfter: heroAfter,
             petProgressionBefore: configuration.petProgression,
@@ -158,5 +162,9 @@ final class BattleRun {
 
     func health(for combatant: Combatant) -> Int {
         state.health(of: combatant)
+    }
+
+    func maxHealth(for combatant: Combatant) -> Int {
+        state.maxHealth(of: combatant)
     }
 }

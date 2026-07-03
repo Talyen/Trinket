@@ -157,6 +157,24 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertNil(loadout.itemID(for: .weapon))
     }
 
+    func testSetEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {
+        var roster = PlayerRosterState.initial
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
+        let wand = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
+
+        var wizardLoadout = roster.equipmentLoadout(for: wizard)
+        wizardLoadout.equip(wand)
+        roster.setEquipmentLoadout(wizardLoadout, for: wizard)
+
+        var knightLoadout = roster.equipmentLoadout(for: knight)
+        knightLoadout.equip(wand)
+        roster.setEquipmentLoadout(knightLoadout, for: knight)
+
+        XCTAssertEqual(roster.equipmentLoadout(for: knight).itemID(for: .weapon), wand.id)
+        XCTAssertNil(roster.equipmentLoadout(for: wizard).itemID(for: .weapon))
+    }
+
     func testInventorySlotUnlocksWhenSlotItemExists() throws {
         let weapon = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var inventory = PlayerInventoryState.freshStart
