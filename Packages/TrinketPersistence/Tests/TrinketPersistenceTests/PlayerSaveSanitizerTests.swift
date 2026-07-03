@@ -41,7 +41,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             gold: 0
         )
 
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
         XCTAssertEqual(playerRoster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
@@ -60,7 +60,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             gold: 0
         )
 
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
         XCTAssertEqual(playerRoster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
@@ -87,7 +87,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             gold: 0
         )
 
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
         XCTAssertEqual(Set(sanitized.abilityLoadouts.keys), ["knight"])
     }
@@ -107,7 +107,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             gold: 0
         )
 
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
         XCTAssertEqual(
@@ -152,6 +152,57 @@ final class PlayerSaveSanitizerTests: XCTestCase {
 
         XCTAssertNil(playerRoster.equipmentLoadout(for: knight).itemID(for: .weapon))
         XCTAssertEqual(sanitized.inventory.items.map(\.id), ["weapon-id"])
+    }
+
+    func testSanitizeRosterStripsWeaponSlotFromPets() throws {
+        let bear = try XCTUnwrap(GameContent.pets.first { $0.id == "bear" })
+        let weaponBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .weapon })
+        let trinketBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .trinket })
+        let weapon = InventoryItem(
+            id: "weapon-id",
+            templateID: "weapon-template",
+            baseType: weaponBase,
+            rarity: .basic,
+            displayName: "Test Sword",
+            affixes: []
+        )
+        let trinket = InventoryItem(
+            id: "trinket-id",
+            templateID: "trinket-template",
+            baseType: trinketBase,
+            rarity: .basic,
+            displayName: "Test Ring",
+            affixes: []
+        )
+        let roster = SavedRosterState(
+            activeHeroID: PlayerRosterState.starterHeroID,
+            activePetID: PlayerRosterState.starterPetID,
+            unlockedHeroIDs: [PlayerRosterState.starterHeroID],
+            unlockedPetIDs: [PlayerRosterState.starterPetID],
+            abilityLoadouts: [:],
+            progressions: [:],
+            equipmentLoadouts: [
+                "bear": SavedEquipmentLoadout(
+                    EquipmentLoadout(itemIDsBySlot: [
+                        .weapon: weapon.id,
+                        .trinket: trinket.id
+                    ])
+                )
+            ],
+            gold: 0
+        )
+        var save = PlayerSave.fresh
+        save.inventory = SavedInventoryState(PlayerInventoryState(items: [weapon, trinket]))
+        save.roster = roster
+
+        let sanitized = PlayerSaveSanitizer.sanitize(save)
+        let playerRoster = sanitized.playerRoster(
+            inventoryItemIDs: Set(sanitized.inventory.items.map(\.id))
+        )
+        let loadout = playerRoster.equipmentLoadout(for: bear)
+
+        XCTAssertNil(loadout.itemID(for: .weapon))
+        XCTAssertEqual(loadout.itemID(for: .trinket), trinket.id)
     }
 
     func testSanitizeFullPipelineCombinesInventoryAndRoster() throws {

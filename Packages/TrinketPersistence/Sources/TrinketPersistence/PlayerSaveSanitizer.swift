@@ -4,10 +4,11 @@ import TrinketContent
 public enum PlayerSaveSanitizer {
     public static func sanitize(_ save: PlayerSave) -> PlayerSave {
         var sanitized = save
-        sanitized.inventory = SavedInventoryState(sanitizeInventory(save.inventory.inventory()))
+        let inventory = sanitizeInventory(save.inventory.inventory())
+        sanitized.inventory = SavedInventoryState(inventory)
         sanitized.roster = sanitizeRoster(
             sanitized.roster,
-            inventoryItemIDs: inventoryItemIDs(from: sanitized.inventory)
+            inventory: inventory
         )
         sanitized.homestead = SavedHomesteadState(save.homestead.homestead())
         return sanitized
@@ -25,8 +26,9 @@ public enum PlayerSaveSanitizer {
 
     public static func sanitizeRoster(
         _ roster: SavedRosterState,
-        inventoryItemIDs: Set<String>
+        inventory: PlayerInventoryState
     ) -> SavedRosterState {
+        let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = Set(GameContent.heroes.map(\.id))
         let validPetIDs = Set(GameContent.pets.map(\.id))
         let combatantsByID = Dictionary(
@@ -54,8 +56,13 @@ public enum PlayerSaveSanitizer {
             sanitized.activePetID = sanitized.unlockedPetIDs.first ?? PlayerRosterState.starterPetID
         }
 
-        sanitized.equipmentLoadouts = roster.equipmentLoadouts.mapValues { savedLoadout in
-            SavedEquipmentLoadout(savedLoadout.loadout(inventoryItemIDs: inventoryItemIDs))
+        sanitized.equipmentLoadouts = [:]
+        for (combatantID, savedLoadout) in roster.equipmentLoadouts {
+            guard let combatant = combatantsByID[combatantID] else { continue }
+            let resolved = savedLoadout
+                .loadout(inventoryItemIDs: inventoryItemIDs)
+                .sanitized(for: combatant, inventory: inventory.items)
+            sanitized.equipmentLoadouts[combatantID] = SavedEquipmentLoadout(resolved)
         }
 
         sanitized.abilityLoadouts = roster.abilityLoadouts
@@ -72,9 +79,5 @@ public enum PlayerSaveSanitizer {
         }
 
         return sanitized
-    }
-
-    private static func inventoryItemIDs(from inventory: SavedInventoryState) -> Set<String> {
-        Set(inventory.items.map(\.id))
     }
 }

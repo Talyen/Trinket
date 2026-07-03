@@ -59,7 +59,7 @@ extension ItemSlot {
         switch self {
         case .weapon: return .weapon
         case .armor: return .armor
-        case .trinket: return .trinket
+        case .trinket, .secondaryTrinket: return .trinket
         }
     }
 }

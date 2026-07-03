@@ -179,9 +179,33 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     case weapon = "Weapon"
     case armor = "Armor"
     case trinket = "Trinket"
+    case secondaryTrinket = "Secondary Trinket"
 
     public var id: String {
         rawValue
+    }
+
+    /// The item catalog slot used to populate this equipment slot.
+    public var baseItemSlot: ItemSlot {
+        switch self {
+        case .secondaryTrinket:
+            return .trinket
+        default:
+            return self
+        }
+    }
+
+    public var displayName: String {
+        switch self {
+        case .secondaryTrinket:
+            return ItemSlot.trinket.rawValue
+        default:
+            return rawValue
+        }
+    }
+
+    public var accessibilityIdentifier: String {
+        "\(rawValue) item slot"
     }
 
     public var symbolName: String {
@@ -190,7 +214,7 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
             return "wand.and.sparkles"
         case .armor:
             return "shield.fill"
-        case .trinket:
+        case .trinket, .secondaryTrinket:
             return "diamond.fill"
         }
     }
@@ -201,9 +225,12 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
             return "Find a Weapon to Unlock"
         case .armor:
             return "Find Armor to Unlock"
-        case .trinket:
+        case .trinket, .secondaryTrinket:
             return "Find a Trinket to Unlock"
         }
     }
 
+    public func accepts(_ baseTypeSlot: ItemSlot) -> Bool {
+        baseTypeSlot == baseItemSlot
+    }
 }

@@ -46,7 +46,7 @@ struct EmptyItemSlotCard: View {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    if let imageName = slot.slotBackgroundReference?.imageName {
+                    if let imageName = (slot.slotBackgroundReference ?? ItemSlot.trinket.slotBackgroundReference)?.imageName {
                         Image(imageName)
                             .resizable()
                             .scaledToFill()
@@ -91,12 +91,12 @@ struct EmptyItemSlotCard: View {
 
     private var accessibilityLabel: String {
         if let lockLabel {
-            return "\(slot.rawValue) slot, \(lockLabel)"
+            return "\(slot.displayName) slot, \(lockLabel)"
         }
-        return "Empty \(slot.rawValue) slot"
+        return "Empty \(slot.displayName) slot"
     }
 
     private var title: String {
-        isLocked ? slot.rawValue : "Empty \(slot.rawValue)"
+        isLocked ? slot.displayName : "Empty \(slot.displayName)"
     }
 }

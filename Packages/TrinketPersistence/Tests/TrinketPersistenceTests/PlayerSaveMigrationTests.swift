@@ -108,7 +108,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
             gold: 0
         )
 
-        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventoryItemIDs: [])
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
         let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
         XCTAssertEqual(playerRoster.activeHeroID, PlayerRosterState.starterHeroID)

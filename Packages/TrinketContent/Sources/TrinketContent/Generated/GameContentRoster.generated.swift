@@ -103,7 +103,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block],
                 skills: [.spikedShield, .sunderArmor],
-                ultimates: [.crystalBulwark, .thornMail]
+                ultimates: [.plateMail, .thornMail]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 3, toughness: 10, intellect: 1, wisdom: 3)
         ),
@@ -114,9 +114,9 @@ public enum GameContentRosterGenerated {
             maxHealth: 6,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.rayOfFrost, .fangs],
+                basics: [.rayOfFrost, .iceShot],
                 skills: [.frostbolt, .coldSnap],
-                ultimates: [.glacialWard, .concussiveShot]
+                ultimates: [.glacialWard, .meteor]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 3, intellect: 9, wisdom: 3)
         ),
@@ -151,8 +151,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 6,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .fireArrow],
-                skills: [.fireball, .cauterize],
+                basics: [.kindling, .bash],
+                skills: [.fireball, .cinderbloom],
                 ultimates: [.phoenixFeather, .combustion]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 4, intellect: 8, wisdom: 7)
@@ -164,8 +164,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 6,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .fangs],
-                skills: [.serratedEdge, .venomFangs],
-                ultimates: [.packTactics, .concussiveShot]
+                skills: [.serratedEdge, .haste],
+                ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 5, intellect: 2, wisdom: 2)
         ),
@@ -175,9 +175,9 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 8,
             abilityChoices: AbilityChoices(
-                basics: [.gold, .bread],
-                skills: [.healthPotion, .bountyShot],
-                ultimates: [.luckPotion, .faustianBargain]
+                basics: [.gold, .apple],
+                skills: [.healthPotion, .tithe],
+                ultimates: [.luckPotion, .goldenPlate]
             ),
             primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 6, intellect: 3, wisdom: 8)
         ),
@@ -188,9 +188,9 @@ public enum GameContentRosterGenerated {
             maxHealth: 6,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.smellingSalts, .kindling],
-                skills: [.cleanse, .prayer],
-                ultimates: [.panaceaPotion, .holyRadiance]
+                basics: [.manaCrystals, .rayOfFrost],
+                skills: [.cleanse, .heal],
+                ultimates: [.panaceaPotion, .exorcism]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 5, wisdom: 9)
         ),
@@ -200,8 +200,8 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 7,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .fangs],
-                skills: [.darkPact, .bloodOffering],
+                basics: [.slash, .blackjack],
+                skills: [.darkPact, .sunderArmor],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 6, agility: 5, toughness: 6, intellect: 5, wisdom: 3)
@@ -215,7 +215,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
-                ultimates: [.luckPotion, .sunburst]
+                ultimates: [.crystalBulwark, .combustion]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 3, intellect: 7, wisdom: 7)
         ),
@@ -226,8 +226,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 5,
             maxMana: 6,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .bread],
-                skills: [.prayer, .cleanse],
+                basics: [.gold, .kindling],
+                skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 7, toughness: 3, intellect: 5, wisdom: 8)
@@ -240,7 +240,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.block, .shieldBash],
                 skills: [.spikedShield, .stoneskinPotion],
-                ultimates: [.crystalBulwark, .plateMail]
+                ultimates: [.thornMail, .blessedAegis]
             ),
             primaryStats: PrimaryStats(strength: 5, agility: 4, toughness: 11, intellect: 1, wisdom: 3)
         )

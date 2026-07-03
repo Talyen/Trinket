@@ -87,6 +87,7 @@ struct CombatantDetailPane: View {
 
                         section("Items") {
                             EquipmentSlotSummaryGrid(
+                                role: combatant.role,
                                 equipmentLoadout: equipmentLoadout,
                                 inventoryState: inventoryState,
                                 onSelect: allowsEditing ? { selectedItemSlot = $0 } : nil

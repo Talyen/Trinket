@@ -60,7 +60,7 @@ struct ItemSlotPickerView: View {
         .scrollContentBackground(.hidden)
         .sensoryFeedback(.selection, trigger: selectedItemID)
         .background(TrinketDesign.Colors.appBackground)
-        .navigationTitle("Equip \(slot.rawValue)")
+        .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             if itemOrder.isEmpty {

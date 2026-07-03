@@ -9,7 +9,7 @@ public enum CombatBuildResolver {
         inventory: [InventoryItem]
     ) -> CombatBuild {
         let itemsByID = Dictionary(uniqueKeysWithValues: inventory.map { ($0.id, $0) })
-        let equippedItems = ItemSlot.allCases.compactMap { slot -> InventoryItem? in
+        let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
             guard let itemID = equipmentLoadout.itemID(for: slot) else { return nil }
             return itemsByID[itemID]
         }
