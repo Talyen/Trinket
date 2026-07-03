@@ -2,10 +2,10 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Damage resolution orchestration. Healing and prevention live in
-/// `HealingEngine` and `PreventionEngine`.
-public enum CombatPipeline {
-    public static func resolveDamage(
+/// Damage resolution orchestration. Healing, prevention, and DoT entry points
+/// live on `HealingEngine`, `PreventionEngine`, and `DoTDamage`.
+package enum CombatPipeline {
+    package static func resolveDamage(
         _ request: DamageRequest,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
@@ -24,92 +24,5 @@ public enum CombatPipeline {
         DamagePipeline.run(state: &state, in: &context)
 
         return CombatOutcome.fromDamage(state: state)
-    }
-
-    public static func resolveHeal(
-        _ request: HealRequest,
-        in context: inout BattleEngineContext
-    ) -> CombatOutcome {
-        HealingEngine.resolveHeal(request, in: &context)
-    }
-
-    public static func applyDoTDamage(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?,
-        in context: inout BattleEngineContext
-    ) -> (healthLost: Int, events: [ActionEvent]) {
-        let outcome = DoTDamage.resolveTick(
-            basePotency: amount,
-            keyword: keyword,
-            target: combatant,
-            sourceActorID: sourceActorID,
-            in: &context
-        )
-        return (outcome.healthLost, outcome.events)
-    }
-
-    public static func applyPreventionBuildup(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        PreventionEngine.applyBuildup(
-            amount,
-            keyword: keyword,
-            to: combatant,
-            sourceActorID: sourceActorID,
-            in: &context
-        )
-    }
-
-    public static func applyLeechFromDamage(
-        _ damage: Int,
-        sourceActorID: String,
-        in context: inout BattleEngineContext
-    ) -> [ActionEvent] {
-        HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &context).events
-    }
-
-    public static func applyDamage(
-        _ amount: Int,
-        to combatant: Combatant,
-        damageKeyword: Keyword? = nil,
-        sourceActorID: String? = nil,
-        applyStatBonus: Bool = true,
-        applyItemBonus: Bool = true,
-        applyDodge: Bool = true,
-        in context: inout BattleEngineContext
-    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
-        let outcome = resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: combatant,
-                keyword: damageKeyword,
-                sourceActorID: sourceActorID,
-                options: DamageOptions(
-                    applyStatBonus: applyStatBonus,
-                    applyItemBonus: applyItemBonus,
-                    applyDodge: applyDodge
-                )
-            ),
-            in: &context
-        )
-        return (outcome.healthLost, outcome.events)
-    }
-
-    public static func applyHeal(
-        _ amount: Int,
-        to combatant: Combatant,
-        sourceActorID: String?,
-        in context: inout BattleEngineContext
-    ) {
-        _ = resolveHeal(
-            HealRequest(amount: amount, target: combatant, sourceActorID: sourceActorID),
-            in: &context
-        )
     }
 }

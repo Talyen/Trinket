@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Healing and leech rules.
-public enum HealingEngine {
+package enum HealingEngine {
     public static func resolveHeal(
         _ request: HealRequest,
         in context: inout BattleEngineContext

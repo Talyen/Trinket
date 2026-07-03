@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Applies Burn, Poison, and Bleed stacks through a mutation context.
-public enum DoTApplicator {
+package enum DoTApplicator {
     public static func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,

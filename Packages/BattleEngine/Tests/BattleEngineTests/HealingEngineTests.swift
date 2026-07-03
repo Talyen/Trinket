@@ -26,7 +26,7 @@ final class HealingEngineTests: XCTestCase {
 
     func testResolveHealSilentEmitsNoEvents() {
         var context = makeContext(seed: 0)
-        _ = CombatPipeline.applyDamage(10, to: context.roster.enemy.combatant, in: &context)
+        _ = context.applyDamage(10, to: context.roster.enemy.combatant)
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
             in: &context
@@ -69,17 +69,16 @@ final class HealingEngineTests: XCTestCase {
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
     }
 
-    func testCombatPipelineResolveHealDelegatesToHealingEngine() {
+    func testContextResolveHealDelegatesToHealingEngine() {
         var context = makeContext(seed: 0)
-        let pipelineOutcome = CombatPipeline.resolveHeal(
-            HealRequest(amount: 5, target: context.roster.enemy.combatant),
-            in: &context
+        let contextOutcome = context.resolveHeal(
+            HealRequest(amount: 5, target: context.roster.enemy.combatant)
         )
         var fresh = makeContext(seed: 0)
         let engineOutcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: fresh.roster.enemy.combatant),
             in: &fresh
         )
-        XCTAssertEqual(pipelineOutcome.healthRestored, engineOutcome.healthRestored)
+        XCTAssertEqual(contextOutcome.healthRestored, engineOutcome.healthRestored)
     }
 }

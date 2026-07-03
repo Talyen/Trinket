@@ -64,7 +64,8 @@ final class EffectHandlersApplyTests: XCTestCase {
     func testPreventionHandlerSkipsOnDeadTarget() {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
         var battle = EffectHandlersTestSupport.makeBattle(enemy: enemy)
-        _ = battle.applyDamage(99, to: battle.enemy)
+        let target = battle.enemy
+        _ = battle.withEngineContext { $0.applyDamage(99, to: target) }
         let outcome = EffectHandlersTestSupport.dispatch(.prevention(.stun, 1), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
         XCTAssertFalse(outcome.didApply)
         XCTAssertTrue(outcome.events.isEmpty)
@@ -112,7 +113,8 @@ final class EffectHandlersApplyTests: XCTestCase {
 
     func testInstantHealHandlerHealsTarget() {
         var battle = EffectHandlersTestSupport.makeBattle()
-        _ = battle.applyDamage(30, to: battle.hero)
+        let hero = battle.hero
+        _ = battle.withEngineContext { $0.applyDamage(30, to: hero) }
         let before = battle.health(of: battle.hero)
         let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)

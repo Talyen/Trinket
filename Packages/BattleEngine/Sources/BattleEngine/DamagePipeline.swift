@@ -4,7 +4,7 @@ import TrinketContent
 
 /// Execution phase for a damage pipeline step. Future RNG mechanics (crit,
 /// block) register in `.stochastic`; leech and CC buildup stay in `.post`.
-public enum DamagePhase: Sendable {
+package enum DamagePhase: Sendable {
     /// Rolls battle RNG and may short-circuit the pipeline (dodge today).
     case stochastic
     /// Deterministic damage math and HP subtraction.
@@ -34,7 +34,7 @@ package struct AnyDamageStep {
 }
 
 /// Ordered registry and runner for damage resolution steps.
-public enum DamagePipeline {
+package enum DamagePipeline {
     package static var steps: [AnyDamageStep] {
         [
             AnyDamageStep(DodgeGateStep.self),

@@ -205,43 +205,6 @@ public struct BattleState {
         store.roster.setActiveEffects(effects, for: combatant)
     }
 
-    // MARK: - Pipeline forwarding (package — tests and in-package rule code only)
-
-    package mutating func applyDamage(
-        _ amount: Int,
-        to combatant: Combatant,
-        damageKeyword: Keyword? = nil,
-        sourceActorID: String? = nil,
-        applyStatBonus: Bool = true,
-        applyItemBonus: Bool = true,
-        applyDodge: Bool = true
-    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
-        withEngineContext { context in
-            CombatPipeline.applyDamage(
-                amount,
-                to: combatant,
-                damageKeyword: damageKeyword,
-                sourceActorID: sourceActorID,
-                applyStatBonus: applyStatBonus,
-                applyItemBonus: applyItemBonus,
-                applyDodge: applyDodge,
-                in: &context
-            )
-        }
-    }
-
-    package mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
-        withEngineContext { context in
-            CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &context)
-        }
-    }
-
-    package mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
-        withEngineContext { context in
-            CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &context)
-        }
-    }
-
     // MARK: - Turn loop
 
     @discardableResult

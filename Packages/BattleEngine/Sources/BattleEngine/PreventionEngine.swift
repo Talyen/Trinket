@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Stun/freeze prevention buildup and threshold transitions.
-public enum PreventionEngine {
+package enum PreventionEngine {
     public static func applyBuildup(
         _ amount: Int,
         keyword: Keyword,

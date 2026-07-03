@@ -59,20 +59,20 @@ final class PreventionEngineTests: XCTestCase {
         XCTAssertTrue(events.isEmpty)
     }
 
-    func testCombatPipelinePreventionDelegatesToPreventionEngine() {
-        var pipelineContext = makeContext(seed: 0)
+    func testContextPreventionDelegatesToPreventionEngine() {
+        var contextContext = makeContext(seed: 0)
         var engineContext = makeContext(seed: 0)
-        let target = pipelineContext.roster.enemy.combatant
+        let target = contextContext.roster.enemy.combatant
 
-        let pipelineEvents = CombatPipeline.applyPreventionBuildup(
-            15, keyword: .stun, to: target, sourceActorID: "source", in: &pipelineContext
+        let contextEvents = contextContext.applyPreventionBuildup(
+            15, keyword: .stun, to: target, sourceActorID: "source"
         )
         let engineEvents = PreventionEngine.applyBuildup(
             15, keyword: .stun, to: target, sourceActorID: "source", in: &engineContext
         )
 
         XCTAssertEqual(
-            pipelineEvents.map(\.effectKind),
+            contextEvents.map(\.effectKind),
             engineEvents.map(\.effectKind)
         )
     }

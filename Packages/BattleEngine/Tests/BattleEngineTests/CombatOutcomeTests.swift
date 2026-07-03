@@ -26,14 +26,13 @@ final class CombatOutcomeTests: XCTestCase {
 
     func testResolveDamageReturnsCombatOutcome() {
         var context = makeContext(seed: 0)
-        let outcome = CombatPipeline.resolveDamage(
+        let outcome = context.resolveDamage(
             .directAbilityHit(
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: "source"
-            ),
-            in: &context
+            )
         )
         XCTAssertEqual(outcome.healthLost, 10)
         XCTAssertEqual(outcome.healthDelta, -10)
@@ -61,14 +60,13 @@ final class CombatOutcomeTests: XCTestCase {
             initialGold: 0,
             build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
         )
-        let outcome = CombatPipeline.resolveDamage(
+        let outcome = context.resolveDamage(
             .directAbilityHit(
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: "source"
-            ),
-            in: &context
+            )
         )
         if outcome.healthLost == 0 {
             XCTAssertTrue(outcome.flags.contains(.dodged))
@@ -80,14 +78,13 @@ final class CombatOutcomeTests: XCTestCase {
         var context = makeContext(seed: 0)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let outcome = CombatPipeline.resolveDamage(
+        let outcome = context.resolveDamage(
             .directAbilityHit(
                 amount: 10,
                 target: context.roster.enemy.combatant,
                 keyword: .physical,
                 sourceActorID: "source"
-            ),
-            in: &context
+            )
         )
         XCTAssertTrue(outcome.flags.contains(.leeched))
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
@@ -117,7 +114,7 @@ final class CombatOutcomeTests: XCTestCase {
 
     func testResolveHealReturnsRestoredAmount() {
         var context = makeContext(seed: 0)
-        _ = CombatPipeline.applyDamage(10, to: context.roster.enemy.combatant, in: &context)
+        _ = context.applyDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
         let outcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
@@ -132,22 +129,20 @@ final class CombatOutcomeTests: XCTestCase {
         var requestContext = makeContext(seed: 0)
         let target = legacyContext.roster.enemy.combatant
 
-        let legacy = CombatPipeline.applyDamage(
+        let legacy = legacyContext.applyDamage(
             12,
             to: target,
             damageKeyword: .physical,
-            sourceActorID: "source",
-            in: &legacyContext
+            sourceActorID: "source"
         )
-        let resolved = CombatPipeline.resolveDamage(
+        let resolved = requestContext.resolveDamage(
             DamageRequest(
                 amount: 12,
                 target: target,
                 keyword: .physical,
                 sourceActorID: "source",
                 options: DamageOptions()
-            ),
-            in: &requestContext
+            )
         )
 
         XCTAssertEqual(legacy.healthLost, resolved.healthLost)

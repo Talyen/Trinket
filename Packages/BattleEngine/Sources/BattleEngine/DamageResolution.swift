@@ -3,10 +3,10 @@ import TrinketCore
 import TrinketContent
 
 /// Working state threaded through the named damage-resolution steps in
-/// `CombatPipeline.applyDamage`. Each step mutates this struct in place; the
+/// `CombatPipeline.resolveDamage`. Each step mutates this struct in place; the
 /// orchestrator reads the final `healthLost` and `damageEvents` once the
 /// pipeline completes.
-public struct DamageResolutionState {
+package struct DamageResolutionState {
     public let amount: Int
     public let combatant: Combatant
     public let sourceActorID: String?
@@ -61,7 +61,7 @@ protocol DamageStep {
 /// Step 1: gates the entire damage call on a dodge roll. When the roll
 /// succeeds, the event stream records a `.dodgeApplied` event and the
 /// orchestrator short-circuits.
-public struct DodgeGateStep: DamageStep {
+package struct DodgeGateStep: DamageStep {
     public static let stepName = "DodgeGate"
     public static let phase: DamagePhase = .stochastic
 
@@ -93,7 +93,7 @@ public struct DodgeGateStep: DamageStep {
 
 /// Step 2: computes `statBonus` (per-stat contribution) and `itemBonus`
 /// (item-modifier contribution) and adds both to `remaining`.
-public struct DamageBonusStep: DamageStep {
+package struct DamageBonusStep: DamageStep {
     public static let stepName = "DamageBonus"
     public static let phase: DamagePhase = .resolution
 
@@ -118,7 +118,7 @@ public struct DamageBonusStep: DamageStep {
 /// Step 3: iterates the target's active shield effects, absorbing as much
 /// of `remaining` as each shield can cover, emitting `.shieldAbsorbed`
 /// events, and mutating the effects list. Depleted shields are removed.
-public struct ShieldAbsorptionStep: DamageStep {
+package struct ShieldAbsorptionStep: DamageStep {
     public static let stepName = "ShieldAbsorption"
     public static let phase: DamagePhase = .resolution
 
@@ -167,7 +167,7 @@ public struct ShieldAbsorptionStep: DamageStep {
 
 /// Step 4: applies armor (from active `.mitigation` effects) plus passive
 /// toughness mitigation, capped at 100%.
-public struct MitigationStep: DamageStep {
+package struct MitigationStep: DamageStep {
     public static let stepName = "Mitigation"
     public static let phase: DamagePhase = .resolution
 
@@ -189,7 +189,7 @@ public struct MitigationStep: DamageStep {
 
 /// Step 5: applies the target's `damageTakenReduction` for the damage
 /// keyword, if any. Records `postMitigationDamage` for prevention buildup.
-public struct ItemReductionStep: DamageStep {
+package struct ItemReductionStep: DamageStep {
     public static let stepName = "ItemReduction"
     public static let phase: DamagePhase = .resolution
 
@@ -210,7 +210,7 @@ public struct ItemReductionStep: DamageStep {
 
 /// Step 6: writes the mutated effects list back to the roster and calls
 /// `takeRawDamage` on the target runtime.
-public struct TakeDamageStep: DamageStep {
+package struct TakeDamageStep: DamageStep {
     public static let stepName = "TakeDamage"
     public static let phase: DamagePhase = .resolution
 
@@ -226,7 +226,7 @@ public struct TakeDamageStep: DamageStep {
 
 /// Step 7: heals the attacker when `healthLost > 0`, leech is active, and
 /// the hit was not self-inflicted.
-public struct LeechStep: DamageStep {
+package struct LeechStep: DamageStep {
     public static let stepName = "Leech"
     public static let phase: DamagePhase = .post
 
@@ -248,7 +248,7 @@ public struct LeechStep: DamageStep {
 
 /// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
 /// buildup against the target using post-mitigation damage.
-public struct PreventionBuildupStep: DamageStep {
+package struct PreventionBuildupStep: DamageStep {
     public static let stepName = "PreventionBuildup"
     public static let phase: DamagePhase = .post
 
@@ -271,7 +271,7 @@ public struct PreventionBuildupStep: DamageStep {
 }
 
 /// Backward-compatible alias for `DamagePipeline.canonicalNames`.
-public enum DamageSteps {
+package enum DamageSteps {
     public static var canonicalNames: [String] {
         DamagePipeline.canonicalNames
     }

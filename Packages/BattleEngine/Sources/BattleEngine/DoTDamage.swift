@@ -4,7 +4,7 @@ import TrinketContent
 
 /// DoT tick damage: resolves base potency through the damage pipeline (stat
 /// and item bonuses at tick time) and appends the `.status` log line.
-public enum DoTDamage {
+package enum DoTDamage {
     public static func resolveTick(
         basePotency: Int,
         keyword: Keyword,
