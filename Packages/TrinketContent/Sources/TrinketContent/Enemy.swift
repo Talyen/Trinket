@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 public struct Enemy: Identifiable, Hashable, Sendable {
     public static let defaultMaxHealth: Int = 35

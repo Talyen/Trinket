@@ -28,6 +28,11 @@ TIER_SOURCE = {
 VALID_SLOTS = frozenset({"weapon", "armor", "trinket"})
 VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
 VALID_PATTERNS = frozenset({"direct_hit", "buff_only", "multi_damage"})
+VALID_ENCOUNTERS = frozenset({"battle", "event", "shop", "rest"})
+VALID_CHAPTER_THEMES = frozenset({"verdantForest"})
+VALID_HOMESTEAD_RESOURCES = frozenset(
+    {"wood", "stone", "iron", "food", "herbs", "crystal", "gold"}
+)
 VALID_KEYWORDS = frozenset(
     {
         "physical",
@@ -75,6 +80,22 @@ class AbilityRow:
     effects: str = ""
     damage_components: str = ""
     extras: str = ""
+
+
+@dataclass
+class StageRow:
+    chapter_id: str
+    chapter_number: str
+    chapter_title: str
+    theme: str
+    stage_number: str
+    flavor_text: str
+    encounter: str
+    enemy_id: str
+    gold: str
+    experience: str
+    item_templates: str
+    materials: str
 
 
 def read_tsv(path: Path) -> list[list[str]]:
@@ -129,6 +150,33 @@ def parse_ability_rows() -> list[AbilityRow]:
     for raw in lines[1:]:
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(AbilityRow(*padded[: len(expected)]))
+    return rows
+
+
+def parse_stage_rows() -> list[StageRow]:
+    path = MANIFEST_DIR / "stages.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = [
+        "chapter_id",
+        "chapter_number",
+        "chapter_title",
+        "theme",
+        "stage_number",
+        "flavor_text",
+        "encounter",
+        "enemy_id",
+        "gold",
+        "experience",
+        "item_templates",
+        "materials",
+    ]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    rows: list[StageRow] = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(StageRow(*padded[: len(expected)]))
     return rows
 
 
@@ -507,12 +555,155 @@ def validate_ability_rows(rows: list[AbilityRow]) -> None:
         render_ability(row)
 
 
-def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow]]:
+def parse_item_templates(raw: str) -> str:
+    if not raw.strip():
+        return "[]"
+    parts = [part.strip() for part in raw.split(",") if part.strip()]
+    return "[" + ", ".join(f'"{swift_escape(part)}"' for part in parts) + "]"
+
+
+def parse_material_rewards(raw: str) -> str:
+    if not raw.strip():
+        return "[]"
+    amounts: list[str] = []
+    for token in raw.split("|"):
+        token = token.strip()
+        if not token:
+            continue
+        resource, quantity = token.split(":", 1)
+        amounts.append(f"ResourceAmount(.{resource.strip()}, {quantity.strip()})")
+    return "[" + ", ".join(amounts) + "]"
+
+
+def render_stage_encounter(row: StageRow) -> str:
+    stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
+    if row.encounter == "battle":
+        if not row.enemy_id.strip():
+            raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
+        return f'.battle(enemyID: "{swift_escape(row.enemy_id)}")'
+    if row.encounter == "event":
+        return ".event"
+    if row.encounter == "shop":
+        return ".shop"
+    if row.encounter == "rest":
+        return ".rest"
+    stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
+    raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
+
+
+def render_stage(row: StageRow) -> str:
+    stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
+    return f"""                Stage(
+                    id: "{swift_escape(stage_id)}",
+                    chapterID: "{swift_escape(row.chapter_id)}",
+                    chapterNumber: {row.chapter_number},
+                    stageNumber: {row.stage_number},
+                    flavorText: "{swift_escape(row.flavor_text)}",
+                    encounter: {render_stage_encounter(row)},
+                    rewards: StageReward(
+                        gold: {row.gold},
+                        experience: {row.experience},
+                        itemTemplateIDs: {parse_item_templates(row.item_templates)},
+                        materialRewards: {parse_material_rewards(row.materials)}
+                    )
+                )"""
+
+
+def validate_stage_rows(rows: list[StageRow]) -> None:
+    seen_stage_ids: set[str] = set()
+    chapters: dict[str, list[StageRow]] = {}
+
+    for row in rows:
+        stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
+        if stage_id in seen_stage_ids:
+            raise ValueError(f"Duplicate stage id: {stage_id}")
+        seen_stage_ids.add(stage_id)
+
+        if row.theme not in VALID_CHAPTER_THEMES:
+            raise ValueError(f"Unknown chapter theme '{row.theme}' for {stage_id}")
+        if row.encounter not in VALID_ENCOUNTERS:
+            raise ValueError(f"Unknown encounter '{row.encounter}' for {stage_id}")
+        if row.encounter == "battle" and not row.enemy_id.strip():
+            raise ValueError(f"battle encounter requires enemy_id for {stage_id}")
+        if row.encounter != "battle" and row.enemy_id.strip():
+            raise ValueError(f"enemy_id only allowed for battle encounters at {stage_id}")
+
+        for field_name, value in (
+            ("chapter_number", row.chapter_number),
+            ("stage_number", row.stage_number),
+            ("gold", row.gold),
+            ("experience", row.experience),
+        ):
+            if not value.isdigit():
+                raise ValueError(f"{field_name} for {stage_id} must be an integer")
+
+        for token in row.materials.split("|"):
+            token = token.strip()
+            if not token:
+                continue
+            resource, quantity = token.split(":", 1)
+            if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
+                raise ValueError(f"Unknown homestead resource '{resource}' for {stage_id}")
+            if not quantity.strip().isdigit():
+                raise ValueError(f"Material quantity for {stage_id} must be an integer")
+
+        chapters.setdefault(row.chapter_id, []).append(row)
+        render_stage(row)
+
+    for chapter_id, chapter_rows in chapters.items():
+        numbers = [int(row.stage_number) for row in chapter_rows]
+        expected = list(range(1, len(numbers) + 1))
+        if sorted(numbers) != expected:
+            raise ValueError(f"Chapter {chapter_id} stages must be numbered 1...N contiguously")
+        titles = {row.chapter_title for row in chapter_rows}
+        themes = {row.theme for row in chapter_rows}
+        chapter_numbers = {row.chapter_number for row in chapter_rows}
+        if len(titles) != 1 or len(themes) != 1 or len(chapter_numbers) != 1:
+            raise ValueError(f"Chapter metadata must be consistent for {chapter_id}")
+
+
+def generate_chapters_catalog(rows: list[StageRow]) -> None:
+    chapters: dict[str, list[StageRow]] = {}
+    chapter_meta: dict[str, StageRow] = {}
+    for row in rows:
+        chapters.setdefault(row.chapter_id, []).append(row)
+        chapter_meta[row.chapter_id] = row
+
+    chapter_blocks: list[str] = []
+    for chapter_id in sorted(chapters, key=lambda cid: int(chapter_meta[cid].chapter_number)):
+        chapter_rows = sorted(chapters[chapter_id], key=lambda row: int(row.stage_number))
+        meta = chapter_meta[chapter_id]
+        stage_blocks = ",\n".join(render_stage(row) for row in chapter_rows)
+        chapter_blocks.append(
+            f"""        Chapter(
+            id: "{swift_escape(chapter_id)}",
+            number: {meta.chapter_number},
+            title: "{swift_escape(meta.chapter_title)}",
+            theme: .{meta.theme},
+            stages: [
+{stage_blocks}
+            ]
+        )"""
+        )
+
+    body = (
+        "import Foundation\nimport TrinketCore\n\n"
+        "public enum GameContentChaptersGenerated {\n"
+        "    public static let chapters: [Chapter] = [\n"
+        + ",\n".join(chapter_blocks)
+        + "\n    ]\n}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
+
+
+def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow], list[StageRow]]:
     affix_rows = parse_affix_rows()
     ability_rows = parse_ability_rows()
+    stage_rows = parse_stage_rows()
     validate_affix_rows(affix_rows)
     validate_ability_rows(ability_rows)
-    return affix_rows, ability_rows
+    validate_stage_rows(stage_rows)
+    return affix_rows, ability_rows, stage_rows
 
 
 def generate_ability_shorthand() -> None:
@@ -535,10 +726,11 @@ def generate_ability_shorthand() -> None:
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
     if command == "validate":
-        affix_rows, ability_rows = validate_manifests()
+        affix_rows, ability_rows, stage_rows = validate_manifests()
         print(
-            f"Validated {len(affix_rows)} affixes and "
-            f"{len(ability_rows)} manifest abilities"
+            f"Validated {len(affix_rows)} affixes, "
+            f"{len(ability_rows)} manifest abilities, and "
+            f"{len(stage_rows)} stages"
         )
         return 0
     if command == "shorthand":
@@ -546,14 +738,16 @@ def main() -> int:
         print("Generated AbilityShorthand.generated.swift")
         return 0
 
-    affix_rows, ability_rows = validate_manifests()
+    affix_rows, ability_rows, stage_rows = validate_manifests()
     generate_affix_catalog(affix_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
+    generate_chapters_catalog(stage_rows)
     generate_ability_shorthand()
     print(
-        f"Generated {len(affix_rows)} affixes and "
-        f"{len(ability_rows)} manifest abilities"
+        f"Generated {len(affix_rows)} affixes, "
+        f"{len(ability_rows)} manifest abilities, and "
+        f"{len(stage_rows)} stages"
     )
     return 0
 

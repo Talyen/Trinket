@@ -1,5 +1,6 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+@testable import TrinketPersistence
 
 @MainActor
 final class PlayerJourneyStoreTests: XCTestCase {

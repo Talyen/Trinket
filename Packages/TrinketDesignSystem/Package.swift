@@ -24,5 +24,9 @@ let package = Package(
                 .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
             ]
         ),
+        .testTarget(
+            name: "TrinketDesignSystemTests",
+            dependencies: ["TrinketDesignSystem", "TrinketCore"]
+        ),
     ]
 )

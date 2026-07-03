@@ -16,19 +16,18 @@ let package = Package(
     dependencies: [
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
-        .package(path: "../BattleEngine"),
     ],
     targets: [
         .target(
             name: "TrinketPersistence",
-            dependencies: ["TrinketCore", "TrinketContent", "BattleEngine"],
+            dependencies: ["TrinketCore", "TrinketContent"],
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
             ]
         ),
         .testTarget(
             name: "TrinketPersistenceTests",
-            dependencies: ["TrinketPersistence", "TrinketCore", "TrinketContent", "BattleEngine"],
+            dependencies: ["TrinketPersistence", "TrinketCore", "TrinketContent"],
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
             ]

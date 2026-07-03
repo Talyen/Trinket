@@ -1,8 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
-
-import Foundation
 
 public enum GameContentRoster {
     public static let heroes = [

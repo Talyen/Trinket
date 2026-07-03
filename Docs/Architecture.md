@@ -101,13 +101,13 @@ After editing art or music manifests:
 ```text
 TrinketCore
   ↑
-TrinketContent
+TrinketContent          (Combatant, AbilityLoadout, roster + journey catalogs)
   ↑
 BattleEngine
   ↑
-TrinketPersistence          (still depends on BattleEngine for Combatant snapshots today)
+TrinketPersistence      (depends on TrinketCore + TrinketContent only)
   ↑
-TrinketDesignSystem         (depends on TrinketCore only)
+TrinketDesignSystem     (depends on TrinketCore; Keyword visual styles)
   ↑
 Trinket app
 ```
@@ -149,8 +149,8 @@ Swift package extraction (phases 0–6) is **complete**. Remaining work is bound
 
 ### Follow-up improvements (not yet done)
 
-- Decouple `TrinketPersistence` from `BattleEngine` via save DTOs in `TrinketCore`
-- Move `Keyword.visualStyle` from `Trinket/Models/Enums.swift` into `TrinketCore` or `TrinketDesignSystem`
-- Manifest-driven heroes, enemies, stages, homestead nodes
+- Manifest-driven heroes, pets, and enemies (roster still hand-authored in `GameContentRoster.swift`)
+- Move `PlayerHomesteadStore` and homestead content into `TrinketPersistence` / manifests
 - SFX pipeline for `Raw Assets/Sound Effects/`
 - Incremental Swift 6 strict concurrency per package
+- Narrow `ExportedDependencies.swift` re-exports

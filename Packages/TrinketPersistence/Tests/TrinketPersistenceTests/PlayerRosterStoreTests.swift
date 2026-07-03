@@ -1,5 +1,6 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+@testable import TrinketPersistence
 
 @MainActor
 final class PlayerRosterStoreTests: XCTestCase {
@@ -7,13 +8,11 @@ final class PlayerRosterStoreTests: XCTestCase {
 
     override func setUp() async throws {
         try await super.setUp()
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("PlayerRosterStoreTests.\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerRosterStoreTests")
     }
 
     override func tearDown() async throws {
-        try? FileManager.default.removeItem(at: directoryURL)
+        SaveTestSupport.removeTempDirectory(directoryURL)
         try await super.tearDown()
     }
 
@@ -27,38 +26,35 @@ final class PlayerRosterStoreTests: XCTestCase {
     }
 
     func testGrantGoldWriteThroughToSaveStore() {
-        let fileStore = makeFileStore()
-        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
 
         rosterStore.grantGold(50)
 
-        let reloaded = PlayerSaveStore(fileStore: fileStore)
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.gold, 50)
     }
 
     func testGrantExperienceWriteThroughToSaveStore() throws {
-        let fileStore = makeFileStore()
-        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
 
         rosterStore.grantExperience(25, to: knight)
 
-        let reloaded = PlayerSaveStore(fileStore: fileStore)
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.progression(for: knight).currentXP, 25)
     }
 
     func testSetActiveHeroWriteThroughToSaveStore() throws {
-        let fileStore = makeFileStore()
-        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         saveStore.applyTestSeed()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
 
         rosterStore.setActiveHero(wizard)
 
-        let reloaded = PlayerSaveStore(fileStore: fileStore)
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.activeHeroID, "wizard")
     }
 
@@ -70,8 +66,7 @@ final class PlayerRosterStoreTests: XCTestCase {
     }
 
     func testSetLoadoutWriteThroughToSaveStore() throws {
-        let fileStore = makeFileStore()
-        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
@@ -82,15 +77,11 @@ final class PlayerRosterStoreTests: XCTestCase {
 
         rosterStore.setLoadout(customLoadout, for: knight)
 
-        let reloaded = PlayerSaveStore(fileStore: fileStore)
+        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.loadout(for: knight), customLoadout)
     }
 
-    private func makeFileStore() -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
-    }
-
     private func makeRosterStore() -> PlayerRosterStore {
-        PlayerRosterStore(saveStore: PlayerSaveStore(fileStore: makeFileStore()))
+        PlayerRosterStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
     }
 }

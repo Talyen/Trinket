@@ -1,8 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
-
-import Foundation
 
 public enum GameContentEnemies {
     public static let enemies: [Enemy] = [

@@ -1,8 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
-
-import TrinketContent
 
 public extension GameContent {
     public static let heroes = GameContentRoster.heroes

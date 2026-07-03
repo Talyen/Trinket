@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 public struct AbilityLoadout: Hashable, Sendable {
     public let basic: Ability?

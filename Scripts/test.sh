@@ -173,7 +173,7 @@ assert_no_build_is_fresh() {
   fi
 
   local newer_files=()
-  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent Packages/BattleEngine Packages/TrinketPersistence)
+  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent Packages/BattleEngine Packages/TrinketPersistence Packages/TrinketDesignSystem)
   local root
   for root in "${source_roots[@]}"; do
     if [[ -d "$root" ]]; then
@@ -303,6 +303,26 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
   )
   PERSISTENCE_SECONDS=$SECONDS
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + PERSISTENCE_SECONDS))
+
+  echo "Running TrinketDesignSystem package tests..."
+  DESIGN_SECONDS=0
+  SECONDS=0
+  (
+    cd Packages/TrinketDesignSystem
+    if [[ "$ACTION" == "test-without-building" ]]; then
+      xcodebuild test-without-building \
+        -scheme TrinketDesignSystem \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
+    else
+      xcodebuild test \
+        -scheme TrinketDesignSystem \
+        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
+    fi
+  )
+  DESIGN_SECONDS=$SECONDS
+  TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + DESIGN_SECONDS))
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then

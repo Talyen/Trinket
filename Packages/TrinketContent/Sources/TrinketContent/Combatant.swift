@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 public struct Combatant: Identifiable, Hashable, Sendable {
     public enum Role: String, Sendable {

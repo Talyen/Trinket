@@ -6,9 +6,11 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 
 - `ContentManifest/affixes.tsv`: source of truth for item affix definitions.
 - `ContentManifest/abilities.tsv`: manifest-driven abilities (`direct_hit`, `buff_only`, `multi_damage`).
+- `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
@@ -40,6 +42,22 @@ pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components
 - `damage_components`: pipe-separated `amount:keyword` or `amount:keyword:target` tokens.
 
 Custom abilities with unusual targeting, multi-step combos, or description overrides stay in the hand-written tier Swift files.
+
+### Stages (`ContentManifest/stages.tsv`)
+
+Tab-separated columns:
+
+```text
+chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	experience	item_templates	materials
+```
+
+- `theme`: chapter theme enum case (e.g. `verdantForest`).
+- `encounter`: `battle`, `event`, `shop`, or `rest`.
+- `enemy_id`: required for `battle`; empty otherwise.
+- `item_templates`: comma-separated item template IDs.
+- `materials`: pipe-separated `resource:amount` tokens (e.g. `wood:8|stone:3`).
+
+Roster catalogs (heroes, pets, enemies) remain hand-authored in `GameContentRoster.swift` / `GameContentEnemies.swift` until a future manifest lands.
 
 ## Generate Catalogs
 
