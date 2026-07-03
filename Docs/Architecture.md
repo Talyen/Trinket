@@ -14,7 +14,6 @@ Trinket/
   Content/          Homestead catalog + encounter art overrides
   Generated/        Art/music codegen output (do not edit)
   Shared/           Reusable SwiftUI
-  DesignSystem/     TrinketDesign
   Audio/            Music director
 ```
 
@@ -53,11 +52,11 @@ After editing art or music manifests:
 | Layer | May import | Must not import |
 |-------|------------|-----------------|
 | `Battle/` | `Models/`, `Content/` | `Features/`, SwiftUI |
-| `Features/` | `Battle/`, `State/`, `Shared/`, `DesignSystem/` | — |
+| `Features/` | `Battle/`, `State/`, `Shared/`, `TrinketDesignSystem` | — |
 | `State/` | `Models/`, `Content/`, `Persistence/` | feature views |
 | `Models/` | Foundation only | `State/`, `Features/` |
 
-## Target module graph (in progress)
+## Target module graph
 
 Local Swift packages under `Packages/`:
 
@@ -70,6 +69,8 @@ BattleEngine         Trinket/Battle/
   ↑
 TrinketPersistence   Save file, migration, CloudKit sync
   ↑
+TrinketDesignSystem  TrinketDesign chrome + ExperienceBar
+  ↑
 Trinket app          Features, State stores, App shell
 ```
 
@@ -80,7 +81,8 @@ Migration phases:
 3. **Phase 2** — `TrinketContent` package (done)
 4. **Phase 3** — `BattleEngine` package (done)
 5. **Phase 4** — `TrinketPersistence` package (done)
-6. **Phase 5** — thin app target (done); optional `TrinketDesignSystem` package remains future work
+6. **Phase 5** — thin app target (done)
+7. **Phase 6** — `TrinketDesignSystem` package (done)
 
 ## Tech stack
 

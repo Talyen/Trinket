@@ -1,10 +1,11 @@
 import SwiftUI
+import BattleEngine
 
-struct ExperienceBar: View {
-    let combatantName: String
-    let pre: CombatantProgression
-    let post: CombatantProgression
-    let fillColor: Color
+public struct ExperienceBar: View {
+    public let combatantName: String
+    public let pre: CombatantProgression
+    public let post: CombatantProgression
+    public let fillColor: Color
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var displayedLevel: Int
@@ -21,7 +22,7 @@ struct ExperienceBar: View {
     private let levelUpFlashHoldDuration: TimeInterval = 0.18
     private let levelUpFlashOutDuration: TimeInterval = 0.18
 
-    init(
+    public init(
         combatantName: String,
         pre: CombatantProgression,
         post: CombatantProgression,
@@ -37,7 +38,7 @@ struct ExperienceBar: View {
         _displayedFraction = State(initialValue: pre.progressFraction)
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("\(combatantName) — Level \(displayedLevel)")
@@ -151,16 +152,16 @@ struct ExperienceBar: View {
         try? await Task.sleep(nanoseconds: UInt64(levelUpFlashOutDuration * 1000000000))
     }
 
-    struct Segment: Equatable {
-        let startFraction: Double
-        let endFraction: Double
-        let endXP: Int
-        let levelsGained: Int
-        let newLevel: Int
-        let newRequiredXP: Int
+    public struct Segment: Equatable, Sendable {
+        public let startFraction: Double
+        public let endFraction: Double
+        public let endXP: Int
+        public let levelsGained: Int
+        public let newLevel: Int
+        public let newRequiredXP: Int
     }
 
-    static func segments(
+    nonisolated public static func segments(
         from pre: CombatantProgression,
         to post: CombatantProgression
     ) -> [Segment] {

@@ -1,22 +1,24 @@
 import SwiftUI
 
-struct FloatingGlassControlButtonModifier: ViewModifier {
-    func body(content: Content) -> some View {
+@available(iOS 26.0, *)
+public struct FloatingGlassControlButtonModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .buttonStyle(.glass)
     }
 }
 
-struct FloatingGlassToggleModifier: ViewModifier {
-    func body(content: Content) -> some View {
+@available(iOS 26.0, *)
+public struct FloatingGlassToggleModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .toggleStyle(.button)
             .buttonStyle(.glass)
     }
 }
 
-struct CardSurfaceModifier: ViewModifier {
-    func body(content: Content) -> some View {
+public struct CardSurfaceModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .background(.thinMaterial)
             .clipShape(TrinketDesign.cardShape)
@@ -28,10 +30,10 @@ struct CardSurfaceModifier: ViewModifier {
     }
 }
 
-struct CardLabelSpaceModifier: ViewModifier {
-    let isReserved: Bool
+public struct CardLabelSpaceModifier: ViewModifier {
+    public let isReserved: Bool
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         if isReserved {
             content
                 .frame(minHeight: TrinketDesign.Metrics.cardLabelReservedHeight, alignment: .center)
@@ -41,8 +43,8 @@ struct CardLabelSpaceModifier: ViewModifier {
     }
 }
 
-struct PrimaryActionButtonModifier: ViewModifier {
-    func body(content: Content) -> some View {
+public struct PrimaryActionButtonModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
@@ -50,28 +52,31 @@ struct PrimaryActionButtonModifier: ViewModifier {
     }
 }
 
-extension View {
-    func trinketFloatingGlassControl() -> some View {
+@available(iOS 26.0, *)
+public extension View {
+    public func trinketFloatingGlassControl() -> some View {
         modifier(FloatingGlassControlButtonModifier())
     }
 
-    func trinketFloatingGlassToggle() -> some View {
+    public func trinketFloatingGlassToggle() -> some View {
         modifier(FloatingGlassToggleModifier())
     }
+}
 
-    func trinketCardSurface() -> some View {
+public extension View {
+    public func trinketCardSurface() -> some View {
         modifier(CardSurfaceModifier())
     }
 
-    func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
+    public func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
         modifier(CardLabelSpaceModifier(isReserved: isReserved))
     }
 
-    func trinketPrimaryActionButton() -> some View {
+    public func trinketPrimaryActionButton() -> some View {
         modifier(PrimaryActionButtonModifier())
     }
 }
 
-extension Color {
+public extension Color {
     static let trinketDestructive = TrinketDesign.Colors.destructive
 }
