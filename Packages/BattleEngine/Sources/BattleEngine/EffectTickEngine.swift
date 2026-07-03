@@ -3,22 +3,34 @@ import TrinketCore
 import TrinketContent
 
 public enum EffectTickEngine {
-    public static func tickAll(state: inout BattleState) -> [ActionEvent] {
+    public static func tickAll(context: inout BattleEngineContext, matchup: BattleMatchup) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
-        let enemyResult = tickEffects(state.activeEffects(for: .enemy), target: state.enemy, state: &state)
-        state.roster.setActiveEffects(enemyResult.updated, for: state.enemy)
+        let enemyResult = tickEffects(
+            context.activeEffects(for: matchup.enemy),
+            target: matchup.enemy,
+            context: &context
+        )
+        context.setActiveEffects(enemyResult.updated, for: matchup.enemy)
         events.append(contentsOf: enemyResult.events)
 
-        if state.isHeroAlive {
-            let heroResult = tickEffects(state.activeEffects(for: .hero), target: state.hero, state: &state)
-            state.roster.setActiveEffects(heroResult.updated, for: state.hero)
+        if context.roster.hero.isAlive {
+            let heroResult = tickEffects(
+                context.activeEffects(for: matchup.hero),
+                target: matchup.hero,
+                context: &context
+            )
+            context.setActiveEffects(heroResult.updated, for: matchup.hero)
             events.append(contentsOf: heroResult.events)
         }
 
-        if state.isPetAlive {
-            let petResult = tickEffects(state.activeEffects(for: .pet), target: state.pet, state: &state)
-            state.roster.setActiveEffects(petResult.updated, for: state.pet)
+        if context.roster.pet.isAlive {
+            let petResult = tickEffects(
+                context.activeEffects(for: matchup.pet),
+                target: matchup.pet,
+                context: &context
+            )
+            context.setActiveEffects(petResult.updated, for: matchup.pet)
             events.append(contentsOf: petResult.events)
         }
 
@@ -28,27 +40,25 @@ public enum EffectTickEngine {
     public static func tickEffects(
         _ effects: [ActiveEffect],
         target: Combatant,
-        state: inout BattleState
+        context: inout BattleEngineContext
     ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
         var remaining = effects
 
-        guard state.roster.health(for: target) > 0 else {
+        guard context.roster.health(for: target) > 0 else {
             return (events, remaining)
         }
 
         var toRemove: [Int] = []
-        state.withEngineContext { context in
-            for index in remaining.indices {
-                guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
-                let outcome = handler.tick(remaining[index], on: target, in: &context)
-                events.append(contentsOf: outcome.events)
-                if let updated = outcome.updatedStack {
-                    remaining[index] = updated
-                }
-                if outcome.removeAfter {
-                    toRemove.append(index)
-                }
+        for index in remaining.indices {
+            guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
+            let outcome = handler.tick(remaining[index], on: target, in: &context)
+            events.append(contentsOf: outcome.events)
+            if let updated = outcome.updatedStack {
+                remaining[index] = updated
+            }
+            if outcome.removeAfter {
+                toRemove.append(index)
             }
         }
         if !toRemove.isEmpty {

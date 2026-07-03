@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Result of dispatching a single `Effect` through a `BattleEffectHandler`.
-/// The caller (currently `BattleState.performAction`) merges these into the
+/// The caller (`BattleTurnEngine.performAction`) merges these into the
 /// surrounding action's event stream and log-line buffer.
 public struct EffectApplyOutcome {
     /// Events to append to the action's event stream. May be empty.
@@ -15,7 +15,7 @@ public struct EffectApplyOutcome {
 }
 
 /// Result of dispatching a single `ActiveEffect` through a
-/// `BattleEffectHandler.tick`. The caller (`BattleState.tickEffects`)
+/// `BattleEffectHandler.tick`. The caller (`EffectTickEngine.tickEffects`)
 /// merges these into the per-tick event stream and the per-effect
 /// updated/removed list.
 public struct EffectTickOutcome {
@@ -34,7 +34,7 @@ public struct EffectTickOutcome {
 /// One handler per `EffectKind`. Handlers are stateless value types
 /// registered in a lookup table (`EffectHandlers.all`). New effect types
 /// add a case to `EffectKind`, a case to `Effect`, and one handler struct
-/// (plus a table entry) — no edits to `BattleState.performAction` required.
+/// (plus a table entry) — no edits to `BattleTurnEngine.performAction` required.
 public protocol BattleEffectHandler: Sendable {
     var kind: EffectKind { get }
     func apply(

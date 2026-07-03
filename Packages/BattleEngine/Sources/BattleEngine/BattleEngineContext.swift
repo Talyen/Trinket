@@ -2,8 +2,9 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Narrow mutation context passed to effect handlers. Owns the roster slice,
-/// RNG, ID counters, and event stream for one handler dispatch.
+/// Single mutation surface for battle rules: roster, RNG, counters, events,
+/// gold, and loop metadata. Effect handlers, combat pipeline, and turn/tick
+/// engines all mutate battle state through one shared context per step.
 public struct BattleEngineContext {
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
@@ -12,6 +13,9 @@ public struct BattleEngineContext {
     public var events: [ActionEvent]
     public var gold: Int
     public let build: BattleCombatBuild
+    public var actionCount: Int
+    public var hasLoggedDefeat: Bool
+    public var hasLoggedPartyDefeat: Bool
 
     public init(
         roster: BattleRoster,
@@ -20,7 +24,10 @@ public struct BattleEngineContext {
         nextEventID: Int,
         events: [ActionEvent],
         gold: Int,
-        build: BattleCombatBuild
+        build: BattleCombatBuild,
+        actionCount: Int = 0,
+        hasLoggedDefeat: Bool = false,
+        hasLoggedPartyDefeat: Bool = false
     ) {
         self.roster = roster
         self.rng = rng
@@ -29,6 +36,9 @@ public struct BattleEngineContext {
         self.events = events
         self.gold = gold
         self.build = build
+        self.actionCount = actionCount
+        self.hasLoggedDefeat = hasLoggedDefeat
+        self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
     }
 
     public func modifiers(for combatantID: String) -> CombatModifierProfile {
@@ -207,6 +217,31 @@ public struct BattleEngineContext {
 }
 
 public extension BattleEngineContext {
+    mutating func appendMilestone(_ milestone: ActionEvent.Milestone, matchup: BattleMatchup) -> ActionEvent {
+        nextEvent(
+            kind: .milestone,
+            actorName: "",
+            abilityName: "",
+            target: matchup.enemy,
+            amount: 0,
+            keyword: .physical,
+            milestone: milestone
+        )
+    }
+
+    mutating func appendDefeatMilestonesIfNeeded(matchup: BattleMatchup) -> [ActionEvent] {
+        var milestones: [ActionEvent] = []
+        if roster.isEnemyDefeated, !hasLoggedDefeat {
+            hasLoggedDefeat = true
+            milestones.append(appendMilestone(.enemyDefeated, matchup: matchup))
+        }
+        if roster.isPartyDefeated, !hasLoggedPartyDefeat {
+            hasLoggedPartyDefeat = true
+            milestones.append(appendMilestone(.partyDefeated, matchup: matchup))
+        }
+        return milestones
+    }
+
     public mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,

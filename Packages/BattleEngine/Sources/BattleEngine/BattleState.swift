@@ -50,7 +50,8 @@ public struct BattleState {
     public let combatBuild: BattleCombatBuild
     private let initialGold: Int
 
-    /// Cached combat log. Rebuilt automatically after every event mutation.
+    /// Cached combat log. Rebuilt once after each `advanceOneStep()` and after
+    /// standalone mutations via `withEngineContext` / pipeline helpers.
     public private(set) var log: [LogEntry] = []
 
     public static let defaultRNGSeed: UInt64 = 0
@@ -113,7 +114,9 @@ public struct BattleState {
         gold = initialGold
 
         events = []
-        _ = appendMilestone(.battleStarted)
+        var context = makeEngineContext()
+        _ = context.appendMilestone(.battleStarted, matchup: matchup)
+        applyEngineContext(context)
         rebuildLog()
     }
 
@@ -145,6 +148,10 @@ public struct BattleState {
 
     public var enemyAttackTarget: Combatant {
         roster.enemyAttackTarget
+    }
+
+    public var matchup: BattleMatchup {
+        BattleMatchup(hero: hero, pet: pet, enemy: enemy)
     }
 
     public func health(of combatant: Combatant) -> Int {
@@ -200,25 +207,39 @@ public struct BattleState {
 
     // MARK: - Engine context
 
-    /// Copies the relevant mutable fields into a `BattleEngineContext`, runs
-    /// `body`, then copies the mutated context back into `self`.
-    public mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
-        var context = BattleEngineContext(
+    private mutating func makeEngineContext() -> BattleEngineContext {
+        BattleEngineContext(
             roster: roster,
             rng: rng,
             nextEffectID: nextEffectID,
             nextEventID: nextEventID,
             events: events,
             gold: gold,
-            build: combatBuild
+            build: combatBuild,
+            actionCount: actionCount,
+            hasLoggedDefeat: hasLoggedDefeat,
+            hasLoggedPartyDefeat: hasLoggedPartyDefeat
         )
-        let result = try body(&context)
+    }
+
+    private mutating func applyEngineContext(_ context: BattleEngineContext) {
         roster = context.roster
         rng = context.rng
         nextEffectID = context.nextEffectID
         nextEventID = context.nextEventID
         events = context.events
         gold = context.gold
+        actionCount = context.actionCount
+        hasLoggedDefeat = context.hasLoggedDefeat
+        hasLoggedPartyDefeat = context.hasLoggedPartyDefeat
+    }
+
+    /// Copies the relevant mutable fields into a `BattleEngineContext`, runs
+    /// `body`, then copies the mutated context back into `self`.
+    public mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
+        var context = makeEngineContext()
+        let result = try body(&context)
+        applyEngineContext(context)
         rebuildLog()
         return result
     }
@@ -279,19 +300,34 @@ public struct BattleState {
         guard !isBattleOver else { return .ended(events: []) }
 
         tickCount += 1
-        var events = EffectTickEngine.tickAll(state: &self)
+        let matchup = matchup
+        var context = makeEngineContext()
 
-        if isBattleOver {
-            events.append(contentsOf: appendDefeatMilestonesIfNeeded())
+        var events = EffectTickEngine.tickAll(context: &context, matchup: matchup)
+
+        if context.roster.isEnemyDefeated || context.roster.isPartyDefeated {
+            events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+            applyEngineContext(context)
+            rebuildLog()
             return .ended(events: events)
         }
 
-        guard let actor = BattleTurnEngine.readyCombatants(in: self).first else {
+        guard let actor = BattleTurnEngine.readyCombatants(in: context, tickCount: tickCount).first else {
+            applyEngineContext(context)
+            rebuildLog()
             return .effectsOnly(events: events)
         }
 
-        events.append(contentsOf: BattleTurnEngine.act(actor: actor, state: &self))
-        events.append(contentsOf: appendDefeatMilestonesIfNeeded())
+        events.append(contentsOf: BattleTurnEngine.act(
+            actor: actor,
+            matchup: matchup,
+            tickCount: tickCount,
+            context: &context
+        ))
+        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
+
+        applyEngineContext(context)
+        rebuildLog()
 
         if isBattleOver {
             return .ended(events: events)
@@ -300,68 +336,7 @@ public struct BattleState {
         return .acted(actor, events: events)
     }
 
-    // MARK: - Combat pipeline (see CombatPipeline.swift)
-
-    public mutating func nextEvent(
-        kind: ActionEvent.Kind,
-        effectKind: ActionEvent.EffectKind? = nil,
-        actorName: String,
-        abilityName: String,
-        target: Combatant,
-        amount: Int,
-        keyword: Keyword,
-        appliedEffectSummaries: [String] = [],
-        milestone: ActionEvent.Milestone? = nil
-    ) -> ActionEvent {
-        nextEventID += 1
-        let event = ActionEvent(
-            id: nextEventID,
-            kind: kind,
-            effectKind: effectKind,
-            actorName: actorName,
-            abilityName: abilityName,
-            targetID: target.id,
-            targetName: target.name,
-            amount: amount,
-            keyword: keyword,
-            appliedEffectSummaries: appliedEffectSummaries,
-            milestone: milestone
-        )
-        events.append(event)
-        rebuildLog()
-        return event
-    }
-
     private mutating func rebuildLog() {
-        log = BattleLogReducer.entries(
-            from: events,
-            matchup: BattleMatchup(hero: hero, pet: pet, enemy: enemy)
-        )
-    }
-
-    @discardableResult
-    private mutating func appendMilestone(_ milestone: ActionEvent.Milestone) -> ActionEvent {
-        nextEvent(
-            kind: .milestone,
-            actorName: "",
-            abilityName: "",
-            target: enemy,
-            amount: 0,
-            keyword: .physical,
-            milestone: milestone
-        )
-    }
-
-    private mutating func appendDefeatMilestonesIfNeeded() -> [ActionEvent] {
-        var milestones: [ActionEvent] = []
-        if isEnemyDefeated, !hasLoggedDefeat {
-            hasLoggedDefeat = true
-            milestones.append(appendMilestone(.enemyDefeated))
-        }
-        if isPartyDefeated, !hasLoggedPartyDefeat {
-            hasLoggedPartyDefeat = true
-            milestones.append(appendMilestone(.partyDefeated))
-        }
-        return milestones
+        log = BattleLogReducer.entries(from: events, matchup: matchup)
     }
 }

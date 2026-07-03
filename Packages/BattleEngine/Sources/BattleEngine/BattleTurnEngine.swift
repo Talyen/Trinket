@@ -3,25 +3,40 @@ import TrinketCore
 import TrinketContent
 
 public enum BattleTurnEngine {
-    public static func readyCombatants(in state: BattleState) -> [Combatant] {
-        state.roster.readyCombatants(atTick: state.tickCount).map(\.combatant)
+    public static func readyCombatants(in context: BattleEngineContext, tickCount: Int) -> [Combatant] {
+        context.roster.readyCombatants(atTick: tickCount).map(\.combatant)
     }
 
     /// Acts on `actor` for one turn. If the actor has an active `.prevention`
     /// effect with `remainingTicks > 0`, the prevention is consumed and the
     /// actor's schedule still advances. Otherwise the actor's selected
-    /// ability is performed against `state.enemyAttackTarget` (or `state.enemy`
-    /// for non-enemy actors).
-    public static func act(actor: Combatant, state: inout BattleState) -> [ActionEvent] {
-        let abilityTarget = actor.role == .enemy ? state.enemyAttackTarget : state.enemy
-        if state.roster.hasActivePrevention(for: actor) {
-            return consumePrevention(for: actor, state: &state)
+    /// ability is performed against `context.roster.enemyAttackTarget` (or
+    /// `matchup.enemy` for non-enemy actors).
+    public static func act(
+        actor: Combatant,
+        matchup: BattleMatchup,
+        tickCount: Int,
+        context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
+        if context.roster.hasActivePrevention(for: actor) {
+            return consumePrevention(for: actor, tickCount: tickCount, context: &context)
         }
-        return performAction(actor: actor, abilityTarget: abilityTarget, state: &state)
+        return performAction(
+            actor: actor,
+            abilityTarget: abilityTarget,
+            matchup: matchup,
+            tickCount: tickCount,
+            context: &context
+        )
     }
 
-    public static func consumePrevention(for actor: Combatant, state: inout BattleState) -> [ActionEvent] {
-        var currentEffects = state.roster.activeEffects(for: actor)
+    public static func consumePrevention(
+        for actor: Combatant,
+        tickCount: Int,
+        context: inout BattleEngineContext
+    ) -> [ActionEvent] {
+        var currentEffects = context.roster.activeEffects(for: actor)
         var events: [ActionEvent] = []
 
         if let index = currentEffects.firstIndex(where: {
@@ -29,7 +44,7 @@ public enum BattleTurnEngine {
             return false
         }) {
             let effect = currentEffects[index]
-            let event = state.nextEvent(
+            let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .preventionSkipped,
                 actorName: effect.keyword.rawValue,
@@ -47,20 +62,22 @@ public enum BattleTurnEngine {
             }
         }
 
-        state.roster.setActiveEffects(currentEffects, for: actor)
-        recordAction(for: actor, state: &state)
+        context.roster.setActiveEffects(currentEffects, for: actor)
+        recordAction(for: actor, tickCount: tickCount, context: &context)
         return events
     }
 
     public static func performAction(
         actor: Combatant,
         abilityTarget: Combatant,
-        state: inout BattleState
+        matchup: BattleMatchup,
+        tickCount: Int,
+        context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let turnNumber = state.runtime(for: actor).actionCount + 1
+        let turnNumber = context.runtime(for: actor).actionCount + 1
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber) else {
-            recordAction(for: actor, state: &state)
+            recordAction(for: actor, tickCount: tickCount, context: &context)
             return []
         }
 
@@ -69,7 +86,8 @@ public enum BattleTurnEngine {
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
-            state: &state
+            matchup: matchup,
+            context: &context
         )
         events.append(contentsOf: damageOutcome.events)
 
@@ -77,13 +95,14 @@ public enum BattleTurnEngine {
             ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
+            matchup: matchup,
             pairedDirectDamage: damageOutcome.pairedDirectDamage,
-            state: &state,
+            context: &context,
             events: &events
         )
 
         events.append(
-            state.nextEvent(
+            context.nextEvent(
                 kind: .ability,
                 effectKind: nil,
                 actorName: actor.name,
@@ -95,7 +114,7 @@ public enum BattleTurnEngine {
             )
         )
 
-        recordAction(for: actor, state: &state)
+        recordAction(for: actor, tickCount: tickCount, context: &context)
         return events
     }
 
@@ -109,7 +128,8 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
-        state: inout BattleState
+        matchup: BattleMatchup,
+        context: inout BattleEngineContext
     ) -> DamageComponentOutcome {
         var events: [ActionEvent] = []
         var totalDealtToAbilityTarget = 0
@@ -120,11 +140,11 @@ public enum BattleTurnEngine {
                 component.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                hero: state.hero,
-                pet: state.pet,
-                enemy: state.enemy
+                hero: matchup.hero,
+                pet: matchup.pet,
+                enemy: matchup.enemy
             )
-            let (dealt, damageEvents) = state.applyDamage(
+            let (dealt, damageEvents) = context.applyDamage(
                 component.amount,
                 to: damageTarget,
                 damageKeyword: component.keyword,
@@ -132,7 +152,7 @@ public enum BattleTurnEngine {
             )
             events.append(contentsOf: damageEvents)
             if dealt > 0, damageTarget.id != actor.id {
-                events.append(contentsOf: state.applyLeechFromDamage(dealt, sourceActorID: actor.id))
+                events.append(contentsOf: context.applyLeechFromDamage(dealt, sourceActorID: actor.id))
             }
             if component.amount > 0 {
                 pairedDirectDamage.append((component.keyword, component.amount))
@@ -153,50 +173,51 @@ public enum BattleTurnEngine {
         ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
+        matchup: BattleMatchup,
         pairedDirectDamage: [(Keyword, Int)],
-        state: inout BattleState,
+        context: inout BattleEngineContext,
         events: inout [ActionEvent]
     ) -> [String] {
         var appliedEffectLogs: [String] = []
         let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
-        let heroCombatant = state.hero
-        let petCombatant = state.pet
-        let enemyCombatant = state.enemy
-        state.withEngineContext { context in
-            for targetedEffect in ability.targetedEffects {
-                let effect = targetedEffect.effect
-                let effectTarget = resolveEffectTarget(
-                    targetedEffect.target,
-                    actor: actor,
-                    abilityTarget: abilityTarget,
-                    hero: heroCombatant,
-                    pet: petCombatant,
-                    enemy: enemyCombatant
-                )
 
-                guard let handler = EffectHandlers.all[effect.kind] else { continue }
-                let outcome = handler.apply(
-                    effect,
-                    ability: ability,
-                    source: actor,
-                    target: effectTarget,
-                    action: actionContext,
-                    in: &context
-                )
-                events.append(contentsOf: outcome.events)
-                if outcome.didApply {
-                    appliedEffectLogs.append(effect.summary)
-                }
+        for targetedEffect in ability.targetedEffects {
+            let effect = targetedEffect.effect
+            let effectTarget = resolveEffectTarget(
+                targetedEffect.target,
+                actor: actor,
+                abilityTarget: abilityTarget,
+                hero: matchup.hero,
+                pet: matchup.pet,
+                enemy: matchup.enemy
+            )
+
+            guard let handler = EffectHandlers.all[effect.kind] else { continue }
+            let outcome = handler.apply(
+                effect,
+                ability: ability,
+                source: actor,
+                target: effectTarget,
+                action: actionContext,
+                in: &context
+            )
+            events.append(contentsOf: outcome.events)
+            if outcome.didApply {
+                appliedEffectLogs.append(effect.summary)
             }
         }
         return appliedEffectLogs
     }
 
-    private static func recordAction(for actor: Combatant, state: inout BattleState) {
-        state.actionCount += 1
-        var runtime = state.runtime(for: actor)
-        runtime.markActed(atTick: state.tickCount)
-        state.updateRuntime(runtime)
+    private static func recordAction(
+        for actor: Combatant,
+        tickCount: Int,
+        context: inout BattleEngineContext
+    ) {
+        context.actionCount += 1
+        var runtime = context.runtime(for: actor)
+        runtime.markActed(atTick: tickCount)
+        context.updateRuntime(runtime)
     }
 
     private static func resolveEffectTarget(
