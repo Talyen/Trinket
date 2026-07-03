@@ -39,7 +39,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
         XCTAssertEqual(sanitized.activeChapterID, "chapter-1")
-        XCTAssertEqual(sanitized.activeStageID, "chapter-1-stage-1")
+        XCTAssertEqual(sanitized.activeStageID, "chapter-1-stage-2")
         XCTAssertEqual(sanitized.completedStageIDs, ["chapter-1-stage-1"])
         XCTAssertTrue(sanitized.claimedRewardStageIDs.isEmpty)
     }
