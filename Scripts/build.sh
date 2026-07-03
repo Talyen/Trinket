@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-xcodegen generate
+./Scripts/generate.sh
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \

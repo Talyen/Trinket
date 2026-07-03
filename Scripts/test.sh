@@ -68,8 +68,8 @@ if [[ "$MODE" == "style" ]]; then
 fi
 
 if [[ "$NO_BUILD" == "false" ]]; then
-  # Always run xcodegen to ensure target memberships are automatically updated
-  xcodegen generate
+  # Always run generate to validate manifests, refresh codegen, and update XcodeGen.
+  ./Scripts/generate.sh
 fi
 
 # Check if the device is already booted to save time

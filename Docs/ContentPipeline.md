@@ -43,23 +43,33 @@ Custom abilities with unusual targeting, multi-step combos, or description overr
 
 ## Generate Catalogs
 
-Run:
+**Always use the orchestrator:**
 
 ```sh
-./Scripts/generate-content-catalogs.sh
+./Scripts/generate.sh
 ```
 
-Ability shorthand only (after editing custom tier files):
+This validates manifests, regenerates content catalogs and ability shorthand, and runs XcodeGen.
+
+Validate manifests only:
 
 ```sh
-./Scripts/generate-ability-shorthand.sh
+./Scripts/validate-manifests.sh
 ```
 
-After changing manifests or custom tier files, run:
+Regenerate and verify committed output matches:
+
+```sh
+./Scripts/assert-generated-output.sh --regenerate
+```
+
+Legacy subcommands (`generate-content-catalogs.sh`, `generate-ability-shorthand.sh`) still work but print a notice to prefer `generate.sh`.
+
+After changing manifests or custom tier files:
 
 ```sh
 ./Scripts/generate.sh
 ./Scripts/build.sh
 ```
 
-Generated files are committed so the app builds without rerunning the generator, but the TSV manifests remain the editable source of truth for affixes and pattern-based abilities.
+Generated files are committed so the app builds without rerunning the generator. CI fails if `Trinket/Generated/` drifts from the manifests.

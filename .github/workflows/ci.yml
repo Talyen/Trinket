@@ -38,6 +38,9 @@ jobs:
       - name: Generate project
         run: ./Scripts/generate.sh
 
+      - name: Assert generated output is committed
+        run: ./Scripts/assert-generated-output.sh
+
       - name: Style check
         run: ./Scripts/test.sh style
 

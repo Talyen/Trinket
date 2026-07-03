@@ -15,14 +15,17 @@ brew install xcodegen
 ## Common Commands
 
 ```sh
-./Scripts/generate.sh
+./Scripts/generate.sh          # validate manifests, codegen, XcodeGen
 ./Scripts/build.sh
-./Scripts/test.sh
+./Scripts/test.sh unit
+./Scripts/test.sh smoke
 ./Scripts/run-simulator.sh
 ```
 
 ## Docs
 
+- Architecture and module plan: `Docs/Architecture.md`
 - Agent workflow: `AGENTS.md`
 - Core design concepts: `Docs/CoreDesignConcepts.md`
+- Content pipeline: `Docs/ContentPipeline.md`
 - Apple-native guidance: `Docs/AppleNativeGuidelines.md`

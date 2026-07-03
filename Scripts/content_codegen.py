@@ -25,6 +25,29 @@ TIER_SOURCE = {
     "ultimate": CONTENT_DIR / "AbilityCatalogUltimate.swift",
 }
 
+VALID_SLOTS = frozenset({"weapon", "armor", "trinket"})
+VALID_TIERS = frozenset({"basic", "skill", "ultimate"})
+VALID_PATTERNS = frozenset({"direct_hit", "buff_only", "multi_damage"})
+VALID_KEYWORDS = frozenset(
+    {
+        "physical",
+        "bleed",
+        "burn",
+        "freeze",
+        "poison",
+        "holy",
+        "nature",
+        "stun",
+        "health",
+        "block",
+        "armor",
+        "leech",
+        "gold",
+    }
+)
+SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+KEBAB_IDENTIFIER = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
 
 @dataclass
 class AffixRow:
@@ -327,12 +350,6 @@ def write_generated_file(path: Path, body: str) -> None:
 
 
 def generate_affix_catalog(rows: list[AffixRow]) -> None:
-    seen: set[str] = set()
-    for row in rows:
-        if row.id in seen:
-            raise ValueError(f"Duplicate affix id: {row.id}")
-        seen.add(row.id)
-
     entries: list[str] = []
     for row in rows:
         entries.append(
@@ -360,12 +377,6 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
 def generate_ability_tier_catalog(tier: str, rows: list[AbilityRow]) -> None:
     enum_name = TIER_ENUM[tier]
     tier_rows = [row for row in rows if row.tier == tier]
-    seen: set[str] = set()
-    for row in tier_rows:
-        if row.symbol in seen:
-            raise ValueError(f"Duplicate ability symbol in {tier}: {row.symbol}")
-        seen.add(row.symbol)
-
     definitions = [render_ability(row) for row in tier_rows]
     all_entries = ",\n        ".join(row.symbol for row in tier_rows)
     body = (
@@ -394,6 +405,115 @@ def parse_generated_ability_symbols(path: Path) -> list[tuple[str, str]]:
     return [(match.group(1), enum_name) for match in re.finditer(r"static let (\w+) = AbilityBuilder", text)]
 
 
+def _require_non_empty(label: str, value: str, row_id: str) -> None:
+    if not value.strip():
+        raise ValueError(f"{label} is required for {row_id}")
+
+
+def _validate_swift_symbol(label: str, value: str, row_id: str) -> None:
+    if not SWIFT_IDENTIFIER.match(value):
+        raise ValueError(f"{label} '{value}' for {row_id} must be a valid Swift identifier")
+
+
+def _validate_kebab_id(label: str, value: str, row_id: str) -> None:
+    if not KEBAB_IDENTIFIER.match(value):
+        raise ValueError(
+            f"{label} '{value}' for {row_id} must use lowercase letters, numbers, and hyphens"
+        )
+
+
+def _validate_keywords(raw: str, row_id: str) -> None:
+    if not raw:
+        return
+    for part in raw.split(","):
+        keyword = part.strip()
+        if not keyword:
+            continue
+        if keyword not in VALID_KEYWORDS:
+            raise ValueError(f"Unknown keyword '{keyword}' for {row_id}")
+
+
+def _validate_weight(raw: str, row_id: str) -> None:
+    try:
+        weight = int(raw)
+    except ValueError as error:
+        raise ValueError(f"Affix weight for {row_id} must be an integer") from error
+    if weight <= 0:
+        raise ValueError(f"Affix weight for {row_id} must be positive")
+
+
+def validate_affix_rows(rows: list[AffixRow]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate affix id: {row.id}")
+        seen.add(row.id)
+
+        _validate_kebab_id("affix id", row.id, row.id)
+        _require_non_empty("affix title", row.title, row.id)
+        if row.slot not in VALID_SLOTS:
+            raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
+        _validate_keywords(row.keywords, row.id)
+        _validate_weight(row.weight, row.id)
+        _require_non_empty("basic_description", row.basic_description, row.id)
+        _require_non_empty("astral_description", row.astral_description, row.id)
+        modifiers_swift(row.basic_modifiers)
+        modifiers_swift(row.astral_modifiers)
+
+
+def validate_ability_rows(rows: list[AbilityRow]) -> None:
+    seen_ids: set[str] = set()
+    seen_symbols_by_tier: dict[str, set[str]] = {tier: set() for tier in VALID_TIERS}
+
+    for row in rows:
+        if row.id in seen_ids:
+            raise ValueError(f"Duplicate ability id: {row.id}")
+        seen_ids.add(row.id)
+
+        if row.tier not in VALID_TIERS:
+            raise ValueError(f"Invalid ability tier '{row.tier}' for {row.id}")
+        if row.pattern not in VALID_PATTERNS:
+            raise ValueError(f"Invalid ability pattern '{row.pattern}' for {row.id}")
+
+        _validate_kebab_id("ability id", row.id, row.id)
+        _validate_swift_symbol("ability symbol", row.symbol, row.id)
+        _require_non_empty("ability name", row.name, row.id)
+
+        if row.symbol in seen_symbols_by_tier[row.tier]:
+            raise ValueError(f"Duplicate ability symbol '{row.symbol}' in tier {row.tier}")
+        seen_symbols_by_tier[row.tier].add(row.symbol)
+
+        if row.keyword and row.keyword not in VALID_KEYWORDS:
+            raise ValueError(f"Unknown ability keyword '{row.keyword}' for {row.id}")
+
+        if row.pattern == "direct_hit":
+            _require_non_empty("amount", row.amount, row.id)
+            _require_non_empty("keyword", row.keyword, row.id)
+            if not row.amount.isdigit():
+                raise ValueError(f"direct_hit amount for {row.id} must be an integer")
+            targeted_effects_swift(row.extras)
+        elif row.pattern == "buff_only":
+            _require_non_empty("effects", row.effects, row.id)
+            for token in row.effects.split("|"):
+                if token.strip():
+                    parse_effect_token(token.strip())
+        elif row.pattern == "multi_damage":
+            _require_non_empty("damage_components", row.damage_components, row.id)
+            damage_components_swift(row.damage_components)
+            targeted_effects_swift(row.effects)
+
+        # Ensure manifest rows codegen without DSL errors.
+        render_ability(row)
+
+
+def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow]]:
+    affix_rows = parse_affix_rows()
+    ability_rows = parse_ability_rows()
+    validate_affix_rows(affix_rows)
+    validate_ability_rows(ability_rows)
+    return affix_rows, ability_rows
+
+
 def generate_ability_shorthand() -> None:
     entries: list[tuple[str, str]] = []
     for tier in ("Basic", "Skill", "Ultimate"):
@@ -413,13 +533,19 @@ def generate_ability_shorthand() -> None:
 
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
+    if command == "validate":
+        affix_rows, ability_rows = validate_manifests()
+        print(
+            f"Validated {len(affix_rows)} affixes and "
+            f"{len(ability_rows)} manifest abilities"
+        )
+        return 0
     if command == "shorthand":
         generate_ability_shorthand()
         print("Generated AbilityShorthand.generated.swift")
         return 0
 
-    affix_rows = parse_affix_rows()
-    ability_rows = parse_ability_rows()
+    affix_rows, ability_rows = validate_manifests()
     generate_affix_catalog(affix_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
