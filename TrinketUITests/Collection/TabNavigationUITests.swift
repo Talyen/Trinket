@@ -83,7 +83,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists("Inventory filter")
         assertItemCardExists("Crossbow")
         collection.filterInventory(to: "Weapon")
-        assertItemCardExists("Wand")
+        assertItemCardExistsAfterScroll("Wand", maxAttempts: 6)
     }
 
     private func firstEquipOption() -> XCUIElement {

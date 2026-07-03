@@ -28,8 +28,12 @@ struct CollectionScreen {
         app.buttons.matching(identifier: "\(name) item card").firstMatch.tap()
     }
 
-    func filterInventory(to slot: String) {
-        app.buttons["Inventory filter"].tap()
-        app.buttons[slot].tap()
+    func filterInventory(to slot: String, file: StaticString = #filePath, line: UInt = #line) {
+        let filterButton = app.buttons["Inventory filter"]
+        XCTAssertTrue(filterButton.waitForExistence(timeout: 5), "Inventory filter not found", file: file, line: line)
+        filterButton.tap()
+        let option = app.buttons[slot]
+        XCTAssertTrue(option.waitForExistence(timeout: 3), "Inventory filter option '\(slot)' not found", file: file, line: line)
+        option.tap()
     }
 }
