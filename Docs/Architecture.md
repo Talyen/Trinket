@@ -9,7 +9,7 @@ Trinket/                    App target — shell, features, presentation glue
   App/                      Entry, environment, tab routing, package re-exports
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
   Battle/                   BattleRun, ActiveBattleConfiguration, victory UI wiring
-  State/                    AppState, BattleSession, OptionsStore, homestead wrapper
+  State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Content/                  App-only content extensions (encounter art overrides)
   Generated/                Art/music codegen output (do not edit)
@@ -149,7 +149,6 @@ Swift package extraction (phases 0–6) is **complete**. Remaining work is bound
 
 ### Follow-up improvements (not yet done)
 
-- Move `PlayerHomesteadStore` into `TrinketPersistence` (homestead node content is manifest-driven)
 - SFX pipeline for `Raw Assets/Sound Effects/`
 - Incremental Swift 6 strict concurrency per package
 - Narrow `ExportedDependencies.swift` re-exports

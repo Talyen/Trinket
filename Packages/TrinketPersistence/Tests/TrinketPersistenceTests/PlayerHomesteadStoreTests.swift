@@ -1,5 +1,7 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+import TrinketCore
+@testable import TrinketPersistence
 
 @MainActor
 final class PlayerHomesteadStoreTests: XCTestCase {

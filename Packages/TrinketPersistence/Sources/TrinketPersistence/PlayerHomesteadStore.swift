@@ -1,28 +1,29 @@
 import Foundation
 import Observation
+import TrinketContent
 import TrinketCore
 
 @MainActor
 @Observable
-final class PlayerHomesteadStore {
+public final class PlayerHomesteadStore {
     private let saveStore: PlayerSaveStore
 
-    var current: PlayerHomesteadState {
+    public var current: PlayerHomesteadState {
         get { saveStore.homestead }
         set { saveStore.homestead = newValue }
     }
 
-    init(saveStore: PlayerSaveStore) {
+    public init(saveStore: PlayerSaveStore) {
         self.saveStore = saveStore
     }
 
-    func grant(_ rewards: [ResourceAmount]) {
+    public func grant(_ rewards: [ResourceAmount]) {
         var updated = current
         updated.grant(rewards)
         current = updated
     }
 
-    func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> Bool {
+    public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> Bool {
         var homestead = current
         var rosterState = roster.current
         guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return false }

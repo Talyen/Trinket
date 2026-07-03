@@ -37,38 +37,3 @@ extension HomesteadResource {
         }
     }
 }
-
-extension PlayerHomesteadState {
-    func isUnlocked(_ definition: HomesteadNodeDefinition) -> Bool {
-        definition.prerequisites.allSatisfy { tier(for: $0.nodeID) >= $0.minimumTier }
-    }
-
-    func nextTier(for definition: HomesteadNodeDefinition) -> HomesteadNodeTier? {
-        definition.tier(tier(for: definition.id) + 1)
-    }
-
-    func canAfford(_ tier: HomesteadNodeTier, roster: PlayerRosterState) -> Bool {
-        tier.cost.allSatisfy { balance(for: $0.resource, roster: roster) >= $0.quantity }
-    }
-
-    func isComplete(_ definition: HomesteadNodeDefinition) -> Bool {
-        tier(for: definition.id) >= definition.maxTier
-    }
-
-    mutating func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: inout PlayerRosterState) -> Bool {
-        guard isUnlocked(definition),
-              let tier = nextTier(for: definition),
-              canAfford(tier, roster: roster)
-        else { return false }
-
-        for amount in tier.cost {
-            if amount.resource == .gold {
-                roster.gold -= amount.quantity
-            } else {
-                resources[amount.resource, default: 0] -= amount.quantity
-            }
-        }
-        nodeTiers[definition.id, default: 0] += 1
-        return true
-    }
-}

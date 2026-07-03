@@ -1,5 +1,7 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+import TrinketCore
+@testable import TrinketPersistence
 
 final class HomesteadStateTests: XCTestCase {
     func testBuildOrUpgradeSpendsMaterialsAndGold() throws {
