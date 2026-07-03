@@ -128,6 +128,14 @@ public extension BattleEngineContext {
         )
     }
 
+    mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
+        CombatPipeline.resolveDamage(request, in: &self)
+    }
+
+    mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
+        CombatPipeline.resolveHeal(request, in: &self)
+    }
+
     mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
         CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &self)
     }

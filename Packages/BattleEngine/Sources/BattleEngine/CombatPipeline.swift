@@ -4,6 +4,47 @@ import TrinketContent
 
 /// Damage, healing, leech, and prevention-buildup rules.
 public enum CombatPipeline {
+    public static func resolveDamage(
+        _ request: DamageRequest,
+        in context: inout BattleEngineContext
+    ) -> CombatOutcome {
+        guard request.amount > 0 else { return .empty }
+
+        var state = DamageResolutionState(
+            amount: request.amount,
+            combatant: request.target,
+            sourceActorID: request.sourceActorID,
+            damageKeyword: request.keyword,
+            applyStatBonus: request.options.applyStatBonus,
+            applyItemBonus: request.options.applyItemBonus,
+            applyDodge: request.options.applyDodge
+        )
+
+        DodgeGateStep().apply(to: &state, in: &context)
+        if state.isDodged { return CombatOutcome.fromDamage(state: state) }
+
+        DamageBonusStep().apply(to: &state, in: &context)
+        ShieldAbsorptionStep().apply(to: &state, in: &context)
+        MitigationStep().apply(to: &state, in: &context)
+        ItemReductionStep().apply(to: &state, in: &context)
+        TakeDamageStep().apply(to: &state, in: &context)
+        LeechStep().apply(to: &state, in: &context)
+        PreventionBuildupStep().apply(to: &state, in: &context)
+
+        return CombatOutcome.fromDamage(state: state)
+    }
+
+    public static func resolveHeal(
+        _ request: HealRequest,
+        in context: inout BattleEngineContext
+    ) -> CombatOutcome {
+        let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
+        var restored = 0
+        context.roster.mutateRuntime(for: request.target) { restored = $0.heal(request.amount + bonus) }
+        _ = request.logAs
+        return CombatOutcome(healthDelta: restored, events: [], flags: [])
+    }
+
     public static func applyDoTDamage(
         _ amount: Int,
         keyword: Keyword,
@@ -11,18 +52,16 @@ public enum CombatPipeline {
         sourceActorID: String?,
         in context: inout BattleEngineContext
     ) -> (healthLost: Int, events: [ActionEvent]) {
-        guard amount > 0 else { return (0, []) }
-
-        let result = applyDamage(
-            amount,
-            to: combatant,
-            damageKeyword: keyword,
-            sourceActorID: sourceActorID,
-            applyStatBonus: false,
-            applyDodge: false,
+        let outcome = resolveDamage(
+            .doTTick(
+                amount: amount,
+                target: combatant,
+                keyword: keyword,
+                sourceActorID: sourceActorID
+            ),
             in: &context
         )
-        return (result.healthLost, result.damageEvents)
+        return (outcome.healthLost, outcome.events)
     }
 
     public static func applyPreventionBuildup(
@@ -197,7 +236,12 @@ public enum CombatPipeline {
         restored += context.modifiers(for: sourceActorID).leechHealingBonus
         guard restored > 0 else { return [] }
 
-        applyHeal(restored, to: actorCombatant, sourceActorID: nil, in: &context)
+        applyHeal(
+            restored,
+            to: actorCombatant,
+            sourceActorID: nil,
+            in: &context
+        )
         return [
             context.nextEvent(
                 kind: .effect,
@@ -223,28 +267,21 @@ public enum CombatPipeline {
         applyDodge: Bool = true,
         in context: inout BattleEngineContext
     ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
-        var state = DamageResolutionState(
-            amount: amount,
-            combatant: combatant,
-            sourceActorID: sourceActorID,
-            damageKeyword: damageKeyword,
-            applyStatBonus: applyStatBonus,
-            applyItemBonus: applyItemBonus,
-            applyDodge: applyDodge
+        let outcome = resolveDamage(
+            DamageRequest(
+                amount: amount,
+                target: combatant,
+                keyword: damageKeyword,
+                sourceActorID: sourceActorID,
+                options: DamageOptions(
+                    applyStatBonus: applyStatBonus,
+                    applyItemBonus: applyItemBonus,
+                    applyDodge: applyDodge
+                )
+            ),
+            in: &context
         )
-
-        DodgeGateStep().apply(to: &state, in: &context)
-        if state.isDodged { return (0, state.damageEvents) }
-
-        DamageBonusStep().apply(to: &state, in: &context)
-        ShieldAbsorptionStep().apply(to: &state, in: &context)
-        MitigationStep().apply(to: &state, in: &context)
-        ItemReductionStep().apply(to: &state, in: &context)
-        TakeDamageStep().apply(to: &state, in: &context)
-        LeechStep().apply(to: &state, in: &context)
-        PreventionBuildupStep().apply(to: &state, in: &context)
-
-        return (state.healthLost, state.damageEvents)
+        return (outcome.healthLost, outcome.events)
     }
 
     public static func applyHeal(
@@ -253,7 +290,9 @@ public enum CombatPipeline {
         sourceActorID: String?,
         in context: inout BattleEngineContext
     ) {
-        let bonus = sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
-        context.roster.mutateRuntime(for: combatant) { $0.heal(amount + bonus) }
+        _ = resolveHeal(
+            HealRequest(amount: amount, target: combatant, sourceActorID: sourceActorID),
+            in: &context
+        )
     }
 }
