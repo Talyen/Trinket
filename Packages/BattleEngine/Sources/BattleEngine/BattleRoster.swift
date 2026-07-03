@@ -144,10 +144,18 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
-    /// True when `combatant` has stun/freeze buildup at threshold, waiting to
-    /// consume its next scheduled action.
+    /// True when `combatant` has any stun/freeze control meter at threshold,
+    /// waiting to consume its next scheduled action.
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
+    }
+
+    /// True when `combatant` has a full control meter for `keyword`, waiting
+    /// to consume its next scheduled action.
+    public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
+        activeEffects(for: combatant).contains { activeEffect in
+            activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending
+        }
     }
 
     /// Mutates the runtime identified by `combatant` in place. A no-op

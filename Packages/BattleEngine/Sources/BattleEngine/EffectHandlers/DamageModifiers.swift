@@ -46,21 +46,20 @@ public struct ControlMeterHandler: BattleEffectHandler {
     public let kind: EffectKind = .controlMeter
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        if let triggered = stacks.first(where: { $0.effect.isActionSkipPending }) {
-            let alias = triggered.keyword.statusAlias ?? triggered.keyword.rawValue
+        let meterStacks = stacks.filter { activeEffect in
+            guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }
+            return meterKeyword == keyword
+        }
+        guard let meter = meterStacks.first else { return nil }
+
+        if meter.effect.isActionSkipPending {
+            let alias = keyword.statusAlias ?? keyword.rawValue
             return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
         }
-        let amount = stacks.compactMap { eff -> Int? in
-            if case let .controlMeter(_, amt, _) = eff.effect { return amt }
-            return nil
-        }.reduce(0, +)
-        let threshold = stacks.compactMap { eff -> Int? in
-            if case let .controlMeter(_, _, th) = eff.effect { return th }
-            return nil
-        }.max() ?? 1
+        guard let values = meter.effect.controlMeterValues else { return nil }
         return EffectSummary(
             keyword: keyword,
-            text: "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
+            text: "\(keyword.rawValue) Build-up: \(values.amount)/\(values.threshold)"
         )
     }
 

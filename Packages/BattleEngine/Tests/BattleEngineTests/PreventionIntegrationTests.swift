@@ -189,13 +189,42 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let stunnedCount = battle.activeEffects(of: battle.enemy).filter(\.effect.isActionSkipPending).count
-        let buildupCount = battle.activeEffects(of: battle.enemy).filter {
-            guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
-            return amount < threshold
+        let stunnedCount = battle.activeEffects(of: battle.enemy).filter {
+            guard case let .controlMeter(keyword, _, _) = $0.effect else { return false }
+            return keyword == .stun && $0.effect.isActionSkipPending
+        }.count
+        let stunBuildupCount = battle.activeEffects(of: battle.enemy).filter {
+            guard case let .controlMeter(keyword, amount, threshold) = $0.effect else { return false }
+            return keyword == .stun && amount < threshold
         }.count
         XCTAssertEqual(stunnedCount, 1, "Enemy should be stunned")
-        XCTAssertEqual(buildupCount, 0, "No build-up should accumulate while stunned")
+        XCTAssertEqual(stunBuildupCount, 0, "No stun build-up should accumulate while stunned")
+    }
+
+    func testFreezeBuildupContinuesWhileStunned() {
+        let hero = BattleTestFixtures.freezeAbilityHero(damage: 2)
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = BattleTestFixtures.silentEnemy(maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+            ]
+        )
+
+        BattleTestFixtures.advanceTicks(2, on: &battle)
+
+        let freezeMeter = battle.activeEffects(of: battle.enemy).first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .freeze && amount > 0
+        }
+        XCTAssertNotNil(freezeMeter)
+        XCTAssertTrue(battle.hasEnemyEffect {
+            guard case let .controlMeter(keyword, _, _) = $0 else { return false }
+            return keyword == .stun && $0.isActionSkipPending
+        })
     }
 
     func testFreezeBuildupTriggersFrozenAtThreshold() {

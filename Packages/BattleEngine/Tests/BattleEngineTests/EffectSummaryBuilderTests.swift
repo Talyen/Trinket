@@ -87,6 +87,17 @@ final class EffectSummaryBuilderTests: XCTestCase {
         XCTAssertEqual(summaries.first?.text, "Freeze Build-up: 1/10")
     }
 
+    func testStunAndFreezeBuildupSummariesAreSeparate() {
+        let effects = [
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0),
+            ActiveEffect(id: 2, effect: .controlMeter(.freeze, 5, 10), remainingTicks: 0)
+        ]
+        let summaries = EffectSummaryBuilder.build(for: effects)
+        XCTAssertEqual(summaries.count, 2)
+        XCTAssertTrue(summaries.contains { $0.keyword == .stun && $0.text == "Stun Build-up: 3/10" })
+        XCTAssertTrue(summaries.contains { $0.keyword == .freeze && $0.text == "Freeze Build-up: 5/10" })
+    }
+
     // MARK: - Other tickable effects
 
     func testLeechSummary() {

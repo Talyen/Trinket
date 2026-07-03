@@ -182,12 +182,44 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: \.effect.isActionSkipPending))
     }
 
-    func testApplyControlMeterNoDuplicateWhenStunFreezePending() {
+    func testApplyControlMeterNoDuplicateWhenSameKeywordSkipPending() {
         var context = makeContext(targetEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ], seed: 0)
         let events = context.applyControlMeter(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertTrue(events.isEmpty)
+    }
+
+    func testApplyControlMeterAllowsOtherKeywordWhileSkipPending() {
+        var context = makeContext(targetEffects: [
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+        ], seed: 0)
+        let target = context.roster.enemy.combatant
+        let events = context.applyControlMeter(4, keyword: .freeze, to: target, sourceActorID: "source")
+        XCTAssertTrue(events.isEmpty)
+        let freezeMeter = context.roster.activeEffects(for: target).first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .freeze && amount == 4
+        }
+        XCTAssertNotNil(freezeMeter)
+    }
+
+    func testStunAndFreezeBuildupTrackedSeparatelyFromDamage() {
+        var context = makeContext(seed: 0)
+        let target = context.roster.enemy.combatant
+        _ = context.applyDamage(3, to: target, damageKeyword: .stun, sourceActorID: "source", applyDodge: false)
+        _ = context.applyDamage(5, to: target, damageKeyword: .freeze, sourceActorID: "source", applyDodge: false)
+
+        let stunMeter = context.roster.activeEffects(for: target).first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .stun && amount == 3
+        }
+        let freezeMeter = context.roster.activeEffects(for: target).first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .freeze && amount == 5
+        }
+        XCTAssertNotNil(stunMeter)
+        XCTAssertNotNil(freezeMeter)
     }
 
     // MARK: - DoT damage

@@ -12,7 +12,7 @@ package enum ControlMeterEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        if context.roster.hasPendingActionSkip(for: combatant) { return [] }
+        if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) { return [] }
 
         let threshold = preventionThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)

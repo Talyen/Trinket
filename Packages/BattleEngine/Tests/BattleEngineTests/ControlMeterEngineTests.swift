@@ -42,7 +42,7 @@ final class ControlMeterEngineTests: XCTestCase {
         XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
     }
 
-    func testApplyBuildupNoDuplicateWhenStunFreezePending() {
+    func testApplyBuildupNoDuplicateWhenSameKeywordSkipPending() {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
@@ -57,6 +57,46 @@ final class ControlMeterEngineTests: XCTestCase {
             in: &context
         )
         XCTAssertTrue(events.isEmpty)
+    }
+
+    func testApplyBuildupAccumulatesOtherKeywordWhileSkipPending() {
+        var context = makeContext(
+            targetEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+            ],
+            seed: 0
+        )
+        let target = context.roster.enemy.combatant
+
+        let events = ControlMeterEngine.applyMeterCharge(
+            3,
+            keyword: .freeze,
+            to: target,
+            sourceActorID: "source",
+            in: &context
+        )
+
+        XCTAssertTrue(events.isEmpty)
+        let freezeMeter = context.roster.activeEffects(for: target).first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .freeze && amount == 3
+        }
+        XCTAssertNotNil(freezeMeter)
+        XCTAssertTrue(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        XCTAssertFalse(context.roster.hasPendingActionSkip(for: target, keyword: .freeze))
+    }
+
+    func testStunAndFreezeMetersCoexistOnSameTarget() {
+        let context = makeContext(
+            targetEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTicks: 0),
+                ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTicks: 0)
+            ],
+            seed: 0
+        )
+        let target = context.roster.enemy.combatant
+        let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
+        XCTAssertEqual(meters.count, 2)
     }
 
     func testContextPreventionDelegatesToControlMeterEngine() {
