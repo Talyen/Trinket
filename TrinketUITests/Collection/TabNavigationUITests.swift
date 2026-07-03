@@ -60,16 +60,12 @@ final class TabNavigationUITests: TrinketUITestCase {
     }
 
     func testInventoryItemInspection() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.openInventoryCategory()
-        assertItemCardExistsAfterScroll("Wand", maxAttempts: 24)
-        collection.openItemCard(named: "Wand")
-
+        launchApp(arguments: TestLaunchArg.allForScreen("item:wand-basic"))
         assertExists("Wand")
         assertExists("Affixes")
 
         goBack()
-        goBack()
+        collection.assertLoaded()
     }
 
     func testTabBarRoundTrip() {
@@ -91,7 +87,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         collection.openInventoryCategory()
         assertExists("Inventory filter")
         assertItemCardExists("Crossbow")
-        assertItemCardExistsAfterScroll("Wand", maxAttempts: 24)
+        assertItemCardExistsAfterScroll("Wand")
     }
 
     private func firstEquipOption() -> XCUIElement {

@@ -17,6 +17,10 @@ enum TestLaunchArg {
         ["-completed-stages", stageIDs.joined(separator: ",")]
     }
 
+    static func mapScrollTarget(_ targetID: String) -> [String] {
+        ["-map-scroll-target", targetID]
+    }
+
     static func allForTab(_ tab: String, reset: Bool = true) -> [String] {
         var args = reset ? testLaunchArgs : []
         args.append(contentsOf: ["-selectedTab", tab])
@@ -107,7 +111,7 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertItemCardExistsAfterScroll(_ itemName: String, maxAttempts: Int = 16, file: StaticString = #file, line: UInt = #line) {
+    func assertItemCardExistsAfterScroll(_ itemName: String, maxAttempts: Int = 8, file: StaticString = #file, line: UInt = #line) {
         let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
         scrollUntilVisible(card, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
         guard card.exists else {
@@ -123,7 +127,7 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 12, file: StaticString = #file, line: UInt = #line) {
+    func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 6, file: StaticString = #file, line: UInt = #line) {
         let element = app.descendants(matching: .any)[identifier]
         scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
         guard element.exists else {
@@ -142,21 +146,34 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, maxAttempts: Int = 8, file _: StaticString = #file, line _: UInt = #line) {
+    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, maxAttempts: Int = 6, file _: StaticString = #file, line _: UInt = #line) {
         for _ in 0 ..< maxAttempts where !element.exists {
             if swipingUp {
-                dragInDetailList(fromY: 0.84, toY: 0.62)
+                dragScroll(fromY: 0.90, toY: 0.35)
             } else {
-                dragInDetailList(fromY: 0.62, toY: 0.84)
+                dragScroll(fromY: 0.35, toY: 0.90)
             }
-            _ = element.waitForExistence(timeout: 0.25)
+            _ = element.waitForExistence(timeout: 0.15)
         }
     }
 
-    private func dragInDetailList(fromY: CGFloat, toY: CGFloat) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
-        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
+    private func scrollContainer() -> XCUIElement {
+        let playScreen = app.descendants(matching: .any)[AccessibilityID.Screen.play]
+        if playScreen.exists {
+            return playScreen
+        }
+        return app
+    }
+
+    private func dragScroll(fromY: CGFloat, toY: CGFloat) {
+        let container = scrollContainer()
+        let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
+        let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
         start.press(forDuration: 0.05, thenDragTo: end)
+    }
+
+    private func dragInDetailList(fromY: CGFloat, toY: CGFloat) {
+        dragScroll(fromY: fromY, toY: toY)
     }
 
     func dismissSheet() {

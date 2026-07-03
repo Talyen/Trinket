@@ -129,7 +129,7 @@ elif [[ "$MODE" == "smoke" ]]; then
   else
     echo "Running UI smoke tests via Smoke test plan..."
   fi
-  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-2}"
+  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-3}"
   ensure_simulator_pool "$UI_PARALLEL_WORKERS"
   PARALLEL_FLAGS=(
     -parallel-testing-enabled YES
@@ -150,7 +150,7 @@ elif [[ "$MODE" == "ui" ]]; then
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-2}"
+  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-3}"
   ensure_simulator_pool "$UI_PARALLEL_WORKERS"
   PARALLEL_FLAGS=(
     -parallel-testing-enabled YES

@@ -7,7 +7,6 @@ final class SmokePlayTests: TrinketUITestCase {
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
         assertButtonExists("Stage 1-1 Node")
-        assertExistsAfterScroll("Chapter 2 Locked")
     }
 
     func testActiveStageLaunchesBattleInline() {

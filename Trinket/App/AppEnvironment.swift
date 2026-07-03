@@ -11,6 +11,8 @@ struct AppEnvironment {
     let disableAudio: Bool
     let themeOverride: TrinketDesign.AppTheme?
     let completedStageIDs: [String]
+    /// Scroll target ID for the Play map (`ScrollViewReader` row id), used by UI tests.
+    let mapScrollTarget: String?
     /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
     let battleTickInterval: TimeInterval?
 
@@ -26,6 +28,7 @@ struct AppEnvironment {
         disableAudio: Bool,
         themeOverride: TrinketDesign.AppTheme?,
         completedStageIDs: [String],
+        mapScrollTarget: String?,
         battleTickInterval: TimeInterval?
     ) {
         self.launchTab = launchTab
@@ -36,6 +39,7 @@ struct AppEnvironment {
         self.disableAudio = disableAudio
         self.themeOverride = themeOverride
         self.completedStageIDs = completedStageIDs
+        self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
     }
 
@@ -58,6 +62,7 @@ struct AppEnvironment {
             disableAudio: arguments.contains("-disable-audio") || isRunningTests,
             themeOverride: themeOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
+            mapScrollTarget: mapScrollTarget(from: arguments),
             battleTickInterval: battleTickInterval(from: arguments, isRunningTests: isRunningTests)
         )
     }
@@ -107,6 +112,14 @@ struct AppEnvironment {
             .split(separator: ",")
             .map(String.init)
             .filter { !$0.isEmpty }
+    }
+
+    private static func mapScrollTarget(from arguments: [String]) -> String? {
+        guard let idx = arguments.firstIndex(of: "-map-scroll-target"),
+              arguments.indices.contains(idx + 1)
+        else { return nil }
+        let target = arguments[idx + 1]
+        return target.isEmpty ? nil : target
     }
 
     private static func battleTickInterval(

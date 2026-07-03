@@ -20,11 +20,14 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertCombatantDetailSections()
         dismissSheet()
 
+        assertButtonExists("Battle Pause Button")
+
         tabBar.selectCollection()
         assertExists("Knight collection card")
         tabBar.selectPlay()
 
-        assertExists("Victory", timeout: 15)
+        assertButtonExists("Battle Pause Button", timeout: 3)
+        assertExists("Victory", timeout: 5)
 
         assertExists("Experience")
         assertExists("Rewards")

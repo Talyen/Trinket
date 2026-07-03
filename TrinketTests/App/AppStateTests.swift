@@ -169,6 +169,13 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.journey.current, .initial)
     }
 
+    func testMapScrollTargetLaunchArgRequestsPlayMapScroll() {
+        let state = makeAppState(
+            environment: makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
+        )
+        XCTAssertEqual(state.journey.mapScrollRequest?.targetID, "chapter-gate-placeholder-2")
+    }
+
     func testCompleteStageUpdatesStoresAndRequestsMapScroll() throws {
         let state = makeAppState(environment: makeEnvironment())
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)

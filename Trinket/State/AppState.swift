@@ -61,6 +61,9 @@ final class AppState {
             self?.battle.endBattle()
         }
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
+        if let mapScrollTarget = env.mapScrollTarget {
+            journey.requestMapScroll(to: mapScrollTarget)
+        }
         applyLaunchScreenActions(environment: env)
     }
 

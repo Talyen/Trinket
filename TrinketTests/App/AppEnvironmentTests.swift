@@ -141,6 +141,16 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertEqual(env.completedStageIDs, ["chapter-1-stage-1", "chapter-1-stage-2"])
     }
 
+    func testMapScrollTargetParsesTargetID() {
+        let env = parse(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
+        XCTAssertEqual(env.mapScrollTarget, "chapter-gate-placeholder-2")
+    }
+
+    func testMapScrollTargetRejectsEmptyValue() {
+        let env = parse(arguments: ["-map-scroll-target", ""])
+        XCTAssertNil(env.mapScrollTarget)
+    }
+
     func testNoFlagsYieldsDefaultEnvironment() {
         let env = parse(arguments: [])
 
@@ -152,6 +162,7 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(env.disableAudio)
         XCTAssertNil(env.themeOverride)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
+        XCTAssertNil(env.mapScrollTarget)
         XCTAssertNil(env.battleTickInterval)
     }
 
