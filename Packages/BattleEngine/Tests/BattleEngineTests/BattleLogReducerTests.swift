@@ -169,4 +169,40 @@ final class BattleLogReducerTests: XCTestCase {
         let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
         XCTAssertEqual(firstBatch + secondBatch, full)
     }
+
+    func testLogProjectionIncrementalSyncMatchesFullReduce() {
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20, abilities: [])
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        let events = [
+            ActionEvent(
+                id: 1,
+                kind: .milestone,
+                actorName: "",
+                abilityName: "",
+                targetID: enemy.id,
+                targetName: enemy.name,
+                amount: 0,
+                keyword: .physical,
+                milestone: .battleStarted
+            ),
+            ActionEvent(
+                id: 2,
+                kind: .ability,
+                actorName: "Hero",
+                abilityName: "Slash",
+                targetID: enemy.id,
+                targetName: enemy.name,
+                amount: 3,
+                keyword: .physical
+            )
+        ]
+
+        var projection = BattleLogProjection()
+        projection.sync(events: [events[0]], matchup: matchup)
+        projection.sync(events: events, matchup: matchup)
+
+        XCTAssertEqual(projection.entries, BattleLogProjection.entries(from: events, matchup: matchup))
+    }
 }

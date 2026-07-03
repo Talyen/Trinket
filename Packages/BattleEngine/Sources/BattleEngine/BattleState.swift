@@ -14,7 +14,7 @@ import TrinketContent
 ///   `effectSummaries(of:)`
 /// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`,
 ///   `rngSeed`
-/// - Derived: `log`
+/// - Derived: `log` (empty when `tracksLog` is `false`)
 /// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
 ///   `isPartyDefeated`, `isBattleOver`
 /// - AI helper: `enemyAttackTarget`
@@ -32,10 +32,11 @@ import TrinketContent
 /// **Internal:**
 /// - All mutable battle state lives in `BattleMutableStore` (`store`), mutated
 ///   in place by rule engines during each step
+/// - Optional `BattleLogProjection` holds the cached combat log when
+///   `tracksLog` is enabled
 /// - Turn orchestration lives in `BattleLoopEngine`
 /// - Effect application rules live on the `BattleEffectHandler` structs in
 ///   `EffectHandlers.swift`
-/// - Combat log lines are derived from the event stream by `BattleLogReducer`
 public struct BattleState {
     public let hero: Combatant
     public let pet: Combatant
@@ -44,15 +45,13 @@ public struct BattleState {
     /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
     public let rngSeed: UInt64
 
+    /// When `false`, no log cache is allocated or updated during the battle.
+    public let tracksLog: Bool
+
     /// All mutable battle state. Rule engines mutate this in place each step.
     var store: BattleMutableStore
 
-    /// Cached combat log. Rebuilt incrementally after mutations; callers that
-    /// defer rebuilds should call `syncLog()` before reading.
-    public private(set) var log: [LogEntry] = []
-
-    /// Number of trailing `events` already reflected in `log`.
-    private var loggedEventCount: Int = 0
+    private var logProjection: BattleLogProjection?
 
     public static let defaultRNGSeed: UInt64 = 0
 
@@ -66,12 +65,14 @@ public struct BattleState {
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
         petModifiers: CombatModifierProfile = .zero,
-        rngSeed: UInt64? = nil
+        rngSeed: UInt64? = nil,
+        tracksLog: Bool = true
     ) {
         self.hero = hero
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.enemy = resolvedEnemy
+        self.tracksLog = tracksLog
 
         let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
         self.rngSeed = seed
@@ -90,7 +91,12 @@ public struct BattleState {
         )
 
         _ = store.appendMilestone(.battleStarted, matchup: matchup)
-        rebuildLogFromScratch()
+
+        if tracksLog {
+            var projection = BattleLogProjection()
+            projection.sync(events: store.events, matchup: matchup)
+            logProjection = projection
+        }
     }
 
     // MARK: - Global mutable state (read-through from store)
@@ -109,6 +115,11 @@ public struct BattleState {
 
     public var gold: Int {
         store.gold
+    }
+
+    /// Cached combat log when `tracksLog` is `true`; otherwise empty.
+    public var log: [LogEntry] {
+        logProjection?.entries ?? []
     }
 
     // MARK: - Per-combatant state accessors
@@ -181,7 +192,8 @@ public struct BattleState {
 
     // MARK: - Engine context
 
-    /// Runs `body` against the battle store in place, then refreshes the log.
+    /// Runs `body` against the battle store in place, then refreshes the log
+    /// when `tracksLog` is enabled.
     package mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
         let result = try body(&store)
         finishMutation(rebuildLog: true)
@@ -241,35 +253,15 @@ public struct BattleState {
         return step
     }
 
-    /// Brings `log` in sync with `events`. No-op when already current.
+    /// Brings `log` in sync with `events` when `tracksLog` is enabled.
     public mutating func syncLog() {
-        appendLogEntries()
+        let currentMatchup = matchup
+        logProjection?.sync(events: store.events, matchup: currentMatchup)
     }
 
     private mutating func finishMutation(rebuildLog: Bool) {
-        if rebuildLog {
-            appendLogEntries()
-        }
-    }
-
-    private mutating func appendLogEntries() {
-        guard loggedEventCount < store.events.count else {
-            if loggedEventCount > store.events.count {
-                rebuildLogFromScratch()
-            }
-            return
-        }
-
-        log.append(contentsOf: BattleLogReducer.entries(
-            from: store.events,
-            startingAt: loggedEventCount,
-            matchup: matchup
-        ))
-        loggedEventCount = store.events.count
-    }
-
-    private mutating func rebuildLogFromScratch() {
-        log = BattleLogReducer.entries(from: store.events, matchup: matchup)
-        loggedEventCount = store.events.count
+        guard rebuildLog, tracksLog else { return }
+        let currentMatchup = matchup
+        logProjection?.sync(events: store.events, matchup: currentMatchup)
     }
 }

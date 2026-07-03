@@ -71,8 +71,15 @@ public enum BattleSimulator {
         _ matchup: BattleMatchup,
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> BattleSimulationResult {
-        run(
-            BattleState(hero: matchup.hero, pet: matchup.pet, enemy: matchup.enemy, rngSeed: options.seed),
+        let useIncrementalLog = options.recordsLog && options.rebuildLogEachStep
+        return run(
+            BattleState(
+                hero: matchup.hero,
+                pet: matchup.pet,
+                enemy: matchup.enemy,
+                rngSeed: options.seed,
+                tracksLog: useIncrementalLog
+            ),
             options: options
         )
     }
@@ -89,20 +96,27 @@ public enum BattleSimulator {
         var capturedEvents: [ActionEvent] = []
         var metricsAccumulator = BattleSimulationMetricsAccumulator()
         let tickLimit = options.resolvedMaxTicks
+        let useIncrementalLog = options.recordsLog && options.rebuildLogEachStep
 
         while !battle.isBattleOver, battle.tickCount < tickLimit {
-            let tickEvents = battle.advanceOneStep(rebuildLog: options.rebuildLogEachStep).events
+            let tickEvents = battle.advanceOneStep(rebuildLog: useIncrementalLog).events
             metricsAccumulator.record(tickEvents)
             if options.recordsEvents {
                 capturedEvents.append(contentsOf: tickEvents)
             }
         }
 
+        let capturedLog: [LogEntry]
         if options.recordsLog {
-            battle.syncLog()
+            if useIncrementalLog {
+                battle.syncLog()
+                capturedLog = battle.log
+            } else {
+                capturedLog = BattleLogProjection.entries(from: battle.events, matchup: battle.matchup)
+            }
+        } else {
+            capturedLog = []
         }
-
-        let capturedLog = options.recordsLog ? battle.log : []
         let outcome: BattleSimulationOutcome
         if battle.isEnemyDefeated {
             outcome = .victory

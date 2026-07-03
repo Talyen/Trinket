@@ -9,7 +9,9 @@ public struct BattleSimulationOptions: Equatable {
     public let recordsEvents: Bool
     public let recordsLog: Bool
     /// When `false` (default), `BattleSimulator` skips per-tick log rebuilds and
-    /// syncs the log once at the end when `recordsLog` is `true`.
+    /// reduces the log once at the end from `events` when `recordsLog` is `true`.
+    /// When `true`, an incremental `BattleLogProjection` is maintained on
+    /// `BattleState` during the run.
     public let rebuildLogEachStep: Bool
 
     public init(
