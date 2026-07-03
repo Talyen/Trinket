@@ -1,5 +1,5 @@
 import SwiftUI
-import BattleEngine
+import TrinketCore
 
 public struct ExperienceBar: View {
     public let combatantName: String

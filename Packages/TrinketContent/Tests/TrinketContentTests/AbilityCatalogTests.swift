@@ -90,6 +90,16 @@ final class AbilityCatalogTests: XCTestCase {
         }
     }
 
+    func testAbilityUsesGeneratedDescription() {
+        let ability = Ability.rayOfFrost
+        XCTAssertEqual(ability.summary, "Deal 1 Freeze damage.")
+    }
+
+    func testAbilityHealHasNoDamage() {
+        XCTAssertEqual(Ability.heal.summary, "Restore 3 Health.")
+        XCTAssertEqual(Ability.heal.directDamage, 0)
+    }
+
     func testDescriptionOverridesAreAllowlisted() {
         for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
             XCTAssertTrue(

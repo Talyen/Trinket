@@ -12,7 +12,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Planned local Swift packages: see `Docs/Architecture.md`.
 - Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
 - Codebase: `App/` · `Features/` · `Battle/` · `State/` · `Models/` · `Content/` · `Shared/` · `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence,TrinketDesignSystem}/` · `TrinketTests/` · `TrinketUITests/`.
-- Generated: `Trinket/Generated/*` (art/music), `Packages/TrinketContent/.../Generated/*` (catalogs) — edit manifests, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`, `Docs/Architecture.md`). Shared domain types: `Packages/TrinketCore/`. `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Generated: `Trinket/Generated/*` (art/music), `Packages/TrinketContent/.../Generated/*` (catalogs) — edit manifests, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`, `Docs/Architecture.md`). Shared domain types: `Packages/TrinketCore/` (`CombatantProgression`, effects, enums). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Battle Module
 
@@ -26,7 +26,7 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles.
+- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine`).
 - Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Packages/TrinketDesignSystem/`.
 
 ## Git Workflow

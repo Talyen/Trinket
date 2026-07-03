@@ -1,11 +1,11 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "TrinketDesignSystem",
     platforms: [
-        .iOS(.v18),
+        .iOS(.v26),
     ],
     products: [
         .library(
@@ -14,12 +14,12 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(path: "../BattleEngine"),
+        .package(path: "../TrinketCore"),
     ],
     targets: [
         .target(
             name: "TrinketDesignSystem",
-            dependencies: ["BattleEngine"],
+            dependencies: ["TrinketCore"],
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
             ]

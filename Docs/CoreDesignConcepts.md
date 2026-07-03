@@ -80,16 +80,16 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 
 ### Battle simulation architecture
 
-Combat rules live in `Trinket/Battle/`. `BattleState.advanceOneStep()` is the single simulation entry point and follows this contract:
+Combat rules live in `Packages/BattleEngine/`. `BattleState.advanceOneStep()` is the single simulation entry point and follows this contract:
 
 1. Increment `tickCount` and run effect ticks for all living combatants in order: enemy, hero, pet.
 2. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
 3. Otherwise pick the next ready actor (at most one acts per step) using roster scheduling rules.
 4. Execute that actor's turn (or consume prevention), append defeat milestones if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
 
-Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleMutationContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
+Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleEngineContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) in `Trinket/Battle/` as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
 
-Regression coverage: `BattleGoldenPathTests` pins deterministic outcomes for fixed matchups with RNG seed `0` via `BattleStateTestFactory`.
+Regression coverage: `BattleGoldenPathTests` in `BattleEngineTests` pins deterministic outcomes for fixed matchups with RNG seed `0` via `BattleStateTestFactory`.
 
 ## Items
 
@@ -111,7 +111,7 @@ Keywords are the shared mechanic vocabulary across cards, abilities, enemies, it
 
 Every Keyword has one universal visual identity. Its color and symbol come from `Keyword.visualStyle` and are reused across inline descriptions, combat feedback, ability cards, item affixes, logs, and detail surfaces. Do not introduce one-off Keyword colors in feature views.
 
-All Keywords are defined in `Trinket/Models/Enums.swift` and their mechanics are wired through the unified `Effect` model (`Trinket/Models/Ability.swift`).
+All Keywords are defined in `Packages/TrinketCore/Sources/TrinketCore/GameEnums.swift`. Keyword colors and SF Symbols for UI live in `Trinket/Models/Enums.swift` (`Keyword.visualStyle`). Mechanics are wired through the unified `Effect` model (`Packages/TrinketContent/Sources/TrinketContent/Ability.swift`).
 
 ### Damage Types (Keyword.category = .damageType)
 

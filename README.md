@@ -28,4 +28,7 @@ brew install xcodegen
 - Agent workflow: `AGENTS.md`
 - Core design concepts: `Docs/CoreDesignConcepts.md`
 - Content pipeline: `Docs/ContentPipeline.md`
+- Art pipeline: `Docs/ArtPipeline.md`
+- Music pipeline: `Docs/MusicPipeline.md`
 - Apple-native guidance: `Docs/AppleNativeGuidelines.md`
+- CloudKit pre-ship checklist: `Docs/CloudKitPreShipChecklist.md`

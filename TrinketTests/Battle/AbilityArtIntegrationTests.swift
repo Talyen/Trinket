@@ -1,7 +1,7 @@
 import XCTest
 @testable import Trinket
 
-final class AbilityCatalogTests: XCTestCase {
+final class AbilityArtIntegrationTests: XCTestCase {
     func testEveryCatalogAbilityHasArt() {
         for ability in AbilityCatalog.all {
             XCTAssertNotNil(

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Add public access to top-level types and their direct members for TrinketCore."""
+"""Add public access to top-level types and their direct members in generated Swift.
+
+Used by generate.sh on TrinketContent generated catalog files so package types are visible to the app.
+"""
 
 from __future__ import annotations
 
