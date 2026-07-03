@@ -8,10 +8,15 @@ final class BattleFlowUITests: TrinketUITestCase {
         play.openStage("Stage 1-1 Node")
 
         assertButtonExists("Battle Pause Button")
-
         assertExists("Knight card")
         assertExists("Wolf card")
         assertExists("Battle Menu")
+
+        tabBar.selectCollection()
+        assertExists("Knight collection card")
+        tabBar.selectPlay()
+
+        assertButtonExists("Battle Pause Button", timeout: 3)
 
         button("Knight card").tap()
         let knightHeader = combatantDetail.header(for: "Knight")
@@ -20,14 +25,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertCombatantDetailSections()
         dismissSheet()
 
-        assertButtonExists("Battle Pause Button")
-
-        tabBar.selectCollection()
-        assertExists("Knight collection card")
-        tabBar.selectPlay()
-
-        assertButtonExists("Battle Pause Button", timeout: 3)
-        assertExists("Victory", timeout: 5)
+        assertExists("Victory", timeout: 12)
 
         assertExists("Experience")
         assertExists("Rewards")

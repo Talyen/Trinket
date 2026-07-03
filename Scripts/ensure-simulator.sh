@@ -134,6 +134,19 @@ destination_for_udid() {
   echo "platform=iOS Simulator,id=$1"
 }
 
+find_simulator_udid_by_name() {
+  xcrun simctl list devices available -j | python3 -c '
+import json, sys
+name = sys.argv[1]
+payload = json.load(sys.stdin)
+for devices in payload.get("devices", {}).values():
+    for device in devices:
+        if device.get("name") == name:
+            print(device.get("udid", ""))
+            raise SystemExit(0)
+' "$1"
+}
+
 verify_simulator_destination() {
   if ! xcrun simctl list devices booted -j | python3 -c '
 import json, sys
@@ -182,7 +195,12 @@ ensure_simulator_pool() {
   for (( index = 2; index <= count; index++ )); do
     local clone_name="Trinket CI ${SIMULATOR_NAME} ${index}"
     local clone_udid
-    clone_udid="$(xcrun simctl clone "$SIMULATOR_UDID" "$clone_name")"
+    clone_udid="$(find_simulator_udid_by_name "$clone_name")"
+    if [[ -z "$clone_udid" ]]; then
+      xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+      clone_udid="$(xcrun simctl clone "$SIMULATOR_UDID" "$clone_name")"
+      boot_simulator_udid "$SIMULATOR_UDID" "$SIMULATOR_NAME"
+    fi
     boot_simulator_udid "$clone_udid" "$clone_name"
     SIMULATOR_POOL_UDIDS+=("$clone_udid")
   done
