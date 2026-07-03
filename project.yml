@@ -8,6 +8,9 @@ fileGroups:
   - Smoke.xctestplan
   - FullUI.xctestplan
   - Integration.xctestplan
+packages:
+  TrinketCore:
+    path: Packages/TrinketCore
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -20,6 +23,8 @@ targets:
       - Trinket
     entitlements:
       path: Trinket/Trinket.entitlements
+    dependencies:
+      - package: TrinketCore
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket

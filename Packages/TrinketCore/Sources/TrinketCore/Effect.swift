@@ -1,6 +1,6 @@
 import Foundation
 
-enum EffectTarget: Hashable {
+public enum EffectTarget: Hashable, Sendable {
     case abilityTarget
     case actor
     case enemy
@@ -8,29 +8,29 @@ enum EffectTarget: Hashable {
     case pet
 }
 
-struct DamageComponent: Hashable {
-    let amount: Int
-    let keyword: Keyword
-    let target: EffectTarget
+public struct DamageComponent: Hashable, Sendable {
+    public let amount: Int
+    public let keyword: Keyword
+    public let target: EffectTarget
 
-    init(_ amount: Int, keyword: Keyword = .physical, target: EffectTarget = .abilityTarget) {
+    public init(_ amount: Int, keyword: Keyword = .physical, target: EffectTarget = .abilityTarget) {
         self.amount = amount
         self.keyword = keyword
         self.target = target
     }
 }
 
-struct TargetedEffect: Hashable {
-    let effect: Effect
-    let target: EffectTarget
+public struct TargetedEffect: Hashable, Sendable {
+    public let effect: Effect
+    public let target: EffectTarget
 
-    init(_ effect: Effect, target: EffectTarget? = nil) {
+    public init(_ effect: Effect, target: EffectTarget? = nil) {
         self.effect = effect
         self.target = target ?? Effect.defaultTarget(for: effect)
     }
 }
 
-enum Effect: Hashable {
+public enum Effect: Hashable, Sendable {
     case burn(Int)
     case poison(Int)
     case bleed(Int)
@@ -48,12 +48,12 @@ enum Effect: Hashable {
     case halveMitigation(Keyword)
     case dodge(Keyword, Int)
 
-    static let bleedDoTTickCount = 3
-    static let standardLeechPercent = 0.10
-    static let standardLeechDuration = 6
-    static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
+    public static let bleedDoTTickCount = 3
+    public static let standardLeechPercent = 0.10
+    public static let standardLeechDuration = 6
+    public static let standardLeechBuff = Effect.leech(.leech, standardLeechPercent, standardLeechDuration)
 
-    var keyword: Keyword {
+    public var keyword: Keyword {
         switch self {
         case .burn: return .burn
         case .poison: return .poison
@@ -74,14 +74,14 @@ enum Effect: Hashable {
         }
     }
 
-    var potency: Int? {
+    public var potency: Int? {
         switch self {
         case let .burn(p), let .poison(p), let .bleed(p): return p
         default: return nil
         }
     }
 
-    var durationTicks: Int {
+    public var durationTicks: Int {
         switch self {
         case .bleed: return Self.bleedDoTTickCount
         case let .prevention(_, d): return d
@@ -94,7 +94,7 @@ enum Effect: Hashable {
         }
     }
 
-    func potencyAfterTick() -> Int {
+    public func potencyAfterTick() -> Int {
         switch self {
         case let .burn(potency):
             return potency / 2
@@ -106,11 +106,11 @@ enum Effect: Hashable {
         }
     }
 
-    var summary: String {
+    public var summary: String {
         EffectPresentation.applyPhrase(for: self)
     }
 
-    static func defaultTarget(for effect: Effect) -> EffectTarget {
+    public static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .prevention, .preventionBuildup, .halveMitigation, .purge, .purgeRandom:
             return .abilityTarget

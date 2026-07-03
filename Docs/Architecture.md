@@ -76,7 +76,7 @@ Trinket app          Features, State stores, App shell
 Migration phases:
 
 1. **Phase 0** — codegen orchestration + CI drift check (done)
-2. **Phase 1** — `TrinketCore` package
+2. **Phase 1** — `TrinketCore` package with leaf types: effects, enums, `PrimaryStats` (done)
 3. **Phase 2** — `TrinketContent` package
 4. **Phase 3** — `BattleEngine` package
 5. **Phase 4** — `TrinketPersistence` package

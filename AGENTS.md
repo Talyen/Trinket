@@ -12,7 +12,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Planned local Swift packages: see `Docs/Architecture.md`.
 - Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
 - Codebase: `App/` · `Features/` · `Battle/` · `State/` stores · `Models/` · `Content/GameContent.swift` · `DesignSystem/TrinketDesign` · `Shared/` · `TrinketTests/` · `TrinketUITests/Smoke/` + `{Collection,Battle,Search}/`.
-- Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). Game content: `ContentManifest/*.tsv`, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). Game content: `ContentManifest/*.tsv`, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`). Shared domain types: `Packages/TrinketCore/` (`Docs/Architecture.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Battle Module
 
@@ -58,7 +58,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 |--------|-------|
 | One-screen layout | `build.sh` or `run-simulator.sh` |
 | Styling | `check-ui-style.sh` + smoke |
-| Rules/models | `test.sh unit <Tests>` |
+| Rules/models | `test.sh unit <Tests>`; package leaf types also run `TrinketCore` tests in full unit mode |
 | Multi-step UI | `test-iterate.sh <SmokeClass> [ExhaustiveClass]` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |

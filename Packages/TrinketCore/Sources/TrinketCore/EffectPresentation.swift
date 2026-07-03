@@ -2,8 +2,8 @@ import Foundation
 
 /// Player-facing phrasing for `Effect` and `ActiveEffect`. Shared by battle
 /// logs, ability description generation, and combat HUD summaries.
-enum EffectPresentation {
-    static func applyPhrase(for effect: Effect) -> String {
+public enum EffectPresentation {
+    public static func applyPhrase(for effect: Effect) -> String {
         if let phrase = dotPhrase(for: effect) { return phrase }
         if let phrase = preventionPhrase(for: effect) { return phrase }
         if let phrase = defensivePhrase(for: effect) { return phrase }
@@ -15,7 +15,7 @@ enum EffectPresentation {
         return effect.keyword.rawValue
     }
 
-    static func activePhrase(for active: ActiveEffect) -> String {
+    public static func activePhrase(for active: ActiveEffect) -> String {
         switch active.effect {
         case .burn, .poison:
             return active.effect.keyword.statusAlias ?? active.effect.keyword.rawValue
