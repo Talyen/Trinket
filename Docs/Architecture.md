@@ -79,7 +79,7 @@ Migration phases:
 2. **Phase 1** — `TrinketCore` package with leaf types: effects, enums, `PrimaryStats` (done)
 3. **Phase 2** — `TrinketContent` package (done)
 4. **Phase 3** — `BattleEngine` package (done)
-5. **Phase 4** — `TrinketPersistence` package
+5. **Phase 4** — `TrinketPersistence` package (done)
 6. **Phase 5** — thin app target, optional `TrinketDesignSystem` package
 
 ## Tech stack

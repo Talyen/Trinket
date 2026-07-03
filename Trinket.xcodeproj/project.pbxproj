@@ -10,10 +10,7 @@
 		0099D46E2CE32DB0E3670FC2 /* BattleCombatantPaneConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170DFDDAC55AE477B12AED1D /* BattleCombatantPaneConfiguration.swift */; };
 		010F758C15B696B1E5717775 /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA87EC3B0C9293474F1FC7C /* AccessibilityID.swift */; };
 		02AAAD991B78041CB47A3C92 /* BattlefieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACECAC19EA46BA5F74A98260 /* BattlefieldView.swift */; };
-		037CC6DD35987E1069EC8E30 /* CloudKitPlayerSaveSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016D85608EE4392958B395C9 /* CloudKitPlayerSaveSync.swift */; };
 		04BA2F361BBC978B87818C72 /* PartyPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AECD5201167B93A91DFF3C /* PartyPickerSheet.swift */; };
-		06E17087A91341F1394BEBD2 /* CombatBuildResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A27C2AD04E7B31E6D84823D4 /* CombatBuildResolver.swift */; };
-		0AC82612ECBE21174731AC5C /* PlayerSaveStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3059A4513D7515F092DA04DA /* PlayerSaveStore.swift */; };
 		0B90A40C6529B95C49576E45 /* JourneyContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5EA88828F72B5DA0CA525F /* JourneyContentTests.swift */; };
 		0C7478BD13001EE5776CA0B9 /* SmokeHomesteadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEA7AE5353DEE78521FEBA1 /* SmokeHomesteadTests.swift */; };
 		0FB570DC2519949443867F27 /* CombatantHealthDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */; };
@@ -42,7 +39,6 @@
 		31254003BDFA01AAF1EDB152 /* ExperienceBarSegmentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7305773ADC230EBA65FB0A0 /* ExperienceBarSegmentsTests.swift */; };
 		321A804788F927C6DEAC7818 /* SmokePetDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFBF7F4964275F65032A08C /* SmokePetDetailTests.swift */; };
 		32362F66CA73B5080AC3A144 /* VisibleStageDeckTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D085E43AD59B3FC98C0630 /* VisibleStageDeckTests.swift */; };
-		326BDC36B29C8CEA8D5B4944 /* PlayerSaveSanitizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A070826715C7CAD963F7C900 /* PlayerSaveSanitizerTests.swift */; };
 		3300AE189FC1CA8B733509D2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4F5008156859F661347AEE /* AppEnvironment.swift */; };
 		34B0ABD5A43422308E908004 /* EffectModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036D108B8D8714857531934 /* EffectModelTests.swift */; };
 		37ADF903F66DB79B67268CC5 /* Combatant+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5805216343957A2362D33700 /* Combatant+Presentation.swift */; };
@@ -53,12 +49,9 @@
 		3E7AC8926624B847BBA703C1 /* StageCompletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8CABFB14B1AB535F450557 /* StageCompletion.swift */; };
 		41160DA084928326881122F0 /* PlayerRosterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DFB68E089F941D1CD8FEEE /* PlayerRosterTests.swift */; };
 		41315E737AFF76DE38FBA3EB /* MusicCatalog.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CA053284B3CEE39DEE9819 /* MusicCatalog.generated.swift */; };
-		42A588B79BD53D41FAF692D3 /* SavedEffectRoundtripTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64ED3F56EC6B7BDEA6E9ABA3 /* SavedEffectRoundtripTests.swift */; };
-		46475D2E1895CC8D41AF7DE7 /* PlayerSaveSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001383C7F83FE8437683AD2A /* PlayerSaveSanitizer.swift */; };
 		46D850D4CBA7CA0E05A9A237 /* StagePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965C8343B75FCDB5155909B3 /* StagePreviewSheet.swift */; };
 		4ACF897AFAF896D2C6008C89 /* GameContentChapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADB5AB0775903BD1525551FA /* GameContentChapters.swift */; };
 		4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F878C46477AE9CD0197CFD8 /* AppStateTests.swift */; };
-		4B8F75949757B5293FC90A9A /* PlayerSaveStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FFB560DF2BEC4AE154564E0 /* PlayerSaveStoreTests.swift */; };
 		4C2EF603B37BAF4632847C75 /* BattleVictorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2336A6145BC2BF1C5EEE6072 /* BattleVictorySummary.swift */; };
 		4DF6741EDD1CB7A57E01A54F /* PartySelectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6B8D81DBCFF39E96D0052D /* PartySelectionCard.swift */; };
 		4F1258B26C57EFD186440E52 /* HomesteadViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7D5F6F28EFC5DEBC3660D4 /* HomesteadViewComponents.swift */; };
@@ -70,15 +63,14 @@
 		5B18A0250A2237D41BE2D297 /* PlaceholderTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F4ECC4FED5B8FAF1266863 /* PlaceholderTabView.swift */; };
 		5C9A202736053647F011A2A4 /* music_boss_blight_treant.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F11B241CDB6DAA90DC7E1311 /* music_boss_blight_treant.m4a */; };
 		5D4D429EE0126AA1B9CFFEBD /* CombatantCollectionDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */; };
-		5E6F34A79043BE52BCAB194B /* PlayerSaveFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA07D03CFF5D5ABED8B5894 /* PlayerSaveFileStore.swift */; };
 		5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51450F5568FC102C62BE459D /* BattleFlowUITests.swift */; };
 		5FFDA92BAF3539D0427E04CE /* HeroHeaderLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DDBE5745A194C412DB428CB /* HeroHeaderLayout.swift */; };
 		603EA1FAA71B279DCBC53493 /* MotionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 288A748C54E56F2D989F5B93 /* MotionObserver.swift */; };
 		62BBFCDC2D75667482B9AEB9 /* AccessibilityID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5B278493C828E4924FA9CB /* AccessibilityID.swift */; };
 		62E49A7F4C1F31EF94AB40ED /* CombatantArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BF8380DB16DE532A84024C /* CombatantArtwork.swift */; };
-		66011609C3194A5920ADF322 /* SavedEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D15D0BBE17B8209C0E1D04 /* SavedEffect.swift */; };
 		6828CEEBA77131DE9D7E7285 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCF85128AEC8577B0356E0 /* MusicPlayer.swift */; };
 		68C6149D397A3A8CB2E8DD8C /* SeededSmokeUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97CFA403CAB65BEDDFB53419 /* SeededSmokeUITestCase.swift */; };
+		6938B1F5CE207A7240BE8EC8 /* PlayerSaveSyncFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4A635D00A797C551B2A954 /* PlayerSaveSyncFactory.swift */; };
 		6B97532274EC43EB00106F19 /* VisibleStageDeck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5099A8318459CE0E56816E1A /* VisibleStageDeck.swift */; };
 		6BCB5220378B08D2C2A0F9F3 /* ActiveBattleConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D7159B5F1DC16EA97A4203 /* ActiveBattleConfigurationTests.swift */; };
 		6EE46B612F3E5A1AD54A72C9 /* CollectionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB61792D31788FD010058036 /* CollectionScreen.swift */; };
@@ -91,20 +83,18 @@
 		715AF42073745528AF1D93BA /* ItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86390BDE7F14CD4871091E4 /* ItemViews.swift */; };
 		716872C35EDD8C442DC523BD /* EquipmentSlotSummaryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DB18CAC8448AE724D5B9BE /* EquipmentSlotSummaryGrid.swift */; };
 		72509F61E3C2ABC3E205B64E /* AppState+PlayFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DDA8245D0AD47A51EA1540 /* AppState+PlayFlow.swift */; };
-		733B2552B0C049DC60F3A14B /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86BB382C7061493015E04850 /* PlayerState.swift */; };
 		74B5D8902C7B3F0E7447C14D /* CombatantDetailScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995B414B0298C290059A9D2D /* CombatantDetailScreen.swift */; };
 		75B44F912E9C43C1D86F3235 /* SmokeSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B564718B8D5A2471C70B61 /* SmokeSearchTests.swift */; };
 		76E82C01E9E1D8478547C4D3 /* AppTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E45F04BF076FEE8AF6123D /* AppTypes.swift */; };
 		7D80BCFC09295EAE8FD68FF4 /* music_menu_4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 16F1DBD9A4B0ED28C9E417B1 /* music_menu_4.m4a */; };
-		80AE6D28568A64FE32F1DB05 /* SavedPlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4012A1AE6C63CE8396809643 /* SavedPlayerState.swift */; };
+		7EAD7CF438EC6C68083837F8 /* PlayerInventoryState+Rewards.swift in Sources */ = {isa = PBXBuildFile; fileRef = B78CA1973F4C8E8D28446808 /* PlayerInventoryState+Rewards.swift */; };
 		830967275671E8392944E92D /* music_menu_2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 714E26B9A8CB07A3165594C8 /* music_menu_2.m4a */; };
 		832F4F613E5492807C8B5D84 /* EnemyCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14019B868280979361212BB9 /* EnemyCatalogTests.swift */; };
-		86AC6EC358108CF14693CBCB /* PlayerSaveSyncStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C181884BF9DE72277CF133D3 /* PlayerSaveSyncStatus.swift */; };
 		882C6A0590573296F80AA095 /* AbilityBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F243AEFAC2569F9ADA4D25AC /* AbilityBuilderTests.swift */; };
-		8D85CF63EFB5707D87D4EBE1 /* PlayerSaveReconcilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FADE52B6934F24A407CABB /* PlayerSaveReconcilerTests.swift */; };
 		8F4B05322F9DA9D389DDC505 /* music_battle_3.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A036509514F16E54AF1B8F5E /* music_battle_3.m4a */; };
 		96E51495701F82082C0C1F44 /* SmokeCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE0DB7E80868E33B5F827DB /* SmokeCollectionTests.swift */; };
 		97CC981C9842EDA07152AA3A /* MusicDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C55218B0202C07C8ADF98E68 /* MusicDirectorTests.swift */; };
+		984598EB5CC911953BC4F96F /* TrinketPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 9658964970EAA7409EF39951 /* TrinketPersistence */; };
 		9880306A28B13BDE77B68F20 /* TrinketUITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A78D4906737C37A4BF10D10 /* TrinketUITestCase.swift */; };
 		9A68CE31C44BB16EC7E94E51 /* TabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB76EE6F42007AD863D11BF /* TabBar.swift */; };
 		9C8E96DB792798B0B7ED4AC0 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 437D8A973CF02F94F550E1E4 /* SearchView.swift */; };
@@ -121,24 +111,19 @@
 		A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */; };
 		AA99780B3FAE6ACF16BC62FE /* AppTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8318319571E08647A424C82 /* AppTestSupport.swift */; };
 		AABB9B3A57BDA3409E37F833 /* CombatFeedbackOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */; };
-		AB1B4B77DFDD051161492215 /* PlayerSaveReconciler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC96E7654FE5410FCF57F2C /* PlayerSaveReconciler.swift */; };
-		AC98C409B0D78A6AC52F6BA3 /* LocalOnlyPlayerSaveSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */; };
 		AEDD4527F082E7ABA4521B8F /* AbilityCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71B79EAE04A82ABAD865742 /* AbilityCard.swift */; };
 		B47074250012BAA11AF30B24 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23440CC93C6AF578800C827 /* Enums.swift */; };
 		B4962C96EF42788FC7DE308F /* HeroPetCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26520DF143853D0969FAECD /* HeroPetCatalogTests.swift */; };
 		B4C68B2402F5CCE152A80C3C /* Modifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32E33B5B520D1C4ED445063 /* Modifiers.swift */; };
 		B55FDF0B6DB7A601885C431D /* MusicDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899EEFA79785C3120C8C8E1E /* MusicDirector.swift */; };
 		B580C9F53363446FFFFCF4A5 /* CombatantDetailPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E63D000DD0D87BF69B0536A /* CombatantDetailPane.swift */; };
-		B8C20CB1F73F8C11B690C394 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B262CA605CC2AF3BAC40567 /* Item.swift */; };
 		BA8E7EE4C04A26945E262726 /* AppStatePlayFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365F8B4B42A8B4B938E3BDE4 /* AppStatePlayFlowTests.swift */; };
 		BB33F5B0A916F9457D64396D /* music_battle_1.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 6B4E8FD77E55437261556342 /* music_battle_1.m4a */; };
 		BC9C45ECBB823F9356789E87 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32679C1A9BAE8ADE74DBFD34 /* ContentView.swift */; };
 		BD139CD142E1F4873E643191 /* PlayerHomesteadStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A2C1FD0D8858F75471705A /* PlayerHomesteadStoreTests.swift */; };
 		BF3FD3E6C70C44FBCE3768CC /* ActivePartyPickerRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F936A07112C96FCAFFE9A414 /* ActivePartyPickerRow.swift */; };
-		C02A14CACDFA3B55550636F4 /* PlayerSaveSyncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 766CB88EF7942D0B76F2F24B /* PlayerSaveSyncing.swift */; };
 		C0661CA85EC3C684B645087A /* ItemGenerationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A6868CF214763A40480F37 /* ItemGenerationTests.swift */; };
 		C0A4A9DDD830A67EE2F5AFF5 /* AbilitySummaryGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CA1D20B1A35114D2B61598 /* AbilitySummaryGrid.swift */; };
-		C0D4FA8B858D88BB27503F8C /* PlayerSaveSyncCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7EBBA846F540333707272B /* PlayerSaveSyncCoordinatorTests.swift */; };
 		C1F4CBCBC0583157B365468C /* PlayerHomesteadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25C53168EA153CC2D66E45AF /* PlayerHomesteadStore.swift */; };
 		C2448D62FCD528ED4D40A0CE /* SmokeItemDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F61C1802F0278951E5498F2 /* SmokeItemDetailTests.swift */; };
 		C3641E6D85CD25319DE4298B /* StageRewardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E337C436B7698F74EADC51AE /* StageRewardTests.swift */; };
@@ -150,12 +135,9 @@
 		C751A1A56C507A7C2911B53E /* StageMapPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB94796A9D0698D3B96B8BA6 /* StageMapPresentationTests.swift */; };
 		C820A410CB97EB157E421720 /* BattleSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134FD455AF8B0CF13FAC73D6 /* BattleSessionTests.swift */; };
 		C93DE3D1E0914B9890DB7A0B /* HomesteadContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF30F06AC70277058FF91C43 /* HomesteadContent.swift */; };
-		CAADB41295C28813A505AA4B /* PlayerSaveSyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D51B4459EF2745EE7B905B /* PlayerSaveSyncCoordinator.swift */; };
 		CB751728F8372E72384A47F3 /* music_battle_5.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 54EA46B50A26CAD41FEE386A /* music_battle_5.m4a */; };
-		CF3BAF87D71A3FD55660341C /* PlayerSaveMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEEE7C69B927E5A5C87B01B /* PlayerSaveMigrationTests.swift */; };
 		CF563346E449A54767ACC2CC /* HeroHeaderLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D45DDAFB52790838CC4D10 /* HeroHeaderLayoutTests.swift */; };
 		CFCCE468F84DF2E2824BF896 /* ItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F134CA07356C4E6289659328 /* ItemCard.swift */; };
-		D41D0D42FBE5530854CD6F68 /* PlayerSaveFileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDDEAAA72F0F53F0DE9AA8D /* PlayerSaveFileStoreTests.swift */; };
 		D4B6C64A1B6B6815884EDBAD /* SearchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B181BBF9AD2C8734B9A493B1 /* SearchUITests.swift */; };
 		D77DC069021AFAADD69A8460 /* SaveTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5982C25B9D94705EA01E0DB7 /* SaveTestSupport.swift */; };
 		D78954FC66153D11DB8496CE /* BattleSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */; };
@@ -177,10 +159,9 @@
 		E1FE8B99E04AB18290A3B54C /* StageDeckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B167130B59A6ECD095E7A2E /* StageDeckView.swift */; };
 		E2530370A651F30940A0B5A0 /* HomesteadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034695C46CD15DFCE1F06C06 /* HomesteadView.swift */; };
 		E37D76BD50D4DB03EF7B7082 /* JourneyProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE7D6AFF460347CBC1A5DC9 /* JourneyProgressTests.swift */; };
+		E485C7255E37D3B4CB7B32BB /* JourneyProgressState+Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9836C2CE2A7DF35FFD47B6C5 /* JourneyProgressState+Navigation.swift */; };
 		E59EE30587F545217362982A /* music_battle_4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 837744DAF3744FEB7CCC7D33 /* music_battle_4.m4a */; };
 		E74F7746473D291F0B93322F /* ActiveBattleConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B0BF2908CA3AB98FCCE560 /* ActiveBattleConfiguration.swift */; };
-		EC35B35A142514184E036B36 /* PlayerSave.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B865B185E48E642F8C4418E /* PlayerSave.swift */; };
-		ED6F6CE0BB91D552C37C1EE2 /* PlayerSaveMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B99B58146F18E267DC8B1FB /* PlayerSaveMigration.swift */; };
 		EE30D7D59F6902A352FD35F8 /* OptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CEC947E893452FC5D8E2081 /* OptionsView.swift */; };
 		EE6011AE2C0BE69860F552DF /* KeywordDescriptionText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */; };
 		F24A90029F8BE53F83549AD6 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D44FA64302B6ADE8D941F0 /* FlowLayout.swift */; };
@@ -216,15 +197,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		001383C7F83FE8437683AD2A /* PlayerSaveSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSanitizer.swift; sourceTree = "<group>"; };
-		016D85608EE4392958B395C9 /* CloudKitPlayerSaveSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitPlayerSaveSync.swift; sourceTree = "<group>"; };
 		034695C46CD15DFCE1F06C06 /* HomesteadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomesteadView.swift; sourceTree = "<group>"; };
 		070C5D1C2FECD6197CE16AB8 /* SmokeOptionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeOptionsTests.swift; sourceTree = "<group>"; };
 		07B635E95EE5984481402061 /* PlayerJourneyStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerJourneyStoreTests.swift; sourceTree = "<group>"; };
 		07D085E43AD59B3FC98C0630 /* VisibleStageDeckTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibleStageDeckTests.swift; sourceTree = "<group>"; };
-		0B865B185E48E642F8C4418E /* PlayerSave.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSave.swift; sourceTree = "<group>"; };
 		0EE632E24DC0BBC45CF233E6 /* TrinketUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalOnlyPlayerSaveSync.swift; sourceTree = "<group>"; };
 		1294B7CBE5297C6B68FDD675 /* BattleCardGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCardGridLayout.swift; sourceTree = "<group>"; };
 		134FD455AF8B0CF13FAC73D6 /* BattleSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSessionTests.swift; sourceTree = "<group>"; };
 		14019B868280979361212BB9 /* EnemyCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyCatalogTests.swift; sourceTree = "<group>"; };
@@ -235,7 +212,6 @@
 		16FFDB164B876AB1DC8D5470 /* ExperienceBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceBar.swift; sourceTree = "<group>"; };
 		170DFDDAC55AE477B12AED1D /* BattleCombatantPaneConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCombatantPaneConfiguration.swift; sourceTree = "<group>"; };
 		17D44FA64302B6ADE8D941F0 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
-		1B99B58146F18E267DC8B1FB /* PlayerSaveMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveMigration.swift; sourceTree = "<group>"; };
 		1DFAF7B88002D3C5CE8ECC45 /* StagePreviewHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagePreviewHeader.swift; sourceTree = "<group>"; };
 		2038380B9FA35C2B4DB4B598 /* TrinketCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketCore; path = Packages/TrinketCore; sourceTree = SOURCE_ROOT; };
 		2336A6145BC2BF1C5EEE6072 /* BattleVictorySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleVictorySummary.swift; sourceTree = "<group>"; };
@@ -243,12 +219,9 @@
 		25C53168EA153CC2D66E45AF /* PlayerHomesteadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHomesteadStore.swift; sourceTree = "<group>"; };
 		288A748C54E56F2D989F5B93 /* MotionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionObserver.swift; sourceTree = "<group>"; };
 		28B17566A405416D98A55797 /* ArtCatalog.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtCatalog.generated.swift; sourceTree = "<group>"; };
-		2BDDEAAA72F0F53F0DE9AA8D /* PlayerSaveFileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveFileStoreTests.swift; sourceTree = "<group>"; };
 		2E63D000DD0D87BF69B0536A /* CombatantDetailPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailPane.swift; sourceTree = "<group>"; };
 		2E7D5F6F28EFC5DEBC3660D4 /* HomesteadViewComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomesteadViewComponents.swift; sourceTree = "<group>"; };
 		2FD23B6740A3565027D2A103 /* music_boss_forge_golem.m4a */ = {isa = PBXFileReference; path = music_boss_forge_golem.m4a; sourceTree = "<group>"; };
-		2FFB560DF2BEC4AE154564E0 /* PlayerSaveStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveStoreTests.swift; sourceTree = "<group>"; };
-		3059A4513D7515F092DA04DA /* PlayerSaveStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveStore.swift; sourceTree = "<group>"; };
 		30C469B158F06F3016AB05EC /* CombatFeedbackTiming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatFeedbackTiming.swift; sourceTree = "<group>"; };
 		32417F0F57A32E20F5E8DB26 /* CombatantHeroHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantHeroHeader.swift; sourceTree = "<group>"; };
 		32679C1A9BAE8ADE74DBFD34 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -260,15 +233,12 @@
 		3CEC947E893452FC5D8E2081 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
 		3D4DBE9BF333FB476749C1A4 /* OverscrollHeroContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverscrollHeroContainer.swift; sourceTree = "<group>"; };
 		3D8CABFB14B1AB535F450557 /* StageCompletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageCompletion.swift; sourceTree = "<group>"; };
-		4012A1AE6C63CE8396809643 /* SavedPlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPlayerState.swift; sourceTree = "<group>"; };
 		4058BC1CE8ECD030168E8758 /* Integration.xctestplan */ = {isa = PBXFileReference; path = Integration.xctestplan; sourceTree = "<group>"; };
 		41AB631E1E905FE9E0F870FF /* ExportedDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportedDependencies.swift; sourceTree = "<group>"; };
 		429D8A44231746AA8118D5EA /* GameContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContent.swift; sourceTree = "<group>"; };
 		4362E34D0EBFEC0161B41D12 /* PlayerInventoryStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerInventoryStoreTests.swift; sourceTree = "<group>"; };
 		437D8A973CF02F94F550E1E4 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		46AC8420C0B4328F5187B55D /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		49FADE52B6934F24A407CABB /* PlayerSaveReconcilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveReconcilerTests.swift; sourceTree = "<group>"; };
-		4B262CA605CC2AF3BAC40567 /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		4C88A8ED678690BF22A8EE2B /* Trinket.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Trinket.entitlements; sourceTree = "<group>"; };
 		4DDBE5745A194C412DB428CB /* HeroHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroHeaderLayout.swift; sourceTree = "<group>"; };
 		4EEA7AE5353DEE78521FEBA1 /* SmokeHomesteadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeHomesteadTests.swift; sourceTree = "<group>"; };
@@ -282,20 +252,17 @@
 		591A93FAF4E4831728073D5B /* Unit.xctestplan */ = {isa = PBXFileReference; path = Unit.xctestplan; sourceTree = "<group>"; };
 		5982C25B9D94705EA01E0DB7 /* SaveTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveTestSupport.swift; sourceTree = "<group>"; };
 		5A78D4906737C37A4BF10D10 /* TrinketUITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketUITestCase.swift; sourceTree = "<group>"; };
-		5A7EBBA846F540333707272B /* PlayerSaveSyncCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncCoordinatorTests.swift; sourceTree = "<group>"; };
 		5EA87EC3B0C9293474F1FC7C /* AccessibilityID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityID.swift; sourceTree = "<group>"; };
-		60D15D0BBE17B8209C0E1D04 /* SavedEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedEffect.swift; sourceTree = "<group>"; };
 		610A45CC66DECD3D5F2A20D9 /* PlayScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayScreen.swift; sourceTree = "<group>"; };
 		62C1E43650E626C853AF3FA5 /* StageStatusHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageStatusHeader.swift; sourceTree = "<group>"; };
-		64ED3F56EC6B7BDEA6E9ABA3 /* SavedEffectRoundtripTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedEffectRoundtripTests.swift; sourceTree = "<group>"; };
 		689F890BEAFA00EEE0981578 /* SmokeBattleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeBattleTests.swift; sourceTree = "<group>"; };
+		6B4A635D00A797C551B2A954 /* PlayerSaveSyncFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncFactory.swift; sourceTree = "<group>"; };
 		6B4E8FD77E55437261556342 /* music_battle_1.m4a */ = {isa = PBXFileReference; path = music_battle_1.m4a; sourceTree = "<group>"; };
 		6D5EA88828F72B5DA0CA525F /* JourneyContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyContentTests.swift; sourceTree = "<group>"; };
 		6E05148A596023F71EC6F7C3 /* PlayerRosterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRosterStore.swift; sourceTree = "<group>"; };
 		714E26B9A8CB07A3165594C8 /* music_menu_2.m4a */ = {isa = PBXFileReference; path = music_menu_2.m4a; sourceTree = "<group>"; };
 		714F7893C025C5D39239B018 /* ChapterGateCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterGateCardView.swift; sourceTree = "<group>"; };
 		7310427206285261BF81F631 /* BattleRunTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleRunTests.swift; sourceTree = "<group>"; };
-		766CB88EF7942D0B76F2F24B /* PlayerSaveSyncing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncing.swift; sourceTree = "<group>"; };
 		769E5E691395F845BABD973F /* ItemSlotPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSlotPickerView.swift; sourceTree = "<group>"; };
 		77D9C77B3383418401FDD73C /* music_boss_iron_bear.m4a */ = {isa = PBXFileReference; path = music_boss_iron_bear.m4a; sourceTree = "<group>"; };
 		79C259E3726A10BD6745322F /* BattleCombatantPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCombatantPane.swift; sourceTree = "<group>"; };
@@ -308,12 +275,12 @@
 		8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		837744DAF3744FEB7CCC7D33 /* music_battle_4.m4a */ = {isa = PBXFileReference; path = music_battle_4.m4a; sourceTree = "<group>"; };
 		855D05DD72119B84C5D52500 /* ChapterHeroHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterHeroHeader.swift; sourceTree = "<group>"; };
-		86BB382C7061493015E04850 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
 		86E45F04BF076FEE8AF6123D /* AppTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTypes.swift; sourceTree = "<group>"; };
 		87841683BEB70D6891DEFE69 /* CombatantCollectionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailView.swift; sourceTree = "<group>"; };
 		87C58336172DAD9122A21FC2 /* AbilityCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityCatalogTests.swift; sourceTree = "<group>"; };
 		899EEFA79785C3120C8C8E1E /* MusicDirector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDirector.swift; sourceTree = "<group>"; };
 		8B167130B59A6ECD095E7A2E /* StageDeckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageDeckView.swift; sourceTree = "<group>"; };
+		8D80BAE3DD95D195DC723862 /* TrinketPersistence */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketPersistence; path = Packages/TrinketPersistence; sourceTree = SOURCE_ROOT; };
 		8F4F5008156859F661347AEE /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		8F878C46477AE9CD0197CFD8 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
 		8FFBF7F4964275F65032A08C /* SmokePetDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokePetDetailTests.swift; sourceTree = "<group>"; };
@@ -326,15 +293,13 @@
 		96DDA8245D0AD47A51EA1540 /* AppState+PlayFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppState+PlayFlow.swift"; sourceTree = "<group>"; };
 		975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatFeedbackOverlay.swift; sourceTree = "<group>"; };
 		97CFA403CAB65BEDDFB53419 /* SeededSmokeUITestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededSmokeUITestCase.swift; sourceTree = "<group>"; };
+		9836C2CE2A7DF35FFD47B6C5 /* JourneyProgressState+Navigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JourneyProgressState+Navigation.swift"; sourceTree = "<group>"; };
 		995B414B0298C290059A9D2D /* CombatantDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantDetailScreen.swift; sourceTree = "<group>"; };
-		9BA07D03CFF5D5ABED8B5894 /* PlayerSaveFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveFileStore.swift; sourceTree = "<group>"; };
 		9BA113D28663DD99A31408B3 /* EmptySlots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptySlots.swift; sourceTree = "<group>"; };
 		9EB54342F6A6FD993F1FBFCF /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
 		9F72FEB7E645FFDB20C49A6C /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		9FF5D3F90C0DF1F9954264E7 /* SmokeHeroDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeHeroDetailTests.swift; sourceTree = "<group>"; };
 		A036509514F16E54AF1B8F5E /* music_battle_3.m4a */ = {isa = PBXFileReference; path = music_battle_3.m4a; sourceTree = "<group>"; };
-		A070826715C7CAD963F7C900 /* PlayerSaveSanitizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSanitizerTests.swift; sourceTree = "<group>"; };
-		A27C2AD04E7B31E6D84823D4 /* CombatBuildResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatBuildResolver.swift; sourceTree = "<group>"; };
 		A2AEFB3AF37B08FB51448330 /* CombatantCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCard.swift; sourceTree = "<group>"; };
 		A32E33B5B520D1C4ED445063 /* Modifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Modifiers.swift; sourceTree = "<group>"; };
 		A50EB904C1680A51226F2098 /* BattleOutcomeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleOutcomeComponents.swift; sourceTree = "<group>"; };
@@ -353,6 +318,7 @@
 		B2D45DDAFB52790838CC4D10 /* HeroHeaderLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroHeaderLayoutTests.swift; sourceTree = "<group>"; };
 		B6DB6E4E21780CF00DC3CC2B /* TabNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationUITests.swift; sourceTree = "<group>"; };
 		B71B79EAE04A82ABAD865742 /* AbilityCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbilityCard.swift; sourceTree = "<group>"; };
+		B78CA1973F4C8E8D28446808 /* PlayerInventoryState+Rewards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayerInventoryState+Rewards.swift"; sourceTree = "<group>"; };
 		B7CA053284B3CEE39DEE9819 /* MusicCatalog.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCatalog.generated.swift; sourceTree = "<group>"; };
 		B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsStoreTests.swift; sourceTree = "<group>"; };
 		BA72203384B18518CBD9713B /* music_menu_3.m4a */ = {isa = PBXFileReference; path = music_menu_3.m4a; sourceTree = "<group>"; };
@@ -364,7 +330,6 @@
 		BF8C7C3D3126BF74BCE52E28 /* ChapterArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterArt.swift; sourceTree = "<group>"; };
 		C036D108B8D8714857531934 /* EffectModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectModelTests.swift; sourceTree = "<group>"; };
 		C0DB18CAC8448AE724D5B9BE /* EquipmentSlotSummaryGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentSlotSummaryGrid.swift; sourceTree = "<group>"; };
-		C181884BF9DE72277CF133D3 /* PlayerSaveSyncStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncStatus.swift; sourceTree = "<group>"; };
 		C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordDescriptionText.swift; sourceTree = "<group>"; };
 		C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetsGridView.swift; sourceTree = "<group>"; };
 		C43A50775733A11230CAAA95 /* SmokePlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokePlayTests.swift; sourceTree = "<group>"; };
@@ -382,7 +347,6 @@
 		DB94796A9D0698D3B96B8BA6 /* StageMapPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageMapPresentationTests.swift; sourceTree = "<group>"; };
 		DC37E9DB831EF9D5699B7217 /* VictoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VictoryView.swift; sourceTree = "<group>"; };
 		DC8CA385204716A010DD4CCE /* EncounterArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncounterArtwork.swift; sourceTree = "<group>"; };
-		DDEEE7C69B927E5A5C87B01B /* PlayerSaveMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveMigrationTests.swift; sourceTree = "<group>"; };
 		DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrinketTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCardGridLayoutTests.swift; sourceTree = "<group>"; };
 		E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantHealthDetail.swift; sourceTree = "<group>"; };
@@ -392,7 +356,6 @@
 		E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSession.swift; sourceTree = "<group>"; };
 		E6A2C1FD0D8858F75471705A /* PlayerHomesteadStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerHomesteadStoreTests.swift; sourceTree = "<group>"; };
 		E89691B00998EAF137303F2E /* FullUI.xctestplan */ = {isa = PBXFileReference; path = FullUI.xctestplan; sourceTree = "<group>"; };
-		EAC96E7654FE5410FCF57F2C /* PlayerSaveReconciler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveReconciler.swift; sourceTree = "<group>"; };
 		EAE7D6AFF460347CBC1A5DC9 /* JourneyProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyProgressTests.swift; sourceTree = "<group>"; };
 		EFE0DB7E80868E33B5F827DB /* SmokeCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeCollectionTests.swift; sourceTree = "<group>"; };
 		F11B241CDB6DAA90DC7E1311 /* music_boss_blight_treant.m4a */ = {isa = PBXFileReference; path = music_boss_blight_treant.m4a; sourceTree = "<group>"; };
@@ -407,7 +370,6 @@
 		F600F8987D9536A536F5C513 /* ChapterStageSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterStageSelectView.swift; sourceTree = "<group>"; };
 		F831763803FCF781C5CF74E0 /* ChapterJourneyPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterJourneyPresentation.swift; sourceTree = "<group>"; };
 		F86390BDE7F14CD4871091E4 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
-		F8D51B4459EF2745EE7B905B /* PlayerSaveSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSaveSyncCoordinator.swift; sourceTree = "<group>"; };
 		F936A07112C96FCAFFE9A414 /* ActivePartyPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivePartyPickerRow.swift; sourceTree = "<group>"; };
 		F9D7159B5F1DC16EA97A4203 /* ActiveBattleConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleConfigurationTests.swift; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
@@ -423,6 +385,7 @@
 				FA5C757C3D32F14239BD0F1C /* TrinketCore in Frameworks */,
 				58964BED59FF6AEEC43856CB /* TrinketContent in Frameworks */,
 				C6E80F80F414B3EB960B3DF9 /* BattleEngine in Frameworks */,
+				984598EB5CC911953BC4F96F /* TrinketPersistence in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,14 +395,7 @@
 		05E1DC7C16C2ED7A8E2C57AD /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
-				2BDDEAAA72F0F53F0DE9AA8D /* PlayerSaveFileStoreTests.swift */,
-				DDEEE7C69B927E5A5C87B01B /* PlayerSaveMigrationTests.swift */,
-				49FADE52B6934F24A407CABB /* PlayerSaveReconcilerTests.swift */,
-				A070826715C7CAD963F7C900 /* PlayerSaveSanitizerTests.swift */,
-				2FFB560DF2BEC4AE154564E0 /* PlayerSaveStoreTests.swift */,
-				5A7EBBA846F540333707272B /* PlayerSaveSyncCoordinatorTests.swift */,
 				AE3AB8A20EE9D785D395EEC4 /* PlayerSaveSyncFactoryTests.swift */,
-				64ED3F56EC6B7BDEA6E9ABA3 /* SavedEffectRoundtripTests.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -483,6 +439,7 @@
 				E43AF427DA2725C7880E05D0 /* BattleEngine */,
 				FB2F3612614E891F44DD2597 /* TrinketContent */,
 				2038380B9FA35C2B4DB4B598 /* TrinketCore */,
+				8D80BAE3DD95D195DC723862 /* TrinketPersistence */,
 			);
 			path = Packages;
 			sourceTree = "<group>";
@@ -633,13 +590,12 @@
 				F831763803FCF781C5CF74E0 /* ChapterJourneyPresentation.swift */,
 				5805216343957A2362D33700 /* Combatant+Presentation.swift */,
 				347BB1AB82B612306606BC5E /* CombatantDetail.swift */,
-				A27C2AD04E7B31E6D84823D4 /* CombatBuildResolver.swift */,
 				CA22D8DE99B1709685B40F29 /* Enemy+GameContent.swift */,
 				F23440CC93C6AF578800C827 /* Enums.swift */,
 				32F44736054B20248E91E5B6 /* Homestead.swift */,
-				4B262CA605CC2AF3BAC40567 /* Item.swift */,
 				91EFDB9DEDDD86FAF28E458E /* Journey.swift */,
-				86BB382C7061493015E04850 /* PlayerState.swift */,
+				9836C2CE2A7DF35FFD47B6C5 /* JourneyProgressState+Navigation.swift */,
+				B78CA1973F4C8E8D28446808 /* PlayerInventoryState+Rewards.swift */,
 				BDCD65710AA06B20FC3BF8D3 /* StageMapPresentation.swift */,
 				5099A8318459CE0E56816E1A /* VisibleStageDeck.swift */,
 			);
@@ -712,19 +668,6 @@
 				353472ED96C56C30C6221DFD /* Support */,
 			);
 			path = Shared;
-			sourceTree = "<group>";
-		};
-		A3855EB5C71F3EC561448717 /* Sync */ = {
-			isa = PBXGroup;
-			children = (
-				016D85608EE4392958B395C9 /* CloudKitPlayerSaveSync.swift */,
-				124AAF7854286D40D95E5F14 /* LocalOnlyPlayerSaveSync.swift */,
-				EAC96E7654FE5410FCF57F2C /* PlayerSaveReconciler.swift */,
-				F8D51B4459EF2745EE7B905B /* PlayerSaveSyncCoordinator.swift */,
-				766CB88EF7942D0B76F2F24B /* PlayerSaveSyncing.swift */,
-				C181884BF9DE72277CF133D3 /* PlayerSaveSyncStatus.swift */,
-			);
-			path = Sync;
 			sourceTree = "<group>";
 		};
 		A4012463DD954CE8411DA9EE /* Trinket */ = {
@@ -995,14 +938,7 @@
 		EDCFC0AEFF4D3203D0A42EC2 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
-				0B865B185E48E642F8C4418E /* PlayerSave.swift */,
-				9BA07D03CFF5D5ABED8B5894 /* PlayerSaveFileStore.swift */,
-				1B99B58146F18E267DC8B1FB /* PlayerSaveMigration.swift */,
-				001383C7F83FE8437683AD2A /* PlayerSaveSanitizer.swift */,
-				3059A4513D7515F092DA04DA /* PlayerSaveStore.swift */,
-				60D15D0BBE17B8209C0E1D04 /* SavedEffect.swift */,
-				4012A1AE6C63CE8396809643 /* SavedPlayerState.swift */,
-				A3855EB5C71F3EC561448717 /* Sync */,
+				6B4A635D00A797C551B2A954 /* PlayerSaveSyncFactory.swift */,
 			);
 			path = Persistence;
 			sourceTree = "<group>";
@@ -1094,6 +1030,7 @@
 				DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */,
 				16AE1F6E42FEAB883DB2CB3E /* TrinketContent */,
 				2AA0B90E0358E0B20FD2400D /* BattleEngine */,
+				9658964970EAA7409EF39951 /* TrinketPersistence */,
 			);
 			productName = Trinket;
 			productReference = 1524241C62BF8C54E3A7CDF8 /* Trinket.app */;
@@ -1144,6 +1081,7 @@
 				B8F57CFCADA520AB194C8BED /* XCLocalSwiftPackageReference "Packages/BattleEngine" */,
 				355F0B06AED548C005142BD6 /* XCLocalSwiftPackageReference "Packages/TrinketContent" */,
 				5E1DE20763EC52DE81FE7B72 /* XCLocalSwiftPackageReference "Packages/TrinketCore" */,
+				28CA298E56ABA2E9AE051727 /* XCLocalSwiftPackageReference "Packages/TrinketPersistence" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 34E76F1E0275AF5606A8CE2F /* Products */;
@@ -1213,9 +1151,7 @@
 				FC4844499EE77EC9CAB20028 /* ChapterHeroHeader.swift in Sources */,
 				F778B912CCD0A7B0470C4E53 /* ChapterJourneyPresentation.swift in Sources */,
 				D7CB3898092D5EBEBA980400 /* ChapterStageSelectView.swift in Sources */,
-				037CC6DD35987E1069EC8E30 /* CloudKitPlayerSaveSync.swift in Sources */,
 				6FCB32B1A33C8DCE95D81C03 /* CollectionView.swift in Sources */,
-				06E17087A91341F1394BEBD2 /* CombatBuildResolver.swift in Sources */,
 				E0B166D5F72969101F8A90D5 /* CombatFeedbackEventView.swift in Sources */,
 				AABB9B3A57BDA3409E37F833 /* CombatFeedbackOverlay.swift in Sources */,
 				A6D86657582CFBDC19E6B433 /* CombatFeedbackTiming.swift in Sources */,
@@ -1247,14 +1183,13 @@
 				190301BD1040622F8E8C8906 /* HomesteadDetailViews.swift in Sources */,
 				E2530370A651F30940A0B5A0 /* HomesteadView.swift in Sources */,
 				4F1258B26C57EFD186440E52 /* HomesteadViewComponents.swift in Sources */,
-				B8C20CB1F73F8C11B690C394 /* Item.swift in Sources */,
 				CFCCE468F84DF2E2824BF896 /* ItemCard.swift in Sources */,
 				FB768D6C41E3CBA4B39F3A8F /* ItemSlotPickerView.swift in Sources */,
 				715AF42073745528AF1D93BA /* ItemViews.swift in Sources */,
 				A4ACA5BA33EF0EBFBDC8458F /* Journey.swift in Sources */,
+				E485C7255E37D3B4CB7B32BB /* JourneyProgressState+Navigation.swift in Sources */,
 				A5C220D8325509220EF8E92D /* JourneyScrollTransition.swift in Sources */,
 				EE6011AE2C0BE69860F552DF /* KeywordDescriptionText.swift in Sources */,
-				AC98C409B0D78A6AC52F6BA3 /* LocalOnlyPlayerSaveSync.swift in Sources */,
 				B4C68B2402F5CCE152A80C3C /* Modifiers.swift in Sources */,
 				603EA1FAA71B279DCBC53493 /* MotionObserver.swift in Sources */,
 				41315E737AFF76DE38FBA3EB /* MusicCatalog.generated.swift in Sources */,
@@ -1270,21 +1205,11 @@
 				5B18A0250A2237D41BE2D297 /* PlaceholderTabView.swift in Sources */,
 				554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */,
 				C1F4CBCBC0583157B365468C /* PlayerHomesteadStore.swift in Sources */,
+				7EAD7CF438EC6C68083837F8 /* PlayerInventoryState+Rewards.swift in Sources */,
 				70C01EF50D38348CAED72FAF /* PlayerInventoryStore.swift in Sources */,
 				1512296463DD2CF36F2CFEB8 /* PlayerJourneyStore.swift in Sources */,
 				1FBA166114FA95B589384BBA /* PlayerRosterStore.swift in Sources */,
-				EC35B35A142514184E036B36 /* PlayerSave.swift in Sources */,
-				5E6F34A79043BE52BCAB194B /* PlayerSaveFileStore.swift in Sources */,
-				ED6F6CE0BB91D552C37C1EE2 /* PlayerSaveMigration.swift in Sources */,
-				AB1B4B77DFDD051161492215 /* PlayerSaveReconciler.swift in Sources */,
-				46475D2E1895CC8D41AF7DE7 /* PlayerSaveSanitizer.swift in Sources */,
-				0AC82612ECBE21174731AC5C /* PlayerSaveStore.swift in Sources */,
-				CAADB41295C28813A505AA4B /* PlayerSaveSyncCoordinator.swift in Sources */,
-				86AC6EC358108CF14693CBCB /* PlayerSaveSyncStatus.swift in Sources */,
-				C02A14CACDFA3B55550636F4 /* PlayerSaveSyncing.swift in Sources */,
-				733B2552B0C049DC60F3A14B /* PlayerState.swift in Sources */,
-				66011609C3194A5920ADF322 /* SavedEffect.swift in Sources */,
-				80AE6D28568A64FE32F1DB05 /* SavedPlayerState.swift in Sources */,
+				6938B1F5CE207A7240BE8EC8 /* PlayerSaveSyncFactory.swift in Sources */,
 				9C8E96DB792798B0B7ED4AC0 /* SearchView.swift in Sources */,
 				3E7AC8926624B847BBA703C1 /* StageCompletion.swift in Sources */,
 				E1FE8B99E04AB18290A3B54C /* StageDeckView.swift in Sources */,
@@ -1334,15 +1259,8 @@
 				2BE2B9C5C776229B35EBB0A5 /* PlayerJourneyStoreTests.swift in Sources */,
 				C4A51AF4131CD2CB8D7FD2DD /* PlayerRosterStoreTests.swift in Sources */,
 				41160DA084928326881122F0 /* PlayerRosterTests.swift in Sources */,
-				D41D0D42FBE5530854CD6F68 /* PlayerSaveFileStoreTests.swift in Sources */,
-				CF3BAF87D71A3FD55660341C /* PlayerSaveMigrationTests.swift in Sources */,
-				8D85CF63EFB5707D87D4EBE1 /* PlayerSaveReconcilerTests.swift in Sources */,
-				326BDC36B29C8CEA8D5B4944 /* PlayerSaveSanitizerTests.swift in Sources */,
-				4B8F75949757B5293FC90A9A /* PlayerSaveStoreTests.swift in Sources */,
-				C0D4FA8B858D88BB27503F8C /* PlayerSaveSyncCoordinatorTests.swift in Sources */,
 				9DB610E0ACCB02E8895D727B /* PlayerSaveSyncFactoryTests.swift in Sources */,
 				D77DC069021AFAADD69A8460 /* SaveTestSupport.swift in Sources */,
-				42A588B79BD53D41FAF692D3 /* SavedEffectRoundtripTests.swift in Sources */,
 				C751A1A56C507A7C2911B53E /* StageMapPresentationTests.swift in Sources */,
 				C3641E6D85CD25319DE4298B /* StageRewardTests.swift in Sources */,
 				32362F66CA73B5080AC3A144 /* VisibleStageDeckTests.swift in Sources */,
@@ -1670,6 +1588,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		28CA298E56ABA2E9AE051727 /* XCLocalSwiftPackageReference "Packages/TrinketPersistence" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/TrinketPersistence;
+		};
 		355F0B06AED548C005142BD6 /* XCLocalSwiftPackageReference "Packages/TrinketContent" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/TrinketContent;
@@ -1692,6 +1614,10 @@
 		2AA0B90E0358E0B20FD2400D /* BattleEngine */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = BattleEngine;
+		};
+		9658964970EAA7409EF39951 /* TrinketPersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TrinketPersistence;
 		};
 		DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */ = {
 			isa = XCSwiftPackageProductDependency;

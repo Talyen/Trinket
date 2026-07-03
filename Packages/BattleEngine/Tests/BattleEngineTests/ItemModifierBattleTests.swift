@@ -93,18 +93,16 @@ final class ItemModifierBattleTests: XCTestCase {
             abilities: [.slash],
             primaryStats: PrimaryStats(strength: 4)
         )
-        let configuration = ActiveBattleConfiguration.make(
-            hero: hero,
-            pet: Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: []),
-            enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: []),
-            heroEquipmentLoadout: loadout,
-            inventoryState: PlayerInventoryState(items: [item])
+        let configuration = CombatBuildResolver.build(
+            combatant: hero,
+            equipmentLoadout: loadout,
+            inventory: [item]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: configuration.hero,
-            pet: configuration.pet,
-            enemy: configuration.enemy,
-            heroModifiers: configuration.heroModifiers
+            hero: configuration.combatant,
+            pet: Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: []),
+            enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: []),
+            heroModifiers: configuration.modifiers
         )
 
         _ = battle.advanceOneStep()

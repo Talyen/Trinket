@@ -1,0 +1,216 @@
+import Foundation
+import BattleEngine
+import TrinketContent
+import TrinketCore
+
+public struct PlayerInventoryState: Equatable, Hashable, Sendable {
+    public var items: [InventoryItem]
+
+    public init(items: [InventoryItem]) {
+        self.items = items
+    }
+
+    public static var freshStart: PlayerInventoryState {
+        PlayerInventoryState(items: [])
+    }
+
+    public static var testSeed: PlayerInventoryState {
+        PlayerInventoryState(items: GameContent.sampleInventoryItems)
+    }
+
+    public static var initial: PlayerInventoryState {
+        testSeed
+    }
+
+    public func item(matching id: String?) -> InventoryItem? {
+        guard let id else { return nil }
+        return items.first { $0.id == id }
+    }
+
+    public func items(for slot: ItemSlot) -> [InventoryItem] {
+        items.filter { $0.baseType.slot == slot }
+    }
+
+    public func hasItem(for slot: ItemSlot) -> Bool {
+        items.contains { $0.baseType.slot == slot }
+    }
+}
+
+public struct PlayerRosterState: Equatable, Sendable {
+    public static let starterHeroID = "knight"
+    public static let starterPetID = "bear"
+
+    public var activeHeroID: String
+    public var activePetID: String
+    public var unlockedHeroIDs: Set<String>
+    public var unlockedPetIDs: Set<String>
+    public var abilityLoadouts: [String: AbilityLoadout]
+    public var progressions: [String: CombatantProgression]
+    public var equipmentLoadouts: [String: EquipmentLoadout]
+    public var gold: Int = 0
+
+    public init(
+        activeHeroID: String,
+        activePetID: String,
+        unlockedHeroIDs: Set<String>,
+        unlockedPetIDs: Set<String>,
+        abilityLoadouts: [String: AbilityLoadout],
+        progressions: [String: CombatantProgression],
+        equipmentLoadouts: [String: EquipmentLoadout],
+        gold: Int = 0
+    ) {
+        self.activeHeroID = activeHeroID
+        self.activePetID = activePetID
+        self.unlockedHeroIDs = unlockedHeroIDs
+        self.unlockedPetIDs = unlockedPetIDs
+        self.abilityLoadouts = abilityLoadouts
+        self.progressions = progressions
+        self.equipmentLoadouts = equipmentLoadouts
+        self.gold = gold
+    }
+
+    public static var freshStart: PlayerRosterState {
+        PlayerRosterState(
+            activeHeroID: starterHeroID,
+            activePetID: starterPetID,
+            unlockedHeroIDs: [starterHeroID],
+            unlockedPetIDs: [starterPetID],
+            abilityLoadouts: [:],
+            progressions: [
+                starterHeroID: .initial,
+                starterPetID: .initial
+            ],
+            equipmentLoadouts: [:]
+        )
+    }
+
+    public static var testSeed: PlayerRosterState {
+        PlayerRosterState(
+            activeHeroID: starterHeroID,
+            activePetID: "wolf",
+            unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+            unlockedPetIDs: Set(GameContent.pets.map(\.id)),
+            abilityLoadouts: [:],
+            progressions: [
+                "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
+                "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
+                "wizard": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
+                "alchemist": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "druid": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "ranger": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "warlock": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "wildcard": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "bear": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "frost_whelp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "panther": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "phoenix": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100)
+            ],
+            equipmentLoadouts: [
+                "knight": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "longsword-basic",
+                    .armor: "plate_armor-basic"
+                ]),
+                "wizard": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: "wand-basic",
+                    .trinket: "ruby_ring-basic"
+                ]),
+                "wolf": EquipmentLoadout(itemIDsBySlot: [
+                    .armor: "leather_armor-basic"
+                ])
+            ]
+        )
+    }
+
+    public static var initial: PlayerRosterState {
+        testSeed
+    }
+
+    public func isUnlocked(_ combatant: Combatant) -> Bool {
+        switch combatant.role {
+        case .hero:
+            return unlockedHeroIDs.contains(combatant.id)
+        case .pet:
+            return unlockedPetIDs.contains(combatant.id)
+        case .enemy:
+            return false
+        }
+    }
+
+    public func isHeroUnlocked(_ heroID: String) -> Bool {
+        unlockedHeroIDs.contains(heroID)
+    }
+
+    public func isPetUnlocked(_ petID: String) -> Bool {
+        unlockedPetIDs.contains(petID)
+    }
+
+    public func loadout(for combatant: Combatant) -> AbilityLoadout {
+        abilityLoadouts[combatant.id] ?? combatant.abilityLoadout
+    }
+
+    public mutating func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
+        let configuredCombatant = combatant.withAbilityLoadout(loadout)
+        abilityLoadouts[combatant.id] = configuredCombatant.abilityLoadout
+    }
+
+    public func configuredCombatant(_ combatant: Combatant) -> Combatant {
+        combatant.withAbilityLoadout(loadout(for: combatant))
+    }
+
+    public func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        combatants.map(configuredCombatant)
+    }
+
+    public func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
+        let configured = configuredCombatant(combatant)
+        guard combatant.role != .enemy else { return configured }
+
+        let unlockedLoadout = configured.abilityLoadout.unlocked(for: progression(for: combatant))
+        return configured.withAbilityLoadoutPreservingEmptyTiers(unlockedLoadout)
+    }
+
+    public func battleConfiguredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+        combatants.map(battleConfiguredCombatant)
+    }
+
+    public func progression(for combatant: Combatant) -> CombatantProgression {
+        progressions[combatant.id] ?? .initial
+    }
+
+    public func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
+        equipmentLoadouts[combatant.id] ?? EquipmentLoadout()
+    }
+
+    public mutating func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
+        equipmentLoadouts[combatant.id] = loadout
+    }
+
+    public mutating func setActiveHero(_ hero: Combatant) {
+        guard isUnlocked(hero) else { return }
+        activeHeroID = hero.id
+    }
+
+    public mutating func setActivePet(_ pet: Combatant) {
+        guard isUnlocked(pet) else { return }
+        activePetID = pet.id
+    }
+
+    public mutating func grantExperience(_ amount: Int, to combatant: Combatant) {
+        progressions[combatant.id] = progression(for: combatant).addingExperience(amount)
+    }
+
+    public mutating func grantGold(_ amount: Int) {
+        guard amount > 0 else { return }
+        gold += amount
+    }
+
+    public func equippedItem(
+        for slot: ItemSlot,
+        combatant: Combatant,
+        inventory: PlayerInventoryState
+    ) -> InventoryItem? {
+        inventory.item(matching: equipmentLoadout(for: combatant).itemID(for: slot))
+    }
+}

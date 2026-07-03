@@ -26,7 +26,7 @@ struct CombatantDetailPane: View {
         CombatBuildResolver.build(
             combatant: combatant,
             equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState
+            inventory: inventoryState.items
         )
     }
 

@@ -62,12 +62,12 @@ struct ActiveBattleConfiguration: Identifiable {
         let heroBuild = CombatBuildResolver.build(
             combatant: hero,
             equipmentLoadout: heroEquipmentLoadout,
-            inventory: inventoryState
+            inventory: inventoryState.items
         )
         let petBuild = CombatBuildResolver.build(
             combatant: pet,
             equipmentLoadout: petEquipmentLoadout,
-            inventory: inventoryState
+            inventory: inventoryState.items
         )
         return ActiveBattleConfiguration(
             stageID: stageID,

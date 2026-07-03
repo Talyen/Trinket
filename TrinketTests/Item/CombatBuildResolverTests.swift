@@ -21,7 +21,7 @@ final class CombatBuildResolverTests: XCTestCase {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: PlayerInventoryState(items: [item])
+            inventory: [item]
         )
 
         XCTAssertEqual(build.combatant.primaryStats.strength, knight.primaryStats.strength + 1)
@@ -48,7 +48,7 @@ final class CombatBuildResolverTests: XCTestCase {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: PlayerInventoryState(items: [item])
+            inventory: [item]
         )
 
         XCTAssertEqual(build.modifiers.damageDealtBonus[.physical], 3)
@@ -84,7 +84,7 @@ final class CombatBuildResolverTests: XCTestCase {
         let build = CombatBuildResolver.build(
             combatant: knight,
             equipmentLoadout: loadout,
-            inventory: PlayerInventoryState(items: [weapon, armor])
+            inventory: [weapon, armor]
         )
 
         XCTAssertEqual(build.modifiers.maximumHealthBonus, 4)

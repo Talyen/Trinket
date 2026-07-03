@@ -11,7 +11,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - iOS iPhone-first, portrait-only (`project.yml`). Swift 6.0 / SwiftUI; iOS 26.0. Public Apple APIs for StoreKit, GameKit, privacy, cloud, etc.; update docs with App Store/privacy implications.
 - SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Planned local Swift packages: see `Docs/Architecture.md`.
 - Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
-- Codebase: `App/` · `Features/` · `Battle/BattleRun.swift` (app shell) · `State/` stores · `Models/` · `Content/` · `Packages/{TrinketCore,TrinketContent,BattleEngine}/` · `TrinketTests/` · `TrinketUITests/`.
+- Codebase: `App/` · `Features/` · `Battle/BattleRun.swift` (app shell) · `State/` stores · `Models/` · `Content/` · `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence}/` · `TrinketTests/` · `TrinketUITests/`.
 - Generated: `Trinket/Generated/*` (art/music), `Packages/TrinketContent/.../Generated/*` (catalogs) — edit manifests, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`, `Docs/Architecture.md`). Shared domain types: `Packages/TrinketCore/`. `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Battle Module
@@ -44,7 +44,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 |--------|-------|
 | One-screen layout | `build.sh` or `run-simulator.sh` |
 | Styling | `check-ui-style.sh` + smoke |
-| Rules/models | `test.sh unit <Tests>`; full unit mode also runs `TrinketCore`, `TrinketContent`, and `BattleEngine` package tests |
+| Rules/models | `test.sh unit <Tests>`; full unit mode also runs `TrinketCore`, `TrinketContent`, `BattleEngine`, and `TrinketPersistence` package tests |
 | Multi-step UI | `test-iterate.sh <SmokeClass> [ExhaustiveClass]` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
@@ -61,7 +61,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/` plus `Packages/{TrinketCore,TrinketContent,BattleEngine}/Tests/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs app tests only — battle rule tests live in `BattleEngineTests`. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/` plus `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence}/Tests/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs app tests only — battle rule tests live in `BattleEngineTests`, persistence tests in `TrinketPersistenceTests`. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
 ## Unit Tests
