@@ -7,34 +7,34 @@ final class PlayerSaveReconcilerTests: XCTestCase {
     private let later = Date(timeIntervalSince1970: 1800000000)
 
     func testRemoteMissingUploadsLocal() {
-        let local = makeSave(modifiedAt: now)
+        let local = SaveTestSupport.makeSave(modifiedAt: now)
         let outcome = PlayerSaveReconciler.reconcile(local: local, remote: nil)
         XCTAssertEqual(outcome, .uploadLocal)
     }
 
     func testLocalMissingAppliesRemote() {
-        let remote = makeRemote(modifiedAt: now)
+        let remote = SaveTestSupport.makeRemote(modifiedAt: now)
         let outcome = PlayerSaveReconciler.reconcile(local: nil, remote: remote)
         XCTAssertEqual(outcome, .applyRemote(remote.save))
     }
 
     func testNewerRemoteWins() {
-        let local = makeSave(modifiedAt: earlier)
-        let remote = makeRemote(modifiedAt: later)
+        let local = SaveTestSupport.makeSave(modifiedAt: earlier)
+        let remote = SaveTestSupport.makeRemote(modifiedAt: later)
         let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
         XCTAssertEqual(outcome, .applyRemote(remote.save))
     }
 
     func testNewerLocalWins() {
-        let local = makeSave(modifiedAt: later)
-        let remote = makeRemote(modifiedAt: earlier)
+        let local = SaveTestSupport.makeSave(modifiedAt: later)
+        let remote = SaveTestSupport.makeRemote(modifiedAt: earlier)
         let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
         XCTAssertEqual(outcome, .uploadLocal)
     }
 
     func testEqualModifiedAtKeepsLocal() {
-        let local = makeSave(modifiedAt: now)
-        let remote = makeRemote(modifiedAt: now)
+        let local = SaveTestSupport.makeSave(modifiedAt: now)
+        let remote = SaveTestSupport.makeRemote(modifiedAt: now)
         let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
         XCTAssertEqual(outcome, .keepLocal)
     }
@@ -42,23 +42,5 @@ final class PlayerSaveReconcilerTests: XCTestCase {
     func testBothMissingKeepsLocal() {
         let outcome = PlayerSaveReconciler.reconcile(local: nil, remote: nil)
         XCTAssertEqual(outcome, .keepLocal)
-    }
-
-    private func makeSave(modifiedAt: Date) -> PlayerSave {
-        PlayerSave(
-            schemaVersion: PlayerSave.currentSchemaVersion,
-            modifiedAt: modifiedAt,
-            journey: .initial,
-            roster: SavedRosterState(.freshStart),
-            inventory: SavedInventoryState(.freshStart)
-        )
-    }
-
-    private func makeRemote(modifiedAt: Date) -> RemotePlayerSave {
-        RemotePlayerSave(
-            save: makeSave(modifiedAt: modifiedAt),
-            modifiedAt: modifiedAt,
-            recordChangeTag: "tag"
-        )
     }
 }
