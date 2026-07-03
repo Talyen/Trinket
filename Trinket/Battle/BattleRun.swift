@@ -22,7 +22,8 @@ final class BattleRun {
             pet: configuration.pet,
             enemy: configuration.enemy,
             heroModifiers: configuration.heroModifiers,
-            petModifiers: configuration.petModifiers
+            petModifiers: configuration.petModifiers,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max)
         )
     }
 
@@ -43,31 +44,31 @@ final class BattleRun {
     }
 
     var heroHealth: Int {
-        state.health(for: .hero)
+        state.health(of: state.hero)
     }
 
     var petHealth: Int {
-        state.health(for: .pet)
+        state.health(of: state.pet)
     }
 
     var enemyHealth: Int {
-        state.health(for: .enemy)
+        state.health(of: state.enemy)
     }
 
     var heroMana: Int {
-        state.roster.hero.currentMana
+        state.mana(of: state.hero)
     }
 
     var petMana: Int {
-        state.roster.pet.currentMana
+        state.mana(of: state.pet)
     }
 
     var heroMaxMana: Int {
-        state.roster.hero.maxMana
+        state.maxMana(of: state.hero)
     }
 
     var petMaxMana: Int {
-        state.roster.pet.maxMana
+        state.maxMana(of: state.pet)
     }
 
     var earnedGold: Int {
@@ -117,7 +118,8 @@ final class BattleRun {
             pet: configuration.pet,
             enemy: configuration.enemy,
             heroModifiers: configuration.heroModifiers,
-            petModifiers: configuration.petModifiers
+            petModifiers: configuration.petModifiers,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max)
         )
         activeFeedbackEvents = []
         feedbackDisplayedAt = [:]

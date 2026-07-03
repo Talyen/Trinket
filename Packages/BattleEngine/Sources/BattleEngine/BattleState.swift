@@ -9,7 +9,8 @@ import TrinketContent
 ///
 /// **Public surface (read-only views):**
 /// - Combatant definitions: `hero`, `pet`, `enemy`
-/// - Per-combatant state: `health(of:)`, `activeEffects(of:)`,
+/// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
+///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
 ///   `effectSummaries(of:)`
 /// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`
 /// - Derived: `log`
@@ -23,31 +24,31 @@ import TrinketContent
 ///
 /// **Internal:**
 /// - Per-combatant mutable state lives on `BattleRoster` (via three
-///   `CombatantRuntime`s)
+///   `CombatantRuntime`s), accessed only through `BattleEngineContext` during
+///   rule dispatch
+/// - Turn orchestration lives in `BattleLoopEngine`
 /// - Effect application rules live on the `BattleEffectHandler` structs in
-///   `EffectHandlers.swift`; this type only orchestrates dispatch
+///   `EffectHandlers.swift`
 /// - Combat log lines are derived from the event stream by `BattleLogReducer`
-/// - Effect summaries are built by `EffectSummaryBuilder`
-/// - Floating-text chrome is formatted by `ActionEventFormatter`
 public struct BattleState {
     public let hero: Combatant
     public let pet: Combatant
     public let enemy: Combatant
 
-    // MARK: - Global mutable state (lives on BattleState itself)
+    // MARK: - Global mutable state
 
-    public private(set) var tickCount: Int
-    public var actionCount: Int
-    public var events: [ActionEvent]
+    public internal(set) var tickCount: Int
+    public private(set) var actionCount: Int
+    public private(set) var events: [ActionEvent]
     public private(set) var gold: Int
 
-    public var roster: BattleRoster
-    public var nextEventID: Int
-    public var nextEffectID: Int
-    public var rng: SeededRandomNumberGenerator
-    private var hasLoggedDefeat: Bool
-    private var hasLoggedPartyDefeat: Bool
-    public let combatBuild: BattleCombatBuild
+    var roster: BattleRoster
+    var nextEventID: Int
+    var nextEffectID: Int
+    var rng: SeededRandomNumberGenerator
+    var hasLoggedDefeat: Bool
+    var hasLoggedPartyDefeat: Bool
+    let combatBuild: BattleCombatBuild
     private let initialGold: Int
 
     /// Cached combat log. Rebuilt once after each `advanceOneStep()` and after
@@ -120,7 +121,7 @@ public struct BattleState {
         rebuildLog()
     }
 
-    // MARK: - Per-combatant state accessors (delegate to roster)
+    // MARK: - Per-combatant state accessors
 
     public var earnedGold: Int {
         gold - initialGold
@@ -158,45 +159,28 @@ public struct BattleState {
         roster.health(for: combatant)
     }
 
+    public func maxHealth(of combatant: Combatant) -> Int {
+        roster.maxHealth(for: combatant)
+    }
+
+    public func mana(of combatant: Combatant) -> Int {
+        roster.runtime(for: combatant)?.currentMana ?? 0
+    }
+
+    public func maxMana(of combatant: Combatant) -> Int {
+        roster.runtime(for: combatant)?.maxMana ?? 0
+    }
+
+    public func actionCount(of combatant: Combatant) -> Int {
+        roster.runtime(for: combatant)?.actionCount ?? 0
+    }
+
     public func activeEffects(of combatant: Combatant) -> [ActiveEffect] {
         roster.activeEffects(for: combatant)
     }
 
     public func effectSummaries(of combatant: Combatant) -> [EffectSummary] {
         EffectSummaryBuilder.build(for: activeEffects(of: combatant))
-    }
-
-    public func health(for role: Combatant.Role) -> Int {
-        switch role {
-        case .hero: roster.hero.currentHealth
-        case .pet: roster.pet.currentHealth
-        case .enemy: roster.enemy.currentHealth
-        }
-    }
-
-    public func activeEffects(for role: Combatant.Role) -> [ActiveEffect] {
-        switch role {
-        case .hero: roster.hero.activeEffects
-        case .pet: roster.pet.activeEffects
-        case .enemy: roster.enemy.activeEffects
-        }
-    }
-
-    public func effectSummaries(for role: Combatant.Role) -> [EffectSummary] {
-        EffectSummaryBuilder.build(for: activeEffects(for: role))
-    }
-
-    // MARK: - Roster helpers (replace the 6 deleted dispatch methods)
-
-    public func runtime(for combatant: Combatant) -> CombatantRuntime {
-        guard let runtime = roster.runtime(for: combatant) else {
-            preconditionFailure("Unknown combatant id \(combatant.id)")
-        }
-        return runtime
-    }
-
-    public mutating func updateRuntime(_ runtime: CombatantRuntime) {
-        roster.update(runtime)
     }
 
     // MARK: - Modifier profile
@@ -207,7 +191,7 @@ public struct BattleState {
 
     // MARK: - Engine context
 
-    private mutating func makeEngineContext() -> BattleEngineContext {
+    mutating func makeEngineContext() -> BattleEngineContext {
         BattleEngineContext(
             roster: roster,
             rng: rng,
@@ -222,7 +206,7 @@ public struct BattleState {
         )
     }
 
-    private mutating func applyEngineContext(_ context: BattleEngineContext) {
+    mutating func applyEngineContext(_ context: BattleEngineContext) {
         roster = context.roster
         rng = context.rng
         nextEffectID = context.nextEffectID
@@ -242,6 +226,11 @@ public struct BattleState {
         applyEngineContext(context)
         rebuildLog()
         return result
+    }
+
+    /// Test helper for seeding active effects without exposing `BattleRoster`.
+    mutating func seedActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
+        roster.setActiveEffects(effects, for: combatant)
     }
 
     // MARK: - Pipeline forwarding
@@ -283,57 +272,20 @@ public struct BattleState {
 
     // MARK: - Turn loop
 
-    /// Advances the battle by one global tick.
-    ///
-    /// **Tick contract**
-    /// 1. Increment `tickCount` and run effect ticks for all living combatants
-    ///    in order: enemy, then hero, then pet.
-    /// 2. If the battle ended during effect ticks, emit defeat milestones and
-    ///    return `.ended`.
-    /// 3. Otherwise pick the next ready actor (at most one acts per step) using
-    ///    roster scheduling rules.
-    /// 4. Execute that actor's turn (or consume prevention), append defeat
-    ///    milestones if needed, and return `.acted`, `.effectsOnly`, or
-    ///    `.ended`.
     @discardableResult
     public mutating func advanceOneStep() -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
 
         tickCount += 1
-        let matchup = matchup
         var context = makeEngineContext()
-
-        var events = EffectTickEngine.tickAll(context: &context, matchup: matchup)
-
-        if context.roster.isEnemyDefeated || context.roster.isPartyDefeated {
-            events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
-            applyEngineContext(context)
-            rebuildLog()
-            return .ended(events: events)
-        }
-
-        guard let actor = BattleTurnEngine.readyCombatants(in: context, tickCount: tickCount).first else {
-            applyEngineContext(context)
-            rebuildLog()
-            return .effectsOnly(events: events)
-        }
-
-        events.append(contentsOf: BattleTurnEngine.act(
-            actor: actor,
-            matchup: matchup,
+        let step = BattleLoopEngine.advanceOneStep(
             tickCount: tickCount,
+            matchup: matchup,
             context: &context
-        ))
-        events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
-
+        )
         applyEngineContext(context)
         rebuildLog()
-
-        if isBattleOver {
-            return .ended(events: events)
-        }
-
-        return .acted(actor, events: events)
+        return step
     }
 
     private mutating func rebuildLog() {

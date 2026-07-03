@@ -46,7 +46,7 @@ final class BattleStateSchedulingTests: XCTestCase {
             XCTFail("Expected hero to act on tick 2")
         }
 
-        XCTAssertEqual(battle.roster.enemy.actionCount, 0)
+        XCTAssertEqual(battle.actionCount(of: battle.enemy), 0)
     }
 
     func testPetActsOnThirdTickAfterHero() {
@@ -100,14 +100,14 @@ final class BattleStateSchedulingTests: XCTestCase {
         for _ in 0 ..< 5 {
             _ = advance(&battle)
         }
-        XCTAssertEqual(battle.roster.enemy.actionCount, 0)
+        XCTAssertEqual(battle.actionCount(of: battle.enemy), 0)
 
         if case let .acted(actor, _) = advance(&battle) {
             XCTAssertEqual(actor.id, enemy.id)
         } else {
             XCTFail("Expected enemy to act on tick 6")
         }
-        XCTAssertEqual(battle.roster.enemy.actionCount, 1)
+        XCTAssertEqual(battle.actionCount(of: battle.enemy), 1)
         XCTAssertEqual(battle.tickCount, 6)
     }
 

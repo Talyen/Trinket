@@ -1,5 +1,5 @@
 import XCTest
-import BattleEngine
+@testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
@@ -45,6 +45,6 @@ enum BattleStateTestFactory {
         for combatant: Combatant,
         on battle: inout BattleState
     ) {
-        battle.roster.setActiveEffects(effects, for: combatant)
+        battle.seedActiveEffects(effects, for: combatant)
     }
 }
