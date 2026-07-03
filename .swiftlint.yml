@@ -27,11 +27,6 @@ disabled_rules:
   - line_length
   - identifier_name
   - todo
-  - function_body_length
-  - file_length
-  - type_body_length
-  - cyclomatic_complexity
-  - nesting
   - large_tuple
   - trailing_comma
   - trailing_newline
@@ -39,6 +34,30 @@ disabled_rules:
   - inclusive_language
   - statement_position
 
+file_length:
+  warning: 550
+  error: 750
+
+type_body_length:
+  warning: 350
+  error: 500
+
+function_body_length:
+  warning: 60
+  error: 100
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+nesting:
+  type_level:
+    warning: 2
+  function_level:
+    warning: 3
+
+# Grandfathered structural violations live in .swiftlint-baseline.yml. New code
+# must not add violations; shrink the baseline when refactoring large files.
 function_parameter_count:
   warning: 7
   error: 9
