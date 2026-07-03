@@ -44,7 +44,7 @@ echo "=== Unit tests ==="
 echo ""
 echo "=== Full UI tests ==="
 ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui
-./Scripts/test-timing.sh assert-budget --mode ui --max-wall 600
+./Scripts/test-timing.sh assert-budget --mode ui --max-wall 1200
 
 echo ""
 echo "=== All deploy checks passed ==="

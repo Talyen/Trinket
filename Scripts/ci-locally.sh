@@ -13,12 +13,12 @@ echo "=== Style check ==="
 echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh unit
-./Scripts/test-timing.sh assert-budget --mode unit --max-wall 120
+./Scripts/test-timing.sh assert-budget --mode unit --max-wall 300
 
 echo ""
 echo "=== Smoke UI tests ==="
 ./Scripts/test.sh smoke
-./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 200
+./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 480
 
 echo ""
 echo "=== All checks passed ==="

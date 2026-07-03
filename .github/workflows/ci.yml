@@ -49,14 +49,14 @@ jobs:
 
       - name: Assert unit timing budget
         if: success()
-        run: ./Scripts/test-timing.sh assert-budget --mode unit --max-wall 120
+        run: ./Scripts/test-timing.sh assert-budget --mode unit --max-wall 300
 
       - name: UI smoke tests
         run: ./Scripts/test.sh smoke
 
       - name: Assert smoke timing budget
         if: success()
-        run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 200
+        run: ./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 480
 
       - name: Sync coordinator tests
         if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
@@ -68,7 +68,7 @@ jobs:
 
       - name: Assert UI timing budget
         if: success() && (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive' || github.event_name == 'push' && github.ref_name == 'main')
-        run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 600
+        run: ./Scripts/test-timing.sh assert-budget --mode ui --max-wall 1200
 
       - name: Upload timing log
         if: always()

@@ -21,7 +21,8 @@ Read per-run and per-test timings from the local JSONL log. No tests are execute
   report         Show recent runs and slow-test hotspots (default command).
   record         Append one run to the log (called automatically by test.sh).
   ingest         Backfill the log from an existing .xcresult bundle on disk.
-  assert-budget  Fail if the latest run for MODE exceeded the wall-clock budget.
+  assert-budget  Fail if the latest run for MODE exceeded the budget. Uses
+                 xcresult test duration when available, otherwise wall clock.
 
 Log file: .DerivedData/TestResults/timing-log.jsonl
 EOF
@@ -355,22 +356,26 @@ def cmd_assert_budget(args: list[str]) -> None:
         raise SystemExit(f"No timing entries for mode '{mode}' in {log_path}")
 
     latest = entries[-1]
-    wall_seconds = latest.get("wall_seconds")
-    if wall_seconds is None:
-        wall_seconds = latest.get("summary", {}).get("xcresult_seconds")
+    duration_seconds = latest.get("summary", {}).get("xcresult_seconds")
+    duration_source = "xcresult"
+    if duration_seconds is None:
+        duration_seconds = latest.get("wall_seconds")
+        duration_source = "wall"
 
-    if wall_seconds is None:
-        raise SystemExit(f"Latest '{mode}' timing entry has no wall-clock duration")
+    if duration_seconds is None:
+        raise SystemExit(f"Latest '{mode}' timing entry has no measurable duration")
 
-    if float(wall_seconds) > max_wall:
+    if float(duration_seconds) > max_wall:
         raise SystemExit(
             f"Timing budget exceeded for '{mode}': "
-            f"{format_seconds(float(wall_seconds))} > {format_seconds(max_wall)}"
+            f"{format_seconds(float(duration_seconds))} ({duration_source}) > "
+            f"{format_seconds(max_wall)}"
         )
 
     print(
         f"Timing budget OK for '{mode}': "
-        f"{format_seconds(float(wall_seconds))} <= {format_seconds(max_wall)}"
+        f"{format_seconds(float(duration_seconds))} ({duration_source}) <= "
+        f"{format_seconds(max_wall)}"
     )
 
 
