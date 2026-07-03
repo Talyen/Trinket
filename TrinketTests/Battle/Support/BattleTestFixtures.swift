@@ -157,15 +157,15 @@ extension Effect {
 
 extension BattleState {
     func hasHeroEffect(matching predicate: (Effect) -> Bool) -> Bool {
-        activeHeroEffects.contains { predicate($0.effect) }
+        activeEffects(of: hero).contains { predicate($0.effect) }
     }
 
     func hasEnemyEffect(matching predicate: (Effect) -> Bool) -> Bool {
-        activeEnemyEffects.contains { predicate($0.effect) }
+        activeEffects(of: enemy).contains { predicate($0.effect) }
     }
 
     func firstEnemyEffect(matching predicate: (Effect) -> Bool) -> ActiveEffect? {
-        activeEnemyEffects.first { predicate($0.effect) }
+        activeEffects(of: enemy).first { predicate($0.effect) }
     }
 }
 

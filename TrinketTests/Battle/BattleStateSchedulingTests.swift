@@ -44,7 +44,7 @@ final class BattleStateSchedulingTests: XCTestCase {
             XCTFail("Expected hero to act on tick 2")
         }
 
-        XCTAssertEqual(battle.enemyActionCount, 0)
+        XCTAssertEqual(battle.roster.enemy.actionCount, 0)
     }
 
     func testPetActsOnThirdTickAfterHero() {
@@ -98,14 +98,14 @@ final class BattleStateSchedulingTests: XCTestCase {
         for _ in 0 ..< 5 {
             _ = advance(&battle)
         }
-        XCTAssertEqual(battle.enemyActionCount, 0)
+        XCTAssertEqual(battle.roster.enemy.actionCount, 0)
 
         if case let .acted(actor, _) = advance(&battle) {
             XCTAssertEqual(actor.id, enemy.id)
         } else {
             XCTFail("Expected enemy to act on tick 6")
         }
-        XCTAssertEqual(battle.enemyActionCount, 1)
+        XCTAssertEqual(battle.roster.enemy.actionCount, 1)
         XCTAssertEqual(battle.tickCount, 6)
     }
 
@@ -154,11 +154,11 @@ final class BattleStateSchedulingTests: XCTestCase {
             ]
         )
 
-        XCTAssertFalse(battle.enemyEffectSummaries.filter { $0.keyword == .burn }.isEmpty)
+        XCTAssertFalse(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        XCTAssertTrue(battle.enemyEffectSummaries.filter { $0.keyword == .burn }.isEmpty)
+        XCTAssertTrue(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
     }
 
     func testPoisonEffectExpiresAfterDuration() {
@@ -174,12 +174,12 @@ final class BattleStateSchedulingTests: XCTestCase {
             ]
         )
 
-        XCTAssertFalse(battle.enemyEffectSummaries.filter { $0.keyword == .poison }.isEmpty)
+        XCTAssertFalse(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        XCTAssertTrue(battle.enemyEffectSummaries.filter { $0.keyword == .poison }.isEmpty)
+        XCTAssertTrue(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
     }
 
     func testEffectsOnlyStepWhenNobodyReady() {

@@ -25,7 +25,7 @@ final class CleanseIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertFalse(battle.activeHeroEffects.contains(where: \.effect.isRemovableDebuff))
+        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
     }
 
     func testCleanseSpecificKeywordRemovesMatchingDebuffsOnUse() {

@@ -9,7 +9,7 @@ struct InstantHealHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         context.applyHeal(amount, to: target, sourceActorID: source.id)
@@ -35,10 +35,15 @@ struct ResourceGainHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .resourceGain(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        context.addGold(amount, sourceActorID: source.id)
+        switch keyword {
+        case .mana:
+            context.restoreMana(amount, to: target, sourceActorID: source.id)
+        default:
+            context.addGold(amount, sourceActorID: source.id)
+        }
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .resourceGain,

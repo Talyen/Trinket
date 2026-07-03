@@ -9,7 +9,7 @@ struct HalveMitigationHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .halveMitigation(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
@@ -64,7 +64,7 @@ struct PreventionBuildupHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .preventionBuildup(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -74,7 +74,7 @@ struct PreventionBuildupHandler: BattleEffectHandler {
             keyword: keyword,
             to: target,
             sourceActorID: source.id,
-            host: &context
+            in: &context
         )
         _ = ability
         return EffectApplyOutcome(events: events, didApply: amount > 0 && context.health(of: target) > 0)

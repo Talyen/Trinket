@@ -11,7 +11,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         }
     }
 
-    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
         guard matches(active.effect) else { return EffectTickOutcome() }
         let nextPotency = active.effect.potencyAfterTick()
         if nextPotency > 0 {
@@ -41,7 +41,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
@@ -76,7 +76,7 @@ struct DecayingDoTHandler: BattleEffectHandler {
 struct BleedHandler: BattleEffectHandler {
     let kind: EffectKind = .bleed
 
-    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleMutationContext) -> EffectTickOutcome {
+    func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
         guard case let .bleed(potency) = active.effect, active.remainingTicks > 0 else {
             return EffectTickOutcome()
         }
@@ -111,7 +111,7 @@ struct BleedHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let skipImmediate = action.shouldSkipImmediateDoT(potency: potency, keyword: .bleed)

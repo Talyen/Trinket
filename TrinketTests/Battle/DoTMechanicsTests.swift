@@ -46,7 +46,7 @@ final class DoTMechanicsTests: XCTestCase {
     }
 
     private func burnPotency(on battle: BattleState) -> Int? {
-        battle.activeEnemyEffects.first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
+        battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
     }
 
     func testBurnFourDealsFourThenTwoThenOne() {
@@ -98,13 +98,13 @@ final class DoTMechanicsTests: XCTestCase {
         for _ in 0 ..< 8 {
             let step = battle.advanceOneStep()
             amounts.append(contentsOf: statusAmounts(from: step.events, keyword: .poison))
-            if battle.activeEnemyEffects.contains(where: { $0.keyword == .poison }) == false {
+            if battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) == false {
                 break
             }
         }
 
         XCTAssertEqual(amounts, [6, 5, 4, 3, 2, 1])
-        XCTAssertTrue(battle.activeEnemyEffects.filter { $0.keyword == .poison }.isEmpty)
+        XCTAssertTrue(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
     }
 
     func testPoisonAppliesInitialDamage() {
@@ -117,7 +117,7 @@ final class DoTMechanicsTests: XCTestCase {
 
         XCTAssertEqual(statusAmounts(from: applyStep.events, keyword: .poison), [8])
         XCTAssertEqual(
-            battle.activeEnemyEffects.first { $0.keyword == .poison }?.effect.potency,
+            battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency,
             8
         )
     }
@@ -137,8 +137,8 @@ final class DoTMechanicsTests: XCTestCase {
         }
 
         XCTAssertEqual(amounts, [4, 4, 4])
-        XCTAssertEqual(battle.enemyHealth, 84)
-        XCTAssertTrue(battle.activeEnemyEffects.filter { $0.keyword == .bleed }.isEmpty)
+        XCTAssertEqual(battle.health(of: battle.enemy), 84)
+        XCTAssertTrue(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.isEmpty)
     }
 
     func testBleedInstancesTrackIndependently() {
@@ -152,7 +152,7 @@ final class DoTMechanicsTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(battle.activeEnemyEffects.filter { $0.keyword == .bleed }.count, 2)
+        XCTAssertEqual(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count, 2)
     }
 
     func testBurnRespectsBlockAndArmor() {
@@ -176,7 +176,7 @@ final class DoTMechanicsTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(battle.enemyHealth, 100)
+        XCTAssertEqual(battle.health(of: battle.enemy), 100)
     }
 
     func testCleanseRemovesMergedPoisonStack() {
@@ -190,7 +190,7 @@ final class DoTMechanicsTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertFalse(battle.activeHeroEffects.contains {
+        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains {
             if case .poison = $0.effect { return true }
             return false
         })

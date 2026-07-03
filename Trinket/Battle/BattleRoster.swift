@@ -137,4 +137,21 @@ struct BattleRoster {
     var isEnemyDefeated: Bool {
         enemy.currentHealth == 0
     }
+
+    /// True when `combatant` has an active `.prevention` effect with
+    /// `remainingTicks > 0`.
+    func hasActivePrevention(for combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains(where: {
+            if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
+            return false
+        })
+    }
+
+    /// Mutates the runtime identified by `combatant` in place. A no-op
+    /// when `combatant` is unknown.
+    mutating func mutateRuntime(for combatant: Combatant, _ body: (inout CombatantRuntime) -> Void) {
+        if combatant.id == hero.id { body(&hero) }
+        else if combatant.id == pet.id { body(&pet) }
+        else if combatant.id == enemy.id { body(&enemy) }
+    }
 }

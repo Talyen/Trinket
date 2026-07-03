@@ -2,7 +2,7 @@ import Foundation
 
 /// Narrow mutation context passed to effect handlers. Owns the roster slice,
 /// RNG, ID counters, and event stream for one handler dispatch.
-struct BattleMutationContext: CombatPipelineHost {
+struct BattleEngineContext {
     var roster: BattleRoster
     var rng: SeededRandomNumberGenerator
     var nextEffectID: Int
@@ -41,6 +41,13 @@ struct BattleMutationContext: CombatPipelineHost {
         gold += amount + modifiers(for: sourceActorID).goldGainedBonus
     }
 
+    mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID: String) -> Int {
+        guard var runtime = roster.runtime(for: combatant) else { return 0 }
+        let actual = runtime.restoreMana(amount)
+        roster.update(runtime)
+        return actual
+    }
+
     func runtime(for combatant: Combatant) -> CombatantRuntime {
         guard let runtime = roster.runtime(for: combatant) else {
             preconditionFailure("Unknown combatant id \(combatant.id)")
@@ -50,13 +57,6 @@ struct BattleMutationContext: CombatPipelineHost {
 
     mutating func updateRuntime(_ runtime: CombatantRuntime) {
         roster.update(runtime)
-    }
-
-    func hasActivePrevention(actor: Combatant) -> Bool {
-        roster.activeEffects(for: actor).contains(where: {
-            if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
-            return false
-        })
     }
 
     mutating func nextEvent(
@@ -88,50 +88,6 @@ struct BattleMutationContext: CombatPipelineHost {
         return event
     }
 
-    mutating func applyDamage(
-        _ amount: Int,
-        to combatant: Combatant,
-        damageKeyword: Keyword? = nil,
-        sourceActorID: String? = nil,
-        applyStatBonus: Bool = true,
-        applyItemBonus: Bool = true,
-        applyDodge: Bool = true
-    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
-        CombatPipeline.applyDamage(
-            amount,
-            to: combatant,
-            damageKeyword: damageKeyword,
-            sourceActorID: sourceActorID,
-            applyStatBonus: applyStatBonus,
-            applyItemBonus: applyItemBonus,
-            applyDodge: applyDodge,
-            host: &self
-        )
-    }
-
-    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
-        CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, host: &self)
-    }
-
-    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
-        CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, host: &self)
-    }
-
-    mutating func applyDoTDamage(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?
-    ) -> (healthLost: Int, events: [ActionEvent]) {
-        CombatPipeline.applyDoTDamage(
-            amount,
-            keyword: keyword,
-            to: combatant,
-            sourceActorID: sourceActorID,
-            host: &self
-        )
-    }
-
     mutating func logDoTDamage(
         _ result: (healthLost: Int, events: [ActionEvent]),
         keyword: Keyword,
@@ -151,6 +107,50 @@ struct BattleMutationContext: CombatPipelineHost {
         )
         collected.append(event)
         return collected
+    }
+
+    mutating func applyDamage(
+        _ amount: Int,
+        to combatant: Combatant,
+        damageKeyword: Keyword? = nil,
+        sourceActorID: String? = nil,
+        applyStatBonus: Bool = true,
+        applyItemBonus: Bool = true,
+        applyDodge: Bool = true
+    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
+        CombatPipeline.applyDamage(
+            amount,
+            to: combatant,
+            damageKeyword: damageKeyword,
+            sourceActorID: sourceActorID,
+            applyStatBonus: applyStatBonus,
+            applyItemBonus: applyItemBonus,
+            applyDodge: applyDodge,
+            in: &self
+        )
+    }
+
+    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
+        CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &self)
+    }
+
+    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+        CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &self)
+    }
+
+    mutating func applyDoTDamage(
+        _ amount: Int,
+        keyword: Keyword,
+        to combatant: Combatant,
+        sourceActorID: String?
+    ) -> (healthLost: Int, events: [ActionEvent]) {
+        CombatPipeline.applyDoTDamage(
+            amount,
+            keyword: keyword,
+            to: combatant,
+            sourceActorID: sourceActorID,
+            in: &self
+        )
     }
 
     mutating func applyDecayingDoT(
@@ -186,7 +186,7 @@ struct BattleMutationContext: CombatPipelineHost {
     }
 }
 
-extension BattleMutationContext {
+extension BattleEngineContext {
     mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,

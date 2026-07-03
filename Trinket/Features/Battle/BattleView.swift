@@ -168,10 +168,24 @@ struct BattleView: View {
         health: Int,
         healthBarPlacement: BattleCombatantPane.HealthBarPlacement
     ) -> BattleCombatantPaneConfiguration {
-        BattleCombatantPaneConfiguration(
+        let mana: Int
+        let maxMana: Int
+        if combatant.id == battleRun.hero.id {
+            mana = battleRun.heroMana
+            maxMana = battleRun.heroMaxMana
+        } else if combatant.id == battleRun.pet.id {
+            mana = battleRun.petMana
+            maxMana = battleRun.petMaxMana
+        } else {
+            mana = 0
+            maxMana = 0
+        }
+        return BattleCombatantPaneConfiguration(
             combatant: combatant,
             health: health,
             maxHealth: combatant.maxHealth,
+            mana: mana,
+            maxMana: maxMana,
             healthBarPlacement: healthBarPlacement,
             events: feedbackEvents(for: combatant)
         )

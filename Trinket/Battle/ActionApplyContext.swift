@@ -2,7 +2,7 @@ import Foundation
 
 /// Per-action context passed into effect handlers during `performAction`.
 /// Keeps action-scoped coordination (such as paired direct damage) out of
-/// `BattleMutationContext`.
+/// `BattleEngineContext`.
 struct ActionApplyContext {
     let pairedDirectDamage: [(Keyword, Int)]
 

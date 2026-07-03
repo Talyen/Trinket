@@ -55,6 +55,9 @@ struct CombatantDetailPane: View {
                                 value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)",
                                 accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
                             )
+                            if combatBuild.effectiveMaxMana > 0 {
+                                statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
+                            }
                             statRow("Strength", value: "\(effectiveCombatant.primaryStats.strength)")
                             statRow("Agility", value: "\(effectiveCombatant.primaryStats.agility)")
                             statRow("Toughness", value: "\(effectiveCombatant.primaryStats.toughness)")

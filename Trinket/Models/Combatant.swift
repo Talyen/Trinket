@@ -48,15 +48,19 @@ struct Combatant: Identifiable, Hashable {
     let name: String
     let role: Role
     let maxHealth: Int
+    let maxMana: Int
     let actionIntervalTicks: Int?
     let abilityChoices: AbilityChoices
     let primaryStats: PrimaryStats
+
+    var hasMana: Bool { maxMana > 0 }
 
     init(
         id: String,
         name: String,
         role: Role,
         maxHealth: Int,
+        maxMana: Int = 0,
         actionIntervalTicks: Int? = nil,
         abilityChoices: AbilityChoices,
         primaryStats: PrimaryStats = PrimaryStats()
@@ -65,6 +69,7 @@ struct Combatant: Identifiable, Hashable {
         self.name = name
         self.role = role
         self.maxHealth = maxHealth
+        self.maxMana = maxMana
         self.actionIntervalTicks = actionIntervalTicks
         self.abilityChoices = abilityChoices
         self.primaryStats = primaryStats
@@ -75,6 +80,7 @@ struct Combatant: Identifiable, Hashable {
         name: String,
         role: Role,
         maxHealth: Int,
+        maxMana: Int = 0,
         actionIntervalTicks: Int? = nil,
         abilities: [Ability],
         primaryStats: PrimaryStats = PrimaryStats()
@@ -84,6 +90,7 @@ struct Combatant: Identifiable, Hashable {
             name: name,
             role: role,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: AbilityChoices(abilities: abilities),
             primaryStats: primaryStats
@@ -104,6 +111,7 @@ struct Combatant: Identifiable, Hashable {
             name: name,
             role: role,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadout(loadout),
             primaryStats: primaryStats
@@ -116,6 +124,7 @@ struct Combatant: Identifiable, Hashable {
             name: name,
             role: role,
             maxHealth: maxHealth,
+            maxMana: maxMana,
             actionIntervalTicks: actionIntervalTicks,
             abilityChoices: abilityChoices.withSelectedLoadoutPreservingEmptyTiers(loadout),
             primaryStats: primaryStats

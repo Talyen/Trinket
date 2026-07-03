@@ -85,6 +85,7 @@ enum GameContent {
             name: "Wizard",
             role: .hero,
             maxHealth: 7,
+            maxMana: 10,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .rayOfFrost],
                 skills: [.fireball, .frostbolt],
@@ -97,6 +98,7 @@ enum GameContent {
             name: "Alchemist",
             role: .hero,
             maxHealth: 9,
+            maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.smellingSalts, .apple],
                 skills: [.healthPotion, .antivenomPotion],
@@ -109,6 +111,7 @@ enum GameContent {
             name: "Druid",
             role: .hero,
             maxHealth: 11,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.apple, .bread],
                 skills: [.briarShield, .graspingVines],
@@ -133,6 +136,7 @@ enum GameContent {
             name: "Warlock",
             role: .hero,
             maxHealth: 7,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .fangs],
                 skills: [.bloodOffering, .darkPact],
@@ -172,6 +176,7 @@ enum GameContent {
             name: "Frost Whelp",
             role: .pet,
             maxHealth: 6,
+            maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.rayOfFrost, .fangs],
                 skills: [.frostbolt, .coldSnap],
@@ -208,6 +213,7 @@ enum GameContent {
             name: "Phoenix",
             role: .pet,
             maxHealth: 6,
+            maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .fireArrow],
                 skills: [.fireball, .cauterize],
@@ -244,6 +250,7 @@ enum GameContent {
             name: "Library Owl",
             role: .pet,
             maxHealth: 6,
+            maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.smellingSalts, .kindling],
                 skills: [.cleanse, .prayer],
@@ -268,6 +275,7 @@ enum GameContent {
             name: "Mana Moth",
             role: .pet,
             maxHealth: 6,
+            maxMana: 10,
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
@@ -280,6 +288,7 @@ enum GameContent {
             name: "Pixie",
             role: .pet,
             maxHealth: 5,
+            maxMana: 6,
             abilityChoices: AbilityChoices(
                 basics: [.apple, .bread],
                 skills: [.prayer, .cleanse],

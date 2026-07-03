@@ -1,17 +1,14 @@
 import Foundation
 
 /// The state of a single battle. `BattleState` is the top-level facade
-/// drivers (UI, simulation) interact with: it exposes the per-combatant
-/// read-only views (`heroHealth`, `activeHeroEffects`, `heroEffectSummaries`,
-/// etc.) and the single mutable entry point `advanceOneStep()` that ticks
-/// the simulation forward by one step.
+/// drivers (UI, simulation) interact with: it exposes per-combatant
+/// read-only views and the single mutable entry point `advanceOneStep()`
+/// that ticks the simulation forward by one step.
 ///
 /// **Public surface (read-only views):**
 /// - Combatant definitions: `hero`, `pet`, `enemy`
-/// - Per-combatant state: `heroHealth`/`petHealth`/`enemyHealth`,
-///   `activeHeroEffects`/`activePetEffects`/`activeEnemyEffects`,
-///   `heroActionCount`/`petActionCount`/`enemyActionCount`,
-///   `heroEffectSummaries`/`petEffectSummaries`/`enemyEffectSummaries`
+/// - Per-combatant state: `health(of:)`, `activeEffects(of:)`,
+///   `effectSummaries(of:)`
 /// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`
 /// - Derived: `log`
 /// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
@@ -51,12 +48,8 @@ struct BattleState {
     let combatBuild: BattleCombatBuild
     private let initialGold: Int
 
-    var log: [LogEntry] {
-        BattleLogReducer.entries(
-            from: events,
-            matchup: BattleMatchup(hero: hero, pet: pet, enemy: enemy)
-        )
-    }
+    /// Cached combat log. Rebuilt automatically after every event mutation.
+    private(set) var log: [LogEntry] = []
 
     static let defaultRNGSeed: UInt64 = 0
 
@@ -93,12 +86,14 @@ struct BattleState {
             hero: CombatantRuntime(
                 combatant: hero,
                 initialActiveEffects: activeHeroEffects,
-                maximumHealthBonus: heroModifiers.maximumHealthBonus
+                maximumHealthBonus: heroModifiers.maximumHealthBonus,
+                maximumManaBonus: heroModifiers.maximumManaBonus
             ),
             pet: CombatantRuntime(
                 combatant: pet,
                 initialActiveEffects: activePetEffects,
-                maximumHealthBonus: petModifiers.maximumHealthBonus
+                maximumHealthBonus: petModifiers.maximumHealthBonus,
+                maximumManaBonus: petModifiers.maximumManaBonus
             ),
             enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
         )
@@ -117,45 +112,10 @@ struct BattleState {
 
         events = []
         _ = appendMilestone(.battleStarted)
+        rebuildLog()
     }
 
     // MARK: - Per-combatant state accessors (delegate to roster)
-
-    var heroHealth: Int {
-        roster.hero.currentHealth
-    }
-
-    var petHealth: Int {
-        roster.pet.currentHealth
-    }
-
-    var enemyHealth: Int {
-        roster.enemy.currentHealth
-    }
-
-    var activeEnemyEffects: [ActiveEffect] {
-        roster.enemy.activeEffects
-    }
-
-    var activeHeroEffects: [ActiveEffect] {
-        roster.hero.activeEffects
-    }
-
-    var activePetEffects: [ActiveEffect] {
-        roster.pet.activeEffects
-    }
-
-    var heroActionCount: Int {
-        roster.hero.actionCount
-    }
-
-    var petActionCount: Int {
-        roster.pet.actionCount
-    }
-
-    var enemyActionCount: Int {
-        roster.enemy.actionCount
-    }
 
     var earnedGold: Int {
         gold - initialGold
@@ -217,18 +177,6 @@ struct BattleState {
         EffectSummaryBuilder.build(for: activeEffects(for: role))
     }
 
-    var enemyEffectSummaries: [EffectSummary] {
-        EffectSummaryBuilder.build(for: activeEnemyEffects)
-    }
-
-    var heroEffectSummaries: [EffectSummary] {
-        EffectSummaryBuilder.build(for: activeHeroEffects)
-    }
-
-    var petEffectSummaries: [EffectSummary] {
-        EffectSummaryBuilder.build(for: activePetEffects)
-    }
-
     // MARK: - Roster helpers (replace the 6 deleted dispatch methods)
 
     func runtime(for combatant: Combatant) -> CombatantRuntime {
@@ -242,10 +190,18 @@ struct BattleState {
         roster.update(runtime)
     }
 
-    // MARK: - Mutation context
+    // MARK: - Modifier profile
 
-    func makeMutationContext() -> BattleMutationContext {
-        BattleMutationContext(
+    func modifiers(for combatantID: String) -> CombatModifierProfile {
+        combatBuild.modifiers(for: combatantID)
+    }
+
+    // MARK: - Engine context
+
+    /// Copies the relevant mutable fields into a `BattleEngineContext`, runs
+    /// `body`, then copies the mutated context back into `self`.
+    mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
+        var context = BattleEngineContext(
             roster: roster,
             rng: rng,
             nextEffectID: nextEffectID,
@@ -254,15 +210,52 @@ struct BattleState {
             gold: gold,
             build: combatBuild
         )
-    }
-
-    mutating func applyMutationContext(_ context: BattleMutationContext) {
+        let result = try body(&context)
         roster = context.roster
         rng = context.rng
         nextEffectID = context.nextEffectID
         nextEventID = context.nextEventID
         events = context.events
         gold = context.gold
+        rebuildLog()
+        return result
+    }
+
+    // MARK: - Pipeline forwarding
+
+    mutating func applyDamage(
+        _ amount: Int,
+        to combatant: Combatant,
+        damageKeyword: Keyword? = nil,
+        sourceActorID: String? = nil,
+        applyStatBonus: Bool = true,
+        applyItemBonus: Bool = true,
+        applyDodge: Bool = true
+    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
+        withEngineContext { context in
+            CombatPipeline.applyDamage(
+                amount,
+                to: combatant,
+                damageKeyword: damageKeyword,
+                sourceActorID: sourceActorID,
+                applyStatBonus: applyStatBonus,
+                applyItemBonus: applyItemBonus,
+                applyDodge: applyDodge,
+                in: &context
+            )
+        }
+    }
+
+    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
+        withEngineContext { context in
+            CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &context)
+        }
+    }
+
+    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+        withEngineContext { context in
+            CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &context)
+        }
     }
 
     // MARK: - Turn loop
@@ -295,17 +288,7 @@ struct BattleState {
             return .effectsOnly(events: events)
         }
 
-        if actor.role == .enemy, isEnemyDefeated {
-            return .effectsOnly(events: events)
-        }
-
-        let abilityTarget = actor.role == .enemy ? enemyAttackTarget : enemy
-        if hasActivePrevention(actor: actor) {
-            events.append(contentsOf: BattleTurnEngine.consumePrevention(for: actor, state: &self))
-        } else {
-            events.append(contentsOf: BattleTurnEngine.performAction(actor: actor, abilityTarget: abilityTarget, state: &self))
-        }
-
+        events.append(contentsOf: BattleTurnEngine.act(actor: actor, state: &self))
         events.append(contentsOf: appendDefeatMilestonesIfNeeded())
 
         if isBattleOver {
@@ -313,13 +296,6 @@ struct BattleState {
         }
 
         return .acted(actor, events: events)
-    }
-
-    func hasActivePrevention(actor: Combatant) -> Bool {
-        roster.activeEffects(for: actor).contains(where: {
-            if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
-            return false
-        })
     }
 
     // MARK: - Combat pipeline (see CombatPipeline.swift)
@@ -350,7 +326,15 @@ struct BattleState {
             milestone: milestone
         )
         events.append(event)
+        rebuildLog()
         return event
+    }
+
+    private mutating func rebuildLog() {
+        log = BattleLogReducer.entries(
+            from: events,
+            matchup: BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        )
     }
 
     @discardableResult

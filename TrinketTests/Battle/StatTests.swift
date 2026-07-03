@@ -144,7 +144,7 @@ final class StatTests: XCTestCase {
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
         let battle = BattleStateTestFactory.makeBattle(hero: tank, pet: pet, enemy: enemy)
 
-        XCTAssertEqual(battle.heroHealth, 10 + 5)
+        XCTAssertEqual(battle.health(of: battle.hero), 10 + 5)
     }
 
     func testToughnessMitigationReducesDamage() {
@@ -163,7 +163,7 @@ final class StatTests: XCTestCase {
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
-        let initial = battle.heroHealth
+        let initial = battle.health(of: battle.hero)
         // enemy acts at tick 1
         let step = advance(&battle)
 
@@ -172,7 +172,7 @@ final class StatTests: XCTestCase {
         let toughnessPct = 50.0 / (50.0 + 50.0) // 0.5
         let expectedTaken = Int(ceil(Double(1) * (1 - toughnessPct)))
         XCTAssertEqual(event?.amount, expectedTaken)
-        XCTAssertEqual(battle.heroHealth, initial - expectedTaken)
+        XCTAssertEqual(battle.health(of: battle.hero), initial - expectedTaken)
     }
 
     // MARK: - Intellect
@@ -247,7 +247,7 @@ final class StatTests: XCTestCase {
         let healEvent = healStep.events.first { $0.effectKind == .instantHeal }
         XCTAssertNotNil(healEvent)
         // Hero received 5 healing (3 base + 2 wisdom); verify health bounced back to near max
-        XCTAssertGreaterThanOrEqual(battle.heroHealth, 99)
+        XCTAssertGreaterThanOrEqual(battle.health(of: battle.hero), 99)
     }
 
     func testWisdomIncreasesNatureDamage() {
@@ -314,7 +314,7 @@ final class StatTests: XCTestCase {
             _ = advance(&battle)
         }
 
-        let buildupEffect = battle.heroEffectSummaries.first { $0.text.contains("Build-up") }
+        let buildupEffect = battle.effectSummaries(of: battle.hero).first { $0.text.contains("Build-up") }
         XCTAssertNotNil(buildupEffect)
     }
 
@@ -336,7 +336,7 @@ final class StatTests: XCTestCase {
         )
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
-        let initial = battle.heroHealth // 100 + 50 = 150
+        let initial = battle.health(of: battle.hero) // 100 + 50 = 150
 
         // Tick 1: enemy acts — fireball directDamage 3 * (1 - 50/100) = 2
         advance(&battle)
@@ -345,7 +345,7 @@ final class StatTests: XCTestCase {
 
         // Toughness 50 → 50% mitigation → damage is roughly halved
         let expectedMaxDamage = 3 + 3 // max possible without mitigation
-        let actualDamage = initial - battle.heroHealth
+        let actualDamage = initial - battle.health(of: battle.hero)
         XCTAssertLessThan(actualDamage, expectedMaxDamage)
         XCTAssertGreaterThan(actualDamage, 0)
     }

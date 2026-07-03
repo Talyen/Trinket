@@ -43,15 +43,31 @@ final class BattleRun {
     }
 
     var heroHealth: Int {
-        state.heroHealth
+        state.health(for: .hero)
     }
 
     var petHealth: Int {
-        state.petHealth
+        state.health(for: .pet)
     }
 
     var enemyHealth: Int {
-        state.enemyHealth
+        state.health(for: .enemy)
+    }
+
+    var heroMana: Int {
+        state.roster.hero.currentMana
+    }
+
+    var petMana: Int {
+        state.roster.pet.currentMana
+    }
+
+    var heroMaxMana: Int {
+        state.roster.hero.maxMana
+    }
+
+    var petMaxMana: Int {
+        state.roster.pet.maxMana
     }
 
     var earnedGold: Int {

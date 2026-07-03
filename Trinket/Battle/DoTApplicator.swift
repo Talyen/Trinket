@@ -8,7 +8,7 @@ enum DoTApplicator {
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
         let statBonus: Int
@@ -54,7 +54,7 @@ enum DoTApplicator {
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
 

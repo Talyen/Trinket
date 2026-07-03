@@ -9,7 +9,7 @@ struct CleanseHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .cleanse(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
@@ -38,7 +38,7 @@ struct CleanseRandomHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
         let removedKeyword = EffectRemoval.removeRandomDebuff(from: &currentEffects, using: &context.rng)
@@ -66,7 +66,7 @@ struct PurgeHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .purge(targetKeyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         var currentEffects = context.activeEffects(for: target)
@@ -95,7 +95,7 @@ struct PurgeRandomHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         var currentEffects = context.activeEffects(for: target)
         let removedKeyword = EffectRemoval.removeRandomBuff(from: &currentEffects, using: &context.rng)

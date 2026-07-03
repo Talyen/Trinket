@@ -18,7 +18,7 @@ final class MitigationIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+        XCTAssertEqual(battle.health(of: battle.hero), hero.maxHealth)
     }
 
     func testArmorMitigatesIncomingDamage() {
@@ -38,7 +38,7 @@ final class MitigationIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.heroHealth, 17)
+        XCTAssertEqual(battle.health(of: battle.hero), 17)
     }
 
     func testEffectiveDamageMatchesEventAmount() {
@@ -60,7 +60,7 @@ final class MitigationIntegrationTests: XCTestCase {
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
         XCTAssertEqual(damageEvent?.amount, 3)
-        XCTAssertEqual(battle.heroHealth, 17)
+        XCTAssertEqual(battle.health(of: battle.hero), 17)
     }
 
     func testSunderArmorHalvesEnemyArmor() {

@@ -5,6 +5,19 @@ enum BattleTurnEngine {
         state.roster.readyCombatants(atTick: state.tickCount).map(\.combatant)
     }
 
+    /// Acts on `actor` for one turn. If the actor has an active `.prevention`
+    /// effect with `remainingTicks > 0`, the prevention is consumed and the
+    /// actor's schedule still advances. Otherwise the actor's selected
+    /// ability is performed against `state.enemyAttackTarget` (or `state.enemy`
+    /// for non-enemy actors).
+    static func act(actor: Combatant, state: inout BattleState) -> [ActionEvent] {
+        let abilityTarget = actor.role == .enemy ? state.enemyAttackTarget : state.enemy
+        if state.roster.hasActivePrevention(for: actor) {
+            return consumePrevention(for: actor, state: &state)
+        }
+        return performAction(actor: actor, abilityTarget: abilityTarget, state: &state)
+    }
+
     static func consumePrevention(for actor: Combatant, state: inout BattleState) -> [ActionEvent] {
         var currentEffects = state.roster.activeEffects(for: actor)
         var events: [ActionEvent] = []
@@ -58,7 +71,9 @@ enum BattleTurnEngine {
                 component.target,
                 actor: actor,
                 abilityTarget: abilityTarget,
-                state: state
+                hero: state.hero,
+                pet: state.pet,
+                enemy: state.enemy
             )
             let (dealt, damageEvents) = state.applyDamage(
                 component.amount,
@@ -81,32 +96,37 @@ enum BattleTurnEngine {
         var appliedEffectLogs: [String] = []
         let effectsToApply = ability.targetedEffects
 
-        var context = state.makeMutationContext()
         let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
-        for targetedEffect in effectsToApply {
-            let effect = targetedEffect.effect
-            let effectTarget = resolveEffectTarget(
-                targetedEffect.target,
-                actor: actor,
-                abilityTarget: abilityTarget,
-                state: state
-            )
+        let heroCombatant = state.hero
+        let petCombatant = state.pet
+        let enemyCombatant = state.enemy
+        state.withEngineContext { context in
+            for targetedEffect in effectsToApply {
+                let effect = targetedEffect.effect
+                let effectTarget = resolveEffectTarget(
+                    targetedEffect.target,
+                    actor: actor,
+                    abilityTarget: abilityTarget,
+                    hero: heroCombatant,
+                    pet: petCombatant,
+                    enemy: enemyCombatant
+                )
 
-            guard let handler = EffectHandlers.all[effect.kind] else { continue }
-            let outcome = handler.apply(
-                effect,
-                ability: ability,
-                source: actor,
-                target: effectTarget,
-                action: actionContext,
-                in: &context
-            )
-            events.append(contentsOf: outcome.events)
-            if outcome.didApply {
-                appliedEffectLogs.append(effect.summary)
+                guard let handler = EffectHandlers.all[effect.kind] else { continue }
+                let outcome = handler.apply(
+                    effect,
+                    ability: ability,
+                    source: actor,
+                    target: effectTarget,
+                    action: actionContext,
+                    in: &context
+                )
+                events.append(contentsOf: outcome.events)
+                if outcome.didApply {
+                    appliedEffectLogs.append(effect.summary)
+                }
             }
         }
-        state.applyMutationContext(context)
 
         events.append(
             state.nextEvent(
@@ -136,7 +156,9 @@ enum BattleTurnEngine {
         _ target: EffectTarget,
         actor: Combatant,
         abilityTarget: Combatant,
-        state: BattleState
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant
     ) -> Combatant {
         switch target {
         case .abilityTarget:
@@ -144,11 +166,11 @@ enum BattleTurnEngine {
         case .actor:
             return actor
         case .enemy:
-            return state.enemy
+            return enemy
         case .hero:
-            return state.hero
+            return hero
         case .pet:
-            return state.pet
+            return pet
         }
     }
 

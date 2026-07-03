@@ -149,6 +149,7 @@ Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun)
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
 | `Gold` | amber | `dollarsign.circle.fill` | Currency gain via `.resourceGain`. Increments `BattleState.gold` during battle and persists to `PlayerRosterState.gold` on victory (combined with stage rewards). |
+| `Mana` | indigo | `star.fill` | Magical energy used to power abilities. Tracked per-combatant via `CombatantRuntime.currentMana`. Restored via `.resourceGain(.mana, ...)`. |
 
 ### Effect Model
 
@@ -165,7 +166,7 @@ All keyword effects are represented by the `Effect` tagged union and applied thr
 - `.dealDamage(keyword, amount)` — typed direct damage hit
 - `.cleanseRandom` — removes one random debuff (Burn, Poison, Bleed, Stun, Freeze)
 - `.halveMitigation(keyword)` — halves existing mitigation % on the target
-- `.resourceGain(keyword, amount)` — immediately adds `amount` gold
+- `.resourceGain(keyword, amount)` — immediately adds `amount` of the resource identified by `keyword` (`.gold` → gold, `.mana` → mana)
 - `.cleanse(keyword?, durationTicks)` — removes active effects matching `keyword` (or all if nil) for `durationTicks`
 
 Abilities declare `targetedEffects: [TargetedEffect]` (or bare `effects` with default targeting). The `BattleState` applies instant effects immediately and tracks duration-based effects as `ActiveEffect` instances on the resolved target combatant.

@@ -36,7 +36,7 @@ final class AbilityEffectIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        XCTAssertTrue(battle.activeEnemyEffects.contains { $0.keyword == .poison })
+        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
     func testBloodthornDealsComponentDamageAndAppliesDoTs() {
@@ -57,7 +57,7 @@ final class AbilityEffectIntegrationTests: XCTestCase {
 
         // Three typed damage components (2 nature, 2 bleed, 2 poison) with dodge
         // enabled via sourceActorID; seed 0 lands 4 damage before DoTs tick.
-        XCTAssertEqual(battle.enemyHealth, 96)
+        XCTAssertEqual(battle.health(of: battle.enemy), 96)
         XCTAssertTrue(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
         XCTAssertTrue(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
         XCTAssertTrue(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
@@ -85,13 +85,13 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertLessThan(battle.heroHealth, 10)
+        XCTAssertLessThan(battle.health(of: battle.hero), 10)
 
         let step = BattleTestFixtures.advanceUntilAbility("Prayer", on: &battle)
         guard let step else {
             return XCTFail("Expected Prayer to resolve in battle")
         }
         XCTAssertTrue(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
-        XCTAssertEqual(battle.activeHeroEffects.filter(ActiveEffect.isDebuff).count, 1)
+        XCTAssertEqual(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count, 1)
     }
 }

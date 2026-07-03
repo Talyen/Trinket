@@ -34,7 +34,7 @@ final class ItemModifierBattleTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.enemyHealth, 2)
+        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
     }
 
     func testEquippedMaximumHealthAffixIncreasesStartingHealth() throws {
@@ -67,7 +67,7 @@ final class ItemModifierBattleTests: XCTestCase {
             heroModifiers: modifiers
         )
 
-        XCTAssertEqual(battle.heroHealth, 14)
+        XCTAssertEqual(battle.health(of: battle.hero), 14)
     }
 
     func testEquippedMightyAffixIncreasesStrengthBasedDamage() throws {
@@ -108,7 +108,7 @@ final class ItemModifierBattleTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.enemyHealth, 2)
+        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
     }
 
     func testEquippedSerratedAffixIncreasesBleedDamage() throws {
@@ -140,6 +140,6 @@ final class ItemModifierBattleTests: XCTestCase {
 
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.enemyHealth, 2)
+        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
     }
 }

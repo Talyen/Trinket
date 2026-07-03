@@ -22,6 +22,7 @@ enum CombatBuildResolver {
             name: combatant.name,
             role: combatant.role,
             maxHealth: combatant.maxHealth,
+            maxMana: combatant.maxMana,
             actionIntervalTicks: combatant.actionIntervalTicks,
             abilityChoices: combatant.abilityChoices,
             primaryStats: effectiveStats

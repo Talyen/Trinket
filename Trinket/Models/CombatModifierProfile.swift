@@ -7,6 +7,7 @@ enum AffixModifier: Equatable, Hashable {
     case intellect(Int)
     case wisdom(Int)
     case maximumHealth(Int)
+    case maximumMana(Int)
     case damageDealt(Keyword, Int)
     case healthRestored(Int)
     case leechGrantedPercent(Double)
@@ -24,6 +25,7 @@ enum AffixModifier: Equatable, Hashable {
 struct CombatModifierProfile: Equatable, Hashable {
     var statBonuses: PrimaryStats
     var maximumHealthBonus: Int
+    var maximumManaBonus: Int
     var damageDealtBonus: [Keyword: Int]
     var healthRestoredBonus: Int
     var leechGrantedBonus: Double
@@ -42,6 +44,7 @@ struct CombatModifierProfile: Equatable, Hashable {
     init(
         statBonuses: PrimaryStats = PrimaryStats(),
         maximumHealthBonus: Int = 0,
+        maximumManaBonus: Int = 0,
         damageDealtBonus: [Keyword: Int] = [:],
         healthRestoredBonus: Int = 0,
         leechGrantedBonus: Double = 0,
@@ -57,6 +60,7 @@ struct CombatModifierProfile: Equatable, Hashable {
     ) {
         self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus
+        self.maximumManaBonus = maximumManaBonus
         self.damageDealtBonus = damageDealtBonus
         self.healthRestoredBonus = healthRestoredBonus
         self.leechGrantedBonus = leechGrantedBonus
@@ -85,6 +89,7 @@ struct CombatModifierProfile: Equatable, Hashable {
     mutating func merge(_ other: CombatModifierProfile) {
         statBonuses.merge(other.statBonuses)
         maximumHealthBonus += other.maximumHealthBonus
+        maximumManaBonus += other.maximumManaBonus
         for (keyword, amount) in other.damageDealtBonus {
             damageDealtBonus[keyword, default: 0] += amount
         }
@@ -117,6 +122,8 @@ struct CombatModifierProfile: Equatable, Hashable {
             statBonuses.wisdom += amount
         case let .maximumHealth(amount):
             maximumHealthBonus += amount
+        case let .maximumMana(amount):
+            maximumManaBonus += amount
         case let .damageDealt(keyword, amount):
             damageDealtBonus[keyword, default: 0] += amount
         case let .healthRestored(amount):
@@ -159,6 +166,11 @@ struct CombatBuild: Equatable, Hashable {
 
     var effectiveMaxHealth: Int {
         combatant.maxHealth + combatant.primaryStats.toughness + modifiers.maximumHealthBonus
+    }
+
+    var effectiveMaxMana: Int {
+        guard combatant.hasMana else { return 0 }
+        return combatant.maxMana + combatant.primaryStats.intellect + modifiers.maximumManaBonus
     }
 }
 

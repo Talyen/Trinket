@@ -43,19 +43,40 @@ struct BattleCombatantPane: View {
     }
 
     private var healthText: String {
-        "\(configuration.health)/\(configuration.maxHealth) HP"
+        if configuration.hasMana {
+            return "\(configuration.health)/\(configuration.maxHealth) HP \(configuration.mana)/\(configuration.maxMana) MP"
+        }
+        return "\(configuration.health)/\(configuration.maxHealth) HP"
     }
 
     private var healthBar: some View {
         healthChrome {
-            CombatHealthBar(
-                health: configuration.health,
-                maxHealth: configuration.maxHealth,
-                fillColor: combatant.healthBarColor
-            )
-            .accessibilityHidden(true)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            if configuration.hasMana {
+                HStack(spacing: 4) {
+                    CombatHealthBar(
+                        health: configuration.health,
+                        maxHealth: configuration.maxHealth,
+                        fillColor: combatant.healthBarColor
+                    )
+
+                    CombatManaBar(
+                        mana: configuration.mana,
+                        maxMana: configuration.maxMana
+                    )
+                }
+                .accessibilityHidden(true)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+            } else {
+                CombatHealthBar(
+                    health: configuration.health,
+                    maxHealth: configuration.maxHealth,
+                    fillColor: combatant.healthBarColor
+                )
+                .accessibilityHidden(true)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+            }
         }
     }
 
@@ -85,5 +106,30 @@ struct BattleCombatantPane: View {
                 Spacer(minLength: 0)
             }
         }
+    }
+}
+
+struct CombatManaBar: View {
+    let mana: Int
+    let maxMana: Int
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(.quaternary)
+
+                Capsule()
+                    .fill(Keyword.mana.visualStyle.color)
+                    .frame(width: geometry.size.width * fraction)
+            }
+        }
+        .frame(height: TrinketDesign.Metrics.statBarHeight)
+        .clipShape(Capsule())
+    }
+
+    private var fraction: Double {
+        guard maxMana > 0 else { return 0 }
+        return min(max(Double(mana) / Double(maxMana), 0), 1)
     }
 }

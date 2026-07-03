@@ -3,7 +3,7 @@ import XCTest
 
 final class KeywordTests: XCTestCase {
     func testAllKeywordsAreCovered() {
-        let expected: Set = ["Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison", "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge"]
+        let expected: Set = ["Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison", "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge", "Mana"]
         let actual = Set(Keyword.allCases.map(\.rawValue))
         XCTAssertEqual(expected, actual)
     }
@@ -36,7 +36,7 @@ final class KeywordTests: XCTestCase {
     }
 
     func testMitigationCategory() {
-        let types: [Keyword] = [.block, .armor, .dodge]
+        let types: [Keyword] = [.block, .armor, .dodge, .purge]
         for kw in types {
             XCTAssertEqual(kw.category, .mitigation, "\(kw.rawValue) should be mitigation")
         }
@@ -50,7 +50,10 @@ final class KeywordTests: XCTestCase {
     }
 
     func testResourceCategory() {
-        XCTAssertEqual(Keyword.gold.category, .resource)
+        let types: [Keyword] = [.gold, .mana]
+        for kw in types {
+            XCTAssertEqual(kw.category, .resource, "\(kw.rawValue) should be resource")
+        }
     }
 
     func testStatusAliases() {

@@ -25,11 +25,11 @@ final class RestorationIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertEqual(battle.heroHealth, 8)
+        XCTAssertEqual(battle.health(of: battle.hero), 8)
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 10)
+        XCTAssertEqual(battle.health(of: battle.hero), 10)
         XCTAssertTrue(events.contains { event in
             event.effectKind == .instantHeal && ActionEventFormatter.display(for: event).text == "+3 Health"
         })
@@ -50,11 +50,11 @@ final class RestorationIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertEqual(battle.heroHealth, 8)
+        XCTAssertEqual(battle.health(of: battle.hero), 8)
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.heroHealth, 8)
+        XCTAssertEqual(battle.health(of: battle.hero), 8)
         XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
@@ -88,6 +88,6 @@ final class RestorationIntegrationTests: XCTestCase {
         let step = battle.advanceOneStep()
 
         XCTAssertTrue(step.events.contains { $0.effectKind == .instantHeal && $0.amount == 5 })
-        XCTAssertEqual(battle.enemyHealth, 20)
+        XCTAssertEqual(battle.health(of: battle.enemy), 20)
     }
 }

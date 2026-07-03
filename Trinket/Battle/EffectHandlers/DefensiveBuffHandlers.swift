@@ -17,7 +17,7 @@ struct PreventionHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .prevention(keyword, duration) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         guard context.health(of: target) > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
@@ -62,7 +62,7 @@ struct ShieldHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .shield(keyword, buffer, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -110,7 +110,7 @@ struct MitigationHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .mitigation(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)
@@ -153,7 +153,7 @@ struct DodgeHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .dodge(keyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         context.appendEffect(effect, to: target, sourceID: source.id, remainingTicks: durationTicks)
@@ -192,7 +192,7 @@ struct LeechHandler: BattleEffectHandler {
         source: Combatant,
         target: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .leech(keyword, percent, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
         let adjusted = context.adjustedOutgoingEffect(effect, sourceID: source.id)

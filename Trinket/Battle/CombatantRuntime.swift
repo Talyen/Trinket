@@ -14,6 +14,9 @@ struct CombatantRuntime: Hashable {
     /// Current health. `0` means defeated.
     var currentHealth: Int
 
+    /// Current mana. Starts at `combatant.maxMana` and is `0` for combatants without mana.
+    var currentMana: Int
+
     /// Currently active status effects, in insertion order.
     var activeEffects: [ActiveEffect]
 
@@ -30,17 +33,24 @@ struct CombatantRuntime: Hashable {
     /// Flat maximum-health bonus from equipped item affixes.
     let maximumHealthBonus: Int
 
+    /// Flat maximum-mana bonus from equipped item affixes.
+    let maximumManaBonus: Int
+
     init(
         combatant: Combatant,
         initialHealth: Int? = nil,
+        initialMana: Int? = nil,
         initialActiveEffects: [ActiveEffect] = [],
         initialActionSpeed: ActionSpeed? = nil,
         initialNextReadyAtTick: Int? = nil,
-        maximumHealthBonus: Int = 0
+        maximumHealthBonus: Int = 0,
+        maximumManaBonus: Int = 0
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus
+        self.maximumManaBonus = maximumManaBonus
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
+        currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
         activeEffects = initialActiveEffects
 
         let speed = initialActionSpeed ?? CombatantRuntime.defaultActionSpeed(for: combatant)
@@ -65,6 +75,11 @@ struct CombatantRuntime: Hashable {
 
     var maxHealth: Int {
         combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus
+    }
+
+    var maxMana: Int {
+        guard combatant.hasMana else { return 0 }
+        return combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus
     }
 
     var primaryStats: PrimaryStats {
@@ -98,6 +113,23 @@ struct CombatantRuntime: Hashable {
     mutating func takeRawDamage(_ amount: Int) -> Int {
         let actual = min(amount, currentHealth)
         currentHealth = max(0, currentHealth - amount)
+        return actual
+    }
+
+    /// Subtracts `amount` from `currentMana`, clamped at 0. Returns the
+    /// actual mana spent.
+    mutating func spendMana(_ amount: Int) -> Int {
+        let actual = min(amount, currentMana)
+        currentMana = max(0, currentMana - amount)
+        return actual
+    }
+
+    /// Restores `amount` mana, capped at `maxMana`. Returns the actual
+    /// amount restored.
+    mutating func restoreMana(_ amount: Int) -> Int {
+        let space = max(0, maxMana - currentMana)
+        let actual = min(amount, space)
+        currentMana += actual
         return actual
     }
 

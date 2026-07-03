@@ -35,10 +35,10 @@ final class BattleStateTests: XCTestCase {
 
     func testEnemyHealthDecreasesOnHit() {
         var battle = BattleStateTestFactory.makeBattle(hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy)
-        let initial = battle.enemyHealth
+        let initial = battle.health(of: battle.enemy)
         _ = advance(&battle)
         _ = advance(&battle)
-        XCTAssertLessThan(battle.enemyHealth, initial)
+        XCTAssertLessThan(battle.health(of: battle.enemy), initial)
     }
 
     func testEnemyAttackTargetPrefersHigherHealthMember() {
@@ -190,7 +190,7 @@ final class BattleStateTests: XCTestCase {
             ]
         )
         _ = advance(&battle)
-        let summaries = battle.enemyEffectSummaries
+        let summaries = battle.effectSummaries(of: battle.enemy)
         let burnSummary = summaries.first { $0.keyword == .burn }
         let poisonSummary = summaries.first { $0.keyword == .poison }
         XCTAssertNotNil(burnSummary)

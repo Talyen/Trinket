@@ -31,6 +31,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
     case freeze = "Freeze"
     case dodge = "Dodge"
     case purge = "Purge"
+    case mana = "Mana"
 
     var id: String {
         rawValue
@@ -48,7 +49,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: return .damageType
         case .block, .armor, .dodge, .purge: return .mitigation
         case .health, .leech: return .restoration
-        case .gold: return .resource
+        case .gold, .mana: return .resource
         }
     }
 
@@ -106,6 +107,8 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
             return "Chance to avoid incoming damage entirely."
         case .purge:
             return "Instantly removes beneficial status effects from enemies."
+        case .mana:
+            return "Magical energy used to power abilities."
         }
     }
 
@@ -128,6 +131,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         static let freeze = VisualStyle(color: Color(red: 0.6, green: 0.85, blue: 1.0), symbolName: "snowflake")
         static let dodge = VisualStyle(color: Color(red: 0.3, green: 0.7, blue: 0.9), symbolName: "arrowshape.turn.up.left.circle.fill")
         static let purge = VisualStyle(color: Color(red: 0.75, green: 0.55, blue: 1.0), symbolName: "sparkles")
+        static let mana = VisualStyle(color: Color(red: 0.45, green: 0.15, blue: 1.0), symbolName: "star.fill")
     }
 
     var visualStyle: VisualStyle {
@@ -147,6 +151,7 @@ enum Keyword: String, CaseIterable, Identifiable, Hashable {
         case .freeze: return .freeze
         case .dodge: return .dodge
         case .purge: return .purge
+        case .mana: return .mana
         }
     }
 }

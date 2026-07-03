@@ -20,7 +20,7 @@ final class PreventionIntegrationTests: XCTestCase {
 
         let events = BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+        XCTAssertEqual(battle.health(of: battle.hero), hero.maxHealth)
         XCTAssertTrue(events.contains(effectKind: .preventionSkipped, keyword: .stun))
     }
 
@@ -39,7 +39,7 @@ final class PreventionIntegrationTests: XCTestCase {
 
         let events = BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+        XCTAssertEqual(battle.health(of: battle.hero), hero.maxHealth)
         XCTAssertTrue(events.contains(effectKind: .preventionSkipped, keyword: .freeze))
     }
 
@@ -59,7 +59,7 @@ final class PreventionIntegrationTests: XCTestCase {
         let events = BattleTestFixtures.advanceTicks(4, on: &battle)
 
         XCTAssertTrue(events.contains(effectKind: .preventionSkipped, keyword: .stun))
-        XCTAssertEqual(battle.heroHealth, hero.maxHealth)
+        XCTAssertEqual(battle.health(of: battle.hero), hero.maxHealth)
     }
 
     func testShieldBashGrantsBlockAlongsideStunDamage() {
@@ -96,7 +96,7 @@ final class PreventionIntegrationTests: XCTestCase {
         )
 
         BattleTestFixtures.advanceTicks(5, on: &battle)
-        XCTAssertFalse(battle.activeEnemyEffects.isEmpty)
+        XCTAssertFalse(battle.activeEffects(of: battle.enemy).isEmpty)
 
         let step = battle.advanceOneStep()
         if case let .acted(_, events) = step {
@@ -181,11 +181,11 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let stunnedCount = battle.activeEnemyEffects.filter { ae in
+        let stunnedCount = battle.activeEffects(of: battle.enemy).filter { ae in
             if case .prevention(.stun, _) = ae.effect { return true }
             return false
         }.count
-        let buildupCount = battle.activeEnemyEffects.filter(\.effect.isPreventionBuildup).count
+        let buildupCount = battle.activeEffects(of: battle.enemy).filter(\.effect.isPreventionBuildup).count
         XCTAssertEqual(stunnedCount, 1, "Enemy should be stunned")
         XCTAssertEqual(buildupCount, 0, "No build-up should accumulate while stunned")
     }
@@ -209,7 +209,7 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let summary = battle.enemyEffectSummaries.first { $0.keyword == .stun }
+        let summary = battle.effectSummaries(of: battle.enemy).first { $0.keyword == .stun }
         XCTAssertNotNil(summary)
         XCTAssertTrue(summary?.text.contains("Build-up") ?? false)
     }
@@ -222,7 +222,7 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let summary = battle.enemyEffectSummaries.first { $0.keyword == .freeze }
+        let summary = battle.effectSummaries(of: battle.enemy).first { $0.keyword == .freeze }
         XCTAssertNotNil(summary)
         XCTAssertTrue(summary?.text.contains("Build-up") ?? false)
     }

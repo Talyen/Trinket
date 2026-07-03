@@ -41,12 +41,12 @@ protocol BattleEffectHandler: Sendable {
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectApplyOutcome
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectTickOutcome
     /// Builds the player-facing summary line for a stack of active effects
     /// of this kind, all sharing the same `keyword`. Returning `nil` means
@@ -62,7 +62,7 @@ extension BattleEffectHandler {
     func tick(
         _ active: ActiveEffect,
         on target: Combatant,
-        in context: inout BattleMutationContext
+        in context: inout BattleEngineContext
     ) -> EffectTickOutcome {
         _ = target; _ = context
         switch active.effect {
