@@ -3,8 +3,8 @@ import TrinketCore
 import TrinketContent
 
 public enum BattleTurnEngine {
-    public static func readyCombatants(in context: BattleEngineContext, tickCount: Int) -> [Combatant] {
-        context.roster.readyCombatants(atTick: tickCount).map(\.combatant)
+    public static func readyCombatants(in context: BattleEngineContext) -> [Combatant] {
+        context.roster.readyCombatants(atTick: context.tickCount).map(\.combatant)
     }
 
     /// Acts on `actor` for one turn. If the actor has an active `.prevention`
@@ -15,25 +15,22 @@ public enum BattleTurnEngine {
     public static func act(
         actor: Combatant,
         matchup: BattleMatchup,
-        tickCount: Int,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
         if context.roster.hasActivePrevention(for: actor) {
-            return consumePrevention(for: actor, tickCount: tickCount, context: &context)
+            return consumePrevention(for: actor, context: &context)
         }
         return performAction(
             actor: actor,
             abilityTarget: abilityTarget,
             matchup: matchup,
-            tickCount: tickCount,
             context: &context
         )
     }
 
     public static func consumePrevention(
         for actor: Combatant,
-        tickCount: Int,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
@@ -63,7 +60,7 @@ public enum BattleTurnEngine {
         }
 
         context.roster.setActiveEffects(currentEffects, for: actor)
-        recordAction(for: actor, tickCount: tickCount, context: &context)
+        recordAction(for: actor, context: &context)
         return events
     }
 
@@ -71,13 +68,12 @@ public enum BattleTurnEngine {
         actor: Combatant,
         abilityTarget: Combatant,
         matchup: BattleMatchup,
-        tickCount: Int,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let turnNumber = context.runtime(for: actor).actionCount + 1
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber) else {
-            recordAction(for: actor, tickCount: tickCount, context: &context)
+            recordAction(for: actor, context: &context)
             return []
         }
 
@@ -114,7 +110,7 @@ public enum BattleTurnEngine {
             )
         )
 
-        recordAction(for: actor, tickCount: tickCount, context: &context)
+        recordAction(for: actor, context: &context)
         return events
     }
 
@@ -211,12 +207,11 @@ public enum BattleTurnEngine {
 
     private static func recordAction(
         for actor: Combatant,
-        tickCount: Int,
         context: inout BattleEngineContext
     ) {
         context.actionCount += 1
         var runtime = context.runtime(for: actor)
-        runtime.markActed(atTick: tickCount)
+        runtime.markActed(atTick: context.tickCount)
         context.updateRuntime(runtime)
     }
 

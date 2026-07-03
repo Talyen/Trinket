@@ -12,7 +12,8 @@ import TrinketContent
 /// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
 ///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
 ///   `effectSummaries(of:)`
-/// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`
+/// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`,
+///   `rngSeed`
 /// - Derived: `log`
 /// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
 ///   `isPartyDefeated`, `isBattleOver`
@@ -21,6 +22,12 @@ import TrinketContent
 /// **Public surface (mutations):**
 /// - `init(...)` — construct a battle
 /// - `advanceOneStep() -> BattleStep` — drive the simulation by one tick
+///
+/// **Event semantics:**
+/// - `events` is the cumulative append-only stream for the whole battle.
+/// - `BattleStep.events` is the delta emitted during that step only.
+/// - Metrics and per-tick consumers should use `BattleStep.events`; replay
+///   and log projection use `events`.
 ///
 /// **Internal:**
 /// - Per-combatant mutable state lives on `BattleRoster` (via three
@@ -35,9 +42,12 @@ public struct BattleState {
     public let pet: Combatant
     public let enemy: Combatant
 
+    /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
+    public let rngSeed: UInt64
+
     // MARK: - Global mutable state
 
-    public internal(set) var tickCount: Int
+    public private(set) var tickCount: Int
     public private(set) var actionCount: Int
     public private(set) var events: [ActionEvent]
     public private(set) var gold: Int
@@ -84,6 +94,7 @@ public struct BattleState {
         )
 
         let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
+        self.rngSeed = seed
         rng = SeededRandomNumberGenerator(seed: seed)
 
         tickCount = 0
@@ -198,6 +209,7 @@ public struct BattleState {
         BattleEngineContext(
             roster: roster,
             rng: rng,
+            tickCount: tickCount,
             nextEffectID: nextEffectID,
             nextEventID: nextEventID,
             events: events,
@@ -212,6 +224,7 @@ public struct BattleState {
     mutating func applyEngineContext(_ context: BattleEngineContext) {
         roster = context.roster
         rng = context.rng
+        tickCount = context.tickCount
         nextEffectID = context.nextEffectID
         nextEventID = context.nextEventID
         events = context.events
@@ -223,11 +236,11 @@ public struct BattleState {
 
     /// Copies the relevant mutable fields into a `BattleEngineContext`, runs
     /// `body`, then copies the mutated context back into `self`.
-    public mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
+    package mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
         var context = makeEngineContext()
         let result = try body(&context)
         applyEngineContext(context)
-        appendLogEntries()
+        finishMutation(rebuildLog: true)
         return result
     }
 
@@ -236,9 +249,9 @@ public struct BattleState {
         roster.setActiveEffects(effects, for: combatant)
     }
 
-    // MARK: - Pipeline forwarding
+    // MARK: - Pipeline forwarding (package — tests and in-package rule code only)
 
-    public mutating func applyDamage(
+    package mutating func applyDamage(
         _ amount: Int,
         to combatant: Combatant,
         damageKeyword: Keyword? = nil,
@@ -261,13 +274,13 @@ public struct BattleState {
         }
     }
 
-    public mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
+    package mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
         withEngineContext { context in
             CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &context)
         }
     }
 
-    public mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+    package mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
         withEngineContext { context in
             CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &context)
         }
@@ -279,23 +292,22 @@ public struct BattleState {
     public mutating func advanceOneStep(rebuildLog: Bool = true) -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
 
-        tickCount += 1
         var context = makeEngineContext()
-        let step = BattleLoopEngine.advanceOneStep(
-            tickCount: tickCount,
-            matchup: matchup,
-            context: &context
-        )
+        let step = BattleLoopEngine.advanceOneStep(matchup: matchup, context: &context)
         applyEngineContext(context)
-        if rebuildLog {
-            appendLogEntries()
-        }
+        finishMutation(rebuildLog: rebuildLog)
         return step
     }
 
     /// Brings `log` in sync with `events`. No-op when already current.
     public mutating func syncLog() {
         appendLogEntries()
+    }
+
+    private mutating func finishMutation(rebuildLog: Bool) {
+        if rebuildLog {
+            appendLogEntries()
+        }
     }
 
     private mutating func appendLogEntries() {

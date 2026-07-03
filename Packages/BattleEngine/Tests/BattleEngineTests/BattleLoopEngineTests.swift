@@ -13,10 +13,8 @@ final class BattleLoopEngineTests: XCTestCase {
         var facade = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         for _ in 0 ..< 8 {
-            direct.tickCount += 1
             var context = direct.makeEngineContext()
             let step = BattleLoopEngine.advanceOneStep(
-                tickCount: direct.tickCount,
                 matchup: direct.matchup,
                 context: &context
             )

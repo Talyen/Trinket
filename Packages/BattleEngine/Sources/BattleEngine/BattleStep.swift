@@ -2,6 +2,9 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
+/// One step of the battle loop. `events` holds only the delta emitted during
+/// this step (effect ticks, the acting combatant's turn, defeat milestones).
+/// The cumulative stream lives on `BattleState.events`.
 public enum BattleStep: Equatable {
     case effectsOnly(events: [ActionEvent])
     case acted(Combatant, events: [ActionEvent])

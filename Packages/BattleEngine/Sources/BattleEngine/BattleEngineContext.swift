@@ -5,9 +5,13 @@ import TrinketContent
 /// Single mutation surface for battle rules: roster, RNG, counters, events,
 /// gold, and loop metadata. Effect handlers, combat pipeline, and turn/tick
 /// engines all mutate battle state through one shared context per step.
+///
+/// `tickCount` is advanced by `BattleLoopEngine.advanceOneStep` at the start
+/// of each step; callers should not increment it manually.
 public struct BattleEngineContext {
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
+    public var tickCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
     public var events: [ActionEvent]
@@ -20,6 +24,7 @@ public struct BattleEngineContext {
     public init(
         roster: BattleRoster,
         rng: SeededRandomNumberGenerator,
+        tickCount: Int = 0,
         nextEffectID: Int,
         nextEventID: Int,
         events: [ActionEvent],
@@ -31,6 +36,7 @@ public struct BattleEngineContext {
     ) {
         self.roster = roster
         self.rng = rng
+        self.tickCount = tickCount
         self.nextEffectID = nextEffectID
         self.nextEventID = nextEventID
         self.events = events
