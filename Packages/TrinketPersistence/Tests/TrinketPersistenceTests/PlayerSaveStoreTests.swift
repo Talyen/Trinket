@@ -79,7 +79,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         save.roster.equipmentLoadouts["knight"] = SavedEquipmentLoadout(
             EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
         )
-        fileStore.save(save)
+        try fileStore.save(save)
 
         let store = PlayerSaveStore(fileStore: fileStore)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })

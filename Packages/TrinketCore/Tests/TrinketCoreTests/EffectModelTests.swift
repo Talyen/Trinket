@@ -36,7 +36,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.keyword, .stun)
         XCTAssertEqual(effect.durationTicks, 0)
         XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "applies Stun Build-up")
+        XCTAssertEqual(effect.summary, "builds toward Stunned")
     }
 
     func testShieldEffect() {
@@ -137,7 +137,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Effect.purge(nil).kind, .purge)
         XCTAssertEqual(Effect.purgeRandom.kind, .purgeRandom)
         XCTAssertEqual(Effect.halveMitigation(.armor).kind, .halveMitigation)
-        XCTAssertEqual(Effect.dodge(.dodge, 3).kind, .dodge)
     }
 
     func testEffectKindIsUniquePerCase() {
@@ -154,7 +153,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertFalse(Effect.leech(.leech, 0.1, 6).isRemovableDebuff)
         XCTAssertFalse(Effect.cleanse(.poison).isRemovableDebuff)
         XCTAssertFalse(Effect.cleanse(nil).isRemovableDebuff)
-        XCTAssertFalse(Effect.dodge(.dodge, 3).isRemovableDebuff)
         XCTAssertFalse(Effect.instantHeal(.health, 1).isRemovableDebuff)
         XCTAssertFalse(Effect.resourceGain(.gold, 1).isRemovableDebuff)
         XCTAssertFalse(Effect.cleanseRandom.isRemovableDebuff)
@@ -167,7 +165,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertTrue(Effect.shield(.block, 1, 6).isRemovableBuff)
         XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isRemovableBuff)
         XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
-        XCTAssertTrue(Effect.dodge(.dodge, 3).isRemovableBuff)
         XCTAssertFalse(Effect.burn(1).isRemovableBuff)
         XCTAssertFalse(Effect.poison(1).isRemovableBuff)
         XCTAssertFalse(Effect.controlMeter(.stun, 1, 10).isRemovableBuff)
@@ -181,7 +178,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertTrue(Effect.shield(.block, 1, 6).isTickable)
         XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isTickable)
         XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isTickable)
-        XCTAssertTrue(Effect.dodge(.dodge, 3).isTickable)
         XCTAssertFalse(Effect.instantHeal(.health, 1).isTickable)
         XCTAssertFalse(Effect.resourceGain(.gold, 1).isTickable)
         XCTAssertFalse(Effect.cleanse(.poison).isTickable)

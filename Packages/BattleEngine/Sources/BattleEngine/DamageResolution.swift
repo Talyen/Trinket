@@ -30,10 +30,9 @@ package struct DamageResolutionState {
     public var statBonus: Int = 0
     public var itemBonus: Int = 0
 
-    /// Working copy of the target's active effects. Read once by
-    /// `ShieldAbsorptionStep` (which mutates it), then by `MitigationStep`
-    /// (which only reads it), and finally committed back to the roster by
-    /// `TakeDamageStep`.
+    /// Working copy of the target's active effects. `ShieldAbsorptionStep`
+    /// mutates this copy after mitigation and item reduction; `TakeDamageStep`
+    /// commits it back to the roster.
     public var activeEffects: [ActiveEffect] = []
 
     /// Health actually subtracted by `TakeDamageStep`.

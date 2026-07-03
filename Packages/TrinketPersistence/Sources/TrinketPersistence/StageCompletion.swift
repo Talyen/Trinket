@@ -28,35 +28,6 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         roster: inout PlayerRosterState,
         inventory: inout PlayerInventoryState,
-        journey: inout JourneyProgressState,
-        resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
-    ) {
-        var ctx = StageCompletionContext(
-            roster: roster,
-            inventory: inventory,
-            homestead: .freshStart,
-            journey: journey
-        )
-        claimRewardsIfNeeded(
-            for: stage,
-            hero: hero,
-            pet: pet,
-            battleEarnedGold: battleEarnedGold,
-            context: &ctx,
-            resolveTemplate: resolveTemplate
-        )
-        roster = ctx.roster
-        inventory = ctx.inventory
-        journey = ctx.journey
-    }
-
-    public static func claimRewardsIfNeeded(
-        for stage: Stage,
-        hero: Combatant,
-        pet: Combatant,
-        battleEarnedGold: Int = 0,
-        roster: inout PlayerRosterState,
-        inventory: inout PlayerInventoryState,
         homestead: inout PlayerHomesteadState,
         journey: inout JourneyProgressState,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
@@ -89,13 +60,14 @@ public enum StageCompletion {
         in chapters: [Chapter],
         roster: inout PlayerRosterState,
         inventory: inout PlayerInventoryState,
+        homestead: inout PlayerHomesteadState,
         journey: inout JourneyProgressState,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
         var ctx = StageCompletionContext(
             roster: roster,
             inventory: inventory,
-            homestead: .freshStart,
+            homestead: homestead,
             journey: journey
         )
         complete(
@@ -109,6 +81,7 @@ public enum StageCompletion {
         )
         roster = ctx.roster
         inventory = ctx.inventory
+        homestead = ctx.homestead
         journey = ctx.journey
     }
 

@@ -28,7 +28,7 @@ public struct HalveMitigationHandler: BattleEffectHandler {
             }
         }
         context.setActiveEffects(currentEffects, for: target)
-        guard didHalve else { return EffectApplyOutcome(events: [], didApply: true) }
+        guard didHalve else { return EffectApplyOutcome(events: [], didApply: false) }
         let event = context.nextEvent(
             kind: .effect,
             effectKind: .mitigationHalved,

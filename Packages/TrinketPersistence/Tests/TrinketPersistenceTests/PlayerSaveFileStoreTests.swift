@@ -21,12 +21,12 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testSaveAndLoadRoundTripsSave() {
+    func testSaveAndLoadRoundTripsSave() throws {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh
         save.roster.gold = 77
 
-        fileStore.save(save)
+        try fileStore.save(save)
         let loaded = fileStore.load()
 
         XCTAssertEqual(loaded?.roster.gold, 77)
@@ -37,8 +37,8 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh
         save.roster.gold = 55
-        fileStore.save(save)
-        fileStore.save(save)
+        try fileStore.save(save)
+        try fileStore.save(save)
 
         try "not valid json".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
 
@@ -50,7 +50,7 @@ final class PlayerSaveFileStoreTests: XCTestCase {
     func testLoadReturnsNilWhenBothFilesCorrupt() throws {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh
-        fileStore.save(save)
+        try fileStore.save(save)
 
         try "corrupt".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
         try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
@@ -58,9 +58,9 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         XCTAssertNil(fileStore.load())
     }
 
-    func testDeleteSaveRemovesAllSaveFiles() {
+    func testDeleteSaveRemovesAllSaveFiles() throws {
         let fileStore = makeFileStore()
-        fileStore.save(PlayerSave.fresh)
+        try fileStore.save(PlayerSave.fresh)
 
         fileStore.deleteSave()
 

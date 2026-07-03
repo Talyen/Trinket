@@ -80,11 +80,12 @@ public struct BattleMutableStore {
             ),
             enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: activeEnemyEffects)
         )
-        let nextEffectID = max(
+        let maxExistingEffectID = max(
             activeEnemyEffects.map(\.id).max() ?? 0,
             activeHeroEffects.map(\.id).max() ?? 0,
             activePetEffects.map(\.id).max() ?? 0
         )
+        let nextEffectID = maxExistingEffectID + 1
 
         return BattleMutableStore(
             roster: roster,

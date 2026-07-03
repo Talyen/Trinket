@@ -29,14 +29,6 @@ final class PrimaryStatsRulesTests: XCTestCase {
         XCTAssertEqual(PrimaryStats(toughness: 100).toughnessMitigationPct, 100.0 / 150.0, accuracy: 0.0001)
     }
 
-    func testDotResistanceMultiplierMatchesFormula() {
-        XCTAssertEqual(PrimaryStats(toughness: 0).dotResistanceMultiplier, 1.0, accuracy: 0.0001)
-        XCTAssertEqual(PrimaryStats(toughness: 50).dotResistanceMultiplier, 0.75, accuracy: 0.0001)
-        XCTAssertEqual(PrimaryStats(toughness: 100).dotResistanceMultiplier, 0.5, accuracy: 0.0001)
-        XCTAssertEqual(PrimaryStats(toughness: 200).dotResistanceMultiplier, 0.25, accuracy: 0.0001)
-        XCTAssertEqual(PrimaryStats(toughness: 1000).dotResistanceMultiplier, 0.25, accuracy: 0.0001)
-    }
-
     func testPreventionThresholdScalesWithAgility() {
         XCTAssertEqual(PrimaryStats(agility: 0).preventionThreshold(baseMaxHealth: 100), 20)
         XCTAssertEqual(PrimaryStats(agility: 20).preventionThreshold(baseMaxHealth: 101), 25)

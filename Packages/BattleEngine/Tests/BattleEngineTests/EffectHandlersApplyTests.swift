@@ -72,14 +72,6 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
     }
 
-    func testDodgeHandlerAddsDodgeEffectAndEmitsEvent() {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.dodge(.dodge, 3), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains(where: \.effect.isDodge))
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .dodgeApplied })
-    }
-
     func testLeechHandlerAddsLeechEffectAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
@@ -226,7 +218,7 @@ final class EffectHandlersApplyTests: XCTestCase {
         BattleStateTestFactory.seedActiveEffects(
             [
                 ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6),
-                ActiveEffect(id: 2, effect: .dodge(.dodge, 3), remainingTicks: 3)
+                ActiveEffect(id: 2, effect: .mitigation(.armor, 0.25, 6), remainingTicks: 6)
             ],
             for: battle.enemy,
             on: &battle
@@ -253,6 +245,19 @@ final class EffectHandlersApplyTests: XCTestCase {
             return false
         })
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
+    }
+
+    func testHalveMitigationHandlerReportsNoApplyWhenArmorMissing() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .halveMitigation(.armor),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.enemy,
+            battle: &battle
+        )
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
     }
 
     func testControlMeterHandlerAppliesThroughPipeline() {

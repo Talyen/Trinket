@@ -108,14 +108,6 @@ final class EffectSummaryBuilderTests: XCTestCase {
         XCTAssertEqual(summaries.first?.text, "Leech: 10% leech, 6 ticks left.")
     }
 
-    func testDodgeSummary() {
-        let effects = [
-            ActiveEffect(id: 1, effect: .dodge(.dodge, 3), remainingTicks: 3)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        XCTAssertEqual(summaries.first?.text, "Dodge: 3 ticks.")
-    }
-
     // MARK: - Empty / no-summaries
 
     func testEmptyEffectsProducesEmptySummaries() {

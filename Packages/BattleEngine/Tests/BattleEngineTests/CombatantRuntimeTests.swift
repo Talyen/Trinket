@@ -194,7 +194,7 @@ final class CombatantRuntimeTests: XCTestCase {
         ])
         runtime.removeEffects { $0.effect.isDecayingDoT }
         XCTAssertEqual(runtime.activeEffects.count, 1)
-        XCTAssertTrue(runtime.activeEffects.first?.effect.isDodge == false)
+        XCTAssertTrue(runtime.activeEffects.first?.effect.keyword == .block)
     }
 
     // MARK: - Identity passthrough

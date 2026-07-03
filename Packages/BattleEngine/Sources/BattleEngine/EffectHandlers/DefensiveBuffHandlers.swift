@@ -98,40 +98,6 @@ public struct MitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct DodgeHandler: BattleEffectHandler {
-    public let kind: EffectKind = .dodge
-
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .dodge(_, duration) = effect { return duration }
-            return nil
-        }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxTicks) ticks.")
-    }
-
-    public func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleEngineContext
-    ) -> EffectApplyOutcome {
-        guard case let .dodge(keyword, durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        context.appendEffect(effect, to: target, sourceID: source.id, remainingTicks: durationTicks)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .dodgeApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: keyword
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
 public struct LeechHandler: BattleEffectHandler {
     public let kind: EffectKind = .leech
 

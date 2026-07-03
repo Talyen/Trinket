@@ -20,8 +20,7 @@ public enum EffectHandlers {
         .cleanseRandom: CleanseRandomHandler(),
         .purge: PurgeHandler(),
         .purgeRandom: PurgeRandomHandler(),
-        .halveMitigation: HalveMitigationHandler(),
-        .dodge: DodgeHandler()
+        .halveMitigation: HalveMitigationHandler()
     ]
 
     public static let all: [EffectKind: any BattleEffectHandler] = handlerByKind

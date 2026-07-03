@@ -57,7 +57,7 @@ public struct PlayerSaveFileStore {
         return migrateLegacyUserDefaultsJourney()
     }
 
-    public func save(_ playerSave: PlayerSave) {
+    public func save(_ playerSave: PlayerSave) throws {
         ensureDirectoryExists()
 
         if fileManager.fileExists(atPath: saveFileURL.path) {
@@ -75,6 +75,7 @@ public struct PlayerSaveFileStore {
             try fileManager.moveItem(at: temporaryURL, to: saveFileURL)
         } catch {
             logger.error("Failed to save player progress: \(error.localizedDescription, privacy: .public)")
+            throw PlayerSavePersistenceError.writeFailed
         }
     }
 
@@ -110,7 +111,7 @@ public struct PlayerSaveFileStore {
 
         var playerSave = PlayerSave.fresh
         playerSave.journey = journey
-        save(playerSave)
+        try? save(playerSave)
         UserDefaults.standard.removeObject(forKey: Self.legacyJourneyKey)
         logger.info("Migrated legacy journey progress into PlayerSave.")
         return playerSave

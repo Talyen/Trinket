@@ -18,7 +18,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case purge
     case purgeRandom
     case halveMitigation
-    case dodge
 }
 
 public extension Effect {
@@ -40,7 +39,6 @@ public extension Effect {
         case .purge: return .purge
         case .purgeRandom: return .purgeRandom
         case .halveMitigation: return .halveMitigation
-        case .dodge: return .dodge
         }
     }
 
@@ -50,7 +48,7 @@ public extension Effect {
         switch self {
         case .burn, .poison, .bleed, .controlMeter:
             return true
-        case .shield, .mitigation, .leech, .cleanse, .purge, .dodge,
+        case .shield, .mitigation, .leech, .cleanse, .purge,
              .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation:
             return false
         }
@@ -60,7 +58,7 @@ public extension Effect {
     /// strip from enemies.
     public var isRemovableBuff: Bool {
         switch self {
-        case .shield, .mitigation, .leech, .dodge:
+        case .shield, .mitigation, .leech:
             return true
         default:
             return false
@@ -73,7 +71,7 @@ public extension Effect {
     public var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
-             .shield, .mitigation, .leech, .dodge:
+             .shield, .mitigation, .leech:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
@@ -107,12 +105,6 @@ public extension Effect {
     /// True for bleed, which tracks its own duration.
     public var isBleed: Bool {
         if case .bleed = self { return true }
-        return false
-    }
-
-    /// True for a dodge-granting effect.
-    public var isDodge: Bool {
-        if case .dodge = self { return true }
         return false
     }
 

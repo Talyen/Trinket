@@ -1,11 +1,16 @@
 import Foundation
 import Observation
+import os
 
 @MainActor
 @Observable
 public final class PlayerSaveStore {
     private let fileStore: PlayerSaveFileStore
     private var save: PlayerSave
+    private let logger = Logger(
+        subsystem: PlayerSaveDefaults.loggingSubsystem,
+        category: "PlayerSave"
+    )
     public var onLocalSave: ((PlayerSave) -> Void)?
 
     public var journey: JourneyProgressState {
@@ -65,13 +70,21 @@ public final class PlayerSaveStore {
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) {
         save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
-        fileStore.save(save)
+        do {
+            try fileStore.save(save)
+        } catch {
+            logger.error("Failed to persist remote save locally: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private func persist() {
         save = save.markedLocalMutation()
-        fileStore.save(save)
-        onLocalSave?(save)
+        do {
+            try fileStore.save(save)
+            onLocalSave?(save)
+        } catch {
+            logger.error("Failed to persist local save: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private func resolvedRoster() -> PlayerRosterState {

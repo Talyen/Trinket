@@ -63,8 +63,6 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .resourceGain(keyword: keyword.rawValue, amount: amount)
         case let .halveMitigation(keyword):
             return .halveMitigation(keyword: keyword.rawValue)
-        case let .dodge(keyword, duration):
-            return .dodge(keyword: keyword.rawValue, duration: duration)
         default:
             fatalError("Unhandled effect for persistence: \(effect)")
         }
@@ -109,8 +107,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return keyword(from: keywordRawValue).map { .resourceGain($0, amount) }
         case let .halveMitigation(keywordRawValue):
             return keyword(from: keywordRawValue).map { .halveMitigation($0) }
-        case let .dodge(keywordRawValue, duration):
-            return keyword(from: keywordRawValue).map { .dodge($0, duration) }
+        case .dodge:
+            return nil
         default:
             return nil
         }

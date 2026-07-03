@@ -32,11 +32,11 @@ final class PlayerSaveReconcilerTests: XCTestCase {
         XCTAssertEqual(outcome, .uploadLocal)
     }
 
-    func testEqualModifiedAtKeepsLocal() {
+    func testEqualModifiedAtUploadsLocal() {
         let local = SaveTestSupport.makeSave(modifiedAt: now)
         let remote = SaveTestSupport.makeRemote(modifiedAt: now)
         let outcome = PlayerSaveReconciler.reconcile(local: local, remote: remote)
-        XCTAssertEqual(outcome, .keepLocal)
+        XCTAssertEqual(outcome, .uploadLocal)
     }
 
     func testBothMissingKeepsLocal() {

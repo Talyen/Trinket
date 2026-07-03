@@ -11,7 +11,6 @@ public enum EffectPresentation {
         if let phrase = cleansePhrase(for: effect) { return phrase }
         if let phrase = purgePhrase(for: effect) { return phrase }
         if let phrase = mitigationPhrase(for: effect) { return phrase }
-        if case .dodge = effect { return "gain Dodge" }
         return effect.keyword.rawValue
     }
 
@@ -32,8 +31,6 @@ public enum EffectPresentation {
             return "\(keyword.rawValue): \(Int(percent * 100))%"
         case .leech:
             return "Leech"
-        case .dodge:
-            return "Dodge"
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }

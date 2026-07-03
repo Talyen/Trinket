@@ -20,7 +20,7 @@ public enum PlayerSaveReconciler {
             if local.modifiedAt > remote.modifiedAt {
                 return .uploadLocal
             }
-            return .keepLocal
+            return .uploadLocal
         case (nil, nil):
             return .keepLocal
         }

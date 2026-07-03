@@ -196,6 +196,29 @@ final class BattleStateTests: XCTestCase {
         XCTAssertNotNil(poisonSummary)
     }
 
+    func testSeededEffectsDoNotCollideWithNewEffectIDs() {
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: GameContent.heroes[0],
+            pet: wolfPet,
+            enemy: defaultEnemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0)
+            ]
+        )
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .shield(.block, 5, 3),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.enemy,
+            battle: &battle
+        )
+        XCTAssertTrue(outcome.didApply)
+        let ids = battle.activeEffects(of: battle.enemy).map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+        XCTAssertFalse(ids.contains(1) && ids.filter { $0 == 1 }.count > 1)
+        XCTAssertTrue(ids.contains(2))
+    }
+
     func testPetSkipsActionWhenHeroKillsEnemySameStep() {
         let finisher = Ability(id: "finisher", name: "Finisher", tier: .basic, directDamage: 1, description: "Finisher")
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [finisher])

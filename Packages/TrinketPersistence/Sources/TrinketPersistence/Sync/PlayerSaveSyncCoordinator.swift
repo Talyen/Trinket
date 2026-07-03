@@ -11,6 +11,8 @@ public final class PlayerSaveSyncCoordinator {
     private let uploadDebounceInterval: Duration
     private weak var playerSaveStore: PlayerSaveStore?
     private var uploadTask: Task<Void, Never>?
+    private var isUploading = false
+    private var pendingUploadSave: PlayerSave?
     private var isApplyingRemoteSave = false
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -98,12 +100,28 @@ public final class PlayerSaveSyncCoordinator {
     private func scheduleUpload(for save: PlayerSave) {
         guard !isApplyingRemoteSave else { return }
 
+        pendingUploadSave = save
         uploadTask?.cancel()
         let debounceInterval = uploadDebounceInterval
         uploadTask = Task { [weak self] in
             try? await Task.sleep(for: debounceInterval)
             guard !Task.isCancelled else { return }
-            await self?.upload(save)
+            await self?.uploadPendingSaves()
+        }
+    }
+
+    private func uploadPendingSaves() async {
+        guard !isUploading else { return }
+        isUploading = true
+        defer { isUploading = false }
+
+        while let save = pendingUploadSave {
+            pendingUploadSave = nil
+            await upload(save)
+        }
+
+        if pendingUploadSave != nil {
+            await uploadPendingSaves()
         }
     }
 

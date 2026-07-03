@@ -124,11 +124,11 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.options.theme, .light)
     }
 
-    func testResetStateWipesPersistedSave() {
+    func testResetStateWipesPersistedSave() throws {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh
         save.roster.gold = 99
-        fileStore.save(save)
+        try fileStore.save(save)
 
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-reset-state"]),

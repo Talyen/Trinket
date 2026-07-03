@@ -10,15 +10,14 @@ import TrinketContent
 /// handler that returns a non-nil summary wins. This preserves the historical
 /// priority ordering (decaying DoTs first, then bleed, then defensive
 /// totals, then prevention build-up, then active prevention, then leech,
-/// then dodge, then cleanse).
+/// then cleanse).
 public enum EffectSummaryBuilder {
     private static let priorityOrder: [EffectKind] = [
         .burn, .poison,
         .bleed,
         .shield, .mitigation,
         .controlMeter,
-        .leech,
-        .dodge
+        .leech
     ]
 
     /// Returns one `EffectSummary` per keyword that has at least one active

@@ -30,13 +30,6 @@ public extension PrimaryStats {
         return t / (t + 50.0)
     }
 
-    /// Multiplier applied to damage-over-time ticks. Capped at 0.25 so
-    /// high-toughness targets still take some chip damage. Mirrors the prior
-    /// `BattleState.dotResistanceMultiplier(for:)` formula.
-    public var dotResistanceMultiplier: Double {
-        max(0.25, 1.0 - Double(toughness) * 0.005)
-    }
-
     /// Stun/freeze prevention buildup threshold for a combatant with the given
     /// effective max health (`base max + toughness`). Mirrors the prior
     /// `ControlMeterEngine` / roster max-health formula.

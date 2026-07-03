@@ -188,8 +188,8 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     func testUploadFailureSetsOfflineStatusAndPreservesLocalGold() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,
-            localSave: SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 0),
-            remoteSave: SaveTestSupport.makeRemote(modifiedAt: syncedAt, gold: 0),
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 0),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0),
             uploadError: MockSyncError.uploadFailed
         )
         await fixture.coordinator.pullAndReconcile()
@@ -207,8 +207,8 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     private func makeSyncedFixture() async throws -> SyncCoordinatorTestFixture {
         try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,
-            localSave: SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 0),
-            remoteSave: SaveTestSupport.makeRemote(modifiedAt: syncedAt, gold: 0)
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 0),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0)
         )
     }
 }

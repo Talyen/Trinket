@@ -22,14 +22,18 @@ final class SavedEffectRoundtripTests: XCTestCase {
             .purge(.block),
             .purge(nil),
             .purgeRandom,
-            .halveMitigation(.armor),
-            .dodge(.dodge, 3)
+            .halveMitigation(.armor)
         ]
 
         for effect in effects {
             let roundTripped = SavedEffect(effect).effect()
             XCTAssertEqual(roundTripped, effect)
         }
+    }
+
+    func testLegacyDodgeEffectDecodesToNil() {
+        let saved = SavedEffect.dodge(keyword: Keyword.dodge.rawValue, duration: 3)
+        XCTAssertNil(saved.effect())
     }
 
     func testActiveEffectRoundTrip() {

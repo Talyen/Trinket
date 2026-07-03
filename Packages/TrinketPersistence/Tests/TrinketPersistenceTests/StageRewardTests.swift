@@ -15,6 +15,7 @@ final class StageRewardTests: XCTestCase {
     func testCompletingStageGrantsBattleGoldWithStageRewards() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
@@ -27,6 +28,7 @@ final class StageRewardTests: XCTestCase {
             in: GameContent.chapters,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
 
@@ -138,6 +140,7 @@ final class StageRewardTests: XCTestCase {
     func testCompletingStageTwiceDoesNotDoubleRewards() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
@@ -149,6 +152,7 @@ final class StageRewardTests: XCTestCase {
             in: GameContent.chapters,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
         let goldAfterFirst = roster.gold
@@ -161,6 +165,7 @@ final class StageRewardTests: XCTestCase {
             pet: pet,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
 
@@ -172,6 +177,7 @@ final class StageRewardTests: XCTestCase {
     func testCompletingStageAdvancesJourney() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState.initial
+        var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
@@ -183,6 +189,7 @@ final class StageRewardTests: XCTestCase {
             in: GameContent.chapters,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey
         )
 
@@ -193,6 +200,7 @@ final class StageRewardTests: XCTestCase {
     func testMissingItemTemplateSkipsGracefully() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
@@ -213,6 +221,7 @@ final class StageRewardTests: XCTestCase {
             pet: pet,
             roster: &roster,
             inventory: &inventory,
+            homestead: &homestead,
             journey: &journey,
             resolveTemplate: { _ in nil }
         )

@@ -47,7 +47,7 @@ enum SaveTestSupport {
     }
 
     static func writeSave(_ save: PlayerSave, to fileStore: PlayerSaveFileStore) throws {
-        fileStore.save(save)
+        try fileStore.save(save)
     }
 }
 
