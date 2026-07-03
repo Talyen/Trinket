@@ -9,12 +9,14 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
 - `ContentManifest/combatants.tsv`: manifest-driven heroes and pets (ability choices + stats).
 - `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
+- `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and pets from `combatants.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift`: generated homestead nodes from `homestead_nodes.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
@@ -61,7 +63,49 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter
 - `item_templates`: comma-separated item template IDs.
 - `materials`: pipe-separated `resource:amount` tokens (e.g. `wood:8|stone:3`).
 
-Roster catalogs (heroes, pets, enemies) remain hand-authored in `GameContentRoster.swift` / `GameContentEnemies.swift` until a future manifest lands.
+Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand-written roster Swift files are thin wrappers over generated output.
+
+### Combatants (`ContentManifest/combatants.tsv`)
+
+Tab-separated columns:
+
+```text
+id	name	role	max_health	max_mana	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
+```
+
+- `role`: `hero` or `pet`.
+- `max_mana`: `0` when unused.
+- `basics` / `skills` / `ultimates`: comma-separated ability symbols (two choices per tier).
+- Stats are non-negative integers.
+
+### Enemies (`ContentManifest/enemies.tsv`)
+
+Tab-separated columns:
+
+```text
+id	name	max_health	is_boss	level	abilities	strength	agility	toughness	intellect	wisdom
+```
+
+- `max_health`: `default` uses `Enemy.defaultMaxHealth`, or an explicit integer.
+- `is_boss`: `true` or `false`.
+- `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
+
+### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)
+
+Tab-separated columns:
+
+```text
+node_id	title	summary	symbol_name	tint	category	prerequisites	tier	cost	bonus_title	bonus_description
+```
+
+- `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
+- `tint`: `orange`, `green`, `yellow`, `mint`, `cyan`, `indigo`, or `blue`.
+- `category`: `farming`, `crafting`, or `research`.
+- `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
+- `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
+- One row per tier; node metadata must match across tiers for the same `node_id`.
+
+Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. Hand-written homestead Swift files are thin wrappers over generated output.
 
 ## Generate Catalogs
 

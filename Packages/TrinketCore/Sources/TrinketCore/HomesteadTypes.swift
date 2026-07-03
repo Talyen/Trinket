@@ -43,3 +43,23 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
         rawValue
     }
 }
+
+public enum HomesteadTint: String, CaseIterable, Codable, Hashable, Sendable {
+    case orange
+    case green
+    case yellow
+    case mint
+    case cyan
+    case indigo
+    case blue
+}
+
+public enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable, Sendable {
+    case farming = "Farming"
+    case crafting = "Crafting"
+    case research = "Research"
+
+    public var id: String {
+        rawValue
+    }
+}

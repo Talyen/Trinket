@@ -38,56 +38,6 @@ extension HomesteadResource {
     }
 }
 
-struct HomesteadNodeRequirement: Hashable {
-    let nodeID: HomesteadNodeID
-    let minimumTier: Int
-
-    init(_ nodeID: HomesteadNodeID, tier: Int = 1) {
-        self.nodeID = nodeID
-        minimumTier = tier
-    }
-}
-
-enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable {
-    case farming = "Farming"
-    case crafting = "Crafting"
-    case research = "Research"
-
-    var id: String {
-        rawValue
-    }
-}
-
-struct HomesteadBonus: Hashable {
-    let title: String
-    let description: String
-}
-
-struct HomesteadNodeTier: Hashable {
-    let tier: Int
-    let cost: [ResourceAmount]
-    let bonus: HomesteadBonus
-}
-
-struct HomesteadNodeDefinition: Identifiable, Hashable {
-    let id: HomesteadNodeID
-    let title: String
-    let summary: String
-    let symbolName: String
-    let tint: Color
-    let category: HomesteadNodeCategory
-    let prerequisites: [HomesteadNodeRequirement]
-    let tiers: [HomesteadNodeTier]
-
-    var maxTier: Int {
-        tiers.map(\.tier).max() ?? 0
-    }
-
-    func tier(_ value: Int) -> HomesteadNodeTier? {
-        tiers.first { $0.tier == value }
-    }
-}
-
 extension PlayerHomesteadState {
     func isUnlocked(_ definition: HomesteadNodeDefinition) -> Bool {
         definition.prerequisites.allSatisfy { tier(for: $0.nodeID) >= $0.minimumTier }

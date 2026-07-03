@@ -41,7 +41,7 @@ Manifests and pipelines live outside the app folder:
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, pets, enemies, abilities, affixes, stages | `TrinketContent` | Roster hand-authored; abilities/affixes/stages manifest-generated |
+| Heroes, pets, enemies, abilities, affixes, stages | `TrinketContent` | Roster + enemies manifest-generated; abilities/affixes/stages manifest-generated |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
 | Shared UI chrome | `TrinketDesignSystem` | `TrinketDesign`, `ExperienceBar` |
@@ -149,8 +149,7 @@ Swift package extraction (phases 0–6) is **complete**. Remaining work is bound
 
 ### Follow-up improvements (not yet done)
 
-- Manifest-driven heroes, pets, and enemies (roster still hand-authored in `GameContentRoster.swift`)
-- Move `PlayerHomesteadStore` and homestead content into `TrinketPersistence` / manifests
+- Move `PlayerHomesteadStore` into `TrinketPersistence` (homestead node content is manifest-driven)
 - SFX pipeline for `Raw Assets/Sound Effects/`
 - Incremental Swift 6 strict concurrency per package
 - Narrow `ExportedDependencies.swift` re-exports

@@ -33,6 +33,23 @@ VALID_CHAPTER_THEMES = frozenset({"verdantForest"})
 VALID_HOMESTEAD_RESOURCES = frozenset(
     {"wood", "stone", "iron", "food", "herbs", "crystal", "gold"}
 )
+VALID_HOMESTEAD_TINTS = frozenset(
+    {"orange", "green", "yellow", "mint", "cyan", "indigo", "blue"}
+)
+VALID_HOMESTEAD_CATEGORIES = frozenset({"farming", "crafting", "research"})
+VALID_HOMESTEAD_NODE_IDS = frozenset(
+    {
+        "wheatField",
+        "herbGarden",
+        "chickenCoop",
+        "pasture",
+        "blacksmithForge",
+        "alchemyLab",
+        "crystalGarden",
+        "runesmithWorkshop",
+        "wishingWell",
+    }
+)
 VALID_KEYWORDS = frozenset(
     {
         "physical",
@@ -130,6 +147,21 @@ class EnemyRow:
     toughness: str
     intellect: str
     wisdom: str
+
+
+@dataclass
+class HomesteadNodeRow:
+    node_id: str
+    title: str
+    summary: str
+    symbol_name: str
+    tint: str
+    category: str
+    prerequisites: str
+    tier: str
+    cost: str
+    bonus_title: str
+    bonus_description: str
 
 
 def read_tsv(path: Path) -> list[list[str]]:
@@ -265,6 +297,32 @@ def parse_enemy_rows() -> list[EnemyRow]:
     for raw in lines[1:]:
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(EnemyRow(*padded[: len(expected)]))
+    return rows
+
+
+def parse_homestead_node_rows() -> list[HomesteadNodeRow]:
+    path = MANIFEST_DIR / "homestead_nodes.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = [
+        "node_id",
+        "title",
+        "summary",
+        "symbol_name",
+        "tint",
+        "category",
+        "prerequisites",
+        "tier",
+        "cost",
+        "bonus_title",
+        "bonus_description",
+    ]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    rows: list[HomesteadNodeRow] = []
+    for raw in lines[1:]:
+        padded = raw + [""] * (len(expected) - len(raw))
+        rows.append(HomesteadNodeRow(*padded[: len(expected)]))
     return rows
 
 
@@ -945,12 +1003,197 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
     write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
 
 
-def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow], list[StageRow], list[CombatantRow], list[EnemyRow]]:
+def parse_homestead_prerequisites(raw: str) -> str:
+    if not raw.strip():
+        return "[]"
+    requirements: list[str] = []
+    for token in raw.split("|"):
+        token = token.strip()
+        if not token:
+            continue
+        if ":" in token:
+            node_id, tier = token.split(":", 1)
+            requirements.append(
+                f"HomesteadNodeRequirement(.{node_id.strip()}, tier: {tier.strip()})"
+            )
+        else:
+            requirements.append(f"HomesteadNodeRequirement(.{token})")
+    return "[" + ", ".join(requirements) + "]"
+
+
+def render_homestead_tier(row: HomesteadNodeRow) -> str:
+    return f"""                HomesteadNodeTier(
+                    tier: {row.tier},
+                    cost: {parse_material_rewards(row.cost)},
+                    bonus: HomesteadBonus(
+                        title: "{swift_escape(row.bonus_title)}",
+                        description: "{swift_escape(row.bonus_description)}"
+                    )
+                )"""
+
+
+def render_homestead_node(node_id: str, rows: list[HomesteadNodeRow]) -> str:
+    meta = rows[0]
+    tier_blocks = ",\n".join(render_homestead_tier(row) for row in sorted(rows, key=lambda row: int(row.tier)))
+    return f"""        HomesteadNodeDefinition(
+            id: .{node_id},
+            title: "{swift_escape(meta.title)}",
+            summary: "{swift_escape(meta.summary)}",
+            symbolName: "{swift_escape(meta.symbol_name)}",
+            tintStyle: .{meta.tint},
+            category: .{meta.category},
+            prerequisites: {parse_homestead_prerequisites(meta.prerequisites)},
+            tiers: [
+{tier_blocks}
+            ]
+        )"""
+
+
+def validate_homestead_cost(raw: str, row_id: str) -> None:
+    if not raw.strip():
+        raise ValueError(f"cost is required for {row_id}")
+    for token in raw.split("|"):
+        token = token.strip()
+        if not token:
+            continue
+        resource, quantity = token.split(":", 1)
+        if resource.strip() not in VALID_HOMESTEAD_RESOURCES:
+            raise ValueError(f"Unknown homestead resource '{resource}' for {row_id}")
+        if not quantity.strip().isdigit():
+            raise ValueError(f"Cost quantity for {row_id} must be an integer")
+
+
+def validate_homestead_prerequisites(raw: str, row_id: str, node_ids: set[str]) -> None:
+    if not raw.strip():
+        return
+    for token in raw.split("|"):
+        token = token.strip()
+        if not token:
+            continue
+        if ":" in token:
+            node_id, tier = token.split(":", 1)
+            node_id = node_id.strip()
+            if not tier.strip().isdigit():
+                raise ValueError(f"Prerequisite tier for {row_id} must be an integer")
+        else:
+            node_id = token
+        if node_id not in VALID_HOMESTEAD_NODE_IDS:
+            raise ValueError(f"Unknown homestead node '{node_id}' in prerequisites for {row_id}")
+        if node_id not in node_ids:
+            raise ValueError(f"Prerequisite node '{node_id}' for {row_id} is not defined in manifest")
+
+
+def validate_homestead_node_rows(rows: list[HomesteadNodeRow]) -> None:
+    nodes: dict[str, list[HomesteadNodeRow]] = {}
+    seen_tiers: set[tuple[str, int]] = set()
+
+    for row in rows:
+        row_id = f"{row.node_id}-tier-{row.tier}"
+        if row.node_id not in VALID_HOMESTEAD_NODE_IDS:
+            raise ValueError(f"Unknown homestead node id '{row.node_id}'")
+        if row.tint not in VALID_HOMESTEAD_TINTS:
+            raise ValueError(f"Unknown homestead tint '{row.tint}' for {row_id}")
+        if row.category not in VALID_HOMESTEAD_CATEGORIES:
+            raise ValueError(f"Unknown homestead category '{row.category}' for {row_id}")
+        if not row.tier.isdigit():
+            raise ValueError(f"tier for {row_id} must be an integer")
+        tier_value = int(row.tier)
+        if tier_value <= 0:
+            raise ValueError(f"tier for {row_id} must be positive")
+        if (row.node_id, tier_value) in seen_tiers:
+            raise ValueError(f"Duplicate homestead tier: {row_id}")
+        seen_tiers.add((row.node_id, tier_value))
+
+        _require_non_empty("title", row.title, row_id)
+        _require_non_empty("summary", row.summary, row_id)
+        _require_non_empty("symbol_name", row.symbol_name, row_id)
+        _require_non_empty("bonus_title", row.bonus_title, row_id)
+        _require_non_empty("bonus_description", row.bonus_description, row_id)
+        validate_homestead_cost(row.cost, row_id)
+        nodes.setdefault(row.node_id, []).append(row)
+
+    node_ids = set(nodes)
+    for node_id, node_rows in nodes.items():
+        for row in node_rows:
+            validate_homestead_prerequisites(row.prerequisites, f"{node_id}-tier-{row.tier}", node_ids)
+
+        titles = {row.title for row in node_rows}
+        summaries = {row.summary for row in node_rows}
+        symbols = {row.symbol_name for row in node_rows}
+        tints = {row.tint for row in node_rows}
+        categories = {row.category for row in node_rows}
+        prerequisite_sets = {row.prerequisites for row in node_rows}
+        if (
+            len(titles) != 1
+            or len(summaries) != 1
+            or len(symbols) != 1
+            or len(tints) != 1
+            or len(categories) != 1
+            or len(prerequisite_sets) != 1
+        ):
+            raise ValueError(f"Homestead node metadata must be consistent for {node_id}")
+
+        tiers = sorted(int(row.tier) for row in node_rows)
+        expected = list(range(1, len(tiers) + 1))
+        if tiers != expected:
+            raise ValueError(f"Homestead node {node_id} tiers must be numbered 1...N contiguously")
+        render_homestead_node(node_id, node_rows)
+
+    if set(nodes) != VALID_HOMESTEAD_NODE_IDS:
+        missing = VALID_HOMESTEAD_NODE_IDS - set(nodes)
+        extra = set(nodes) - VALID_HOMESTEAD_NODE_IDS
+        if missing:
+            raise ValueError(f"Homestead manifest missing nodes: {sorted(missing)}")
+        if extra:
+            raise ValueError(f"Homestead manifest has unknown nodes: {sorted(extra)}")
+
+
+HOMESTEAD_NODE_ORDER = [
+    "wheatField",
+    "herbGarden",
+    "chickenCoop",
+    "pasture",
+    "blacksmithForge",
+    "alchemyLab",
+    "crystalGarden",
+    "runesmithWorkshop",
+    "wishingWell",
+]
+
+
+def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
+    nodes: dict[str, list[HomesteadNodeRow]] = {}
+    for row in rows:
+        nodes.setdefault(row.node_id, []).append(row)
+
+    node_blocks = ",\n".join(
+        render_homestead_node(node_id, nodes[node_id])
+        for node_id in HOMESTEAD_NODE_ORDER
+    )
+    body = (
+        "import Foundation\nimport TrinketCore\n\n"
+        "public enum GameContentHomesteadGenerated {\n"
+        "    public static let homesteadNodes: [HomesteadNodeDefinition] = [\n"
+        + node_blocks
+        + "\n    ]\n}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentHomestead.generated.swift", body)
+
+
+def validate_manifests() -> tuple[
+    list[AffixRow],
+    list[AbilityRow],
+    list[StageRow],
+    list[CombatantRow],
+    list[EnemyRow],
+    list[HomesteadNodeRow],
+]:
     affix_rows = parse_affix_rows()
     ability_rows = parse_ability_rows()
     combatant_rows = parse_combatant_rows()
     enemy_rows = parse_enemy_rows()
     stage_rows = parse_stage_rows()
+    homestead_rows = parse_homestead_node_rows()
     ability_symbols = collect_ability_symbols()
 
     validate_affix_rows(affix_rows)
@@ -958,7 +1201,8 @@ def validate_manifests() -> tuple[list[AffixRow], list[AbilityRow], list[StageRo
     validate_combatant_rows(combatant_rows, ability_symbols)
     validate_enemy_rows(enemy_rows, ability_symbols, {row.id for row in combatant_rows})
     validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
-    return affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows
+    validate_homestead_node_rows(homestead_rows)
+    return affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows
 
 
 def generate_ability_shorthand() -> None:
@@ -981,13 +1225,14 @@ def generate_ability_shorthand() -> None:
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
     if command == "validate":
-        affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows = validate_manifests()
+        affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows = validate_manifests()
         print(
             f"Validated {len(affix_rows)} affixes, "
             f"{len(ability_rows)} manifest abilities, "
             f"{len(stage_rows)} stages, "
-            f"{len(combatant_rows)} combatants, and "
-            f"{len(enemy_rows)} enemies"
+            f"{len(combatant_rows)} combatants, "
+            f"{len(enemy_rows)} enemies, and "
+            f"{len(homestead_rows)} homestead tiers"
         )
         return 0
     if command == "shorthand":
@@ -995,20 +1240,22 @@ def main() -> int:
         print("Generated AbilityShorthand.generated.swift")
         return 0
 
-    affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows = validate_manifests()
+    affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows = validate_manifests()
     generate_affix_catalog(affix_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
     generate_roster_catalog(combatant_rows)
     generate_enemies_catalog(enemy_rows)
+    generate_homestead_catalog(homestead_rows)
     generate_ability_shorthand()
     print(
         f"Generated {len(affix_rows)} affixes, "
         f"{len(ability_rows)} manifest abilities, "
         f"{len(stage_rows)} stages, "
-        f"{len(combatant_rows)} combatants, and "
-        f"{len(enemy_rows)} enemies"
+        f"{len(combatant_rows)} combatants, "
+        f"{len(enemy_rows)} enemies, and "
+        f"{len(homestead_rows)} homestead tiers"
     )
     return 0
 

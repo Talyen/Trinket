@@ -29,4 +29,27 @@ final class CombatantCatalogTests: XCTestCase {
             }
         }
     }
+
+    func testHomesteadNodeIDsAreUnique() {
+        let ids = GameContent.homesteadNodes.map(\.id)
+        XCTAssertEqual(Set(ids).count, ids.count)
+    }
+
+    func testHomesteadPrerequisitesReferenceKnownNodes() {
+        let knownIDs = Set(GameContent.homesteadNodes.map(\.id))
+        for node in GameContent.homesteadNodes {
+            for requirement in node.prerequisites {
+                XCTAssertTrue(
+                    knownIDs.contains(requirement.nodeID),
+                    "Node \(node.id) references unknown prerequisite \(requirement.nodeID)"
+                )
+            }
+        }
+    }
+
+    func testHomesteadNodeCatalogMatchesDefinitions() {
+        for node in GameContent.homesteadNodes {
+            XCTAssertEqual(HomesteadNodeCatalog.maxTierByNodeID[node.id], node.maxTier)
+        }
+    }
 }
