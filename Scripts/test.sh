@@ -2,9 +2,9 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-DEVICE_NAME="iPhone 17 Pro"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
+SCRIPT_DIR="$(dirname "$0")"
 
 # Parse arguments
 MODE="unit"
@@ -72,15 +72,30 @@ if [[ "$NO_BUILD" == "false" ]]; then
   ./Scripts/generate.sh
 fi
 
-# Check if the device is already booted to save time
-BOOTED_STATE=$(xcrun simctl list devices | grep "$DEVICE_NAME" | grep -o "Booted" || true)
-if [[ -z "$BOOTED_STATE" ]]; then
-  echo "Booting $DEVICE_NAME..."
-  xcrun simctl boot "$DEVICE_NAME" 2>/dev/null || true
-  xcrun simctl bootstatus "$DEVICE_NAME" -b
-else
-  echo "$DEVICE_NAME is already booted."
-fi
+# shellcheck source=ensure-simulator.sh
+source "$SCRIPT_DIR/ensure-simulator.sh"
+
+run_xcodebuild() {
+  local attempt=1
+  local max_attempts=2
+  local exit_code=0
+
+  while (( attempt <= max_attempts )); do
+    if "$@"; then
+      return 0
+    fi
+    exit_code=$?
+    if [[ "$exit_code" -eq 70 && "$attempt" -lt "$max_attempts" ]]; then
+      echo "xcodebuild destination error (exit 70); re-preparing simulator and retrying..." >&2
+      ensure_test_simulator force
+      ((attempt++))
+      continue
+    fi
+    return "$exit_code"
+  done
+
+  return "$exit_code"
+}
 
 # Determine xcodebuild test target constraints and parallel testing flags using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
@@ -209,13 +224,15 @@ if [[ "$NO_BUILD" == "true" ]]; then
   ACTION="test-without-building"
 fi
 
+ensure_test_simulator
+
 TEST_WALL_SECONDS=0
 SECONDS=0
 
-xcodebuild "$ACTION" \
+run_xcodebuild xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+  -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \
@@ -232,12 +249,12 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       xcodebuild test-without-building \
         -scheme TrinketCore \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketCorePackage"
     else
       xcodebuild test \
         -scheme TrinketCore \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketCorePackage"
     fi
   )
@@ -252,12 +269,12 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       xcodebuild test-without-building \
         -scheme TrinketContent \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
     else
       xcodebuild test \
         -scheme TrinketContent \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketContentPackage"
     fi
   )
@@ -272,12 +289,12 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       xcodebuild test-without-building \
         -scheme BattleEngine \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
     else
       xcodebuild test \
         -scheme BattleEngine \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/BattleEnginePackage"
     fi
   )
@@ -292,12 +309,12 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       xcodebuild test-without-building \
         -scheme TrinketPersistence \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketPersistencePackage"
     else
       xcodebuild test \
         -scheme TrinketPersistence \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketPersistencePackage"
     fi
   )
@@ -312,12 +329,12 @@ if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
     if [[ "$ACTION" == "test-without-building" ]]; then
       xcodebuild test-without-building \
         -scheme TrinketDesignSystem \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
     else
       xcodebuild test \
         -scheme TrinketDesignSystem \
-        -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+        -destination "$SIMULATOR_DESTINATION" \
         -derivedDataPath "$DERIVED_DATA_PATH/TrinketDesignSystemPackage"
     fi
   )
