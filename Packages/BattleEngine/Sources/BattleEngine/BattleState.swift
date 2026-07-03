@@ -30,9 +30,8 @@ import TrinketContent
 ///   and log projection use `events`.
 ///
 /// **Internal:**
-/// - Per-combatant mutable state lives on `BattleRoster` (via three
-///   `CombatantRuntime`s), accessed only through `BattleEngineContext` during
-///   rule dispatch
+/// - All mutable battle state lives in `BattleMutableStore` (`store`), mutated
+///   in place by rule engines during each step
 /// - Turn orchestration lives in `BattleLoopEngine`
 /// - Effect application rules live on the `BattleEffectHandler` structs in
 ///   `EffectHandlers.swift`
@@ -45,21 +44,8 @@ public struct BattleState {
     /// Seed used to initialize battle RNG. Fixed for the battle's lifetime.
     public let rngSeed: UInt64
 
-    // MARK: - Global mutable state
-
-    public private(set) var tickCount: Int
-    public private(set) var actionCount: Int
-    public private(set) var events: [ActionEvent]
-    public private(set) var gold: Int
-
-    var roster: BattleRoster
-    var nextEventID: Int
-    var nextEffectID: Int
-    var rng: SeededRandomNumberGenerator
-    var hasLoggedDefeat: Bool
-    var hasLoggedPartyDefeat: Bool
-    let combatBuild: BattleCombatBuild
-    private let initialGold: Int
+    /// All mutable battle state. Rule engines mutate this in place each step.
+    var store: BattleMutableStore
 
     /// Cached combat log. Rebuilt incrementally after mutations; callers that
     /// defer rebuilds should call `syncLog()` before reading.
@@ -86,75 +72,65 @@ public struct BattleState {
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.enemy = resolvedEnemy
-        combatBuild = BattleCombatBuild(
-            hero: hero,
-            pet: pet,
-            heroModifiers: heroModifiers,
-            petModifiers: petModifiers
-        )
 
         let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
         self.rngSeed = seed
-        rng = SeededRandomNumberGenerator(seed: seed)
 
-        tickCount = 0
-        actionCount = 0
-
-        roster = BattleRoster(
-            hero: CombatantRuntime(
-                combatant: hero,
-                initialActiveEffects: activeHeroEffects,
-                maximumHealthBonus: heroModifiers.maximumHealthBonus,
-                maximumManaBonus: heroModifiers.maximumManaBonus
-            ),
-            pet: CombatantRuntime(
-                combatant: pet,
-                initialActiveEffects: activePetEffects,
-                maximumHealthBonus: petModifiers.maximumHealthBonus,
-                maximumManaBonus: petModifiers.maximumManaBonus
-            ),
-            enemy: CombatantRuntime(combatant: resolvedEnemy, initialActiveEffects: activeEnemyEffects)
+        store = BattleMutableStore.make(
+            hero: hero,
+            pet: pet,
+            enemy: resolvedEnemy,
+            activeEnemyEffects: activeEnemyEffects,
+            activeHeroEffects: activeHeroEffects,
+            activePetEffects: activePetEffects,
+            initialGold: initialGold,
+            heroModifiers: heroModifiers,
+            petModifiers: petModifiers,
+            rngSeed: seed
         )
 
-        nextEventID = 0
-        nextEffectID = max(
-            activeEnemyEffects.map(\.id).max() ?? 0,
-            activeHeroEffects.map(\.id).max() ?? 0,
-            activePetEffects.map(\.id).max() ?? 0
-        )
-        hasLoggedDefeat = false
-        hasLoggedPartyDefeat = false
-
-        self.initialGold = initialGold
-        gold = initialGold
-
-        events = []
-        var context = makeEngineContext()
-        _ = context.appendMilestone(.battleStarted, matchup: matchup)
-        applyEngineContext(context)
+        _ = store.appendMilestone(.battleStarted, matchup: matchup)
         rebuildLogFromScratch()
+    }
+
+    // MARK: - Global mutable state (read-through from store)
+
+    public var tickCount: Int {
+        store.tickCount
+    }
+
+    public var actionCount: Int {
+        store.actionCount
+    }
+
+    public var events: [ActionEvent] {
+        store.events
+    }
+
+    public var gold: Int {
+        store.gold
     }
 
     // MARK: - Per-combatant state accessors
 
     public var earnedGold: Int {
-        gold - initialGold
+        store.gold - store.initialGold
     }
 
     public var isEnemyDefeated: Bool {
-        roster.isEnemyDefeated
+        store.roster.isEnemyDefeated
     }
 
     public var isHeroAlive: Bool {
-        roster.hero.isAlive
+        store.roster.hero.isAlive
     }
 
     public var isPetAlive: Bool {
-        roster.pet.isAlive
+        store.roster.pet.isAlive
     }
 
     public var isPartyDefeated: Bool {
-        roster.isPartyDefeated
+        store.roster.isPartyDefeated
     }
 
     public var isBattleOver: Bool {
@@ -162,7 +138,7 @@ public struct BattleState {
     }
 
     public var enemyAttackTarget: Combatant {
-        roster.enemyAttackTarget
+        store.roster.enemyAttackTarget
     }
 
     public var matchup: BattleMatchup {
@@ -170,27 +146,27 @@ public struct BattleState {
     }
 
     public func health(of combatant: Combatant) -> Int {
-        roster.health(for: combatant)
+        store.roster.health(for: combatant)
     }
 
     public func maxHealth(of combatant: Combatant) -> Int {
-        roster.maxHealth(for: combatant)
+        store.roster.maxHealth(for: combatant)
     }
 
     public func mana(of combatant: Combatant) -> Int {
-        roster.runtime(for: combatant)?.currentMana ?? 0
+        store.roster.runtime(for: combatant)?.currentMana ?? 0
     }
 
     public func maxMana(of combatant: Combatant) -> Int {
-        roster.runtime(for: combatant)?.maxMana ?? 0
+        store.roster.runtime(for: combatant)?.maxMana ?? 0
     }
 
     public func actionCount(of combatant: Combatant) -> Int {
-        roster.runtime(for: combatant)?.actionCount ?? 0
+        store.roster.runtime(for: combatant)?.actionCount ?? 0
     }
 
     public func activeEffects(of combatant: Combatant) -> [ActiveEffect] {
-        roster.activeEffects(for: combatant)
+        store.roster.activeEffects(for: combatant)
     }
 
     public func effectSummaries(of combatant: Combatant) -> [EffectSummary] {
@@ -200,53 +176,21 @@ public struct BattleState {
     // MARK: - Modifier profile
 
     public func modifiers(for combatantID: String) -> CombatModifierProfile {
-        combatBuild.modifiers(for: combatantID)
+        store.build.modifiers(for: combatantID)
     }
 
     // MARK: - Engine context
 
-    mutating func makeEngineContext() -> BattleEngineContext {
-        BattleEngineContext(
-            roster: roster,
-            rng: rng,
-            tickCount: tickCount,
-            nextEffectID: nextEffectID,
-            nextEventID: nextEventID,
-            events: events,
-            gold: gold,
-            build: combatBuild,
-            actionCount: actionCount,
-            hasLoggedDefeat: hasLoggedDefeat,
-            hasLoggedPartyDefeat: hasLoggedPartyDefeat
-        )
-    }
-
-    mutating func applyEngineContext(_ context: BattleEngineContext) {
-        roster = context.roster
-        rng = context.rng
-        tickCount = context.tickCount
-        nextEffectID = context.nextEffectID
-        nextEventID = context.nextEventID
-        events = context.events
-        gold = context.gold
-        actionCount = context.actionCount
-        hasLoggedDefeat = context.hasLoggedDefeat
-        hasLoggedPartyDefeat = context.hasLoggedPartyDefeat
-    }
-
-    /// Copies the relevant mutable fields into a `BattleEngineContext`, runs
-    /// `body`, then copies the mutated context back into `self`.
+    /// Runs `body` against the battle store in place, then refreshes the log.
     package mutating func withEngineContext<R>(_ body: (inout BattleEngineContext) throws -> R) rethrows -> R {
-        var context = makeEngineContext()
-        let result = try body(&context)
-        applyEngineContext(context)
+        let result = try body(&store)
         finishMutation(rebuildLog: true)
         return result
     }
 
     /// Test helper for seeding active effects without exposing `BattleRoster`.
     mutating func seedActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
-        roster.setActiveEffects(effects, for: combatant)
+        store.roster.setActiveEffects(effects, for: combatant)
     }
 
     // MARK: - Pipeline forwarding (package — tests and in-package rule code only)
@@ -292,9 +236,7 @@ public struct BattleState {
     public mutating func advanceOneStep(rebuildLog: Bool = true) -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
 
-        var context = makeEngineContext()
-        let step = BattleLoopEngine.advanceOneStep(matchup: matchup, context: &context)
-        applyEngineContext(context)
+        let step = BattleLoopEngine.advanceOneStep(matchup: matchup, context: &store)
         finishMutation(rebuildLog: rebuildLog)
         return step
     }
@@ -311,23 +253,23 @@ public struct BattleState {
     }
 
     private mutating func appendLogEntries() {
-        guard loggedEventCount < events.count else {
-            if loggedEventCount > events.count {
+        guard loggedEventCount < store.events.count else {
+            if loggedEventCount > store.events.count {
                 rebuildLogFromScratch()
             }
             return
         }
 
         log.append(contentsOf: BattleLogReducer.entries(
-            from: events,
+            from: store.events,
             startingAt: loggedEventCount,
             matchup: matchup
         ))
-        loggedEventCount = events.count
+        loggedEventCount = store.events.count
     }
 
     private mutating func rebuildLogFromScratch() {
-        log = BattleLogReducer.entries(from: events, matchup: matchup)
-        loggedEventCount = events.count
+        log = BattleLogReducer.entries(from: store.events, matchup: matchup)
+        loggedEventCount = store.events.count
     }
 }

@@ -2,100 +2,62 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Single mutation surface for battle rules: roster, RNG, counters, events,
-/// gold, and loop metadata. Effect handlers, combat pipeline, and turn/tick
-/// engines all mutate battle state through one shared context per step.
+/// Mutation surface passed to rule engines. Same storage as `BattleMutableStore`.
 ///
 /// `tickCount` is advanced by `BattleLoopEngine.advanceOneStep` at the start
 /// of each step; callers should not increment it manually.
-public struct BattleEngineContext {
-    public var roster: BattleRoster
-    public var rng: SeededRandomNumberGenerator
-    public var tickCount: Int
-    public var nextEffectID: Int
-    public var nextEventID: Int
-    public var events: [ActionEvent]
-    public var gold: Int
-    public let build: BattleCombatBuild
-    public var actionCount: Int
-    public var hasLoggedDefeat: Bool
-    public var hasLoggedPartyDefeat: Bool
+public typealias BattleEngineContext = BattleMutableStore
 
-    public init(
-        roster: BattleRoster,
-        rng: SeededRandomNumberGenerator,
-        tickCount: Int = 0,
-        nextEffectID: Int,
-        nextEventID: Int,
-        events: [ActionEvent],
-        gold: Int,
-        build: BattleCombatBuild,
-        actionCount: Int = 0,
-        hasLoggedDefeat: Bool = false,
-        hasLoggedPartyDefeat: Bool = false
-    ) {
-        self.roster = roster
-        self.rng = rng
-        self.tickCount = tickCount
-        self.nextEffectID = nextEffectID
-        self.nextEventID = nextEventID
-        self.events = events
-        self.gold = gold
-        self.build = build
-        self.actionCount = actionCount
-        self.hasLoggedDefeat = hasLoggedDefeat
-        self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
-    }
-
-    public func modifiers(for combatantID: String) -> CombatModifierProfile {
+public extension BattleEngineContext {
+    func modifiers(for combatantID: String) -> CombatModifierProfile {
         build.modifiers(for: combatantID)
     }
 
-    public func health(of combatant: Combatant) -> Int {
+    func health(of combatant: Combatant) -> Int {
         roster.health(for: combatant)
     }
 
-    public func activeEffects(for combatant: Combatant) -> [ActiveEffect] {
+    func activeEffects(for combatant: Combatant) -> [ActiveEffect] {
         roster.activeEffects(for: combatant)
     }
 
-    public mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
+    mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
         roster.setActiveEffects(effects, for: combatant)
     }
 
-    public mutating func consumeNextEffectID() -> Int {
+    mutating func consumeNextEffectID() -> Int {
         let id = nextEffectID
         nextEffectID += 1
         return id
     }
 
-    public func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
+    func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
         build.adjustedOutgoingEffect(effect, sourceID: sourceID)
     }
 
-    public mutating func addGold(_ amount: Int, sourceActorID: String) {
+    mutating func addGold(_ amount: Int, sourceActorID: String) {
         gold += amount + modifiers(for: sourceActorID).goldGainedBonus
     }
 
-    public mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID _: String) -> Int {
+    mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID _: String) -> Int {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
         let actual = runtime.restoreMana(amount)
         roster.update(runtime)
         return actual
     }
 
-    public func runtime(for combatant: Combatant) -> CombatantRuntime {
+    func runtime(for combatant: Combatant) -> CombatantRuntime {
         guard let runtime = roster.runtime(for: combatant) else {
             preconditionFailure("Unknown combatant id \(combatant.id)")
         }
         return runtime
     }
 
-    public mutating func updateRuntime(_ runtime: CombatantRuntime) {
+    mutating func updateRuntime(_ runtime: CombatantRuntime) {
         roster.update(runtime)
     }
 
-    public mutating func nextEvent(
+    mutating func nextEvent(
         kind: ActionEvent.Kind,
         effectKind: ActionEvent.EffectKind? = nil,
         actorName: String,
@@ -124,7 +86,7 @@ public struct BattleEngineContext {
         return event
     }
 
-    public mutating func logDoTDamage(
+    mutating func logDoTDamage(
         _ result: (healthLost: Int, events: [ActionEvent]),
         keyword: Keyword,
         target: Combatant
@@ -145,7 +107,7 @@ public struct BattleEngineContext {
         return collected
     }
 
-    public mutating func applyDamage(
+    mutating func applyDamage(
         _ amount: Int,
         to combatant: Combatant,
         damageKeyword: Keyword? = nil,
@@ -166,15 +128,15 @@ public struct BattleEngineContext {
         )
     }
 
-    public mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
+    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
         CombatPipeline.applyHeal(amount, to: combatant, sourceActorID: sourceActorID, in: &self)
     }
 
-    public mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
         CombatPipeline.applyLeechFromDamage(damage, sourceActorID: sourceActorID, in: &self)
     }
 
-    public mutating func applyDoTDamage(
+    mutating func applyDoTDamage(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -189,7 +151,7 @@ public struct BattleEngineContext {
         )
     }
 
-    public mutating func applyDecayingDoT(
+    mutating func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,
         to effectTarget: Combatant,
@@ -206,7 +168,7 @@ public struct BattleEngineContext {
         )
     }
 
-    public mutating func applyBleed(
+    mutating func applyBleed(
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
@@ -220,9 +182,7 @@ public struct BattleEngineContext {
             in: &self
         )
     }
-}
 
-public extension BattleEngineContext {
     mutating func appendMilestone(_ milestone: ActionEvent.Milestone, matchup: BattleMatchup) -> ActionEvent {
         nextEvent(
             kind: .milestone,
@@ -248,7 +208,7 @@ public extension BattleEngineContext {
         return milestones
     }
 
-    public mutating func appendEffect(
+    mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,

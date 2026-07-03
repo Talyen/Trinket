@@ -13,12 +13,10 @@ final class BattleLoopEngineTests: XCTestCase {
         var facade = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         for _ in 0 ..< 8 {
-            var context = direct.makeEngineContext()
             let step = BattleLoopEngine.advanceOneStep(
                 matchup: direct.matchup,
-                context: &context
+                context: &direct.store
             )
-            direct.applyEngineContext(context)
 
             let facadeStep = facade.advanceOneStep()
 

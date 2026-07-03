@@ -33,6 +33,7 @@ final class CombatPipelineTests: XCTestCase {
             nextEventID: 0,
             events: [],
             gold: 0,
+            initialGold: 0,
             build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
         )
     }
