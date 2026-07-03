@@ -12,7 +12,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 - SwiftUI for shell/menus/overlays; SpriteKit for 2D loops, sprites, physics, particles, collision. Rules/state separate from rendering; small owned types; abstract after repetition.
 - Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
 - Codebase: `App/` · `Features/` · `Battle/` · `State/` stores · `Models/` · `Content/GameContent.swift` · `DesignSystem/TrinketDesign` · `Shared/` · `TrinketTests/` · `TrinketUITests/Smoke/` + `{Collection,Battle,Search}/`.
-- Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Generated: `Trinket/Generated/*`, curated `Assets.xcassets` — edit `ArtManifest/curated-assets.tsv`, `./Scripts/prepare-art-assets.sh` (`Docs/ArtPipeline.md`). Game content manifests: `ContentManifest/*.tsv`, `./Scripts/generate-content-catalogs.sh` (`Docs/ContentPipeline.md`). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Battle Module
 
