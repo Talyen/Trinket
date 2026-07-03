@@ -44,7 +44,7 @@ package enum DamagePipeline {
             AnyDamageStep(ShieldAbsorptionStep.self),
             AnyDamageStep(TakeDamageStep.self),
             AnyDamageStep(LeechStep.self),
-            AnyDamageStep(PreventionBuildupStep.self)
+            AnyDamageStep(ControlMeterStep.self)
         ]
     }
 

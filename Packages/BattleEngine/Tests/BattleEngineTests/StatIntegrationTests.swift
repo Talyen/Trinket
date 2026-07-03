@@ -159,8 +159,8 @@ final class StatIntegrationTests: XCTestCase {
         for _ in 0 ..< 10 {
             BattleTestFixtures.advanceTicks(1, on: &battle)
             if let values = battle.activeEffects(of: battle.hero)
-                .first(where: { $0.effect.isPreventionBuildup })?
-                .effect.preventionBuildupValues
+                .first(where: { $0.effect.isControlMeter })?
+                .effect.controlMeterValues
             {
                 buildupValues = values
                 break

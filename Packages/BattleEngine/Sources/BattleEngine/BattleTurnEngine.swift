@@ -17,8 +17,8 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
-        if context.roster.hasPendingStunFreezeSkip(for: actor) {
-            return consumeStunFreezeSkip(for: actor, context: &context)
+        if context.roster.hasPendingActionSkip(for: actor) {
+            return consumeActionSkip(for: actor, context: &context)
         }
         return performAction(
             actor: actor,
@@ -28,12 +28,12 @@ public enum BattleTurnEngine {
         )
     }
 
-    public static func consumeStunFreezeSkip(
+    public static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
-        guard let index = currentEffects.firstIndex(where: { $0.effect.isTriggeredPreventionBuildup }) else {
+        guard let index = currentEffects.firstIndex(where: { $0.effect.isActionSkipPending }) else {
             recordAction(for: actor, context: &context)
             return []
         }

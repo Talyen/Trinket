@@ -16,7 +16,7 @@ public enum EffectSummaryBuilder {
         .burn, .poison,
         .bleed,
         .shield, .mitigation,
-        .preventionBuildup,
+        .controlMeter,
         .leech,
         .dodge
     ]

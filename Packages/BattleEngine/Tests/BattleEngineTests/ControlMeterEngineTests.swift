@@ -3,7 +3,7 @@ import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class PreventionEngineTests: XCTestCase {
+final class ControlMeterEngineTests: XCTestCase {
     private func makeContext(
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
@@ -32,7 +32,7 @@ final class PreventionEngineTests: XCTestCase {
 
     func testApplyBuildupTriggersPreventionAtThreshold() {
         var context = makeContext(seed: 0)
-        let events = PreventionEngine.applyBuildup(
+        let events = ControlMeterEngine.applyMeterCharge(
             15,
             keyword: .stun,
             to: context.roster.enemy.combatant,
@@ -45,11 +45,11 @@ final class PreventionEngineTests: XCTestCase {
     func testApplyBuildupNoDuplicateWhenStunFreezePending() {
         var context = makeContext(
             targetEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 10, 10), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
             ],
             seed: 0
         )
-        let events = PreventionEngine.applyBuildup(
+        let events = ControlMeterEngine.applyMeterCharge(
             15,
             keyword: .stun,
             to: context.roster.enemy.combatant,
@@ -59,15 +59,15 @@ final class PreventionEngineTests: XCTestCase {
         XCTAssertTrue(events.isEmpty)
     }
 
-    func testContextPreventionDelegatesToPreventionEngine() {
+    func testContextPreventionDelegatesToControlMeterEngine() {
         var contextContext = makeContext(seed: 0)
         var engineContext = makeContext(seed: 0)
         let target = contextContext.roster.enemy.combatant
 
-        let contextEvents = contextContext.applyPreventionBuildup(
+        let contextEvents = contextContext.applyControlMeter(
             15, keyword: .stun, to: target, sourceActorID: "source"
         )
-        let engineEvents = PreventionEngine.applyBuildup(
+        let engineEvents = ControlMeterEngine.applyMeterCharge(
             15, keyword: .stun, to: target, sourceActorID: "source", in: &engineContext
         )
 

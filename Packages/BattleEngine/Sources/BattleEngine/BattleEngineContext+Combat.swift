@@ -46,13 +46,13 @@ public extension BattleEngineContext {
         HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &self).events
     }
 
-    mutating func applyPreventionBuildup(
+    mutating func applyControlMeter(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
         sourceActorID: String?
     ) -> [ActionEvent] {
-        PreventionEngine.applyBuildup(
+        ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
             to: combatant,

@@ -146,8 +146,8 @@ public struct BattleRoster {
 
     /// True when `combatant` has stun/freeze buildup at threshold, waiting to
     /// consume its next scheduled action.
-    public func hasPendingStunFreezeSkip(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains(where: \.effect.isTriggeredPreventionBuildup)
+    public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
     }
 
     /// Mutates the runtime identified by `combatant` in place. A no-op

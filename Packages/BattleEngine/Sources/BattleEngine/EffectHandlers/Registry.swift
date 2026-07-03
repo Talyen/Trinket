@@ -10,7 +10,7 @@ public enum EffectHandlers {
         .burn: DecayingDoTHandler(keyword: .burn),
         .poison: DecayingDoTHandler(keyword: .poison),
         .bleed: BleedHandler(),
-        .preventionBuildup: PreventionBuildupHandler(),
+        .controlMeter: ControlMeterHandler(),
         .shield: ShieldHandler(),
         .mitigation: MitigationHandler(),
         .instantHeal: InstantHealHandler(),

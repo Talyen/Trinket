@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Damage resolution orchestration. Healing, prevention, and DoT entry points
-/// live on `HealingEngine`, `PreventionEngine`, and `DoTDamage`.
+/// live on `HealingEngine`, `ControlMeterEngine`, and `DoTDamage`.
 package enum CombatPipeline {
     package static func resolveDamage(
         _ request: DamageRequest,

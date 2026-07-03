@@ -7,7 +7,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case burn
     case poison
     case bleed
-    case preventionBuildup
+    case controlMeter
     case shield
     case mitigation
     case instantHeal
@@ -29,7 +29,7 @@ public extension Effect {
         case .burn: return .burn
         case .poison: return .poison
         case .bleed: return .bleed
-        case .preventionBuildup: return .preventionBuildup
+        case .controlMeter: return .controlMeter
         case .shield: return .shield
         case .mitigation: return .mitigation
         case .instantHeal: return .instantHeal
@@ -48,7 +48,7 @@ public extension Effect {
     /// strip from allies.
     public var isRemovableDebuff: Bool {
         switch self {
-        case .burn, .poison, .bleed, .preventionBuildup:
+        case .burn, .poison, .bleed, .controlMeter:
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge, .dodge,
              .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation:
@@ -72,7 +72,7 @@ public extension Effect {
     /// in `tickEffects`.
     public var isTickable: Bool {
         switch self {
-        case .burn, .poison, .bleed, .preventionBuildup,
+        case .burn, .poison, .bleed, .controlMeter,
              .shield, .mitigation, .leech, .dodge:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
@@ -116,16 +116,16 @@ public extension Effect {
         return false
     }
 
-    /// Amount and threshold for `.preventionBuildup`, if applicable.
-    public var preventionBuildupValues: (amount: Int, threshold: Int)? {
-        guard case let .preventionBuildup(_, amount, threshold) = self else { return nil }
+    /// Amount and threshold for `.controlMeter`, if applicable.
+    public var controlMeterValues: (amount: Int, threshold: Int)? {
+        guard case let .controlMeter(_, amount, threshold) = self else { return nil }
         return (amount, threshold)
     }
 
-    /// True when stun/freeze buildup has reached its threshold and is waiting
-    /// to consume the target's next action.
-    public var isTriggeredPreventionBuildup: Bool {
-        guard let values = preventionBuildupValues else { return false }
+    /// True when the control meter is full and the target's next action will
+    /// be skipped (Stunned / Frozen).
+    public var isActionSkipPending: Bool {
+        guard let values = controlMeterValues else { return false }
         return values.threshold > 0 && values.amount >= values.threshold
     }
 }

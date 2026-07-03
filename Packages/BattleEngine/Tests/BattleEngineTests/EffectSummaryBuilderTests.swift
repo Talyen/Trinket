@@ -65,7 +65,7 @@ final class EffectSummaryBuilderTests: XCTestCase {
 
     func testStunBuildupSummary() {
         let effects = [
-            ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 3, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         XCTAssertEqual(summaries.first?.text, "Stun Build-up: 3/10")
@@ -73,7 +73,7 @@ final class EffectSummaryBuilderTests: XCTestCase {
 
     func testTriggeredStunBuildupSummary() {
         let effects = [
-            ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 10, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         XCTAssertEqual(summaries.first?.text, "Stunned: action prevented.")
@@ -81,7 +81,7 @@ final class EffectSummaryBuilderTests: XCTestCase {
 
     func testPartialBuildupSummaryWhenBelowThreshold() {
         let effects = [
-            ActiveEffect(id: 1, effect: .preventionBuildup(.freeze, 1, 10), remainingTicks: 0)
+            ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 10), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         XCTAssertEqual(summaries.first?.text, "Freeze Build-up: 1/10")

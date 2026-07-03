@@ -59,7 +59,7 @@ public protocol BattleEffectHandler: Sendable {
 
 public extension BattleEffectHandler {
     /// Default: decrement `remainingTicks` for tickable buffs and debuffs that
-    /// do not override `tick`. Burn, Poison, Bleed, and PreventionBuildup
+    /// do not override `tick`. Burn, Poison, Bleed, and ControlMeter
     /// provide their own tick behavior.
     func tick(
         _ active: ActiveEffect,
@@ -68,7 +68,7 @@ public extension BattleEffectHandler {
     ) -> EffectTickOutcome {
         _ = target; _ = context
         switch active.effect {
-        case .burn, .poison, .bleed, .preventionBuildup:
+        case .burn, .poison, .bleed, .controlMeter:
             return EffectTickOutcome()
         default:
             guard active.effect.isTickable else { return EffectTickOutcome() }

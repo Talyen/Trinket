@@ -2,9 +2,9 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Stun/freeze buildup, threshold transitions, and type resistance.
-package enum PreventionEngine {
-    public static func applyBuildup(
+/// Stun/freeze control meter: tracks charge toward the next action skip.
+package enum ControlMeterEngine {
+    public static func applyMeterCharge(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -12,20 +12,20 @@ package enum PreventionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        if context.roster.hasPendingStunFreezeSkip(for: combatant) { return [] }
+        if context.roster.hasPendingActionSkip(for: combatant) { return [] }
 
         let threshold = preventionThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
-            if case let .preventionBuildup(k, _, _) = activeEffect.effect, k == keyword { return true }
+            if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword { return true }
             return false
         }
-        let existingAmount = existingBuildupAmount(at: existingIndex, in: currentEffects)
+        let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
         let newAmount = min(existingAmount + amount, threshold)
 
         if newAmount >= threshold {
             return applyThresholdReached(
-                PreventionThresholdContext(
+                ControlMeterThresholdContext(
                     keyword: keyword,
                     combatant: combatant,
                     sourceActorID: sourceActorID,
@@ -38,7 +38,7 @@ package enum PreventionEngine {
         }
 
         updateBuildup(
-            PreventionBuildupUpdate(
+            ControlMeterUpdate(
                 keyword: keyword,
                 newAmount: newAmount,
                 threshold: threshold,
@@ -58,17 +58,17 @@ package enum PreventionEngine {
         )
     }
 
-    private static func existingBuildupAmount(
+    private static func existingMeterAmount(
         at existingIndex: Int?,
         in currentEffects: [ActiveEffect]
     ) -> Int {
         guard let existingIndex,
-              case let .preventionBuildup(_, amount, _) = currentEffects[existingIndex].effect
+              case let .controlMeter(_, amount, _) = currentEffects[existingIndex].effect
         else { return 0 }
         return amount
     }
 
-    private struct PreventionThresholdContext {
+    private struct ControlMeterThresholdContext {
         let keyword: Keyword
         let combatant: Combatant
         let sourceActorID: String?
@@ -77,7 +77,7 @@ package enum PreventionEngine {
     }
 
     private static func applyThresholdReached(
-        _ thresholdContext: PreventionThresholdContext,
+        _ thresholdContext: ControlMeterThresholdContext,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -87,7 +87,7 @@ package enum PreventionEngine {
         let threshold = thresholdContext.threshold
 
         updateBuildup(
-            PreventionBuildupUpdate(
+            ControlMeterUpdate(
                 keyword: keyword,
                 newAmount: threshold,
                 threshold: threshold,
@@ -121,7 +121,7 @@ package enum PreventionEngine {
         ]
     }
 
-    private struct PreventionBuildupUpdate {
+    private struct ControlMeterUpdate {
         let keyword: Keyword
         let newAmount: Int
         let threshold: Int
@@ -131,11 +131,11 @@ package enum PreventionEngine {
     }
 
     private static func updateBuildup(
-        _ update: PreventionBuildupUpdate,
+        _ update: ControlMeterUpdate,
         currentEffects: inout [ActiveEffect],
         in context: inout BattleEngineContext
     ) {
-        let buildup = Effect.preventionBuildup(update.keyword, update.newAmount, update.threshold)
+        let buildup = Effect.controlMeter(update.keyword, update.newAmount, update.threshold)
         if let existingIndex = update.existingIndex {
             currentEffects[existingIndex] = ActiveEffect(
                 id: currentEffects[existingIndex].id,

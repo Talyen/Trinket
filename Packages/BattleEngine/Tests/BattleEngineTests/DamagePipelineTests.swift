@@ -12,7 +12,7 @@ final class DamagePipelineTests: XCTestCase {
         "ShieldAbsorption",
         "TakeDamage",
         "Leech",
-        "PreventionBuildup"
+        "ControlMeter"
     ]
 
     private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {

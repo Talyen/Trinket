@@ -159,13 +159,13 @@ final class EffectHandlersApplyTests: XCTestCase {
     func testCleanseStunRemovesActivePrevention() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0)],
+            [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)],
             for: battle.hero,
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.stun), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isPreventionBuildup))
+        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isControlMeter))
     }
 
     func testCleanseRandomRemovesOneDebuff() {
@@ -255,10 +255,10 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
     }
 
-    func testPreventionBuildupHandlerAppliesThroughPipeline() {
+    func testControlMeterHandlerAppliesThroughPipeline() {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.preventionBuildup(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
+        let outcome = EffectHandlersTestSupport.dispatch(.controlMeter(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
         XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isPreventionBuildup))
+        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
     }
 }

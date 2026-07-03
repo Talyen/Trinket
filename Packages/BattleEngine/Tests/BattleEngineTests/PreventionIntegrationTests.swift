@@ -16,7 +16,7 @@ final class PreventionIntegrationTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
             ]
         )
 
@@ -35,7 +35,7 @@ final class PreventionIntegrationTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.freeze, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.freeze, 1, 1), remainingTicks: 0)
             ]
         )
 
@@ -93,7 +93,7 @@ final class PreventionIntegrationTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
             ]
         )
 
@@ -117,7 +117,7 @@ final class PreventionIntegrationTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 1, 1), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 1), remainingTicks: 0)
             ]
         )
 
@@ -143,9 +143,9 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let buildup = battle.firstEnemyEffect(matching: \.isPreventionBuildup)
+        let buildup = battle.firstEnemyEffect(matching: \.isControlMeter)
         XCTAssertNotNil(buildup)
-        if let values = buildup?.effect.preventionBuildupValues {
+        if let values = buildup?.effect.controlMeterValues {
             XCTAssertGreaterThan(values.amount, 0)
             XCTAssertEqual(values.threshold, 20)
         }
@@ -173,12 +173,12 @@ final class PreventionIntegrationTests: XCTestCase {
 
         XCTAssertNil(
             battle.firstEnemyEffect(matching: {
-                guard case let .preventionBuildup(_, amount, threshold) = $0 else { return false }
+                guard case let .controlMeter(_, amount, threshold) = $0 else { return false }
                 return amount < threshold
             }),
             "Partial build-up should be consumed on trigger"
         )
-        XCTAssertTrue(battle.hasEnemyEffect(matching: \.isTriggeredPreventionBuildup))
+        XCTAssertTrue(battle.hasEnemyEffect(matching: \.isActionSkipPending))
     }
 
     func testStunBuildupNotTrackedWhileStunned() {
@@ -189,9 +189,9 @@ final class PreventionIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        let stunnedCount = battle.activeEffects(of: battle.enemy).filter(\.effect.isTriggeredPreventionBuildup).count
+        let stunnedCount = battle.activeEffects(of: battle.enemy).filter(\.effect.isActionSkipPending).count
         let buildupCount = battle.activeEffects(of: battle.enemy).filter {
-            guard case let .preventionBuildup(_, amount, threshold) = $0.effect else { return false }
+            guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
             return amount < threshold
         }.count
         XCTAssertEqual(stunnedCount, 1, "Enemy should be stunned")
@@ -250,7 +250,7 @@ final class PreventionIntegrationTests: XCTestCase {
 
             BattleTestFixtures.advanceTicks(1, on: &battle)
 
-            if let values = battle.firstEnemyEffect(matching: { $0.isPreventionBuildup })?.effect.preventionBuildupValues {
+            if let values = battle.firstEnemyEffect(matching: { $0.isControlMeter })?.effect.controlMeterValues {
                 XCTAssertEqual(values.threshold, expectedThreshold, "maxHealth=\(maxHealth)")
                 XCTAssertGreaterThanOrEqual(values.amount, 1, "Buildup of at least 1 expected for maxHealth=\(maxHealth)")
             } else {
@@ -283,12 +283,12 @@ final class PreventionIntegrationTests: XCTestCase {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0)
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)
             ]
         )
 
         BattleTestFixtures.advanceTicks(1, on: &battle)
 
-        XCTAssertFalse(battle.hasHeroEffect { $0.isPreventionBuildup }, "Cleanse removed buildup")
+        XCTAssertFalse(battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
     }
 }

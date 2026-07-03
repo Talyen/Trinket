@@ -5,7 +5,7 @@ public enum SavedEffect: Codable, Equatable, Sendable {
     case burn(potency: Int)
     case poison(potency: Int)
     case bleed(potency: Int)
-    case preventionBuildup(keyword: String, amount: Int, threshold: Int)
+    case controlMeter(keyword: String, amount: Int, threshold: Int)
     case shield(keyword: String, blockAmount: Int, duration: Int)
     case mitigation(keyword: String, percent: Double, duration: Int)
     case instantHeal(keyword: String, amount: Int)
@@ -49,8 +49,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
 
     private static func keywordBacked(_ effect: Effect) -> SavedEffect {
         switch effect {
-        case let .preventionBuildup(keyword, amount, threshold):
-            return .preventionBuildup(keyword: keyword.rawValue, amount: amount, threshold: threshold)
+        case let .controlMeter(keyword, amount, threshold):
+            return .controlMeter(keyword: keyword.rawValue, amount: amount, threshold: threshold)
         case let .shield(keyword, blockAmount, duration):
             return .shield(keyword: keyword.rawValue, blockAmount: blockAmount, duration: duration)
         case let .mitigation(keyword, percent, duration):
@@ -95,8 +95,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
 
     private func keywordBackedEffect() -> Effect? {
         switch self {
-        case let .preventionBuildup(keywordRawValue, amount, threshold):
-            return keyword(from: keywordRawValue).map { .preventionBuildup($0, amount, threshold) }
+        case let .controlMeter(keywordRawValue, amount, threshold):
+            return keyword(from: keywordRawValue).map { .controlMeter($0, amount, threshold) }
         case let .shield(keywordRawValue, blockAmount, duration):
             return keyword(from: keywordRawValue).map { .shield($0, blockAmount, duration) }
         case let .mitigation(keywordRawValue, percent, duration):

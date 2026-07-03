@@ -34,7 +34,7 @@ public enum Effect: Hashable, Sendable {
     case burn(Int)
     case poison(Int)
     case bleed(Int)
-    case preventionBuildup(Keyword, Int, Int)
+    case controlMeter(Keyword, Int, Int)
     case shield(Keyword, Int, Int)
     case mitigation(Keyword, Double, Int)
     case instantHeal(Keyword, Int)
@@ -57,7 +57,7 @@ public enum Effect: Hashable, Sendable {
         case .burn: return .burn
         case .poison: return .poison
         case .bleed: return .bleed
-        case let .preventionBuildup(k, _, _): return k
+        case let .controlMeter(k, _, _): return k
         case let .shield(k, _, _): return k
         case let .mitigation(k, _, _): return k
         case let .instantHeal(k, _): return k
@@ -87,7 +87,7 @@ public enum Effect: Hashable, Sendable {
         case let .leech(_, _, d): return d
         case let .dodge(_, d): return d
         case .burn, .poison, .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveMitigation, .preventionBuildup: return 0
+             .purge, .purgeRandom, .halveMitigation, .controlMeter: return 0
         }
     }
 
@@ -109,7 +109,7 @@ public enum Effect: Hashable, Sendable {
 
     public static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
-        case .burn, .poison, .bleed, .preventionBuildup, .halveMitigation, .purge, .purgeRandom:
+        case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom, .dodge:
             return .actor

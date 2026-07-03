@@ -254,8 +254,8 @@ package struct LeechStep: DamageStep {
 
 /// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
 /// buildup against the target using post-mitigation damage.
-package struct PreventionBuildupStep: DamageStep {
-    public static let stepName = "PreventionBuildup"
+package struct ControlMeterStep: DamageStep {
+    public static let stepName = "ControlMeter"
     public static let phase: DamagePhase = .post
 
     public init() {}
@@ -266,7 +266,7 @@ package struct PreventionBuildupStep: DamageStep {
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
-        state.damageEvents.append(contentsOf: PreventionEngine.applyBuildup(
+        state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
             state.buildupDamage,
             keyword: damageKeyword,
             to: state.combatant,

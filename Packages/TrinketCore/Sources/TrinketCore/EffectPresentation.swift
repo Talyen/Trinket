@@ -21,7 +21,7 @@ public enum EffectPresentation {
             return active.effect.keyword.statusAlias ?? active.effect.keyword.rawValue
         case let .bleed(potency):
             return bleedActivePhrase(potency: potency, keyword: active.effect.keyword)
-        case let .preventionBuildup(keyword, amount, threshold):
+        case let .controlMeter(keyword, amount, threshold):
             if amount >= threshold {
                 return keyword.statusAlias ?? keyword.rawValue
             }
@@ -54,8 +54,8 @@ public enum EffectPresentation {
 
     private static func preventionPhrase(for effect: Effect) -> String? {
         switch effect {
-        case let .preventionBuildup(keyword, _, _):
-            return "applies \(keyword.rawValue) Build-up"
+        case let .controlMeter(keyword, _, _):
+            return "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
         default:
             return nil
         }

@@ -42,20 +42,20 @@ public struct HalveMitigationHandler: BattleEffectHandler {
     }
 }
 
-public struct PreventionBuildupHandler: BattleEffectHandler {
-    public let kind: EffectKind = .preventionBuildup
+public struct ControlMeterHandler: BattleEffectHandler {
+    public let kind: EffectKind = .controlMeter
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        if let triggered = stacks.first(where: { $0.effect.isTriggeredPreventionBuildup }) {
+        if let triggered = stacks.first(where: { $0.effect.isActionSkipPending }) {
             let alias = triggered.keyword.statusAlias ?? triggered.keyword.rawValue
             return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
         }
         let amount = stacks.compactMap { eff -> Int? in
-            if case let .preventionBuildup(_, amt, _) = eff.effect { return amt }
+            if case let .controlMeter(_, amt, _) = eff.effect { return amt }
             return nil
         }.reduce(0, +)
         let threshold = stacks.compactMap { eff -> Int? in
-            if case let .preventionBuildup(_, _, th) = eff.effect { return th }
+            if case let .controlMeter(_, _, th) = eff.effect { return th }
             return nil
         }.max() ?? 1
         return EffectSummary(
@@ -72,10 +72,10 @@ public struct PreventionBuildupHandler: BattleEffectHandler {
         action _: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .preventionBuildup(keyword, amount, _) = effect else {
+        guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        let events = PreventionEngine.applyBuildup(
+        let events = ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
             to: target,
