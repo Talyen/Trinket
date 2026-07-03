@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 public enum HomesteadNodeCatalog {
     public static let maxTierByNodeID: [HomesteadNodeID: Int] = [

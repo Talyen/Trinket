@@ -1,12 +1,28 @@
-struct StageCompletionContext {
-    var roster: PlayerRosterState
-    var inventory: PlayerInventoryState
-    var homestead: PlayerHomesteadState
-    var journey: JourneyProgressState
+import Foundation
+import BattleEngine
+import TrinketContent
+
+public struct StageCompletionContext: Sendable {
+    public var roster: PlayerRosterState
+    public var inventory: PlayerInventoryState
+    public var homestead: PlayerHomesteadState
+    public var journey: JourneyProgressState
+
+    public init(
+        roster: PlayerRosterState,
+        inventory: PlayerInventoryState,
+        homestead: PlayerHomesteadState,
+        journey: JourneyProgressState
+    ) {
+        self.roster = roster
+        self.inventory = inventory
+        self.homestead = homestead
+        self.journey = journey
+    }
 }
 
-enum StageCompletion {
-    static func claimRewardsIfNeeded(
+public enum StageCompletion {
+    public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
         pet: Combatant,
@@ -35,7 +51,7 @@ enum StageCompletion {
         journey = ctx.journey
     }
 
-    static func claimRewardsIfNeeded(
+    public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
         pet: Combatant,
@@ -66,7 +82,7 @@ enum StageCompletion {
         journey = ctx.journey
     }
 
-    static func complete(
+    public static func complete(
         _ stage: Stage,
         hero: Combatant,
         pet: Combatant,
@@ -97,7 +113,7 @@ enum StageCompletion {
         journey = ctx.journey
     }
 
-    static func complete(
+    public static func complete(
         _ stage: Stage,
         hero: Combatant,
         pet: Combatant,
@@ -117,9 +133,7 @@ enum StageCompletion {
         context.journey.complete(stage, in: chapters)
     }
 
-    // MARK: - Context-based overloads
-
-    static func claimRewardsIfNeeded(
+    public static func claimRewardsIfNeeded(
         for stage: Stage,
         hero: Combatant,
         pet: Combatant,

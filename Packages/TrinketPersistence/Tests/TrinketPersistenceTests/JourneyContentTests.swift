@@ -1,5 +1,7 @@
 import XCTest
-@testable import Trinket
+import BattleEngine
+import TrinketContent
+@testable import TrinketPersistence
 
 final class JourneyContentTests: XCTestCase {
     private var chapter: Chapter {

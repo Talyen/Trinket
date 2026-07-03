@@ -1,5 +1,8 @@
 import XCTest
-@testable import Trinket
+import BattleEngine
+import TrinketCore
+import TrinketContent
+@testable import TrinketPersistence
 
 final class StageRewardTests: XCTestCase {
     private var chapter: Chapter {

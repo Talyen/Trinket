@@ -9,9 +9,9 @@ Trinket/
   App/              Shell, environment, tab routing
   Features/         SwiftUI product surfaces (Play, Collection, Battle UI, …)
   Battle/           BattleRun, ActiveBattleConfiguration, victory UI wiring
-  State/            Player*Store coordination + Persistence/
-  Models/           Domain types
-  Content/          Journey roster/enemies/chapters + homestead (app-owned)
+  State/            AppState, BattleSession, OptionsStore, PlayerHomesteadStore, sync factory
+  Models/           SwiftUI presentation extensions (map, homestead UI, combatant detail)
+  Content/          Homestead catalog + encounter art overrides
   Generated/        Art/music codegen output (do not edit)
   Shared/           Reusable SwiftUI
   DesignSystem/     TrinketDesign
@@ -80,7 +80,7 @@ Migration phases:
 3. **Phase 2** — `TrinketContent` package (done)
 4. **Phase 3** — `BattleEngine` package (done)
 5. **Phase 4** — `TrinketPersistence` package (done)
-6. **Phase 5** — thin app target, optional `TrinketDesignSystem` package
+6. **Phase 5** — thin app target (done); optional `TrinketDesignSystem` package remains future work
 
 ## Tech stack
 

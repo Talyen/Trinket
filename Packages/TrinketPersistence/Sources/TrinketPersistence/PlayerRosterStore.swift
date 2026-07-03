@@ -1,114 +1,122 @@
-import SwiftUI
+import Foundation
+import Observation
+import BattleEngine
+import TrinketContent
+import TrinketCore
 
 @MainActor
 @Observable
-final class PlayerRosterStore {
+public final class PlayerRosterStore {
     private let saveStore: PlayerSaveStore
 
-    var current: PlayerRosterState {
+    public var current: PlayerRosterState {
         get { saveStore.roster }
         set { saveStore.roster = newValue }
     }
 
-    init(saveStore: PlayerSaveStore) {
+    public init(saveStore: PlayerSaveStore) {
         self.saveStore = saveStore
     }
 
-    var heroes: [Combatant] {
+    public var heroes: [Combatant] {
         current.battleConfiguredCombatants(
             GameContent.heroes.filter { current.isUnlocked($0) }
         )
     }
 
-    var pets: [Combatant] {
+    public var pets: [Combatant] {
         current.battleConfiguredCombatants(
             GameContent.pets.filter { current.isUnlocked($0) }
         )
     }
 
-    var collectionHeroes: [Combatant] {
+    public var collectionHeroes: [Combatant] {
         current.configuredCombatants(GameContent.heroes)
     }
 
-    var collectionPets: [Combatant] {
+    public var collectionPets: [Combatant] {
         current.configuredCombatants(GameContent.pets)
     }
 
-    func isUnlocked(_ combatant: Combatant) -> Bool {
+    public func isUnlocked(_ combatant: Combatant) -> Bool {
         current.isUnlocked(combatant)
     }
 
-    func progression(for combatant: Combatant) -> CombatantProgression {
+    public func progression(for combatant: Combatant) -> CombatantProgression {
         current.progression(for: combatant)
     }
 
-    func loadout(for combatant: Combatant) -> AbilityLoadout {
+    public func loadout(for combatant: Combatant) -> AbilityLoadout {
         current.loadout(for: combatant)
     }
 
-    func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
+    public func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
         var updated = current
         updated.setLoadout(loadout, for: combatant)
         current = updated
     }
 
-    func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
+    public func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
         current.equipmentLoadout(for: combatant)
     }
 
-    func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
+    public func setEquipmentLoadout(_ loadout: EquipmentLoadout, for combatant: Combatant) {
         var updated = current
         updated.setEquipmentLoadout(loadout, for: combatant)
         current = updated
     }
 
-    func setActiveHero(_ hero: Combatant) {
+    public func setActiveHero(_ hero: Combatant) {
         var updated = current
         updated.setActiveHero(hero)
         current = updated
     }
 
-    func setActivePet(_ pet: Combatant) {
+    public func setActivePet(_ pet: Combatant) {
         var updated = current
         updated.setActivePet(pet)
         current = updated
     }
 
-    func grantExperience(_ amount: Int, to combatant: Combatant) {
+    public func grantExperience(_ amount: Int, to combatant: Combatant) {
         var updated = current
         updated.grantExperience(amount, to: combatant)
         current = updated
     }
 
-    func grantGold(_ amount: Int) {
+    public func grantGold(_ amount: Int) {
         var updated = current
         updated.grantGold(amount)
         current = updated
     }
 
-    func equippedItem(for slot: ItemSlot, combatant: Combatant, inventory: PlayerInventoryState) -> InventoryItem? {
+    public func equippedItem(
+        for slot: ItemSlot,
+        combatant: Combatant,
+        inventory: PlayerInventoryState
+    ) -> InventoryItem? {
         current.equippedItem(for: slot, combatant: combatant, inventory: inventory)
     }
 
-    func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
+    public func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
         current.configuredCombatants(combatants)
     }
 
-    func configuredCombatant(_ combatant: Combatant) -> Combatant {
+    public func configuredCombatant(_ combatant: Combatant) -> Combatant {
         current.configuredCombatant(combatant)
     }
 
-    func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
+    public func battleConfiguredCombatant(_ combatant: Combatant) -> Combatant {
         current.battleConfiguredCombatant(combatant)
     }
 
-    var activeHero: Combatant {
+    public var activeHero: Combatant {
         heroes.first { $0.id == current.activeHeroID } ??
             heroes.first ??
             collectionHeroes[0]
     }
 
-    var activePet: Combatant {
+    public var activePet: Combatant {
         pets.first { $0.id == current.activePetID } ??
             pets.first ??
             collectionPets[0]

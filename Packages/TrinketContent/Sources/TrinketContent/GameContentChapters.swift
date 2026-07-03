@@ -1,7 +1,8 @@
 import Foundation
+import TrinketCore
 
-enum GameContentChapters {
-    static let chapters: [Chapter] = [
+public enum GameContentChapters {
+    public static let chapters: [Chapter] = [
         Chapter(
             id: "chapter-1",
             number: 1,

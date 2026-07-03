@@ -1,4 +1,7 @@
-extension PlayerInventoryState {
+import Foundation
+import TrinketContent
+
+public extension PlayerInventoryState {
     mutating func addRewardItem(from template: InventoryItem, for stage: Stage) {
         var randomNumberGenerator = SystemRandomNumberGenerator()
         addRewardItem(from: template, for: stage, using: &randomNumberGenerator)

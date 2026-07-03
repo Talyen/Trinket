@@ -1,5 +1,7 @@
 import XCTest
-@testable import Trinket
+import TrinketCore
+import TrinketContent
+@testable import TrinketPersistence
 
 @MainActor
 final class JourneyProgressTests: XCTestCase {

@@ -1,4 +1,6 @@
-import SwiftUI
+import Foundation
+import Observation
+import TrinketCore
 
 @MainActor
 @Observable

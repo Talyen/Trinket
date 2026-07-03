@@ -18,11 +18,6 @@ enum StageMapID {
     }
 }
 
-struct MapScrollRequest: Identifiable, Equatable {
-    let id = UUID()
-    let targetID: String
-}
-
 enum StageNodeState: Equatable {
     case completed
     case justCompleted
