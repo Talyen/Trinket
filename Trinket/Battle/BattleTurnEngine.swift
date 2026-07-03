@@ -63,6 +63,53 @@ enum BattleTurnEngine {
         }
 
         var events: [ActionEvent] = []
+        let damageOutcome = applyDamageComponents(
+            ability: ability,
+            actor: actor,
+            abilityTarget: abilityTarget,
+            state: &state
+        )
+        events.append(contentsOf: damageOutcome.events)
+
+        let appliedEffectLogs = applyTargetedEffects(
+            ability: ability,
+            actor: actor,
+            abilityTarget: abilityTarget,
+            pairedDirectDamage: damageOutcome.pairedDirectDamage,
+            state: &state,
+            events: &events
+        )
+
+        events.append(
+            state.nextEvent(
+                kind: .ability,
+                effectKind: nil,
+                actorName: actor.name,
+                abilityName: ability.name,
+                target: abilityTarget,
+                amount: damageOutcome.totalDealtToAbilityTarget,
+                keyword: ability.logDamageKeyword,
+                appliedEffectSummaries: appliedEffectLogs
+            )
+        )
+
+        recordAction(for: actor, state: &state)
+        return events
+    }
+
+    private struct DamageComponentOutcome {
+        let events: [ActionEvent]
+        let pairedDirectDamage: [(Keyword, Int)]
+        let totalDealtToAbilityTarget: Int
+    }
+
+    private static func applyDamageComponents(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        state: inout BattleState
+    ) -> DamageComponentOutcome {
+        var events: [ActionEvent] = []
         var totalDealtToAbilityTarget = 0
         var pairedDirectDamage: [(Keyword, Int)] = []
 
@@ -93,15 +140,28 @@ enum BattleTurnEngine {
             }
         }
 
-        var appliedEffectLogs: [String] = []
-        let effectsToApply = ability.targetedEffects
+        return DamageComponentOutcome(
+            events: events,
+            pairedDirectDamage: pairedDirectDamage,
+            totalDealtToAbilityTarget: totalDealtToAbilityTarget
+        )
+    }
 
+    private static func applyTargetedEffects(
+        ability: Ability,
+        actor: Combatant,
+        abilityTarget: Combatant,
+        pairedDirectDamage: [(Keyword, Int)],
+        state: inout BattleState,
+        events: inout [ActionEvent]
+    ) -> [String] {
+        var appliedEffectLogs: [String] = []
         let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
         let heroCombatant = state.hero
         let petCombatant = state.pet
         let enemyCombatant = state.enemy
         state.withEngineContext { context in
-            for targetedEffect in effectsToApply {
+            for targetedEffect in ability.targetedEffects {
                 let effect = targetedEffect.effect
                 let effectTarget = resolveEffectTarget(
                     targetedEffect.target,
@@ -127,22 +187,7 @@ enum BattleTurnEngine {
                 }
             }
         }
-
-        events.append(
-            state.nextEvent(
-                kind: .ability,
-                effectKind: nil,
-                actorName: actor.name,
-                abilityName: ability.name,
-                target: abilityTarget,
-                amount: totalDealtToAbilityTarget,
-                keyword: ability.logDamageKeyword,
-                appliedEffectSummaries: appliedEffectLogs
-            )
-        )
-
-        recordAction(for: actor, state: &state)
-        return events
+        return appliedEffectLogs
     }
 
     private static func recordAction(for actor: Combatant, state: inout BattleState) {

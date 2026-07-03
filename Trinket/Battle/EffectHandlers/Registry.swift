@@ -4,31 +4,30 @@ import Foundation
 /// `performAction` resolves each targeted effect through this table instead
 /// of a single inline switch.
 enum EffectHandlers {
-    static let all: [EffectKind: any BattleEffectHandler] = Dictionary(
-        uniqueKeysWithValues: allHandlers.map { ($0.kind, $0) }
-    )
+    private static let handlerByKind: [EffectKind: any BattleEffectHandler] = [
+        .burn: DecayingDoTHandler(keyword: .burn),
+        .poison: DecayingDoTHandler(keyword: .poison),
+        .bleed: BleedHandler(),
+        .prevention: PreventionHandler(),
+        .preventionBuildup: PreventionBuildupHandler(),
+        .shield: ShieldHandler(),
+        .mitigation: MitigationHandler(),
+        .instantHeal: InstantHealHandler(),
+        .leech: LeechHandler(),
+        .resourceGain: ResourceGainHandler(),
+        .cleanse: CleanseHandler(),
+        .cleanseRandom: CleanseRandomHandler(),
+        .purge: PurgeHandler(),
+        .purgeRandom: PurgeRandomHandler(),
+        .halveMitigation: HalveMitigationHandler(),
+        .dodge: DodgeHandler()
+    ]
 
-    /// Compiler-checked dispatch for a single `EffectKind`.
+    static let all: [EffectKind: any BattleEffectHandler] = handlerByKind
+
     static func handler(for kind: EffectKind) -> any BattleEffectHandler {
-        switch kind {
-        case .burn: DecayingDoTHandler(keyword: .burn)
-        case .poison: DecayingDoTHandler(keyword: .poison)
-        case .bleed: BleedHandler()
-        case .prevention: PreventionHandler()
-        case .preventionBuildup: PreventionBuildupHandler()
-        case .shield: ShieldHandler()
-        case .mitigation: MitigationHandler()
-        case .instantHeal: InstantHealHandler()
-        case .leech: LeechHandler()
-        case .resourceGain: ResourceGainHandler()
-        case .cleanse: CleanseHandler()
-        case .cleanseRandom: CleanseRandomHandler()
-        case .purge: PurgeHandler()
-        case .purgeRandom: PurgeRandomHandler()
-        case .halveMitigation: HalveMitigationHandler()
-        case .dodge: DodgeHandler()
-        }
+        handlerByKind[kind]!
     }
 
-    private static let allHandlers: [any BattleEffectHandler] = EffectKind.allCases.map(handler(for:))
+    private static let allHandlers: [any BattleEffectHandler] = EffectKind.allCases.compactMap { handlerByKind[$0] }
 }

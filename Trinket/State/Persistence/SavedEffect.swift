@@ -19,39 +19,56 @@ enum SavedEffect: Codable, Equatable {
     case dodge(keyword: String, duration: Int)
 
     init(_ effect: Effect) {
+        if let saved = SavedEffect.direct(effect) {
+            self = saved
+            return
+        }
+        self = SavedEffect.keywordBacked(effect)
+    }
+
+    private static func direct(_ effect: Effect) -> SavedEffect? {
         switch effect {
         case let .burn(potency):
-            self = .burn(potency: potency)
+            return .burn(potency: potency)
         case let .poison(potency):
-            self = .poison(potency: potency)
+            return .poison(potency: potency)
         case let .bleed(potency):
-            self = .bleed(potency: potency)
-        case let .prevention(keyword, duration):
-            self = .prevention(keyword: keyword.rawValue, duration: duration)
-        case let .preventionBuildup(keyword, amount, threshold):
-            self = .preventionBuildup(keyword: keyword.rawValue, amount: amount, threshold: threshold)
-        case let .shield(keyword, blockAmount, duration):
-            self = .shield(keyword: keyword.rawValue, blockAmount: blockAmount, duration: duration)
-        case let .mitigation(keyword, percent, duration):
-            self = .mitigation(keyword: keyword.rawValue, percent: percent, duration: duration)
-        case let .instantHeal(keyword, amount):
-            self = .instantHeal(keyword: keyword.rawValue, amount: amount)
-        case let .leech(keyword, percent, duration):
-            self = .leech(keyword: keyword.rawValue, percent: percent, duration: duration)
-        case let .resourceGain(keyword, amount):
-            self = .resourceGain(keyword: keyword.rawValue, amount: amount)
+            return .bleed(potency: potency)
         case let .cleanse(keyword):
-            self = .cleanse(keyword: keyword?.rawValue)
+            return .cleanse(keyword: keyword?.rawValue)
         case .cleanseRandom:
-            self = .cleanseRandom
+            return .cleanseRandom
         case let .purge(keyword):
-            self = .purge(keyword: keyword?.rawValue)
+            return .purge(keyword: keyword?.rawValue)
         case .purgeRandom:
-            self = .purgeRandom
+            return .purgeRandom
+        default:
+            return nil
+        }
+    }
+
+    private static func keywordBacked(_ effect: Effect) -> SavedEffect {
+        switch effect {
+        case let .prevention(keyword, duration):
+            return .prevention(keyword: keyword.rawValue, duration: duration)
+        case let .preventionBuildup(keyword, amount, threshold):
+            return .preventionBuildup(keyword: keyword.rawValue, amount: amount, threshold: threshold)
+        case let .shield(keyword, blockAmount, duration):
+            return .shield(keyword: keyword.rawValue, blockAmount: blockAmount, duration: duration)
+        case let .mitigation(keyword, percent, duration):
+            return .mitigation(keyword: keyword.rawValue, percent: percent, duration: duration)
+        case let .instantHeal(keyword, amount):
+            return .instantHeal(keyword: keyword.rawValue, amount: amount)
+        case let .leech(keyword, percent, duration):
+            return .leech(keyword: keyword.rawValue, percent: percent, duration: duration)
+        case let .resourceGain(keyword, amount):
+            return .resourceGain(keyword: keyword.rawValue, amount: amount)
         case let .halveMitigation(keyword):
-            self = .halveMitigation(keyword: keyword.rawValue)
+            return .halveMitigation(keyword: keyword.rawValue)
         case let .dodge(keyword, duration):
-            self = .dodge(keyword: keyword.rawValue, duration: duration)
+            return .dodge(keyword: keyword.rawValue, duration: duration)
+        default:
+            fatalError("Unhandled effect for persistence: \(effect)")
         }
     }
 
@@ -63,44 +80,48 @@ enum SavedEffect: Codable, Equatable {
             return .poison(potency)
         case let .bleed(potency):
             return .bleed(potency)
-        case let .prevention(keywordRawValue, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .prevention(keyword, duration)
-        case let .preventionBuildup(keywordRawValue, amount, threshold):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .preventionBuildup(keyword, amount, threshold)
-        case let .shield(keywordRawValue, blockAmount, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .shield(keyword, blockAmount, duration)
-        case let .mitigation(keywordRawValue, percent, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .mitigation(keyword, percent, duration)
-        case let .instantHeal(keywordRawValue, amount):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .instantHeal(keyword, amount)
-        case let .leech(keywordRawValue, percent, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .leech(keyword, percent, duration)
-        case let .resourceGain(keywordRawValue, amount):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .resourceGain(keyword, amount)
         case let .cleanse(keywordRawValue):
-            let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
+            let keyword = keywordRawValue.flatMap(Keyword.init(rawValue:))
             return .cleanse(keyword)
         case .cleanseRandom:
             return .cleanseRandom
         case let .purge(keywordRawValue):
-            let keyword = keywordRawValue.flatMap { Keyword(rawValue: $0) }
+            let keyword = keywordRawValue.flatMap(Keyword.init(rawValue:))
             return .purge(keyword)
         case .purgeRandom:
             return .purgeRandom
-        case let .halveMitigation(keywordRawValue):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .halveMitigation(keyword)
-        case let .dodge(keywordRawValue, duration):
-            guard let keyword = Keyword(rawValue: keywordRawValue) else { return nil }
-            return .dodge(keyword, duration)
+        default:
+            return keywordBackedEffect()
         }
+    }
+
+    private func keywordBackedEffect() -> Effect? {
+        switch self {
+        case let .prevention(keywordRawValue, duration):
+            return keyword(from: keywordRawValue).map { .prevention($0, duration) }
+        case let .preventionBuildup(keywordRawValue, amount, threshold):
+            return keyword(from: keywordRawValue).map { .preventionBuildup($0, amount, threshold) }
+        case let .shield(keywordRawValue, blockAmount, duration):
+            return keyword(from: keywordRawValue).map { .shield($0, blockAmount, duration) }
+        case let .mitigation(keywordRawValue, percent, duration):
+            return keyword(from: keywordRawValue).map { .mitigation($0, percent, duration) }
+        case let .instantHeal(keywordRawValue, amount):
+            return keyword(from: keywordRawValue).map { .instantHeal($0, amount) }
+        case let .leech(keywordRawValue, percent, duration):
+            return keyword(from: keywordRawValue).map { .leech($0, percent, duration) }
+        case let .resourceGain(keywordRawValue, amount):
+            return keyword(from: keywordRawValue).map { .resourceGain($0, amount) }
+        case let .halveMitigation(keywordRawValue):
+            return keyword(from: keywordRawValue).map { .halveMitigation($0) }
+        case let .dodge(keywordRawValue, duration):
+            return keyword(from: keywordRawValue).map { .dodge($0, duration) }
+        default:
+            return nil
+        }
+    }
+
+    private func keyword(from rawValue: String) -> Keyword? {
+        Keyword(rawValue: rawValue)
     }
 }
 

@@ -56,8 +56,8 @@ nesting:
   function_level:
     warning: 3
 
-# Grandfathered structural violations live in .swiftlint-baseline.yml. New code
-# must not add violations; shrink the baseline when refactoring large files.
+# Structural guardrails use generous thresholds above. Keep large generated or
+# catalog content split across focused files instead of raising limits further.
 function_parameter_count:
   warning: 7
   error: 9

@@ -109,46 +109,7 @@ struct CombatModifierProfile: Equatable, Hashable {
     }
 
     mutating func merge(_ modifier: AffixModifier) {
-        switch modifier {
-        case let .strength(amount):
-            statBonuses.strength += amount
-        case let .agility(amount):
-            statBonuses.agility += amount
-        case let .toughness(amount):
-            statBonuses.toughness += amount
-        case let .intellect(amount):
-            statBonuses.intellect += amount
-        case let .wisdom(amount):
-            statBonuses.wisdom += amount
-        case let .maximumHealth(amount):
-            maximumHealthBonus += amount
-        case let .maximumMana(amount):
-            maximumManaBonus += amount
-        case let .damageDealt(keyword, amount):
-            damageDealtBonus[keyword, default: 0] += amount
-        case let .healthRestored(amount):
-            healthRestoredBonus += amount
-        case let .leechGrantedPercent(amount):
-            leechGrantedBonus += amount
-        case let .leechHealing(amount):
-            leechHealingBonus += amount
-        case let .goldGained(amount):
-            goldGainedBonus += amount
-        case let .blockGranted(amount):
-            blockGrantedBonus += amount
-        case let .armorGrantedPercent(amount):
-            armorGrantedBonus += amount
-        case let .blockDuration(amount):
-            blockDurationBonus += amount
-        case let .armorDuration(amount):
-            armorDurationBonus += amount
-        case let .leechDuration(amount):
-            leechDurationBonus += amount
-        case let .bleedDuration(amount):
-            bleedDurationBonus += amount
-        case let .damageTakenPercent(keyword, amount):
-            damageTakenReduction[keyword, default: 0] += amount
-        }
+        modifier.apply(to: &self)
     }
 
     func damageDealtBonus(for keyword: Keyword) -> Int {

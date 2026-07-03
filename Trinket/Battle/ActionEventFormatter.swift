@@ -5,46 +5,22 @@ import Foundation
 /// free of presentation logic. The view picks a color, icon, and animation
 /// from the `keyword` and `emphasis` fields.
 struct ActionEventDisplay: Equatable {
-    /// Visual emphasis category. The view can use this to override the
-    /// keyword-based color (e.g. shield absorption looks "less aggressive"
-    /// than direct damage even when the keyword is the same).
     let emphasis: Emphasis
-
-    /// The keyword that originated the event, retained for keyword-based
-    /// styling (`Keyword.visualStyle.color` and `.symbolName`).
     let keyword: Keyword
-
-    /// Player-facing primary text shown as floating battle chrome
-    /// (e.g. `"-3"`, `"+5 Health"`, `"Stunned!"`).
     let text: String
-
-    /// Optional secondary line shown beneath the primary text when a view
-    /// wants a two-line layout. Currently `nil` for every event; reserved
-    /// for future multi-line presentations.
     let secondaryText: String?
 
     enum Emphasis: Equatable {
-        /// Direct ability damage.
         case damage
-        /// Status (DoT) tick damage.
         case status
-        /// Healing — instant heal, leech heal.
         case heal
-        /// Buff applied — shield, mitigation, leech.
         case buff
-        /// Gold (or other resource) gained.
         case resourceGain
-        /// Cleanse applied.
         case cleanse
-        /// Purge applied.
         case purge
-        /// Stun/freeze applied, triggered, or skipped.
         case prevention
-        /// Dodge — the attacker missed.
         case dodge
-        /// Damage absorbed by an active shield.
         case shieldAbsorbed
-        /// Fallback for events without a more specific category.
         case generic
     }
 }
@@ -58,12 +34,7 @@ enum ActionEventFormatter {
     static func display(for event: ActionEvent) -> ActionEventDisplay {
         switch event.kind {
         case .ability:
-            return ActionEventDisplay(
-                emphasis: .damage,
-                keyword: event.keyword,
-                text: "-\(event.amount)",
-                secondaryText: nil
-            )
+            return amountDisplay(emphasis: .damage, event: event, prefix: "-")
         case .status:
             return ActionEventDisplay(
                 emphasis: .status,
@@ -92,49 +63,52 @@ enum ActionEventFormatter {
                 secondaryText: nil
             )
         }
+        return displayForEffectKind(effectKind, event: event)
+    }
+
+    private static func displayForEffectKind(_ effectKind: ActionEvent.EffectKind, event: ActionEvent) -> ActionEventDisplay {
         switch effectKind {
         case .instantHeal:
-            return ActionEventDisplay(
-                emphasis: .heal,
-                keyword: event.keyword,
-                text: "+\(event.amount) \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .resourceGain:
-            return ActionEventDisplay(
-                emphasis: .resourceGain,
-                keyword: event.keyword,
-                text: "+\(event.amount) \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
         case .leechHeal:
-            return ActionEventDisplay(
-                emphasis: .heal,
-                keyword: event.keyword,
-                text: "+\(event.amount) \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .shieldApplied:
-            return ActionEventDisplay(
-                emphasis: .buff,
-                keyword: event.keyword,
-                text: "+\(event.amount) \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .mitigationApplied:
-            return ActionEventDisplay(
-                emphasis: .buff,
-                keyword: event.keyword,
-                text: "+\(Int(Double(event.amount)))% \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return mitigationAppliedDisplay(for: event)
         case .shieldAbsorbed:
-            return ActionEventDisplay(
-                emphasis: .shieldAbsorbed,
-                keyword: event.keyword,
-                text: "-\(event.amount) \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
+            return signedAmountDisplay(emphasis: .shieldAbsorbed, event: event, prefix: "-")
+        case .preventionSkipped, .preventionApplied, .preventionTriggered:
+            return preventionDisplay(for: effectKind, event: event)
+        case .cleanseApplied:
+            return cleanseDisplay(for: event)
+        case .purgeApplied:
+            return purgeDisplay(for: event)
+        case .leechApplied:
+            return leechAppliedDisplay(for: event)
+        case .mitigationHalved:
+            return mitigationHalvedDisplay(for: event)
+        case .dodgeApplied:
+            return dodgeDisplay(for: event)
+        }
+    }
+
+    private static func mitigationAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .buff,
+            keyword: event.keyword,
+            text: "+\(Int(Double(event.amount)))% \(event.keyword.rawValue)",
+            secondaryText: nil
+        )
+    }
+
+    private static func preventionDisplay(
+        for effectKind: ActionEvent.EffectKind,
+        event: ActionEvent
+    ) -> ActionEventDisplay {
+        switch effectKind {
         case .preventionSkipped:
             return ActionEventDisplay(
                 emphasis: .prevention,
@@ -156,41 +130,84 @@ enum ActionEventFormatter {
                 text: "\(event.keyword.statusAlias ?? event.keyword.rawValue)!",
                 secondaryText: nil
             )
-        case .cleanseApplied:
+        default:
             return ActionEventDisplay(
-                emphasis: .cleanse,
+                emphasis: .generic,
                 keyword: event.keyword,
-                text: "Cleanse \(event.keyword.statusAlias ?? event.keyword.rawValue)",
-                secondaryText: nil
-            )
-        case .purgeApplied:
-            return ActionEventDisplay(
-                emphasis: .purge,
-                keyword: event.keyword,
-                text: "Purge \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
-        case .leechApplied:
-            return ActionEventDisplay(
-                emphasis: .buff,
-                keyword: event.keyword,
-                text: "+\(event.amount)% \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
-        case .mitigationHalved:
-            return ActionEventDisplay(
-                emphasis: .buff,
-                keyword: event.keyword,
-                text: "Halve \(event.keyword.rawValue)",
-                secondaryText: nil
-            )
-        case .dodgeApplied:
-            return ActionEventDisplay(
-                emphasis: .dodge,
-                keyword: event.keyword,
-                text: "Dodge",
+                text: event.keyword.rawValue,
                 secondaryText: nil
             )
         }
+    }
+
+    private static func cleanseDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .cleanse,
+            keyword: event.keyword,
+            text: "Cleanse \(event.keyword.statusAlias ?? event.keyword.rawValue)",
+            secondaryText: nil
+        )
+    }
+
+    private static func purgeDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .purge,
+            keyword: event.keyword,
+            text: "Purge \(event.keyword.rawValue)",
+            secondaryText: nil
+        )
+    }
+
+    private static func leechAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .buff,
+            keyword: event.keyword,
+            text: "+\(event.amount)% \(event.keyword.rawValue)",
+            secondaryText: nil
+        )
+    }
+
+    private static func mitigationHalvedDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .buff,
+            keyword: event.keyword,
+            text: "Halve \(event.keyword.rawValue)",
+            secondaryText: nil
+        )
+    }
+
+    private static func dodgeDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .dodge,
+            keyword: event.keyword,
+            text: "Dodge",
+            secondaryText: nil
+        )
+    }
+
+    private static func amountDisplay(
+        emphasis: ActionEventDisplay.Emphasis,
+        event: ActionEvent,
+        prefix: String
+    ) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: emphasis,
+            keyword: event.keyword,
+            text: "\(prefix)\(event.amount)",
+            secondaryText: nil
+        )
+    }
+
+    private static func signedAmountDisplay(
+        emphasis: ActionEventDisplay.Emphasis,
+        event: ActionEvent,
+        prefix: String
+    ) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: emphasis,
+            keyword: event.keyword,
+            text: "\(prefix)\(event.amount) \(event.keyword.rawValue)",
+            secondaryText: nil
+        )
     }
 }

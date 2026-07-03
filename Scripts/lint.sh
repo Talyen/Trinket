@@ -18,4 +18,4 @@ if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
-swiftlint lint --strict --baseline .swiftlint-baseline.yml "${SOURCE_DIRS[@]}" "$@"
+swiftlint lint --strict "${SOURCE_DIRS[@]}" "$@"

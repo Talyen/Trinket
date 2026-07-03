@@ -19,9 +19,9 @@ final class AbilityCatalogTests: XCTestCase {
     }
 
     func testStaticReexportsMatchCatalog() {
-        XCTAssertEqual(Ability.fireball, AbilityCatalog.fireball)
-        XCTAssertEqual(Ability.bloodthorn, AbilityCatalog.bloodthorn)
-        XCTAssertEqual(Ability.slash, AbilityCatalog.slash)
+        XCTAssertEqual(Ability.fireball, AbilityCatalog.ability(id: Ability.fireball.id))
+        XCTAssertEqual(Ability.bloodthorn, AbilityCatalog.ability(id: Ability.bloodthorn.id))
+        XCTAssertEqual(Ability.slash, AbilityCatalog.ability(id: Ability.slash.id))
     }
 
     func testEveryCatalogAbilityHasArt() {

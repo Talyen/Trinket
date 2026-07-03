@@ -20,10 +20,21 @@ enum AbilityValidator {
     ]
 
     static func validate(_ ability: Ability) -> [Issue] {
-        var issues: [Issue] = []
+        var issues = validateEffectTargets(for: ability)
+        issues.append(contentsOf: validatePairedDoTComponents(for: ability))
+        issues.append(contentsOf: validateTierDamage(for: ability))
+        issues.append(contentsOf: validateDescription(for: ability))
+        return issues
+    }
 
+    static func validateCatalog() -> [Issue] {
+        AbilityCatalog.all.flatMap(validate)
+    }
+
+    private static func validateEffectTargets(for ability: Ability) -> [Issue] {
         let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
+        var issues: [Issue] = []
 
         for targetedEffect in ability.targetedEffects {
             switch targetedEffect.effect {
@@ -46,6 +57,12 @@ enum AbilityValidator {
             }
         }
 
+        return issues
+    }
+
+    private static func validatePairedDoTComponents(for ability: Ability) -> [Issue] {
+        var issues: [Issue] = []
+
         for component in ability.damageComponents where component.target == .abilityTarget {
             switch component.keyword {
             case .burn:
@@ -65,28 +82,33 @@ enum AbilityValidator {
             }
         }
 
+        return issues
+    }
+
+    private static func validateTierDamage(for ability: Ability) -> [Issue] {
         let enemyDamageTotal = ability.damageComponents
             .filter { $0.target == .abilityTarget }
             .reduce(0) { $0 + $1.amount }
 
-        if enemyDamageTotal > 0, let issue = tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id) {
-            issues.append(issue)
-        }
+        guard enemyDamageTotal > 0,
+              let issue = tierDamageIssue(tier: ability.tier, total: enemyDamageTotal, abilityID: ability.id)
+        else { return [] }
 
+        return [issue]
+    }
+
+    private static func validateDescription(for ability: Ability) -> [Issue] {
         let generated = AbilityDescriptionFormatter.format(ability)
         if ability.descriptionOverride != nil {
             if !descriptionOverrideIDs.contains(ability.id) {
-                issues.append(Issue(abilityID: ability.id, message: "unexpected description override; generated copy is '\(generated)'"))
+                return [Issue(abilityID: ability.id, message: "unexpected description override; generated copy is '\(generated)'")]
             }
-        } else if generated != ability.summary {
-            issues.append(Issue(abilityID: ability.id, message: "summary '\(ability.summary)' does not match generated '\(generated)'"))
+            return []
         }
-
-        return issues
-    }
-
-    static func validateCatalog() -> [Issue] {
-        AbilityCatalog.all.flatMap(validate)
+        if generated != ability.summary {
+            return [Issue(abilityID: ability.id, message: "summary '\(ability.summary)' does not match generated '\(generated)'")]
+        }
+        return []
     }
 
     private static func tierDamageIssue(tier: AbilityTier, total: Int, abilityID: String) -> Issue? {
