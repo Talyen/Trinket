@@ -98,7 +98,6 @@ public struct PlayerRosterState: Equatable, Sendable {
                 "druid": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "ranger": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "warlock": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-                "wildcard": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "bear": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "frost_whelp": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),

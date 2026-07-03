@@ -1,12 +1,11 @@
 id	name	role	max_health	max_mana	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom
-knight	Knight	hero	10	0	bash,shieldBash	smite,spikedShield	blessedAegis,crystalBulwark	8	4	10	2	3
-rogue	Rogue	hero	8	0	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,steal	6	9	4	3	2
+knight	Knight	hero	10	0	bash,shieldBash	smite,spikedShield	blessedAegis,plateMail	8	4	10	2	3
+rogue	Rogue	hero	8	0	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	6	9	4	3	2
 wizard	Wizard	hero	7	10	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	10	4
-alchemist	Alchemist	hero	9	7	smellingSalts,apple	healthPotion,antivenomPotion	panaceaPotion,luckPotion	3	5	5	7	8
-druid	Druid	hero	11	8	apple,bread	briarShield,graspingVines	bloodthorn,faustianBargain	4	5	7	3	9
+alchemist	Alchemist	hero	9	7	block,manaCrystals	healthPotion,acidPotion	panaceaPotion,luckPotion	3	5	5	7	8
+druid	Druid	hero	11	8	kindling,slash	briarShield,graspingVines	bloodthorn,thornMail	4	5	7	3	9
 ranger	Ranger	hero	8	0	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	8	5	2	4
-warlock	Warlock	hero	7	8	kindling,fangs	bloodOffering,darkPact	sunburst,faustianBargain	4	5	4	9	6
-wildcard	Wildcard	hero	10	0	gold,manaBerries	haste,roulette	faustianBargain,luckPotion	5	6	6	5	6
+warlock	Warlock	hero	7	8	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	4	5	4	9	6
 bear	Bear	pet	9	0	bash,block	spikedShield,sunderArmor	crystalBulwark,thornMail	8	3	10	1	3
 frost_whelp	Frost Whelp	pet	6	7	rayOfFrost,fangs	frostbolt,coldSnap	glacialWard,concussiveShot	2	6	3	9	3
 lizard_scout	Lizard Scout	pet	7	0	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	8	5	3	3

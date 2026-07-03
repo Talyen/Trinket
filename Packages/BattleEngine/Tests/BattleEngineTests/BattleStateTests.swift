@@ -131,8 +131,8 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBattleTracksGoldFromResourceGains() throws {
-        let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
-        var battle = BattleStateTestFactory.makeBattle(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+        let ranger = try XCTUnwrap(GameContent.heroes.first { $0.id == "ranger" })
+        var battle = BattleStateTestFactory.makeBattle(hero: ranger, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertEqual(battle.gold, 11)

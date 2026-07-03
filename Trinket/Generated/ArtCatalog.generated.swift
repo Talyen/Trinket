@@ -75,12 +75,6 @@ enum ArtCatalog {
             focalPoint: UnitPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Warlock hero"
         ),
-        "wildcard": CombatantArtReference(
-            imageName: "hero_wildcard_card",
-            thumbnailImageName: "hero_wildcard_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
-            accessibilityLabel: "Full art of the Wildcard hero"
-        ),
         "wizard": CombatantArtReference(
             imageName: "hero_wizard_card",
             thumbnailImageName: "hero_wizard_card_thumb",

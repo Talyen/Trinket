@@ -197,9 +197,9 @@ final class BattleStateSchedulingTests: XCTestCase {
         }
     }
 
-    func testWildcardHeroFirstActionGrantsExactGold() throws {
-        let wildcard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wildcard" })
-        var battle = BattleStateTestFactory.makeBattle(hero: wildcard, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+    func testRangerHeroFirstActionGrantsExactGold() throws {
+        let ranger = try XCTUnwrap(GameContent.heroes.first { $0.id == "ranger" })
+        var battle = BattleStateTestFactory.makeBattle(hero: ranger, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
 
         _ = advance(&battle)
         _ = advance(&battle)

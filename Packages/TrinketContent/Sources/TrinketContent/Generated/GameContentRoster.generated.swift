@@ -12,7 +12,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.bash, .shieldBash],
                 skills: [.smite, .spikedShield],
-                ultimates: [.blessedAegis, .crystalBulwark]
+                ultimates: [.blessedAegis, .plateMail]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 4, toughness: 10, intellect: 2, wisdom: 3)
         ),
@@ -24,7 +24,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack],
                 skills: [.poisonDagger, .serratedEdge],
-                ultimates: [.hemorrhage, .steal]
+                ultimates: [.hemorrhage, .concussiveShot]
             ),
             primaryStats: PrimaryStats(strength: 6, agility: 9, toughness: 4, intellect: 3, wisdom: 2)
         ),
@@ -48,8 +48,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 9,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.smellingSalts, .apple],
-                skills: [.healthPotion, .antivenomPotion],
+                basics: [.block, .manaCrystals],
+                skills: [.healthPotion, .acidPotion],
                 ultimates: [.panaceaPotion, .luckPotion]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 5, toughness: 5, intellect: 7, wisdom: 8)
@@ -61,9 +61,9 @@ public enum GameContentRosterGenerated {
             maxHealth: 11,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .bread],
+                basics: [.kindling, .slash],
                 skills: [.briarShield, .graspingVines],
-                ultimates: [.bloodthorn, .faustianBargain]
+                ultimates: [.bloodthorn, .thornMail]
             ),
             primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 7, intellect: 3, wisdom: 9)
         ),
@@ -86,23 +86,11 @@ public enum GameContentRosterGenerated {
             maxHealth: 7,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .fangs],
+                basics: [.stab, .fangs],
                 skills: [.bloodOffering, .darkPact],
-                ultimates: [.sunburst, .faustianBargain]
+                ultimates: [.combustion, .faustianBargain]
             ),
             primaryStats: PrimaryStats(strength: 4, agility: 5, toughness: 4, intellect: 9, wisdom: 6)
-        ),
-        Combatant(
-            id: "wildcard",
-            name: "Wildcard",
-            role: .hero,
-            maxHealth: 10,
-            abilityChoices: AbilityChoices(
-                basics: [.gold, .manaBerries],
-                skills: [.haste, .roulette],
-                ultimates: [.faustianBargain, .luckPotion]
-            ),
-            primaryStats: PrimaryStats(strength: 5, agility: 6, toughness: 6, intellect: 5, wisdom: 6)
         )
     ]
 
