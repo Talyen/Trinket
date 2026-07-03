@@ -136,7 +136,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testApplyLeechFromDamageNoLeechEffectNoHeal() {
         var context = makeContext(seed: 0)
-        let _ = CombatPipeline.applyDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source", in: &context)
+        _ = CombatPipeline.applyDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source", in: &context)
         let events = CombatPipeline.applyLeechFromDamage(10, sourceActorID: "source", in: &context)
         XCTAssertTrue(events.isEmpty)
     }
@@ -220,7 +220,7 @@ final class CombatPipelineTests: XCTestCase {
             "Mitigation",
             "ItemReduction",
             "TakeDamage",
-            "PreventionBuildup",
+            "PreventionBuildup"
         ])
     }
 }

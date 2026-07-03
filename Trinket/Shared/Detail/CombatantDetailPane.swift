@@ -136,6 +136,7 @@ struct CombatantDetailPane: View {
     private var currentHealth: Int {
         battleHealth ?? combatBuild.effectiveMaxHealth
     }
+
     private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {
         LabeledContent {
             Text(value)

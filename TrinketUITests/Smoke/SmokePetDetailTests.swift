@@ -1,7 +1,7 @@
 import XCTest
 
 final class SmokePetDetailTests: SeededSmokeUITestCase {
-    override class var launchArguments: [String] {
+    override var launchArguments: [String] {
         TestLaunchArg.allForScreen("pet:wolf")
     }
 

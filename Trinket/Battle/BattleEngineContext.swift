@@ -41,7 +41,7 @@ struct BattleEngineContext {
         gold += amount + modifiers(for: sourceActorID).goldGainedBonus
     }
 
-    mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID: String) -> Int {
+    mutating func restoreMana(_ amount: Int, to combatant: Combatant, sourceActorID _: String) -> Int {
         guard var runtime = roster.runtime(for: combatant) else { return 0 }
         let actual = runtime.restoreMana(amount)
         roster.update(runtime)

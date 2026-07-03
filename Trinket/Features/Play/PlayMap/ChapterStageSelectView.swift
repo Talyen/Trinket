@@ -379,8 +379,6 @@ private struct CompletedStageRow: View {
     }
 }
 
-
-
 private struct JourneyChapterGate: View {
     let chapter: Chapter
 
@@ -423,5 +421,3 @@ private struct JourneyChapterGate: View {
         .accessibilityLabel("Chapter \(chapter.number), locked")
     }
 }
-
-

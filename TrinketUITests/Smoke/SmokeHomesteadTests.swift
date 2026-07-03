@@ -1,7 +1,7 @@
 import XCTest
 
 final class SmokeHomesteadTests: SeededSmokeUITestCase {
-    override class var launchArguments: [String] {
+    override var launchArguments: [String] {
         TestLaunchArg.allForTab("homestead")
     }
 

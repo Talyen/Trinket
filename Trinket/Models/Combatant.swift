@@ -53,7 +53,9 @@ struct Combatant: Identifiable, Hashable {
     let abilityChoices: AbilityChoices
     let primaryStats: PrimaryStats
 
-    var hasMana: Bool { maxMana > 0 }
+    var hasMana: Bool {
+        maxMana > 0
+    }
 
     init(
         id: String,

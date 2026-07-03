@@ -1,7 +1,7 @@
 import XCTest
 
 final class SmokeItemDetailTests: SeededSmokeUITestCase {
-    override class var launchArguments: [String] {
+    override var launchArguments: [String] {
         TestLaunchArg.allForScreen("item:longsword-basic")
     }
 

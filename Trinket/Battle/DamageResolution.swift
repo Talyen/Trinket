@@ -63,7 +63,7 @@ struct DodgeGateStep: DamageStep {
               state.sourceActorID != nil
         else { return }
         let chance = state.combatant.primaryStats.dodgeChance
-        if Double.random(in: 0...1, using: &context.rng) < chance {
+        if Double.random(in: 0 ... 1, using: &context.rng) < chance {
             state.damageEvents.append(context.nextEvent(
                 kind: .effect,
                 effectKind: .dodgeApplied,
@@ -215,6 +215,6 @@ enum DamageSteps {
         "Mitigation",
         "ItemReduction",
         "TakeDamage",
-        "PreventionBuildup",
+        "PreventionBuildup"
     ]
 }
