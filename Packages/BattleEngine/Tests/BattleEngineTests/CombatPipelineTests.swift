@@ -175,19 +175,16 @@ final class CombatPipelineTests: XCTestCase {
 
     // MARK: - Prevention buildup
 
-    func testApplyPreventionBuildupAccumulatesAndTriggersPrevention() {
+    func testApplyPreventionBuildupAccumulatesAndTriggersAtThreshold() {
         var context = makeContext(seed: 0)
-        // Low health target to hit threshold quickly
-        // With PrimaryStats() agility=0, threshold = ceil(50 * 0.20 * 1.0) = 10
-        // So 10+ buildup should trigger
         let events = context.applyPreventionBuildup(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
-        XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: { if case .prevention = $0.effect { return true }; return false }))
+        XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: \.effect.isTriggeredPreventionBuildup))
     }
 
-    func testApplyPreventionBuildupNoDuplicateWhenPreventionActive() {
+    func testApplyPreventionBuildupNoDuplicateWhenStunFreezePending() {
         var context = makeContext(targetEffects: [
-            ActiveEffect(id: 1, effect: .prevention(.stun, 2), remainingTicks: 2)
+            ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 10, 10), remainingTicks: 0)
         ], seed: 0)
         let events = context.applyPreventionBuildup(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertTrue(events.isEmpty)
@@ -273,7 +270,7 @@ final class CombatPipelineTests: XCTestCase {
         context.applyPreventionBuildup(1, keyword: .stun, to: target, sourceActorID: "source")
 
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isPreventionBuildup }
-        let threshold = buildup?.effect.preventionBuildupValues?.2
+        let threshold = buildup?.effect.preventionBuildupValues?.threshold
         let expected = target.primaryStats.preventionThreshold(baseMaxHealth: 100)
         XCTAssertEqual(threshold, expected)
     }
@@ -289,8 +286,23 @@ final class CombatPipelineTests: XCTestCase {
         )
 
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isPreventionBuildup }
-        let amount = buildup?.effect.preventionBuildupValues?.1
+        let amount = buildup?.effect.preventionBuildupValues?.amount
         XCTAssertEqual(amount, 10, "50% mitigation should halve stun buildup from 20 to 10")
+    }
+
+    func testStunBuildupAppliesWhenShieldAbsorbsAllDamage() {
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 0)
+        let (lost, _) = context.applyDamage(
+            5,
+            to: context.roster.enemy.combatant,
+            damageKeyword: .stun,
+            sourceActorID: "source"
+        )
+
+        XCTAssertEqual(lost, 0)
+        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isPreventionBuildup }
+        XCTAssertEqual(buildup?.effect.preventionBuildupValues?.amount, 5)
     }
 
     // MARK: - Pipeline ordering
@@ -299,9 +311,9 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertEqual(DamagePipeline.canonicalNames, [
             "DodgeGate",
             "DamageBonus",
-            "ShieldAbsorption",
             "Mitigation",
             "ItemReduction",
+            "ShieldAbsorption",
             "TakeDamage",
             "Leech",
             "PreventionBuildup"

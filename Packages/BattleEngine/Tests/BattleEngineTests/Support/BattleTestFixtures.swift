@@ -192,18 +192,6 @@ enum BattleTestFixtures {
 // MARK: - Effect predicates
 
 extension Effect {
-    var preventionBuildupValues: (Keyword, Int, Int)? {
-        if case let .preventionBuildup(keyword, amount, threshold) = self {
-            return (keyword, amount, threshold)
-        }
-        return nil
-    }
-
-    var isPrevention: Bool {
-        if case .prevention = self { return true }
-        return false
-    }
-
     var isPreventionBuildup: Bool {
         if case .preventionBuildup = self { return true }
         return false
@@ -235,7 +223,7 @@ extension Array where Element == ActionEvent {
 extension ActiveEffect {
     static func isDebuff(_ activeEffect: ActiveEffect) -> Bool {
         switch activeEffect.effect {
-        case .burn, .poison, .bleed, .prevention:
+        case .burn, .poison, .bleed, .preventionBuildup:
             return true
         default:
             return false

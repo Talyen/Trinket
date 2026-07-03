@@ -31,14 +31,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(effect.summary, "applies Bleeding")
     }
 
-    func testPreventionEffect() {
-        let effect = Effect.prevention(.stun, 2)
-        XCTAssertEqual(effect.keyword, .stun)
-        XCTAssertEqual(effect.durationTicks, 2)
-        XCTAssertFalse(effect.isInstant)
-        XCTAssertEqual(effect.summary, "applies Stunned")
-    }
-
     func testPreventionBuildupEffect() {
         let effect = Effect.preventionBuildup(.stun, 3, 10)
         XCTAssertEqual(effect.keyword, .stun)
@@ -132,8 +124,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Effect.burn(3).kind, .burn)
         XCTAssertEqual(Effect.poison(2).kind, .poison)
         XCTAssertEqual(Effect.bleed(1).kind, .bleed)
-        XCTAssertEqual(Effect.prevention(.stun, 1).kind, .prevention)
-        XCTAssertEqual(Effect.preventionBuildup(.freeze, 1, 10).kind, .preventionBuildup)
+        XCTAssertEqual(Effect.preventionBuildup(.stun, 1, 10).kind, .preventionBuildup)
         XCTAssertEqual(Effect.shield(.block, 1, 6).kind, .shield)
         XCTAssertEqual(Effect.mitigation(.armor, 0.25, 6).kind, .mitigation)
         XCTAssertEqual(Effect.instantHeal(.health, 1).kind, .instantHeal)
@@ -157,7 +148,6 @@ final class EffectModelTests: XCTestCase {
         XCTAssertTrue(Effect.burn(1).isRemovableDebuff)
         XCTAssertTrue(Effect.poison(1).isRemovableDebuff)
         XCTAssertTrue(Effect.bleed(1).isRemovableDebuff)
-        XCTAssertTrue(Effect.prevention(.stun, 1).isRemovableDebuff)
         XCTAssertTrue(Effect.preventionBuildup(.stun, 1, 10).isRemovableDebuff)
         XCTAssertFalse(Effect.shield(.block, 1, 6).isRemovableDebuff)
         XCTAssertFalse(Effect.mitigation(.armor, 0.25, 6).isRemovableDebuff)
@@ -180,14 +170,13 @@ final class EffectModelTests: XCTestCase {
         XCTAssertTrue(Effect.dodge(.dodge, 3).isRemovableBuff)
         XCTAssertFalse(Effect.burn(1).isRemovableBuff)
         XCTAssertFalse(Effect.poison(1).isRemovableBuff)
-        XCTAssertFalse(Effect.prevention(.stun, 1).isRemovableBuff)
+        XCTAssertFalse(Effect.preventionBuildup(.stun, 1, 10).isRemovableBuff)
     }
 
     func testIsTickableMatchesPriorDefinition() {
         XCTAssertTrue(Effect.burn(1).isTickable)
         XCTAssertTrue(Effect.poison(1).isTickable)
         XCTAssertTrue(Effect.bleed(1).isTickable)
-        XCTAssertTrue(Effect.prevention(.stun, 1).isTickable)
         XCTAssertTrue(Effect.preventionBuildup(.stun, 1, 10).isTickable)
         XCTAssertTrue(Effect.shield(.block, 1, 6).isTickable)
         XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isTickable)

@@ -125,12 +125,9 @@ final class BattleStateTests: XCTestCase {
             if case .shield(.block, _, _) = $0 { return true }
             return false
         }
-        let hasStun = ability.effects.contains {
-            if case .prevention(.stun, _) = $0 { return true }
-            return false
-        }
+        let hasStunDamage = ability.damageComponents.contains { $0.keyword == .stun }
         XCTAssertTrue(hasBlock)
-        XCTAssertFalse(hasStun)
+        XCTAssertFalse(hasStunDamage)
     }
 
     func testBattleTracksGoldFromResourceGains() throws {

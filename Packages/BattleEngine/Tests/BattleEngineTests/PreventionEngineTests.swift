@@ -42,10 +42,10 @@ final class PreventionEngineTests: XCTestCase {
         XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
     }
 
-    func testApplyBuildupNoDuplicateWhenPreventionActive() {
+    func testApplyBuildupNoDuplicateWhenStunFreezePending() {
         var context = makeContext(
             targetEffects: [
-                ActiveEffect(id: 1, effect: .prevention(.stun, 2), remainingTicks: 2)
+                ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 10, 10), remainingTicks: 0)
             ],
             seed: 0
         )

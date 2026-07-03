@@ -22,9 +22,9 @@ package struct DamageResolutionState {
     /// Total damage after stat + item bonuses, before shields and mitigation.
     public var dealt: Int = 0
 
-    /// Post-mitigation damage used for prevention buildup. Set after
-    /// `ItemReductionStep` from `remaining`.
-    public var postMitigationDamage: Int = 0
+    /// Post-mitigation damage used for stun/freeze buildup. Set after
+    /// `ItemReductionStep` from `remaining`, before shields absorb damage.
+    public var buildupDamage: Int = 0
 
     /// Stat and item bonus components used by the prevention-buildup step.
     public var statBonus: Int = 0
@@ -174,8 +174,8 @@ package struct MitigationStep: DamageStep {
     public init() {}
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        _ = context
-        let armorPct = state.activeEffects.reduce(0.0) { sum, ae in
+        let effects = context.roster.activeEffects(for: state.combatant)
+        let armorPct = effects.reduce(0.0) { sum, ae in
             if case let .mitigation(_, p, _) = ae.effect { return sum + p }
             return sum
         }
@@ -188,7 +188,8 @@ package struct MitigationStep: DamageStep {
 }
 
 /// Step 5: applies the target's `damageTakenReduction` for the damage
-/// keyword, if any. Records `postMitigationDamage` for prevention buildup.
+/// keyword, if any. Records `buildupDamage` for stun/freeze buildup before
+/// shields absorb damage.
 package struct ItemReductionStep: DamageStep {
     public static let stepName = "ItemReduction"
     public static let phase: DamagePhase = .resolution
@@ -196,15 +197,20 @@ package struct ItemReductionStep: DamageStep {
     public init() {}
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        guard let damageKeyword = state.damageKeyword, state.remaining > 0 else {
-            state.postMitigationDamage = state.remaining
+        _ = context
+        guard state.remaining > 0 else {
+            state.buildupDamage = 0
+            return
+        }
+        guard let damageKeyword = state.damageKeyword else {
+            state.buildupDamage = state.remaining
             return
         }
         let reduction = context.modifiers(for: state.combatant.id).damageTakenReduction(for: damageKeyword)
         if reduction > 0 {
             state.remaining = Int(ceil(Double(state.remaining) * (1 - reduction)))
         }
-        state.postMitigationDamage = state.remaining
+        state.buildupDamage = state.remaining
     }
 }
 
@@ -255,13 +261,13 @@ package struct PreventionBuildupStep: DamageStep {
     public init() {}
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        guard state.postMitigationDamage > 0,
+        guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
         state.damageEvents.append(contentsOf: PreventionEngine.applyBuildup(
-            state.postMitigationDamage,
+            state.buildupDamage,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,

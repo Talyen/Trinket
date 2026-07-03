@@ -144,13 +144,10 @@ public struct BattleRoster {
         enemy.currentHealth == 0
     }
 
-    /// True when `combatant` has an active `.prevention` effect with
-    /// `remainingTicks > 0`.
-    public func hasActivePrevention(for combatant: Combatant) -> Bool {
-        activeEffects(for: combatant).contains(where: {
-            if case .prevention = $0.effect, $0.remainingTicks > 0 { return true }
-            return false
-        })
+    /// True when `combatant` has stun/freeze buildup at threshold, waiting to
+    /// consume its next scheduled action.
+    public func hasPendingStunFreezeSkip(for combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains(where: \.effect.isTriggeredPreventionBuildup)
     }
 
     /// Mutates the runtime identified by `combatant` in place. A no-op

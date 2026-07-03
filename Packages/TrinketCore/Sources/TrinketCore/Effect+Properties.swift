@@ -7,7 +7,6 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case burn
     case poison
     case bleed
-    case prevention
     case preventionBuildup
     case shield
     case mitigation
@@ -30,7 +29,6 @@ public extension Effect {
         case .burn: return .burn
         case .poison: return .poison
         case .bleed: return .bleed
-        case .prevention: return .prevention
         case .preventionBuildup: return .preventionBuildup
         case .shield: return .shield
         case .mitigation: return .mitigation
@@ -50,7 +48,7 @@ public extension Effect {
     /// strip from allies.
     public var isRemovableDebuff: Bool {
         switch self {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup:
+        case .burn, .poison, .bleed, .preventionBuildup:
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge, .dodge,
              .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation:
@@ -74,7 +72,7 @@ public extension Effect {
     /// in `tickEffects`.
     public var isTickable: Bool {
         switch self {
-        case .burn, .poison, .bleed, .prevention, .preventionBuildup,
+        case .burn, .poison, .bleed, .preventionBuildup,
              .shield, .mitigation, .leech, .dodge:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
@@ -116,5 +114,18 @@ public extension Effect {
     public var isDodge: Bool {
         if case .dodge = self { return true }
         return false
+    }
+
+    /// Amount and threshold for `.preventionBuildup`, if applicable.
+    public var preventionBuildupValues: (amount: Int, threshold: Int)? {
+        guard case let .preventionBuildup(_, amount, threshold) = self else { return nil }
+        return (amount, threshold)
+    }
+
+    /// True when stun/freeze buildup has reached its threshold and is waiting
+    /// to consume the target's next action.
+    public var isTriggeredPreventionBuildup: Bool {
+        guard let values = preventionBuildupValues else { return false }
+        return values.threshold > 0 && values.amount >= values.threshold
     }
 }

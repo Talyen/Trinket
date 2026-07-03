@@ -71,23 +71,20 @@ final class EffectSummaryBuilderTests: XCTestCase {
         XCTAssertEqual(summaries.first?.text, "Stun Build-up: 3/10")
     }
 
-    func testActivePreventionTakesPrecedenceOverBuildUp() {
+    func testTriggeredStunBuildupSummary() {
         let effects = [
-            ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 3, 10), remainingTicks: 0),
-            ActiveEffect(id: 2, effect: .prevention(.stun, 1), remainingTicks: 1)
+            ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 10, 10), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        // Build-up has higher priority than active prevention in the
-        // current `groupedEffectSummaries` logic — verify that.
-        XCTAssertEqual(summaries.first?.text, "Stun Build-up: 3/10")
+        XCTAssertEqual(summaries.first?.text, "Stunned: action prevented.")
     }
 
-    func testActivePreventionOnly() {
+    func testPartialBuildupSummaryWhenBelowThreshold() {
         let effects = [
-            ActiveEffect(id: 1, effect: .prevention(.freeze, 1), remainingTicks: 1)
+            ActiveEffect(id: 1, effect: .preventionBuildup(.freeze, 1, 10), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        XCTAssertEqual(summaries.first?.text, "Freeze: 1 actions prevented.")
+        XCTAssertEqual(summaries.first?.text, "Freeze Build-up: 1/10")
     }
 
     // MARK: - Other tickable effects

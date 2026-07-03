@@ -155,7 +155,7 @@ final class StatIntegrationTests: XCTestCase {
         )
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 
-        var buildupValues: (Keyword, Int, Int)?
+        var buildupValues: (amount: Int, threshold: Int)?
         for _ in 0 ..< 10 {
             BattleTestFixtures.advanceTicks(1, on: &battle)
             if let values = battle.activeEffects(of: battle.hero)
@@ -168,7 +168,7 @@ final class StatIntegrationTests: XCTestCase {
         }
 
         XCTAssertNotNil(buildupValues)
-        XCTAssertEqual(buildupValues?.2, hero.primaryStats.preventionThreshold(baseMaxHealth: 101))
+        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.preventionThreshold(baseMaxHealth: 101))
     }
 
     // MARK: - Defaults

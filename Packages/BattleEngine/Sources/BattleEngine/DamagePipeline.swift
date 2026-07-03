@@ -39,9 +39,9 @@ package enum DamagePipeline {
         [
             AnyDamageStep(DodgeGateStep.self),
             AnyDamageStep(DamageBonusStep.self),
-            AnyDamageStep(ShieldAbsorptionStep.self),
             AnyDamageStep(MitigationStep.self),
             AnyDamageStep(ItemReductionStep.self),
+            AnyDamageStep(ShieldAbsorptionStep.self),
             AnyDamageStep(TakeDamageStep.self),
             AnyDamageStep(LeechStep.self),
             AnyDamageStep(PreventionBuildupStep.self)

@@ -1,7 +1,7 @@
 id	name	max_health	is_boss	level	abilities	strength	agility	toughness	intellect	wisdom
 living_armor	Living Armor	default	false	1	bash,spikedShield,crystalBulwark	6	3	8	1	2
 mimic	Mimic	default	false	1	stab,poisonDagger,hemorrhage	5	6	5	3	2
-mud_elemental	Mud Elemental	default	false	1	block,briarShield,goldenPlate	4	3	9	3	3
+mud_elemental	Mud Elemental	default	false	1	block,briarShield,plateMail	4	3	9	3	3
 necromancer	Necromancer	default	false	1	manaBerries,darkPact,hemorrhage	3	5	3	6	4
 plague_doctor	Plague Doctor	default	false	1	fangs,venomFangs,serratedArrowhead	4	6	4	5	4
 skeleton	Skeleton	default	false	1	slash,smite,blessedAegis	5	4	4	2	2
@@ -9,7 +9,7 @@ the_blight_treant	The Blight Treant	default	true	1	apple,graspingVines,bloodthor
 the_forge_golem	The Forge Golem	default	true	1	bash,spikedShield,moltenBulwark	10	3	14	3	4
 the_frostwarden	The Frostwarden	default	true	1	rayOfFrost,frostbolt,glacialWard	4	6	6	12	5
 the_iron_bear	The Iron Bear	default	true	1	fangs,spikedShield,crystalBulwark	9	4	13	2	3
-goblin	Goblin	default	false	1	slash,steal,packTactics	3	7	2	3	2
+goblin	Goblin	default	false	1	slash,sapArrow,packTactics	3	7	2	3	2
 fire_elemental	Fire Elemental	default	false	1	kindling,fireball,combustion	3	5	5	8	3
 frost_elemental	Frost Elemental	default	false	1	rayOfFrost,coldSnap,glacialWard	4	4	8	7	4
 slime	Slime	default	false	1	slash,briarShield,crystalBulwark	4	2	12	1	2

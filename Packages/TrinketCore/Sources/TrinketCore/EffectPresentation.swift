@@ -21,9 +21,10 @@ public enum EffectPresentation {
             return active.effect.keyword.statusAlias ?? active.effect.keyword.rawValue
         case let .bleed(potency):
             return bleedActivePhrase(potency: potency, keyword: active.effect.keyword)
-        case let .prevention(keyword, _):
-            return keyword.statusAlias ?? keyword.rawValue
         case let .preventionBuildup(keyword, amount, threshold):
+            if amount >= threshold {
+                return keyword.statusAlias ?? keyword.rawValue
+            }
             return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
         case let .shield(keyword, buffer, _):
             return "\(keyword.rawValue): \(buffer) buffer"
@@ -53,8 +54,6 @@ public enum EffectPresentation {
 
     private static func preventionPhrase(for effect: Effect) -> String? {
         switch effect {
-        case let .prevention(keyword, _):
-            return "applies \(keyword.statusAlias ?? keyword.rawValue)"
         case let .preventionBuildup(keyword, _, _):
             return "applies \(keyword.rawValue) Build-up"
         default:

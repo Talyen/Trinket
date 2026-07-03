@@ -7,9 +7,9 @@ final class DamagePipelineTests: XCTestCase {
     private let expectedStepNames = [
         "DodgeGate",
         "DamageBonus",
-        "ShieldAbsorption",
         "Mitigation",
         "ItemReduction",
+        "ShieldAbsorption",
         "TakeDamage",
         "Leech",
         "PreventionBuildup"

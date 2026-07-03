@@ -7,19 +7,18 @@ public enum BattleTurnEngine {
         context.roster.readyCombatants(atTick: context.tickCount).map(\.combatant)
     }
 
-    /// Acts on `actor` for one turn. If the actor has an active `.prevention`
-    /// effect with `remainingTicks > 0`, the prevention is consumed and the
-    /// actor's schedule still advances. Otherwise the actor's selected
-    /// ability is performed against `context.roster.enemyAttackTarget` (or
-    /// `matchup.enemy` for non-enemy actors).
+    /// Acts on `actor` for one turn. If the actor has stun/freeze buildup at
+    /// threshold, the skip is consumed and the actor's schedule still advances.
+    /// Otherwise the actor's selected ability is performed against
+    /// `context.roster.enemyAttackTarget` (or `matchup.enemy` for non-enemy actors).
     public static func act(
         actor: Combatant,
         matchup: BattleMatchup,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
-        if context.roster.hasActivePrevention(for: actor) {
-            return consumePrevention(for: actor, context: &context)
+        if context.roster.hasPendingStunFreezeSkip(for: actor) {
+            return consumeStunFreezeSkip(for: actor, context: &context)
         }
         return performAction(
             actor: actor,
@@ -29,39 +28,32 @@ public enum BattleTurnEngine {
         )
     }
 
-    public static func consumePrevention(
+    public static func consumeStunFreezeSkip(
         for actor: Combatant,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
-        var events: [ActionEvent] = []
-
-        if let index = currentEffects.firstIndex(where: {
-            if case .prevention = $0.effect { return true }
-            return false
-        }) {
-            let effect = currentEffects[index]
-            let event = context.nextEvent(
-                kind: .effect,
-                effectKind: .preventionSkipped,
-                actorName: effect.keyword.rawValue,
-                abilityName: effect.keyword.rawValue,
-                target: actor,
-                amount: 0,
-                keyword: effect.keyword
-            )
-            events.append(event)
-
-            if effect.remainingTicks <= 1 {
-                currentEffects.remove(at: index)
-            } else {
-                currentEffects[index].remainingTicks -= 1
-            }
+        guard let index = currentEffects.firstIndex(where: { $0.effect.isTriggeredPreventionBuildup }) else {
+            recordAction(for: actor, context: &context)
+            return []
         }
 
+        let effect = currentEffects[index]
+        let keyword = effect.keyword
+        currentEffects.remove(at: index)
         context.roster.setActiveEffects(currentEffects, for: actor)
+
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .preventionSkipped,
+            actorName: keyword.statusAlias ?? keyword.rawValue,
+            abilityName: keyword.statusAlias ?? keyword.rawValue,
+            target: actor,
+            amount: 0,
+            keyword: keyword
+        )
         recordAction(for: actor, context: &context)
-        return events
+        return [event]
     }
 
     public static func performAction(

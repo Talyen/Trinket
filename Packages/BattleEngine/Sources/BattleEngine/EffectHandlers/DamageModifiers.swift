@@ -46,6 +46,10 @@ public struct PreventionBuildupHandler: BattleEffectHandler {
     public let kind: EffectKind = .preventionBuildup
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        if let triggered = stacks.first(where: { $0.effect.isTriggeredPreventionBuildup }) {
+            let alias = triggered.keyword.statusAlias ?? triggered.keyword.rawValue
+            return EffectSummary(keyword: keyword, text: "\(alias): action prevented.")
+        }
         let amount = stacks.compactMap { eff -> Int? in
             if case let .preventionBuildup(_, amt, _) = eff.effect { return amt }
             return nil

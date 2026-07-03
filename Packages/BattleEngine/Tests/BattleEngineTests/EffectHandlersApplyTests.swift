@@ -50,27 +50,6 @@ final class EffectHandlersApplyTests: XCTestCase {
 
     // MARK: - Defensive buffs
 
-    func testPreventionHandlerAddsActiveEffect() {
-        var battle = EffectHandlersTestSupport.makeBattle()
-        let outcome = EffectHandlersTestSupport.dispatch(.prevention(.stun, 1), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { ae in
-            if case .prevention(.stun, _) = ae.effect { return true }
-            return false
-        })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .preventionApplied })
-    }
-
-    func testPreventionHandlerSkipsOnDeadTarget() {
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
-        var battle = EffectHandlersTestSupport.makeBattle(enemy: enemy)
-        let target = battle.enemy
-        _ = battle.withEngineContext { $0.applyDamage(99, to: target) }
-        let outcome = EffectHandlersTestSupport.dispatch(.prevention(.stun, 1), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertFalse(outcome.didApply)
-        XCTAssertTrue(outcome.events.isEmpty)
-    }
-
     func testShieldHandlerAddsShieldAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.shield(.block, 5, 3), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
@@ -180,13 +159,13 @@ final class EffectHandlersApplyTests: XCTestCase {
     func testCleanseStunRemovesActivePrevention() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
-            [ActiveEffect(id: 1, effect: .prevention(.stun, 1), remainingTicks: 1)],
+            [ActiveEffect(id: 1, effect: .preventionBuildup(.stun, 5, 10), remainingTicks: 0)],
             for: battle.hero,
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.stun), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains { if case .prevention(.stun, _) = $0.effect { return true }; return false })
+        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isPreventionBuildup))
     }
 
     func testCleanseRandomRemovesOneDebuff() {

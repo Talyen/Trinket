@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Stun/freeze prevention buildup and threshold transitions.
+/// Stun/freeze buildup, threshold transitions, and type resistance.
 package enum PreventionEngine {
     public static func applyBuildup(
         _ amount: Int,
@@ -12,7 +12,7 @@ package enum PreventionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        if context.roster.hasActivePrevention(for: combatant) { return [] }
+        if context.roster.hasPendingStunFreezeSkip(for: combatant) { return [] }
 
         let threshold = preventionThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
@@ -29,7 +29,8 @@ package enum PreventionEngine {
                     keyword: keyword,
                     combatant: combatant,
                     sourceActorID: sourceActorID,
-                    existingIndex: existingIndex
+                    existingIndex: existingIndex,
+                    threshold: threshold
                 ),
                 currentEffects: &currentEffects,
                 in: &context
@@ -72,6 +73,7 @@ package enum PreventionEngine {
         let combatant: Combatant
         let sourceActorID: String?
         let existingIndex: Int?
+        let threshold: Int
     }
 
     private static func applyThresholdReached(
@@ -82,21 +84,20 @@ package enum PreventionEngine {
         let keyword = thresholdContext.keyword
         let combatant = thresholdContext.combatant
         let sourceActorID = thresholdContext.sourceActorID
-        let existingIndex = thresholdContext.existingIndex
+        let threshold = thresholdContext.threshold
 
-        if let existingIndex {
-            currentEffects.remove(at: existingIndex)
-        }
-        let prevention = Effect.prevention(keyword, 1)
-        let activeEffect = ActiveEffect(
-            id: context.nextEffectID,
-            effect: prevention,
-            remainingTicks: 1,
-            sourceActorID: sourceActorID
+        updateBuildup(
+            PreventionBuildupUpdate(
+                keyword: keyword,
+                newAmount: threshold,
+                threshold: threshold,
+                combatant: combatant,
+                sourceActorID: sourceActorID,
+                existingIndex: thresholdContext.existingIndex
+            ),
+            currentEffects: &currentEffects,
+            in: &context
         )
-        context.nextEffectID += 1
-        currentEffects.append(activeEffect)
-        context.roster.setActiveEffects(currentEffects, for: combatant)
 
         let actorName: String
         if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
@@ -145,13 +146,12 @@ package enum PreventionEngine {
         } else {
             currentEffects.append(
                 ActiveEffect(
-                    id: context.nextEffectID,
+                    id: context.consumeNextEffectID(),
                     effect: buildup,
                     remainingTicks: 0,
                     sourceActorID: update.sourceActorID
                 )
             )
-            context.nextEffectID += 1
         }
         context.roster.setActiveEffects(currentEffects, for: update.combatant)
     }

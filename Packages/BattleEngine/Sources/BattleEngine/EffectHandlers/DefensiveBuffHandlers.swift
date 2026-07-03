@@ -2,46 +2,6 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-public struct PreventionHandler: BattleEffectHandler {
-    public let kind: EffectKind = .prevention
-
-    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let maxActions = stacks.compactMap { eff -> Int? in
-            if case .prevention = eff.effect { return eff.remainingTicks }
-            return nil
-        }.min() ?? 0
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(maxActions) actions prevented.")
-    }
-
-    public func apply(
-        _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
-        action _: ActionApplyContext,
-        in context: inout BattleEngineContext
-    ) -> EffectApplyOutcome {
-        guard case let .prevention(keyword, duration) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        guard context.health(of: target) > 0 else { return EffectApplyOutcome(events: [], didApply: false) }
-        context.appendEffect(
-            .prevention(keyword, duration),
-            to: target,
-            sourceID: source.id,
-            remainingTicks: duration
-        )
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .preventionApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: 0,
-            keyword: keyword
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
-    }
-}
-
 public struct ShieldHandler: BattleEffectHandler {
     public let kind: EffectKind = .shield
 
