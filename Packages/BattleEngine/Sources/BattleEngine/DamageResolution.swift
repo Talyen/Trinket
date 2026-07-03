@@ -47,11 +47,12 @@ public struct DamageResolutionState {
     public var isDodged: Bool = false
 }
 
-/// One step in the `applyDamage` pipeline. Steps are stateless structs
-/// invoked in canonical order by `CombatPipeline.applyDamage`. The canonical
-/// list lives in `DamageSteps.canonicalNames` and is locked by
-/// `CombatPipelineTests.testDamageStepsRunInCanonicalOrder`.
+/// One step in the damage pipeline. Steps are stateless structs registered
+/// in `DamagePipeline.steps` and executed in canonical order.
 protocol DamageStep {
+    static var stepName: String { get }
+    static var phase: DamagePhase { get }
+    init()
     mutating func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext)
 }
 
@@ -61,6 +62,11 @@ protocol DamageStep {
 /// succeeds, the event stream records a `.dodgeApplied` event and the
 /// orchestrator short-circuits.
 public struct DodgeGateStep: DamageStep {
+    public static let stepName = "DodgeGate"
+    public static let phase: DamagePhase = .stochastic
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.applyDodge,
               state.amount > 0,
@@ -88,6 +94,11 @@ public struct DodgeGateStep: DamageStep {
 /// Step 2: computes `statBonus` (per-stat contribution) and `itemBonus`
 /// (item-modifier contribution) and adds both to `remaining`.
 public struct DamageBonusStep: DamageStep {
+    public static let stepName = "DamageBonus"
+    public static let phase: DamagePhase = .resolution
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         if let sourceActorID = state.sourceActorID,
            let damageKeyword = state.damageKeyword,
@@ -108,6 +119,11 @@ public struct DamageBonusStep: DamageStep {
 /// of `remaining` as each shield can cover, emitting `.shieldAbsorbed`
 /// events, and mutating the effects list. Depleted shields are removed.
 public struct ShieldAbsorptionStep: DamageStep {
+    public static let stepName = "ShieldAbsorption"
+    public static let phase: DamagePhase = .resolution
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         var effects = context.roster.activeEffects(for: state.combatant)
         var shieldIndexes: [Int] = []
@@ -152,6 +168,11 @@ public struct ShieldAbsorptionStep: DamageStep {
 /// Step 4: applies armor (from active `.mitigation` effects) plus passive
 /// toughness mitigation, capped at 100%.
 public struct MitigationStep: DamageStep {
+    public static let stepName = "Mitigation"
+    public static let phase: DamagePhase = .resolution
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         _ = context
         let armorPct = state.activeEffects.reduce(0.0) { sum, ae in
@@ -169,6 +190,11 @@ public struct MitigationStep: DamageStep {
 /// Step 5: applies the target's `damageTakenReduction` for the damage
 /// keyword, if any. Records `postMitigationDamage` for prevention buildup.
 public struct ItemReductionStep: DamageStep {
+    public static let stepName = "ItemReduction"
+    public static let phase: DamagePhase = .resolution
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard let damageKeyword = state.damageKeyword, state.remaining > 0 else {
             state.postMitigationDamage = state.remaining
@@ -185,6 +211,11 @@ public struct ItemReductionStep: DamageStep {
 /// Step 6: writes the mutated effects list back to the roster and calls
 /// `takeRawDamage` on the target runtime.
 public struct TakeDamageStep: DamageStep {
+    public static let stepName = "TakeDamage"
+    public static let phase: DamagePhase = .resolution
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         context.roster.setActiveEffects(state.activeEffects, for: state.combatant)
         var lost = 0
@@ -196,6 +227,11 @@ public struct TakeDamageStep: DamageStep {
 /// Step 7: heals the attacker when `healthLost > 0`, leech is active, and
 /// the hit was not self-inflicted.
 public struct LeechStep: DamageStep {
+    public static let stepName = "Leech"
+    public static let phase: DamagePhase = .post
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.healthLost > 0,
               let sourceActorID = state.sourceActorID,
@@ -212,6 +248,11 @@ public struct LeechStep: DamageStep {
 /// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
 /// buildup against the target using post-mitigation damage.
 public struct PreventionBuildupStep: DamageStep {
+    public static let stepName = "PreventionBuildup"
+    public static let phase: DamagePhase = .post
+
+    public init() {}
+
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.postMitigationDamage > 0,
               let damageKeyword = state.damageKeyword,
@@ -228,19 +269,9 @@ public struct PreventionBuildupStep: DamageStep {
     }
 }
 
-/// Canonical list of damage-step names, in the order they are invoked by
-/// `CombatPipeline.applyDamage`. Used by
-/// `CombatPipelineTests.testDamageStepsRunInCanonicalOrder` to lock the
-/// order.
+/// Backward-compatible alias for `DamagePipeline.canonicalNames`.
 public enum DamageSteps {
-    public static let canonicalNames: [String] = [
-        "DodgeGate",
-        "DamageBonus",
-        "ShieldAbsorption",
-        "Mitigation",
-        "ItemReduction",
-        "TakeDamage",
-        "Leech",
-        "PreventionBuildup"
-    ]
+    public static var canonicalNames: [String] {
+        DamagePipeline.canonicalNames
+    }
 }

@@ -20,16 +20,7 @@ public enum CombatPipeline {
             applyDodge: request.options.applyDodge
         )
 
-        DodgeGateStep().apply(to: &state, in: &context)
-        if state.isDodged { return CombatOutcome.fromDamage(state: state) }
-
-        DamageBonusStep().apply(to: &state, in: &context)
-        ShieldAbsorptionStep().apply(to: &state, in: &context)
-        MitigationStep().apply(to: &state, in: &context)
-        ItemReductionStep().apply(to: &state, in: &context)
-        TakeDamageStep().apply(to: &state, in: &context)
-        LeechStep().apply(to: &state, in: &context)
-        PreventionBuildupStep().apply(to: &state, in: &context)
+        DamagePipeline.run(state: &state, in: &context)
 
         return CombatOutcome.fromDamage(state: state)
     }

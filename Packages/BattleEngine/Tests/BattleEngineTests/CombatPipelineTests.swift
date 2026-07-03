@@ -299,7 +299,7 @@ final class CombatPipelineTests: XCTestCase {
     // MARK: - Pipeline ordering
 
     func testDamageStepsRunInCanonicalOrder() {
-        XCTAssertEqual(DamageSteps.canonicalNames, [
+        XCTAssertEqual(DamagePipeline.canonicalNames, [
             "DodgeGate",
             "DamageBonus",
             "ShieldAbsorption",
