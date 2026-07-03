@@ -1,6 +1,6 @@
 import Foundation
 
-enum ItemAffixCatalogEntriesA {
+enum ItemAffixCatalogWeapon {
     static let definitions: [ItemAffixDefinition] = [
         ItemAffixCatalogSupport.affix(
             id: "mighty",
@@ -21,15 +21,6 @@ enum ItemAffixCatalogEntriesA {
             astral: ItemAffixPower(description: "Increases Agility by 3", modifiers: [.agility(3)])
         ),
         ItemAffixCatalogSupport.affix(
-            id: "stalwart",
-            title: "Stalwart",
-            slot: .armor,
-            keywords: [.armor, .block],
-            weight: 12,
-            basic: ItemAffixPower(description: "Increases Toughness by 1", modifiers: [.toughness(1)]),
-            astral: ItemAffixPower(description: "Increases Toughness by 3", modifiers: [.toughness(3)])
-        ),
-        ItemAffixCatalogSupport.affix(
             id: "arcane",
             title: "Arcane",
             slot: .weapon,
@@ -37,24 +28,6 @@ enum ItemAffixCatalogEntriesA {
             weight: 12,
             basic: ItemAffixPower(description: "Increases Intellect by 1", modifiers: [.intellect(1)]),
             astral: ItemAffixPower(description: "Increases Intellect by 3", modifiers: [.intellect(3)])
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "devout",
-            title: "Devout",
-            slot: .armor,
-            keywords: [.holy],
-            weight: 12,
-            basic: ItemAffixPower(description: "Increases Wisdom by 1", modifiers: [.wisdom(1)]),
-            astral: ItemAffixPower(description: "Increases Wisdom by 3", modifiers: [.wisdom(3)])
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "hale",
-            title: "Hale",
-            slot: .trinket,
-            keywords: [.health],
-            weight: 10,
-            basic: ItemAffixPower(description: "Increases Maximum Health by 4", modifiers: [.maximumHealth(4)]),
-            astral: ItemAffixPower(description: "Increases Maximum Health by 12", modifiers: [.maximumHealth(12)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "keen",
@@ -138,67 +111,58 @@ enum ItemAffixCatalogEntriesA {
             astral: ItemAffixPower(description: "Increases Bleed duration by 2", modifiers: [.bleedDuration(2)])
         ),
         ItemAffixCatalogSupport.affix(
-            id: "reinforced",
-            title: "Reinforced",
-            slot: .armor,
-            keywords: [.armor],
-            weight: 12,
-            basic: ItemAffixPower(description: "Increases Armor granted by 10%", modifiers: [.armorGrantedPercent(0.10)]),
-            astral: ItemAffixPower(description: "Increases Armor granted by 25%", modifiers: [.armorGrantedPercent(0.25)])
+            id: "duelists",
+            title: "Duelist's",
+            slot: .weapon,
+            keywords: [.bleed, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Agility by 1 and Bleed damage dealt by 1", modifiers: [.agility(1), .damageDealt(.bleed, 1)]),
+            astral: ItemAffixPower(description: "Increases Agility by 2 and Bleed damage dealt by 2", modifiers: [.agility(2), .damageDealt(.bleed, 2)])
         ),
         ItemAffixCatalogSupport.affix(
-            id: "bulwark",
-            title: "Bulwark",
-            slot: .armor,
+            id: "crusaders",
+            title: "Crusader's",
+            slot: .weapon,
+            keywords: [.holy, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Strength by 1 and Holy damage dealt by 1", modifiers: [.strength(1), .damageDealt(.holy, 1)]),
+            astral: ItemAffixPower(description: "Increases Strength by 2 and Holy damage dealt by 2", modifiers: [.strength(2), .damageDealt(.holy, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "pyromancers",
+            title: "Pyromancer's",
+            slot: .weapon,
+            keywords: [.burn],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Intellect by 1 and Burn damage dealt by 1", modifiers: [.intellect(1), .damageDealt(.burn, 1)]),
+            astral: ItemAffixPower(description: "Increases Intellect by 2 and Burn damage dealt by 2", modifiers: [.intellect(2), .damageDealt(.burn, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "sentinel",
+            title: "Sentinel",
+            slot: .weapon,
             keywords: [.block],
-            weight: 12,
-            basic: ItemAffixPower(description: "Increases Block granted by 2", modifiers: [.blockGranted(2)]),
-            astral: ItemAffixPower(description: "Increases Block granted by 5", modifiers: [.blockGranted(5)])
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "warding",
-            title: "Warding",
-            slot: .armor,
-            keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block duration by 1", modifiers: [.blockDuration(1)]),
-            astral: ItemAffixPower(description: "Increases Block duration by 2", modifiers: [.blockDuration(2)])
+            basic: ItemAffixPower(description: "Increases Block granted by 1", modifiers: [.blockGranted(1)]),
+            astral: ItemAffixPower(description: "Increases Block granted by 3", modifiers: [.blockGranted(3)])
         ),
         ItemAffixCatalogSupport.affix(
-            id: "anchored",
-            title: "Anchored",
-            slot: .armor,
+            id: "fortified",
+            title: "Fortified",
+            slot: .weapon,
             keywords: [.armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor duration by 1", modifiers: [.armorDuration(1)]),
-            astral: ItemAffixPower(description: "Increases Armor duration by 2", modifiers: [.armorDuration(2)])
+            basic: ItemAffixPower(description: "Increases Armor granted by 5%", modifiers: [.armorGrantedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Armor granted by 15%", modifiers: [.armorGrantedPercent(0.15)])
         ),
         ItemAffixCatalogSupport.affix(
-            id: "vital",
-            title: "Vital",
-            slot: .armor,
-            keywords: [.health],
-            weight: 10,
-            basic: ItemAffixPower(description: "Increases Health restored by 1", modifiers: [.healthRestored(1)]),
-            astral: ItemAffixPower(description: "Increases Health restored by 3", modifiers: [.healthRestored(3)])
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "emberguard",
-            title: "Emberguard",
-            slot: .armor,
-            keywords: [.burn, .armor],
+            id: "defenders",
+            title: "Defender's",
+            slot: .weapon,
+            keywords: [.block, .armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Decreases Burn damage taken by 10%", modifiers: [.damageTakenPercent(.burn, 0.10)]),
-            astral: ItemAffixPower(description: "Decreases Burn damage taken by 25%", modifiers: [.damageTakenPercent(.burn, 0.25)])
-        ),
-        ItemAffixCatalogSupport.affix(
-            id: "antidotal",
-            title: "Antidotal",
-            slot: .armor,
-            keywords: [.poison, .health],
-            weight: 8,
-            basic: ItemAffixPower(description: "Decreases Poison damage taken by 10%", modifiers: [.damageTakenPercent(.poison, 0.10)]),
-            astral: ItemAffixPower(description: "Decreases Poison damage taken by 25%", modifiers: [.damageTakenPercent(.poison, 0.25)])
+            basic: ItemAffixPower(description: "Increases Block granted by 1 and Armor granted by 5%", modifiers: [.blockGranted(1), .armorGrantedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Block granted by 2 and Armor granted by 15%", modifiers: [.blockGranted(2), .armorGrantedPercent(0.15)])
         )
     ]
 }
