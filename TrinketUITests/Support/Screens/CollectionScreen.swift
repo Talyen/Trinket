@@ -27,4 +27,9 @@ struct CollectionScreen {
     func openItemCard(named name: String) {
         app.buttons.matching(identifier: "\(name) item card").firstMatch.tap()
     }
+
+    func filterInventory(to slot: String) {
+        app.buttons["Inventory filter"].tap()
+        app.buttons[slot].tap()
+    }
 }

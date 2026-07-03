@@ -49,6 +49,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertCombatantDetailSections()
 
         dismissSheet()
+        collection.openPetsCategory()
         assertButtonExists("Wolf collection card")
         goBack()
     }
@@ -81,10 +82,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         collection.openInventoryCategory()
         assertExists("Inventory filter")
         assertItemCardExists("Crossbow")
-
-        let searchField = app.searchFields.firstMatch
-        assertExists(searchField)
-        replaceText(in: searchField, with: "Wand")
+        collection.filterInventory(to: "Weapon")
         assertItemCardExists("Wand")
     }
 
