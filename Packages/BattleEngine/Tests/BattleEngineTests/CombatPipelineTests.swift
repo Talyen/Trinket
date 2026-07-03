@@ -207,10 +207,93 @@ final class CombatPipelineTests: XCTestCase {
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
-        let (lost, _) = CombatPipeline.applyDoTDamage(10, keyword: .burn, to: context.roster.enemy.combatant, sourceActorID: "source", in: &context)
-        if lost > 0 {
-            XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
-        }
+        let (lost, events) = CombatPipeline.applyDoTDamage(10, keyword: .burn, to: context.roster.enemy.combatant, sourceActorID: "source", in: &context)
+        XCTAssertGreaterThan(lost, 0)
+        XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
+        XCTAssertTrue(events.contains { $0.effectKind == .leechHeal })
+    }
+
+    func testApplyDamageTriggersLeechOnDirectHit() {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        var context = makeContext(seed: 0)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+        let before = context.roster.hero.currentHealth
+        let (_, events) = CombatPipeline.applyDamage(
+            10,
+            to: context.roster.enemy.combatant,
+            damageKeyword: .physical,
+            sourceActorID: "source",
+            in: &context
+        )
+        XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
+        XCTAssertTrue(events.contains { $0.effectKind == .leechHeal })
+    }
+
+    func testApplyDamageDoesNotLeechOnSelfDamage() {
+        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
+        var context = makeContext(seed: 0)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
+        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
+        let before = context.roster.hero.currentHealth
+        let (_, events) = CombatPipeline.applyDamage(
+            10,
+            to: context.roster.hero.combatant,
+            damageKeyword: .physical,
+            sourceActorID: "source",
+            in: &context
+        )
+        XCTAssertEqual(context.roster.hero.currentHealth, before - 10)
+        XCTAssertFalse(events.contains { $0.effectKind == .leechHeal })
+    }
+
+    // MARK: - Prevention threshold and post-mitigation buildup
+
+    func testPreventionThresholdUsesItemMaximumHealthBonus() {
+        let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
+        let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            enemy: CombatantRuntime(
+                combatant: target,
+                initialActiveEffects: [],
+                maximumHealthBonus: 50
+            )
+        )
+        var context = BattleEngineContext(
+            roster: roster,
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+        )
+
+        CombatPipeline.applyPreventionBuildup(1, keyword: .stun, to: target, sourceActorID: "source", in: &context)
+
+        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isPreventionBuildup }
+        let threshold = buildup?.effect.preventionBuildupValues?.2
+        let expected = target.primaryStats.preventionThreshold(baseMaxHealth: 100)
+        XCTAssertEqual(threshold, expected)
+    }
+
+    func testStunBuildupUsesPostMitigationDamage() {
+        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 6), remainingTicks: 6)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 0)
+        _ = CombatPipeline.applyDamage(
+            20,
+            to: context.roster.enemy.combatant,
+            damageKeyword: .stun,
+            sourceActorID: "source",
+            in: &context
+        )
+
+        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isPreventionBuildup }
+        let amount = buildup?.effect.preventionBuildupValues?.1
+        XCTAssertEqual(amount, 10, "50% mitigation should halve stun buildup from 20 to 10")
     }
 
     // MARK: - Pipeline ordering
@@ -223,6 +306,7 @@ final class CombatPipelineTests: XCTestCase {
             "Mitigation",
             "ItemReduction",
             "TakeDamage",
+            "Leech",
             "PreventionBuildup"
         ])
     }

@@ -19,9 +19,12 @@ public struct DamageResolutionState {
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
     public var remaining: Int = 0
 
-    /// Total damage dealt after stat + item bonuses. Used as the prevention
-    /// buildup trigger at the end of the pipeline.
+    /// Total damage after stat + item bonuses, before shields and mitigation.
     public var dealt: Int = 0
+
+    /// Post-mitigation damage used for prevention buildup. Set after
+    /// `ItemReductionStep` from `remaining`.
+    public var postMitigationDamage: Int = 0
 
     /// Stat and item bonus components used by the prevention-buildup step.
     public var statBonus: Int = 0
@@ -164,14 +167,18 @@ public struct MitigationStep: DamageStep {
 }
 
 /// Step 5: applies the target's `damageTakenReduction` for the damage
-/// keyword, if any.
+/// keyword, if any. Records `postMitigationDamage` for prevention buildup.
 public struct ItemReductionStep: DamageStep {
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        guard let damageKeyword = state.damageKeyword, state.remaining > 0 else { return }
+        guard let damageKeyword = state.damageKeyword, state.remaining > 0 else {
+            state.postMitigationDamage = state.remaining
+            return
+        }
         let reduction = context.modifiers(for: state.combatant.id).damageTakenReduction(for: damageKeyword)
         if reduction > 0 {
             state.remaining = Int(ceil(Double(state.remaining) * (1 - reduction)))
         }
+        state.postMitigationDamage = state.remaining
     }
 }
 
@@ -186,17 +193,33 @@ public struct TakeDamageStep: DamageStep {
     }
 }
 
-/// Step 7: for `.stun` or `.freeze` keywords, applies a prevention
-/// buildup against the target using the *pre-mitigation* dealt amount.
+/// Step 7: heals the attacker when `healthLost > 0`, leech is active, and
+/// the hit was not self-inflicted.
+public struct LeechStep: DamageStep {
+    public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
+        guard state.healthLost > 0,
+              let sourceActorID = state.sourceActorID,
+              sourceActorID != state.combatant.id
+        else { return }
+        state.damageEvents.append(contentsOf: CombatPipeline.applyLeechFromDamage(
+            state.healthLost,
+            sourceActorID: sourceActorID,
+            in: &context
+        ))
+    }
+}
+
+/// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
+/// buildup against the target using post-mitigation damage.
 public struct PreventionBuildupStep: DamageStep {
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        guard state.dealt > 0,
+        guard state.postMitigationDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
         state.damageEvents.append(contentsOf: CombatPipeline.applyPreventionBuildup(
-            state.dealt,
+            state.postMitigationDamage,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
@@ -217,6 +240,7 @@ public enum DamageSteps {
         "Mitigation",
         "ItemReduction",
         "TakeDamage",
+        "Leech",
         "PreventionBuildup"
     ]
 }

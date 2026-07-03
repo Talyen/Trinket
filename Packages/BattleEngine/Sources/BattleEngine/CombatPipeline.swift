@@ -4,10 +4,6 @@ import TrinketContent
 
 /// Damage, healing, leech, and prevention-buildup rules.
 public enum CombatPipeline {
-    private static func maxHealth(for combatant: Combatant) -> Int {
-        combatant.maxHealth + combatant.primaryStats.toughness
-    }
-
     public static func applyDoTDamage(
         _ amount: Int,
         keyword: Keyword,
@@ -17,7 +13,7 @@ public enum CombatPipeline {
     ) -> (healthLost: Int, events: [ActionEvent]) {
         guard amount > 0 else { return (0, []) }
 
-        let (healthLost, damageEvents) = applyDamage(
+        let result = applyDamage(
             amount,
             to: combatant,
             damageKeyword: keyword,
@@ -26,11 +22,7 @@ public enum CombatPipeline {
             applyDodge: false,
             in: &context
         )
-        var events = damageEvents
-        if healthLost > 0, let sourceActorID {
-            events.append(contentsOf: applyLeechFromDamage(healthLost, sourceActorID: sourceActorID, in: &context))
-        }
-        return (healthLost, events)
+        return (result.healthLost, result.damageEvents)
     }
 
     public static func applyPreventionBuildup(
@@ -43,7 +35,7 @@ public enum CombatPipeline {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasActivePrevention(for: combatant) { return [] }
 
-        let threshold = preventionThreshold(for: combatant)
+        let threshold = preventionThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .preventionBuildup(k, _, _) = activeEffect.effect, k == keyword { return true }
@@ -80,8 +72,10 @@ public enum CombatPipeline {
         return []
     }
 
-    private static func preventionThreshold(for combatant: Combatant) -> Int {
-        combatant.primaryStats.preventionThreshold(baseMaxHealth: maxHealth(for: combatant))
+    private static func preventionThreshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
+        combatant.primaryStats.preventionThreshold(
+            baseMaxHealth: context.roster.maxHealth(for: combatant)
+        )
     }
 
     private static func existingBuildupAmount(
@@ -247,6 +241,7 @@ public enum CombatPipeline {
         MitigationStep().apply(to: &state, in: &context)
         ItemReductionStep().apply(to: &state, in: &context)
         TakeDamageStep().apply(to: &state, in: &context)
+        LeechStep().apply(to: &state, in: &context)
         PreventionBuildupStep().apply(to: &state, in: &context)
 
         return (state.healthLost, state.damageEvents)

@@ -147,9 +147,6 @@ public enum BattleTurnEngine {
                 sourceActorID: actor.id
             )
             events.append(contentsOf: damageEvents)
-            if dealt > 0, damageTarget.id != actor.id {
-                events.append(contentsOf: context.applyLeechFromDamage(dealt, sourceActorID: actor.id))
-            }
             if component.amount > 0 {
                 pairedDirectDamage.append((component.keyword, component.amount))
             }
