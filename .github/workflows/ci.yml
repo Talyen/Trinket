@@ -35,12 +35,16 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
           restore-keys: |
             brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
 
       - name: Install tooling
-        run: brew install xcodegen swiftlint swiftformat
+        run: |
+          brew install xcodegen swiftlint swiftformat
+          for formula in xcodegen swiftlint swiftformat; do
+            brew link --overwrite "$formula" 2>/dev/null || true
+          done
 
       - name: Generate project
         run: ./Scripts/generate.sh
@@ -74,12 +78,16 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
           restore-keys: |
             brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
 
       - name: Install tooling
-        run: brew install xcodegen swiftlint swiftformat
+        run: |
+          brew install xcodegen swiftlint swiftformat
+          for formula in xcodegen swiftlint swiftformat; do
+            brew link --overwrite "$formula" 2>/dev/null || true
+          done
 
       - name: Cache DerivedData
         uses: actions/cache@v4
@@ -112,12 +120,16 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
           restore-keys: |
             brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
 
       - name: Install tooling
-        run: brew install xcodegen swiftlint swiftformat
+        run: |
+          brew install xcodegen swiftlint swiftformat
+          for formula in xcodegen swiftlint swiftformat; do
+            brew link --overwrite "$formula" 2>/dev/null || true
+          done
 
       - name: Cache DerivedData
         uses: actions/cache@v4
@@ -164,12 +176,16 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-1
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
           restore-keys: |
             brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
 
       - name: Install tooling
-        run: brew install xcodegen swiftlint swiftformat
+        run: |
+          brew install xcodegen swiftlint swiftformat
+          for formula in xcodegen swiftlint swiftformat; do
+            brew link --overwrite "$formula" 2>/dev/null || true
+          done
 
       - name: Cache DerivedData
         uses: actions/cache@v4
