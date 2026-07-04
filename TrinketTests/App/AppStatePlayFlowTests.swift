@@ -134,4 +134,43 @@ final class AppStatePlayFlowTests: XCTestCase {
             )
         )
     }
+
+    func testResetGameplayProgressClearsBattleAndJourneyScroll() throws {
+        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = state.battle.startBattle(
+            stage: stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet,
+            roster: state.roster,
+            inventory: state.inventory
+        )
+        state.journey.requestMapScroll(to: "chapter-1-stage-2")
+        _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
+
+        state.resetGameplayProgress()
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertNil(state.journey.mapScrollRequest)
+        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-1")
+        XCTAssertTrue(state.journey.current.completedStageIDs.isEmpty)
+    }
+
+    func testCompleteStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
+        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        let hero = state.roster.activeHero
+        let pet = state.roster.activePet
+        let journeyBefore = state.journey.current
+
+        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directoryURL.path)
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directoryURL.path)
+        }
+
+        let scrollTarget = state.completeStage(stage, hero: hero, pet: pet)
+
+        XCTAssertEqual(state.journey.current, journeyBefore)
+        XCTAssertEqual(scrollTarget, state.mapScrollFocusID(for: journeyBefore))
+    }
 }

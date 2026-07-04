@@ -61,7 +61,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/` plus `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence}/Tests/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs app tests only — battle rule tests live in `BattleEngineTests`, persistence tests in `TrinketPersistenceTests`. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Unit tests in `TrinketTests/` plus `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence}/Tests/`; `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — battle rule tests live in `BattleEngineTests`, persistence tests in `TrinketPersistenceTests`. Full `./Scripts/test.sh unit` (no class filter) also runs all five package schemes in parallel. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
 ## Unit Tests
@@ -92,15 +92,19 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`
 - **Battle UI flow:** use `BattleRun.outcome` and `BattleRun.makeVictorySummary()` — keep outcome logic out of SwiftUI views.
 - **Launch screens:** collection deep links live on `AppState.initialCollectionCombatantDetail` / `initialCollectionItemID`, not `AppEnvironment.shared` in views.
 - **Content invariants:** loop `GameContent` for catalog tests (unique IDs, art refs, stage→enemy links).
-- **Do not unit-test:** log prose formatting details, `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
+- **Do not unit-test:** log prose formatting details (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O. Prefer semantic battle event assertions over full log fingerprints (`Packages/BattleEngine/Tests/README.md`).
 
 ### Definition of done (new features)
 
-1. Rules/models → at least one focused unit test.
-2. New `Player*Store` API → write-through persistence test.
-3. New catalog content → invariant test in the matching `*CatalogTests` class.
-4. New user flow → `accessibilityIdentifier` + one smoke UI test.
-5. Run `./Scripts/test.sh unit <TestClass>` before commit.
+1. Rules/models → at least one focused unit test in the owning package.
+2. New `Player*Store` API → write-through persistence test in `TrinketPersistenceTests`.
+3. New catalog content → invariant test in the matching `*CatalogTests` class (`TrinketContentTests`).
+4. New `EffectKind` → registry parity test + `EffectHandlersApplyTests`; optional thin integration only for multi-effect combos.
+5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
+6. New user flow → `accessibilityIdentifier` + one smoke UI test.
+7. Run `./Scripts/test.sh unit` (full, unfiltered) before commit when package code changed.
+
+**Test ownership:** Battle rules → `Packages/BattleEngine/Tests/README.md`. Catalog invariants → `Packages/TrinketContent/Tests/README.md`. App shell orchestration only in `TrinketTests/`; do not unit-test package types there. Art catalog cross-refs stay in `TrinketTests/Content/ArtCatalogIntegrationTests.swift` because `ArtCatalog` is app-generated.
 
 ## UI Tests
 

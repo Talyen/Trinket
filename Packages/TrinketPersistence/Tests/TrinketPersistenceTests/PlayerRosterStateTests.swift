@@ -1,15 +1,9 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+import TrinketCore
+@testable import TrinketPersistence
 
-final class PlayerRosterTests: XCTestCase {
-    // MARK: - Loadouts
-
-    func testAbilityTierUnlockLevels() {
-        XCTAssertEqual(AbilityTier.basic.unlockLevel, 1)
-        XCTAssertEqual(AbilityTier.skill.unlockLevel, 1)
-        XCTAssertEqual(AbilityTier.ultimate.unlockLevel, 6)
-    }
-
+final class PlayerRosterStateTests: XCTestCase {
     func testSetLoadoutOverridesDefaultAbilityChoices() throws {
         var roster = PlayerRosterState.initial
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
@@ -74,23 +68,6 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertEqual(configured.abilityLoadout.ultimate?.tier, .ultimate)
     }
 
-    func testInvalidLoadoutAbilityFallsBackToFirstChoice() {
-        let choices = AbilityChoices(
-            basics: [.bash, .shieldBash],
-            skills: [.smite, .spikedShield],
-            ultimates: [.blessedAegis, .crystalBulwark],
-            selected: AbilityLoadout(
-                basic: .bash,
-                skill: Ability(id: "missing", name: "Missing", tier: .skill, directDamage: 0, description: "Missing"),
-                ultimate: .blessedAegis
-            )
-        )
-
-        XCTAssertEqual(choices.selected.skill?.id, "smite")
-    }
-
-    // MARK: - Active party
-
     func testSetActiveHeroAndPetUpdatesIDs() throws {
         var roster = PlayerRosterState.initial
         let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
@@ -121,8 +98,6 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertEqual(roster.activePetID, PlayerRosterState.starterPetID)
     }
 
-    // MARK: - Gold
-
     func testGrantGoldIgnoresNonPositiveAmounts() {
         var roster = PlayerRosterState.initial
         roster.gold = 25
@@ -132,8 +107,6 @@ final class PlayerRosterTests: XCTestCase {
 
         XCTAssertEqual(roster.gold, 25)
     }
-
-    // MARK: - Equipment
 
     func testEquippedItemResolvesFromInventoryAndLoadout() throws {
         let roster = PlayerRosterState.initial
@@ -187,8 +160,6 @@ final class PlayerRosterTests: XCTestCase {
         XCTAssertTrue(inventory.hasItem(for: .weapon))
         XCTAssertFalse(inventory.hasItem(for: .armor))
     }
-
-    // MARK: - Inventory rewards
 
     func testAddRewardItemIgnoresDuplicateID() throws {
         let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))

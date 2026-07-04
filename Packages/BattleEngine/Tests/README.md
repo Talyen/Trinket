@@ -37,3 +37,4 @@ not need the full battle loop, it belongs in a unit file instead.
 - Parameterize symmetric keywords (stun/freeze) instead of duplicating tests.
 - Assert event semantics and HP deltas, not full log fingerprints.
 - Shared setup lives in `Support/BattleTestFixtures.swift`.
+- AGENTS.md defers exhaustive log/UI prose unit tests; keep `ActionEventFormatterTests` representative only.

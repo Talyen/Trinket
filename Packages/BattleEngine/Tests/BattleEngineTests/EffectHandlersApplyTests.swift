@@ -282,4 +282,17 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertTrue(outcome.didApply)
         XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
     }
+
+    func testDeathsDoorHandlerApplyIsNoOp() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .deathsDoor,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
 }

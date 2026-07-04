@@ -85,4 +85,32 @@ final class EffectHandlersTickTests: XCTestCase {
         XCTAssertEqual(outcome.updatedStack?.remainingTicks, 5)
         XCTAssertFalse(outcome.removeAfter)
     }
+
+    func testMitigationTickExpiresAtZeroRemainingTicks() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let mitigation = ActiveEffect(
+            id: 1,
+            effect: .mitigation(.armor, 0.25, 3),
+            remainingTicks: 1,
+            sourceActorID: "hero"
+        )
+        let outcome = EffectHandlersTestSupport.dispatchTick(mitigation, target: battle.enemy, battle: &battle)
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertEqual(outcome.updatedStack?.remainingTicks, 0)
+        XCTAssertTrue(outcome.removeAfter)
+    }
+
+    func testLeechTickDecrementsRemainingDuration() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let leech = ActiveEffect(
+            id: 1,
+            effect: .standardLeechBuff,
+            remainingTicks: 2,
+            sourceActorID: "hero"
+        )
+        let outcome = EffectHandlersTestSupport.dispatchTick(leech, target: battle.hero, battle: &battle)
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertEqual(outcome.updatedStack?.remainingTicks, 1)
+        XCTAssertFalse(outcome.removeAfter)
+    }
 }
