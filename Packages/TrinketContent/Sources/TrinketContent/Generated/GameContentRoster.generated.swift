@@ -3,6 +3,28 @@ import Foundation
 import TrinketCore
 
 public enum GameContentRosterGenerated {
+    public static let combatantTraitIDs: [String: String] = [
+        "knight": "oathbound",
+        "rogue": "cutpurse",
+        "wizard": "arcane_focus",
+        "alchemist": "reinforced_formula",
+        "druid": "thornskin",
+        "ranger": "pack_leader",
+        "warlock": "soul_siphon",
+        "bear": "thick_hide",
+        "frost_whelp": "permafrost",
+        "lizard_scout": "cold_blood",
+        "panther": "razor_claws",
+        "phoenix": "immortal_ember",
+        "wolf": "pack_ferocity",
+        "golden_retriever": "loyal_comfort",
+        "library_owl": "purifying_wisdom",
+        "risen_skeleton": "unliving_frame",
+        "mana_moth": "arcane_reservoir",
+        "pixie": "fae_fortune",
+        "shield_scarab": "iron_carapace"
+    ]
+
     public static let heroes: [Combatant] = [
         Combatant(
             id: "knight",

@@ -35,6 +35,10 @@ struct CombatantDetailPane: View {
         )
     }
 
+    private var traitDefinition: CombatantTraitDefinition? {
+        GameContent.trait(forCombatantID: combatant.id)
+    }
+
     private var effectiveCombatant: Combatant {
         combatBuild.combatant
     }
@@ -68,6 +72,17 @@ struct CombatantDetailPane: View {
                             statRow("Toughness", value: "\(effectiveCombatant.primaryStats.toughness)")
                             statRow("Intellect", value: "\(effectiveCombatant.primaryStats.intellect)")
                             statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
+                        }
+
+                        if let traitDefinition {
+                            section("Trait", sectionID: AccessibilityID.CombatantDetail.traitSection) {
+                                Text(traitDefinition.name)
+                                    .font(.body.weight(.semibold))
+                                KeywordDescriptionText(text: traitDefinition.description)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier(AccessibilityID.CombatantDetail.traitDescription)
+                            }
                         }
 
                         if !activeEffectSummaries.isEmpty {

@@ -16,6 +16,8 @@ enum AccessibilityID {
     enum CombatantDetail {
         static let statsSection = "Combatant Stats Section"
         static let healthStat = "Combatant Health Stat"
+        static let traitSection = "Combatant Trait Section"
+        static let traitDescription = "Combatant Trait Description"
     }
 
     enum Search {

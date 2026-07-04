@@ -5,6 +5,8 @@ final class SmokeHeroDetailTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
         combatantDetail.assertLoaded(for: "Knight")
         assertCombatantDetailSections()
+        assertExists("Oathbound")
+        assertExists(AccessibilityID.CombatantDetail.traitDescription)
     }
 
     func testRogueHeroDetailLaunchScreenOpensDetail() {

@@ -18,6 +18,9 @@ public enum CombatBuildResolver {
         for item in equippedItems {
             profile.merge(affixProfile(for: item))
         }
+        if let trait = GameContent.trait(forCombatantID: combatant.id) {
+            trait.apply(to: &profile)
+        }
 
         let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
         let builtCombatant = Combatant(

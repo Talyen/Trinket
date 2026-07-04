@@ -27,7 +27,13 @@ public struct CleanseHandler: BattleEffectHandler {
             amount: 0,
             keyword: targetKeyword ?? .health
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        events.append(contentsOf: TraitReactionEngine.healAfterCleanse(
+            source: source,
+            target: target,
+            in: &context
+        ).events)
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 
@@ -55,7 +61,13 @@ public struct CleanseRandomHandler: BattleEffectHandler {
             amount: 0,
             keyword: removedKeyword
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        events.append(contentsOf: TraitReactionEngine.healAfterCleanse(
+            source: source,
+            target: target,
+            in: &context
+        ).events)
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 

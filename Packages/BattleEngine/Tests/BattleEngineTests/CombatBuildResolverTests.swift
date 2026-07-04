@@ -93,4 +93,16 @@ final class CombatBuildResolverTests: XCTestCase {
         XCTAssertEqual(build.modifiers.blockGrantedBonus, 2)
         XCTAssertEqual(build.effectiveMaxHealth, knight.maxHealth + knight.primaryStats.toughness + 4)
     }
+
+    func testTraitModifiersMergeIntoBuildProfile() throws {
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let build = CombatBuildResolver.build(
+            combatant: knight,
+            equipmentLoadout: EquipmentLoadout(),
+            inventory: []
+        )
+
+        XCTAssertEqual(build.modifiers.blockGrantedBonus, 1)
+        XCTAssertEqual(GameContent.trait(forCombatantID: knight.id)?.name, "Oathbound")
+    }
 }

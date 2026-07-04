@@ -1,0 +1,20 @@
+id	name	description	modifiers	triggers
+oathbound	Oathbound	Increases Block granted by 1.	block_granted:1	
+cutpurse	Cutpurse	Increases Gold gained by 1.	gold_gained:1	
+arcane_focus	Arcane Focus	Increases Burn and Freeze damage dealt by 1.	damage_dealt:burn:1|damage_dealt:freeze:1	
+reinforced_formula	Reinforced Formula	Increases Health restored by 1.	health_restored:1	
+thornskin	Thornskin	Decreases Poison and Bleed damage taken by 10%.	damage_taken_percent:poison:0.10|damage_taken_percent:bleed:0.10	
+pack_leader	Pack Leader	Increases Pet damage dealt by 1.	pet_damage_dealt:1	
+soul_siphon	Soul Siphon	Increases Leech duration by 1.	leech_duration:1	
+thick_hide	Thick Hide	Increases Maximum Health by 2.	maximum_health:2	
+permafrost	Permafrost	Increases Freeze damage dealt by 1.	damage_dealt:freeze:1	
+cold_blood	Cold Blood	Increases Agility by 2.	agility:2	
+razor_claws	Razor Claws	Increases Bleed damage dealt by 1.	damage_dealt:bleed:1	
+immortal_ember	Immortal Ember	Increases Burn damage dealt by 1.	damage_dealt:burn:1	
+pack_ferocity	Pack Ferocity	Increases Bleed duration by 1.	bleed_duration:1	
+loyal_comfort	Loyal Comfort	Restore 1 Health to the Hero when restoring Health.		on_restore_health_heal_hero:1
+purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_cleanse_heal:1
+unliving_frame	Unliving Frame	Decreases Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
+arcane_reservoir	Arcane Reservoir	Increases Maximum Mana by 3.	maximum_mana:3	
+fae_fortune	Fae Fortune	Restore 1 Health when gaining Gold.		on_gain_gold_heal:1
+iron_carapace	Iron Carapace	Increases Block granted by 1 and Armor granted by 5%.	block_granted:1|armor_granted_percent:0.05	

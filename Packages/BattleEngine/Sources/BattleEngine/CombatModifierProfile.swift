@@ -18,6 +18,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
     public var damageTakenReduction: [Keyword: Double]
+    public var petDamageDealtBonus: Int
+    public var cleanseBonusHeal: Int
+    public var gainGoldBonusHealSelf: Int
+    public var restoreHealthAlsoHealHero: Int
 
     public static let zero = CombatModifierProfile()
 
@@ -36,7 +40,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         armorDurationBonus: Int = 0,
         leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
-        damageTakenReduction: [Keyword: Double] = [:]
+        damageTakenReduction: [Keyword: Double] = [:],
+        petDamageDealtBonus: Int = 0,
+        cleanseBonusHeal: Int = 0,
+        gainGoldBonusHealSelf: Int = 0,
+        restoreHealthAlsoHealHero: Int = 0
     ) {
         self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus
@@ -53,6 +61,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
         self.damageTakenReduction = damageTakenReduction
+        self.petDamageDealtBonus = petDamageDealtBonus
+        self.cleanseBonusHeal = cleanseBonusHeal
+        self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
+        self.restoreHealthAlsoHealHero = restoreHealthAlsoHealHero
     }
 
     public init(modifiers: [AffixModifier]) {
@@ -86,6 +98,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         for (keyword, amount) in other.damageTakenReduction {
             damageTakenReduction[keyword, default: 0] += amount
         }
+        petDamageDealtBonus += other.petDamageDealtBonus
+        cleanseBonusHeal += other.cleanseBonusHeal
+        gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
+        restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
     }
 
     public mutating func merge(_ modifier: AffixModifier) {

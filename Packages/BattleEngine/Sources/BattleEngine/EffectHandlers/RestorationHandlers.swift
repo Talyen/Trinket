@@ -69,6 +69,10 @@ public struct ResourceGainHandler: BattleEffectHandler {
             amount: loggedAmount,
             keyword: keyword
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        if keyword == .gold {
+            events.append(contentsOf: TraitReactionEngine.healSelfAfterGoldGain(source: source, in: &context).events)
+        }
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }

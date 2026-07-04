@@ -18,10 +18,26 @@ package struct DamageBonusStep: DamageStep {
                 ? actor.primaryStats.statBonusForDamage(keyword: damageKeyword)
                 : 0
             state.itemBonus = state.applyItemBonus
-                ? context.modifiers(for: sourceActorID).damageDealtBonus(for: damageKeyword)
+                ? outgoingDamageBonus(
+                    for: sourceActorID,
+                    keyword: damageKeyword,
+                    in: context
+                )
                 : 0
         }
         state.remaining = state.amount + state.statBonus + state.itemBonus
         state.dealt = state.remaining
+    }
+
+    private func outgoingDamageBonus(
+        for sourceActorID: String,
+        keyword: Keyword,
+        in context: BattleEngineContext
+    ) -> Int {
+        var bonus = context.modifiers(for: sourceActorID).damageDealtBonus(for: keyword)
+        if sourceActorID == context.build.petID {
+            bonus += context.build.heroModifiers.petDamageDealtBonus
+        }
+        return bonus
     }
 }

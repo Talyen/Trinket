@@ -129,6 +129,15 @@ class ItemBaseRow:
 
 
 @dataclass
+class TraitRow:
+    id: str
+    name: str
+    description: str
+    modifiers: str
+    triggers: str
+
+
+@dataclass
 class CombatantRow:
     id: str
     name: str
@@ -144,6 +153,7 @@ class CombatantRow:
     toughness: str
     intellect: str
     wisdom: str
+    trait_id: str
 
 
 @dataclass
@@ -205,6 +215,16 @@ def parse_affix_rows() -> list[AffixRow]:
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
     return [AffixRow(*row) for row in lines[1:]]
+
+
+def parse_trait_rows() -> list[TraitRow]:
+    path = MANIFEST_DIR / "traits.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = ["id", "name", "description", "modifiers", "triggers"]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    return [TraitRow(*row) for row in lines[1:]]
 
 
 def parse_ability_rows() -> list[AbilityRow]:
@@ -290,6 +310,7 @@ def parse_combatant_rows() -> list[CombatantRow]:
         "toughness",
         "intellect",
         "wisdom",
+        "trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -409,7 +430,35 @@ def modifier_token_to_swift(token: str) -> str:
     if token.startswith("damage_taken_percent:"):
         _, keyword, amount = token.split(":", 2)
         return f".damageTakenPercent(.{keyword}, {amount})"
+    if token.startswith("pet_damage_dealt:"):
+        return f".petDamageDealt({token.split(':', 1)[1]})"
+    if token.startswith("maximum_mana:"):
+        return f".maximumMana({token.split(':', 1)[1]})"
+    if token.startswith("leech_duration:"):
+        return f".leechDuration({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
+
+
+def parse_trigger_tokens(raw: str) -> list[str]:
+    if not raw:
+        return []
+    return [part.strip() for part in raw.split("|") if part.strip()]
+
+
+def triggers_swift(raw: str) -> str:
+    parts: list[str] = []
+    for token in parse_trigger_tokens(raw):
+        if token.startswith("on_cleanse_heal:"):
+            parts.append(f"cleanseBonusHeal: {token.split(':', 1)[1]}")
+        elif token.startswith("on_gain_gold_heal:"):
+            parts.append(f"gainGoldBonusHealSelf: {token.split(':', 1)[1]}")
+        elif token.startswith("on_restore_health_heal_hero:"):
+            parts.append(f"restoreHealthAlsoHealHero: {token.split(':', 1)[1]}")
+        else:
+            raise ValueError(f"Unknown trigger token: {token}")
+    if not parts:
+        return "CombatTraitTriggers()"
+    return "CombatTraitTriggers(" + ", ".join(parts) + ")"
 
 
 def modifiers_swift(raw: str) -> str:
@@ -722,7 +771,25 @@ def _validate_ability_symbols(raw: str, row_id: str, ability_symbols: set[str], 
             raise ValueError(f"Unknown ability symbol '{symbol}' for {row_id}")
 
 
-def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str]) -> None:
+def validate_trait_rows(rows: list[TraitRow]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate trait id: {row.id}")
+        seen.add(row.id)
+
+        _validate_snake_id("trait id", row.id, row.id)
+        _require_non_empty("trait name", row.name, row.id)
+        _require_non_empty("trait description", row.description, row.id)
+
+        for token in parse_modifier_tokens(row.modifiers):
+            modifier_token_to_swift(token)
+        triggers_swift(row.triggers)
+
+
+def validate_combatant_rows(
+    rows: list[CombatantRow], ability_symbols: set[str], trait_ids: set[str]
+) -> None:
     seen: set[str] = set()
     for row in rows:
         if row.id in seen:
@@ -746,6 +813,9 @@ def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str])
         _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.ultimates, row.id, ability_symbols, expected_count=2)
+        _require_non_empty("trait_id", row.trait_id, row.id)
+        if row.trait_id not in trait_ids:
+            raise ValueError(f"Unknown trait_id '{row.trait_id}' for combatant {row.id}")
         render_party_combatant(row)
 
 
@@ -822,13 +892,42 @@ def render_enemy(row: EnemyRow) -> str:
     )
 
 
+def generate_traits_catalog(rows: list[TraitRow]) -> None:
+    entries: list[str] = []
+    for row in rows:
+        entries.append(
+            "        CombatantTraitDefinition(\n"
+            f'            id: "{swift_escape(row.id)}",\n'
+            f'            name: "{swift_escape(row.name)}",\n'
+            f'            description: "{swift_escape(row.description)}",\n'
+            f"            modifiers: {modifiers_swift(row.modifiers)},\n"
+            f"            triggers: {triggers_swift(row.triggers)}\n"
+            "        )"
+        )
+
+    body = (
+        "public enum GameContentTraitsGenerated {\n"
+        "    public static let definitions: [CombatantTraitDefinition] = [\n"
+        + ",\n".join(entries)
+        + ",\n    ]\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentTraits.generated.swift", body)
+
+
 def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     heroes = [row for row in rows if row.role == "hero"]
     pets = [row for row in rows if row.role == "pet"]
+    trait_map_entries = ",\n".join(
+        f'        "{swift_escape(row.id)}": "{swift_escape(row.trait_id)}"' for row in rows
+    )
     hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
     pet_blocks = ",\n".join(render_party_combatant(row) for row in pets)
     body = (
         "public enum GameContentRosterGenerated {\n"
+        "    public static let combatantTraitIDs: [String: String] = [\n"
+        f"{trait_map_entries}\n"
+        "    ]\n\n"
         "    public static let heroes: [Combatant] = [\n"
         f"{hero_blocks}\n"
         "    ]\n\n"
@@ -1330,6 +1429,7 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
 
 def validate_manifests() -> tuple[
     list[AffixRow],
+    list[TraitRow],
     list[AbilityRow],
     list[StageRow],
     list[CombatantRow],
@@ -1338,6 +1438,7 @@ def validate_manifests() -> tuple[
     list[ItemBaseRow],
 ]:
     affix_rows = parse_affix_rows()
+    trait_rows = parse_trait_rows()
     ability_rows = parse_ability_rows()
     combatant_rows = parse_combatant_rows()
     enemy_rows = parse_enemy_rows()
@@ -1347,13 +1448,23 @@ def validate_manifests() -> tuple[
     ability_symbols = collect_ability_symbols()
 
     validate_affix_rows(affix_rows)
+    validate_trait_rows(trait_rows)
     validate_ability_rows(ability_rows)
-    validate_combatant_rows(combatant_rows, ability_symbols)
+    validate_combatant_rows(combatant_rows, ability_symbols, {row.id for row in trait_rows})
     validate_enemy_rows(enemy_rows, ability_symbols, {row.id for row in combatant_rows})
     validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
     validate_homestead_node_rows(homestead_rows)
     validate_item_base_rows(item_base_rows)
-    return affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows, item_base_rows
+    return (
+        affix_rows,
+        trait_rows,
+        ability_rows,
+        stage_rows,
+        combatant_rows,
+        enemy_rows,
+        homestead_rows,
+        item_base_rows,
+    )
 
 
 def generate_ability_shorthand() -> None:
@@ -1378,6 +1489,7 @@ def main() -> int:
     if command == "validate":
         (
             affix_rows,
+            trait_rows,
             ability_rows,
             stage_rows,
             combatant_rows,
@@ -1387,6 +1499,7 @@ def main() -> int:
         ) = validate_manifests()
         print(
             f"Validated {len(affix_rows)} affixes, "
+            f"{len(trait_rows)} traits, "
             f"{len(ability_rows)} manifest abilities, "
             f"{len(stage_rows)} stages, "
             f"{len(combatant_rows)} combatants, "
@@ -1402,6 +1515,7 @@ def main() -> int:
 
     (
         affix_rows,
+        trait_rows,
         ability_rows,
         stage_rows,
         combatant_rows,
@@ -1410,6 +1524,7 @@ def main() -> int:
         item_base_rows,
     ) = validate_manifests()
     generate_affix_catalog(affix_rows)
+    generate_traits_catalog(trait_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
@@ -1421,6 +1536,7 @@ def main() -> int:
     generate_ability_shorthand()
     print(
         f"Generated {len(affix_rows)} affixes, "
+        f"{len(trait_rows)} traits, "
         f"{len(ability_rows)} manifest abilities, "
         f"{len(stage_rows)} stages, "
         f"{len(combatant_rows)} combatants, "
