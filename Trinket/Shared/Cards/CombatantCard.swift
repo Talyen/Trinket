@@ -12,21 +12,7 @@ struct CombatantCard: View {
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)
                         .clipShape(TrinketDesign.cardShape)
-                        .saturation(isLocked ? 0.15 : 1)
-                        .opacity(isLocked ? 0.65 : 1)
-                }
-                .overlay {
-                    if isLocked {
-                        TrinketDesign.cardShape
-                            .fill(.black.opacity(0.35))
-                        VStack(spacing: 6) {
-                            Image(systemName: "lock.fill")
-                                .font(.title3.weight(.semibold))
-                            Text("Locked")
-                                .font(.caption.weight(.semibold))
-                        }
-                        .foregroundStyle(.white)
-                    }
+                        .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
                 }
                 .trinketCardSurface()
 

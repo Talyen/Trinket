@@ -97,6 +97,33 @@ run_xcodebuild() {
   return "$exit_code"
 }
 
+ui_parallel_workers() {
+  local default_workers="$1"
+
+  if [[ -n "${UI_PARALLEL_WORKERS:-}" ]]; then
+    echo "$UI_PARALLEL_WORKERS"
+  else
+    echo "$default_workers"
+  fi
+}
+
+configure_ui_parallelism() {
+  local worker_count="$1"
+
+  if (( worker_count > 1 )); then
+    ensure_test_simulator
+    delete_xcode_parallel_clones "$SIMULATOR_NAME"
+    ensure_simulator_pool "$worker_count"
+    PARALLEL_FLAGS=(
+      -parallel-testing-enabled YES
+      -maximum-parallel-testing-workers "$worker_count"
+    )
+  else
+    ensure_test_simulator
+    PARALLEL_FLAGS=(-parallel-testing-enabled NO)
+  fi
+}
+
 # Determine xcodebuild test target constraints and parallel testing flags using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
@@ -129,12 +156,9 @@ elif [[ "$MODE" == "smoke" ]]; then
   else
     echo "Running UI smoke tests via Smoke test plan..."
   fi
-  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-3}"
-  ensure_simulator_pool "$UI_PARALLEL_WORKERS"
-  PARALLEL_FLAGS=(
-    -parallel-testing-enabled YES
-    -maximum-parallel-testing-workers "$UI_PARALLEL_WORKERS"
-  )
+  default_workers=$([[ ${#TARGETS[@]} -gt 0 ]] && echo 1 || echo 3)
+  UI_PARALLEL_WORKERS="$(ui_parallel_workers "$default_workers")"
+  configure_ui_parallelism "$UI_PARALLEL_WORKERS"
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -150,12 +174,9 @@ elif [[ "$MODE" == "ui" ]]; then
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  UI_PARALLEL_WORKERS="${UI_PARALLEL_WORKERS:-3}"
-  ensure_simulator_pool "$UI_PARALLEL_WORKERS"
-  PARALLEL_FLAGS=(
-    -parallel-testing-enabled YES
-    -maximum-parallel-testing-workers "$UI_PARALLEL_WORKERS"
-  )
+  default_workers=$([[ ${#TARGETS[@]} -gt 0 ]] && echo 1 || echo 3)
+  UI_PARALLEL_WORKERS="$(ui_parallel_workers "$default_workers")"
+  configure_ui_parallelism "$UI_PARALLEL_WORKERS"
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit, ui, or smoke mode."

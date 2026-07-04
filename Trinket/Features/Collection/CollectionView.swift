@@ -89,36 +89,38 @@ struct CollectionView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    NavigationLink {
-                        InventoryGridView()
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text("Inventory")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(.primary)
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("Inventory collection category")
-
-                    horizontalShelf {
-                        ForEach(Array(inventoryState.items.prefix(12))) { item in
-                            Button {
-                                selectedItem = item
-                            } label: {
-                                ItemCard(item: item, showsAffixCount: false, showsName: false)
-                                    .collectionShelfCardWidth()
+                if !inventoryState.items.isEmpty {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                        NavigationLink {
+                            InventoryGridView()
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text("Inventory")
+                                    .font(.title2.weight(.bold))
+                                    .foregroundStyle(.primary)
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                Spacer()
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("\(item.displayName) item card")
+                            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("Inventory collection category")
+
+                        horizontalShelf {
+                            ForEach(Array(inventoryState.items.prefix(12))) { item in
+                                Button {
+                                    selectedItem = item
+                                } label: {
+                                    ItemCard(item: item, showsAffixCount: false, showsName: false)
+                                        .collectionShelfCardWidth()
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("\(item.displayName) item card")
+                            }
                         }
                     }
                 }

@@ -72,7 +72,7 @@ public extension View {
             let margin = TrinketDesign.Metrics.collectionShelfHorizontalMargin
             let spacing = TrinketDesign.Metrics.collectionShelfCardSpacing
             let peek = TrinketDesign.Metrics.collectionShelfPeekRatio
-            return (length - 2 * margin - spacing) / (2 + peek)
+            return (length - 2 * margin - spacing) / (1.75 + peek)
         }
     }
 }

@@ -8,6 +8,18 @@ final class SmokeCollectionTests: TrinketUITestCase {
         assertExists("Inventory collection category")
     }
 
+    func testFreshStartCollectionHidesInventoryCategoryWhenEmpty() {
+        launchApp(arguments: [
+            TestLaunchArg.resetState,
+            TestLaunchArg.disableCloudSync,
+            "-selectedTab",
+            "collection"
+        ])
+        assertExists("Heroes collection category")
+        assertExists("Pets collection category")
+        XCTAssertFalse(app.descendants(matching: .any)["Inventory collection category"].waitForExistence(timeout: 1))
+    }
+
     func testHeroesGridRenders() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         app.buttons["Heroes collection category"].tap()

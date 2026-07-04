@@ -55,26 +55,8 @@ struct EmptyItemSlotCard: View {
                             .fill(TrinketDesign.Colors.appBackground)
                     }
                 }
-                .saturation(isLocked ? 0.15 : 1)
-                .opacity(isLocked ? 0.65 : 1)
                 .clipShape(TrinketDesign.cardShape)
-                .overlay {
-                    if let lockLabel {
-                        TrinketDesign.cardShape
-                            .fill(.black.opacity(0.35))
-                        VStack(spacing: 6) {
-                            Image(systemName: "lock.fill")
-                                .font(.title3.weight(.semibold))
-                            Text(lockLabel)
-                                .font(.caption.weight(.semibold))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.8)
-                                .padding(.horizontal, 8)
-                        }
-                        .foregroundStyle(.white)
-                    }
-                }
+                .trinketLockedCardEffect(isLocked: isLocked, text: lockLabel)
                 .trinketCardSurface()
 
             Text(title)

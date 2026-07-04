@@ -22,11 +22,42 @@ public struct CardSurfaceModifier: ViewModifier {
         content
             .background(.thinMaterial)
             .clipShape(TrinketDesign.cardShape)
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(.white.opacity(0.12), lineWidth: 1)
-            }
             .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+    }
+}
+
+public struct LockedCardEffectModifier: ViewModifier {
+    public let isLocked: Bool
+    public let text: String?
+
+    public func body(content: Content) -> some View {
+        if isLocked {
+            content
+                .blur(radius: 3)
+                .saturation(0.15)
+                .opacity(0.68)
+                .overlay {
+                    TrinketDesign.cardShape
+                        .fill(.black.opacity(0.36))
+
+                    VStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.title3.weight(.semibold))
+
+                        if let text {
+                            Text(text)
+                                .font(.caption.weight(.semibold))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.78)
+                                .padding(.horizontal, 8)
+                        }
+                    }
+                    .foregroundStyle(.white)
+                }
+        } else {
+            content
+        }
     }
 }
 
@@ -54,25 +85,29 @@ public struct PrimaryActionButtonModifier: ViewModifier {
 
 @available(iOS 26.0, *)
 public extension View {
-    public func trinketFloatingGlassControl() -> some View {
+    func trinketFloatingGlassControl() -> some View {
         modifier(FloatingGlassControlButtonModifier())
     }
 
-    public func trinketFloatingGlassToggle() -> some View {
+    func trinketFloatingGlassToggle() -> some View {
         modifier(FloatingGlassToggleModifier())
     }
 }
 
 public extension View {
-    public func trinketCardSurface() -> some View {
+    func trinketCardSurface() -> some View {
         modifier(CardSurfaceModifier())
     }
 
-    public func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
+    func trinketLockedCardEffect(isLocked: Bool, text: String? = nil) -> some View {
+        modifier(LockedCardEffectModifier(isLocked: isLocked, text: text))
+    }
+
+    func trinketCardLabelSpace(_ isReserved: Bool = true) -> some View {
         modifier(CardLabelSpaceModifier(isReserved: isReserved))
     }
 
-    public func trinketPrimaryActionButton() -> some View {
+    func trinketPrimaryActionButton() -> some View {
         modifier(PrimaryActionButtonModifier())
     }
 }

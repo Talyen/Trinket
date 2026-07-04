@@ -31,7 +31,7 @@ struct InventoryGridView: View {
     @State private var selectedItem: InventoryItem?
 
     private let columns = [
-        GridItem(.adaptive(minimum: 120, maximum: 160), spacing: 16)
+        GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
     ]
 
     var body: some View {

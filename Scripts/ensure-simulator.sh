@@ -147,6 +147,30 @@ for devices in payload.get("devices", {}).values():
 ' "$1"
 }
 
+delete_xcode_parallel_clones() {
+  local base_name="$1"
+  xcrun simctl list devices available -j | python3 -c '
+import json, re, subprocess, sys
+base_name = sys.argv[1]
+payload = json.load(sys.stdin)
+pattern = re.compile(rf"^Clone \d+ of {re.escape(base_name)}$")
+udids = []
+for devices in payload.get("devices", {}).values():
+    for device in devices:
+        if pattern.match(device.get("name", "")):
+            udid = device.get("udid")
+            if udid:
+                udids.append(udid)
+
+for udid in udids:
+    subprocess.run(["xcrun", "simctl", "shutdown", udid], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["xcrun", "simctl", "delete", udid], check=True)
+
+if udids:
+    print(f"Deleted {len(udids)} stale Xcode parallel test clone(s) for {base_name}.")
+' "$base_name"
+}
+
 verify_simulator_destination() {
   if ! xcrun simctl list devices booted -j | python3 -c '
 import json, sys
