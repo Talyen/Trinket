@@ -1,5 +1,5 @@
-import SwiftUI
 import CoreMotion
+import SwiftUI
 
 @Observable
 final class MotionObserver {
