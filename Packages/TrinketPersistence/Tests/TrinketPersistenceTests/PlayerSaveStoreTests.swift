@@ -123,6 +123,34 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(sanitized.lastCompletedStageID, "chapter-1-stage-10")
     }
 
+    func testApplyRemoteSavePreservesModifiedAt() throws {
+        let fileStore = makeFileStore()
+        let store = makeStore()
+        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        var remoteSave = PlayerSave.fresh
+        remoteSave.modifiedAt = remoteTimestamp
+        remoteSave.roster.gold = 99
+
+        try store.applyRemoteSave(remoteSave)
+
+        XCTAssertEqual(store.currentSave.modifiedAt, remoteTimestamp)
+        XCTAssertEqual(store.roster.gold, 99)
+    }
+
+    func testLocalMutationUpdatesModifiedAt() throws {
+        let fileStore = makeFileStore()
+        let store = makeStore()
+        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        var remoteSave = PlayerSave.fresh
+        remoteSave.modifiedAt = remoteTimestamp
+        try store.applyRemoteSave(remoteSave)
+
+        let beforeLocalEdit = store.currentSave.modifiedAt
+        store.grantGold(1)
+
+        XCTAssertGreaterThan(store.currentSave.modifiedAt, beforeLocalEdit)
+    }
+
     private func makeFileStore() -> PlayerSaveFileStore {
         SaveTestSupport.makeFileStore(directoryURL: directoryURL)
     }

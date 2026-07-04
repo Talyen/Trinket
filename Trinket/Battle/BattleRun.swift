@@ -113,6 +113,7 @@ final class BattleRun {
             stageGold: configuration.stageReward?.gold ?? 0,
             battleGold: earnedGold,
             experience: heroXP,
+            petExperience: petXP,
             heroName: hero.name,
             petName: pet.name,
             itemNames: configuration.rewardItemNames,

@@ -184,6 +184,40 @@ final class StageRewardTests: XCTestCase {
         XCTAssertEqual(inventory.items.count, itemCountAfterFirst)
     }
 
+    func testCompletingStageTwiceDoesNotAdvanceJourney() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+
+        StageCompletion.complete(
+            firstStage,
+            hero: hero,
+            pet: pet,
+            in: GameContent.chapters,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+        let activeStageAfterFirst = journey.activeStageID
+
+        StageCompletion.complete(
+            firstStage,
+            hero: hero,
+            pet: pet,
+            in: GameContent.chapters,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(journey.activeStageID, activeStageAfterFirst)
+    }
+
     func testCompletingStageAdvancesJourney() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState.initial

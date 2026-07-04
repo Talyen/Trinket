@@ -60,7 +60,7 @@ public final class PlayerSaveStore {
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
-        try commitSave(migrated)
+        try commitSave(migrated, stampLocalMutation: false)
     }
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {
@@ -81,8 +81,14 @@ public final class PlayerSaveStore {
         try commitSave(candidate)
     }
 
-    private func commitSave(_ candidate: PlayerSave) throws {
-        let persisted = PlayerSaveSanitizer.sanitize(candidate.markedLocalMutation())
+    private func commitSave(_ candidate: PlayerSave, stampLocalMutation: Bool = true) throws {
+        var prepared = candidate
+        if stampLocalMutation {
+            prepared = candidate.markedLocalMutation()
+        } else {
+            prepared.schemaVersion = PlayerSave.currentSchemaVersion
+        }
+        let persisted = PlayerSaveSanitizer.sanitize(prepared)
         try PlayerSaveSanitizer.validate(persisted)
         try fileStore.save(persisted)
         save = persisted
