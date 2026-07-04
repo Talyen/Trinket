@@ -4,20 +4,18 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
-SCRIPT_DIR="$(dirname "$0")"
-
-# shellcheck source=ensure-simulator.sh
-source "$SCRIPT_DIR/ensure-simulator.sh"
 
 ./Scripts/generate.sh
-ensure_test_simulator
 mkdir -p "$RESULTS_DIR"
+
+IOS_BUILD_DESTINATION="generic/platform=iOS Simulator"
 
 echo "=== build-for-testing: Trinket app and test bundles ==="
 xcodebuild build-for-testing \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "$SIMULATOR_DESTINATION" \
+  -sdk iphonesimulator \
+  -destination "$IOS_BUILD_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
@@ -27,7 +25,8 @@ for package in "${PACKAGES[@]}"; do
     cd "Packages/$package"
     xcodebuild build-for-testing \
       -scheme "$package" \
-      -destination "$SIMULATOR_DESTINATION" \
+      -sdk iphonesimulator \
+      -destination "$IOS_BUILD_DESTINATION" \
       -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
   )
 done

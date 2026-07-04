@@ -147,6 +147,71 @@ for devices in payload.get("devices", {}).values():
 ' "$1"
 }
 
+xcodebuild_show_destinations() {
+  xcodebuild -showdestinations \
+    -project Trinket.xcodeproj \
+    -scheme Trinket \
+    -sdk iphonesimulator 2>&1
+}
+
+destination_listed_by_xcodebuild() {
+  local udid="$1"
+  xcodebuild_show_destinations | grep -Fq "id:$udid"
+}
+
+align_destination_with_xcodebuild() {
+  local preferred_name="$1"
+  local preferred_udid="$2"
+  local resolved
+  resolved="$(xcodebuild_show_destinations | python3 - "$preferred_name" "$preferred_udid" <<'PY'
+import re
+import sys
+
+preferred_name = sys.argv[1]
+preferred_udid = sys.argv[2]
+candidates: list[tuple[str, str]] = []
+
+for line in sys.stdin:
+    if "platform:iOS Simulator" not in line:
+        continue
+
+    device_match = re.search(r"\bid:([^,}]+)", line)
+    name_match = re.search(r"\bname:([^}]+)", line)
+    if not device_match or not name_match:
+        continue
+
+    device_id = device_match.group(1).strip()
+    name = name_match.group(1).strip()
+    if device_id.startswith("dvtdevice-") or name.startswith("Any "):
+        continue
+    if not name.startswith("iPhone"):
+        continue
+
+    candidates.append((name, device_id))
+
+if not candidates:
+    raise SystemExit("No concrete iOS Simulator destinations were listed by xcodebuild.")
+
+for name, device_id in candidates:
+    if device_id == preferred_udid:
+        print(f"{name}\t{device_id}")
+        raise SystemExit(0)
+
+for name, device_id in candidates:
+    if name == preferred_name:
+        print(f"{name}\t{device_id}")
+        raise SystemExit(0)
+
+name, device_id = candidates[0]
+print(f"{name}\t{device_id}")
+PY
+)"
+
+  SIMULATOR_NAME="${resolved%%$'\t'*}"
+  SIMULATOR_UDID="${resolved#*$'\t'}"
+  SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+}
+
 verify_simulator_destination() {
   if ! xcrun simctl list devices booted -j | python3 -c '
 import json, sys
@@ -162,14 +227,30 @@ raise SystemExit(1)
     return 1
   fi
 
-  if ! xcodebuild -showdestinations \
-    -project Trinket.xcodeproj \
-    -scheme Trinket 2>/dev/null | grep -Fq "id:$SIMULATOR_UDID"; then
-    echo "xcodebuild does not list simulator destination id:$SIMULATOR_UDID" >&2
-    return 1
+  local attempt=1
+  local max_attempts=6
+  while (( attempt <= max_attempts )); do
+    if destination_listed_by_xcodebuild "$SIMULATOR_UDID"; then
+      echo "Verified xcodebuild destination: $SIMULATOR_DESTINATION"
+      return 0
+    fi
+    echo "Waiting for xcodebuild to list simulator $SIMULATOR_UDID (attempt $attempt/$max_attempts)..." >&2
+    sleep 10
+    ((attempt++))
+  done
+
+  echo "Booted simulator not listed by xcodebuild; resolving from -showdestinations..." >&2
+  align_destination_with_xcodebuild "$SIMULATOR_NAME" "$SIMULATOR_UDID"
+  boot_simulator_udid "$SIMULATOR_UDID" "$SIMULATOR_NAME"
+
+  if destination_listed_by_xcodebuild "$SIMULATOR_UDID"; then
+    echo "Verified xcodebuild destination: $SIMULATOR_DESTINATION"
+    return 0
   fi
 
-  echo "Verified xcodebuild destination: $SIMULATOR_DESTINATION"
+  echo "xcodebuild does not list simulator destination id:$SIMULATOR_UDID" >&2
+  xcodebuild_show_destinations >&2 || true
+  return 1
 }
 
 ensure_test_simulator() {
