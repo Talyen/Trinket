@@ -17,8 +17,11 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
             r"\bPrimaryStats\b",
             r"\bItemSlot\b",
             r"\bEffectKind\b",
+            r"\bEffectSummary\b",
             r"\bHomesteadTint\b",
             r"\bHomesteadResource\b",
+            r"\bHomesteadNodeID\b",
+            r"\bHomesteadNodeCategory\b",
             r"\bResourceAmount\b",
             r"\bAbilityTier\b",
             r"\bCombatantProgression\b",
@@ -51,9 +54,6 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
             r"\bStageReward\b",
             r"\bMusicTrack\b",
             r"\bMusicTrackKind\b",
-            r"\bJourneyProgressState\b",
-            r"\bStageCompletion\b",
-            r"\bStageCompletionContext\b",
         ],
     ),
     (
@@ -65,6 +65,10 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
             r"\bBattleSimulator\b",
             r"\bBattleOutcome\b",
             r"\bCombatOutcome\b",
+            r"\bActionEvent\b",
+            r"\bActionEventDisplay\b",
+            r"\bActionEventFormatter\b",
+            r"\bCombatBuild\b",
         ],
     ),
     (
@@ -73,6 +77,8 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
             r"\bPlayerSaveStore\b",
             r"\bPlayerRosterStore\b",
             r"\bPlayerInventoryStore\b",
+            r"\bPlayerInventoryState\b",
+            r"\bPlayerRosterState\b",
             r"\bPlayerHomesteadStore\b",
             r"\bPlayerJourneyStore\b",
             r"\bPlayerSaveSyncCoordinator\b",
@@ -83,6 +89,9 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
             r"\bPlayerSaveFileStore\b",
             r"\bPlayerSave\b",
             r"\bPlayerHomesteadState\b",
+            r"\bJourneyProgressState\b",
+            r"\bStageCompletion\b",
+            r"\bStageCompletionContext\b",
         ],
     ),
     (
@@ -95,6 +104,17 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
 ]
 
 IMPORT_LINE = re.compile(r"^import\s+(\S+)")
+IMPORT_SORT_ORDER = [
+    "BattleEngine",
+    "Foundation",
+    "Observation",
+    "SwiftUI",
+    "UIKit",
+    "TrinketContent",
+    "TrinketCore",
+    "TrinketDesignSystem",
+    "TrinketPersistence",
+]
 SKIP_FILES = {
     TRINKET / "App" / "ExportedDependencies.swift",
 }
@@ -108,25 +128,78 @@ def needed_imports(text: str) -> list[str]:
     return imports
 
 
+def import_sort_key(module: str) -> tuple[int, str]:
+    try:
+        return (IMPORT_SORT_ORDER.index(module), module)
+    except ValueError:
+        return (len(IMPORT_SORT_ORDER), module)
+
+
+def normalize_imports(lines: list[str]) -> list[str]:
+    prefix: list[str] = []
+    imports: list[str] = []
+    suffix: list[str] = []
+    section = "prefix"
+
+    for line in lines:
+        if line.startswith("import "):
+            module = IMPORT_LINE.match(line).group(1)  # type: ignore[union-attr]
+            if module not in imports:
+                imports.append(module)
+            section = "imports"
+            continue
+
+        if section == "imports" and line.strip() == "":
+            section = "suffix"
+            suffix.append(line)
+            continue
+
+        if section == "prefix":
+            prefix.append(line)
+        else:
+            suffix.append(line)
+
+    imports.sort(key=import_sort_key)
+
+    if not imports:
+        return lines
+
+    body: list[str] = []
+    if prefix:
+        body.extend(prefix)
+    body.extend(f"import {module}" for module in imports)
+    if suffix:
+        if body and body[-1].strip():
+            body.append("")
+        body.extend(suffix)
+
+    return body
+
+
 def apply_imports(path: Path) -> bool:
     text = path.read_text()
+    original_lines = text.splitlines()
     existing = {match.group(1) for match in IMPORT_LINE.finditer(text)}
     required = [module for module in needed_imports(text) if module not in existing]
-    if not required:
+
+    lines = list(original_lines)
+    if required:
+        insert_at = 0
+        for index, line in enumerate(lines):
+            if line.startswith("import "):
+                insert_at = index + 1
+            elif line.strip() and not line.startswith("//") and insert_at == 0:
+                break
+
+        for module in required:
+            lines.insert(insert_at, f"import {module}")
+            insert_at += 1
+
+    normalized = normalize_imports(lines)
+    if normalized == original_lines:
         return False
 
-    lines = text.splitlines()
-    insert_at = 0
-    for index, line in enumerate(lines):
-        if line.startswith("import "):
-            insert_at = index + 1
-        elif line.strip() and not line.startswith("//") and insert_at == 0:
-            break
-
-    for module in reversed(required):
-        lines.insert(insert_at, f"import {module}")
-
-    path.write_text("\n".join(lines) + "\n")
+    path.write_text("\n".join(normalized) + "\n")
     return True
 
 

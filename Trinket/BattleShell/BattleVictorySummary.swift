@@ -1,6 +1,7 @@
 import Foundation
 import TrinketCore
 
+
 struct BattleVictorySummary: Equatable {
     let stageGold: Int
     let battleGold: Int

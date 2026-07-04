@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
+
 struct CollectionView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?

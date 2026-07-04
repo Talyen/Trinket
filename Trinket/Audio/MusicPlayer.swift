@@ -1,6 +1,7 @@
-import AVFoundation
 import Foundation
 import TrinketContent
+import AVFoundation
+
 
 @MainActor
 final class MusicPlayer {

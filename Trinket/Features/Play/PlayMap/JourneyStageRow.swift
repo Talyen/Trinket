@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 
+
 struct JourneyStageRow: View {
     let node: VisibleStageNode
     let activeHero: Combatant

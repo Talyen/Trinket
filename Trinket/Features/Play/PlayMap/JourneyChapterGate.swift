@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
+
 struct JourneyChapterGate: View {
     let chapter: Chapter
 

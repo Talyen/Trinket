@@ -1,5 +1,7 @@
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
+
 
 struct HomesteadProjectStatus {
     let definition: HomesteadNodeDefinition

@@ -1,7 +1,10 @@
+import BattleEngine
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketPersistence
+
 
 enum CombatantDetailNavigationChrome {
     case visible

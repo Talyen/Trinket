@@ -1,5 +1,7 @@
 import SwiftUI
 import TrinketContent
+import TrinketPersistence
+
 
 struct CombatantCollectionDetailSelection: Identifiable, Hashable {
     enum Kind: Hashable {

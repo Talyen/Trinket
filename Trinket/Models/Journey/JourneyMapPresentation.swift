@@ -1,4 +1,6 @@
 import TrinketContent
+import TrinketPersistence
+
 
 enum JourneyMapPresentation {
     static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {

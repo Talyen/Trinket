@@ -2,6 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketPersistence
 
+
 extension AppState {
     var playChapter: Chapter {
         GameContent.chapter(id: journey.current.activeChapterID) ?? GameContent.chapters[0]

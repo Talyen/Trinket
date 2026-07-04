@@ -2,6 +2,8 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketPersistence
+
 
 enum InventoryFilter: String, CaseIterable, Identifiable {
     case all = "All"

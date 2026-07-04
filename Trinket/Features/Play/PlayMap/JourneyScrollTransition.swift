@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct JourneyScrollTransition: ViewModifier {
     let isEnabled: Bool
 

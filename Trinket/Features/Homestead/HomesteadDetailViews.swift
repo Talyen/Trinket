@@ -4,6 +4,7 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+
 struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

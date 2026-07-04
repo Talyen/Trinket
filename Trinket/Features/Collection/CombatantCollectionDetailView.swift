@@ -1,6 +1,8 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketPersistence
+
 
 struct CombatantCollectionDetailView: View {
     @Environment(AppState.self) private var appState
