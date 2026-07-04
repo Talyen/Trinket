@@ -81,7 +81,7 @@ struct StageNodeView: View {
             .tint(stage.encounter.mapTint)
             .accessibilityIdentifier(StageMapID.stageNode(for: stage))
             .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title), \(stageSubtitle)")
-            .accessibilityHint("Opens the stage preview.")
+            .accessibilityHint("Starts this stage.")
         } else {
             Label(style.label, systemImage: style.symbolName)
                 .font(.caption.weight(.semibold))

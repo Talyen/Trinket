@@ -12,6 +12,7 @@ public final class PlayerSaveStore {
         category: "PlayerSave"
     )
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
+    public private(set) var loadedFromDisk = false
     public var onLocalSave: ((PlayerSave) -> Void)?
 
     public var journey: JourneyProgressState {
@@ -40,8 +41,12 @@ public final class PlayerSaveStore {
 
     public init(fileStore: PlayerSaveFileStore = PlayerSaveFileStore()) {
         self.fileStore = fileStore
-        let loaded = fileStore.load() ?? .fresh
-        save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
+        if let loaded = fileStore.load() {
+            loadedFromDisk = true
+            save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
+        } else {
+            save = PlayerSaveSanitizer.sanitize(.fresh)
+        }
     }
 
     public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
@@ -51,16 +56,17 @@ public final class PlayerSaveStore {
     public func resetGameplayProgress() throws {
         var fresh = PlayerSave.fresh
         fresh.sessionGeneration = save.sessionGeneration &+ 1
-        try commitSave(fresh)
+        try commitLocalSave(fresh)
     }
 
     public func applyTestSeed() throws {
-        try commitSave(.testSeed)
+        try commitLocalSave(.testSeed)
     }
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
-        try commitSave(migrated)
+        try commitExternalSave(migrated)
+        loadedFromDisk = true
     }
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {
@@ -78,16 +84,43 @@ public final class PlayerSaveStore {
         var candidate = save
         update(&candidate)
         candidate = PlayerSaveSanitizer.sanitize(candidate)
-        try commitSave(candidate)
+        try commitLocalSave(candidate)
     }
 
-    private func commitSave(_ candidate: PlayerSave) throws {
+    private func commitLocalSave(_ candidate: PlayerSave) throws {
         let persisted = PlayerSaveSanitizer.sanitize(candidate.markedLocalMutation())
+        try persistSave(persisted, notifySync: true)
+    }
+
+    private func commitExternalSave(_ candidate: PlayerSave) throws {
+        let persisted = PlayerSaveSanitizer.sanitize(candidate)
+        try persistSave(persisted, notifySync: false)
+    }
+
+    private func persistSave(_ persisted: PlayerSave, notifySync: Bool) throws {
         try PlayerSaveSanitizer.validate(persisted)
-        try fileStore.save(persisted)
-        save = persisted
-        lastPersistenceError = nil
-        onLocalSave?(save)
+        var lastError: Error?
+        for _ in 1 ... 3 {
+            do {
+                try fileStore.save(persisted)
+                save = persisted
+                loadedFromDisk = true
+                lastPersistenceError = nil
+                if notifySync {
+                    onLocalSave?(save)
+                }
+                return
+            } catch let error as PlayerSavePersistenceError {
+                lastError = error
+            } catch {
+                lastError = error
+            }
+        }
+        if let error = lastError as? PlayerSavePersistenceError {
+            lastPersistenceError = error
+            throw error
+        }
+        throw lastError ?? PlayerSavePersistenceError.writeFailed
     }
 
     private func resolvedRoster() -> PlayerRosterState {

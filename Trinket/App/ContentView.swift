@@ -76,6 +76,12 @@ struct ContentView: View {
                 Task {
                     await appState.syncCoordinator.checkpointUploadIfNeeded()
                 }
+            } else if newPhase == .active {
+                Task {
+                    await appState.syncCoordinator.reconcileForegroundIfSafe(
+                        hasActiveBattle: appState.battle.activeBattle != nil
+                    )
+                }
             }
         }
     }

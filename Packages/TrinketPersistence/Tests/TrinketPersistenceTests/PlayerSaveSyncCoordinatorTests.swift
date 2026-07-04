@@ -79,7 +79,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(uploadCount, 0)
     }
 
-    func testReconcileUploadsWhenLocalIsNewer() async throws {
+    func testReconcileMergesWhenSessionGenerationMatches() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,
             localSave: SaveTestSupport.makeSave(modifiedAt: later, gold: 42),
@@ -89,11 +89,11 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.coordinator.pullAndReconcile()
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
+        XCTAssertEqual(fixture.store.roster.gold, 42)
         let fetchCount = await fixture.mock.fetchCallCount()
-        let uploads = await fixture.mock.uploadedSavesSnapshot()
+        let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(fetchCount, 1)
-        XCTAssertEqual(uploads.count, 1)
-        XCTAssertEqual(uploads.first?.roster.gold, 42)
+        XCTAssertEqual(uploadCount, 0)
     }
 
     func testRemoteMissingUploadsLocalOnReconcile() async throws {

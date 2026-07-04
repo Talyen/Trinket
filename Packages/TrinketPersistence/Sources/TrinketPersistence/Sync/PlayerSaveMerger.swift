@@ -5,10 +5,11 @@ import TrinketCore
 /// Field-wise merge for divergent local and remote saves.
 public enum PlayerSaveMerger {
     public static func merge(_ local: PlayerSave, _ remote: PlayerSave) -> PlayerSave {
+        let preferRemote = remote.modifiedAt > local.modifiedAt
         var merged = local.modifiedAt >= remote.modifiedAt ? local : remote
         merged.journey = mergeJourney(local.journey, remote.journey)
-        merged.roster = mergeRoster(local.roster, remote.roster)
-        merged.inventory = mergeInventory(local.inventory, remote.inventory)
+        merged.roster = mergeRoster(local.roster, remote.roster, preferRemote: preferRemote)
+        merged.inventory = mergeInventory(local.inventory, remote.inventory, preferRemote: preferRemote)
         merged.homestead = mergeHomestead(local.homestead, remote.homestead)
         merged.modifiedAt = max(local.modifiedAt, remote.modifiedAt)
         merged.schemaVersion = PlayerSave.currentSchemaVersion
@@ -49,14 +50,18 @@ public enum PlayerSaveMerger {
         return PlayerSaveSanitizer.latestStageID(in: Set(candidates), chapters: GameContent.chapters)
     }
 
-    private static func mergeRoster(_ local: SavedRosterState, _ remote: SavedRosterState) -> SavedRosterState {
+    private static func mergeRoster(
+        _ local: SavedRosterState,
+        _ remote: SavedRosterState,
+        preferRemote: Bool
+    ) -> SavedRosterState {
         var merged = local.gold >= remote.gold ? local : remote
         merged.gold = max(local.gold, remote.gold)
         merged.unlockedHeroIDs = Array(Set(local.unlockedHeroIDs).union(remote.unlockedHeroIDs)).sorted()
         merged.unlockedPetIDs = Array(Set(local.unlockedPetIDs).union(remote.unlockedPetIDs)).sorted()
         merged.progressions = mergeProgressions(local.progressions, remote.progressions)
-        merged.abilityLoadouts = local.abilityLoadouts.merging(remote.abilityLoadouts) { current, _ in current }
-        merged.equipmentLoadouts = local.equipmentLoadouts.merging(remote.equipmentLoadouts) { current, _ in current }
+        merged.abilityLoadouts = local.abilityLoadouts.merging(remote.abilityLoadouts) { preferRemote ? $1 : $0 }
+        merged.equipmentLoadouts = local.equipmentLoadouts.merging(remote.equipmentLoadouts) { preferRemote ? $1 : $0 }
         if !merged.unlockedHeroIDs.contains(merged.activeHeroID) {
             merged.activeHeroID = merged.unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID
         }
@@ -99,14 +104,24 @@ public enum PlayerSaveMerger {
 
     private static func mergeInventory(
         _ local: SavedInventoryState,
-        _ remote: SavedInventoryState
+        _ remote: SavedInventoryState,
+        preferRemote: Bool
     ) -> SavedInventoryState {
         var itemsByID: [String: SavedInventoryItem] = [:]
-        for item in remote.items {
-            itemsByID[item.id] = item
-        }
-        for item in local.items {
-            itemsByID[item.id] = item
+        if preferRemote {
+            for item in local.items {
+                itemsByID[item.id] = item
+            }
+            for item in remote.items {
+                itemsByID[item.id] = item
+            }
+        } else {
+            for item in remote.items {
+                itemsByID[item.id] = item
+            }
+            for item in local.items {
+                itemsByID[item.id] = item
+            }
         }
         var merged = local
         merged.items = Array(itemsByID.values)

@@ -61,8 +61,10 @@ public struct PlayerSaveFileStore {
         ensureDirectoryExists()
 
         if fileManager.fileExists(atPath: saveFileURL.path) {
-            try? fileManager.removeItem(at: backupFileURL)
-            try? fileManager.copyItem(at: saveFileURL, to: backupFileURL)
+            if fileManager.fileExists(atPath: backupFileURL.path) {
+                try fileManager.removeItem(at: backupFileURL)
+            }
+            try fileManager.copyItem(at: saveFileURL, to: backupFileURL)
         }
 
         let temporaryURL = directoryURL.appendingPathComponent("PlayerSave.json.tmp")
