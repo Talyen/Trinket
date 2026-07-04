@@ -6,14 +6,22 @@ import XCTest
 @MainActor
 final class AppStatePlayFlowTests: XCTestCase {
     private var directoryURL: URL!
+    private var defaults: UserDefaults!
+    private var suiteName: String!
 
     override func setUp() async throws {
         try await super.setUp()
         directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "AppStatePlayFlowTests")
+        suiteName = "AppStatePlayFlowTests.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
+        defaults.removePersistentDomain(forName: suiteName)
     }
 
     override func tearDown() async throws {
         SaveTestSupport.removeTempDirectory(directoryURL)
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults = nil
+        suiteName = nil
         try await super.tearDown()
     }
 
@@ -179,5 +187,134 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
         XCTAssertTrue(state.playerSave.hasPendingPersist)
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
+    }
+
+    // MARK: - Session state restoration
+
+    func testSessionTabRestored() throws {
+        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertEqual(state.selectedTab, .homestead)
+    }
+
+    func testSessionTabOverriddenByEnv() throws {
+        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+
+        let state = AppTestSupport.makeAppState(
+            arguments: ["-selectedTab", "options"],
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertEqual(state.selectedTab, .options)
+    }
+
+    func testSessionTabDefaultWhenNoSavedState() throws {
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertEqual(state.selectedTab, .play)
+    }
+
+    func testSessionBattleRestored() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertNotNil(state.battle.activeBattle)
+        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+        XCTAssertEqual(state.selectedTab, .play)
+    }
+
+    func testSessionBattleNotRestoredWhenLaunchScreenBattle() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+
+        let state = AppTestSupport.makeAppState(
+            arguments: ["-launch-screen", "battle"],
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        // launch-screen battle uses the hardcoded stage, not the session one
+        XCTAssertNotNil(state.battle.activeBattle)
+        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+    }
+
+    func testSessionStaleStageIDIgnored() throws {
+        defaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
+    }
+
+    func testSessionBattleClearedOnEndBattle() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        XCTAssertNotNil(state.battle.activeBattle)
+
+        state.battle.endBattle()
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
+    }
+
+    func testResetGameplayProgressClearsSessionBattleState() throws {
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = state.battle.startBattle(
+            stage: stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet,
+            roster: state.roster,
+            inventory: state.inventory
+        )
+        state.sessionState.mapScrollStageID = "chapter-1-stage-2"
+
+        state.resetGameplayProgress()
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
+        XCTAssertNil(state.sessionState.mapScrollStageID)
+    }
+
+    func testSessionBattleStageIDSetOnStartBattle() throws {
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
+
+        _ = state.battle.startBattle(
+            stage: stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet,
+            roster: state.roster,
+            inventory: state.inventory
+        )
+
+        XCTAssertEqual(state.sessionState.activeBattleStageID, "chapter-1-stage-1")
     }
 }

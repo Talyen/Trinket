@@ -1,0 +1,42 @@
+import Foundation
+
+@Observable
+final class SessionStateStore {
+    private let defaults: UserDefaults
+
+    var selectedTab: AppTab? {
+        didSet { defaults.set(selectedTab?.rawValue, forKey: Self.tabKey) }
+    }
+
+    var activeBattleStageID: String? {
+        didSet { defaults.set(activeBattleStageID, forKey: Self.activeBattleStageIDKey) }
+    }
+
+    var mapScrollStageID: String? {
+        didSet { defaults.set(mapScrollStageID, forKey: Self.mapScrollStageIDKey) }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let raw = defaults.string(forKey: Self.tabKey) {
+            selectedTab = AppTab(rawValue: raw)
+        }
+        activeBattleStageID = defaults.string(forKey: Self.activeBattleStageIDKey)
+        mapScrollStageID = defaults.string(forKey: Self.mapScrollStageIDKey)
+    }
+
+    func clearBattleState() {
+        activeBattleStageID = nil
+        mapScrollStageID = nil
+    }
+
+    func clearAll() {
+        selectedTab = nil
+        activeBattleStageID = nil
+        mapScrollStageID = nil
+    }
+
+    private static let tabKey = "session.selectedTab"
+    private static let activeBattleStageIDKey = "session.activeBattleStageID"
+    private static let mapScrollStageIDKey = "session.mapScrollStageID"
+}

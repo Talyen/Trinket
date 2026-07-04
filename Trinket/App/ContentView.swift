@@ -46,7 +46,8 @@ struct ContentView: View {
             syncBattlePauseForCurrentTab()
             refreshMusicRoute(scenePhase: scenePhase)
         }
-        .onChange(of: appState.selectedTab) { _, _ in
+        .onChange(of: appState.selectedTab) { _, newTab in
+            appState.sessionState.selectedTab = newTab
             if appState.battle.activeBattle != nil {
                 // Leaving Play pauses combat; returning stays paused until the player resumes.
                 appState.battle.isPaused = true

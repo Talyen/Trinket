@@ -17,6 +17,7 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
+    let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantCollectionDetailSelection?
     let initialCollectionItemID: String?
 
@@ -28,9 +29,10 @@ final class AppState {
         userDefaults: UserDefaults? = nil
     ) {
         let env = environment
+        let resolvedDefaults = userDefaults ?? .standard
         let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
         if env.resetState {
-            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
             resolvedFileStore.deleteSave()
         }
 
@@ -40,10 +42,12 @@ final class AppState {
         }
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
-        let resolvedOptions = OptionsStore(defaults: userDefaults ?? .standard)
+        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
         if let themeOverride = env.themeOverride {
             resolvedOptions.theme = themeOverride
         }
+
+        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
 
         self.playerSave = resolvedPlayerSave
         syncCoordinator = PlayerSaveSyncCoordinator(sync: resolvedSync, playerSaveStore: resolvedPlayerSave)
@@ -55,14 +59,39 @@ final class AppState {
         options = resolvedOptions
         battle = BattleSession()
         journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
+        sessionState = resolvedSessionState
         initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
         initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
-        selectedTab = env.launchTab ?? Self.defaultTab(for: env.launchScreen)
+
+        // Tab precedence: environment arg > session state > default
+        if let envTab = env.launchTab {
+            selectedTab = envTab
+        } else if env.launchScreen != nil {
+            selectedTab = Self.defaultTab(for: env.launchScreen)
+        } else if let savedTab = sessionState.selectedTab {
+            selectedTab = savedTab
+        } else {
+            selectedTab = .play
+        }
+
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
         if let mapScrollTarget = env.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
+        } else if let savedScrollTarget = sessionState.mapScrollStageID {
+            journey.requestMapScroll(to: savedScrollTarget)
         }
+
         applyLaunchScreenActions(environment: env)
+
+        // Restore battle from session if no launch-screen battle was requested
+        if env.launchScreen != .battle, let stageID = sessionState.activeBattleStageID {
+            startRestoredBattle(stageID: stageID)
+        }
+
+        // Wire session state updates from battle lifecycle
+        battle.onBattleStateChange = { [weak self] stageID in
+            self?.sessionState.activeBattleStageID = stageID
+        }
     }
 
     private func applyLaunchScreenActions(environment: AppEnvironment) {
@@ -91,9 +120,30 @@ final class AppState {
 
     private static let launchBattleStageID = "chapter-1-stage-1"
 
+    private func startRestoredBattle(stageID: String) {
+        guard let stage = GameContent.chapters
+            .flatMap(\.stages)
+            .first(where: { $0.id == stageID }),
+              case .battle = stage.encounter
+        else {
+            sessionState.activeBattleStageID = nil
+            return
+        }
+
+        _ = battle.startBattle(
+            stage: stage,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            roster: roster,
+            inventory: inventory
+        )
+        selectedTab = .play
+    }
+
     func resetGameplayProgress() {
         try? playerSave.resetGameplayProgress()
         battle.endBattle()
+        sessionState.clearBattleState()
         journey.mapScrollRequest = nil
         Task {
             await syncCoordinator.uploadImmediately(playerSave.currentSave)

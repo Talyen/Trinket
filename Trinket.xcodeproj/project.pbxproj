@@ -50,6 +50,7 @@
 		5699485F54690CFC73CB24D5 /* CombatantFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A604A9E0409FC2318EA6DB4B /* CombatantFixtures.swift */; };
 		58964BED59FF6AEEC43856CB /* TrinketContent in Frameworks */ = {isa = PBXBuildFile; productRef = 16AE1F6E42FEAB883DB2CB3E /* TrinketContent */; };
 		59736C3FD2F58471C6DC5534 /* Journey+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF030A34FF4BA9D3B829A66B /* Journey+Presentation.swift */; };
+		5A443C6F3C6657CAA87B24FA /* SessionStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C492FE3295CDD44769348D57 /* SessionStateStore.swift */; };
 		5B18A0250A2237D41BE2D297 /* PlaceholderTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F4ECC4FED5B8FAF1266863 /* PlaceholderTabView.swift */; };
 		5B79BA6E67258B8C9CDB6FA1 /* PlayFlowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B9BF677FE0BEB4C09DD66BD /* PlayFlowCoordinator.swift */; };
 		5C9A202736053647F011A2A4 /* music_boss_blight_treant.m4a in Resources */ = {isa = PBXBuildFile; fileRef = F11B241CDB6DAA90DC7E1311 /* music_boss_blight_treant.m4a */; };
@@ -101,6 +102,7 @@
 		A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */; };
 		AA99780B3FAE6ACF16BC62FE /* AppTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8318319571E08647A424C82 /* AppTestSupport.swift */; };
 		AABB9B3A57BDA3409E37F833 /* CombatFeedbackOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */; };
+		AEBB4FC8F25FA1A431007BFA /* SessionStateStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75D32D7253C1FD8CD805DFD /* SessionStateStoreTests.swift */; };
 		AEDD4527F082E7ABA4521B8F /* AbilityCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71B79EAE04A82ABAD865742 /* AbilityCard.swift */; };
 		B47074250012BAA11AF30B24 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23440CC93C6AF578800C827 /* Enums.swift */; };
 		B55FDF0B6DB7A601885C431D /* MusicDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899EEFA79785C3120C8C8E1E /* MusicDirector.swift */; };
@@ -286,6 +288,7 @@
 		C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordDescriptionText.swift; sourceTree = "<group>"; };
 		C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetsGridView.swift; sourceTree = "<group>"; };
 		C43A50775733A11230CAAA95 /* SmokePlayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokePlayTests.swift; sourceTree = "<group>"; };
+		C492FE3295CDD44769348D57 /* SessionStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStateStore.swift; sourceTree = "<group>"; };
 		C4E8582E665966D926FE0BE2 /* BattleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleLogSheet.swift; sourceTree = "<group>"; };
 		C55218B0202C07C8ADF98E68 /* MusicDirectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDirectorTests.swift; sourceTree = "<group>"; };
 		C7B564718B8D5A2471C70B61 /* SmokeSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeSearchTests.swift; sourceTree = "<group>"; };
@@ -317,6 +320,7 @@
 		F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailSheet.swift; sourceTree = "<group>"; };
 		F5D3EF948D89460BB07123D6 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
 		F600F8987D9536A536F5C513 /* ChapterStageSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterStageSelectView.swift; sourceTree = "<group>"; };
+		F75D32D7253C1FD8CD805DFD /* SessionStateStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStateStoreTests.swift; sourceTree = "<group>"; };
 		F831763803FCF781C5CF74E0 /* ChapterJourneyPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterJourneyPresentation.swift; sourceTree = "<group>"; };
 		F86390BDE7F14CD4871091E4 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		F936A07112C96FCAFFE9A414 /* ActivePartyPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivePartyPickerRow.swift; sourceTree = "<group>"; };
@@ -643,6 +647,7 @@
 			isa = PBXGroup;
 			children = (
 				B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */,
+				F75D32D7253C1FD8CD805DFD /* SessionStateStoreTests.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -800,6 +805,7 @@
 				E54669B75A4E2ED6D6E1D3FF /* BattleSession.swift */,
 				E4B491A0A9519D754A3DAAF9 /* OptionsStore.swift */,
 				7B9BF677FE0BEB4C09DD66BD /* PlayFlowCoordinator.swift */,
+				C492FE3295CDD44769348D57 /* SessionStateStore.swift */,
 				EDCFC0AEFF4D3203D0A42EC2 /* Persistence */,
 			);
 			path = State;
@@ -1120,6 +1126,7 @@
 				554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */,
 				6938B1F5CE207A7240BE8EC8 /* PlayerSaveSyncFactory.swift in Sources */,
 				9C8E96DB792798B0B7ED4AC0 /* SearchView.swift in Sources */,
+				5A443C6F3C6657CAA87B24FA /* SessionStateStore.swift in Sources */,
 				DADCDE448587F4820BE03CD5 /* StageMapPresentation.swift in Sources */,
 				10A6F43A5C53F50FFF127070 /* StageStatusHeader.swift in Sources */,
 				C5E487CC286D93FF516EA957 /* TrinketApp.swift in Sources */,
@@ -1150,6 +1157,7 @@
 				A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */,
 				9DB610E0ACCB02E8895D727B /* PlayerSaveSyncFactoryTests.swift in Sources */,
 				D77DC069021AFAADD69A8460 /* SaveTestSupport.swift in Sources */,
+				AEBB4FC8F25FA1A431007BFA /* SessionStateStoreTests.swift in Sources */,
 				C751A1A56C507A7C2911B53E /* StageMapPresentationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

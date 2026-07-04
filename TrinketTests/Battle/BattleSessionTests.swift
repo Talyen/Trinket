@@ -226,10 +226,14 @@ final class BattleSessionTests: XCTestCase {
     }
 
     private func makeAppState() -> AppState {
-        AppState(
+        let suiteName = "BattleSessionTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        return AppState(
             environment: AppEnvironment.parse(arguments: [], environment: [:]),
             sync: sync,
-            fileStore: PlayerSaveFileStore(directoryURL: directoryURL)
+            fileStore: PlayerSaveFileStore(directoryURL: directoryURL),
+            userDefaults: defaults
         )
     }
 }

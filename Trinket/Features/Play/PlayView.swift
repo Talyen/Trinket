@@ -42,6 +42,7 @@ struct PlayView: View {
 
     private func handleStageTap(_ stage: Stage) {
         if appState.journey.current.isActive(stage) {
+            appState.sessionState.mapScrollStageID = stage.id
             handlePrimaryAction(for: stage)
         }
     }
