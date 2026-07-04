@@ -30,10 +30,10 @@ public extension PrimaryStats {
         return t / (t + 50.0)
     }
 
-    /// Stun/freeze prevention buildup threshold for a combatant with the given
+    /// Stun/freeze control-meter buildup threshold for a combatant with the given
     /// effective max health (`base max + toughness`). Mirrors the prior
     /// `ControlMeterEngine` / roster max-health formula.
-    public func preventionThreshold(baseMaxHealth: Int) -> Int {
+    public func controlMeterThreshold(baseMaxHealth: Int) -> Int {
         let baseThreshold = Double(baseMaxHealth) * 0.20
         let agilityResist = 1.0 + Double(agility) * 0.01
         return max(1, Int(ceil(baseThreshold * agilityResist)))

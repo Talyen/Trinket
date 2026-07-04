@@ -7,6 +7,7 @@ import TrinketContent
 /// Shared combatants, battle setup, and tick helpers for battle integration tests.
 /// Handler-level behavior lives in `EffectHandlersTests`.
 /// Presentation strings live in `ActionEventFormatterTests` / `EffectSummaryBuilderTests`.
+/// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
     static func passiveCombatant(
         id: String,
@@ -107,6 +108,46 @@ enum BattleTestFixtures {
             activePetEffects: activePetEffects,
             initialGold: initialGold
         )
+    }
+
+    // MARK: - Control meter integration
+
+    static func partyWithPendingActionSkip(
+        keyword: Keyword,
+        hero: Combatant? = nil,
+        pet: Combatant? = nil,
+        enemy: Combatant? = nil
+    ) -> BattleState {
+        let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
+        let resolvedPet = pet ?? passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
+        let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
+        return standardParty(
+            hero: resolvedHero,
+            pet: resolvedPet,
+            enemy: resolvedEnemy,
+            activeEnemyEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(keyword, 1, 1), remainingTicks: 0)
+            ]
+        )
+    }
+
+    static func assertActionSkipConsumed(
+        step: BattleStep,
+        actorID: String,
+        keyword: Keyword,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        if case let .acted(actor, events) = step {
+            XCTAssertEqual(actor.id, actorID, file: file, line: line)
+            XCTAssertTrue(
+                events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword },
+                file: file,
+                line: line
+            )
+        } else {
+            XCTFail("Expected action skip on turn for \(actorID)", file: file, line: line)
+        }
     }
 
     /// Advances `count` ticks and returns every event emitted along the way.

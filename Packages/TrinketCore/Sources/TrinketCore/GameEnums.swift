@@ -38,7 +38,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         }
     }
 
-    /// Player-facing status label for prevention and DoT effects. Shares styling with the parent keyword.
+    /// Player-facing status label for control effects and DoT effects. Shares styling with the parent keyword.
     public var statusAlias: String? {
         switch self {
         case .freeze: return "Frozen"

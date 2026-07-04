@@ -12,7 +12,7 @@ import TrinketContent
 /// 3. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
 /// 4. Otherwise pick the next ready actor (at most one acts per step) using roster
 ///    scheduling rules.
-/// 5. Execute that actor's turn (or consume prevention), append defeat milestones
+/// 5. Execute that actor's turn (or consume a control effect), append defeat milestones
 ///    if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
 public enum BattleLoopEngine {
     public static func advanceOneStep(

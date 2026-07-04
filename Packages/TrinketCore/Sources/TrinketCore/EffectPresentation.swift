@@ -5,7 +5,7 @@ import Foundation
 public enum EffectPresentation {
     public static func applyPhrase(for effect: Effect) -> String {
         if let phrase = dotPhrase(for: effect) { return phrase }
-        if let phrase = preventionPhrase(for: effect) { return phrase }
+        if let phrase = controlPhrase(for: effect) { return phrase }
         if let phrase = defensivePhrase(for: effect) { return phrase }
         if let phrase = restorationPhrase(for: effect) { return phrase }
         if let phrase = cleansePhrase(for: effect) { return phrase }
@@ -49,7 +49,7 @@ public enum EffectPresentation {
         }
     }
 
-    private static func preventionPhrase(for effect: Effect) -> String? {
+    private static func controlPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .controlMeter(keyword, _, _):
             return "builds toward \(keyword.statusAlias ?? keyword.rawValue)"

@@ -45,7 +45,7 @@ public enum BattleTurnEngine {
 
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .preventionSkipped,
+            effectKind: .controlActionSkipped,
             actorName: keyword.statusAlias ?? keyword.rawValue,
             abilityName: keyword.statusAlias ?? keyword.rawValue,
             target: actor,

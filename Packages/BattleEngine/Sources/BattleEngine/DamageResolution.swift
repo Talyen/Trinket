@@ -26,7 +26,7 @@ package struct DamageResolutionState {
     /// `ItemReductionStep` from `remaining`, before shields absorb damage.
     public var buildupDamage: Int = 0
 
-    /// Stat and item bonus components used by the prevention-buildup step.
+    /// Stat and item bonus components used by the control-meter buildup step.
     public var statBonus: Int = 0
     public var itemBonus: Int = 0
 
@@ -38,7 +38,7 @@ package struct DamageResolutionState {
     /// Health actually subtracted by `TakeDamageStep`.
     public var healthLost: Int = 0
 
-    /// Accumulated events emitted by the dodge, shield, and prevention steps.
+    /// Accumulated events emitted by the dodge, shield, and control-meter steps.
     public var damageEvents: [ActionEvent] = []
 
     /// Set to `true` by `DodgeGateStep` when the incoming attack is dodged;
@@ -251,7 +251,7 @@ package struct LeechStep: DamageStep {
     }
 }
 
-/// Step 8: for `.stun` or `.freeze` keywords, applies a prevention
+/// Step 8: for `.stun` or `.freeze` keywords, applies control-meter
 /// buildup against the target using post-mitigation, pre-shield damage.
 package struct ControlMeterStep: DamageStep {
     public static let stepName = "ControlMeter"

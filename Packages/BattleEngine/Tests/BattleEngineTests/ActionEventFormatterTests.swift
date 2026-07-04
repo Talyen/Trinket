@@ -105,35 +105,35 @@ final class ActionEventFormatterTests: XCTestCase {
         XCTAssertEqual(display.emphasis, .shieldAbsorbed)
     }
 
-    // MARK: - Prevention
+    // MARK: - Control meter
 
-    func testPreventionSkippedFormatsAsKeyword() {
+    func testControlActionSkippedFormatsAsKeyword() {
         let display = ActionEventFormatter.display(
-            for: event(kind: .effect, effectKind: .preventionSkipped, keyword: .stun)
+            for: event(kind: .effect, effectKind: .controlActionSkipped, keyword: .stun)
         )
         XCTAssertEqual(display.text, "Stun")
-        XCTAssertEqual(display.emphasis, .prevention)
+        XCTAssertEqual(display.emphasis, .control)
     }
 
-    func testPreventionAppliedFormatsAsPositiveKeyword() {
+    func testControlAppliedFormatsAsPositiveKeyword() {
         let display = ActionEventFormatter.display(
-            for: event(kind: .effect, effectKind: .preventionApplied, keyword: .stun)
+            for: event(kind: .effect, effectKind: .controlApplied, keyword: .stun)
         )
         XCTAssertEqual(display.text, "+Stun")
-        XCTAssertEqual(display.emphasis, .prevention)
+        XCTAssertEqual(display.emphasis, .control)
     }
 
-    func testPreventionTriggeredUsesStatusAlias() {
+    func testControlTriggeredUsesStatusAlias() {
         let display = ActionEventFormatter.display(
-            for: event(kind: .effect, effectKind: .preventionTriggered, keyword: .stun)
+            for: event(kind: .effect, effectKind: .controlTriggered, keyword: .stun)
         )
         XCTAssertEqual(display.text, "Stunned!")
-        XCTAssertEqual(display.emphasis, .prevention)
+        XCTAssertEqual(display.emphasis, .control)
     }
 
-    func testPreventionTriggeredForFreezeUsesStatusAlias() {
+    func testControlTriggeredForFreezeUsesStatusAlias() {
         let display = ActionEventFormatter.display(
-            for: event(kind: .effect, effectKind: .preventionTriggered, keyword: .freeze)
+            for: event(kind: .effect, effectKind: .controlTriggered, keyword: .freeze)
         )
         XCTAssertEqual(display.text, "Frozen!")
     }

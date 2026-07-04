@@ -26,9 +26,9 @@ public struct ActionEvent: Identifiable, Equatable {
         case shieldApplied
         case mitigationApplied
         case shieldAbsorbed
-        case preventionSkipped
-        case preventionApplied
-        case preventionTriggered
+        case controlActionSkipped
+        case controlApplied
+        case controlTriggered
         case cleanseApplied
         case purgeApplied
         case dodgeApplied

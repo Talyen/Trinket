@@ -6,6 +6,7 @@ import TrinketContent
 /// Integration tests that stats flow correctly through full battle ticks.
 /// Pure formula coverage lives in `TrinketCoreTests/PrimaryStatsRulesTests`.
 /// Runtime health, interval, and heal math live in `CombatantRuntimeTests`.
+/// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
 final class StatIntegrationTests: XCTestCase {
     private struct DirectDamageCase {
         let ability: Ability
@@ -135,9 +136,9 @@ final class StatIntegrationTests: XCTestCase {
         XCTAssertGreaterThan(100 - beforeHeal, 3)
     }
 
-    // MARK: - Agility prevention
+    // MARK: - Agility control meter
 
-    func testAgilityRaisesPreventionThreshold() {
+    func testAgilityRaisesControlMeterThresholdInBattle() {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(agility: 20, toughness: 1),
@@ -168,13 +169,6 @@ final class StatIntegrationTests: XCTestCase {
         }
 
         XCTAssertNotNil(buildupValues)
-        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.preventionThreshold(baseMaxHealth: 101))
-    }
-
-    // MARK: - Defaults
-
-    func testCombatantDefaultsToZeroStats() {
-        let hero = Combatant(id: "h", name: "H", role: .hero, maxHealth: 10, abilities: [.slash])
-        XCTAssertEqual(hero.primaryStats, PrimaryStats())
+        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
     }
 }

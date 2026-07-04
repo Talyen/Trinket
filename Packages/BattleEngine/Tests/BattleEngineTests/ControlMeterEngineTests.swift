@@ -30,7 +30,7 @@ final class ControlMeterEngineTests: XCTestCase {
         )
     }
 
-    func testApplyBuildupTriggersPreventionAtThreshold() {
+    func testApplyBuildupTriggersControlAtThreshold() {
         var context = makeContext(seed: 0)
         let events = ControlMeterEngine.applyMeterCharge(
             15,
@@ -39,7 +39,7 @@ final class ControlMeterEngineTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
+        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
     }
 
     func testApplyBuildupNoDuplicateWhenSameKeywordSkipPending() {
@@ -99,7 +99,7 @@ final class ControlMeterEngineTests: XCTestCase {
         XCTAssertEqual(meters.count, 2)
     }
 
-    func testContextPreventionDelegatesToControlMeterEngine() {
+    func testContextControlMeterDelegatesToControlMeterEngine() {
         var contextContext = makeContext(seed: 0)
         var engineContext = makeContext(seed: 0)
         let target = contextContext.roster.enemy.combatant
@@ -115,5 +115,28 @@ final class ControlMeterEngineTests: XCTestCase {
             contextEvents.map(\.effectKind),
             engineEvents.map(\.effectKind)
         )
+    }
+
+    func testOverflowChargeIsConsumedOnTrigger() {
+        var context = makeContext(targetMaxHealth: 100, seed: 0)
+        let target = context.roster.enemy.combatant
+
+        let events = ControlMeterEngine.applyMeterCharge(
+            50,
+            keyword: .stun,
+            to: target,
+            sourceActorID: "source",
+            in: &context
+        )
+
+        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
+        XCTAssertNil(
+            context.roster.activeEffects(for: target).first {
+                guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
+                return amount < threshold
+            },
+            "Partial build-up should be consumed on trigger"
+        )
+        XCTAssertTrue(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 }

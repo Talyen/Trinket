@@ -178,7 +178,7 @@ final class CombatPipelineTests: XCTestCase {
     func testApplyControlMeterAccumulatesAndTriggersAtThreshold() {
         var context = makeContext(seed: 0)
         let events = context.applyControlMeter(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
-        XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
+        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
         XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: \.effect.isActionSkipPending))
     }
 
@@ -303,7 +303,7 @@ final class CombatPipelineTests: XCTestCase {
 
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
         let threshold = buildup?.effect.controlMeterValues?.threshold
-        let expected = target.primaryStats.preventionThreshold(baseMaxHealth: 100)
+        let expected = target.primaryStats.controlMeterThreshold(baseMaxHealth: 100)
         XCTAssertEqual(threshold, expected)
     }
 

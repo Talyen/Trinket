@@ -82,6 +82,7 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`
 
 - **Naming:** `test<Behavior>When<Condition>` — e.g. `testLocalMutationSchedulesDebouncedUpload`.
 - **Battle rules:** `BattleStateTestFactory.makeBattle(...)` instead of raw `BattleState(...)`.
+- **BattleEngine ownership:** see `Packages/BattleEngine/Tests/README.md` — each mechanic has one primary test owner; integration files stay thin (3–6 tests) and only exercise full tick wiring.
 - **Handler tests:** dispatch through `EffectHandlers.all`; use `CombatantFixtures` for setup.
 - **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
 - **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.

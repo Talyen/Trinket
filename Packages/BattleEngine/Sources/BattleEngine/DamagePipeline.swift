@@ -9,7 +9,7 @@ package enum DamagePhase: Sendable {
     case stochastic
     /// Deterministic damage math and HP subtraction.
     case resolution
-    /// Side effects after final damage is known (leech, prevention buildup).
+    /// Side effects after final damage is known (leech, control-meter buildup).
     case post
 }
 

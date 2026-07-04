@@ -91,7 +91,7 @@ private extension ActionEventDisplay {
             return .block
         case .dodge:
             return Keyword.dodge.visualStyle
-        case .prevention:
+        case .control:
             return .stun
         default:
             return keyword.visualStyle

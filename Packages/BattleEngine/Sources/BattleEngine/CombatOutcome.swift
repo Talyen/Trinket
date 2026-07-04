@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Result of a combat mutation (damage, heal, leech, prevention).
+/// Result of a combat mutation (damage, heal, leech, control meter).
 public struct CombatOutcome: Equatable {
     /// Negative when the target lost health; positive when the target gained health.
     public var healthDelta: Int
@@ -40,7 +40,7 @@ public enum CombatFlag: Hashable, Sendable {
     case dodged
     case shieldAbsorbed
     case leeched
-    case preventionTriggered
+    case controlTriggered
 }
 
 extension CombatOutcome {
@@ -55,8 +55,8 @@ extension CombatOutcome {
         if state.damageEvents.contains(where: { $0.effectKind == .leechHeal }) {
             flags.insert(.leeched)
         }
-        if state.damageEvents.contains(where: { $0.effectKind == .preventionTriggered }) {
-            flags.insert(.preventionTriggered)
+        if state.damageEvents.contains(where: { $0.effectKind == .controlTriggered }) {
+            flags.insert(.controlTriggered)
         }
         return CombatOutcome(
             healthDelta: -state.healthLost,
