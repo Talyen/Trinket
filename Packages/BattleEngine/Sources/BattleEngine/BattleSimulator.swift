@@ -72,12 +72,40 @@ public enum BattleSimulator {
         _ matchup: BattleMatchup,
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> BattleSimulationResult {
-        let useIncrementalLog = options.recordsLog && options.rebuildLogEachStep
-        return run(
-            BattleState(
+        run(
+            ConfiguredSimulationMatchup(
                 hero: matchup.hero,
                 pet: matchup.pet,
                 enemy: matchup.enemy,
+                heroModifiers: .zero,
+                petModifiers: .zero,
+                context: SimulationBuildContext(
+                    tier: .early,
+                    heroLoadout: matchup.hero.abilityLoadout,
+                    petLoadout: matchup.pet.abilityLoadout,
+                    loadoutSampleIndex: 0,
+                    seed: options.seed ?? 0
+                ),
+                enemyID: matchup.enemy.id,
+                isBoss: false
+            ),
+            options: options
+        )
+    }
+
+    /// Runs a production-faithful configured matchup with gear modifiers applied.
+    public static func run(
+        _ configured: ConfiguredSimulationMatchup,
+        options: BattleSimulationOptions = BattleSimulationOptions()
+    ) -> BattleSimulationResult {
+        let useIncrementalLog = options.recordsLog && options.rebuildLogEachStep
+        return run(
+            BattleState(
+                hero: configured.hero,
+                pet: configured.pet,
+                enemy: configured.enemy,
+                heroModifiers: configured.heroModifiers,
+                petModifiers: configured.petModifiers,
                 rngSeed: options.seed,
                 tracksLog: useIncrementalLog
             ),
@@ -157,8 +185,16 @@ public enum BattleSimulator {
         options: BattleSimulationOptions = BattleSimulationOptions()
     ) -> [BattleBatchResult] {
         matchups.map { matchup in
-            let results = (0 ..< options.resolvedRunCount).map { _ in
-                run(matchup, options: options)
+            let results = (0 ..< options.resolvedRunCount).map { runIndex in
+                let runOptions = BattleSimulationOptions(
+                    maxTicks: options.maxTicks,
+                    runCount: options.runCount,
+                    seed: options.seed.map { $0 &+ UInt64(runIndex) },
+                    recordsEvents: options.recordsEvents,
+                    recordsLog: options.recordsLog,
+                    rebuildLogEachStep: options.rebuildLogEachStep
+                )
+                return run(matchup, options: runOptions)
             }
 
             return BattleBatchResult(

@@ -6,11 +6,16 @@ let package = Package(
     name: "BattleEngine",
     platforms: [
         .iOS(.v26),
+        .macOS(.v14),
     ],
     products: [
         .library(
             name: "BattleEngine",
             targets: ["BattleEngine"]
+        ),
+        .executable(
+            name: "BalanceSweepCLI",
+            targets: ["BalanceSweepCLI"]
         ),
     ],
     dependencies: [
@@ -24,6 +29,10 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
             ]
+        ),
+        .executableTarget(
+            name: "BalanceSweepCLI",
+            dependencies: ["BattleEngine", "TrinketContent"]
         ),
         .testTarget(
             name: "BattleEngineTests",

@@ -13,9 +13,11 @@ public struct ItemGenerator: Sendable {
         templateID: String? = nil,
         baseType: ItemBaseType,
         rarity: Rarity,
+        fixedAffixCount: Int? = nil,
+        keywordBias: Set<Keyword> = [],
         using randomNumberGenerator: inout RNG
     ) -> InventoryItem {
-        let affixCount = Self.affixCount(for: rarity, using: &randomNumberGenerator)
+        let affixCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
         let eligibleAffixes = affixDefinitions.filter { definition in
             definition.slot == baseType.slot &&
                 !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
@@ -23,6 +25,7 @@ public struct ItemGenerator: Sendable {
         let selectedDefinitions = Self.weightedSample(
             eligibleAffixes,
             count: affixCount,
+            keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
 
@@ -53,18 +56,21 @@ public struct ItemGenerator: Sendable {
     private static func weightedSample<RNG: RandomNumberGenerator>(
         _ definitions: [ItemAffixDefinition],
         count: Int,
+        keywordBias: Set<Keyword> = [],
         using randomNumberGenerator: inout RNG
     ) -> [ItemAffixDefinition] {
         var pool = definitions
         var selected: [ItemAffixDefinition] = []
 
         while selected.count < count, !pool.isEmpty {
-            let totalWeight = pool.reduce(0) { $0 + max(0, $1.weight) }
+            let totalWeight = pool.reduce(0) { partial, definition in
+                partial + adjustedWeight(for: definition, keywordBias: keywordBias)
+            }
             guard totalWeight > 0 else { break }
 
             var roll = Int.random(in: 1 ... totalWeight, using: &randomNumberGenerator)
             let selectedIndex = pool.firstIndex { definition in
-                roll -= max(0, definition.weight)
+                roll -= adjustedWeight(for: definition, keywordBias: keywordBias)
                 return roll <= 0
             } ?? 0
 
@@ -72,5 +78,16 @@ public struct ItemGenerator: Sendable {
         }
 
         return selected
+    }
+
+    private static func adjustedWeight(
+        for definition: ItemAffixDefinition,
+        keywordBias: Set<Keyword>
+    ) -> Int {
+        let baseWeight = max(0, definition.weight)
+        guard baseWeight > 0, !keywordBias.isEmpty else { return baseWeight }
+        let overlap = definition.keywords.intersection(keywordBias).count
+        guard overlap > 0 else { return baseWeight }
+        return baseWeight * (2 + overlap)
     }
 }
