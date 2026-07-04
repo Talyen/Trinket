@@ -1,6 +1,6 @@
+import BattleEngine
 import Foundation
 import Observation
-import BattleEngine
 import TrinketContent
 import TrinketPersistence
 
