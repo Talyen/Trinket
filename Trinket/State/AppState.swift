@@ -1,7 +1,13 @@
 import Foundation
 import Observation
+import os
 import TrinketContent
 import TrinketPersistence
+
+private let appStateLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "AppState"
+)
 
 @MainActor
 @Observable
@@ -38,7 +44,13 @@ final class AppState {
 
         let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
         if env.seedTestProgress {
-            try? resolvedPlayerSave.applyTestSeed()
+            do {
+                try resolvedPlayerSave.applyTestSeed()
+            } catch {
+                appStateLogger.error(
+                    "Failed to apply test seed: \(error.localizedDescription, privacy: .public)"
+                )
+            }
         }
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
@@ -141,7 +153,13 @@ final class AppState {
     }
 
     func resetGameplayProgress() {
-        try? playerSave.resetGameplayProgress()
+        do {
+            try playerSave.resetGameplayProgress()
+        } catch {
+            appStateLogger.error(
+                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
+            )
+        }
         battle.endBattle()
         sessionState.clearBattleState()
         journey.mapScrollRequest = nil

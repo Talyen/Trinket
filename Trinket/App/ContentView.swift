@@ -72,6 +72,9 @@ struct ContentView: View {
             refreshMusicRoute(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
+            if newPhase != .active, appState.battle.activeBattle != nil {
+                appState.battle.isPaused = true
+            }
             refreshMusicRoute(scenePhase: newPhase)
             if newPhase == .inactive || newPhase == .background {
                 appState.playerSave.flushPendingPersistIfNeeded()

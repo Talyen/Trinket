@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Resolves, creates if needed, boots, and verifies an iOS Simulator for xcodebuild.

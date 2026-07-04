@@ -1,6 +1,12 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketPersistence
+
+private let playFlowLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "PlayFlow"
+)
 
 extension AppState {
     var playChapter: Chapter {
@@ -28,11 +34,17 @@ extension AppState {
             in: GameContent.chapters,
             context: &context
         )
-        try? playerSave.performBatchMutation { save in
-            save.roster = SavedRosterState(context.roster)
-            save.inventory = SavedInventoryState(context.inventory)
-            save.homestead = SavedHomesteadState(context.homestead)
-            save.journey = context.journey
+        do {
+            try playerSave.performBatchMutation { save in
+                save.roster = SavedRosterState(context.roster)
+                save.inventory = SavedInventoryState(context.inventory)
+                save.homestead = SavedHomesteadState(context.homestead)
+                save.journey = context.journey
+            }
+        } catch {
+            playFlowLogger.error(
+                "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
+            )
         }
 
         let scrollTarget = mapScrollFocusID(for: context.journey)
@@ -41,6 +53,8 @@ extension AppState {
     }
 
     func completeActiveBattle(_ configuration: ActiveBattleConfiguration, battleEarnedGold: Int) {
+        guard battle.activeBattle != nil else { return }
+
         if let stageID = configuration.stageID,
            let stage = GameContent.chapters.flatMap(\.stages).first(where: { $0.id == stageID }) {
             completeStage(stage, hero: configuration.hero, pet: configuration.pet, battleEarnedGold: battleEarnedGold)

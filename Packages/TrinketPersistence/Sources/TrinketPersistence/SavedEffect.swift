@@ -17,6 +17,11 @@ public enum SavedEffect: Codable, Equatable, Sendable {
     case purgeRandom
     case halveMitigation(keyword: String)
     case deathsDoor
+    case haste(duration: Int)
+    case thorns(keyword: String, amount: Int, duration: Int)
+    case marked(bonus: Int, duration: Int)
+    case criticalChanceBonus(percent: Double, duration: Int)
+    case restoreManaOnHit(amount: Int, duration: Int)
     case dodge(keyword: String, duration: Int)
 
     public init(_ effect: Effect) {
@@ -45,6 +50,14 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .purgeRandom
         case .deathsDoor:
             return .deathsDoor
+        case let .haste(duration):
+            return .haste(duration: duration)
+        case let .marked(bonus, duration):
+            return .marked(bonus: bonus, duration: duration)
+        case let .criticalChanceBonus(percent, duration):
+            return .criticalChanceBonus(percent: percent, duration: duration)
+        case let .restoreManaOnHit(amount, duration):
+            return .restoreManaOnHit(amount: amount, duration: duration)
         default:
             return nil
         }
@@ -66,8 +79,12 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .resourceGain(keyword: keyword.rawValue, amount: amount)
         case let .halveMitigation(keyword):
             return .halveMitigation(keyword: keyword.rawValue)
-        default:
-            fatalError("Unhandled effect for persistence: \(effect)")
+        case let .thorns(keyword, amount, duration):
+            return .thorns(keyword: keyword.rawValue, amount: amount, duration: duration)
+        case .burn, .poison, .bleed, .cleanse, .cleanseRandom, .purge, .purgeRandom,
+             .deathsDoor, .haste, .marked, .criticalChanceBonus, .restoreManaOnHit:
+            assertionFailure("Effect should be handled by direct(_:): \(effect)")
+            return .deathsDoor
         }
     }
 
@@ -91,6 +108,14 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .purgeRandom
         case .deathsDoor:
             return .deathsDoor
+        case let .haste(duration):
+            return .haste(duration)
+        case let .marked(bonus, duration):
+            return .marked(bonus, duration)
+        case let .criticalChanceBonus(percent, duration):
+            return .criticalChanceBonus(percent, duration)
+        case let .restoreManaOnHit(amount, duration):
+            return .restoreManaOnHit(amount, duration)
         default:
             return keywordBackedEffect()
         }
@@ -112,6 +137,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return keyword(from: keywordRawValue).map { .resourceGain($0, amount) }
         case let .halveMitigation(keywordRawValue):
             return keyword(from: keywordRawValue).map { .halveMitigation($0) }
+        case let .thorns(keywordRawValue, amount, duration):
+            return keyword(from: keywordRawValue).map { .thorns($0, amount, duration) }
         case .deathsDoor:
             return .deathsDoor
         case .dodge:

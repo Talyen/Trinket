@@ -46,6 +46,27 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertGreaterThan(state.roster.current.gold, initialGold + 4)
     }
 
+    func testCompleteActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
+        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = state.battle.startBattle(
+            stage: stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet,
+            roster: state.roster,
+            inventory: state.inventory
+        )
+        let configuration = try XCTUnwrap(state.battle.activeBattle)
+        let initialGold = state.roster.current.gold
+
+        state.completeActiveBattle(configuration, battleEarnedGold: 5)
+        state.completeActiveBattle(configuration, battleEarnedGold: 5)
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
+        XCTAssertEqual(state.roster.current.gold, initialGold + 5 + stage.rewards.gold)
+    }
+
     func testCompleteActiveBattleWithoutStageGrantsGoldOnly() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)

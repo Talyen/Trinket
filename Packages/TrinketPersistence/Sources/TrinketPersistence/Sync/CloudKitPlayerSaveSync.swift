@@ -56,8 +56,8 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
         let database = container.privateCloudDatabase
         let recordID = CKRecord.ID(recordName: Self.recordName)
         let record: CKRecord
-
-        if let existing = try? await database.record(for: recordID) {
+        do {
+            let existing = try await database.record(for: recordID)
             if let expectedTag = replacingRecordChangeTag,
                let actualTag = existing.recordChangeTag,
                actualTag != expectedTag
@@ -65,7 +65,7 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
                 throw PlayerSaveSyncError.recordConflict(try remoteSave(from: existing))
             }
             record = existing
-        } else {
+        } catch let error as CKError where error.code == .unknownItem {
             record = CKRecord(recordType: Self.recordType, recordID: recordID)
         }
 

@@ -129,6 +129,12 @@ public struct PlayerSaveFileStore {
 
     private func ensureDirectoryExists() {
         guard !fileManager.fileExists(atPath: directoryURL.path) else { return }
-        try? fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        do {
+            try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        } catch {
+            logger.error(
+                "Failed to create save directory: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 }
