@@ -87,20 +87,6 @@ struct VisibleStageNode: Identifiable {
     }
 }
 
-enum StageDeckCard: Identifiable {
-    case stage(VisibleStageNode)
-    case chapterGate(Chapter)
-
-    var id: String {
-        switch self {
-        case let .stage(node):
-            return node.id
-        case let .chapterGate(chapter):
-            return StageMapID.chapterGate(for: chapter)
-        }
-    }
-}
-
 struct StageMapMessage: Identifiable {
     let id = UUID()
     let title: String

@@ -65,6 +65,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .timeout,
                         severity: .critical,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) exceeded \(thresholds.prolongedFightTicks)-tick limit \(percent(row.tickLimitRate)) of runs",
                         value: row.tickLimitRate
                     )
@@ -74,6 +75,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .prolongedFight,
                         severity: .critical,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) averaged \(String(format: "%.0f", row.averageTickCount)) ticks (limit \(thresholds.prolongedFightTicks))",
                         value: row.averageTickCount
                     )
@@ -86,6 +88,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .hardCounter,
                         severity: .critical,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate))",
                         value: row.winRate
                     )
@@ -95,6 +98,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .belowTarget,
                         severity: .warning,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
@@ -104,6 +108,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .aboveTarget,
                         severity: .warning,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
@@ -119,6 +124,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .underpoweredAbility,
                         severity: .critical,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName) \(row.combatantName) \(row.abilityTier.rawValue) \(row.abilityName) vs \(row.siblingAbilityName): \(percent(row.winRate))",
                         value: row.winRate
                     )
@@ -128,6 +134,7 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .overpoweredAbility,
                         severity: .warning,
+                        subjectID: row.id,
                         detail: "\(row.tier.displayName) \(row.combatantName) \(row.abilityTier.rawValue) \(row.abilityName) vs \(row.siblingAbilityName): \(percent(row.winRate))",
                         value: row.winRate
                     )

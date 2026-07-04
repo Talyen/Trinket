@@ -13,6 +13,10 @@ let package = Package(
             name: "BattleEngine",
             targets: ["BattleEngine"]
         ),
+        .library(
+            name: "BattleBalanceTools",
+            targets: ["BattleBalanceTools"]
+        ),
         .executable(
             name: "BalanceSweepCLI",
             targets: ["BalanceSweepCLI"]
@@ -27,13 +31,17 @@ let package = Package(
             name: "BattleEngine",
             dependencies: ["TrinketCore", "TrinketContent"]
         ),
+        .target(
+            name: "BattleBalanceTools",
+            dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"]
+        ),
         .executableTarget(
             name: "BalanceSweepCLI",
-            dependencies: ["BattleEngine", "TrinketContent"]
+            dependencies: ["BattleBalanceTools", "TrinketContent"]
         ),
         .testTarget(
             name: "BattleEngineTests",
-            dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"]
+            dependencies: ["BattleEngine", "BattleBalanceTools", "TrinketCore", "TrinketContent"]
         ),
     ]
 )

@@ -119,7 +119,7 @@ public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Senda
     }
 }
 
-public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable {
+public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable, Codable {
     case basic = "Basic"
     case skill = "Skill"
     case ultimate = "Ultimate"

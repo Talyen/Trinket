@@ -2,6 +2,12 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
+enum LoadoutDamageClassifier {
+    static func dealsEnemyDamage(_ ability: Ability) -> Bool {
+        ability.directDamage > 0
+    }
+}
+
 public enum AbilityLoadoutSampler {
     public static let maxNonDamageAcrossPair = 3
     public static let preferredDamageAcrossPair = 3
@@ -20,11 +26,12 @@ public enum AbilityLoadoutSampler {
         progression: CombatantProgression
     ) -> (AbilityLoadout, AbilityLoadout) {
         var rng = SeededRandomNumberGenerator(seed: 0)
-        return balancedLoadoutPair(
+        return constrainedLoadoutPair(
             hero: hero,
             pet: pet,
             progression: progression,
-            using: &rng
+            using: &rng,
+            randomize: false
         )
     }
 
@@ -38,18 +45,21 @@ public enum AbilityLoadoutSampler {
             from: choices.basics,
             tier: .basic,
             progression: progression,
+            preferDamage: false,
             using: &randomNumberGenerator
         )
         let skill = pickAbility(
             from: choices.skills,
             tier: .skill,
             progression: progression,
+            preferDamage: false,
             using: &randomNumberGenerator
         )
         let ultimate = pickAbility(
             from: choices.ultimates,
             tier: .ultimate,
             progression: progression,
+            preferDamage: false,
             using: &randomNumberGenerator
         )
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
@@ -61,25 +71,12 @@ public enum AbilityLoadoutSampler {
         progression: CombatantProgression,
         using randomNumberGenerator: inout RNG
     ) -> (AbilityLoadout, AbilityLoadout) {
-        for _ in 0 ..< 24 {
-            let heroLoadout = randomLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
-            let petLoadout = randomLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
-            if satisfiesDamageBudget(
-                hero: heroLoadout,
-                pet: petLoadout,
-                heroCombatant: hero,
-                petCombatant: pet,
-                progression: progression
-            ) {
-                return (heroLoadout, petLoadout)
-            }
-        }
-
-        return balancedLoadoutPair(
+        constrainedLoadoutPair(
             hero: hero,
             pet: pet,
             progression: progression,
-            using: &randomNumberGenerator
+            using: &randomNumberGenerator,
+            randomize: true
         )
     }
 
@@ -92,34 +89,42 @@ public enum AbilityLoadoutSampler {
         return base.selecting(ability).unlocked(for: progression)
     }
 
-    private static func balancedLoadoutPair<RNG: RandomNumberGenerator>(
+    static func satisfiesDamageBudget(
+        hero: AbilityLoadout,
+        pet: AbilityLoadout,
+        heroCombatant: Combatant,
+        petCombatant: Combatant,
+        progression: CombatantProgression
+    ) -> Bool {
+        let counts = damageCounts(hero: hero, pet: pet, progression: progression)
+        guard counts.damage > 0 else { return false }
+        guard counts.nonDamage <= maxNonDamageAcrossPair else { return false }
+        return counts.damage >= minimumDamageCount(
+            heroCombatant: heroCombatant,
+            petCombatant: petCombatant,
+            progression: progression
+        )
+    }
+
+    private static func constrainedLoadoutPair<RNG: RandomNumberGenerator>(
         hero: Combatant,
         pet: Combatant,
         progression: CombatantProgression,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout RNG,
+        randomize: Bool
     ) -> (AbilityLoadout, AbilityLoadout) {
-        var heroLoadout = damageBiasedLoadout(
-            for: hero,
-            progression: progression,
-            using: &randomNumberGenerator
-        )
-        var petLoadout = damageBiasedLoadout(
-            for: pet,
-            progression: progression,
-            using: &randomNumberGenerator
-        )
+        var heroLoadout: AbilityLoadout
+        var petLoadout: AbilityLoadout
 
-        if satisfiesDamageBudget(
-            hero: heroLoadout,
-            pet: petLoadout,
-            heroCombatant: hero,
-            petCombatant: pet,
-            progression: progression
-        ) {
-            return (heroLoadout, petLoadout)
+        if randomize {
+            heroLoadout = randomLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
+            petLoadout = randomLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
+        } else {
+            heroLoadout = damageBiasedLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
+            petLoadout = damageBiasedLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
         }
 
-        rebalanceLoadoutPair(
+        applyDamageBudgetCorrections(
             hero: &heroLoadout,
             pet: &petLoadout,
             heroCombatant: hero,
@@ -136,22 +141,25 @@ public enum AbilityLoadoutSampler {
         using randomNumberGenerator: inout RNG
     ) -> AbilityLoadout {
         let choices = combatant.abilityChoices
-        let basic = pickDamageFirst(
+        let basic = pickAbility(
             from: choices.basics,
             tier: .basic,
             progression: progression,
+            preferDamage: true,
             using: &randomNumberGenerator
         )
-        let skill = pickDamageFirst(
+        let skill = pickAbility(
             from: choices.skills,
             tier: .skill,
             progression: progression,
+            preferDamage: true,
             using: &randomNumberGenerator
         )
-        let ultimate = pickDamageFirst(
+        let ultimate = pickAbility(
             from: choices.ultimates,
             tier: .ultimate,
             progression: progression,
+            preferDamage: true,
             using: &randomNumberGenerator
         )
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
@@ -161,27 +169,20 @@ public enum AbilityLoadoutSampler {
         from choices: [Ability],
         tier: AbilityTier,
         progression: CombatantProgression,
+        preferDamage: Bool,
         using randomNumberGenerator: inout RNG
     ) -> Ability? {
         guard progression.unlocks(tier), !choices.isEmpty else { return nil }
-        return choices.randomElement(using: &randomNumberGenerator)
-    }
-
-    private static func pickDamageFirst<RNG: RandomNumberGenerator>(
-        from choices: [Ability],
-        tier: AbilityTier,
-        progression: CombatantProgression,
-        using randomNumberGenerator: inout RNG
-    ) -> Ability? {
-        guard progression.unlocks(tier), !choices.isEmpty else { return nil }
-        let damageChoices = choices.filter(dealsEnemyDamage)
-        if let pick = damageChoices.randomElement(using: &randomNumberGenerator) {
-            return pick
+        if preferDamage {
+            let damageChoices = choices.filter(LoadoutDamageClassifier.dealsEnemyDamage)
+            if let pick = damageChoices.randomElement(using: &randomNumberGenerator) {
+                return pick
+            }
         }
         return choices.randomElement(using: &randomNumberGenerator)
     }
 
-    private static func rebalanceLoadoutPair<RNG: RandomNumberGenerator>(
+    private static func applyDamageBudgetCorrections<RNG: RandomNumberGenerator>(
         hero: inout AbilityLoadout,
         pet: inout AbilityLoadout,
         heroCombatant: Combatant,
@@ -200,34 +201,12 @@ public enum AbilityLoadoutSampler {
                 return
             }
 
-            let counts = damageCounts(
-                hero: hero,
-                pet: pet,
-                progression: progression,
-                heroCombatant: heroCombatant,
-                petCombatant: petCombatant
-            )
+            let counts = damageCounts(hero: hero, pet: pet, progression: progression)
             if counts.damage < minimumDamageCount(
                 heroCombatant: heroCombatant,
                 petCombatant: petCombatant,
                 progression: progression
-            ) {
-                if replaceWithDamageAbility(
-                    in: &hero,
-                    combatant: heroCombatant,
-                    progression: progression,
-                    using: &randomNumberGenerator
-                ) { continue }
-                _ = replaceWithDamageAbility(
-                    in: &pet,
-                    combatant: petCombatant,
-                    progression: progression,
-                    using: &randomNumberGenerator
-                )
-                continue
-            }
-
-            if counts.nonDamage > maxNonDamageAcrossPair {
+            ) || counts.nonDamage > maxNonDamageAcrossPair {
                 if replaceWithDamageAbility(
                     in: &hero,
                     combatant: heroCombatant,
@@ -250,40 +229,18 @@ public enum AbilityLoadoutSampler {
         progression: CombatantProgression,
         using randomNumberGenerator: inout RNG
     ) -> Bool {
-        let tiers: [AbilityTier] = [.basic, .skill, .ultimate].filter { progression.unlocks($0) }
-        let shuffledTiers = tiers.shuffled(using: &randomNumberGenerator)
+        let tiers = AbilityTier.allCases.filter { progression.unlocks($0) }.shuffled(using: &randomNumberGenerator)
 
-        for tier in shuffledTiers {
-            guard let current = loadout.ability(for: tier), !dealsEnemyDamage(current) else { continue }
-            let choices = combatant.abilityChoices.abilities(for: tier).filter(dealsEnemyDamage)
+        for tier in tiers {
+            guard let current = loadout.ability(for: tier),
+                  !LoadoutDamageClassifier.dealsEnemyDamage(current)
+            else { continue }
+            let choices = combatant.abilityChoices.abilities(for: tier).filter(LoadoutDamageClassifier.dealsEnemyDamage)
             guard let replacement = choices.randomElement(using: &randomNumberGenerator) else { continue }
             loadout = loadout.selecting(replacement)
             return true
         }
         return false
-    }
-
-    static func satisfiesDamageBudget(
-        hero: AbilityLoadout,
-        pet: AbilityLoadout,
-        heroCombatant: Combatant,
-        petCombatant: Combatant,
-        progression: CombatantProgression
-    ) -> Bool {
-        let counts = damageCounts(
-            hero: hero,
-            pet: pet,
-            progression: progression,
-            heroCombatant: heroCombatant,
-            petCombatant: petCombatant
-        )
-        guard counts.damage > 0 else { return false }
-        guard counts.nonDamage <= maxNonDamageAcrossPair else { return false }
-        return counts.damage >= minimumDamageCount(
-            heroCombatant: heroCombatant,
-            petCombatant: petCombatant,
-            progression: progression
-        )
     }
 
     private static func minimumDamageCount(
@@ -316,7 +273,7 @@ public enum AbilityLoadoutSampler {
         var count = 0
         for combatant in [hero, pet] {
             for tier in AbilityTier.allCases where progression.unlocks(tier) {
-                if combatant.abilityChoices.abilities(for: tier).contains(where: dealsEnemyDamage) {
+                if combatant.abilityChoices.abilities(for: tier).contains(where: LoadoutDamageClassifier.dealsEnemyDamage) {
                     count += 1
                 }
             }
@@ -331,26 +288,10 @@ public enum AbilityLoadoutSampler {
     private static func damageCounts(
         hero: AbilityLoadout,
         pet: AbilityLoadout,
-        progression: CombatantProgression,
-        heroCombatant: Combatant,
-        petCombatant: Combatant
-    ) -> (damage: Int, nonDamage: Int) {
-        _ = heroCombatant
-        _ = petCombatant
-        return damageCounts(hero: hero, pet: pet, progression: progression)
-    }
-
-    private static func damageCounts(
-        hero: AbilityLoadout,
-        pet: AbilityLoadout,
         progression: CombatantProgression
     ) -> (damage: Int, nonDamage: Int) {
         let abilities = hero.unlocked(for: progression).abilities + pet.unlocked(for: progression).abilities
-        let damage = abilities.filter(dealsEnemyDamage).count
+        let damage = abilities.filter(LoadoutDamageClassifier.dealsEnemyDamage).count
         return (damage, abilities.count - damage)
-    }
-
-    private static func dealsEnemyDamage(_ ability: Ability) -> Bool {
-        ability.directDamage > 0
     }
 }

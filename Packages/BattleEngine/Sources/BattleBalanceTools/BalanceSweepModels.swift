@@ -1,6 +1,7 @@
 import Foundation
 import TrinketCore
 import TrinketContent
+import BattleEngine
 
 public struct BalanceSweepRequest: Equatable, Sendable {
     public let tiers: [SimulationPowerTier]
@@ -36,9 +37,37 @@ public struct BalanceSweepRequest: Equatable, Sendable {
     }
 
     public static let `default` = BalanceSweepRequest()
+
+    var encodedTripleCount: Int {
+        triples?.count ?? BalanceSweepCatalog.allTriples().count
+    }
 }
 
-public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
+public struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
+    public let tiers: [String]
+    public let runsPerMatchup: Int
+    public let loadoutSamplesPerMatchup: Int
+    public let baseSeed: UInt64
+    public let includeAbilityAnalysis: Bool
+    public let representativeHeroID: String
+    public let representativePetID: String
+    public let maxTicks: Int
+    public let tripleCount: Int
+
+    public init(request: BalanceSweepRequest) {
+        tiers = request.tiers.map(\.rawValue)
+        runsPerMatchup = request.runsPerMatchup
+        loadoutSamplesPerMatchup = request.loadoutSamplesPerMatchup
+        baseSeed = request.baseSeed
+        includeAbilityAnalysis = request.includeAbilityAnalysis
+        representativeHeroID = request.representativeHeroID
+        representativePetID = request.representativePetID
+        maxTicks = request.maxTicks
+        tripleCount = request.encodedTripleCount
+    }
+}
+
+public struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
     public var id: String {
         "\(tier.rawValue)-\(heroID)-\(petID)-\(enemyID)-sample\(loadoutSampleIndex)"
     }
@@ -95,7 +124,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
     }
 }
 
-public struct AbilityComparisonRow: Equatable, Sendable, Identifiable {
+public struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
     public var id: String {
         "\(tier.rawValue)-\(combatantID)-\(tierName)-\(abilityID)-vs-\(siblingAbilityID)"
     }
@@ -153,8 +182,8 @@ public struct AbilityComparisonRow: Equatable, Sendable, Identifiable {
     }
 }
 
-public struct BalanceAnomaly: Equatable, Sendable, Identifiable {
-    public enum Kind: String, Sendable {
+public struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
+    public enum Kind: String, Sendable, Codable {
         case hardCounter
         case belowTarget
         case aboveTarget
@@ -165,23 +194,57 @@ public struct BalanceAnomaly: Equatable, Sendable, Identifiable {
         case bossTuning
     }
 
-    public enum Severity: String, Sendable {
+    public enum Severity: String, Sendable, Codable {
         case critical
         case warning
     }
 
-    public var id: String { "\(kind.rawValue)-\(detail)" }
+    public var id: String {
+        if let subjectID {
+            return "\(kind.rawValue)-\(subjectID)"
+        }
+        return "\(kind.rawValue)-\(detail)"
+    }
 
     public let kind: Kind
     public let severity: Severity
+    public let subjectID: String?
     public let detail: String
     public let value: Double
+
+    public init(
+        kind: Kind,
+        severity: Severity,
+        subjectID: String? = nil,
+        detail: String,
+        value: Double
+    ) {
+        self.kind = kind
+        self.severity = severity
+        self.subjectID = subjectID
+        self.detail = detail
+        self.value = value
+    }
 }
 
-public struct BalanceSweepResult: Equatable, Sendable {
-    public let request: BalanceSweepRequest
+public struct BalanceSweepResult: Equatable, Sendable, Codable {
+    public let request: BalanceSweepRequestSnapshot
     public let matchupRows: [MatchupSweepRow]
     public let abilityRows: [AbilityComparisonRow]
     public let anomalies: [BalanceAnomaly]
     public let generatedAt: Date
+
+    public init(
+        request: BalanceSweepRequest,
+        matchupRows: [MatchupSweepRow],
+        abilityRows: [AbilityComparisonRow],
+        anomalies: [BalanceAnomaly],
+        generatedAt: Date
+    ) {
+        self.request = BalanceSweepRequestSnapshot(request: request)
+        self.matchupRows = matchupRows
+        self.abilityRows = abilityRows
+        self.anomalies = anomalies
+        self.generatedAt = generatedAt
+    }
 }
