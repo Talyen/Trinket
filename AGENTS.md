@@ -4,7 +4,8 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · setup: `README.md`
+- Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
 
 ## Product & Architecture
 

@@ -27,6 +27,7 @@ brew install xcodegen
 - Architecture and module plan: `Docs/Architecture.md`
 - Agent workflow: `AGENTS.md`
 - Core design concepts: `Docs/CoreDesignConcepts.md`
+- Product roadmap (scratch ideas): `Docs/Roadmap.md`
 - Content pipeline: `Docs/ContentPipeline.md`
 - Art pipeline: `Docs/ArtPipeline.md`
 - Music pipeline: `Docs/MusicPipeline.md`
