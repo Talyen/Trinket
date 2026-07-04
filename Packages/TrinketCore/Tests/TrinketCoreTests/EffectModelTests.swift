@@ -30,6 +30,7 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Effect.instantHeal(.health, 1).kind, .instantHeal)
         XCTAssertEqual(Effect.leech(.leech, 0.1, 6).kind, .leech)
         XCTAssertEqual(Effect.resourceGain(.gold, 1).kind, .resourceGain)
+        XCTAssertEqual(Effect.resourceGain(.mana, 1).kind, .resourceGain)
         XCTAssertEqual(Effect.cleanse(.poison).kind, .cleanse)
         XCTAssertEqual(Effect.cleanse(nil).kind, .cleanse)
         XCTAssertEqual(Effect.cleanseRandom.kind, .cleanseRandom)
@@ -37,6 +38,11 @@ final class EffectModelTests: XCTestCase {
         XCTAssertEqual(Effect.purge(nil).kind, .purge)
         XCTAssertEqual(Effect.purgeRandom.kind, .purgeRandom)
         XCTAssertEqual(Effect.halveMitigation(.armor).kind, .halveMitigation)
+        XCTAssertEqual(Effect.haste(4).kind, .haste)
+        XCTAssertEqual(Effect.thorns(.physical, 1, 6).kind, .thorns)
+        XCTAssertEqual(Effect.marked(2, 6).kind, .marked)
+        XCTAssertEqual(Effect.criticalChanceBonus(0.1, 6).kind, .criticalChanceBonus)
+        XCTAssertEqual(Effect.restoreManaOnHit(1, 6).kind, .restoreManaOnHit)
     }
 
     func testEffectKindIsUniquePerCase() {

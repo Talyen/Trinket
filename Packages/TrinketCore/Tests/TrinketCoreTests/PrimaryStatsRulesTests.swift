@@ -34,6 +34,14 @@ final class PrimaryStatsRulesTests: XCTestCase {
         XCTAssertEqual(PrimaryStats(agility: 20).controlMeterThreshold(baseMaxHealth: 101), 25)
     }
 
+    func testCriticalChanceUsesBaseAndStatScaling() {
+        XCTAssertEqual(PrimaryStats().criticalChance(for: .physical), 0.05, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 20).criticalChance(for: .physical), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(intellect: 20).criticalChance(for: .burn), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(wisdom: 20).criticalChance(for: .holy), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 1000).criticalChance(for: .physical), 0.75, accuracy: 0.0001)
+    }
+
     func testControlMeterThresholdUsesCeilOfTwentyPercentMaxHealth() {
         let cases: [(maxHealth: Int, expectedThreshold: Int)] = [
             (7, 2),

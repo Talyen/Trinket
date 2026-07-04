@@ -11,16 +11,18 @@ package struct MarkedBonusStep: DamageStep {
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.sourceActorID != nil else { return }
-        guard let index = state.activeEffects.firstIndex(where: { if case .marked = $0.effect { return true }; return false }) else {
+        var effects = context.roster.activeEffects(for: state.combatant)
+        guard let index = effects.firstIndex(where: { if case .marked = $0.effect { return true }; return false }) else {
             return
         }
 
-        let active = state.activeEffects[index]
+        let active = effects[index]
         guard case let .marked(bonus, _) = active.effect else { return }
 
         state.remaining += bonus
         state.dealt += bonus
-        state.activeEffects.remove(at: index)
+        effects.remove(at: index)
+        context.roster.setActiveEffects(effects, for: state.combatant)
         state.damageEvents.append(context.nextEvent(
             kind: .effect,
             effectKind: .markedConsumed,

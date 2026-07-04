@@ -8,7 +8,7 @@ public enum AbilityCatalogBasic {
     )
     public static let blackjack = Ability(
         id: "blackjack", name: "Blackjack", tier: .basic,
-        description: "Deal 1 Stun damage.\nGain 1 Gold.",
+        description: "Deal 1 Stun damage and steal 1 Gold.",
         directDamage: 1, damageKeyword: .stun,
         targetedEffects: [TargetedEffect(.resourceGain(.gold, 1))]
     )

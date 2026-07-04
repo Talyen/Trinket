@@ -95,6 +95,19 @@ public enum ActionEventFormatter {
             return mitigationHalvedDisplay(for: event)
         case .dodgeApplied:
             return dodgeDisplay(for: event)
+        case .criticalApplied:
+            return ActionEventDisplay(
+                emphasis: .damage,
+                keyword: event.keyword,
+                text: "Critical",
+                secondaryText: nil
+            )
+        case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied:
+            return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
+        case .thornsTriggered, .markedConsumed:
+            return amountDisplay(emphasis: .damage, event: event, prefix: "-")
+        case .manaShieldTriggered:
+            return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
         case .deathsDoorTriggered, .deathsDoorExpired:
             return deathsDoorDisplay(for: event)
         }

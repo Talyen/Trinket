@@ -33,7 +33,7 @@ public enum AbilityValidator {
     }
 
     private static func validateEffectTargets(for ability: Ability) -> [Issue] {
-        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet]
+        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet, .lowestHealthAlly]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
         var issues: [Issue] = []
 

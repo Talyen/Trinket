@@ -5,7 +5,7 @@ mud_elemental	Mud Elemental	15	0	false	false	tank	block,briarShield,plateMail	4	
 necromancer	Necromancer	13	8	false	true	mage	manaBerries,gravePact,hemorrhage	2	5	3	8	6
 plague_doctor	Plague Doctor	12	0	false	true	support	fangs,venomFangs,serratedArrowhead	3	6	4	4	9
 skeleton	Skeleton	12	0	false	false	bruiser	slash,smite,blessedAegis	5	4	4	2	2
-the_blight_treant	The Blight Treant	26	0	true	false	tank	fangs,graspingVines,bloodthorn	6	3	14	5	11
+the_blight_treant	The Blight Treant	26	6	true	false	tank	fangs,graspingVines,bloodthorn	6	3	14	5	11
 the_forge_golem	The Forge Golem	28	0	true	false	tank	bash,spikedShield,moltenBulwark	13	2	15	2	3
 the_frostwarden	The Frostwarden	24	10	true	false	mage	rayOfFrost,frostbolt,glacialWard	3	5	7	14	5
 the_iron_bear	The Iron Bear	27	0	true	false	bruiser	bash,spikedShield,moltenBulwark	12	3	13	2	2

@@ -13,7 +13,8 @@ package struct ReactiveOnHitStep: DamageStep {
         guard state.healthLost > 0, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
 
-        for active in state.activeEffects {
+        let activeEffects = context.roster.activeEffects(for: state.combatant)
+        for active in activeEffects {
             switch active.effect {
             case let .thorns(keyword, amount, _):
                 guard amount > 0 else { continue }

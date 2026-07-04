@@ -342,14 +342,18 @@ final class CombatPipelineTests: XCTestCase {
     func testDamageStepsRunInCanonicalOrder() {
         XCTAssertEqual(DamagePipeline.canonicalNames, [
             "DodgeGate",
+            "CriticalGate",
             "DamageBonus",
+            "MarkedBonus",
             "Mitigation",
             "ItemReduction",
             "ShieldAbsorption",
+            "CriticalMultiply",
             "TakeDamage",
             "DeathsDoor",
             "Leech",
-            "ControlMeter"
+            "ControlMeter",
+            "ReactiveOnHit"
         ])
     }
 }

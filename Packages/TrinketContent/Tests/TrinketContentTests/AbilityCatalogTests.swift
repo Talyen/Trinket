@@ -128,7 +128,7 @@ final class AbilityCatalogTests: XCTestCase {
     }
 
     func testAbilityHealHasNoDamage() {
-        XCTAssertEqual(Ability.heal.summary, "Restore 3 Health.")
+        XCTAssertEqual(Ability.heal.summary, "Costs 1 Mana and Restore 3 Health.")
         XCTAssertEqual(Ability.heal.directDamage, 0)
     }
 

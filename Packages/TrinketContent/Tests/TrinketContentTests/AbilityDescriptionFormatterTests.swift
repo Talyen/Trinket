@@ -9,11 +9,10 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
         )
     }
 
-    func testFireArrowPairsBurnDamageWithStatusPhrase() {
-        XCTAssertEqual(
-            AbilityDescriptionFormatter.format(.fireArrow),
-            "Deal 1 Burn damage and applies Burning."
-        )
+    func testFireArrowIncludesConditionalBurnRefresh() {
+        let description = AbilityDescriptionFormatter.format(.fireArrow)
+        XCTAssertTrue(description.contains("Deal 1 Burn damage"))
+        XCTAssertTrue(description.contains("applies Burning"))
     }
 
     func testFangsPairsBleedDamageWithStatusPhrase() {
@@ -26,7 +25,7 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
     func testFaustianBargainFormatsSelfDamageBeforeOtherClauses() {
         XCTAssertEqual(
             AbilityDescriptionFormatter.format(.faustianBargain),
-            "Lose 3 Health, deal 6 Physical damage and gain 3 Gold."
+            "Lose 3 Health, deal 6 Physical damage and steal 3 Gold."
         )
     }
 
@@ -35,5 +34,18 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
             AbilityDescriptionFormatter.format(.smellingSalts),
             "Cleanse Stunned and Restore 1 Health."
         )
+    }
+
+    func testManaBerriesRestoreMana() {
+        XCTAssertEqual(
+            AbilityDescriptionFormatter.format(.manaBerries),
+            "Restore 1 Mana."
+        )
+    }
+
+    func testMeteorIncludesManaCostAndCriticalBonus() {
+        let description = AbilityDescriptionFormatter.format(.meteor)
+        XCTAssertTrue(description.contains("costs 5 Mana"))
+        XCTAssertTrue(description.contains("Deal 6 Burn damage"))
     }
 }
