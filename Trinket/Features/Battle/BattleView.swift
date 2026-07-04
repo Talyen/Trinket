@@ -74,12 +74,12 @@ struct BattleView: View {
         }
         .sheet(isPresented: $isShowingBattleLog, onDismiss: {
             appState.battle.restorePauseAfterOverlay()
-        }) {
+        }, content: {
             BattleLogSheet(
                 entries: battleRun.log
             )
             .presentationDetents([.medium])
-        }
+        })
         .onChange(of: isShowingBattleLog) { _, isShowing in
             if isShowing {
                 appState.battle.pauseForOverlay()
