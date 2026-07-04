@@ -154,6 +154,15 @@ xcodebuild_show_destinations() {
     -sdk iphonesimulator 2>&1
 }
 
+ensure_ios_simulator_platform() {
+  if xcodebuild_show_destinations | grep -q "platform:iOS Simulator"; then
+    return 0
+  fi
+
+  echo "No iOS Simulator destinations listed by xcodebuild; downloading iOS platform..." >&2
+  xcodebuild -downloadPlatform iOS
+}
+
 destination_listed_by_xcodebuild() {
   local udid="$1"
   xcodebuild_show_destinations | grep -Fq "id:$udid"
@@ -255,9 +264,15 @@ raise SystemExit(1)
 
 ensure_test_simulator() {
   local force="${1:-}"
+  ensure_ios_simulator_platform
   resolve_simulator "$force"
   boot_simulator
-  verify_simulator_destination
+  if ! verify_simulator_destination; then
+    echo "Retrying simulator setup after destination verification failure..." >&2
+    resolve_simulator force
+    boot_simulator
+    verify_simulator_destination
+  fi
 }
 
 ensure_simulator_pool() {
