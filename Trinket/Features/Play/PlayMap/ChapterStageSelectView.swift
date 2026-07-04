@@ -4,8 +4,7 @@ struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var partyPicker: PartyPickerKind?
-
-    private let scrollCoordinateSpaceName = "ChapterJourneyScroll"
+    @State private var heroOverscroll: CGFloat = 0
 
     let chapter: Chapter
     let progress: JourneyProgressState
@@ -14,6 +13,7 @@ struct ChapterStageSelectView: View {
     let heroes: [Combatant]
     let pets: [Combatant]
     let onStageTap: (Stage) -> Void
+    let onEnemyTap: (Stage) -> Void
     let onSetActiveHero: (Combatant) -> Void
     let onSetActivePet: (Combatant) -> Void
 
@@ -25,6 +25,7 @@ struct ChapterStageSelectView: View {
         heroes: [Combatant],
         pets: [Combatant],
         onStageTap: @escaping (Stage) -> Void,
+        onEnemyTap: @escaping (Stage) -> Void,
         onSetActiveHero: @escaping (Combatant) -> Void,
         onSetActivePet: @escaping (Combatant) -> Void
     ) {
@@ -35,6 +36,7 @@ struct ChapterStageSelectView: View {
         self.heroes = heroes
         self.pets = pets
         self.onStageTap = onStageTap
+        self.onEnemyTap = onEnemyTap
         self.onSetActiveHero = onSetActiveHero
         self.onSetActivePet = onSetActivePet
     }
@@ -45,26 +47,34 @@ struct ChapterStageSelectView: View {
                 VStack(spacing: 0) {
                     ChapterJourneyHero(
                         chapter: chapter,
-                        coordinateSpaceName: scrollCoordinateSpaceName
+                        overscroll: heroOverscroll
                     )
 
-                    LazyVStack(alignment: .leading, spacing: 24) {
+                    LazyVStack(alignment: .leading, spacing: 38) {
                         ForEach(presentation.rows) { row in
                             rowView(row)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .id(row.id)
                                 .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
                         }
                     }
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.top, 18)
+                    .padding(.top, 0)
                     .padding(.bottom, 28)
                 }
             }
             .scrollIndicators(.hidden)
-            .coordinateSpace(name: scrollCoordinateSpaceName)
             .ignoresSafeArea(edges: .top)
             .background(TrinketDesign.Colors.appBackground)
             .accessibilityIdentifier(AccessibilityID.Screen.play)
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                HeroHeaderLayout.overscroll(
+                    contentOffsetY: geometry.contentOffset.y,
+                    topInset: geometry.contentInsets.top
+                )
+            } action: { _, overscroll in
+                heroOverscroll = overscroll
+            }
             .onAppear {
                 scrollToInitialTarget(with: proxy)
             }
@@ -110,6 +120,7 @@ struct ChapterStageSelectView: View {
                 activePet: activePet,
                 onHeroPicker: { partyPicker = .hero },
                 onPetPicker: { partyPicker = .pet },
+                onEnemyTap: { onEnemyTap(node.stage) },
                 onPrimaryAction: { onStageTap(node.stage) }
             )
         case let .chapterGate(chapter):
@@ -156,7 +167,7 @@ private struct ChapterJourneyHero: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let chapter: Chapter
-    let coordinateSpaceName: String
+    let overscroll: CGFloat
 
     var body: some View {
         GeometryReader { geometry in
@@ -164,7 +175,7 @@ private struct ChapterJourneyHero: View {
 
             OverscrollHeroContainer(
                 baseHeight: baseHeight,
-                coordinateSpaceName: coordinateSpaceName
+                overscroll: overscroll
             ) {
                 ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
             } overlay: {
@@ -192,7 +203,6 @@ private struct ChapterJourneyHero: View {
         .containerRelativeFrame(.vertical) { length, _ in
             max(480, length * 0.70)
         }
-        .clipped()
         .ignoresSafeArea(edges: .top)
         .accessibilityElement(children: .contain)
     }
@@ -204,6 +214,7 @@ private struct JourneyStageRow: View {
     let activePet: Combatant
     let onHeroPicker: () -> Void
     let onPetPicker: () -> Void
+    let onEnemyTap: () -> Void
     let onPrimaryAction: () -> Void
 
     var body: some View {
@@ -217,10 +228,16 @@ private struct JourneyStageRow: View {
                 activePet: activePet,
                 onHeroPicker: onHeroPicker,
                 onPetPicker: onPetPicker,
+                onEnemyTap: onEnemyTap,
                 onPrimaryAction: onPrimaryAction
             )
         case .future:
-            LockedStageCard(stage: node.stage)
+            LockedStageCard(
+                stage: node.stage,
+                activeHero: activeHero,
+                activePet: activePet,
+                onEnemyTap: onEnemyTap
+            )
         }
     }
 }
@@ -231,15 +248,14 @@ private struct ActiveStageCard: View {
     let activePet: Combatant
     let onHeroPicker: () -> Void
     let onPetPicker: () -> Void
+    let onEnemyTap: () -> Void
     let onPrimaryAction: () -> Void
 
     @State private var actionFeedbackTrigger = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            EncounterArtwork(stage: stage, isLocked: false)
-                .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
-                .clipShape(TrinketDesign.cardShape)
+            EncounterArtworkButton(stage: stage, isLocked: false, onEnemyTap: onEnemyTap)
 
             StageStatusHeader(stage: stage, state: .active)
 
@@ -273,16 +289,63 @@ private struct ActiveStageCard: View {
     }
 }
 
-private struct LockedStageCard: View {
+private struct EncounterArtworkButton: View {
     let stage: Stage
+    let isLocked: Bool
+    let onEnemyTap: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            EncounterArtwork(stage: stage, isLocked: true)
-                .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
-                .clipShape(TrinketDesign.cardShape)
+        Group {
+            if stage.encounter.battleEnemyID != nil {
+                Button(action: onEnemyTap) {
+                    artwork
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
+                .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
+            } else {
+                artwork
+            }
+        }
+    }
+
+    private var artwork: some View {
+        EncounterArtwork(stage: stage)
+            .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
+            .clipShape(TrinketDesign.cardShape)
+            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
+    }
+}
+
+private struct LockedStageCard: View {
+    let stage: Stage
+    let activeHero: Combatant
+    let activePet: Combatant
+    let onEnemyTap: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            EncounterArtworkButton(stage: stage, isLocked: true, onEnemyTap: onEnemyTap)
 
             StageStatusHeader(stage: stage, state: .future)
+
+            ActivePartyPickerRow(
+                hero: activeHero,
+                pet: activePet,
+                onHeroPicker: {},
+                onPetPicker: {}
+            )
+            .disabled(true)
+            .saturation(0.2)
+            .opacity(0.58)
+
+            Button {} label: {
+                Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)
+                    .frame(maxWidth: .infinity)
+            }
+            .trinketPrimaryActionButton()
+            .tint(.gray)
+            .disabled(true)
         }
         .padding(14)
         .background(Color(.tertiarySystemBackground).opacity(0.70), in: TrinketDesign.cardShape)
@@ -290,7 +353,7 @@ private struct LockedStageCard: View {
             TrinketDesign.cardShape
                 .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), locked \(stage.encounter.title), \(stage.encounterSubjectName)")
     }
@@ -302,7 +365,7 @@ private struct CompletedStageRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous)
                     .fill(TrinketDesign.Colors.success.opacity(0.12))
 
                 Image(systemName: "checkmark.circle.fill")
@@ -331,7 +394,7 @@ private struct CompletedStageRow: View {
                 .foregroundStyle(TrinketDesign.Colors.success)
         }
         .padding(12)
-        .background(Color(.tertiarySystemBackground).opacity(0.54), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(Color(.tertiarySystemBackground).opacity(0.54), in: TrinketDesign.cardShape)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), complete, \(stage.encounterSubjectName)")
@@ -344,13 +407,6 @@ private struct JourneyChapterGate: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             ChapterArt(chapter: chapter, reduceTransparency: false)
-
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.68)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
                 Label("Locked", systemImage: "lock.fill")
@@ -367,6 +423,7 @@ private struct JourneyChapterGate: View {
                     .lineLimit(2)
             }
             .padding(18)
+            .shadow(color: .black.opacity(0.48), radius: 8, y: 2)
         }
         .frame(maxWidth: .infinity)
         .aspectRatio(4.0 / 3.0, contentMode: .fit)

@@ -7,11 +7,24 @@ struct JourneyScrollTransition: ViewModifier {
         if isEnabled {
             content.scrollTransition(.interactive, axis: .vertical) { view, phase in
                 view
-                    .scaleEffect(1.06 - min(abs(phase.value), 1) * 0.18)
-                    .blur(radius: min(abs(phase.value), 1) * 2.0)
+                    .scaleEffect(scale(for: phase.value))
+                    .blur(radius: blurRadius(for: phase.value))
             }
         } else {
             content
         }
+    }
+
+    private func scale(for phaseValue: Double) -> CGFloat {
+        1.02 - easedProgress(for: phaseValue) * 0.18
+    }
+
+    private func blurRadius(for phaseValue: Double) -> CGFloat {
+        easedProgress(for: phaseValue) * 1.25
+    }
+
+    private func easedProgress(for phaseValue: Double) -> CGFloat {
+        let progress = min(CGFloat(abs(phaseValue)), 1)
+        return progress * progress * (3 - 2 * progress)
     }
 }

@@ -1,6 +1,6 @@
+import BattleEngine
 import Foundation
 import Observation
-import BattleEngine
 import TrinketContent
 
 @MainActor
@@ -101,13 +101,18 @@ final class BattleSession {
     }
 
     func restorePauseAfterOverlay() {
-        guard activeBattle != nil else { return }
+        guard activeBattle != nil else {
+            pauseStateBeforeOverlay = nil
+            return
+        }
         isPaused = pauseStateBeforeOverlay ?? false
         pauseStateBeforeOverlay = nil
     }
 
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
-        pauseForOverlay()
+        if activeBattle != nil {
+            pauseForOverlay()
+        }
         overlayCombatantDetail = CombatantCollectionDetailSelection(battleSnapshot: detail)
     }
 }

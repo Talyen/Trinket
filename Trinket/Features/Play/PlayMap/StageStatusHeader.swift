@@ -15,7 +15,7 @@ struct StageStatusHeader: View {
             Spacer(minLength: 8)
 
             Text(stage.mapLabel)
-                .font(.caption.weight(.semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }

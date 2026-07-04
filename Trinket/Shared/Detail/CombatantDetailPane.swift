@@ -18,9 +18,8 @@ struct CombatantDetailPane: View {
     @Binding var selectedItemSlot: ItemSlot?
 
     @State private var headerHeight: CGFloat = 300
+    @State private var heroOverscroll: CGFloat = 0
     @State private var titleOpacity: CGFloat = 0
-
-    private let scrollCoordinateSpaceName = "CombatantDetailScroll"
 
     private var combatBuild: CombatBuild {
         CombatBuildResolver.build(
@@ -44,7 +43,7 @@ struct CombatantDetailPane: View {
                         combatant: combatant,
                         progression: progression,
                         baseHeight: baseHeaderHeight,
-                        coordinateSpaceName: scrollCoordinateSpaceName
+                        overscroll: heroOverscroll
                     )
                     .accessibilityIdentifier("\(combatant.name) detail hero header")
 
@@ -98,7 +97,6 @@ struct CombatantDetailPane: View {
                     .background(TrinketDesign.Colors.appBackground)
                 }
             }
-            .coordinateSpace(name: scrollCoordinateSpaceName)
             .ignoresSafeArea(edges: .top)
             .background(TrinketDesign.Colors.appBackground)
             .combatantDetailNavigationChrome(navigationChrome, title: combatant.name, titleOpacity: titleOpacity)
@@ -111,10 +109,15 @@ struct CombatantDetailPane: View {
             .onScrollGeometryChange(for: ScrollState.self) { geometry in
                 ScrollState(
                     offsetY: geometry.contentOffset.y + geometry.contentInsets.top,
-                    topInset: geometry.contentInsets.top
+                    topInset: geometry.contentInsets.top,
+                    overscroll: HeroHeaderLayout.overscroll(
+                        contentOffsetY: geometry.contentOffset.y,
+                        topInset: geometry.contentInsets.top
+                    )
                 )
             } action: { _, state in
                 let threshold = headerHeight - state.topInset - 44
+                heroOverscroll = state.overscroll
                 titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
             }
         }
@@ -154,6 +157,7 @@ struct CombatantDetailPane: View {
     private struct ScrollState: Equatable {
         var offsetY: CGFloat
         var topInset: CGFloat
+        var overscroll: CGFloat
     }
 }
 

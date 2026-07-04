@@ -26,62 +26,43 @@ struct HomesteadNodeDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                HomesteadBuildingArtwork(definition: definition)
-                    .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                    .saturation(status.isUnlocked ? 1 : 0.1)
-                    .opacity(status.isUnlocked ? 1 : 0.56)
-                    .trinketCardSurface()
-
-                VStack(alignment: .leading, spacing: 10) {
-                    HomesteadTierPips(
-                        currentTier: status.currentTier,
-                        maxTier: definition.maxTier,
-                        tint: definition.tint,
-                        isUnlocked: status.isUnlocked
-                    )
-                    Text(definition.summary)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                HomesteadDetailHeader(definition: definition, status: status)
 
                 if !status.isUnlocked {
                     HomesteadPrerequisiteSection(definition: definition, homestead: homestead)
                 }
 
                 HomesteadBonusSection(
-                    title: status.currentTier == 0 ? "Dormant" : "Current",
+                    title: "Current Effect",
                     bonus: currentBonus
                 )
 
                 if let nextTier = status.nextTier {
                     HomesteadBonusSection(
-                        title: nextTier.tier == 1 ? "Build" : "Upgrade",
+                        title: nextTier.tier == 1 ? "Build Effect" : "Next Upgrade",
                         bonus: nextTier.bonus
                     )
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Materials")
+                        Text("Requirements")
                             .font(.headline)
                         HomesteadRequirementList(
                             cost: nextTier.cost,
                             status: status
                         )
                     }
-
-                    Button(action: buildOrUpgrade) {
-                        Label(status.actionTitle, systemImage: status.canBuildOrUpgrade ? "hammer.fill" : "lock.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .trinketPrimaryActionButton()
-                    .disabled(!status.canBuildOrUpgrade)
                 }
             }
-            .padding(TrinketDesign.Metrics.contentMargin)
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, 12)
+            .padding(.bottom, 120)
         }
         .background(TrinketDesign.Colors.appBackground)
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .bottom) {
+            HomesteadDetailActionBar(status: status, action: buildOrUpgrade)
+        }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .sensoryFeedback(.success, trigger: upgradeEventCount)
     }
@@ -91,8 +72,8 @@ struct HomesteadNodeDetailView: View {
             return tier.bonus
         }
         return HomesteadBonus(
-            title: "Unbuilt",
-            description: "Build this project to bring its first Homestead bonus online."
+            title: "No Active Effect",
+            description: "Build this project to enable its first effect."
         )
     }
 
@@ -101,6 +82,83 @@ struct HomesteadNodeDetailView: View {
         upgradeEventCount += 1
         guard !reduceMotion else { return }
         withAnimation(.snappy) {}
+    }
+}
+
+struct HomesteadDetailHeader: View {
+    let definition: HomesteadNodeDefinition
+    let status: HomesteadProjectStatus
+
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            HomesteadBuildingArtwork(definition: definition)
+                .aspectRatio(4.0 / 3.0, contentMode: .fit)
+                .saturation(status.isUnlocked ? 1 : 0.14)
+                .opacity(status.isUnlocked ? 1 : 0.62)
+                .overlay {
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.58)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
+                }
+
+            VStack(alignment: .leading, spacing: 10) {
+                HomesteadStatusBadge(status: status)
+
+                Text(definition.title)
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+
+                HStack(alignment: .center, spacing: 10) {
+                    HomesteadTierPips(
+                        currentTier: status.currentTier,
+                        maxTier: definition.maxTier,
+                        tint: definition.tint,
+                        isUnlocked: status.isUnlocked
+                    )
+
+                    Text("Tier \(status.currentTier)/\(definition.maxTier)")
+                        .font(.subheadline.monospacedDigit().weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.82))
+                }
+            }
+            .padding(16)
+        }
+        .trinketCardSurface()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(definition.title), tier \(status.currentTier) of \(definition.maxTier), \(status.statusTitle)")
+    }
+}
+
+struct HomesteadDetailActionBar: View {
+    let status: HomesteadProjectStatus
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: 10) {
+            if status.canBuildOrUpgrade {
+                Button(action: action) {
+                    Label(status.actionTitle, systemImage: "hammer.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton()
+            } else if status.isComplete {
+                Label("Complete", systemImage: "checkmark.seal.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(TrinketDesign.Colors.success)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+            } else {
+                HomesteadMissingSummary(status: status)
+            }
+        }
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        // UIStyleCheck: allow - Pinned action chrome intentionally uses native material.
+        .background(.regularMaterial)
     }
 }
 

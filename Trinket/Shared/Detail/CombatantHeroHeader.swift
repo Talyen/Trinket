@@ -4,16 +4,15 @@ struct CombatantHeroHeader: View {
     let combatant: Combatant
     let progression: CombatantProgression
     let baseHeight: CGFloat
-    let coordinateSpaceName: String
+    let overscroll: CGFloat
     var body: some View {
         OverscrollHeroContainer(
             baseHeight: baseHeight,
-            coordinateSpaceName: coordinateSpaceName,
+            overscroll: overscroll,
             alignment: .topLeading
         ) {
             CombatantArtwork(combatant: combatant)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .frame(maxWidth: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } overlay: {
             ZStack(alignment: .bottomLeading) {
                 LinearGradient(

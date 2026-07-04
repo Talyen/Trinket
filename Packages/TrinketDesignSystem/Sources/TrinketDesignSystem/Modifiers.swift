@@ -40,20 +40,30 @@ public struct LockedCardEffectModifier: ViewModifier {
                     TrinketDesign.cardShape
                         .fill(.black.opacity(0.36))
 
-                    VStack(spacing: 6) {
-                        Image(systemName: "lock.fill")
-                            .font(.title3.weight(.semibold))
+                    GeometryReader { proxy in
+                        let shortSide = min(proxy.size.width, proxy.size.height)
+                        let iconSize = min(max(shortSide * 0.16, 13), 32)
+                        let textSize = min(max(shortSide * 0.065, 10), 13)
+                        let spacing = min(max(shortSide * 0.035, 4), 7)
+                        let horizontalPadding = min(max(shortSide * 0.08, 8), 18)
 
-                        if let text {
-                            Text(text)
-                                .font(.caption.weight(.semibold))
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
-                                .minimumScaleFactor(0.78)
-                                .padding(.horizontal, 8)
+                        VStack(spacing: spacing) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: iconSize, weight: .semibold))
+                                .symbolRenderingMode(.hierarchical)
+
+                            if let text {
+                                Text(text)
+                                    .font(.system(size: textSize, weight: .semibold))
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.72)
+                                    .padding(.horizontal, horizontalPadding)
+                            }
                         }
+                        .foregroundStyle(Color(.systemGray3))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    .foregroundStyle(.white)
                 }
         } else {
             content

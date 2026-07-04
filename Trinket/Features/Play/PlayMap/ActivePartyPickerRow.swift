@@ -24,7 +24,7 @@ struct CompactPartyButton: View {
             HStack(spacing: 8) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
@@ -44,7 +44,7 @@ struct CompactPartyButton: View {
                     .accessibilityHidden(true)
             }
             .padding(8)
-            .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("\(title) Party Picker")

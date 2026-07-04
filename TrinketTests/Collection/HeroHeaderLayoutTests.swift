@@ -78,4 +78,30 @@ final class HeroHeaderLayoutTests: XCTestCase {
         XCTAssertNotEqual(scale1, scale2)
         XCTAssertGreaterThan(scale1, scale2)
     }
+
+    // MARK: - Overscroll stretch contract
+
+    func testOverscrollIsZeroWhenContentIsNotPulledPastTop() {
+        let overscroll = HeroHeaderLayout.overscroll(contentOffsetY: 20, topInset: 0)
+        XCTAssertEqual(overscroll, 0)
+    }
+
+    func testOverscrollUsesNegativeAdjustedContentOffset() {
+        let overscroll = HeroHeaderLayout.overscroll(contentOffsetY: -132, topInset: 44)
+        XCTAssertEqual(overscroll, 88)
+    }
+
+    func testOverscrollMetricsExpandHeightAndPinTopEdge() {
+        let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 88)
+
+        XCTAssertEqual(metrics.height, 608)
+        XCTAssertEqual(metrics.offsetY, -88)
+    }
+
+    func testOverscrollMetricsDoNotMoveAtRest() {
+        let metrics = HeroHeaderLayout.overscrollMetrics(baseHeight: 520, overscroll: 0)
+
+        XCTAssertEqual(metrics.height, 520)
+        XCTAssertEqual(metrics.offsetY, 0)
+    }
 }

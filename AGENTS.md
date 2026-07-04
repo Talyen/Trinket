@@ -6,13 +6,20 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 - Workflow/scripts/style: `AGENTS.md` · architecture: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · setup: `README.md`
 
+## Before Coding
+
+- Read the relevant doc named in "When To Read What."
+- Search for the existing pattern before adding a new abstraction.
+- Run `git status --short`; preserve unrelated user changes.
+- Prefer `./Scripts/*` wrappers over raw `xcodebuild`.
+
 ## Product & Architecture
 
 - iOS iPhone-first, portrait-only (`project.yml`). Swift 6.0 / SwiftUI; iOS 26.0. Public Apple APIs for StoreKit, GameKit, privacy, cloud, etc.; update docs with App Store/privacy implications.
-- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Planned local Swift packages: see `Docs/Architecture.md`.
+- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Local Swift packages: see `Docs/Architecture.md`.
 - Product tabs: Play, Heroes, Inventory, Homestead, Options (`Docs/CoreDesignConcepts.md`). Code: `AppTab.collection` = Heroes+Pets+Inventory hub; also `.play`, `.homestead`, `.search`, `.options`. UI tests tap `"Homestead"`, not enum raw values.
 - Codebase: `App/` · `Features/` · `Battle/` · `State/` · `Models/` · `Content/` · `Shared/` · `Packages/{TrinketCore,TrinketContent,BattleEngine,TrinketPersistence,TrinketDesignSystem}/` · `TrinketTests/` · `TrinketUITests/`.
-- Generated: `Trinket/Generated/*` (art/music), `Packages/TrinketContent/.../Generated/*` (catalogs) — edit manifests, `./Scripts/generate.sh` (`Docs/ContentPipeline.md`, `Docs/Architecture.md`). Shared domain types: `Packages/TrinketCore/` (`CombatantProgression`, effects, enums). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Generated: `Trinket/Generated/*` (art/music), `Packages/TrinketContent/.../Generated/*` (catalogs). Edit source manifests, then regenerate with `./Scripts/generate.sh`; use `./Scripts/generate.sh --assets` or the specific prepare script for art/music assets (`Docs/ContentPipeline.md`, `Docs/ArtPipeline.md`, `Docs/MusicPipeline.md`, `Docs/Architecture.md`). Shared domain types: `Packages/TrinketCore/` (`CombatantProgression`, effects, enums). `Raw Assets/` source-only. Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
 
 ## Battle Module
 
@@ -26,19 +33,24 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine`).
+- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass unless justified with `UIStyleCheck`. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine`).
 - Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Packages/TrinketDesignSystem/`.
 
 ## Git Workflow
 
 - Work on `main` unless the user explicitly requests a feature branch.
-- Commit locally when work is complete or before testing.
+- Check `git status --short` before edits, preserve unrelated user changes, and keep diffs focused.
+- Commit only when explicitly requested, or when the task explicitly includes a local commit; commit after relevant verification.
 - Do **not** `git push` unless the user explicitly asks.
 - Do **not** create or update pull requests unless the user explicitly asks.
 
 ## Commands & Verification
 
-All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, XcodeGen), `assert-generated-output.sh`, `validate-manifests.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
+Use repo wrappers under `./Scripts/` instead of raw tool invocations: `generate.sh`, `assert-generated-output.sh`, `validate-manifests.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `prepare-music-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`).
+
+Generation behavior: `generate.sh` validates manifests, runs content codegen, and runs XcodeGen. It only refreshes art/music assets with `--assets`; use `prepare-art-assets.sh` or `prepare-music-assets.sh` for targeted asset work. `test.sh` runs `generate.sh` unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, run `generate.sh` before build/test.
+
+Timing/toolchain notes: `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. Tooling includes XcodeGen, `xcodebuild`, XCTest, SwiftFormat, and SwiftLint.
 
 | Change | Check |
 |--------|-------|
@@ -54,7 +66,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 | Tier | Command | What runs | When |
 |------|---------|-----------|------|
 | Unit | `test.sh unit` | All `TrinketTests` | Every logic change |
-| UI smoke | `test.sh smoke` | `Smoke.xctestplan` — 9 `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
+| UI smoke | `test.sh smoke` | `Smoke.xctestplan` — `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
 | Targeted UI | `test.sh ui <Class>` | One UI class | Focused UI iteration |
 | Full UI | `test.sh ui` | All `TrinketUITests` including exhaustive flows | Pre-merge |
 | Integration | `test.sh all` | `Integration.xctestplan` — unit + all UI in one run | Nightly / manual |

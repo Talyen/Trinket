@@ -14,24 +14,52 @@ struct HomesteadView: View {
         appState.roster.current
     }
 
+    private var allDefinitions: [HomesteadNodeDefinition] {
+        GameContent.homesteadNodes
+    }
+
+    private var featuredDefinition: HomesteadNodeDefinition? {
+        HomesteadProgression.recommendedProject(
+            definitions: allDefinitions,
+            homestead: homesteadState,
+            roster: rosterState
+        )
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadResourceWallet(
                     homestead: homesteadState,
-                    roster: rosterState
+                    roster: rosterState,
+                    resources: HomesteadProgression.walletResources(
+                        for: featuredDefinition,
+                        homestead: homesteadState,
+                        roster: rosterState
+                    )
                 )
+
+                if let featuredDefinition {
+                    HomesteadFeaturedProjectCard(
+                        definition: featuredDefinition,
+                        status: HomesteadProjectStatus(
+                            definition: featuredDefinition,
+                            homestead: homesteadState,
+                            roster: rosterState
+                        ),
+                        onBuild: { buildOrUpgrade(featuredDefinition) }
+                    )
+                }
 
                 ForEach(HomesteadNodeCategory.allCases) { category in
                     let definitions = definitions(in: category)
                     if !definitions.isEmpty {
-                        HomesteadProjectShelf(
+                        HomesteadProjectSection(
                             category: category,
                             definitions: definitions,
                             homestead: homesteadState,
                             roster: rosterState,
-                            recentUpgradeID: recentUpgradeID,
-                            onBuild: buildOrUpgrade
+                            recentUpgradeID: recentUpgradeID
                         )
                     }
                 }
@@ -58,6 +86,10 @@ struct HomesteadView: View {
     }
 
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
-        GameContent.homesteadNodes.filter { $0.category == category }
+        HomesteadProgression.visibleDefinitions(
+            in: category,
+            all: allDefinitions,
+            homestead: homesteadState
+        )
     }
 }

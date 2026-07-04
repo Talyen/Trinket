@@ -65,6 +65,16 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertFalse(appState.battle.isPaused)
     }
 
+    func testPresentCombatantDetailWithoutActiveBattleDoesNotPauseSession() throws {
+        let appState = makeAppState()
+        let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton")?.combatant)
+
+        appState.battle.presentCombatantDetail(.base(enemy))
+
+        XCTAssertFalse(appState.battle.isPaused)
+        XCTAssertNotNil(appState.battle.overlayCombatantDetail)
+    }
+
     func testEndBattleClearsSessionState() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)

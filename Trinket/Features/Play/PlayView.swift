@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 
 struct PlayView: View {
@@ -43,6 +44,7 @@ struct PlayView: View {
                 heroes: appState.roster.heroes,
                 pets: appState.roster.pets,
                 onStageTap: handleStageTap,
+                onEnemyTap: showEnemyDetails(for:),
                 onSetActiveHero: { appState.roster.setActiveHero($0) },
                 onSetActivePet: { appState.roster.setActivePet($0) }
             )
@@ -70,5 +72,30 @@ struct PlayView: View {
         case .event, .shop, .rest:
             appState.completeStage(stage, hero: appState.roster.activeHero, pet: appState.roster.activePet)
         }
+    }
+
+    private func showEnemyDetails(for stage: Stage) {
+        guard let detail = enemyDetail(for: stage) else { return }
+        appState.battle.presentCombatantDetail(detail)
+    }
+
+    private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
+        guard let enemyID = stage.encounter.battleEnemyID,
+              let enemy = GameContent.enemy(matching: enemyID),
+              let chapter = GameContent.chapter(id: stage.chapterID)
+        else { return nil }
+
+        let combatant = CombatantLevelScaler.scale(
+            enemy: enemy,
+            level: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        )
+        return CombatantCardDetail(
+            combatant: combatant,
+            progression: .initial,
+            equipmentLoadout: EquipmentLoadout(),
+            inventoryState: appState.inventory.current,
+            health: combatant.maxHealth,
+            activeEffectSummaries: []
+        )
     }
 }

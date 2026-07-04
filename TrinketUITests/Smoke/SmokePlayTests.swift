@@ -20,6 +20,15 @@ final class SmokePlayTests: TrinketUITestCase {
         XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
     }
 
+    func testBattleStageEnemyArtOpensDetails() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+
+        button("Stage 1-1 Enemy Art").tap()
+
+        assertExists("Skeleton detail hero header")
+        assertExists("Combatant Stats Section")
+    }
+
     func testNonBattleStubStageCanComplete() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
 

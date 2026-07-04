@@ -32,7 +32,7 @@ The core journey is chapter-scoped vertical progression. Chapter 1 is `The Verda
 
 Each stage has a predefined encounter type: Battle, Event, Shop, or Rest. Battle stages launch the authored enemy. Event, Shop, and Rest stages can appear in the path before their full systems exist, using a placeholder completion action so the chapter never dead-ends.
 
-The active stage action launches immediately from the inline card: Battle starts combat; Event, Shop, and Rest run their placeholder completion action. Active stage cards can include a compact Hero/Pet picker for party swapping, but Hero/Pet loadout and equipment editing still belongs in Heroes/Inventory. Do not preview possible rewards on stage cards.
+The active stage action launches from the inline card: Battle starts combat; Event, Shop, and Rest run their placeholder completion action. Active stage cards can include a compact Hero/Pet picker for party swapping.
 
 Stage completion advances persistent journey progress, grants stub rewards once, and returns to the journey. The journey should scroll the newly active stage into a comfortable reading position so the next action is obvious. End-of-chapter stages should connect forward into a locked next-chapter destination even before that chapter has authored content.
 
@@ -40,7 +40,7 @@ Stage completion advances persistent journey progress, grants stub rewards once,
 
 Heroes are primary player combatants. They are represented as identity-first 3:4 full-art cards with exact health, abilities, effects, and formulas available through detail views rather than crowded onto card art.
 
-Hero detail views use native pushed navigation from the Heroes tab. The overview should stay scannable: large art, name, level/experience, health, and drill-ins for ability and item loadouts.
+Hero detail views use native pushed navigation from the Heroes tab. The overview should stay scannable: large art, name, level/experience, health, and focused detail sections.
 
 ## Pets
 
@@ -50,7 +50,7 @@ Pet detail views use the same native pushed collection-detail pattern as Heroes.
 
 ## Enemies
 
-Enemies are the focal target in the first battle slice. Expose important enemy mechanics through enemy detail views and readable descriptions instead of adding extra pre-battle steps before the strategy layer needs them.
+Enemies are the focal target in the first battle slice. Expose important enemy mechanics through enemy detail views and readable descriptions.
 
 Enemy detail views use the shared combatant detail pattern and can show active combat effects during battle.
 
@@ -58,7 +58,7 @@ Enemy detail views use the shared combatant detail pattern and can show active c
 
 Abilities are the main source of combat actions and Keywords. Keep Abilities as rows inside combatant details for now. Do not create standalone Ability card detail screens until abilities need independent inspection, upgrades, or collection behavior.
 
-Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Hero and Pet collections can offer two choices per tier, with one Basic, one Skill, and one Ultimate selected into the active battle loadout before combat. Battles remain idle on a shared tick clock. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
+Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Battles remain idle on a shared tick clock. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
 
 Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed ticks can fire on steps where nobody acts.
 
@@ -95,7 +95,7 @@ Regression coverage: `BattleGoldenPathTests` in `BattleEngineTests` pins determi
 
 ## Items
 
-Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the top-level Inventory tab and can also appear through Hero/Pet item loadout flows.
+Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the top-level Inventory tab and can also appear through equipment or reward flows.
 
 Let players evaluate individual Items from clear item details. Avoid automatic "best for this hero" judgments unless later playtesting shows the inventory experience needs stronger guidance.
 
@@ -181,7 +181,7 @@ Keep cards identity-first. Avoid covering full-art cards with dense stats; put e
 
 Hero, Pet, and Enemy details should use an immersive hero header when curated art exists: the same 3:4 art becomes a full-bleed top background with overlaid identity content, while exact stats and choices remain in native detail sections below it. Focal points for this crop live in `ArtManifest/curated-assets.tsv` and are generated into `Trinket/Generated/ArtCatalog.generated.swift`. Combatant art should only map to the matching game entity name, not a near-synonym or temporary stand-in.
 
-Heroes and Pets use native pushed collection details with drill-in Ability Loadout and Item Loadout screens. Enemies and battle-context combatant inspection can continue using sheets because those details are temporary battle-context views.
+Heroes and Pets use native pushed collection details. Enemies and battle-context combatant inspection can continue using sheets because those details are temporary battle-context views.
 
 ## Battle Screen
 

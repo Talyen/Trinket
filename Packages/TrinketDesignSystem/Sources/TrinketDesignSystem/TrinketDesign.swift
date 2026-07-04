@@ -34,7 +34,13 @@ public enum TrinketDesign {
         public static let collectionShelfPeekRatio: CGFloat = 0.08
     }
 
-    public static let cardShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+    public enum Corners {
+        public static let small: CGFloat = 8
+        public static let compact: CGFloat = 12
+        public static let card: CGFloat = 16
+    }
+
+    public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
 
     public enum AppTheme: String, CaseIterable, Identifiable, Sendable {
         case system = "System"
