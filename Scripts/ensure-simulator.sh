@@ -165,22 +165,36 @@ ensure_ios_simulator_platform() {
 
 destination_listed_by_xcodebuild() {
   local udid="$1"
+  if [[ -z "$udid" ]]; then
+    return 1
+  fi
+
   xcodebuild_show_destinations | grep -Fq "id:$udid"
 }
 
 align_destination_with_xcodebuild() {
   local preferred_name="$1"
   local preferred_udid="$2"
+  local destinations_file
+  destinations_file="$(mktemp)"
+
+  if ! xcodebuild_show_destinations >"$destinations_file" 2>&1; then
+    cat "$destinations_file" >&2
+    rm -f "$destinations_file"
+    return 1
+  fi
+
   local resolved
-  resolved="$(xcodebuild_show_destinations | python3 - "$preferred_name" "$preferred_udid" <<'PY'
+  if ! resolved="$(python3 - "$preferred_name" "$preferred_udid" "$destinations_file" <<'PY'
 import re
 import sys
 
 preferred_name = sys.argv[1]
 preferred_udid = sys.argv[2]
-candidates: list[tuple[str, str]] = []
+destinations_text = open(sys.argv[3], encoding="utf-8").read()
+candidates = []
 
-for line in sys.stdin:
+for line in destinations_text.splitlines():
     if "platform:iOS Simulator" not in line:
         continue
 
@@ -199,22 +213,33 @@ for line in sys.stdin:
     candidates.append((name, device_id))
 
 if not candidates:
+    print(destinations_text, file=sys.stderr)
     raise SystemExit("No concrete iOS Simulator destinations were listed by xcodebuild.")
 
 for name, device_id in candidates:
-    if device_id == preferred_udid:
+    if preferred_udid and device_id == preferred_udid:
         print(f"{name}\t{device_id}")
         raise SystemExit(0)
 
 for name, device_id in candidates:
-    if name == preferred_name:
+    if preferred_name and name == preferred_name:
         print(f"{name}\t{device_id}")
         raise SystemExit(0)
 
 name, device_id = candidates[0]
 print(f"{name}\t{device_id}")
 PY
-)"
+)"; then
+    rm -f "$destinations_file"
+    return 1
+  fi
+
+  rm -f "$destinations_file"
+
+  if [[ -z "$resolved" || "$resolved" != *$'\t'* ]]; then
+    echo "Failed to parse simulator destination from xcodebuild output." >&2
+    return 1
+  fi
 
   SIMULATOR_NAME="${resolved%%$'\t'*}"
   SIMULATOR_UDID="${resolved#*$'\t'}"
@@ -265,14 +290,32 @@ raise SystemExit(1)
 ensure_test_simulator() {
   local force="${1:-}"
   ensure_ios_simulator_platform
-  resolve_simulator "$force"
-  boot_simulator
-  if ! verify_simulator_destination; then
-    echo "Retrying simulator setup after destination verification failure..." >&2
+
+  if [[ -n "$force" ]]; then
     resolve_simulator force
     boot_simulator
+    verify_simulator_destination && return 0
+    align_destination_with_xcodebuild "$SIMULATOR_NAME" "$SIMULATOR_UDID" || return 1
+    boot_simulator
     verify_simulator_destination
+    return
   fi
+
+  if align_destination_with_xcodebuild "${PREFERRED_SIMULATOR_NAMES[1]}" ""; then
+    boot_simulator
+    verify_simulator_destination && return 0
+  fi
+
+  resolve_simulator
+  boot_simulator
+  if verify_simulator_destination; then
+    return 0
+  fi
+
+  echo "Retrying simulator setup using xcodebuild destination resolution..." >&2
+  align_destination_with_xcodebuild "$SIMULATOR_NAME" "$SIMULATOR_UDID" || return 1
+  boot_simulator
+  verify_simulator_destination
 }
 
 ensure_simulator_pool() {
