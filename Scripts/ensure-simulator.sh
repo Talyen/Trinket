@@ -120,7 +120,28 @@ boot_simulator_udid() {
   if [[ "$state" != "Booted" ]]; then
     echo "Booting $name ($udid)..."
     xcrun simctl boot "$udid" 2>/dev/null || true
-    xcrun simctl bootstatus "$udid" -b
+    # Bootstatus with timeout to avoid hanging CI (120s)
+    xcrun simctl bootstatus "$udid" -b &
+    local boot_pid=$!
+    local wait_seconds=0
+    while kill -0 "$boot_pid" 2>/dev/null && (( wait_seconds < 120 )); do
+      sleep 2
+      ((wait_seconds+=2))
+    done
+    if kill -0 "$boot_pid" 2>/dev/null; then
+      kill "$boot_pid" 2>/dev/null || true
+      wait "$boot_pid" 2>/dev/null || true
+      echo "Boot timed out after 120s; recreating simulator..." >&2
+      xcrun simctl shutdown "$udid" 2>/dev/null || true
+      xcrun simctl delete "$udid" 2>/dev/null || true
+      return 1
+    fi
+    wait "$boot_pid" 2>/dev/null || {
+      echo "Boot failed; recreating simulator..." >&2
+      xcrun simctl shutdown "$udid" 2>/dev/null || true
+      xcrun simctl delete "$udid" 2>/dev/null || true
+      return 1
+    }
   else
     echo "$name ($udid) is already booted."
   fi

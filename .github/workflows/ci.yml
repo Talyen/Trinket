@@ -97,11 +97,15 @@ jobs:
           restore-keys: |
             deriveddata-${{ runner.os }}-xcode-26-
 
-      - name: Accept Xcode license and install simulator runtime
+      - name: Accept Xcode license
+        run: sudo xcodebuild -license accept 2>/dev/null || true
+
+      - name: Install iOS Simulator runtime
         run: |
-          sudo xcodebuild -license accept 2>/dev/null || true
-          xcodebuild -runFirstLaunch 2>/dev/null || true
-          xcodebuild -downloadPlatform iOS 2>/dev/null || xcodebuild -downloadAllPlatforms
+          if ! xcrun simctl runtime list 2>/dev/null | grep -q "^iOS "; then
+            echo "No iOS Simulator runtime found; downloading..."
+            timeout 300 xcodebuild -downloadPlatform iOS || timeout 300 xcodebuild -downloadAllPlatforms
+          fi
 
       - name: Build for testing
         run: ./Scripts/build-for-testing.sh

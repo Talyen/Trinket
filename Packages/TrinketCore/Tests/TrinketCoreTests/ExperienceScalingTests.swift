@@ -68,4 +68,36 @@ final class ExperienceScalingTests: XCTestCase {
         XCTAssertEqual(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5), 0)
         XCTAssertGreaterThan(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5), 0)
     }
+
+    // MARK: - Catch-up multiplier
+
+    func testCatchUpMultiplierIsOneAtNoGap() {
+        XCTAssertEqual(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10), 1.0, accuracy: 0.001)
+        XCTAssertEqual(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15), 1.0, accuracy: 0.001)
+    }
+
+    func testCatchUpMultiplierIncreasesWithGap() {
+        let gap1 = ExperienceScaling.catchUpMultiplier(for: 9, highestLevel: 10)
+        let gap5 = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
+        let gap10 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 11)
+        XCTAssertGreaterThan(gap1, 1.0)
+        XCTAssertGreaterThan(gap5, gap1)
+        XCTAssertGreaterThan(gap10, gap5)
+    }
+
+    func testCatchUpMultiplierApproachesMax() {
+        let largeGap = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 100)
+        XCTAssertLessThan(largeGap, 2.5)
+        XCTAssertGreaterThan(largeGap, 2.4)
+    }
+
+    func testCatchUpMultiplierCustomMax() {
+        let gap5 = ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 15, maxMultiplier: 2.0)
+        XCTAssertLessThan(gap5, 2.0)
+        XCTAssertGreaterThan(gap5, 1.5)
+
+        let gap50 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 51, maxMultiplier: 3.0)
+        XCTAssertLessThan(gap50, 3.0)
+        XCTAssertGreaterThan(gap50, 2.9)
+    }
 }

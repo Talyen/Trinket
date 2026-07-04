@@ -16,7 +16,7 @@ enum HomesteadProgression {
 
         return statuses.first(where: \.canBuildOrUpgrade)?.definition
             ?? statuses.first(where: { $0.isUnlocked && !$0.isComplete })?.definition
-            ?? statuses.first(where: \.isUnlocked == false)?.definition
+            ?? statuses.first(where: { !$0.isUnlocked })?.definition
             ?? statuses.first?.definition
     }
 

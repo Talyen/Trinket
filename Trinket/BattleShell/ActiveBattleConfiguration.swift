@@ -13,6 +13,8 @@ struct ActiveBattleConfiguration: Identifiable {
     let enemyEncounterLevel: Int?
     let heroProgression: CombatantProgression
     let petProgression: CombatantProgression
+    let highestHeroLevel: Int
+    let highestPetLevel: Int
     let heroEquipmentLoadout: EquipmentLoadout
     let petEquipmentLoadout: EquipmentLoadout
     let heroModifiers: CombatModifierProfile
@@ -30,6 +32,8 @@ struct ActiveBattleConfiguration: Identifiable {
         enemyEncounterLevel: Int? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
+        highestHeroLevel: Int? = nil,
+        highestPetLevel: Int? = nil,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         heroModifiers: CombatModifierProfile = .zero,
@@ -46,6 +50,8 @@ struct ActiveBattleConfiguration: Identifiable {
         self.enemyEncounterLevel = enemyEncounterLevel
         self.heroProgression = heroProgression
         self.petProgression = petProgression
+        self.highestHeroLevel = highestHeroLevel ?? heroProgression.level
+        self.highestPetLevel = highestPetLevel ?? petProgression.level
         self.heroEquipmentLoadout = heroEquipmentLoadout
         self.petEquipmentLoadout = petEquipmentLoadout
         self.heroModifiers = heroModifiers
@@ -64,6 +70,8 @@ struct ActiveBattleConfiguration: Identifiable {
         enemyEncounterLevel: Int? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
+        highestHeroLevel: Int? = nil,
+        highestPetLevel: Int? = nil,
         heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         inventoryState: PlayerInventoryState = .initial,
@@ -97,6 +105,8 @@ struct ActiveBattleConfiguration: Identifiable {
             enemyEncounterLevel: enemyEncounterLevel,
             heroProgression: heroProgression,
             petProgression: petProgression,
+            highestHeroLevel: highestHeroLevel,
+            highestPetLevel: highestPetLevel,
             heroEquipmentLoadout: heroEquipmentLoadout,
             petEquipmentLoadout: petEquipmentLoadout,
             heroModifiers: heroBuild.modifiers,

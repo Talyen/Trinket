@@ -95,10 +95,16 @@ enum StageRewardReconciler {
         let chapter = GameContent.chapters.first { $0.id == stage.chapterID } ?? GameContent.chapters[0]
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
 
-        let heroAward = ExperienceScaling.battleAward(
-            playerLevel: localRoster.progression(for: hero).level,
+        let heroLevel = localRoster.progression(for: hero).level
+        let heroCatchUp = ExperienceScaling.catchUpMultiplier(
+            for: heroLevel,
+            highestLevel: localRoster.highestHeroLevel
+        )
+        let heroBaseAward = ExperienceScaling.battleAward(
+            playerLevel: heroLevel,
             enemyLevel: encounterLevel
         )
+        let heroAward = max(1, Int((Double(heroBaseAward) * heroCatchUp).rounded()))
         if !experienceAwardReflected(
             local: localRoster.progression(for: hero),
             merged: mergedRoster.progression(for: hero),
@@ -107,10 +113,16 @@ enum StageRewardReconciler {
             return false
         }
 
-        let petAward = ExperienceScaling.battleAward(
-            playerLevel: localRoster.progression(for: pet).level,
+        let petLevel = localRoster.progression(for: pet).level
+        let petCatchUp = ExperienceScaling.catchUpMultiplier(
+            for: petLevel,
+            highestLevel: localRoster.highestPetLevel
+        )
+        let petBaseAward = ExperienceScaling.battleAward(
+            playerLevel: petLevel,
             enemyLevel: encounterLevel
         )
+        let petAward = max(1, Int((Double(petBaseAward) * petCatchUp).rounded()))
         if !experienceAwardReflected(
             local: localRoster.progression(for: pet),
             merged: mergedRoster.progression(for: pet),

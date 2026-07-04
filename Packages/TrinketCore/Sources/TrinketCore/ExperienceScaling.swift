@@ -59,6 +59,23 @@ public enum ExperienceScaling {
         return max(0, Int((Double(baseExperience) * multiplier).rounded()))
     }
 
+    /// Catch-up XP multiplier. Returns 1.0 when the combatant is at or above
+    /// `highestLevel`, smoothly approaching `maxMultiplier` as the level gap grows.
+    /// - Parameters:
+    ///   - combatantLevel: The level of the combatant receiving XP.
+    ///   - highestLevel: The highest level among same-role combatants.
+    ///   - maxMultiplier: The maximum multiplier to approach (default 2.5).
+    public static func catchUpMultiplier(
+        for combatantLevel: Int,
+        highestLevel: Int,
+        maxMultiplier: Double = 2.5
+    ) -> Double {
+        let gap = max(0, highestLevel - combatantLevel)
+        guard gap > 0 else { return 1.0 }
+        let decayConstant = 2.0
+        return 1.0 + (maxMultiplier - 1.0) * (1.0 - exp(-Double(gap) / decayConstant))
+    }
+
     private static func smoothstep(_ value: Double) -> Double {
         let clamped = min(max(value, 0), 1)
         return clamped * clamped * (3 - (2 * clamped))

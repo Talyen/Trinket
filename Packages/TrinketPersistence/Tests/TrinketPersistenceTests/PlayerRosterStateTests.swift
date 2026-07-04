@@ -161,6 +161,43 @@ final class PlayerRosterStateTests: XCTestCase {
         XCTAssertFalse(inventory.hasItem(for: .armor))
     }
 
+    func testHighestHeroLevelWithSingleHero() {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(level: 5, currentXP: 0, requiredXP: 100)
+        XCTAssertEqual(roster.highestHeroLevel, 5)
+    }
+
+    func testHighestHeroLevelWithMultipleHeroes() {
+        var roster = PlayerRosterState.initial
+        roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
+        roster.progressions["wizard"] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
+        XCTAssertEqual(roster.highestHeroLevel, 12)
+    }
+
+    func testHighestHeroLevelFallsBackToOne() {
+        let roster = PlayerRosterState.freshStart
+        XCTAssertEqual(roster.highestHeroLevel, 1)
+    }
+
+    func testHighestPetLevelWithMultiplePets() {
+        var roster = PlayerRosterState.initial
+        roster.progressions["bear"] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)
+        roster.progressions["wolf"] = CombatantProgression(level: 7, currentXP: 0, requiredXP: 100)
+        XCTAssertEqual(roster.highestPetLevel, 7)
+    }
+
+    func testHighestPetLevelFallsBackToOne() {
+        let roster = PlayerRosterState.freshStart
+        XCTAssertEqual(roster.highestPetLevel, 1)
+    }
+
+    func testHighestLevelsIgnoresUnrelatedIDs() {
+        var roster = PlayerRosterState.freshStart
+        roster.progressions["bear"] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
+        XCTAssertEqual(roster.highestHeroLevel, 1)
+        XCTAssertEqual(roster.highestPetLevel, 15)
+    }
+
     func testAddRewardItemIgnoresDuplicateID() throws {
         let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]

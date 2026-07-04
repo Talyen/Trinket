@@ -153,10 +153,18 @@ public enum StageCompletion {
         roster: inout PlayerRosterState
     ) {
         let playerLevel = roster.progression(for: combatant).level
+        let highestLevel = combatant.role == .hero
+            ? roster.highestHeroLevel
+            : roster.highestPetLevel
+        let multiplier = ExperienceScaling.catchUpMultiplier(
+            for: playerLevel,
+            highestLevel: highestLevel
+        )
         let award = ExperienceScaling.battleAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel
         )
-        roster.grantExperience(award, to: combatant)
+        let adjustedAward = max(1, Int((Double(award) * multiplier).rounded()))
+        roster.grantExperience(adjustedAward, to: combatant)
     }
 }

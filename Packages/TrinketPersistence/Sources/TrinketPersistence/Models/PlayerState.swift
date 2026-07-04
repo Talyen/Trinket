@@ -47,6 +47,16 @@ public struct PlayerRosterState: Equatable, Sendable {
     public var abilityLoadouts: [String: AbilityLoadout]
     public var progressions: [String: CombatantProgression]
     public var equipmentLoadouts: [String: EquipmentLoadout]
+
+    /// The highest level among unlocked heroes. Returns 1 if no progression data exists.
+    public var highestHeroLevel: Int {
+        unlockedHeroIDs.compactMap { progressions[$0]?.level }.max() ?? 1
+    }
+
+    /// The highest level among unlocked pets. Returns 1 if no progression data exists.
+    public var highestPetLevel: Int {
+        unlockedPetIDs.compactMap { progressions[$0]?.level }.max() ?? 1
+    }
     public var gold: Int = 0
 
     public init(

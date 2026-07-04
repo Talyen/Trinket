@@ -11,9 +11,9 @@ package struct CriticalGateStep: DamageStep {
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.amount > 0,
-              state.sourceActorID != nil,
+              let sourceActorID = state.sourceActorID,
               let damageKeyword = state.damageKeyword,
-              let actor = context.roster.combatant(for: state.sourceActorID!)
+              let actor = context.roster.combatant(for: sourceActorID)
         else { return }
 
         var chance = actor.primaryStats.criticalChance(for: damageKeyword)
