@@ -4,6 +4,7 @@ import TrinketContent
 
 public enum AbilityLoadoutSampler {
     public static let maxNonDamageAcrossPair = 3
+    public static let preferredDamageAcrossPair = 3
 
     public static func defaultLoadout(
         for combatant: Combatant,
@@ -63,7 +64,13 @@ public enum AbilityLoadoutSampler {
         for _ in 0 ..< 24 {
             let heroLoadout = randomLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
             let petLoadout = randomLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
-            if satisfiesDamageBudget(hero: heroLoadout, pet: petLoadout, progression: progression) {
+            if satisfiesDamageBudget(
+                hero: heroLoadout,
+                pet: petLoadout,
+                heroCombatant: hero,
+                petCombatant: pet,
+                progression: progression
+            ) {
                 return (heroLoadout, petLoadout)
             }
         }
@@ -102,7 +109,13 @@ public enum AbilityLoadoutSampler {
             using: &randomNumberGenerator
         )
 
-        if satisfiesDamageBudget(hero: heroLoadout, pet: petLoadout, progression: progression) {
+        if satisfiesDamageBudget(
+            hero: heroLoadout,
+            pet: petLoadout,
+            heroCombatant: hero,
+            petCombatant: pet,
+            progression: progression
+        ) {
             return (heroLoadout, petLoadout)
         }
 
@@ -135,7 +148,7 @@ public enum AbilityLoadoutSampler {
             progression: progression,
             using: &randomNumberGenerator
         )
-        let ultimate = pickAbility(
+        let ultimate = pickDamageFirst(
             from: choices.ultimates,
             tier: .ultimate,
             progression: progression,
@@ -177,12 +190,28 @@ public enum AbilityLoadoutSampler {
         using randomNumberGenerator: inout RNG
     ) {
         for _ in 0 ..< 12 {
-            if satisfiesDamageBudget(hero: hero, pet: pet, progression: progression) {
+            if satisfiesDamageBudget(
+                hero: hero,
+                pet: pet,
+                heroCombatant: heroCombatant,
+                petCombatant: petCombatant,
+                progression: progression
+            ) {
                 return
             }
 
-            let counts = damageCounts(hero: hero, pet: pet, progression: progression)
-            if counts.damage < minimumDamageCount(for: progression) {
+            let counts = damageCounts(
+                hero: hero,
+                pet: pet,
+                progression: progression,
+                heroCombatant: heroCombatant,
+                petCombatant: petCombatant
+            )
+            if counts.damage < minimumDamageCount(
+                heroCombatant: heroCombatant,
+                petCombatant: petCombatant,
+                progression: progression
+            ) {
                 if replaceWithDamageAbility(
                     in: &hero,
                     combatant: heroCombatant,
@@ -237,20 +266,78 @@ public enum AbilityLoadoutSampler {
     static func satisfiesDamageBudget(
         hero: AbilityLoadout,
         pet: AbilityLoadout,
+        heroCombatant: Combatant,
+        petCombatant: Combatant,
         progression: CombatantProgression
     ) -> Bool {
-        let counts = damageCounts(hero: hero, pet: pet, progression: progression)
+        let counts = damageCounts(
+            hero: hero,
+            pet: pet,
+            progression: progression,
+            heroCombatant: heroCombatant,
+            petCombatant: petCombatant
+        )
         guard counts.damage > 0 else { return false }
         guard counts.nonDamage <= maxNonDamageAcrossPair else { return false }
-        return counts.damage >= minimumDamageCount(for: progression)
+        return counts.damage >= minimumDamageCount(
+            heroCombatant: heroCombatant,
+            petCombatant: petCombatant,
+            progression: progression
+        )
     }
 
-    private static func minimumDamageCount(for progression: CombatantProgression) -> Int {
-        unlockedSlotCount(for: progression) >= 4 ? 2 : 1
+    private static func minimumDamageCount(
+        heroCombatant: Combatant,
+        petCombatant: Combatant,
+        progression: CombatantProgression
+    ) -> Int {
+        let slots = unlockedSlotCount(for: progression)
+        let available = availableDamageSlotCount(
+            hero: heroCombatant,
+            pet: petCombatant,
+            progression: progression
+        )
+        let desired: Int
+        if slots >= 6 {
+            desired = preferredDamageAcrossPair
+        } else if slots >= 4 {
+            desired = 2
+        } else {
+            desired = 1
+        }
+        return min(desired, max(1, available))
+    }
+
+    private static func availableDamageSlotCount(
+        hero: Combatant,
+        pet: Combatant,
+        progression: CombatantProgression
+    ) -> Int {
+        var count = 0
+        for combatant in [hero, pet] {
+            for tier in AbilityTier.allCases where progression.unlocks(tier) {
+                if combatant.abilityChoices.abilities(for: tier).contains(where: dealsEnemyDamage) {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
 
     private static func unlockedSlotCount(for progression: CombatantProgression) -> Int {
         AbilityTier.allCases.filter { progression.unlocks($0) }.count * 2
+    }
+
+    private static func damageCounts(
+        hero: AbilityLoadout,
+        pet: AbilityLoadout,
+        progression: CombatantProgression,
+        heroCombatant: Combatant,
+        petCombatant: Combatant
+    ) -> (damage: Int, nonDamage: Int) {
+        _ = heroCombatant
+        _ = petCombatant
+        return damageCounts(hero: hero, pet: pet, progression: progression)
     }
 
     private static func damageCounts(

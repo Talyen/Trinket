@@ -62,9 +62,7 @@ public enum CombatantLevelScaler {
             isBoss: isBoss,
             isElite: isElite
         )
-        guard compensation.healthMultiplier != 1.0 || compensation.statDelta != .zero else {
-            return combatant
-        }
+        guard compensation != .none else { return combatant }
 
         let scaledHealth = max(
             1,
@@ -76,6 +74,10 @@ public enum CombatantLevelScaler {
             primaryStats: combatant.primaryStats,
             growth: compensation.statDelta
         )
+        let scaledPrimaryStats = scalePrimaryStats(
+            merged.primaryStats,
+            multiplier: compensation.primaryStatMultiplier
+        )
 
         return Combatant(
             id: combatant.id,
@@ -85,8 +87,26 @@ public enum CombatantLevelScaler {
             maxMana: merged.maxMana,
             actionIntervalTicks: combatant.actionIntervalTicks,
             abilityChoices: combatant.abilityChoices,
-            primaryStats: merged.primaryStats,
+            primaryStats: scaledPrimaryStats,
             growthArchetype: combatant.growthArchetype
         )
+    }
+
+    private static func scalePrimaryStats(
+        _ stats: PrimaryStats,
+        multiplier: Double
+    ) -> PrimaryStats {
+        guard multiplier != 1.0 else { return stats }
+        return PrimaryStats(
+            strength: scaledStat(stats.strength, multiplier: multiplier),
+            agility: scaledStat(stats.agility, multiplier: multiplier),
+            toughness: scaledStat(stats.toughness, multiplier: multiplier),
+            intellect: scaledStat(stats.intellect, multiplier: multiplier),
+            wisdom: scaledStat(stats.wisdom, multiplier: multiplier)
+        )
+    }
+
+    private static func scaledStat(_ value: Int, multiplier: Double) -> Int {
+        max(0, Int((Double(value) * multiplier).rounded()))
     }
 }

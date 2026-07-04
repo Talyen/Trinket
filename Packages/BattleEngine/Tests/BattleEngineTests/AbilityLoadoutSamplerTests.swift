@@ -22,6 +22,8 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
                 AbilityLoadoutSampler.satisfiesDamageBudget(
                     hero: heroLoadout,
                     pet: petLoadout,
+                    heroCombatant: hero,
+                    petCombatant: pet,
                     progression: progression
                 )
             )
@@ -43,12 +45,14 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
             AbilityLoadoutSampler.satisfiesDamageBudget(
                 hero: heroLoadout,
                 pet: petLoadout,
+                heroCombatant: hero,
+                petCombatant: pet,
                 progression: progression
             )
         )
         XCTAssertGreaterThanOrEqual(
             (heroLoadout.abilities + petLoadout.abilities).filter { $0.directDamage > 0 }.count,
-            2
+            3
         )
     }
 }
