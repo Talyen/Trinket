@@ -1,5 +1,6 @@
 import XCTest
 import TrinketContent
+import TrinketCore
 @testable import TrinketPersistence
 
 final class PlayerSaveMergerTests: XCTestCase {
@@ -68,5 +69,17 @@ final class PlayerSaveMergerTests: XCTestCase {
             merged.inventory.items.filter { $0.id == "chapter-1-stage-1-shortsword-basic" }.count,
             1
         )
+    }
+
+    func testMergePrefersHigherExperienceAtSameLevel() {
+        var local = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100), gold: 0)
+        local.roster.progressions["knight"] = CombatantProgression(level: 2, currentXP: 40, requiredXP: 155)
+
+        var remoteSave = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100), gold: 0)
+        remoteSave.roster.progressions["knight"] = CombatantProgression(level: 2, currentXP: 80, requiredXP: 155)
+
+        let merged = PlayerSaveMerger.merge(local, remoteSave)
+
+        XCTAssertEqual(merged.roster.progressions["knight"]?.currentXP, 80)
     }
 }

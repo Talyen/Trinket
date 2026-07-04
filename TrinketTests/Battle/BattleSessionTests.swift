@@ -65,6 +65,25 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertFalse(appState.battle.isPaused)
     }
 
+    func testRestartBattleRefreshesProgressionFromRoster() throws {
+        let appState = makeAppState()
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = appState.battle.startBattle(
+            stage: stage,
+            hero: appState.roster.activeHero,
+            pet: appState.roster.activePet,
+            roster: appState.roster,
+            inventory: appState.inventory
+        )
+
+        XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 0)
+
+        appState.roster.grantExperience(25, to: appState.roster.activeHero)
+        appState.battle.restartBattle(using: appState.roster)
+
+        XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 25)
+    }
+
     func testEndBattleClearsSessionState() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
