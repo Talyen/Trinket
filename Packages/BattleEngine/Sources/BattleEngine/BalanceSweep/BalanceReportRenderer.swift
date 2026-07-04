@@ -82,11 +82,14 @@ public enum BalanceReportRenderer {
             let rows = result.matchupRows.filter { $0.tier == tier }
             guard !rows.isEmpty else { continue }
             let averageWinRate = rows.map(\.winRate).reduce(0, +) / Double(rows.count)
+            let inTargetBand = rows.filter { $0.winRate >= 0.90 && $0.winRate <= 0.99 }.count
+            let timeoutRows = rows.filter { $0.tickLimitCount > 0 }.count
             cards.append("""
             <div class="card">
               <span>\(escape(tier.displayName))</span>
               <strong>\(percent(averageWinRate))</strong>
               <span>avg win rate · \(rows.count) rows</span>
+              <span>\(inTargetBand) in 90–99% band · \(timeoutRows) timeout rows</span>
             </div>
             """)
         }
@@ -121,7 +124,7 @@ public enum BalanceReportRenderer {
         let rows = result.matchupRows.filter { !$0.isBoss }
         return tableSection(
             title: "Matchups (Non-Boss)",
-            headers: ["Tier", "Hero", "Pet", "Enemy", "Sample", "Win Rate", "Avg Ticks"],
+            headers: ["Tier", "Hero", "Pet", "Enemy", "Sample", "Win Rate", "Timeouts", "Avg Ticks"],
             bodyRows: rows.map { row in
                 let rowClass = anomalyClass(for: row, anomalies: result.anomalies)
                 return """
@@ -132,6 +135,7 @@ public enum BalanceReportRenderer {
                   <td>\(escape(row.enemyID))</td>
                   <td>\(row.loadoutSampleIndex)</td>
                   <td>\(percent(row.winRate))</td>
+                  <td>\(row.tickLimitCount)/\(row.runCount)</td>
                   <td>\(String(format: "%.1f", row.averageTickCount))</td>
                 </tr>
                 """
@@ -145,7 +149,7 @@ public enum BalanceReportRenderer {
 
         return tableSection(
             title: "Boss Matchups",
-            headers: ["Tier", "Hero", "Pet", "Boss", "Sample", "Win Rate", "Avg Ticks"],
+            headers: ["Tier", "Hero", "Pet", "Boss", "Sample", "Win Rate", "Timeouts", "Avg Ticks"],
             bodyRows: rows.map { row in
                 let rowClass = anomalyClass(for: row, anomalies: result.anomalies)
                 return """
@@ -156,6 +160,7 @@ public enum BalanceReportRenderer {
                   <td>\(escape(row.enemyID))</td>
                   <td>\(row.loadoutSampleIndex)</td>
                   <td>\(percent(row.winRate))</td>
+                  <td>\(row.tickLimitCount)/\(row.runCount)</td>
                   <td>\(String(format: "%.1f", row.averageTickCount))</td>
                 </tr>
                 """
@@ -257,8 +262,10 @@ private struct MatchupSweepRowExport: Codable {
     let isBoss: Bool
     let loadoutSampleIndex: Int
     let winCount: Int
+    let tickLimitCount: Int
     let runCount: Int
     let winRate: Double
+    let tickLimitRate: Double
     let averageTickCount: Double
     let averageActionCount: Double
 
@@ -270,8 +277,10 @@ private struct MatchupSweepRowExport: Codable {
         isBoss = row.isBoss
         loadoutSampleIndex = row.loadoutSampleIndex
         winCount = row.winCount
+        tickLimitCount = row.tickLimitCount
         runCount = row.runCount
         winRate = row.winRate
+        tickLimitRate = row.tickLimitRate
         averageTickCount = row.averageTickCount
         averageActionCount = row.averageActionCount
     }

@@ -6,7 +6,7 @@ final class PlayerRosterTests: XCTestCase {
 
     func testAbilityTierUnlockLevels() {
         XCTAssertEqual(AbilityTier.basic.unlockLevel, 1)
-        XCTAssertEqual(AbilityTier.skill.unlockLevel, 3)
+        XCTAssertEqual(AbilityTier.skill.unlockLevel, 1)
         XCTAssertEqual(AbilityTier.ultimate.unlockLevel, 6)
     }
 

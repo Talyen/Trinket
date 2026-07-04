@@ -18,7 +18,7 @@ final class StatGrowthTests: XCTestCase {
         XCTAssertEqual(growth.maxMana, 2)
     }
 
-    func testEnemyGrowthIsSlowerThanPlayerOnHealth() {
+    func testEnemyGrowthMatchesPlayerHealthAtEqualLevel() {
         let player = StatGrowth.playerGrowth(archetype: .bruiser, levelsAbove: 4)
         let enemy = StatGrowth.enemyGrowth(
             archetype: .bruiser,
@@ -27,7 +27,7 @@ final class StatGrowthTests: XCTestCase {
             identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
         )
         XCTAssertEqual(player.maxHealth, 4)
-        XCTAssertEqual(enemy.maxHealth, 2)
+        XCTAssertEqual(enemy.maxHealth, 4)
     }
 
     func testBossGrowthSpikesPrimaryStat() {

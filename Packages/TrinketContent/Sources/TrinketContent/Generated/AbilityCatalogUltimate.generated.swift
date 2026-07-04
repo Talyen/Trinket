@@ -61,7 +61,7 @@ public enum AbilityCatalogUltimateGenerated {
 
     public static let crystalBulwark = AbilityBuilder.buffOnly(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
-        effects: [.shield(.block, 5, 6), .mitigation(.armor, 0.35, 6)]
+        effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.30, 6)]
     )
 
     public static let goldenPlate = AbilityBuilder.buffOnly(

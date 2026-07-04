@@ -50,6 +50,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
     public let isBoss: Bool
     public let loadoutSampleIndex: Int
     public let winCount: Int
+    public let tickLimitCount: Int
     public let runCount: Int
     public let averageTickCount: Double
     public let averageActionCount: Double
@@ -62,6 +63,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
         isBoss: Bool,
         loadoutSampleIndex: Int,
         winCount: Int,
+        tickLimitCount: Int = 0,
         runCount: Int,
         averageTickCount: Double,
         averageActionCount: Double
@@ -73,6 +75,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
         self.isBoss = isBoss
         self.loadoutSampleIndex = loadoutSampleIndex
         self.winCount = winCount
+        self.tickLimitCount = tickLimitCount
         self.runCount = runCount
         self.averageTickCount = averageTickCount
         self.averageActionCount = averageActionCount
@@ -81,6 +84,11 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
     public var winRate: Double {
         guard runCount > 0 else { return 0 }
         return Double(winCount) / Double(runCount)
+    }
+
+    public var tickLimitRate: Double {
+        guard runCount > 0 else { return 0 }
+        return Double(tickLimitCount) / Double(runCount)
     }
 }
 
@@ -145,7 +153,9 @@ public struct AbilityComparisonRow: Equatable, Sendable, Identifiable {
 public struct BalanceAnomaly: Equatable, Sendable, Identifiable {
     public enum Kind: String, Sendable {
         case hardCounter
-        case trivialFight
+        case belowTarget
+        case aboveTarget
+        case timeout
         case underpoweredAbility
         case overpoweredAbility
         case bossTuning

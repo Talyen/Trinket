@@ -45,8 +45,8 @@ public enum AbilityCatalogSkill {
     public static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 3, 6)),
-            TargetedEffect(.mitigation(.armor, 0.20, 6))
+            TargetedEffect(.shield(.block, 2, 6)),
+            TargetedEffect(.mitigation(.armor, 0.15, 6))
         ]
     )
     public static let sunderArmor = Ability(

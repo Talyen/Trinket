@@ -5,7 +5,7 @@ import TrinketCore
 public enum AbilityCatalogSkillGenerated {
     public static let acidPotion = AbilityBuilder.directHit(
         id: "acid-potion", name: "Acid Potion", tier: .skill,
-        amount: 3, keyword: .poison
+        amount: 2, keyword: .poison
     )
 
     public static let burningBlade = AbilityBuilder.directHit(
@@ -25,12 +25,12 @@ public enum AbilityCatalogSkillGenerated {
 
     public static let fireball = AbilityBuilder.directHit(
         id: "fireball", name: "Fireball", tier: .skill,
-        amount: 3, keyword: .burn
+        amount: 2, keyword: .burn
     )
 
     public static let frostbolt = AbilityBuilder.directHit(
         id: "frostbolt", name: "Frostbolt", tier: .skill,
-        amount: 3, keyword: .freeze
+        amount: 2, keyword: .freeze
     )
 
     public static let lightningArrow = AbilityBuilder.directHit(

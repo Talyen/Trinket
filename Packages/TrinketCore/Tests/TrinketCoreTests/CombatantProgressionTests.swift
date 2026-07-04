@@ -39,13 +39,10 @@ final class CombatantProgressionTests: XCTestCase {
     }
 
     func testUnlocksRespectsAbilityTierLevels() {
-        let early = CombatantProgression(level: 2, currentXP: 0, requiredXP: 100)
+        let early = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         XCTAssertTrue(early.unlocks(.basic))
-        XCTAssertFalse(early.unlocks(.skill))
+        XCTAssertTrue(early.unlocks(.skill))
         XCTAssertFalse(early.unlocks(.ultimate))
-
-        let mid = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)
-        XCTAssertTrue(mid.unlocks(.skill))
 
         let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 100)
         XCTAssertTrue(late.unlocks(.ultimate))
