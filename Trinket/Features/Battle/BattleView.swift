@@ -69,11 +69,18 @@ struct BattleView: View {
                 }
             }
         }
-        .sheet(isPresented: $isShowingBattleLog) {
+        .sheet(isPresented: $isShowingBattleLog, onDismiss: {
+            appState.battle.restorePauseAfterOverlay()
+        }) {
             BattleLogSheet(
                 entries: battleRun.log
             )
             .presentationDetents([.medium])
+        }
+        .onChange(of: isShowingBattleLog) { _, isShowing in
+            if isShowing {
+                appState.battle.pauseForOverlay()
+            }
         }
         .onChange(of: configuration.id) { _, _ in
             battleRun.reset(from: configuration)
@@ -204,8 +211,7 @@ struct BattleView: View {
     }
 
     private var canAutoAdvanceBattle: Bool {
-        !isShowingBattleLog &&
-            !battleRun.isBattleOver &&
+        !battleRun.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
             !appState.battle.isPaused

@@ -43,11 +43,13 @@ struct ContentView: View {
         }
         .preferredColorScheme(appState.options.theme.colorScheme)
         .onAppear {
+            syncBattlePauseForCurrentTab()
             refreshMusicRoute(scenePhase: scenePhase)
         }
-        .onChange(of: appState.selectedTab) { _, newTab in
+        .onChange(of: appState.selectedTab) { _, _ in
             if appState.battle.activeBattle != nil {
-                appState.battle.isPaused = newTab != .play
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                appState.battle.isPaused = true
             }
             refreshMusicRoute(scenePhase: scenePhase)
         }
@@ -75,6 +77,13 @@ struct ContentView: View {
                     await appState.syncCoordinator.checkpointUploadIfNeeded()
                 }
             }
+        }
+    }
+
+    private func syncBattlePauseForCurrentTab() {
+        guard appState.battle.activeBattle != nil else { return }
+        if appState.selectedTab != .play {
+            appState.battle.isPaused = true
         }
     }
 
