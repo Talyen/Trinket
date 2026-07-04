@@ -1,6 +1,6 @@
-import XCTest
 import TrinketContent
 import TrinketPersistence
+import XCTest
 @testable import Trinket
 
 final class JourneyMapPresentationTests: XCTestCase {

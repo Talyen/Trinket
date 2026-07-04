@@ -1,6 +1,6 @@
-import XCTest
 import TrinketCore
 import TrinketDesignSystem
+import XCTest
 @testable import Trinket
 
 final class ExperienceBarSegmentsTests: XCTestCase {

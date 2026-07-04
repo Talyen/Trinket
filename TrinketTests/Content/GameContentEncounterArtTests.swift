@@ -1,5 +1,5 @@
-import XCTest
 import TrinketContent
+import XCTest
 @testable import Trinket
 
 final class GameContentEncounterArtTests: XCTestCase {

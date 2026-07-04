@@ -1,7 +1,7 @@
-import XCTest
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import XCTest
 @testable import Trinket
 
 @MainActor
