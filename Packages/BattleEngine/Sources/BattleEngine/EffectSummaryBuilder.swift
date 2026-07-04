@@ -9,13 +9,15 @@ import TrinketContent
 /// For each keyword group, kinds are tried in `priorityOrder` and the first
 /// handler that returns a non-nil summary wins. This preserves the historical
 /// priority ordering (decaying DoTs first, then bleed, then defensive
-/// totals, then prevention build-up, then active prevention, then leech,
+/// totals, then control-meter build-up, then active control effects, then leech,
 /// then cleanse).
 public enum EffectSummaryBuilder {
     private static let priorityOrder: [EffectKind] = [
+        .deathsDoor,
         .burn, .poison,
         .bleed,
         .shield, .mitigation,
+        .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit,
         .controlMeter,
         .leech
     ]

@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 enum AccessibilityID {
     enum Screen {
@@ -15,6 +16,10 @@ enum AccessibilityID {
     enum CombatantDetail {
         static let statsSection = "Combatant Stats Section"
         static let healthStat = "Combatant Health Stat"
+        static let traitSection = "Combatant Trait Section"
+        static let traitDescription = "Combatant Trait Description"
+        static let enemyTraitsSection = "Combatant Enemy Traits Section"
+        static let enemyTraitDescription = "Combatant Enemy Trait Description"
     }
 
     enum Search {

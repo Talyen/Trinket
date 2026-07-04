@@ -1,11 +1,17 @@
 import SwiftUI
+import TrinketContent
 
 struct EncounterArtwork: View {
     let stage: Stage
 
     var body: some View {
         ZStack {
-            if let art = stage.encounterArtReference {
+            if let combatantArt = stage.encounterCombatantArtReference {
+                Image(combatantArt.thumbnailImageName ?? combatantArt.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .accessibilityLabel(combatantArt.accessibilityLabel)
+            } else if let art = stage.encounterArtReference {
                 Image(art.thumbnailImageName ?? art.imageName)
                     .resizable()
                     .scaledToFill()

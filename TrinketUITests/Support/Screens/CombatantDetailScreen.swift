@@ -17,5 +17,7 @@ struct CombatantDetailScreen {
         XCTAssertTrue(stats.waitForExistence(timeout: timeout), "Combatant stats section not found", file: file, line: line)
         let health = app.descendants(matching: .any)[AccessibilityID.CombatantDetail.healthStat]
         XCTAssertTrue(health.waitForExistence(timeout: timeout), "Combatant health stat not found", file: file, line: line)
+        let traitSection = app.descendants(matching: .any)[AccessibilityID.CombatantDetail.traitSection]
+        XCTAssertTrue(traitSection.waitForExistence(timeout: timeout), "Combatant trait section not found", file: file, line: line)
     }
 }

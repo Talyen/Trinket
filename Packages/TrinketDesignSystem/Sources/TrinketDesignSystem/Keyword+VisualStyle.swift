@@ -22,6 +22,10 @@ extension Keyword {
         public static let dodge = VisualStyle(color: Color(red: 0.3, green: 0.7, blue: 0.9), symbolName: "arrowshape.turn.up.left.circle.fill")
         public static let purge = VisualStyle(color: Color(red: 0.75, green: 0.55, blue: 1.0), symbolName: "sparkles")
         public static let mana = VisualStyle(color: Color(red: 0.45, green: 0.15, blue: 1.0), symbolName: "star.fill")
+        public static let deathsDoor = VisualStyle(
+            color: Color(red: 0.45, green: 0.0, blue: 0.0),
+            symbolName: "heart.slash.fill"
+        )
     }
 
     public var visualStyle: VisualStyle {
@@ -42,6 +46,7 @@ extension Keyword {
         case .dodge: return .dodge
         case .purge: return .purge
         case .mana: return .mana
+        case .deathsDoor: return .deathsDoor
         }
     }
 }

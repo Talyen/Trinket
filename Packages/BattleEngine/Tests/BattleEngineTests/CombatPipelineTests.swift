@@ -21,9 +21,10 @@ final class CombatPipelineTests: XCTestCase {
             id: "source", role: .hero, maxHealth: 50,
             primaryStats: sourcePrimaryStats
         )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            pet: CombatantRuntime(combatant: pet),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
         return BattleEngineContext(
@@ -34,7 +35,13 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            build: BattleCombatBuild(
+                hero: source,
+                pet: pet,
+                enemy: target,
+                heroModifiers: .zero,
+                petModifiers: .zero
+            )
         )
     }
 
@@ -178,7 +185,7 @@ final class CombatPipelineTests: XCTestCase {
     func testApplyControlMeterAccumulatesAndTriggersAtThreshold() {
         var context = makeContext(seed: 0)
         let events = context.applyControlMeter(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
-        XCTAssertTrue(events.contains { $0.effectKind == .preventionTriggered })
+        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
         XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: \.effect.isActionSkipPending))
     }
 
@@ -296,14 +303,20 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            build: BattleCombatBuild(
+                hero: source,
+                pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+                enemy: target,
+                heroModifiers: .zero,
+                petModifiers: .zero
+            )
         )
 
         context.applyControlMeter(1, keyword: .stun, to: target, sourceActorID: "source")
 
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
         let threshold = buildup?.effect.controlMeterValues?.threshold
-        let expected = target.primaryStats.preventionThreshold(baseMaxHealth: 100)
+        let expected = target.primaryStats.controlMeterThreshold(baseMaxHealth: 100)
         XCTAssertEqual(threshold, expected)
     }
 
@@ -322,7 +335,7 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertEqual(amount, 10, "50% mitigation should halve stun buildup from 20 to 10")
     }
 
-    func testStunBuildupAppliesWhenShieldAbsorbsAllDamage() {
+    func testStunBuildupDoesNotApplyWhenShieldAbsorbsAllDamage() {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 0)
         let (lost, _) = context.applyDamage(
@@ -334,7 +347,7 @@ final class CombatPipelineTests: XCTestCase {
 
         XCTAssertEqual(lost, 0)
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
-        XCTAssertEqual(buildup?.effect.controlMeterValues?.amount, 5)
+        XCTAssertNil(buildup, "Fully shielded hits should not build control meters")
     }
 
     // MARK: - Pipeline ordering
@@ -342,13 +355,18 @@ final class CombatPipelineTests: XCTestCase {
     func testDamageStepsRunInCanonicalOrder() {
         XCTAssertEqual(DamagePipeline.canonicalNames, [
             "DodgeGate",
+            "CriticalGate",
             "DamageBonus",
+            "MarkedBonus",
             "Mitigation",
             "ItemReduction",
             "ShieldAbsorption",
+            "CriticalMultiply",
             "TakeDamage",
+            "DeathsDoor",
             "Leech",
-            "ControlMeter"
+            "ControlMeter",
+            "ReactiveOnHit"
         ])
     }
 }

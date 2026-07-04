@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct PetsGridView: View {
     @Environment(AppState.self) private var appState

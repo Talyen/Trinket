@@ -109,6 +109,20 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertEqual(outcome.events.first?.amount, battle.health(of: battle.hero) - before)
     }
 
+    func testInstantHealHandlerDoesNotApplyAtFullHealth() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let hero = battle.hero
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .instantHeal(.health, 5),
+            ability: CombatantFixtures.ability(),
+            source: hero,
+            target: hero,
+            battle: &battle
+        )
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
+
     func testResourceGainHandlerAddsGold() {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
@@ -281,5 +295,18 @@ final class EffectHandlersApplyTests: XCTestCase {
         let outcome = EffectHandlersTestSupport.dispatch(.controlMeter(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
         XCTAssertTrue(outcome.didApply)
         XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
+    }
+
+    func testDeathsDoorHandlerApplyIsNoOp() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .deathsDoor,
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
     }
 }

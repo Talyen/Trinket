@@ -1,8 +1,13 @@
 import Foundation
+import os
 import TrinketCore
 import TrinketContent
 
 public enum BattleTurnEngine {
+    private static let logger = Logger(
+        subsystem: "com.ryanmcintire.Trinket",
+        category: "BattleTurnEngine"
+    )
     public static func readyCombatants(in context: BattleEngineContext) -> [Combatant] {
         context.roster.readyCombatants(atTick: context.tickCount).map(\.combatant)
     }
@@ -45,7 +50,7 @@ public enum BattleTurnEngine {
 
         let event = context.nextEvent(
             kind: .effect,
-            effectKind: .preventionSkipped,
+            effectKind: .controlActionSkipped,
             actorName: keyword.statusAlias ?? keyword.rawValue,
             abilityName: keyword.statusAlias ?? keyword.rawValue,
             target: actor,
@@ -64,10 +69,12 @@ public enum BattleTurnEngine {
     ) -> [ActionEvent] {
         let turnNumber = context.runtime(for: actor).actionCount + 1
 
-        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber) else {
+        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, context: context) else {
             recordAction(for: actor, context: &context)
             return []
         }
+
+        spendManaIfNeeded(for: ability, actor: actor, context: &context)
 
         var events: [ActionEvent] = []
         let damageOutcome = applyDamageComponents(
@@ -130,13 +137,29 @@ public enum BattleTurnEngine {
                 abilityTarget: abilityTarget,
                 hero: matchup.hero,
                 pet: matchup.pet,
-                enemy: matchup.enemy
+                enemy: matchup.enemy,
+                context: context
             )
+
+            var amount = component.amount
+            if let condition = component.condition,
+               BattleConditionEvaluator.isMet(
+                   condition,
+                   actor: actor,
+                   enemy: matchup.enemy,
+                   hero: matchup.hero,
+                   pet: matchup.pet,
+                   context: context
+               ) {
+                amount += component.bonusAmount
+            }
+
             let (dealt, damageEvents) = context.applyDamage(
-                component.amount,
+                amount,
                 to: damageTarget,
                 damageKeyword: component.keyword,
-                sourceActorID: actor.id
+                sourceActorID: actor.id,
+                ability: ability
             )
             events.append(contentsOf: damageEvents)
             if component.amount > 0 {
@@ -167,6 +190,18 @@ public enum BattleTurnEngine {
         let actionContext = ActionApplyContext(pairedDirectDamage: pairedDirectDamage)
 
         for targetedEffect in ability.targetedEffects {
+            if let condition = targetedEffect.condition,
+               !BattleConditionEvaluator.isMet(
+                   condition,
+                   actor: actor,
+                   enemy: matchup.enemy,
+                   hero: matchup.hero,
+                   pet: matchup.pet,
+                   context: context
+               ) {
+                continue
+            }
+
             let effect = targetedEffect.effect
             let effectTarget = resolveEffectTarget(
                 targetedEffect.target,
@@ -174,10 +209,15 @@ public enum BattleTurnEngine {
                 abilityTarget: abilityTarget,
                 hero: matchup.hero,
                 pet: matchup.pet,
-                enemy: matchup.enemy
+                enemy: matchup.enemy,
+                context: context
             )
 
-            guard let handler = EffectHandlers.all[effect.kind] else { continue }
+            guard let handler = EffectHandlers.all[effect.kind] else {
+                assertionFailure("Missing effect handler for \(effect.kind)")
+                logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
+                continue
+            }
             let outcome = handler.apply(
                 effect,
                 ability: ability,
@@ -200,7 +240,8 @@ public enum BattleTurnEngine {
     ) {
         context.actionCount += 1
         var runtime = context.runtime(for: actor)
-        runtime.markActed(atTick: context.tickCount)
+        let activeEffects = context.activeEffects(for: actor)
+        runtime.markActed(atTick: context.tickCount, activeEffects: activeEffects)
         context.updateRuntime(runtime)
     }
 
@@ -210,7 +251,8 @@ public enum BattleTurnEngine {
         abilityTarget: Combatant,
         hero: Combatant,
         pet: Combatant,
-        enemy: Combatant
+        enemy: Combatant,
+        context: BattleEngineContext
     ) -> Combatant {
         switch target {
         case .abilityTarget:
@@ -223,14 +265,37 @@ public enum BattleTurnEngine {
             return hero
         case .pet:
             return pet
+        case .lowestHealthAlly:
+            if actor.role == .enemy {
+                return enemy
+            }
+            return BattleConditionEvaluator.lowestHealthAlly(hero: hero, pet: pet, context: context)
         }
     }
 
-    private static func selectedAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
+    private static func selectedAbility(
+        for actor: Combatant,
+        turnNumber: Int,
+        context: BattleEngineContext
+    ) -> Ability? {
         let tier = preferredTier(for: turnNumber)
-        return actor.abilityLoadout.ability(for: tier)
+        let preferred = actor.abilityLoadout.ability(for: tier)
             ?? actor.abilityLoadout.basic
             ?? actor.abilities.first
+
+        guard let preferred else { return nil }
+        guard preferred.manaCost > 0, actor.hasMana else { return preferred }
+
+        let currentMana = context.mana(of: actor)
+        if currentMana >= preferred.manaCost {
+            return preferred
+        }
+        return actor.abilityLoadout.basic ?? actor.abilities.first
+    }
+
+    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) {
+        guard ability.manaCost > 0, actor.hasMana else { return }
+        _ = context.spendMana(ability.manaCost, for: actor)
     }
 
     private static func preferredTier(for turnNumber: Int) -> AbilityTier {

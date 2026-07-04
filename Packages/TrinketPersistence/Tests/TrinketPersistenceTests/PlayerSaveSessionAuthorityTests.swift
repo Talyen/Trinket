@@ -47,6 +47,23 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         XCTAssertTrue(merged.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
+    func testEqualGenerationMergesDespiteDifferentTimestamps() {
+        var local = SaveTestSupport.makeSave(modifiedAt: later, gold: 10)
+        local.journey.completedStageIDs.insert("chapter-1-stage-1")
+        var remoteSave = SaveTestSupport.makeSave(modifiedAt: earlier, gold: 20)
+        remoteSave.journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
+        let remote = RemotePlayerSave(save: remoteSave, modifiedAt: earlier, recordChangeTag: "remote")
+
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+
+        guard case let .applyMerged(merged) = outcome else {
+            return XCTFail("Expected merged outcome, got \(outcome)")
+        }
+        XCTAssertEqual(merged.roster.gold, 20)
+        XCTAssertTrue(merged.journey.completedStageIDs.contains("chapter-1-stage-1"))
+        XCTAssertTrue(merged.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
+    }
+
     func testPickAuthoritativeUsesSessionGeneration() {
         var local = SaveTestSupport.makeSave(modifiedAt: later, gold: 1)
         local.sessionGeneration = 1

@@ -21,4 +21,6 @@ public enum AffixModifier: Equatable, Hashable, Sendable {
     case leechDuration(Int)
     case bleedDuration(Int)
     case damageTakenPercent(Keyword, Double)
+    case damageTakenVulnerability(Keyword, Double)
+    case petDamageDealt(Int)
 }

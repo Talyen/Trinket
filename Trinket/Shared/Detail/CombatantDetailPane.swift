@@ -1,4 +1,9 @@
+import BattleEngine
 import SwiftUI
+import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
+import TrinketPersistence
 
 enum CombatantDetailNavigationChrome {
     case visible
@@ -27,6 +32,17 @@ struct CombatantDetailPane: View {
             equipmentLoadout: equipmentLoadout,
             inventory: inventoryState.items
         )
+    }
+
+    private var heroOrPetTrait: CombatantTraitDefinition? {
+        GameContent.trait(forCombatantID: combatant.id)
+    }
+
+    private var enemyTraits: [CombatantTraitDefinition] {
+        guard combatant.role == .enemy,
+              let enemy = GameContent.enemy(matching: combatant.id)
+        else { return [] }
+        return GameContent.traits(for: enemy)
     }
 
     private var effectiveCombatant: Combatant {
@@ -62,6 +78,24 @@ struct CombatantDetailPane: View {
                             statRow("Toughness", value: "\(effectiveCombatant.primaryStats.toughness)")
                             statRow("Intellect", value: "\(effectiveCombatant.primaryStats.intellect)")
                             statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
+                        }
+
+                        if let heroOrPetTrait {
+                            traitSection(
+                                title: "Trait",
+                                trait: heroOrPetTrait,
+                                sectionID: AccessibilityID.CombatantDetail.traitSection,
+                                descriptionID: AccessibilityID.CombatantDetail.traitDescription
+                            )
+                        }
+
+                        if !enemyTraits.isEmpty {
+                            traitSection(
+                                title: "Traits",
+                                traits: enemyTraits,
+                                sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
+                                descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
+                            )
                         }
 
                         if !activeEffectSummaries.isEmpty {
@@ -119,6 +153,35 @@ struct CombatantDetailPane: View {
                 let threshold = headerHeight - state.topInset - 44
                 heroOverscroll = state.overscroll
                 titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
+            }
+        }
+    }
+
+    private func traitSection(
+        title: String,
+        trait: CombatantTraitDefinition,
+        sectionID: String,
+        descriptionID: String
+    ) -> some View {
+        traitSection(title: title, traits: [trait], sectionID: sectionID, descriptionID: descriptionID)
+    }
+
+    private func traitSection(
+        title: String,
+        traits: [CombatantTraitDefinition],
+        sectionID: String,
+        descriptionID: String
+    ) -> some View {
+        section(title, sectionID: sectionID) {
+            ForEach(traits) { trait in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(trait.name)
+                        .font(.body.weight(.semibold))
+                    KeywordDescriptionText(text: trait.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(descriptionID)
+                }
             }
         }
     }

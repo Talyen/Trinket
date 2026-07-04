@@ -1,24 +1,5 @@
 import Foundation
-
-enum MusicTrackKind: String, Hashable {
-    case menu
-    case battle
-    case boss
-}
-
-struct MusicTrack: Identifiable, Hashable {
-    let id: String
-    let kind: MusicTrackKind
-    let resourceName: String
-    let fileExtension: String
-    let bossEnemyID: String
-    let isLooping: Bool
-    let volumeGain: Double
-
-    var resolvedBossEnemyID: String? {
-        bossEnemyID.isEmpty ? nil : bossEnemyID
-    }
-}
+import TrinketContent
 
 struct BattleMusicPreview: Equatable, Identifiable {
     let stageID: String
@@ -51,14 +32,4 @@ struct MusicPlaybackRequest: Equatable {
 enum MusicRoute: Equatable {
     case silence(preservingPosition: Bool)
     case track(MusicPlaybackRequest)
-}
-
-extension MusicCatalog {
-    static var tracksByID: [String: MusicTrack] {
-        Dictionary(uniqueKeysWithValues: allTracks.map { ($0.id, $0) })
-    }
-
-    static func track(matching id: String) -> MusicTrack? {
-        tracksByID[id]
-    }
 }

@@ -20,10 +20,11 @@ public struct ActionEventDisplay: Equatable {
         case resourceGain
         case cleanse
         case purge
-        case prevention
+        case control
         case dodge
         case shieldAbsorbed
         case generic
+        case deathsDoor
     }
 }
 
@@ -82,8 +83,8 @@ public enum ActionEventFormatter {
             return mitigationAppliedDisplay(for: event)
         case .shieldAbsorbed:
             return signedAmountDisplay(emphasis: .shieldAbsorbed, event: event, prefix: "-")
-        case .preventionSkipped, .preventionApplied, .preventionTriggered:
-            return preventionDisplay(for: effectKind, event: event)
+        case .controlActionSkipped, .controlApplied, .controlTriggered:
+            return controlDisplay(for: effectKind, event: event)
         case .cleanseApplied:
             return cleanseDisplay(for: event)
         case .purgeApplied:
@@ -94,7 +95,31 @@ public enum ActionEventFormatter {
             return mitigationHalvedDisplay(for: event)
         case .dodgeApplied:
             return dodgeDisplay(for: event)
+        case .criticalApplied:
+            return ActionEventDisplay(
+                emphasis: .damage,
+                keyword: event.keyword,
+                text: "Critical",
+                secondaryText: nil
+            )
+        case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied:
+            return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
+        case .thornsTriggered, .markedConsumed:
+            return amountDisplay(emphasis: .damage, event: event, prefix: "-")
+        case .manaShieldTriggered:
+            return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            return deathsDoorDisplay(for: event)
         }
+    }
+
+    private static func deathsDoorDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .deathsDoor,
+            keyword: .deathsDoor,
+            text: Keyword.deathsDoor.rawValue,
+            secondaryText: nil
+        )
     }
 
     private static func mitigationAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {
@@ -106,28 +131,28 @@ public enum ActionEventFormatter {
         )
     }
 
-    private static func preventionDisplay(
+    private static func controlDisplay(
         for effectKind: ActionEvent.EffectKind,
         event: ActionEvent
     ) -> ActionEventDisplay {
         switch effectKind {
-        case .preventionSkipped:
+        case .controlActionSkipped:
             return ActionEventDisplay(
-                emphasis: .prevention,
+                emphasis: .control,
                 keyword: event.keyword,
                 text: event.keyword.rawValue,
                 secondaryText: nil
             )
-        case .preventionApplied:
+        case .controlApplied:
             return ActionEventDisplay(
-                emphasis: .prevention,
+                emphasis: .control,
                 keyword: event.keyword,
                 text: "+\(event.keyword.rawValue)",
                 secondaryText: nil
             )
-        case .preventionTriggered:
+        case .controlTriggered:
             return ActionEventDisplay(
-                emphasis: .prevention,
+                emphasis: .control,
                 keyword: event.keyword,
                 text: "\(event.keyword.statusAlias ?? event.keyword.rawValue)!",
                 secondaryText: nil

@@ -53,12 +53,15 @@ TRACKED_PATHS=(
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift"
+  "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift"
 )
 
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   TRACKED_PATHS+=(
-    "Trinket/Generated/ArtCatalog.generated.swift"
-    "Trinket/Generated/MusicCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
     "Trinket/Assets.xcassets"
     "Trinket/Resources/Music"
   )

@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 @Observable
 final class OptionsStore {

@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct DefeatView: View {
     let enemyName: String

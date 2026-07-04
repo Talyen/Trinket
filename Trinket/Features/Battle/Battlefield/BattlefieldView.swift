@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct BattlefieldView: View {
     let layout: BattleCardGridLayout.Metrics

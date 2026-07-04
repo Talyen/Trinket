@@ -14,14 +14,24 @@ package enum ControlMeterEngine {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) { return [] }
 
-        let threshold = preventionThreshold(for: combatant, in: context)
+        let profile = context.modifiers(for: combatant.id)
+        var adjustedAmount = amount
+        if profile.controlResistancePercent > 0 {
+            adjustedAmount = Int(floor(Double(adjustedAmount) * (1 - min(1, profile.controlResistancePercent))))
+        }
+        if keyword == .freeze, profile.freezeControlVulnerabilityPercent > 0 {
+            adjustedAmount = Int(ceil(Double(adjustedAmount) * (1 + profile.freezeControlVulnerabilityPercent)))
+        }
+        guard adjustedAmount > 0 else { return [] }
+
+        let threshold = controlMeterThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
             if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword { return true }
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
-        let newAmount = min(existingAmount + amount, threshold)
+        let newAmount = min(existingAmount + adjustedAmount, threshold)
 
         if newAmount >= threshold {
             return applyThresholdReached(
@@ -52,8 +62,8 @@ package enum ControlMeterEngine {
         return []
     }
 
-    private static func preventionThreshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
-        combatant.primaryStats.preventionThreshold(
+    private static func controlMeterThreshold(for combatant: Combatant, in context: BattleEngineContext) -> Int {
+        combatant.primaryStats.controlMeterThreshold(
             baseMaxHealth: context.roster.maxHealth(for: combatant)
         )
     }
@@ -109,7 +119,7 @@ package enum ControlMeterEngine {
         return [
             context.nextEvent(
                 kind: .effect,
-                effectKind: .preventionTriggered,
+                effectKind: .controlTriggered,
                 actorName: actorName,
                 abilityName: abilityName,
                 target: combatant,

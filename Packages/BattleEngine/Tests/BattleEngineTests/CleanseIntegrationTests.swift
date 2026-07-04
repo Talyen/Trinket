@@ -97,6 +97,39 @@ final class CleanseIntegrationTests: XCTestCase {
         XCTAssertTrue(step.events.contains { $0.effectKind == .cleanseApplied })
         XCTAssertFalse(battle.hasHeroEffect { if case .poison = $0 { return true }; return false })
         XCTAssertFalse(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
+        XCTAssertTrue(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
+    }
+
+    func testCleanseStunRemovesControlMeterBuildup() {
+        let cleanseAbility = Ability(
+            id: "test-cleanse",
+            name: "Test Cleanse",
+            tier: .basic,
+            directDamage: 0,
+            description: "Cleanse Stunned.",
+            targetedEffects: [TargetedEffect(.cleanse(.stun))]
+        )
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 50,
+            actionIntervalTicks: 1,
+            abilities: [cleanseAbility]
+        )
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)
+            ]
+        )
+
+        BattleTestFixtures.advanceTicks(1, on: &battle)
+
+        XCTAssertFalse(battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
     }
 }

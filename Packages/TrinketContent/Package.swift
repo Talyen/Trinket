@@ -20,10 +20,7 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketContent",
-            dependencies: ["TrinketCore"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
-            ]
+            dependencies: ["TrinketCore"]
         ),
         .testTarget(
             name: "TrinketContentTests",

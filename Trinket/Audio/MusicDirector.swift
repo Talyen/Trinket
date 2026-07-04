@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 struct MusicDirector {
     func route(

@@ -22,7 +22,8 @@ final class SavedEffectRoundtripTests: XCTestCase {
             .purge(.block),
             .purge(nil),
             .purgeRandom,
-            .halveMitigation(.armor)
+            .halveMitigation(.armor),
+            .deathsDoor
         ]
 
         for effect in effects {

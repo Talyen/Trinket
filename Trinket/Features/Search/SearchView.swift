@@ -1,4 +1,7 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
+import TrinketPersistence
 
 struct SearchView: View {
     @Environment(AppState.self) private var appState
@@ -39,7 +42,7 @@ struct SearchView: View {
                 ContentUnavailableView(
                     "No Results Found",
                     systemImage: "questionmark.magnifyingglass",
-                    description: Text("No match for \"\(searchText)\" .")
+                    description: Text("No match for \"\(searchText)\".")
                 )
                 .accessibilityIdentifier(AccessibilityID.Search.noResults)
             } else {

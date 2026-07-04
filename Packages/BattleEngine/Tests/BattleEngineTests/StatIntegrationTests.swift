@@ -6,6 +6,7 @@ import TrinketContent
 /// Integration tests that stats flow correctly through full battle ticks.
 /// Pure formula coverage lives in `TrinketCoreTests/PrimaryStatsRulesTests`.
 /// Runtime health, interval, and heal math live in `CombatantRuntimeTests`.
+/// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
 final class StatIntegrationTests: XCTestCase {
     private struct DirectDamageCase {
         let ability: Ability
@@ -22,8 +23,8 @@ final class StatIntegrationTests: XCTestCase {
             DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .stun),
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 0), expectedAmount: 1, keyword: .physical),
             DirectDamageCase(ability: .fangs, stats: PrimaryStats(agility: 10), expectedAmount: 3, keyword: .bleed),
-            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .burn),
-            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 5, keyword: .freeze),
+            DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
+            DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .freeze),
             DirectDamageCase(ability: .lightningBolt, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .nature),
             DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy),
         ]
@@ -97,7 +98,7 @@ final class StatIntegrationTests: XCTestCase {
         _ = battle.advanceOneStep() // tick 1: fireball direct hit
         _ = battle.advanceOneStep() // tick 2: burn tick
 
-        XCTAssertEqual(initial - battle.health(of: battle.hero), 3)
+        XCTAssertEqual(initial - battle.health(of: battle.hero), 2)
     }
 
     // MARK: - Wisdom
@@ -135,9 +136,9 @@ final class StatIntegrationTests: XCTestCase {
         XCTAssertGreaterThan(100 - beforeHeal, 3)
     }
 
-    // MARK: - Agility prevention
+    // MARK: - Agility control meter
 
-    func testAgilityRaisesPreventionThreshold() {
+    func testAgilityRaisesControlMeterThresholdInBattle() {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(agility: 20, toughness: 1),
@@ -168,13 +169,6 @@ final class StatIntegrationTests: XCTestCase {
         }
 
         XCTAssertNotNil(buildupValues)
-        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.preventionThreshold(baseMaxHealth: 101))
-    }
-
-    // MARK: - Defaults
-
-    func testCombatantDefaultsToZeroStats() {
-        let hero = Combatant(id: "h", name: "H", role: .hero, maxHealth: 10, abilities: [.slash])
-        XCTAssertEqual(hero.primaryStats, PrimaryStats())
+        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
     }
 }

@@ -1,4 +1,6 @@
+import BattleEngine
 import Foundation
+import TrinketContent
 
 struct BattleCombatantPaneConfiguration: Identifiable {
     let combatant: Combatant

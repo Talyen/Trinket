@@ -1,5 +1,4 @@
 import SwiftUI
-import TrinketContent
 import TrinketCore
 
 extension HomesteadTint {
@@ -20,11 +19,5 @@ extension HomesteadTint {
         case .blue:
             return .blue
         }
-    }
-}
-
-extension HomesteadNodeDefinition {
-    public var tint: Color {
-        tintStyle.color
     }
 }

@@ -62,7 +62,7 @@ Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Battles rem
 
 Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed ticks can fire on steps where nobody acts.
 
-Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, prevention, shields, mitigation, healing, leech, gold, cleanse). Ability copy uses player-facing descriptions such as `Deal 3 Freeze damage and applies Frozen.` without tick or action language. Status aliases (`Frozen`, `Stunned`, `Burning`, `Poisoned`, `Bleeding`) share keyword color and emphasis in `KeywordDescriptionText`.
+Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, control meters, shields, mitigation, healing, leech, gold, cleanse). Ability copy uses player-facing descriptions such as `Deal 3 Freeze damage and applies Frozen.` without tick or action language. Status aliases (`Frozen`, `Stunned`, `Burning`, `Poisoned`, `Bleeding`) share keyword color and emphasis in `KeywordDescriptionText`.
 
 ### Burn, Poison, and Bleed
 
@@ -74,11 +74,11 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 | `Poison` | Deal potency (unless paired direct hit already dealt it) | Deal `potency - max(1, floor(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Respected |
 | `Bleed` | Deal potency (unless paired direct hit already dealt it) | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Respected |
 
-`Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also apply `Frozen`/`Stunned` prevention via `.prevention`; prevention always consumes exactly one scheduled action regardless of damage amount.
+`Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also build toward `Frozen`/`Stunned` control effects via `.controlMeter`; a full meter always consumes exactly one scheduled action regardless of damage amount.
 
-Stun and Freeze prevention buildup uses damage after mitigation and item reduction, but **before** shield absorption. A fully blocked hit still adds buildup from that post-mitigation amount — shields protect health, not control meters.
+Stun and Freeze control-meter buildup uses damage after mitigation and item reduction, but **before** shield absorption. A fully blocked hit still adds buildup from that post-mitigation amount — shields protect health, not control meters.
 
-`Cleanse` removes active Burn, Poison, Bleed, or prevention instances matching the cleansed keyword (or all debuffs when unspecified).
+`Cleanse` removes active Burn, Poison, Bleed, or control-meter instances matching the cleansed keyword (or all debuffs when unspecified).
 
 ### Battle simulation architecture
 
@@ -87,9 +87,9 @@ Combat rules live in `Packages/BattleEngine/`. `BattleState.advanceOneStep()` is
 1. Increment `tickCount` and run effect ticks for all living combatants in order: enemy, hero, pet.
 2. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
 3. Otherwise pick the next ready actor (at most one acts per step) using roster scheduling rules.
-4. Execute that actor's turn (or consume prevention), append defeat milestones if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
+4. Execute that actor's turn (or consume a pending control effect), append defeat milestones if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
 
-Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleEngineContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) in `Trinket/Battle/` as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
+Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleEngineContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) in `Trinket/BattleShell/` as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
 
 Regression coverage: `BattleGoldenPathTests` in `BattleEngineTests` pins deterministic outcomes for fixed matchups with RNG seed `0` via `BattleStateTestFactory`.
 
@@ -127,8 +127,8 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 | `Bleed` | dark red | `drop.fill` | Deals potency immediately, then repeats the same damage for 3 step-start ticks. Each application is tracked separately. |
 | `Holy` | pale gold | `sun.max.fill` | Radiant holy damage type. |
 | `Nature` | emerald | `leaf.fill` | Nature damage type. |
-| `Freeze` | light blue | `snowflake` | Freeze damage type. Also applies `Frozen` prevention (one action). |
-| `Stun` | yellow | `bolt.fill` | Stun damage type. Also applies `Stunned` prevention (one action). |
+| `Freeze` | light blue | `snowflake` | Freeze damage type. Also builds toward `Frozen` (one skipped action). |
+| `Stun` | yellow | `bolt.fill` | Stun damage type. Also builds toward `Stunned` (one skipped action). |
 
 Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun), `Burning` (Burn), `Poisoned` (Poison), `Bleeding` (Bleed).
 
@@ -160,7 +160,7 @@ All keyword effects are represented by the `Effect` tagged union and applied thr
 - `.burn(potency)` — deals potency immediately, then decays per Burn rules above
 - `.poison(potency)` — deals potency immediately, then decays per Poison rules above
 - `.bleed(potency)` — deals potency immediately, then ticks per Bleed rules above
-- `.prevention(keyword, durationActions)` — skips the target's next `durationActions` scheduled actions; not reduced by passive tick decay
+- `.controlMeter(keyword, amount, threshold)` — tracks stun/freeze buildup; at threshold the target's next scheduled action is skipped; not reduced by passive tick decay
 - `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
 - `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`
 - `.instantHeal(keyword, amount)` — immediately restores `amount` health (clamped to max)
@@ -179,7 +179,7 @@ Abilities declare `targetedEffects: [TargetedEffect]` (or bare `effects` with de
 
 Keep cards identity-first. Avoid covering full-art cards with dense stats; put exact values and formulas in detail views.
 
-Hero, Pet, and Enemy details should use an immersive hero header when curated art exists: the same 3:4 art becomes a full-bleed top background with overlaid identity content, while exact stats and choices remain in native detail sections below it. Focal points for this crop live in `ArtManifest/curated-assets.tsv` and are generated into `Trinket/Generated/ArtCatalog.generated.swift`. Combatant art should only map to the matching game entity name, not a near-synonym or temporary stand-in.
+Hero, Pet, and Enemy details should use an immersive hero header when curated art exists: the same 3:4 art becomes a full-bleed top background with overlaid identity content, while exact stats and choices remain in native detail sections below it. Focal points for this crop live in `ArtManifest/curated-assets.tsv` and are generated into `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift`. Combatant art should only map to the matching game entity name, not a near-synonym or temporary stand-in.
 
 Heroes and Pets use native pushed collection details. Enemies and battle-context combatant inspection can continue using sheets because those details are temporary battle-context views.
 

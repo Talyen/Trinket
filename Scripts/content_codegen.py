@@ -65,6 +65,7 @@ VALID_KEYWORDS = frozenset(
         "armor",
         "leech",
         "gold",
+        "mana",
     }
 )
 SWIFT_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -113,9 +114,27 @@ class StageRow:
     encounter: str
     enemy_id: str
     gold: str
-    experience: str
     item_templates: str
     materials: str
+    encounter_art_id: str = ""
+    encounter_art_title: str = ""
+
+
+@dataclass
+class ItemBaseRow:
+    id: str
+    name: str
+    slot: str
+    keywords: str
+
+
+@dataclass
+class TraitRow:
+    id: str
+    name: str
+    description: str
+    modifiers: str
+    triggers: str
 
 
 @dataclass
@@ -134,6 +153,7 @@ class CombatantRow:
     toughness: str
     intellect: str
     wisdom: str
+    trait_id: str
 
 
 @dataclass
@@ -141,7 +161,9 @@ class EnemyRow:
     id: str
     name: str
     max_health: str
+    max_mana: str
     is_boss: str
+    is_elite: str
     growth_archetype: str
     abilities: str
     strength: str
@@ -149,6 +171,8 @@ class EnemyRow:
     toughness: str
     intellect: str
     wisdom: str
+    positive_trait_id: str
+    negative_trait_id: str
 
 
 @dataclass
@@ -195,6 +219,16 @@ def parse_affix_rows() -> list[AffixRow]:
     return [AffixRow(*row) for row in lines[1:]]
 
 
+def parse_trait_rows() -> list[TraitRow]:
+    path = MANIFEST_DIR / "traits.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = ["id", "name", "description", "modifiers", "triggers"]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    return [TraitRow(*row) for row in lines[1:]]
+
+
 def parse_ability_rows() -> list[AbilityRow]:
     path = MANIFEST_DIR / "abilities.tsv"
     lines = read_tsv(path)
@@ -235,9 +269,10 @@ def parse_stage_rows() -> list[StageRow]:
         "encounter",
         "enemy_id",
         "gold",
-        "experience",
         "item_templates",
         "materials",
+        "encounter_art_id",
+        "encounter_art_title",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -246,6 +281,16 @@ def parse_stage_rows() -> list[StageRow]:
         padded = raw + [""] * (len(expected) - len(raw))
         rows.append(StageRow(*padded[: len(expected)]))
     return rows
+
+
+def parse_item_base_rows() -> list[ItemBaseRow]:
+    path = MANIFEST_DIR / "item_bases.tsv"
+    lines = read_tsv(path)
+    header = lines[0]
+    expected = ["id", "name", "slot", "keywords"]
+    if header != expected:
+        raise ValueError(f"{path} header mismatch: {header}")
+    return [ItemBaseRow(*row) for row in lines[1:]]
 
 
 def parse_combatant_rows() -> list[CombatantRow]:
@@ -267,6 +312,7 @@ def parse_combatant_rows() -> list[CombatantRow]:
         "toughness",
         "intellect",
         "wisdom",
+        "trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -285,7 +331,9 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "id",
         "name",
         "max_health",
+        "max_mana",
         "is_boss",
+        "is_elite",
         "growth_archetype",
         "abilities",
         "strength",
@@ -293,6 +341,8 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "toughness",
         "intellect",
         "wisdom",
+        "positive_trait_id",
+        "negative_trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -384,7 +434,103 @@ def modifier_token_to_swift(token: str) -> str:
     if token.startswith("damage_taken_percent:"):
         _, keyword, amount = token.split(":", 2)
         return f".damageTakenPercent(.{keyword}, {amount})"
+    if token.startswith("damage_taken_vulnerability:"):
+        _, keyword, amount = token.split(":", 2)
+        return f".damageTakenVulnerability(.{keyword}, {amount})"
+    if token.startswith("pet_damage_dealt:"):
+        return f".petDamageDealt({token.split(':', 1)[1]})"
+    if token.startswith("maximum_mana:"):
+        return f".maximumMana({token.split(':', 1)[1]})"
+    if token.startswith("leech_duration:"):
+        return f".leechDuration({token.split(':', 1)[1]})"
     raise ValueError(f"Unknown modifier token: {token}")
+
+
+def parse_trigger_tokens(raw: str) -> list[str]:
+    if not raw:
+        return []
+    return [part.strip() for part in raw.split("|") if part.strip()]
+
+
+def triggers_swift(raw: str) -> str:
+    values: dict[str, str] = {}
+    for token in parse_trigger_tokens(raw):
+        if token.startswith("on_cleanse_heal:"):
+            values["cleanseBonusHeal"] = token.split(":", 1)[1]
+        elif token.startswith("on_gain_gold_heal:"):
+            values["gainGoldBonusHealSelf"] = token.split(":", 1)[1]
+        elif token.startswith("on_restore_health_heal_hero:"):
+            values["restoreHealthAlsoHealHero"] = token.split(":", 1)[1]
+        elif token.startswith("control_resistance:"):
+            values["controlResistancePercent"] = token.split(":", 1)[1]
+        elif token.startswith("dodge_chance_bonus:"):
+            values["dodgeChanceBonus"] = token.split(":", 1)[1]
+        elif token.startswith("physical_dodge_chance_bonus:"):
+            values["physicalDodgeChanceBonus"] = token.split(":", 1)[1]
+        elif token.startswith("ambush_bonus:"):
+            values["ambushBonusDamage"] = token.split(":", 1)[1]
+        elif token.startswith("regeneration:"):
+            _, amount, interval = token.split(":", 2)
+            values["regenerationAmount"] = amount
+            values["regenerationIntervalTicks"] = interval
+        elif token.startswith("passive_armor:"):
+            values["passiveArmorPercent"] = token.split(":", 1)[1]
+        elif token.startswith("thorns_percent:"):
+            values["thornsPercent"] = token.split(":", 1)[1]
+        elif token.startswith("cannot_be_healed:"):
+            values["cannotBeHealed"] = "true"
+        elif token.startswith("burn_decay_slow:"):
+            values["burnDecaySlowPercent"] = token.split(":", 1)[1]
+        elif token.startswith("shield_erosion_on:"):
+            _, keyword, ticks = token.split(":", 2)
+            values["shieldErosionKeyword"] = f".{keyword}"
+            values["shieldErosionTicks"] = ticks
+        elif token.startswith("mitigation_shred_on:"):
+            _, keyword, multiplier, duration = token.split(":", 3)
+            values["mitigationShredKeyword"] = f".{keyword}"
+            values["mitigationShredMultiplier"] = multiplier
+            values["mitigationShredDurationTicks"] = duration
+        elif token.startswith("freeze_control_vulnerability:"):
+            values["freezeControlVulnerabilityPercent"] = token.split(":", 1)[1]
+        elif token.startswith("armor_effectiveness_penalty:"):
+            values["armorEffectivenessPenaltyPercent"] = token.split(":", 1)[1]
+        elif token.startswith("grasping_vines_heal_bonus:"):
+            values["graspingVinesHealBonus"] = token.split(":", 1)[1]
+        elif token.startswith("leech_healing_multiplier:"):
+            values["leechHealingMultiplier"] = token.split(":", 1)[1]
+        elif token.startswith("hemorrhage_bleed_bonus:"):
+            values["hemorrhageBleedBonus"] = token.split(":", 1)[1]
+        else:
+            raise ValueError(f"Unknown trigger token: {token}")
+    order = [
+        "cleanseBonusHeal",
+        "gainGoldBonusHealSelf",
+        "restoreHealthAlsoHealHero",
+        "controlResistancePercent",
+        "dodgeChanceBonus",
+        "physicalDodgeChanceBonus",
+        "ambushBonusDamage",
+        "regenerationAmount",
+        "regenerationIntervalTicks",
+        "passiveArmorPercent",
+        "thornsPercent",
+        "cannotBeHealed",
+        "burnDecaySlowPercent",
+        "shieldErosionKeyword",
+        "shieldErosionTicks",
+        "mitigationShredKeyword",
+        "mitigationShredMultiplier",
+        "mitigationShredDurationTicks",
+        "freezeControlVulnerabilityPercent",
+        "armorEffectivenessPenaltyPercent",
+        "graspingVinesHealBonus",
+        "leechHealingMultiplier",
+        "hemorrhageBleedBonus",
+    ]
+    parts = [f"{label}: {values[label]}" for label in order if label in values]
+    if not parts:
+        return "CombatTraitTriggers()"
+    return "CombatTraitTriggers(" + ", ".join(parts) + ")"
 
 
 def modifiers_swift(raw: str) -> str:
@@ -537,14 +683,57 @@ def render_ability(row: AbilityRow) -> str:
     raise ValueError(f"Unsupported ability pattern '{row.pattern}' for {row.id}")
 
 
+TOP_LEVEL = re.compile(r"^(?P<kind>enum|struct|class|actor|extension)\s+")
+MEMBER = re.compile(
+    r"^(?P<indent>\s{4})(?!(public |private |fileprivate |internal |open |case ))"
+    r"(?P<body>(?:mutating )?(?:nonisolated )?(?:static )?(?:init|let|var|func|subscript)(?:\s|\())"
+)
+NESTED_TYPE = re.compile(
+    r"^(?P<indent>\s{4})(?!(public |private |fileprivate |internal |open ))"
+    r"(?P<body>(?:enum|struct|class|actor) )"
+)
+
+
+def publicize(text: str) -> str:
+    lines = text.splitlines()
+    out: list[str] = []
+    depth = 0
+    in_public_type = False
+
+    for line in lines:
+        if depth == 0:
+            if TOP_LEVEL.match(line) and not line.startswith("public "):
+                line = f"public {line}"
+                in_public_type = True
+            elif line.startswith("public extension "):
+                in_public_type = True
+            elif line.startswith("extension ") and not line.startswith("public "):
+                line = f"public {line}"
+                in_public_type = True
+            else:
+                in_public_type = False
+
+        if in_public_type and depth == 1:
+            match = MEMBER.match(line) or NESTED_TYPE.match(line)
+            if match:
+                rest = line.lstrip()
+                line = f"{match.group('indent')}public {rest}"
+
+        out.append(line)
+        depth = max(0, depth + line.count("{") - line.count("}"))
+
+    return "\n".join(out) + "\n"
+
+
 def write_generated_file(path: Path, body: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        "// Generated by Scripts/generate-content-catalogs.sh — do not edit.\n"
+    content = (
+        "// Generated by Scripts/content_codegen.py — do not edit.\n"
         "import Foundation\n"
         "import TrinketCore\n\n"
         f"{body}\n"
     )
+    path.write_text(publicize(content))
 
 
 def generate_affix_catalog(rows: list[AffixRow]) -> None:
@@ -654,7 +843,25 @@ def _validate_ability_symbols(raw: str, row_id: str, ability_symbols: set[str], 
             raise ValueError(f"Unknown ability symbol '{symbol}' for {row_id}")
 
 
-def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str]) -> None:
+def validate_trait_rows(rows: list[TraitRow]) -> None:
+    seen: set[str] = set()
+    for row in rows:
+        if row.id in seen:
+            raise ValueError(f"Duplicate trait id: {row.id}")
+        seen.add(row.id)
+
+        _validate_snake_id("trait id", row.id, row.id)
+        _require_non_empty("trait name", row.name, row.id)
+        _require_non_empty("trait description", row.description, row.id)
+
+        for token in parse_modifier_tokens(row.modifiers):
+            modifier_token_to_swift(token)
+        triggers_swift(row.triggers)
+
+
+def validate_combatant_rows(
+    rows: list[CombatantRow], ability_symbols: set[str], trait_ids: set[str]
+) -> None:
     seen: set[str] = set()
     for row in rows:
         if row.id in seen:
@@ -678,10 +885,15 @@ def validate_combatant_rows(rows: list[CombatantRow], ability_symbols: set[str])
         _validate_ability_symbols(row.basics, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.skills, row.id, ability_symbols, expected_count=2)
         _validate_ability_symbols(row.ultimates, row.id, ability_symbols, expected_count=2)
+        _require_non_empty("trait_id", row.trait_id, row.id)
+        if row.trait_id not in trait_ids:
+            raise ValueError(f"Unknown trait_id '{row.trait_id}' for combatant {row.id}")
         render_party_combatant(row)
 
 
-def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str]) -> None:
+def validate_enemy_rows(
+    rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str], trait_ids: set[str]
+) -> None:
     seen: set[str] = set()
     for row in rows:
         if row.id in seen:
@@ -694,6 +906,10 @@ def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combata
         _require_non_empty("enemy name", row.name, row.id)
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
+        if row.is_elite not in {"true", "false"}:
+            raise ValueError(f"is_elite for {row.id} must be true or false")
+        if row.is_boss == "true" and row.is_elite == "true":
+            raise ValueError(f"{row.id} cannot be both boss and elite")
         if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
             raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
@@ -701,11 +917,20 @@ def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combata
             raise ValueError(f"max_health for {row.id} must be an integer")
         if int(row.max_health) < 1:
             raise ValueError(f"max_health for {row.id} must be positive")
+        _validate_positive_int("max_mana", row.max_mana, row.id)
 
         for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
             _validate_positive_int(stat, getattr(row, stat), row.id)
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
+        _require_non_empty("positive_trait_id", row.positive_trait_id, row.id)
+        _require_non_empty("negative_trait_id", row.negative_trait_id, row.id)
+        if row.positive_trait_id not in trait_ids:
+            raise ValueError(f"Unknown positive_trait_id '{row.positive_trait_id}' for enemy {row.id}")
+        if row.negative_trait_id not in trait_ids:
+            raise ValueError(f"Unknown negative_trait_id '{row.negative_trait_id}' for enemy {row.id}")
+        if row.positive_trait_id == row.negative_trait_id:
+            raise ValueError(f"Enemy {row.id} cannot use the same trait for positive and negative")
         render_enemy(row)
 
 
@@ -729,23 +954,64 @@ def render_party_combatant(row: CombatantRow) -> str:
 
 
 def render_enemy(row: EnemyRow) -> str:
-    boss_clause = ", isBoss: true" if row.is_boss == "true" else ""
+    flags: list[str] = []
+    if row.is_boss == "true":
+        flags.append("isBoss: true")
+    if row.is_elite == "true":
+        flags.append("isElite: true")
+    flag_clause = ""
+    if flags:
+        flag_clause = ", " + ", ".join(flags)
+    max_mana_clause = ""
+    if row.max_mana and row.max_mana != "0":
+        max_mana_clause = f", maxMana: {row.max_mana}"
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
-        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
+        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}{max_mana_clause}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
         f"primaryStats: {primary_stats_swift(row)}, "
-        f"growthArchetype: .{row.growth_archetype}){boss_clause})"
+        f"growthArchetype: .{row.growth_archetype}), "
+        f"positiveTraitID: \"{swift_escape(row.positive_trait_id)}\", "
+        f"negativeTraitID: \"{swift_escape(row.negative_trait_id)}\"{flag_clause})"
     )
+
+
+def generate_traits_catalog(rows: list[TraitRow]) -> None:
+    entries: list[str] = []
+    for row in rows:
+        entries.append(
+            "        CombatantTraitDefinition(\n"
+            f'            id: "{swift_escape(row.id)}",\n'
+            f'            name: "{swift_escape(row.name)}",\n'
+            f'            description: "{swift_escape(row.description)}",\n'
+            f"            modifiers: {modifiers_swift(row.modifiers)},\n"
+            f"            triggers: {triggers_swift(row.triggers)}\n"
+            "        )"
+        )
+
+    body = (
+        "public enum GameContentTraitsGenerated {\n"
+        "    public static let definitions: [CombatantTraitDefinition] = [\n"
+        + ",\n".join(entries)
+        + ",\n    ]\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentTraits.generated.swift", body)
 
 
 def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     heroes = [row for row in rows if row.role == "hero"]
     pets = [row for row in rows if row.role == "pet"]
+    trait_map_entries = ",\n".join(
+        f'        "{swift_escape(row.id)}": "{swift_escape(row.trait_id)}"' for row in rows
+    )
     hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
     pet_blocks = ",\n".join(render_party_combatant(row) for row in pets)
     body = (
         "public enum GameContentRosterGenerated {\n"
+        "    public static let combatantTraitIDs: [String: String] = [\n"
+        f"{trait_map_entries}\n"
+        "    ]\n\n"
         "    public static let heroes: [Combatant] = [\n"
         f"{hero_blocks}\n"
         "    ]\n\n"
@@ -917,7 +1183,6 @@ def render_stage(row: StageRow) -> str:
                     encounter: {render_stage_encounter(row)},
                     rewards: StageReward(
                         gold: {row.gold},
-                        experience: {row.experience},
                         itemTemplateIDs: {parse_item_templates(row.item_templates)},
                         materialRewards: {parse_material_rewards(row.materials)}
                     )
@@ -944,12 +1209,17 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             raise ValueError(f"Stage {stage_id} references unknown enemy '{row.enemy_id}'")
         if row.encounter != "battle" and row.enemy_id.strip():
             raise ValueError(f"enemy_id only allowed for battle encounters at {stage_id}")
+        if row.encounter == "battle" and (row.encounter_art_id.strip() or row.encounter_art_title.strip()):
+            raise ValueError(f"encounter art fields only allowed for non-battle encounters at {stage_id}")
+        if bool(row.encounter_art_id.strip()) != bool(row.encounter_art_title.strip()):
+            raise ValueError(
+                f"encounter_art_id and encounter_art_title must both be set or empty for {stage_id}"
+            )
 
         for field_name, value in (
             ("chapter_number", row.chapter_number),
             ("stage_number", row.stage_number),
             ("gold", row.gold),
-            ("experience", row.experience),
         ):
             if not value.isdigit():
                 raise ValueError(f"{field_name} for {stage_id} must be an integer")
@@ -1004,7 +1274,6 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
         )
 
     body = (
-        "import Foundation\nimport TrinketCore\n\n"
         "public enum GameContentChaptersGenerated {\n"
         "    public static let chapters: [Chapter] = [\n"
         + ",\n".join(chapter_blocks)
@@ -1181,7 +1450,6 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
         for node_id in HOMESTEAD_NODE_ORDER
     )
     body = (
-        "import Foundation\nimport TrinketCore\n\n"
         "public enum GameContentHomesteadGenerated {\n"
         "    public static let homesteadNodes: [HomesteadNodeDefinition] = [\n"
         + node_blocks
@@ -1190,29 +1458,102 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
     write_generated_file(GENERATED_DIR / "GameContentHomestead.generated.swift", body)
 
 
+def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:
+    seen_ids: set[str] = set()
+    for row in rows:
+        if row.id in seen_ids:
+            raise ValueError(f"Duplicate item base id: {row.id}")
+        seen_ids.add(row.id)
+        if row.slot not in VALID_SLOTS:
+            raise ValueError(f"Unknown item slot '{row.slot}' for {row.id}")
+        for keyword in row.keywords.split(","):
+            keyword = keyword.strip()
+            if keyword and keyword not in VALID_KEYWORDS:
+                raise ValueError(f"Unknown keyword '{keyword}' for item base {row.id}")
+
+
+def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
+    entries: list[str] = []
+    for row in rows:
+        entries.append(
+            "        ItemBaseType("
+            f'id: "{swift_escape(row.id)}", '
+            f'name: "{swift_escape(row.name)}", '
+            f"slot: .{row.slot}, "
+            f"keywordAffinities: {parse_keywords(row.keywords)}"
+            ")"
+        )
+    body = (
+        "public enum GameContentItemBasesGenerated {\n"
+        "    public static let itemBaseTypes: [ItemBaseType] = [\n"
+        + ",\n".join(entries)
+        + "\n    ]\n}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentItemBases.generated.swift", body)
+
+
+def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
+    entries: list[str] = []
+    for row in rows:
+        if not row.encounter_art_id.strip():
+            continue
+        stage_id = f"{row.chapter_id}-stage-{row.stage_number}"
+        entries.append(
+            f'        "{swift_escape(stage_id)}": (id: "{swift_escape(row.encounter_art_id)}", '
+            f'title: "{swift_escape(row.encounter_art_title)}")'
+        )
+    body = (
+        "public enum GameContentEncounterArtGenerated {\n"
+        "    public static let stageEncounterArt: [String: (id: String, title: String)] = [\n"
+        + ",\n".join(entries)
+        + "\n    ]\n}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentEncounterArt.generated.swift", body)
+
+
 def validate_manifests() -> tuple[
     list[AffixRow],
+    list[TraitRow],
     list[AbilityRow],
     list[StageRow],
     list[CombatantRow],
     list[EnemyRow],
     list[HomesteadNodeRow],
+    list[ItemBaseRow],
 ]:
     affix_rows = parse_affix_rows()
+    trait_rows = parse_trait_rows()
     ability_rows = parse_ability_rows()
     combatant_rows = parse_combatant_rows()
     enemy_rows = parse_enemy_rows()
     stage_rows = parse_stage_rows()
     homestead_rows = parse_homestead_node_rows()
+    item_base_rows = parse_item_base_rows()
     ability_symbols = collect_ability_symbols()
 
     validate_affix_rows(affix_rows)
+    validate_trait_rows(trait_rows)
     validate_ability_rows(ability_rows)
-    validate_combatant_rows(combatant_rows, ability_symbols)
-    validate_enemy_rows(enemy_rows, ability_symbols, {row.id for row in combatant_rows})
+    validate_combatant_rows(combatant_rows, ability_symbols, {row.id for row in trait_rows})
+    validate_enemy_rows(
+        enemy_rows,
+        ability_symbols,
+        {row.id for row in combatant_rows},
+        {row.id for row in trait_rows},
+    )
     validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
     validate_homestead_node_rows(homestead_rows)
-    return affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows
+    validate_item_base_rows(item_base_rows)
+    return (
+        affix_rows,
+        trait_rows,
+        ability_rows,
+        stage_rows,
+        combatant_rows,
+        enemy_rows,
+        homestead_rows,
+        item_base_rows,
+    )
 
 
 def generate_ability_shorthand() -> None:
@@ -1235,14 +1576,25 @@ def generate_ability_shorthand() -> None:
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "all"
     if command == "validate":
-        affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows = validate_manifests()
+        (
+            affix_rows,
+            trait_rows,
+            ability_rows,
+            stage_rows,
+            combatant_rows,
+            enemy_rows,
+            homestead_rows,
+            item_base_rows,
+        ) = validate_manifests()
         print(
             f"Validated {len(affix_rows)} affixes, "
+            f"{len(trait_rows)} traits, "
             f"{len(ability_rows)} manifest abilities, "
             f"{len(stage_rows)} stages, "
             f"{len(combatant_rows)} combatants, "
-            f"{len(enemy_rows)} enemies, and "
-            f"{len(homestead_rows)} homestead tiers"
+            f"{len(enemy_rows)} enemies, "
+            f"{len(homestead_rows)} homestead tiers, and "
+            f"{len(item_base_rows)} item bases"
         )
         return 0
     if command == "shorthand":
@@ -1250,22 +1602,36 @@ def main() -> int:
         print("Generated AbilityShorthand.generated.swift")
         return 0
 
-    affix_rows, ability_rows, stage_rows, combatant_rows, enemy_rows, homestead_rows = validate_manifests()
+    (
+        affix_rows,
+        trait_rows,
+        ability_rows,
+        stage_rows,
+        combatant_rows,
+        enemy_rows,
+        homestead_rows,
+        item_base_rows,
+    ) = validate_manifests()
     generate_affix_catalog(affix_rows)
+    generate_traits_catalog(trait_rows)
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
     generate_roster_catalog(combatant_rows)
     generate_enemies_catalog(enemy_rows)
     generate_homestead_catalog(homestead_rows)
+    generate_item_bases_catalog(item_base_rows)
+    generate_encounter_art_catalog(stage_rows)
     generate_ability_shorthand()
     print(
         f"Generated {len(affix_rows)} affixes, "
+        f"{len(trait_rows)} traits, "
         f"{len(ability_rows)} manifest abilities, "
         f"{len(stage_rows)} stages, "
         f"{len(combatant_rows)} combatants, "
-        f"{len(enemy_rows)} enemies, and "
-        f"{len(homestead_rows)} homestead tiers"
+        f"{len(enemy_rows)} enemies, "
+        f"{len(homestead_rows)} homestead tiers, and "
+        f"{len(item_base_rows)} item bases"
     )
     return 0
 

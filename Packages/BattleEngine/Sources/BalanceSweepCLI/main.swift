@@ -1,5 +1,5 @@
 import Foundation
-import BattleEngine
+import BattleBalanceTools
 import TrinketContent
 
 struct CLIOptions {
@@ -36,7 +36,7 @@ enum BalanceSweepCLI {
             triples: triples
         )
 
-        fputs("Running balance sweep (\(request.triples?.count ?? BalanceSweepCatalog.allTriples().count) triples)...\n", stderr)
+        print("Running balance sweep (\(request.triples?.count ?? BalanceSweepCatalog.allTriples().count) triples)...")
         let result = BalanceSweepRunner.run(request)
         let html = BalanceReportRenderer.renderHTML(result)
         let json = try BalanceReportRenderer.renderJSON(result)
@@ -49,9 +49,8 @@ enum BalanceSweepCLI {
         try html.write(to: outputURL, atomically: true, encoding: .utf8)
         try json.write(to: outputURL.deletingPathExtension().appendingPathExtension("json"))
 
-        fputs(
-            "Wrote \(outputURL.path) (\(result.matchupRows.count) matchup rows, \(result.abilityRows.count) ability rows, \(result.anomalies.count) anomalies)\n",
-            stderr
+        print(
+            "Wrote \(outputURL.path) (\(result.matchupRows.count) matchup rows, \(result.abilityRows.count) ability rows, \(result.anomalies.count) anomalies)"
         )
     }
 

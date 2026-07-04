@@ -17,6 +17,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     case dodge = "Dodge"
     case purge = "Purge"
     case mana = "Mana"
+    case deathsDoor = "Death's Door"
 
     public var id: String {
         rawValue
@@ -33,12 +34,12 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         switch self {
         case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: return .damageType
         case .block, .armor, .dodge, .purge: return .mitigation
-        case .health, .leech: return .restoration
+        case .health, .leech, .deathsDoor: return .restoration
         case .gold, .mana: return .resource
         }
     }
 
-    /// Player-facing status label for prevention and DoT effects. Shares styling with the parent keyword.
+    /// Player-facing status label for control effects and DoT effects. Shares styling with the parent keyword.
     public var statusAlias: String? {
         switch self {
         case .freeze: return "Frozen"
@@ -46,6 +47,7 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .burn: return "Burning"
         case .poison: return "Poisoned"
         case .bleed: return "Bleeding"
+        case .deathsDoor: return "Death's Door"
         default: return nil
         }
     }
@@ -94,6 +96,8 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
             return "Instantly removes beneficial status effects from enemies."
         case .mana:
             return "Magical energy used to power abilities."
+        case .deathsDoor:
+            return "Hanging by a thread after a near-fatal blow. Heal soon or the next fatal hit will end them."
         }
     }
 
@@ -115,7 +119,7 @@ public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Senda
     }
 }
 
-public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable {
+public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable, Codable {
     case basic = "Basic"
     case skill = "Skill"
     case ultimate = "Ultimate"
@@ -140,7 +144,7 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable 
         case .basic:
             return 1
         case .skill:
-            return 3
+            return 1
         case .ultimate:
             return 6
         }

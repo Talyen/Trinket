@@ -6,13 +6,18 @@ import TrinketContent
 final class DamagePipelineTests: XCTestCase {
     private let expectedStepNames = [
         "DodgeGate",
+        "CriticalGate",
         "DamageBonus",
+        "MarkedBonus",
         "Mitigation",
         "ItemReduction",
         "ShieldAbsorption",
+        "CriticalMultiply",
         "TakeDamage",
+        "DeathsDoor",
         "Leech",
-        "ControlMeter"
+        "ControlMeter",
+        "ReactiveOnHit"
     ]
 
     private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {

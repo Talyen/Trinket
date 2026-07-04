@@ -16,6 +16,7 @@ public enum SavedEffect: Codable, Equatable, Sendable {
     case purge(keyword: String?)
     case purgeRandom
     case halveMitigation(keyword: String)
+    case deathsDoor
     case dodge(keyword: String, duration: Int)
 
     public init(_ effect: Effect) {
@@ -42,6 +43,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .purge(keyword: keyword?.rawValue)
         case .purgeRandom:
             return .purgeRandom
+        case .deathsDoor:
+            return .deathsDoor
         default:
             return nil
         }
@@ -86,6 +89,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .purge(keyword)
         case .purgeRandom:
             return .purgeRandom
+        case .deathsDoor:
+            return .deathsDoor
         default:
             return keywordBackedEffect()
         }
@@ -107,6 +112,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return keyword(from: keywordRawValue).map { .resourceGain($0, amount) }
         case let .halveMitigation(keywordRawValue):
             return keyword(from: keywordRawValue).map { .halveMitigation($0) }
+        case .deathsDoor:
+            return .deathsDoor
         case .dodge:
             return nil
         default:

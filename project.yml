@@ -52,6 +52,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - TrinketUITests
+      - path: Trinket/Shared/AccessibilityID.swift
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

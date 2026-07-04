@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketPersistence
 
 struct ChapterJourneyPresentation {
     let chapter: Chapter
@@ -8,52 +10,19 @@ struct ChapterJourneyPresentation {
     init(chapters: [Chapter], chapter: Chapter, progress: JourneyProgressState) {
         self.chapter = chapter
         rows = chapter.stages.compactMap { stage -> ChapterJourneyRow? in
-            let state = Self.state(for: stage, progress: progress)
+            let state = JourneyMapPresentation.stageNodeState(for: stage, progress: progress)
             guard state != .completed, state != .justCompleted else { return nil }
 
             return .stage(VisibleStageNode(
                 stage: stage,
                 state: state
             ))
-        } + [.chapterGate(Self.gateChapter(after: chapter, in: chapters))]
-        scrollTargetID = Self.scrollFocusID(for: progress, chapter: chapter, chapters: chapters)
-    }
-
-    private static func scrollFocusID(
-        for progress: JourneyProgressState,
-        chapter: Chapter,
-        chapters: [Chapter]
-    ) -> String {
-        if let activeStageID = progress.activeStageID {
-            return activeStageID
-        }
-        return StageMapID.chapterGate(for: gateChapter(after: chapter, in: chapters))
-    }
-
-    private static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {
-        guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),
-              chapters.indices.contains(chapterIndex + 1)
-        else { return placeholderGateChapter(after: chapter) }
-        return chapters[chapterIndex + 1]
-    }
-
-    private static func placeholderGateChapter(after chapter: Chapter) -> Chapter {
-        let nextNumber = chapter.number + 1
-        return Chapter(
-            id: StageMapID.placeholderGate(afterChapterNumber: nextNumber),
-            number: nextNumber,
-            title: "",
-            theme: chapter.theme,
-            stages: []
+        } + [.chapterGate(JourneyMapPresentation.gateChapter(after: chapter, in: chapters))]
+        scrollTargetID = JourneyMapPresentation.scrollFocusID(
+            for: progress,
+            chapter: chapter,
+            chapters: chapters
         )
-    }
-
-    private static func state(for stage: Stage, progress: JourneyProgressState) -> StageNodeState {
-        if progress.isActive(stage) { return .active }
-        if progress.isCompleted(stage) {
-            return progress.isLastCompleted(stage) ? .justCompleted : .completed
-        }
-        return .future
     }
 }
 
@@ -72,18 +41,13 @@ enum ChapterJourneyRow: Identifiable {
 }
 
 extension Stage {
-    var encounterArtReference: EncounterArtReference? {
-        if case let .battle(enemyID) = encounter {
-            guard let combatantArt = GameContent.enemy(matching: enemyID)?.combatant.artReference else {
-                return nil
-            }
-            return EncounterArtReference(
-                imageName: combatantArt.imageName,
-                thumbnailImageName: combatantArt.thumbnailImageName,
-                accessibilityLabel: combatantArt.accessibilityLabel
-            )
-        }
+    var encounterCombatantArtReference: CombatantArtReference? {
+        guard case let .battle(enemyID) = encounter else { return nil }
+        return GameContent.enemy(matching: enemyID)?.combatant.artReference
+    }
 
+    var encounterArtReference: EncounterArtReference? {
+        if case .battle = encounter { return nil }
         guard let artID = GameContent.encounterArtID(for: self) else { return nil }
         return ArtCatalog.encounterArtByID[artID]
     }

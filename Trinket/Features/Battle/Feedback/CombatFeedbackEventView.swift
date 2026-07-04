@@ -1,4 +1,6 @@
+import BattleEngine
 import SwiftUI
+import TrinketCore
 
 struct CombatFeedbackEventView: View {
     let event: ActionEvent
@@ -91,8 +93,10 @@ private extension ActionEventDisplay {
             return .block
         case .dodge:
             return Keyword.dodge.visualStyle
-        case .prevention:
+        case .control:
             return .stun
+        case .deathsDoor:
+            return Keyword.deathsDoor.visualStyle
         default:
             return keyword.visualStyle
         }

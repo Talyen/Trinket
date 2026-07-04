@@ -5,20 +5,30 @@ public enum AbilityDescriptionFormatter {
     public static func format(_ ability: Ability) -> String {
         var clauses: [String] = []
 
+        if ability.manaCost > 0 {
+            clauses.append("costs \(ability.manaCost) Mana")
+        }
+
         for component in ability.damageComponents where component.target == .actor {
             clauses.append("Lose \(component.amount) Health")
         }
 
         let enemyDamage = ability.damageComponents.filter { $0.target == .abilityTarget }
         if !enemyDamage.isEmpty {
-            clauses.append(formatEnemyDamage(enemyDamage, effects: ability.targetedEffects))
+            clauses.append(contentsOf: formatEnemyDamage(enemyDamage, effects: ability.targetedEffects))
         }
 
         for targetedEffect in ability.targetedEffects {
             if isPairedDoT(targetedEffect.effect, in: enemyDamage) {
                 continue
             }
-            clauses.append(EffectPresentation.applyPhrase(for: targetedEffect.effect))
+            clauses.append(formatTargetedEffect(targetedEffect))
+        }
+
+        if ability.guaranteedCriticalIfEnemyBuffed {
+            clauses.append("always Criticals if the enemy has a buff")
+        } else if ability.criticalChanceBonus > 0 {
+            clauses.append("gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance")
         }
 
         return joinClauses(clauses)
@@ -27,24 +37,46 @@ public enum AbilityDescriptionFormatter {
     private static func formatEnemyDamage(
         _ components: [DamageComponent],
         effects: [TargetedEffect]
-    ) -> String {
-        let damageText: String
-        if components.count == 1, let component = components.first {
-            damageText = "Deal \(component.amount) \(component.keyword.rawValue) damage"
-        } else {
-            let parts = components.map { "\($0.amount) \($0.keyword.rawValue)" }
-            damageText = "Deal \(listPhrase(parts)) damage"
+    ) -> [String] {
+        var clauses: [String] = []
+        for component in components {
+            var text = "deal \(component.amount) \(component.keyword.rawValue) damage"
+            if component.bonusAmount > 0, let condition = component.condition {
+                text += ". If \(conditionPhrase(condition)), deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage"
+            }
+            if let alias = component.keyword.statusAlias,
+               effects.contains(where: { matchesDoT($0.effect, keyword: component.keyword, potency: component.amount) }) {
+                text += " and applies \(alias)"
+            }
+            clauses.append(text)
         }
+        return clauses
+    }
 
-        guard components.count == 1,
-              let component = components.first,
-              let alias = component.keyword.statusAlias,
-              effects.contains(where: { matchesDoT($0.effect, keyword: component.keyword, potency: component.amount) })
-        else {
-            return damageText
+    private static func formatTargetedEffect(_ targetedEffect: TargetedEffect) -> String {
+        var phrase = EffectPresentation.applyPhrase(for: targetedEffect.effect)
+        if targetedEffect.target == .lowestHealthAlly, phrase.hasPrefix("restore ") {
+            phrase += " to whichever ally has less Health"
         }
+        if let condition = targetedEffect.condition {
+            phrase += " if \(conditionPhrase(condition))"
+        }
+        return phrase
+    }
 
-        return "\(damageText) and applies \(alias)"
+    private static func conditionPhrase(_ condition: DamageCondition) -> String {
+        switch condition {
+        case .enemyBleeding: return "the enemy is Bleeding"
+        case .enemyBurning: return "the enemy is Burning"
+        case .enemyPoisoned: return "the enemy is Poisoned"
+        case .enemyFrozen: return "the enemy is Frozen"
+        case .enemyStunned: return "the enemy is Stunned"
+        case .enemyStunnedOrFrozen: return "the enemy is Stunned or Frozen"
+        case .enemyMarked: return "the enemy is Marked"
+        case .enemyLowerHealthThanActor: return "the enemy has less Health than you"
+        case .allyBelowHalfHealth: return "your Hero or Pet is below half Health"
+        case .enemyHasBuff: return "the enemy has a buff"
+        }
     }
 
     private static func isPairedDoT(_ effect: Effect, in damage: [DamageComponent]) -> Bool {
@@ -72,7 +104,7 @@ public enum AbilityDescriptionFormatter {
             return capitalize(first) + "."
         }
 
-        if first.hasPrefix("Lose ") {
+        if first.hasPrefix("Lose ") || first.hasPrefix("costs ") {
             let tail = clauses.dropFirst().map(lowercaseFirst)
             return capitalize(first) + ", " + joinWithAnd(tail) + "."
         }

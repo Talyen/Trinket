@@ -1,4 +1,7 @@
 import SwiftUI
+import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
 
 extension HomesteadResource {
     var displayName: String {
@@ -35,5 +38,11 @@ extension HomesteadResource {
         case .crystal: return .blue
         case .gold: return Keyword.gold.visualStyle.color
         }
+    }
+}
+
+extension HomesteadNodeDefinition {
+    var tint: Color {
+        tintStyle.color
     }
 }

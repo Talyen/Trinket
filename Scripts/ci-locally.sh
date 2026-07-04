@@ -7,6 +7,10 @@ echo "=== Generating Xcode project ==="
 ./Scripts/generate.sh
 
 echo ""
+echo "=== Module boundary check ==="
+./Scripts/check-module-boundaries.sh
+
+echo ""
 echo "=== Style check ==="
 ./Scripts/test.sh style
 

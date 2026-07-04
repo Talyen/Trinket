@@ -79,7 +79,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(uploadCount, 0)
     }
 
-    func testReconcileUploadsWhenLocalIsNewer() async throws {
+    func testReconcileMergesWhenSessionGenerationMatches() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,
             localSave: SaveTestSupport.makeSave(modifiedAt: later, gold: 42),
@@ -89,11 +89,11 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.coordinator.pullAndReconcile()
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
+        XCTAssertEqual(fixture.store.roster.gold, 42)
         let fetchCount = await fixture.mock.fetchCallCount()
-        let uploads = await fixture.mock.uploadedSavesSnapshot()
+        let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(fetchCount, 1)
-        XCTAssertEqual(uploads.count, 1)
-        XCTAssertEqual(uploads.first?.roster.gold, 42)
+        XCTAssertEqual(uploadCount, 0)
     }
 
     func testRemoteMissingUploadsLocalOnReconcile() async throws {
@@ -174,6 +174,30 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(uploads.first?.roster.gold, 15)
     }
 
+    func testCheckpointFlushesPendingPersistBeforeUpload() async throws {
+        let fixture = try await makeSyncedFixture()
+        await fixture.coordinator.start()
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o555))],
+            ofItemAtPath: directoryURL.path
+        )
+        fixture.store.grantGoldForTests(10)
+        XCTAssertTrue(fixture.store.hasPendingPersist)
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o755))],
+            ofItemAtPath: directoryURL.path
+        )
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await fixture.mock.waitUntilUploadCount(atLeast: 1)
+
+        XCTAssertFalse(fixture.store.hasPendingPersist)
+        let reloaded = PlayerSaveStore(fileStore: SaveTestSupport.makeFileStore(directoryURL: directoryURL))
+        XCTAssertEqual(reloaded.roster.gold, 10)
+    }
+
     func testUnavailableAccountDuringCheckpointSetsStatus() async throws {
         let fixture = try await makeSyncedFixture()
         await fixture.coordinator.start()
@@ -188,6 +212,26 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
     }
 
     // MARK: - Error handling
+
+    func testUploadConflictResolvesWithAuthoritativeSave() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 10, recordChangeTag: "remote-tag")
+        )
+        await fixture.coordinator.start()
+
+        await fixture.mock.setRemoteSave(
+            SaveTestSupport.makeRemote(modifiedAt: earlier, gold: 50, recordChangeTag: "newer-tag")
+        )
+        fixture.store.setGoldForTests(30)
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await fixture.mock.waitUntilUploadCount(atLeast: 1)
+
+        XCTAssertEqual(fixture.store.roster.gold, 30)
+        XCTAssertEqual(fixture.coordinator.status, .upToDate)
+    }
 
     func testFetchFailureSetsErrorStatus() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
@@ -230,6 +274,28 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(fixture.coordinator.sessionPhase, .closed)
         XCTAssertNil(fixture.coordinator.sessionToken)
+    }
+
+    func testUploadConflictMergesAndRetriesUpload() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 20, recordChangeTag: "tag-v1")
+        )
+        await fixture.coordinator.start()
+        XCTAssertEqual(fixture.store.roster.gold, 20)
+
+        fixture.store.setGoldForTests(50)
+        await fixture.mock.setRemoteSave(
+            SaveTestSupport.makeRemote(modifiedAt: later, gold: 99, recordChangeTag: "tag-v2")
+        )
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await fixture.mock.waitUntilUploadCount(atLeast: 1)
+
+        XCTAssertEqual(fixture.coordinator.status, .upToDate)
+        let uploads = await fixture.mock.uploadedSavesSnapshot()
+        XCTAssertGreaterThanOrEqual(uploads.count, 1)
     }
 
     // MARK: - Fixtures

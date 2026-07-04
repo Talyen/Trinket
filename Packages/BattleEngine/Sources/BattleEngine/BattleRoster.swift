@@ -167,4 +167,12 @@ public struct BattleRoster {
         guard let participant = participant(for: combatant) else { return }
         body(&self[participant])
     }
+
+    public func hasConsumedDeathsDoor(for combatant: Combatant) -> Bool {
+        runtime(for: combatant)?.hasConsumedDeathsDoor ?? false
+    }
+
+    public func isDeathsDoorActive(for combatant: Combatant) -> Bool {
+        activeEffects(for: combatant).contains { $0.effect.kind == .deathsDoor }
+    }
 }

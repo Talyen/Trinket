@@ -1,4 +1,6 @@
 import Foundation
+import TrinketContent
+import TrinketCore
 @testable import Trinket
 
 enum CombatantFixtures {
@@ -18,6 +20,24 @@ enum CombatantFixtures {
             actionIntervalTicks: actionIntervalTicks,
             abilities: abilities,
             primaryStats: primaryStats
+        )
+    }
+
+    static func ability(
+        id: String = "test",
+        name: String = "Test",
+        tier: AbilityTier = .basic,
+        directDamage: Int = 0,
+        damageKeyword: Keyword = .physical,
+        description: String = "Test"
+    ) -> Ability {
+        Ability(
+            id: id,
+            name: name,
+            tier: tier,
+            directDamage: directDamage,
+            damageKeyword: damageKeyword,
+            description: description
         )
     }
 }

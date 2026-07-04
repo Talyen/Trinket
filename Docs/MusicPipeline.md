@@ -7,7 +7,7 @@ Trinket keeps source music separate from app-ready audio, matching the art pipel
 - `Raw Assets/Music/`: source MP3 files. Do not add this folder to the Xcode target.
 - `MusicManifest/music.tsv`: editable source of truth for curated music.
 - `Trinket/Resources/Music/`: generated app-ready AAC `.m4a` files.
-- `Trinket/Generated/MusicCatalog.generated.swift`: generated Swift lookup table for runtime routing.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift`: generated Swift lookup table for runtime routing.
 
 ## Manifest Format
 

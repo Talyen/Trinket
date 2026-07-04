@@ -279,6 +279,7 @@ run_package_tests() {
       cd "Packages/$package"
       xcodebuild "$xcodebuild_action" \
         -scheme "$package" \
+        -sdk iphonesimulator \
         -destination "$destination" \
         -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
       echo "$SECONDS" >"$wall_file"
@@ -315,6 +316,7 @@ fi
 run_xcodebuild xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
+  -sdk iphonesimulator \
   -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \

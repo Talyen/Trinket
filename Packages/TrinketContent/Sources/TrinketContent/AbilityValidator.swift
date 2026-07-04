@@ -33,7 +33,7 @@ public enum AbilityValidator {
     }
 
     private static func validateEffectTargets(for ability: Ability) -> [Issue] {
-        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet]
+        let allyTargets: Set<EffectTarget> = [.actor, .hero, .pet, .lowestHealthAlly]
         let enemyTargets: Set<EffectTarget> = [.abilityTarget, .enemy]
         var issues: [Issue] = []
 
@@ -134,6 +134,15 @@ public enum AbilityValidator {
     }
 
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
-        abilityID == "bloodthorn" && total == 6
+        switch abilityID {
+        case "bloodthorn":
+            return total == 6
+        case "acid-potion", "ice-shot":
+            return total == 2
+        case "blizzard", "pack-tactics":
+            return total == 5
+        default:
+            return false
+        }
     }
 }

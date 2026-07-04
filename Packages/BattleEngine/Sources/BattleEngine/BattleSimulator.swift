@@ -150,10 +150,10 @@ public enum BattleSimulator {
             capturedLog = []
         }
         let outcome: BattleSimulationOutcome
-        if battle.isEnemyDefeated {
-            outcome = .victory
-        } else if battle.isPartyDefeated {
+        if battle.isPartyDefeated {
             outcome = .defeat
+        } else if battle.isEnemyDefeated {
+            outcome = .victory
         } else {
             outcome = .tickLimit
         }

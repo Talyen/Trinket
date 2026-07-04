@@ -91,6 +91,40 @@ final class HealingEngineTests: XCTestCase {
         XCTAssertEqual(context.roster.enemy.currentHealth, 0)
     }
 
+    func testHealFromOneHPWhileDeathsDoorActive() {
+        var context = makeContext(seed: 0)
+        let hero = context.roster.hero.combatant
+        context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
+        context.prependEffect(.deathsDoor, to: hero, remainingTicks: BattleTiming.deathsDoorDurationTicks)
+
+        let outcome = HealingEngine.resolveHeal(
+            HealRequest(amount: 10, target: hero, logAs: .silent),
+            in: &context
+        )
+
+        XCTAssertGreaterThan(outcome.healthRestored, 0)
+        XCTAssertGreaterThan(context.roster.health(for: hero), 1)
+        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
+    }
+
+    func testHealDoesNotRemoveDeathsDoorEffect() {
+        var context = makeContext(seed: 0)
+        let hero = context.roster.hero.combatant
+        context.roster.mutateRuntime(for: hero) {
+            $0.currentHealth = 1
+            $0.hasConsumedDeathsDoor = true
+        }
+        context.prependEffect(.deathsDoor, to: hero, remainingTicks: BattleTiming.deathsDoorDurationTicks)
+
+        _ = HealingEngine.resolveHeal(
+            HealRequest(amount: 20, target: hero, logAs: .silent),
+            in: &context
+        )
+
+        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
+        XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
+    }
+
     func testContextResolveHealDelegatesToHealingEngine() {
         var context = makeContext(seed: 0)
         let contextOutcome = context.resolveHeal(

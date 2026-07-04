@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketCore
+import TrinketDesignSystem
 
 struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier

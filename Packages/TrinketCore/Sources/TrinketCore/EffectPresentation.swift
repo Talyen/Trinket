@@ -1,16 +1,18 @@
 import Foundation
+import TrinketCore
 
 /// Player-facing phrasing for `Effect` and `ActiveEffect`. Shared by battle
 /// logs, ability description generation, and combat HUD summaries.
 public enum EffectPresentation {
     public static func applyPhrase(for effect: Effect) -> String {
         if let phrase = dotPhrase(for: effect) { return phrase }
-        if let phrase = preventionPhrase(for: effect) { return phrase }
+        if let phrase = controlPhrase(for: effect) { return phrase }
         if let phrase = defensivePhrase(for: effect) { return phrase }
         if let phrase = restorationPhrase(for: effect) { return phrase }
         if let phrase = cleansePhrase(for: effect) { return phrase }
         if let phrase = purgePhrase(for: effect) { return phrase }
         if let phrase = mitigationPhrase(for: effect) { return phrase }
+        if let phrase = utilityPhrase(for: effect) { return phrase }
         return effect.keyword.rawValue
     }
 
@@ -31,6 +33,18 @@ public enum EffectPresentation {
             return "\(keyword.rawValue): \(Int(percent * 100))%"
         case .leech:
             return "Leech"
+        case .deathsDoor:
+            return "Death's Door"
+        case .haste:
+            return "Hasted"
+        case .thorns:
+            return "Thorns"
+        case .marked:
+            return "Marked"
+        case .criticalChanceBonus:
+            return "Focused"
+        case .restoreManaOnHit:
+            return "Mana Shield"
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }
@@ -49,7 +63,7 @@ public enum EffectPresentation {
         }
     }
 
-    private static func preventionPhrase(for effect: Effect) -> String? {
+    private static func controlPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .controlMeter(keyword, _, _):
             return "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
@@ -64,6 +78,10 @@ public enum EffectPresentation {
             return "gain Block"
         case .mitigation(.armor, _, _):
             return "gain Armor"
+        case .haste:
+            return "gain Haste"
+        case .thorns:
+            return "gain Thorns"
         default:
             return nil
         }
@@ -76,7 +94,9 @@ public enum EffectPresentation {
         case .leech:
             return "gain Leech"
         case let .resourceGain(.gold, amount):
-            return "gain \(amount) Gold"
+            return "steal \(amount) Gold"
+        case let .resourceGain(.mana, amount):
+            return "restore \(amount) Mana"
         default:
             return nil
         }
@@ -110,7 +130,20 @@ public enum EffectPresentation {
 
     private static func mitigationPhrase(for effect: Effect) -> String? {
         guard case .halveMitigation(.armor) = effect else { return nil }
-        return "reduce enemy Armor by half"
+        return "halve the enemy's Armor"
+    }
+
+    private static func utilityPhrase(for effect: Effect) -> String? {
+        switch effect {
+        case .marked:
+            return "mark the enemy"
+        case let .criticalChanceBonus(percent, _):
+            return "gain +\(Int(percent * 100))% Critical chance"
+        case let .restoreManaOnHit(amount, _):
+            return "restore \(amount) Mana when you take damage"
+        default:
+            return nil
+        }
     }
 
     private static func statusPhrase(for keyword: Keyword, amount _: Int) -> String {

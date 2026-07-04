@@ -2,62 +2,30 @@ pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components
 direct_hit	anvil	anvil	Anvil	basic	1	stun				
 direct_hit	bash	bash	Bash	basic	1	stun				
 direct_hit	fangs	fangs	Fangs	basic	1	bleed				
-direct_hit	fireArrow	fire-arrow	Fire Arrow	basic	1	burn				
-direct_hit	iceShot	ice-shot	Ice Shot	basic	1	freeze				
 direct_hit	kindling	kindling	Kindling	basic	1	burn				
 direct_hit	rayOfFrost	ray-of-frost	Ray of Frost	basic	1	freeze				
 direct_hit	slash	slash	Slash	basic	1	physical				
 direct_hit	stab	stab	Stab	basic	1	physical				
-direct_hit	blackjack	blackjack	Blackjack	basic	1	stun	Deal 1 Stun damage.\nGain 1 Gold.			resource_gain:gold:1
-direct_hit	bountyShot	bounty-shot	Bounty Shot	basic	1	physical				resource_gain:gold:1
 direct_hit	gamblersShot	gamblers-shot	Gambler's Shot	basic	1	physical				resource_gain:gold:1
-direct_hit	shieldBash	shield-bash	Shield Bash	basic	1	stun				shield:block:1:6
-buff_only	apple	apple	Apple	basic				instant_heal:health:1		
 buff_only	block	block	Block	basic				shield:block:2:6		
 buff_only	bread	bread	Bread	basic				instant_heal:health:1		
-buff_only	gold	gold	Gold	basic				resource_gain:gold:1		
-buff_only	manaBerries	mana-berries	Mana Berries	basic				resource_gain:gold:1		
-buff_only	manaCrystals	mana-crystals	Mana Crystals	basic				resource_gain:gold:1		
 buff_only	smellingSalts	smelling-salts	Smelling Salts	basic				cleanse:stun|instant_heal:health:1		
-direct_hit	acidPotion	acid-potion	Acid Potion	skill	3	poison				
 direct_hit	burningBlade	burning-blade	Burning Blade	skill	3	burn				
-direct_hit	cinderbloom	cinderbloom	Cinderbloom	skill	3	burn				
-direct_hit	coldSnap	cold-snap	Cold Snap	skill	3	freeze				
-direct_hit	fireball	fireball	Fireball	skill	3	burn				
-direct_hit	frostbolt	frostbolt	Frostbolt	skill	3	freeze				
+direct_hit	fireball	fireball	Fireball	skill	2	burn				
+direct_hit	frostbolt	frostbolt	Frostbolt	skill	2	freeze				
 direct_hit	lightningArrow	lightning-arrow	Lightning Arrow	skill	3	nature				
 direct_hit	lightningBolt	lightning-bolt	Lightning Bolt	skill	3	nature				
 direct_hit	poisonDagger	poison-dagger	Poison Dagger	skill	3	poison				
 direct_hit	sapArrow	sap-arrow	Sap Arrow	skill	3	stun				
-direct_hit	serratedEdge	serrated-edge	Serrated Edge	skill	3	bleed				
-direct_hit	smite	smite	Smite	skill	3	holy				
-direct_hit	venomArrow	venom-arrow	Venom Arrow	skill	3	poison				
-direct_hit	venomFangs	venom-fangs	Venom Fangs	skill	3	poison				
-direct_hit	cauterize	cauterize	Cauterize	skill	3	burn				instant_heal:health:2
-direct_hit	graspingVines	grasping-vines	Grasping Vines	skill	3	nature	Deal 3 Nature damage.\nRestore 1 Health.			instant_heal:health:1
 direct_hit	roulette	roulette	Roulette	skill	3	physical				resource_gain:gold:3
-direct_hit	steal	steal	Steal	skill	3	physical				resource_gain:gold:3
-buff_only	darkPact	dark-pact	Dark Pact	skill				instant_heal:health:3|standard_leech_buff		
 buff_only	haste	haste	Haste	skill				mitigation:armor:0.25:6		
-buff_only	heal	heal	Heal	skill				instant_heal:health:3		
 buff_only	healthPotion	health-potion	Health Potion	skill				instant_heal:health:3		
-buff_only	manaShield	mana-shield	Mana Shield	skill				shield:block:3:6		
 buff_only	stoneskinPotion	stoneskin-potion	Stoneskin Potion	skill				mitigation:armor:0.30:6		
 buff_only	tithe	tithe	Tithe	skill				resource_gain:gold:2|instant_heal:health:1		
 direct_hit	blessedAegis	blessed-aegis	Blessed Aegis	ultimate	6	holy				shield:block:4:6
-direct_hit	combustion	combustion	Combustion	ultimate	6	burn				
-direct_hit	concussiveShot	concussive-shot	Concussive Shot	ultimate	6	stun				
-direct_hit	hemorrhage	hemorrhage	Hemorrhage	ultimate	6	bleed				standard_leech_buff
 direct_hit	holyRadiance	holy-radiance	Holy Radiance	ultimate	6	holy				instant_heal:health:3
-direct_hit	meteor	meteor	Meteor	ultimate	6	burn				
-direct_hit	packTactics	pack-tactics	Pack Tactics	ultimate	3	physical				standard_leech_buff
-direct_hit	phoenixFeather	phoenix-feather	Phoenix Feather	ultimate	6	burn				instant_heal:health:3
-direct_hit	serratedArrowhead	serrated-arrowhead	Serrated Arrowhead	ultimate	6	bleed				
 direct_hit	sunburst	sunburst	Sunburst	ultimate	6	holy				instant_heal:health:2
-buff_only	crystalBulwark	crystal-bulwark	Crystal Bulwark	ultimate				shield:block:5:6|mitigation:armor:0.35:6		
-buff_only	goldenPlate	golden-plate	Golden Plate	ultimate				mitigation:armor:0.30:6|resource_gain:gold:4		
 buff_only	luckPotion	luck-potion	Luck Potion	ultimate				resource_gain:gold:3|instant_heal:health:2		
-buff_only	panaceaPotion	panacea-potion	Panacea Potion	ultimate				cleanse|instant_heal:health:4		
 buff_only	plateMail	plate-mail	Plate Mail	ultimate				shield:block:4:6|mitigation:armor:0.30:6		
 buff_only	sanctifiedPlate	sanctified-plate	Sanctified Plate	ultimate				mitigation:armor:0.30:6|instant_heal:health:2		
 multi_damage	bloodthorn	bloodthorn	Bloodthorn	ultimate				bleed:2|poison:2|standard_leech_buff	2:nature|2:bleed|2:poison	

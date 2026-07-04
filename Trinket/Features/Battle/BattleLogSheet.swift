@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 
 struct BattleLogSheet: View {

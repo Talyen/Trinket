@@ -5,7 +5,7 @@ final class KeywordCoreTests: XCTestCase {
     func testAllKeywordsAreCovered() {
         let expected: Set = [
             "Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison",
-            "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge", "Mana",
+            "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge", "Mana", "Death's Door",
         ]
         let actual = Set(Keyword.allCases.map(\.rawValue))
         XCTAssertEqual(expected, actual)
@@ -19,7 +19,7 @@ final class KeywordCoreTests: XCTestCase {
 
     func testAllKeywordsHaveCategory() {
         for keyword in Keyword.allCases {
-            _ = keyword.category
+            XCTAssertNotNil(keyword.category.rawValue)
         }
     }
 
@@ -38,7 +38,7 @@ final class KeywordCoreTests: XCTestCase {
     }
 
     func testRestorationCategory() {
-        let types: [Keyword] = [.health, .leech]
+        let types: [Keyword] = [.health, .leech, .deathsDoor]
         for kw in types {
             XCTAssertEqual(kw.category, .restoration, "\(kw.rawValue) should be restoration")
         }

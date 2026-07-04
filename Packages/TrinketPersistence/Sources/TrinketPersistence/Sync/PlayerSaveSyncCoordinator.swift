@@ -18,7 +18,6 @@ public final class PlayerSaveSyncCoordinator {
     private let sync: any PlayerSaveSyncing
     private let sessionLease: any PlayerAccountSessionLeasing
     private weak var playerSaveStore: PlayerSaveStore?
-    private var uploadTask: Task<Void, Never>?
     private var pendingUploadSave: PlayerSave?
     private var isProcessingUploads = false
     private var isApplyingRemoteSave = false
@@ -68,6 +67,12 @@ public final class PlayerSaveSyncCoordinator {
         guard sessionPhase != .active else { return }
         sessionPhase = .bootstrapping
         await reconcileAtSessionStart()
+        sessionPhase = .active
+    }
+
+    public func reconcileForegroundIfSafe(hasActiveBattle: Bool) async {
+        guard sessionPhase == .active, !hasActiveBattle else { return }
+        await reconcileAtSessionStart()
     }
 
     public func syncNow() async {
@@ -78,6 +83,7 @@ public final class PlayerSaveSyncCoordinator {
     public func closeSession() async {
         guard sessionPhase == .active else { return }
 
+        playerSaveStore?.flushPendingPersistIfNeeded()
         await checkpointUploadIfNeeded()
 
         if let sessionToken {
@@ -90,17 +96,17 @@ public final class PlayerSaveSyncCoordinator {
 
     public func uploadImmediately(_ save: PlayerSave) async {
         pendingUploadSave = save
-        uploadTask?.cancel()
         await processUploadQueue()
     }
 
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
+        playerSaveStore.flushPendingPersistIfNeeded()
         await enqueueUpload(playerSaveStore.currentSave)
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
-        guard sessionPhase == .active else { return }
+        guard sessionPhase == .active, !isApplyingRemoteSave else { return }
         pendingUploadSave = save
     }
 
@@ -123,6 +129,13 @@ public final class PlayerSaveSyncCoordinator {
             if let remote {
                 lastKnownRemoteChangeTag = remote.recordChangeTag
             }
+
+            if !playerSaveStore.loadedFromDisk, let remote {
+                applyRemoteSave(remote.save)
+                status = .upToDate
+                return
+            }
+
             let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
 
             switch outcome {
@@ -161,7 +174,6 @@ public final class PlayerSaveSyncCoordinator {
 
     private func enqueueUpload(_ save: PlayerSave) async {
         pendingUploadSave = save
-        uploadTask?.cancel()
         await processUploadQueue()
     }
 

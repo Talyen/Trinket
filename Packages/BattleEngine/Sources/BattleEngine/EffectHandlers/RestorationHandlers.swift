@@ -14,9 +14,10 @@ public struct InstantHealHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .instantHeal(keyword, amount) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        let bonus = EnemyTraitEngine.bonusHealAmount(ability: ability, sourceID: source.id, in: context)
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
-                amount: amount,
+                amount: amount + bonus,
                 target: target,
                 sourceActorID: source.id,
                 logAs: .instantHeal(
@@ -28,6 +29,9 @@ public struct InstantHealHandler: BattleEffectHandler {
             ),
             in: &context
         )
+        guard outcome.healthRestored > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         return EffectApplyOutcome(events: outcome.events, didApply: true)
     }
 }
@@ -54,8 +58,8 @@ public struct ResourceGainHandler: BattleEffectHandler {
             context.addGold(amount, sourceActorID: source.id)
             loggedAmount = amount + bonus
         default:
-            context.addGold(amount, sourceActorID: source.id)
-            loggedAmount = amount
+            assertionFailure("Unhandled resourceGain keyword: \(keyword)")
+            return EffectApplyOutcome(events: [], didApply: false)
         }
         let event = context.nextEvent(
             kind: .effect,
@@ -66,6 +70,10 @@ public struct ResourceGainHandler: BattleEffectHandler {
             amount: loggedAmount,
             keyword: keyword
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        if keyword == .gold {
+            events.append(contentsOf: TraitReactionEngine.healSelfAfterGoldGain(source: source, in: &context).events)
+        }
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }

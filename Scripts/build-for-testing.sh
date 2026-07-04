@@ -17,6 +17,7 @@ echo "=== build-for-testing: Trinket app and test bundles ==="
 xcodebuild build-for-testing \
   -project Trinket.xcodeproj \
   -scheme Trinket \
+  -sdk iphonesimulator \
   -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
@@ -27,6 +28,7 @@ for package in "${PACKAGES[@]}"; do
     cd "Packages/$package"
     xcodebuild build-for-testing \
       -scheme "$package" \
+      -sdk iphonesimulator \
       -destination "$SIMULATOR_DESTINATION" \
       -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
   )

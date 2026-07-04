@@ -15,15 +15,11 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../TrinketCore"),
-        .package(path: "../TrinketContent"),
     ],
     targets: [
         .target(
             name: "TrinketDesignSystem",
-            dependencies: ["TrinketCore", "TrinketContent"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
-            ]
+            dependencies: ["TrinketCore"]
         ),
         .testTarget(
             name: "TrinketDesignSystemTests",

@@ -44,6 +44,17 @@ public enum BattleLogReducer {
             guard event.amount > 0 else { return nil }
             return "\(event.targetName) takes \(event.amount) \(event.keyword.rawValue) damage."
         case .effect:
+            return effectLine(for: event)
+        }
+    }
+
+    private static func effectLine(for event: ActionEvent) -> String? {
+        switch event.effectKind {
+        case .deathsDoorTriggered:
+            return "\(event.targetName) is on Death's Door."
+        case .deathsDoorExpired:
+            return "\(event.targetName)'s Death's Door fades."
+        default:
             return nil
         }
     }

@@ -1,4 +1,8 @@
+import BattleEngine
 import SwiftUI
+import TrinketContent
+import TrinketCore
+import TrinketDesignSystem
 
 struct BattleView: View {
     @Environment(AppState.self) private var appState
@@ -33,7 +37,7 @@ struct BattleView: View {
                         if hasStageProgression {
                             appState.completeActiveBattle(configuration, battleEarnedGold: victorySummary.battleGold)
                         } else {
-                            appState.battle.restartBattle(using: appState.roster)
+                            appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                         }
                     }
                 )
@@ -41,7 +45,7 @@ struct BattleView: View {
                 DefeatView(
                     enemyName: battleRun.enemy.name,
                     onBattleAgain: {
-                        appState.battle.restartBattle(using: appState.roster)
+                        appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                     }
                 )
             } else {
@@ -69,11 +73,18 @@ struct BattleView: View {
                 }
             }
         }
-        .sheet(isPresented: $isShowingBattleLog) {
+        .sheet(isPresented: $isShowingBattleLog, onDismiss: {
+            appState.battle.restorePauseAfterOverlay()
+        }, content: {
             BattleLogSheet(
                 entries: battleRun.log
             )
             .presentationDetents([.medium])
+        })
+        .onChange(of: isShowingBattleLog) { _, isShowing in
+            if isShowing {
+                appState.battle.pauseForOverlay()
+            }
         }
         .onChange(of: configuration.id) { _, _ in
             battleRun.reset(from: configuration)
@@ -204,8 +215,7 @@ struct BattleView: View {
     }
 
     private var canAutoAdvanceBattle: Bool {
-        !isShowingBattleLog &&
-            !battleRun.isBattleOver &&
+        !battleRun.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
             !appState.battle.isPaused

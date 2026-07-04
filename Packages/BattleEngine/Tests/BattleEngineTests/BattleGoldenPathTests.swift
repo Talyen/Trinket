@@ -105,8 +105,8 @@ final class BattleGoldenPathTests: XCTestCase {
         XCTAssertEqual(result.actionCount, 11)
         XCTAssertEqual(result.finalEnemyHealth, 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: result.events)
-        XCTAssertTrue(result.events.contains { $0.effectKind == .preventionSkipped && $0.keyword == .stun })
-        XCTAssertTrue(result.events.contains { $0.effectKind == .preventionTriggered && $0.keyword == .stun })
+        XCTAssertTrue(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
+        XCTAssertTrue(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == .stun })
         XCTAssertTrue(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
     }
 

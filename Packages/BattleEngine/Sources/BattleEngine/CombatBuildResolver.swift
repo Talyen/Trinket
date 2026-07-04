@@ -18,6 +18,9 @@ public enum CombatBuildResolver {
         for item in equippedItems {
             profile.merge(affixProfile(for: item))
         }
+        if let trait = GameContent.trait(forCombatantID: combatant.id) {
+            trait.apply(to: &profile)
+        }
 
         let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
         let builtCombatant = Combatant(
@@ -33,6 +36,18 @@ public enum CombatBuildResolver {
         )
 
         return CombatBuild(combatant: builtCombatant, modifiers: profile)
+    }
+
+    public static func build(enemy: Enemy) -> CombatBuild {
+        var profile = CombatModifierProfile.zero
+        if let positiveTrait = GameContent.positiveTrait(for: enemy) {
+            positiveTrait.apply(to: &profile)
+        }
+        if let negativeTrait = GameContent.negativeTrait(for: enemy) {
+            negativeTrait.apply(to: &profile)
+        }
+
+        return CombatBuild(combatant: enemy.combatant, modifiers: profile)
     }
 
     private static func affixProfile(for item: InventoryItem) -> CombatModifierProfile {

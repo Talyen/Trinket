@@ -5,7 +5,16 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
     public let currentXP: Int
     public let requiredXP: Int
 
-    public static let initial = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+    public static func requiredXP(forLevel level: Int) -> Int {
+        let steps = max(level - 1, 0)
+        return 100 + (50 * steps) + (5 * steps * steps)
+    }
+
+    public static let initial = CombatantProgression(
+        level: 1,
+        currentXP: 0,
+        requiredXP: requiredXP(forLevel: 1)
+    )
 
     public init(level: Int, currentXP: Int, requiredXP: Int) {
         self.level = level
@@ -32,7 +41,7 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         while nextRequiredXP > 0, nextXP >= nextRequiredXP {
             nextXP -= nextRequiredXP
             nextLevel += 1
-            nextRequiredXP += 50
+            nextRequiredXP = Self.requiredXP(forLevel: nextLevel)
         }
 
         return CombatantProgression(

@@ -1,4 +1,19 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
+
+enum PartyPickerKind: String, Identifiable {
+    case hero = "Hero"
+    case pet = "Pet"
+
+    var id: String {
+        rawValue
+    }
+
+    var accessibilityIdentifier: String {
+        "\(rawValue) Party Picker"
+    }
+}
 
 struct PartyPickerSheet: View {
     @Environment(\.dismiss) private var dismiss

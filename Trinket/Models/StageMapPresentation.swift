@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 enum StageMapID {
     static func chapterGate(for chapter: Chapter) -> String {
@@ -82,20 +84,6 @@ struct VisibleStageNode: Identifiable {
 
     var id: String {
         stage.id
-    }
-}
-
-enum StageDeckCard: Identifiable {
-    case stage(VisibleStageNode)
-    case chapterGate(Chapter)
-
-    var id: String {
-        switch self {
-        case let .stage(node):
-            return node.id
-        case let .chapterGate(chapter):
-            return StageMapID.chapterGate(for: chapter)
-        }
     }
 }
 

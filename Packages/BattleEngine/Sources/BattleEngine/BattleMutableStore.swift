@@ -57,13 +57,16 @@ public struct BattleMutableStore {
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
         petModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64
     ) -> BattleMutableStore {
         let build = BattleCombatBuild(
             hero: hero,
             pet: pet,
+            enemy: enemy,
             heroModifiers: heroModifiers,
-            petModifiers: petModifiers
+            petModifiers: petModifiers,
+            enemyModifiers: enemyModifiers
         )
         let roster = BattleRoster(
             hero: CombatantRuntime(

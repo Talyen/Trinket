@@ -29,8 +29,32 @@ final class PrimaryStatsRulesTests: XCTestCase {
         XCTAssertEqual(PrimaryStats(toughness: 100).toughnessMitigationPct, 100.0 / 150.0, accuracy: 0.0001)
     }
 
-    func testPreventionThresholdScalesWithAgility() {
-        XCTAssertEqual(PrimaryStats(agility: 0).preventionThreshold(baseMaxHealth: 100), 20)
-        XCTAssertEqual(PrimaryStats(agility: 20).preventionThreshold(baseMaxHealth: 101), 25)
+    func testControlMeterThresholdScalesWithAgility() {
+        XCTAssertEqual(PrimaryStats(agility: 0).controlMeterThreshold(baseMaxHealth: 100), 20)
+        XCTAssertEqual(PrimaryStats(agility: 20).controlMeterThreshold(baseMaxHealth: 101), 25)
+    }
+
+    func testCriticalChanceUsesBaseAndStatScaling() {
+        XCTAssertEqual(PrimaryStats().criticalChance(for: .physical), 0.05, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 20).criticalChance(for: .physical), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(intellect: 20).criticalChance(for: .burn), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(wisdom: 20).criticalChance(for: .holy), 0.10, accuracy: 0.0001)
+        XCTAssertEqual(PrimaryStats(agility: 1000).criticalChance(for: .physical), 0.75, accuracy: 0.0001)
+    }
+
+    func testControlMeterThresholdUsesCeilOfTwentyPercentMaxHealth() {
+        let cases: [(maxHealth: Int, expectedThreshold: Int)] = [
+            (7, 2),
+            (20, 4),
+            (50, 10),
+            (100, 20)
+        ]
+        for (maxHealth, expectedThreshold) in cases {
+            XCTAssertEqual(
+                PrimaryStats(agility: 0).controlMeterThreshold(baseMaxHealth: maxHealth),
+                expectedThreshold,
+                "maxHealth=\(maxHealth)"
+            )
+        }
     }
 }

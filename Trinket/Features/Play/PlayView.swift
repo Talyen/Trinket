@@ -1,5 +1,6 @@
 import BattleEngine
 import SwiftUI
+import TrinketContent
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState
@@ -24,10 +25,6 @@ struct PlayView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
-            .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-                guard newValue == nil else { return }
-                appState.journey.requestMapScroll(to: appState.mapScrollFocusID(for: appState.journey.current))
-            }
     }
 
     @ViewBuilder
@@ -37,16 +34,8 @@ struct PlayView: View {
                 .id(activeBattle.id)
         } else {
             ChapterStageSelectView(
-                chapter: appState.playChapter,
-                progress: appState.journey.current,
-                activeHero: appState.roster.activeHero,
-                activePet: appState.roster.activePet,
-                heroes: appState.roster.heroes,
-                pets: appState.roster.pets,
                 onStageTap: handleStageTap,
-                onEnemyTap: showEnemyDetails(for:),
-                onSetActiveHero: { appState.roster.setActiveHero($0) },
-                onSetActivePet: { appState.roster.setActivePet($0) }
+                onEnemyTap: showEnemyDetails(for:)
             )
         }
     }

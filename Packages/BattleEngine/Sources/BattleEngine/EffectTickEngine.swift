@@ -19,6 +19,7 @@ public enum EffectTickEngine {
             )
             context.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
+            events.append(contentsOf: EnemyTraitEngine.tickRegeneration(for: combatant, context: &context))
         }
 
         return events

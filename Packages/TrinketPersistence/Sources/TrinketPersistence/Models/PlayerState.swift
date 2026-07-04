@@ -92,9 +92,9 @@ public struct PlayerRosterState: Equatable, Sendable {
             unlockedPetIDs: Set(GameContent.pets.map(\.id)),
             abilityLoadouts: [:],
             progressions: [
-                "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 120),
+                "knight": CombatantProgression(level: 2, currentXP: 35, requiredXP: 155),
                 "rogue": CombatantProgression(level: 1, currentXP: 65, requiredXP: 100),
-                "wizard": CombatantProgression(level: 3, currentXP: 20, requiredXP: 160),
+                "wizard": CombatantProgression(level: 3, currentXP: 20, requiredXP: 220),
                 "alchemist": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "druid": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "ranger": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
@@ -104,7 +104,7 @@ public struct PlayerRosterState: Equatable, Sendable {
                 "lizard_scout": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "panther": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
                 "phoenix": CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 100)
+                "wolf": CombatantProgression(level: 2, currentXP: 12, requiredXP: 155)
             ],
             equipmentLoadouts: [
                 "knight": EquipmentLoadout(itemIDsBySlot: [
