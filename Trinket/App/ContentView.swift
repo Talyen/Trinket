@@ -70,6 +70,9 @@ struct ContentView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             refreshMusicRoute(scenePhase: newPhase)
+            if newPhase == .inactive || newPhase == .background {
+                appState.playerSave.flushPendingPersistIfNeeded()
+            }
             if newPhase == .background {
                 Task {
                     await appState.syncCoordinator.checkpointUploadIfNeeded()
