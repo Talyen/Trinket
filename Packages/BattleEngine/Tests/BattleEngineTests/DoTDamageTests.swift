@@ -7,7 +7,7 @@ final class DoTDamageTests: XCTestCase {
     private func makeContext(
         sourceStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
-        seed: UInt64 = 0
+        seed: UInt64 = 1772
     ) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 100)
         let source = CombatantFixtures.combatant(

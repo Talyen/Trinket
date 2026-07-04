@@ -97,6 +97,13 @@ run_xcodebuild() {
   return "$exit_code"
 }
 
+xcresult_failed() {
+  local result_path="$1"
+  [[ -d "$result_path" ]] || return 1
+  xcrun xcresulttool get test-results summary --path "$result_path" 2>/dev/null \
+    | grep -Eq '"result" : "(Failed|unknown)"'
+}
+
 ui_parallel_workers() {
   local default_workers="$1"
 
@@ -185,6 +192,7 @@ else
   fi
   echo "Running all tests via Xcode Test Plan..."
   TEST_TARGET_FLAG=(-testPlan Integration)
+  ensure_test_simulator
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 fi
 
@@ -197,7 +205,7 @@ RUN_FINGERPRINT="$MODE"
 for target in "${TARGETS[@]}"; do
   RUN_FINGERPRINT+="_$target"
 done
-RUN_KEY="$(printf "%s" "$RUN_FINGERPRINT" | tr -c '[:alnum:]_.-' '_')"
+RUN_KEY="$(printf "%s" "$RUN_FINGERPRINT" | shasum -a 256 | awk '{print $1}')"
 BUILD_STAMP="$RESULTS_DIR/.last-build-$RUN_KEY.stamp"
 
 assert_no_build_is_fresh() {
@@ -272,24 +280,38 @@ run_package_tests() {
     local destination
     destination="$(destination_for_udid "$udid")"
     local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
+    local result_bundle="$RESULTS_DIR/${package}.xcresult"
+    local scheme="$package"
+    if [[ "$package" == "BattleEngine" ]]; then
+      scheme="BattleEngine-Package"
+    fi
+    rm -rf "$result_bundle"
 
     (
       echo "Running $package package tests on $udid..."
       SECONDS=0
       cd "Packages/$package"
+      local package_status=0
       xcodebuild "$xcodebuild_action" \
-        -scheme "$package" \
+        -scheme "$scheme" \
         -sdk iphonesimulator \
         -destination "$destination" \
-        -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
+        -derivedDataPath "$DERIVED_DATA_PATH/${package}Package" \
+        -resultBundlePath "$result_bundle" || package_status=$?
+      if xcresult_failed "$result_bundle"; then
+        package_status=1
+      fi
       echo "$SECONDS" >"$wall_file"
+      exit "$package_status"
     ) &
     pids+=($!)
     ((index++))
   done
 
   for pid in "${pids[@]}"; do
-    wait "$pid" || failed=1
+    if ! wait "$pid"; then
+      failed=1
+    fi
   done
 
   for package in "${packages[@]}"; do
@@ -313,6 +335,7 @@ if [[ "$MODE" == "unit" ]]; then
   ensure_test_simulator
 fi
 
+XCODEBUILD_EXIT_CODE=0
 run_xcodebuild xcodebuild "$ACTION" \
   -project Trinket.xcodeproj \
   -scheme Trinket \
@@ -321,9 +344,27 @@ run_xcodebuild xcodebuild "$ACTION" \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   -resultBundlePath "$RESULT_BUNDLE_PATH" \
   "${TEST_TARGET_FLAG[@]}" \
-  "${PARALLEL_FLAGS[@]}"
+  "${PARALLEL_FLAGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 
 TEST_WALL_SECONDS=$SECONDS
+
+if xcresult_failed "$RESULT_BUNDLE_PATH"; then
+  XCODEBUILD_EXIT_CODE=1
+fi
+
+if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
+  if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+    ./Scripts/test-timing.sh record \
+      --mode "$MODE" \
+      --wall "$TEST_WALL_SECONDS" \
+      --xcresult "$RESULT_BUNDLE_PATH" \
+      $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
+      "${TARGETS[@]}"
+    echo ""
+    echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
+  fi
+  exit "$XCODEBUILD_EXIT_CODE"
+fi
 
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
   echo "Running package tests in parallel..."

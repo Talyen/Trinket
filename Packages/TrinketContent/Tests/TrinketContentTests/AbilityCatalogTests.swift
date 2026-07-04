@@ -1,4 +1,5 @@
 import XCTest
+import TrinketCore
 import TrinketContent
 
 final class AbilityCatalogTests: XCTestCase {
@@ -72,7 +73,7 @@ final class AbilityCatalogTests: XCTestCase {
             id: "fireball",
             name: "Fireball",
             tier: .skill,
-            amount: 3,
+            amount: 2,
             keyword: .burn
         )
         XCTAssertEqual(built.damageComponents, Ability.fireball.damageComponents)
@@ -119,7 +120,10 @@ final class AbilityCatalogTests: XCTestCase {
                 TargetedEffect(.standardLeechBuff)
             ]
         )
-        XCTAssertEqual(ability.summary, "Deal 2 Nature, 2 Bleed, and 2 Poison damage and Gain Leech.")
+        XCTAssertEqual(
+            ability.summary,
+            "Deal 2 Nature damage, Deal 2 Bleed damage and applies Bleeding, Deal 2 Poison damage and applies Poisoned and Gain Leech."
+        )
     }
 
     func testAbilityUsesGeneratedDescription() {
@@ -128,7 +132,7 @@ final class AbilityCatalogTests: XCTestCase {
     }
 
     func testAbilityHealHasNoDamage() {
-        XCTAssertEqual(Ability.heal.summary, "Costs 1 Mana and Restore 3 Health.")
+        XCTAssertEqual(Ability.heal.summary, "Costs 1 Mana, restore 3 Health.")
         XCTAssertEqual(Ability.heal.directDamage, 0)
     }
 

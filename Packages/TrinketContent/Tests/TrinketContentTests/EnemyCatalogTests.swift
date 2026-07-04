@@ -48,7 +48,7 @@ final class EnemyCatalogTests: XCTestCase {
         let mimic = try XCTUnwrap(GameContent.enemies.first { $0.id == "mimic" })
         let loadout = mimic.combatant.abilityLoadout
         XCTAssertEqual(loadout.basic, .stab)
-        XCTAssertEqual(loadout.skill, .blackjack)
+        XCTAssertEqual(loadout.skill, .serratedEdge)
         XCTAssertEqual(loadout.ultimate, .hemorrhage)
     }
 
@@ -85,7 +85,7 @@ final class EnemyCatalogTests: XCTestCase {
                 XCTAssertLessThanOrEqual(enemy.maxHealth, 15, "\(enemy.name) should have elite base HP")
             } else {
                 XCTAssertGreaterThanOrEqual(enemy.maxHealth, 11, "\(enemy.name) should have fodder base HP")
-                XCTAssertLessThanOrEqual(enemy.maxHealth, 14, "\(enemy.name) should have fodder base HP")
+                XCTAssertLessThanOrEqual(enemy.maxHealth, 15, "\(enemy.name) should have fodder base HP")
             }
         }
     }

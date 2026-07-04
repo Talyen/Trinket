@@ -4,7 +4,7 @@ import TrinketCore
 import TrinketContent
 
 final class HealingEngineTests: XCTestCase {
-    private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {
+    private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
@@ -25,7 +25,7 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testResolveHealSilentEmitsNoEvents() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         _ = context.applyDamage(10, to: context.roster.enemy.combatant)
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
@@ -36,7 +36,7 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testResolveHealInstantHealPolicyEmitsEvent() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let target = context.roster.enemy.combatant
         let outcome = HealingEngine.resolveHeal(
             HealRequest(
@@ -59,7 +59,7 @@ final class HealingEngineTests: XCTestCase {
 
     func testLeechFromDamageHealsAndSetsLeechedFlag() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -72,7 +72,7 @@ final class HealingEngineTests: XCTestCase {
 
     func testLeechFromDamageDoesNotReviveDefeatedSource() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
@@ -81,7 +81,7 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testResolveHealIgnoresDefeatedTarget() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.enemy.combatant) { $0.currentHealth = 0 }
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
@@ -92,7 +92,7 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testHealFromOneHPWhileDeathsDoorActive() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
         context.prependEffect(.deathsDoor, to: hero, remainingTicks: BattleTiming.deathsDoorDurationTicks)
@@ -108,7 +108,7 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testHealDoesNotRemoveDeathsDoorEffect() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) {
             $0.currentHealth = 1
@@ -126,11 +126,11 @@ final class HealingEngineTests: XCTestCase {
     }
 
     func testContextResolveHealDelegatesToHealingEngine() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let contextOutcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
         )
-        var fresh = makeContext(seed: 0)
+        var fresh = makeContext(seed: 1772)
         let engineOutcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: fresh.roster.enemy.combatant),
             in: &fresh

@@ -57,9 +57,9 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         let step = BattleTestFixtures.advanceUntilAbility("Bloodthorn", on: &battle)
         XCTAssertNotNil(step, "Expected Bloodthorn to resolve in battle")
 
-        // Three typed damage components (2 nature, 2 bleed, 2 poison) with dodge
-        // enabled via sourceActorID; seed 0 lands 4 damage before DoTs tick.
-        XCTAssertEqual(battle.health(of: battle.enemy), 96)
+        // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
+        // before the seeded DoTs tick.
+        XCTAssertEqual(battle.health(of: battle.enemy), 94)
         XCTAssertTrue(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
         XCTAssertTrue(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
         XCTAssertTrue(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })

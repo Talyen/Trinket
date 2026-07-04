@@ -1,4 +1,5 @@
 import XCTest
+import TrinketContent
 @testable import Trinket
 
 final class GameContentEncounterArtTests: XCTestCase {
@@ -15,7 +16,8 @@ final class GameContentEncounterArtTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
 
         XCTAssertNil(GameContent.encounterArtID(for: stage))
-        XCTAssertNotNil(stage.encounterArtReference)
+        XCTAssertNil(stage.encounterArtReference)
+        XCTAssertNotNil(stage.encounterCombatantArtReference)
         XCTAssertEqual(stage.encounterSubjectName, "Skeleton")
     }
 

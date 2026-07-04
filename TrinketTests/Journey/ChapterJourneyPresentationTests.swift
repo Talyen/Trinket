@@ -1,4 +1,6 @@
 import XCTest
+import TrinketContent
+import TrinketPersistence
 @testable import Trinket
 
 final class ChapterJourneyPresentationTests: XCTestCase {

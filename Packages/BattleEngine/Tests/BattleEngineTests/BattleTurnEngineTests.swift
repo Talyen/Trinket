@@ -6,7 +6,7 @@ import TrinketContent
 final class BattleTurnEngineTests: XCTestCase {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
-        seed: UInt64 = 0
+        seed: UInt64 = 1772
     ) -> (context: BattleEngineContext, matchup: BattleMatchup) {
         let hero = CombatantFixtures.combatant(
             id: "hero",

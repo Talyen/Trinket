@@ -1,4 +1,5 @@
 import XCTest
+import TrinketDesignSystem
 @testable import Trinket
 
 final class OptionsStoreTests: XCTestCase {

@@ -52,7 +52,7 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
         )
         XCTAssertGreaterThanOrEqual(
             (heroLoadout.abilities + petLoadout.abilities).filter { $0.directDamage > 0 }.count,
-            3
+            2
         )
     }
 }

@@ -6,12 +6,16 @@ import TrinketContent
 
 /// Test factory for `BattleState` that produces a battle with a fixed RNG
 /// seed. The default `BattleState` initializer picks a random seed, which
-/// makes `Double.random` dodge rolls inside `applyDamage` non-deterministic
-/// across runs. Tests that assert on damage amount, status application,
-/// or other outcomes gated by a dodge check must use this factory to
-/// avoid flakes.
+/// makes `Double.random` dodge and critical rolls inside `applyDamage`
+/// non-deterministic across runs. Tests that assert on damage amount,
+/// status application, or other outcomes gated by these checks must use
+/// this factory to avoid flakes.
 enum BattleStateTestFactory {
-    /// Builds a `BattleState` with `rngSeed: 0` so all randomness inside
+    /// Seed chosen so early damage rolls are reproducible without triggering
+    /// the default 5% critical chance.
+    private static let deterministicNonCriticalSeed: UInt64 = 1772
+
+    /// Builds a `BattleState` with a fixed seed so all randomness inside
     /// the battle is reproducible. Signature mirrors `BattleState.init`
     /// (minus the `rngSeed` argument, which is fixed here).
     static func makeBattle(
@@ -35,7 +39,7 @@ enum BattleStateTestFactory {
             initialGold: initialGold,
             heroModifiers: heroModifiers,
             petModifiers: petModifiers,
-            rngSeed: 0
+            rngSeed: deterministicNonCriticalSeed
         )
     }
 

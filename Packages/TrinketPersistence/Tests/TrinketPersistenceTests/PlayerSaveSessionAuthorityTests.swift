@@ -42,7 +42,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         guard case let .applyMerged(merged) = outcome else {
             return XCTFail("Expected merged outcome, got \(outcome)")
         }
-        XCTAssertEqual(merged.roster.gold, 20)
+        XCTAssertEqual(merged.roster.gold, 32)
         XCTAssertTrue(merged.journey.completedStageIDs.contains("chapter-1-stage-1"))
         XCTAssertTrue(merged.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
@@ -59,7 +59,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         guard case let .applyMerged(merged) = outcome else {
             return XCTFail("Expected merged outcome, got \(outcome)")
         }
-        XCTAssertEqual(merged.roster.gold, 20)
+        XCTAssertEqual(merged.roster.gold, 32)
         XCTAssertTrue(merged.journey.completedStageIDs.contains("chapter-1-stage-1"))
         XCTAssertTrue(merged.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }

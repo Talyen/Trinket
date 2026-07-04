@@ -1,4 +1,6 @@
 import XCTest
+import TrinketContent
+import TrinketPersistence
 @testable import Trinket
 
 @MainActor
@@ -79,7 +81,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 0)
 
         appState.roster.grantExperience(25, to: appState.roster.activeHero)
-        appState.battle.restartBattle(using: appState.roster)
+        appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
 
         XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 25)
     }

@@ -1,4 +1,5 @@
 import XCTest
+import TrinketCore
 import TrinketContent
 
 /// Ability loadout selection and tier-unlock filtering.
@@ -20,7 +21,7 @@ final class AbilityLoadoutTests: XCTestCase {
         let unlocked = loadout.unlocked(for: levelOne)
 
         XCTAssertEqual(unlocked.basic?.id, "shield-bash")
-        XCTAssertNil(unlocked.skill)
+        XCTAssertEqual(unlocked.skill?.id, "spiked-shield")
         XCTAssertNil(unlocked.ultimate)
     }
 

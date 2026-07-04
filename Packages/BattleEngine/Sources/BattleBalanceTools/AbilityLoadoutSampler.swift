@@ -89,7 +89,7 @@ public enum AbilityLoadoutSampler {
         return base.selecting(ability).unlocked(for: progression)
     }
 
-    static func satisfiesDamageBudget(
+    public static func satisfiesDamageBudget(
         hero: AbilityLoadout,
         pet: AbilityLoadout,
         heroCombatant: Combatant,
@@ -97,13 +97,15 @@ public enum AbilityLoadoutSampler {
         progression: CombatantProgression
     ) -> Bool {
         let counts = damageCounts(hero: hero, pet: pet, progression: progression)
-        guard counts.damage > 0 else { return false }
-        guard counts.nonDamage <= maxNonDamageAcrossPair else { return false }
-        return counts.damage >= minimumDamageCount(
+        let minimumDamage = minimumDamageCount(
             heroCombatant: heroCombatant,
             petCombatant: petCombatant,
             progression: progression
         )
+        let nonDamageLimit = max(maxNonDamageAcrossPair, unlockedSlotCount(for: progression) - minimumDamage)
+        guard counts.damage > 0 else { return false }
+        guard counts.nonDamage <= nonDamageLimit else { return false }
+        return counts.damage >= minimumDamage
     }
 
     private static func constrainedLoadoutPair<RNG: RandomNumberGenerator>(

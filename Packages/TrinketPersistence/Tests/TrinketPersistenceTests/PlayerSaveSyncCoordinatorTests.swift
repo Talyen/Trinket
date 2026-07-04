@@ -93,7 +93,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         let fetchCount = await fixture.mock.fetchCallCount()
         let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(fetchCount, 1)
-        XCTAssertEqual(uploadCount, 0)
+        XCTAssertEqual(uploadCount, 1)
     }
 
     func testRemoteMissingUploadsLocalOnReconcile() async throws {
@@ -229,7 +229,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.coordinator.checkpointUploadIfNeeded()
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
 
-        XCTAssertEqual(fixture.store.roster.gold, 30)
+        XCTAssertEqual(fixture.store.roster.gold, 50)
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
     }
 

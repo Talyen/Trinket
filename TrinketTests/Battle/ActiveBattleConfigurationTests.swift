@@ -1,8 +1,10 @@
 import XCTest
+import TrinketContent
+import TrinketPersistence
 @testable import Trinket
 
 final class ActiveBattleConfigurationTests: XCTestCase {
-    func testMakeWithoutEquipmentUsesZeroModifiers() throws {
+    func testMakeWithoutEquipmentUsesTraitOnlyModifiers() throws {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
@@ -13,8 +15,10 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             enemy: enemy
         )
 
-        XCTAssertEqual(configuration.heroModifiers, .zero)
-        XCTAssertEqual(configuration.petModifiers, .zero)
+        XCTAssertEqual(configuration.heroModifiers.blockGrantedBonus, 1)
+        XCTAssertEqual(configuration.petModifiers.bleedDurationBonus, 1)
+        XCTAssertEqual(configuration.heroModifiers.damageDealtBonus(for: .physical), 0)
+        XCTAssertEqual(configuration.petModifiers.damageDealtBonus(for: .physical), 0)
         XCTAssertEqual(configuration.hero.id, knight.id)
         XCTAssertEqual(configuration.pet.id, wolf.id)
     }

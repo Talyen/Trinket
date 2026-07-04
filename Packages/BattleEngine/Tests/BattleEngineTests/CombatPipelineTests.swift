@@ -11,7 +11,7 @@ final class CombatPipelineTests: XCTestCase {
         targetPrimaryStats: PrimaryStats = PrimaryStats(),
         targetEffects: [ActiveEffect] = [],
         sourcePrimaryStats: PrimaryStats = PrimaryStats(),
-        seed: UInt64 = 0
+        seed: UInt64 = 1772
     ) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: targetMaxHealth,
@@ -54,20 +54,20 @@ final class CombatPipelineTests: XCTestCase {
     func testApplyDamageDodgeReturnsZeroWhenRollSucceeds() {
         // 100% dodge chance via agility
         let stats = PrimaryStats(agility: 140) // dodge chance = 0.05 + 140 * 0.005 = 0.75
-        var context = makeContext(targetPrimaryStats: stats, seed: 0)
+        var context = makeContext(targetPrimaryStats: stats, seed: 1772)
         let (lost, events) = context.applyDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertEqual(lost, 0)
         XCTAssertTrue(events.contains { $0.effectKind == .dodgeApplied })
     }
 
     func testApplyDamageDodgeDoesNotTriggerWhenNoSourceActor() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let (lost, _) = context.applyDamage(10, to: context.roster.enemy.combatant)
         XCTAssertGreaterThan(lost, 0)
     }
 
     func testApplyDamageDodgeDoesNotTriggerWhenApplyDodgeFalse() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let (lost, _) = context.applyDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source", applyDodge: false)
         XCTAssertGreaterThan(lost, 0)
     }
@@ -136,7 +136,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testApplyDamageStatBonusAppliesForSource() {
         let stats = PrimaryStats(strength: 25) // 25/5 = 5 bonus
-        var context = makeContext(sourcePrimaryStats: stats, seed: 0)
+        var context = makeContext(sourcePrimaryStats: stats, seed: 1772)
         let (lost, _) = context.applyDamage(10, to: context.roster.enemy.combatant, damageKeyword: .physical, sourceActorID: "source")
         // 10 + 5 = 15
         XCTAssertEqual(lost, 15)
@@ -145,7 +145,7 @@ final class CombatPipelineTests: XCTestCase {
     // MARK: - Leech
 
     func testApplyLeechFromDamageNoLeechEffectNoHeal() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         _ = context.applyDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source")
         let events = context.applyLeechFromDamage(10, sourceActorID: "source")
         XCTAssertTrue(events.isEmpty)
@@ -166,7 +166,7 @@ final class CombatPipelineTests: XCTestCase {
     // MARK: - Heal
 
     func testApplyHealRestoresHealth() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         // Damage first, then heal
         _ = context.applyDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
@@ -175,7 +175,7 @@ final class CombatPipelineTests: XCTestCase {
     }
 
     func testApplyHealCappedAtMaxHealth() {
-        var context = makeContext(targetMaxHealth: 50, seed: 0)
+        var context = makeContext(targetMaxHealth: 50, seed: 1772)
         context.applyHeal(100, to: context.roster.enemy.combatant, sourceActorID: nil)
         XCTAssertEqual(context.roster.enemy.currentHealth, 50)
     }
@@ -183,7 +183,7 @@ final class CombatPipelineTests: XCTestCase {
     // MARK: - Prevention buildup
 
     func testApplyControlMeterAccumulatesAndTriggersAtThreshold() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let events = context.applyControlMeter(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
         XCTAssertTrue(context.roster.enemy.activeEffects.contains(where: \.effect.isActionSkipPending))
@@ -192,7 +192,7 @@ final class CombatPipelineTests: XCTestCase {
     func testApplyControlMeterNoDuplicateWhenSameKeywordSkipPending() {
         var context = makeContext(targetEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
-        ], seed: 0)
+        ], seed: 1772)
         let events = context.applyControlMeter(15, keyword: .stun, to: context.roster.enemy.combatant, sourceActorID: "source")
         XCTAssertTrue(events.isEmpty)
     }
@@ -200,7 +200,7 @@ final class CombatPipelineTests: XCTestCase {
     func testApplyControlMeterAllowsOtherKeywordWhileSkipPending() {
         var context = makeContext(targetEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
-        ], seed: 0)
+        ], seed: 1772)
         let target = context.roster.enemy.combatant
         let events = context.applyControlMeter(4, keyword: .freeze, to: target, sourceActorID: "source")
         XCTAssertTrue(events.isEmpty)
@@ -212,7 +212,7 @@ final class CombatPipelineTests: XCTestCase {
     }
 
     func testStunAndFreezeBuildupTrackedSeparatelyFromDamage() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let target = context.roster.enemy.combatant
         _ = context.applyDamage(3, to: target, damageKeyword: .stun, sourceActorID: "source", applyDodge: false)
         _ = context.applyDamage(5, to: target, damageKeyword: .freeze, sourceActorID: "source", applyDodge: false)
@@ -232,14 +232,14 @@ final class CombatPipelineTests: XCTestCase {
     // MARK: - DoT damage
 
     func testApplyDoTDamageDealsDamage() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let (lost, _) = context.applyDoTDamage(10, keyword: .burn, to: context.roster.enemy.combatant, sourceActorID: nil)
         XCTAssertGreaterThan(lost, 0)
     }
 
     func testApplyDoTDamageAppliesLeechWhenSourceActorPresent() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -251,7 +251,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testApplyDamageTriggersLeechOnDirectHit() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -267,7 +267,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testApplyDamageDoesNotLeechOnSelfDamage() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
@@ -297,7 +297,7 @@ final class CombatPipelineTests: XCTestCase {
         )
         var context = BattleEngineContext(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -322,7 +322,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testStunBuildupUsesPostMitigationDamage() {
         let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 6), remainingTicks: 6)
-        var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 0)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 1772)
         _ = context.applyDamage(
             20,
             to: context.roster.enemy.combatant,
@@ -337,7 +337,7 @@ final class CombatPipelineTests: XCTestCase {
 
     func testStunBuildupDoesNotApplyWhenShieldAbsorbsAllDamage() {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
-        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 0)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
         let (lost, _) = context.applyDamage(
             5,
             to: context.roster.enemy.combatant,

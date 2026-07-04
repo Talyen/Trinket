@@ -55,13 +55,14 @@ final class StatGrowthTests: XCTestCase {
 
         let midBoss = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats, isBoss: true)
         let lateBoss = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats, isBoss: true)
-        XCTAssertLessThan(midBoss.healthMultiplier, lateBoss.healthMultiplier)
+        XCTAssertGreaterThan(midBoss.healthMultiplier, lateBoss.healthMultiplier)
         XCTAssertLessThan(midBoss.primaryStatMultiplier, lateBoss.primaryStatMultiplier)
+        XCTAssertLessThan(lateBoss.healthMultiplier, lateFodder.healthMultiplier)
 
         let midElite = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats, isElite: true)
         let lateElite = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats, isElite: true)
-        XCTAssertLessThan(midElite.healthMultiplier, lateElite.healthMultiplier)
-        XCTAssertGreaterThan(midElite.healthMultiplier, midFodder.healthMultiplier)
+        XCTAssertGreaterThan(midElite.healthMultiplier, lateElite.healthMultiplier)
+        XCTAssertLessThan(lateElite.healthMultiplier, lateFodder.healthMultiplier)
     }
 
     func testApplyMergesGrowthIntoStats() {

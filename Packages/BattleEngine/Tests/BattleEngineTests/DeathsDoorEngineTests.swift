@@ -19,7 +19,7 @@ final class DeathsDoorEngineTests: XCTestCase {
         )
         return BattleEngineContext(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,
             nextEventID: 0,
             events: [],
@@ -85,6 +85,7 @@ final class DeathsDoorEngineTests: XCTestCase {
             let result = EffectTickEngine.tickEffects(effects, target: hero, context: &context)
             effects = result.updated
         }
+        context.roster.setActiveEffects(effects, for: hero)
 
         XCTAssertFalse(context.roster.isDeathsDoorActive(for: hero))
         _ = context.applyDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)

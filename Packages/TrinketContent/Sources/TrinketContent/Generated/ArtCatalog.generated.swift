@@ -246,7 +246,7 @@ public enum ArtCatalog {
         ),
     ]
 
-    public static let abilityArtByID: [String: AbilityArtReference] = [
+    static let abilityArtByID: [String: AbilityArtReference] = [
         "acid-potion": AbilityArtReference(
             imageName: "ability_acid_potion_thumb",
             accessibilityLabel: "Ability art for Acid Potion"
@@ -274,6 +274,10 @@ public enum ArtCatalog {
         "blessed-aegis": AbilityArtReference(
             imageName: "ability_blessed_aegis_thumb",
             accessibilityLabel: "Ability art for Blessed Aegis"
+        ),
+        "blizzard": AbilityArtReference(
+            imageName: "ability_blizzard_thumb",
+            accessibilityLabel: "Ability art for Blizzard"
         ),
         "block": AbilityArtReference(
             imageName: "ability_block_thumb",
@@ -306,6 +310,10 @@ public enum ArtCatalog {
         "cauterize": AbilityArtReference(
             imageName: "ability_cauterize_thumb",
             accessibilityLabel: "Ability art for Cauterize"
+        ),
+        "caustic-jab": AbilityArtReference(
+            imageName: "ability_caustic_jab_thumb",
+            accessibilityLabel: "Ability art for Caustic Jab"
         ),
         "cinderbloom": AbilityArtReference(
             imageName: "ability_cinderbloom_thumb",
@@ -367,13 +375,13 @@ public enum ArtCatalog {
             imageName: "ability_glacial_ward_thumb",
             accessibilityLabel: "Ability art for Glacial Ward"
         ),
-        "gold": AbilityArtReference(
-            imageName: "ability_gold_thumb",
-            accessibilityLabel: "Ability art for Gold"
-        ),
         "golden-plate": AbilityArtReference(
             imageName: "ability_golden_plate_thumb",
             accessibilityLabel: "Ability art for Golden Plate"
+        ),
+        "grave-pact": AbilityArtReference(
+            imageName: "ability_grave_pact_thumb",
+            accessibilityLabel: "Ability art for Grave Pact"
         ),
         "grasping-vines": AbilityArtReference(
             imageName: "ability_grasping_vines_thumb",
@@ -423,6 +431,10 @@ public enum ArtCatalog {
             imageName: "ability_luck_potion_thumb",
             accessibilityLabel: "Ability art for Luck Potion"
         ),
+        "mana-bulwark": AbilityArtReference(
+            imageName: "ability_mana_bulwark_thumb",
+            accessibilityLabel: "Ability art for Mana Bulwark"
+        ),
         "mana-berries": AbilityArtReference(
             imageName: "ability_mana_berries_thumb",
             accessibilityLabel: "Ability art for Mana Berries"
@@ -459,6 +471,10 @@ public enum ArtCatalog {
             imageName: "ability_phoenix_feather_thumb",
             accessibilityLabel: "Ability art for Phoenix Feather"
         ),
+        "pixie-dust": AbilityArtReference(
+            imageName: "ability_pixie_dust_thumb",
+            accessibilityLabel: "Ability art for Pixie Dust"
+        ),
         "plate-mail": AbilityArtReference(
             imageName: "ability_plate_mail_thumb",
             accessibilityLabel: "Ability art for Plate Mail"
@@ -471,13 +487,25 @@ public enum ArtCatalog {
             imageName: "ability_prayer_thumb",
             accessibilityLabel: "Ability art for Prayer"
         ),
+        "predators-haste": AbilityArtReference(
+            imageName: "ability_predators_haste_thumb",
+            accessibilityLabel: "Ability art for Predator's Haste"
+        ),
         "ray-of-frost": AbilityArtReference(
             imageName: "ability_ray_of_frost_thumb",
             accessibilityLabel: "Ability art for Ray of Frost"
         ),
+        "rending-slash": AbilityArtReference(
+            imageName: "ability_rending_slash_thumb",
+            accessibilityLabel: "Ability art for Rending Slash"
+        ),
         "roulette": AbilityArtReference(
             imageName: "ability_roulette_thumb",
             accessibilityLabel: "Ability art for Roulette"
+        ),
+        "sage-heal": AbilityArtReference(
+            imageName: "ability_sage_heal_thumb",
+            accessibilityLabel: "Ability art for Sage Heal"
         ),
         "sanctified-plate": AbilityArtReference(
             imageName: "ability_sanctified_plate_thumb",
@@ -511,6 +539,10 @@ public enum ArtCatalog {
             imageName: "ability_smite_thumb",
             accessibilityLabel: "Ability art for Smite"
         ),
+        "sniff-out": AbilityArtReference(
+            imageName: "ability_sniff_out_thumb",
+            accessibilityLabel: "Ability art for Sniff Out"
+        ),
         "spiked-shield": AbilityArtReference(
             imageName: "ability_spiked_shield_thumb",
             accessibilityLabel: "Ability art for Spiked Shield"
@@ -518,6 +550,10 @@ public enum ArtCatalog {
         "stab": AbilityArtReference(
             imageName: "ability_stab_thumb",
             accessibilityLabel: "Ability art for Stab"
+        ),
+        "stargaze": AbilityArtReference(
+            imageName: "ability_stargaze_thumb",
+            accessibilityLabel: "Ability art for Stargaze"
         ),
         "steal": AbilityArtReference(
             imageName: "ability_steal_thumb",
@@ -551,9 +587,13 @@ public enum ArtCatalog {
             imageName: "ability_venom_fangs_thumb",
             accessibilityLabel: "Ability art for Venom Fangs"
         ),
+        "wise-frost": AbilityArtReference(
+            imageName: "ability_wise_frost_thumb",
+            accessibilityLabel: "Ability art for Wise Frost"
+        ),
     ]
 
-    public static let itemArtByID: [String: ItemArtReference] = [
+    static let itemArtByID: [String: ItemArtReference] = [
         "crossbow-astral": ItemArtReference(
             imageName: "item_crossbow_astral",
             thumbnailImageName: "item_crossbow_astral_thumb",
@@ -989,25 +1029,25 @@ public enum ArtCatalog {
 
 }
 
-public extension Combatant {
+extension Combatant {
     public var artReference: CombatantArtReference? {
         ArtCatalog.combatantArtByID[id]
     }
 }
 
-public extension Ability {
+extension Ability {
     public var artReference: AbilityArtReference? {
         ArtCatalog.abilityArtByID[id]
     }
 }
 
-public extension InventoryItem {
+extension InventoryItem {
     public var artReference: ItemArtReference? {
         ArtCatalog.itemArtByID[id]
     }
 }
 
-public extension ItemSlot {
+extension ItemSlot {
     public var slotBackgroundReference: SlotBackgroundArtReference? {
         ArtCatalog.slotBackgroundArtByID[self]
     }

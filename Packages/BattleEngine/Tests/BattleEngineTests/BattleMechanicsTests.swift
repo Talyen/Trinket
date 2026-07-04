@@ -26,7 +26,7 @@ final class BattleMechanicsTests: XCTestCase {
         )
         return BattleEngineContext(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,
             nextEventID: 1,
             events: [],
@@ -58,7 +58,16 @@ final class BattleMechanicsTests: XCTestCase {
     }
 
     func testInsufficientManaFallsBackToBasic() {
-        let wizard = try! XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
+        let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
+        let skill = Ability(id: "mana-skill", name: "Mana Skill", tier: .skill, directDamage: 5, description: "Skill", manaCost: 3)
+        let wizard = Combatant(
+            id: "wizard",
+            name: "Wizard",
+            role: .hero,
+            maxHealth: 20,
+            maxMana: 5,
+            abilities: [basic, skill]
+        )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let context = makeContext(hero: wizard, pet: pet, enemy: enemy, heroMana: 0)
@@ -69,7 +78,14 @@ final class BattleMechanicsTests: XCTestCase {
     }
 
     func testPredatorsHasteAppliesHasteBuff() {
-        let panther = try! XCTUnwrap(GameContent.pets.first { $0.id == "panther" })
+        let basePanther = try! XCTUnwrap(GameContent.pets.first { $0.id == "panther" })
+        let panther = basePanther.withAbilityLoadout(
+            AbilityLoadout(
+                basic: basePanther.abilityLoadout.basic,
+                skill: .predatorsHaste,
+                ultimate: basePanther.abilityLoadout.ultimate
+            )
+        )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, pet: panther, enemy: enemy)

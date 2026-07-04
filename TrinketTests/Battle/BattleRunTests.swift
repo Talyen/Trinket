@@ -1,4 +1,7 @@
 import XCTest
+import TrinketContent
+import TrinketCore
+import TrinketPersistence
 @testable import Trinket
 
 @MainActor
@@ -209,7 +212,7 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(run.outcome, .defeat)
     }
 
-    func testOutcomeReportsDefeatWhenPartyAndEnemyDefeatedTogether() {
+    func testOutcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -240,8 +243,8 @@ final class BattleRunTests: XCTestCase {
             _ = run.advanceOneStep()
         }
 
-        XCTAssertEqual(run.outcome, .defeat)
-        XCTAssertTrue(run.isPartyDefeated)
+        XCTAssertEqual(run.outcome, .victory)
+        XCTAssertFalse(run.isPartyDefeated)
         XCTAssertTrue(run.isEnemyDefeated)
     }
 

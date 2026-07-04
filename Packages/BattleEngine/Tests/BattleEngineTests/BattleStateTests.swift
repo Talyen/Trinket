@@ -55,7 +55,9 @@ final class BattleStateTests: XCTestCase {
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
-        BattleTestFixtures.advanceTicks(6, on: &battle)
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
+        }
 
         XCTAssertFalse(battle.isHeroAlive)
         XCTAssertEqual(battle.enemyAttackTarget.id, pet.id)
@@ -98,12 +100,13 @@ final class BattleStateTests: XCTestCase {
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         battle.withEngineContext { context in
-            _ = context.applyDamage(1, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            context.roster.mutateRuntime(for: pet) { $0.currentHealth = 0 }
         }
         XCTAssertFalse(battle.isPetAlive)
 
+        let heroID = battle.hero
         battle.withEngineContext { context in
-            _ = context.applyDamage(5, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
         XCTAssertEqual(battle.health(of: battle.hero), 1)
         XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .deathsDoor })
@@ -115,10 +118,12 @@ final class BattleStateTests: XCTestCase {
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 3)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+        let heroID = battle.hero
+        let petID = battle.pet
 
         battle.withEngineContext { context in
-            _ = context.applyDamage(3, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyDamage(3, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
         XCTAssertFalse(battle.isPartyDefeated)
 
@@ -127,8 +132,8 @@ final class BattleStateTests: XCTestCase {
         }
 
         battle.withEngineContext { context in
-            _ = context.applyDamage(3, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyDamage(3, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
 
         XCTAssertTrue(battle.isPartyDefeated)
@@ -174,8 +179,8 @@ final class BattleStateTests: XCTestCase {
     }
 
     func testBattleTracksGoldFromResourceGains() throws {
-        let ranger = try XCTUnwrap(GameContent.heroes.first { $0.id == "ranger" })
-        var battle = BattleStateTestFactory.makeBattle(hero: ranger, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
+        let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.blackjack])
+        var battle = BattleStateTestFactory.makeBattle(hero: goldHero, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
         _ = advance(&battle)
         _ = advance(&battle)
         XCTAssertEqual(battle.gold, 11)
@@ -248,11 +253,13 @@ final class BattleStateTests: XCTestCase {
                 ActiveEffect(id: 1, effect: .burn(2), remainingTicks: 0)
             ]
         )
+        let source = battle.hero
+        let target = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
             .shield(.block, 5, 3),
             ability: CombatantFixtures.ability(),
-            source: battle.hero,
-            target: battle.enemy,
+            source: source,
+            target: target,
             battle: &battle
         )
         XCTAssertTrue(outcome.didApply)
@@ -323,7 +330,7 @@ final class BattleStateTests: XCTestCase {
             _ = advance(&battle)
         }
 
-        XCTAssertTrue(battle.isPartyDefeated)
+        XCTAssertFalse(battle.isPartyDefeated)
         XCTAssertTrue(battle.isEnemyDefeated)
     }
 

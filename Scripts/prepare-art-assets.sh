@@ -252,15 +252,15 @@ $(cat "$abilities_temp")
 $(cat "$items_temp")
     ]
 
-    static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
+    public static let slotBackgroundArtByID: [ItemSlot: SlotBackgroundArtReference] = [
 $(cat "$slot_backgrounds_temp")
     ]
 
-    static let backgroundArtByID: [String: BackgroundArtReference] = [
+    public static let backgroundArtByID: [String: BackgroundArtReference] = [
 $(cat "$backgrounds_temp")
     ]
 
-    static let encounterArtByID: [String: EncounterArtReference] = [
+    public static let encounterArtByID: [String: EncounterArtReference] = [
 $(cat "$encounters_temp")
     ]
 

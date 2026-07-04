@@ -97,7 +97,7 @@ final class CleanseIntegrationTests: XCTestCase {
         XCTAssertTrue(step.events.contains { $0.effectKind == .cleanseApplied })
         XCTAssertFalse(battle.hasHeroEffect { if case .poison = $0 { return true }; return false })
         XCTAssertFalse(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
+        XCTAssertTrue(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
     }
 
     func testCleanseStunRemovesControlMeterBuildup() {

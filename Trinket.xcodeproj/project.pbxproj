@@ -10,6 +10,7 @@
 		0099D46E2CE32DB0E3670FC2 /* BattleCombatantPaneConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170DFDDAC55AE477B12AED1D /* BattleCombatantPaneConfiguration.swift */; };
 		02AAAD991B78041CB47A3C92 /* BattlefieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACECAC19EA46BA5F74A98260 /* BattlefieldView.swift */; };
 		0407A01BFE59F6BD228B2B73 /* ChapterJourneyPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989AA8D039CBECCDF9B4AD49 /* ChapterJourneyPresentationTests.swift */; };
+		04756BA870D817DE941130BE /* BattleEngine in Frameworks */ = {isa = PBXBuildFile; productRef = B3AD0325BDFDDF4BF3DA8A6C /* BattleEngine */; };
 		04BA2F361BBC978B87818C72 /* PartyPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5AECD5201167B93A91DFF3C /* PartyPickerSheet.swift */; };
 		0C7478BD13001EE5776CA0B9 /* SmokeHomesteadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEA7AE5353DEE78521FEBA1 /* SmokeHomesteadTests.swift */; };
 		0FB570DC2519949443867F27 /* CombatantHealthDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A237DA8D2CB7EB2FEDBA95 /* CombatantHealthDetail.swift */; };
@@ -39,9 +40,11 @@
 		3AB0340125D10F66A14E0CD4 /* PetsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */; };
 		3AE3EEEACD1467005F4F20AE /* ChapterArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8C7C3D3126BF74BCE52E28 /* ChapterArt.swift */; };
 		3BDA24D7AA0729EED8B60A47 /* music_boss_frostwarden.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D6A71A45CB0232807C35A833 /* music_boss_frostwarden.m4a */; };
+		3DCD84503075799C11209A63 /* TrinketCore in Frameworks */ = {isa = PBXBuildFile; productRef = 518FFFBA8469A3C8E72AB6A3 /* TrinketCore */; };
 		4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F878C46477AE9CD0197CFD8 /* AppStateTests.swift */; };
 		4DF6741EDD1CB7A57E01A54F /* PartySelectionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6B8D81DBCFF39E96D0052D /* PartySelectionCard.swift */; };
 		4F1258B26C57EFD186440E52 /* HomesteadViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E7D5F6F28EFC5DEBC3660D4 /* HomesteadViewComponents.swift */; };
+		4FCFCA2836B67147182BB17A /* TrinketDesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = EE889EC677C36FCF5BB312FC /* TrinketDesignSystem */; };
 		551999D2C8803BDBC5651E4A /* music_boss_forge_golem.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 2FD23B6740A3565027D2A103 /* music_boss_forge_golem.m4a */; };
 		554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9644A89F778120278E7791 /* PlayView.swift */; };
 		5699485F54690CFC73CB24D5 /* CombatantFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = A604A9E0409FC2318EA6DB4B /* CombatantFixtures.swift */; };
@@ -79,6 +82,7 @@
 		7D80BCFC09295EAE8FD68FF4 /* music_menu_4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 16F1DBD9A4B0ED28C9E417B1 /* music_menu_4.m4a */; };
 		830967275671E8392944E92D /* music_menu_2.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 714E26B9A8CB07A3165594C8 /* music_menu_2.m4a */; };
 		8764D11B93E65DE8CF24F50A /* HomesteadProjectStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C2FD23C5C7310DB75C3E79 /* HomesteadProjectStatus.swift */; };
+		8C6BA4C1BBD73C030B19C18F /* TrinketPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 5BD989F3FF9F61080A11F449 /* TrinketPersistence */; };
 		8F4B05322F9DA9D389DDC505 /* music_battle_3.m4a in Resources */ = {isa = PBXBuildFile; fileRef = A036509514F16E54AF1B8F5E /* music_battle_3.m4a */; };
 		96E51495701F82082C0C1F44 /* SmokeCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE0DB7E80868E33B5F827DB /* SmokeCollectionTests.swift */; };
 		97CC981C9842EDA07152AA3A /* MusicDirectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C55218B0202C07C8ADF98E68 /* MusicDirectorTests.swift */; };
@@ -93,6 +97,7 @@
 		A5C220D8325509220EF8E92D /* JourneyScrollTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820184BAA8B678994E3E1F3F /* JourneyScrollTransition.swift */; };
 		A64650460BFE95E1634FC57E /* PlayScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 610A45CC66DECD3D5F2A20D9 /* PlayScreen.swift */; };
 		A6D86657582CFBDC19E6B433 /* CombatFeedbackTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C469B158F06F3016AB05EC /* CombatFeedbackTiming.swift */; };
+		A820ABCA7BAB450E5EAAA8D4 /* TrinketContent in Frameworks */ = {isa = PBXBuildFile; productRef = 955549F8D15605E7E9D1DDAA /* TrinketContent */; };
 		A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */; };
 		AA99780B3FAE6ACF16BC62FE /* AppTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8318319571E08647A424C82 /* AppTestSupport.swift */; };
 		AABB9B3A57BDA3409E37F833 /* CombatFeedbackOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */; };
@@ -321,6 +326,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		79E6F37A5917EE6EF6C6D80D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DCD84503075799C11209A63 /* TrinketCore in Frameworks */,
+				A820ABCA7BAB450E5EAAA8D4 /* TrinketContent in Frameworks */,
+				04756BA870D817DE941130BE /* BattleEngine in Frameworks */,
+				8C6BA4C1BBD73C030B19C18F /* TrinketPersistence in Frameworks */,
+				4FCFCA2836B67147182BB17A /* TrinketDesignSystem in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A5089F61087193017EC7CCF2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -933,6 +950,7 @@
 			buildConfigurationList = F942381B1944E78647339F8B /* Build configuration list for PBXNativeTarget "TrinketTests" */;
 			buildPhases = (
 				4479C389B51D310F83EADE2C /* Sources */,
+				79E6F37A5917EE6EF6C6D80D /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -941,6 +959,11 @@
 			);
 			name = TrinketTests;
 			packageProductDependencies = (
+				518FFFBA8469A3C8E72AB6A3 /* TrinketCore */,
+				955549F8D15605E7E9D1DDAA /* TrinketContent */,
+				B3AD0325BDFDDF4BF3DA8A6C /* BattleEngine */,
+				5BD989F3FF9F61080A11F449 /* TrinketPersistence */,
+				EE889EC677C36FCF5BB312FC /* TrinketDesignSystem */,
 			);
 			productName = TrinketTests;
 			productReference = DE85C30567FD7EAF410152C1 /* TrinketTests.xctest */;
@@ -1487,13 +1510,33 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = TrinketDesignSystem;
 		};
+		518FFFBA8469A3C8E72AB6A3 /* TrinketCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TrinketCore;
+		};
+		5BD989F3FF9F61080A11F449 /* TrinketPersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TrinketPersistence;
+		};
+		955549F8D15605E7E9D1DDAA /* TrinketContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TrinketContent;
+		};
 		9658964970EAA7409EF39951 /* TrinketPersistence */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TrinketPersistence;
 		};
+		B3AD0325BDFDDF4BF3DA8A6C /* BattleEngine */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BattleEngine;
+		};
 		DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TrinketCore;
+		};
+		EE889EC677C36FCF5BB312FC /* TrinketDesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TrinketDesignSystem;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

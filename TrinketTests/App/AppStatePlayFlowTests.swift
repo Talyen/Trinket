@@ -1,4 +1,6 @@
 import XCTest
+import TrinketContent
+import TrinketPersistence
 @testable import Trinket
 
 @MainActor
@@ -78,7 +80,11 @@ final class AppStatePlayFlowTests: XCTestCase {
             immediatePersistRetryCount: 1,
             immediatePersistRetryDelayNanoseconds: 0
         )
-        let state = AppTestSupport.makeAppState(playerSave: playerSave, fileStore: fileStore)
+        let state = AppTestSupport.makeAppState(
+            playerSave: playerSave,
+            fileStore: fileStore,
+            directoryURL: directoryURL
+        )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.battle.startBattle(
             stage: stage,
@@ -161,7 +167,6 @@ final class AppStatePlayFlowTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         let hero = state.roster.activeHero
         let pet = state.roster.activePet
-        let journeyBefore = state.journey.current
 
         try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directoryURL.path)
         defer {
@@ -170,7 +175,9 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         let scrollTarget = state.completeStage(stage, hero: hero, pet: pet)
 
-        XCTAssertEqual(state.journey.current, journeyBefore)
-        XCTAssertEqual(scrollTarget, state.mapScrollFocusID(for: journeyBefore))
+        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
+        XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
+        XCTAssertTrue(state.playerSave.hasPendingPersist)
+        XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
     }
 }

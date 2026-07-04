@@ -98,7 +98,7 @@ final class StatIntegrationTests: XCTestCase {
         _ = battle.advanceOneStep() // tick 1: fireball direct hit
         _ = battle.advanceOneStep() // tick 2: burn tick
 
-        XCTAssertEqual(initial - battle.health(of: battle.hero), 2)
+        XCTAssertEqual(initial - battle.health(of: battle.hero), 3)
     }
 
     // MARK: - Wisdom

@@ -15,9 +15,9 @@ final class SmokeHeroDetailTests: TrinketUITestCase {
         assertExists("Rogue")
     }
 
-    func testKnightHeroDetailShowsLockedSkillUnlockLevel() {
+    func testKnightHeroDetailShowsLockedUltimateUnlockLevel() {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight"))
-        assertExists("Unlocks at Level 3")
+        assertExists("Unlocks at Level 6")
     }
 
     func testKnightHeroHeaderSurvivesScrollCycle() {

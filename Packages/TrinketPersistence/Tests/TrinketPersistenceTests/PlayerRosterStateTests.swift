@@ -34,9 +34,9 @@ final class PlayerRosterStateTests: XCTestCase {
 
         XCTAssertEqual(roster.loadout(for: knight).skill?.id, "spiked-shield")
         XCTAssertEqual(configured.abilityLoadout.basic?.id, "shield-bash")
-        XCTAssertNil(configured.abilityLoadout.skill)
+        XCTAssertEqual(configured.abilityLoadout.skill?.id, "spiked-shield")
         XCTAssertNil(configured.abilityLoadout.ultimate)
-        XCTAssertEqual(configured.abilities.map(\.id), ["shield-bash"])
+        XCTAssertEqual(configured.abilities.map(\.id), ["shield-bash", "spiked-shield"])
     }
 
     func testBattleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {

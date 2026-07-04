@@ -45,7 +45,8 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
 
     func testMeteorIncludesManaCostAndCriticalBonus() {
         let description = AbilityDescriptionFormatter.format(.meteor)
-        XCTAssertTrue(description.contains("costs 5 Mana"))
-        XCTAssertTrue(description.contains("Deal 6 Burn damage"))
+        XCTAssertTrue(description.contains("Costs 5 Mana"))
+        XCTAssertTrue(description.contains("deal 6 Burn damage"))
+        XCTAssertTrue(description.contains("gain +10% Critical chance"))
     }
 }

@@ -4,7 +4,7 @@ import TrinketCore
 import TrinketContent
 
 final class CombatOutcomeTests: XCTestCase {
-    private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {
+    private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
@@ -25,7 +25,7 @@ final class CombatOutcomeTests: XCTestCase {
     }
 
     func testResolveDamageReturnsCombatOutcome() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let outcome = context.resolveDamage(
             .directAbilityHit(
                 amount: 10,
@@ -52,7 +52,7 @@ final class CombatOutcomeTests: XCTestCase {
         )
         var context = BattleEngineContext(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -75,7 +75,7 @@ final class CombatOutcomeTests: XCTestCase {
 
     func testResolveDamageSetsLeechedFlag() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let outcome = context.resolveDamage(
@@ -113,7 +113,7 @@ final class CombatOutcomeTests: XCTestCase {
     }
 
     func testResolveHealReturnsRestoredAmount() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         _ = context.applyDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
         let outcome = context.resolveHeal(
@@ -125,8 +125,8 @@ final class CombatOutcomeTests: XCTestCase {
     }
 
     func testLegacyApplyDamageMatchesResolveDamage() {
-        var legacyContext = makeContext(seed: 0)
-        var requestContext = makeContext(seed: 0)
+        var legacyContext = makeContext(seed: 1772)
+        var requestContext = makeContext(seed: 1772)
         let target = legacyContext.roster.enemy.combatant
 
         let legacy = legacyContext.applyDamage(

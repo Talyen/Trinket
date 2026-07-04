@@ -69,6 +69,11 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: Trinket
+      - package: TrinketCore
+      - package: TrinketContent
+      - package: BattleEngine
+      - package: TrinketPersistence
+      - package: TrinketDesignSystem
 
 schemes:
   Trinket:

@@ -1,5 +1,6 @@
 import Foundation
 import BattleBalanceTools
+import BattleEngine
 import TrinketContent
 
 struct CLIOptions {
@@ -12,7 +13,6 @@ struct CLIOptions {
     var baseSeed: UInt64 = BalanceSweepDefaults.baseSeed
 }
 
-@main
 enum BalanceSweepCLI {
     static func main() throws {
         let options = try parseOptions()
@@ -120,6 +120,8 @@ enum BalanceSweepCLI {
         """)
     }
 }
+
+try BalanceSweepCLI.main()
 
 enum CLIError: Error, CustomStringConvertible {
     case help

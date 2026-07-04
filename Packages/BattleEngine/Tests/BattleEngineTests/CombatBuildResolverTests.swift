@@ -90,7 +90,7 @@ final class CombatBuildResolverTests: XCTestCase {
         )
 
         XCTAssertEqual(build.modifiers.maximumHealthBonus, 4)
-        XCTAssertEqual(build.modifiers.blockGrantedBonus, 2)
+        XCTAssertEqual(build.modifiers.blockGrantedBonus, 3)
         XCTAssertEqual(build.effectiveMaxHealth, knight.maxHealth + knight.primaryStats.toughness + 4)
     }
 

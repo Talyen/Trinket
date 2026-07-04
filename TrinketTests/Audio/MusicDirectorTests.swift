@@ -1,4 +1,5 @@
 import XCTest
+import TrinketContent
 @testable import Trinket
 
 final class MusicDirectorTests: XCTestCase {

@@ -1,4 +1,5 @@
 import XCTest
+import TrinketPersistence
 @testable import Trinket
 
 final class PlayerSaveSyncFactoryTests: XCTestCase {

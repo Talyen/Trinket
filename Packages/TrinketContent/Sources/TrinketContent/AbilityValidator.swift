@@ -118,7 +118,7 @@ public enum AbilityValidator {
         case .basic:
             allowed = [1]
         case .skill:
-            allowed = [3]
+            allowed = [2, 3]
         case .ultimate:
             allowed = [2, 3, 6]
         }

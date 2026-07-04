@@ -20,7 +20,7 @@ final class DamagePipelineTests: XCTestCase {
         "ReactiveOnHit"
     ]
 
-    private func makeContext(seed: UInt64 = 0) -> BattleEngineContext {
+    private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
         let roster = BattleRoster(
@@ -47,7 +47,7 @@ final class DamagePipelineTests: XCTestCase {
     }
 
     func testExecutedStepNamesMatchCanonicalOrderForFullHit() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let executed = DamagePipeline.executedStepNames(
             for: .directAbilityHit(
                 amount: 10,
@@ -73,7 +73,7 @@ final class DamagePipelineTests: XCTestCase {
         )
         var context = BattleEngineContext(
             roster: roster,
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 0,
             nextEventID: 0,
             events: [],
@@ -97,9 +97,9 @@ final class DamagePipelineTests: XCTestCase {
 
     func testStepPhasesGroupStochasticResolutionAndPost() {
         let phases = DamagePipeline.steps.map(\.phase)
-        XCTAssertEqual(phases.filter { $0 == .stochastic }.count, 1)
-        XCTAssertEqual(phases.filter { $0 == .resolution }.count, 5)
-        XCTAssertEqual(phases.filter { $0 == .post }.count, 2)
+        XCTAssertEqual(phases.filter { $0 == .stochastic }.count, 2)
+        XCTAssertEqual(phases.filter { $0 == .resolution }.count, 8)
+        XCTAssertEqual(phases.filter { $0 == .post }.count, 3)
         XCTAssertEqual(DamagePipeline.steps.first?.phase, .stochastic)
         XCTAssertEqual(DamagePipeline.steps.last?.phase, .post)
     }

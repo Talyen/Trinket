@@ -7,7 +7,7 @@ final class ControlMeterEngineTests: XCTestCase {
     private func makeContext(
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
-        seed: UInt64 = 0
+        seed: UInt64 = 1772
     ) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: targetMaxHealth
@@ -31,7 +31,7 @@ final class ControlMeterEngineTests: XCTestCase {
     }
 
     func testApplyBuildupTriggersControlAtThreshold() {
-        var context = makeContext(seed: 0)
+        var context = makeContext(seed: 1772)
         let events = ControlMeterEngine.applyMeterCharge(
             15,
             keyword: .stun,
@@ -47,7 +47,7 @@ final class ControlMeterEngineTests: XCTestCase {
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
             ],
-            seed: 0
+            seed: 1772
         )
         let events = ControlMeterEngine.applyMeterCharge(
             15,
@@ -64,7 +64,7 @@ final class ControlMeterEngineTests: XCTestCase {
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
             ],
-            seed: 0
+            seed: 1772
         )
         let target = context.roster.enemy.combatant
 
@@ -92,7 +92,7 @@ final class ControlMeterEngineTests: XCTestCase {
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTicks: 0),
                 ActiveEffect(id: 2, effect: .controlMeter(.freeze, 7, 10), remainingTicks: 0)
             ],
-            seed: 0
+            seed: 1772
         )
         let target = context.roster.enemy.combatant
         let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
@@ -100,8 +100,8 @@ final class ControlMeterEngineTests: XCTestCase {
     }
 
     func testContextControlMeterDelegatesToControlMeterEngine() {
-        var contextContext = makeContext(seed: 0)
-        var engineContext = makeContext(seed: 0)
+        var contextContext = makeContext(seed: 1772)
+        var engineContext = makeContext(seed: 1772)
         let target = contextContext.roster.enemy.combatant
 
         let contextEvents = contextContext.applyControlMeter(
@@ -118,7 +118,7 @@ final class ControlMeterEngineTests: XCTestCase {
     }
 
     func testOverflowChargeIsConsumedOnTrigger() {
-        var context = makeContext(targetMaxHealth: 100, seed: 0)
+        var context = makeContext(targetMaxHealth: 100, seed: 1772)
         let target = context.roster.enemy.combatant
 
         let events = ControlMeterEngine.applyMeterCharge(

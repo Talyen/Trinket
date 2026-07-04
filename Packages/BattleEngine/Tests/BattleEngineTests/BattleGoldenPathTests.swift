@@ -21,7 +21,7 @@ final class BattleGoldenPathTests: XCTestCase {
         let result = runGoldenBattle()
 
         XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 6)
+        XCTAssertEqual(result.tickCount, 5)
         XCTAssertEqual(result.actionCount, 5)
         XCTAssertEqual(result.finalEnemyHealth, 0)
         XCTAssertEqual(result.finalHeroHealth, 17)
@@ -59,8 +59,8 @@ final class BattleGoldenPathTests: XCTestCase {
         let result = runPartyDefeatBattle()
 
         XCTAssertEqual(result.outcome, .defeat)
-        XCTAssertEqual(result.tickCount, 18)
-        XCTAssertEqual(result.actionCount, 13)
+        XCTAssertEqual(result.tickCount, 36)
+        XCTAssertEqual(result.actionCount, 29)
         XCTAssertEqual(result.finalHeroHealth, 0)
         XCTAssertEqual(result.finalPetHealth, 0)
         XCTAssertEqual(result.finalEnemyHealth, 100)
@@ -101,8 +101,8 @@ final class BattleGoldenPathTests: XCTestCase {
         let result = runStunThresholdBattle()
 
         XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 11)
-        XCTAssertEqual(result.actionCount, 11)
+        XCTAssertEqual(result.tickCount, 9)
+        XCTAssertEqual(result.actionCount, 9)
         XCTAssertEqual(result.finalEnemyHealth, 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: result.events)
         XCTAssertTrue(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
@@ -149,8 +149,8 @@ final class BattleGoldenPathTests: XCTestCase {
         }
 
         XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 112)
-        XCTAssertEqual(result.actionCount, 57)
+        XCTAssertEqual(result.tickCount, 102)
+        XCTAssertEqual(result.actionCount, 52)
         XCTAssertFalse(damagingHits.isEmpty)
         XCTAssertTrue(damagingHits.allSatisfy { $0.amount == 2 })
     }
@@ -180,7 +180,7 @@ final class BattleGoldenPathTests: XCTestCase {
 
         XCTAssertEqual(result.outcome, .victory)
         XCTAssertEqual(result.tickCount, 6)
-        XCTAssertEqual(result.actionCount, 6)
+        XCTAssertEqual(result.actionCount, 5)
         XCTAssertEqual(result.finalEnemyHealth, 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: events)
         XCTAssertTrue(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)

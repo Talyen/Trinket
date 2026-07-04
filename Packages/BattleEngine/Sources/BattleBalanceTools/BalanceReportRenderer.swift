@@ -1,4 +1,5 @@
 import Foundation
+import BattleEngine
 
 public enum BalanceReportRenderer {
     public struct Options: Equatable, Sendable {

@@ -13,7 +13,7 @@ final class PlayerSaveMergerTests: XCTestCase {
 
         let merged = PlayerSaveMerger.merge(local, remoteSave)
 
-        XCTAssertEqual(merged.roster.gold, 25)
+        XCTAssertEqual(merged.roster.gold, 37)
         XCTAssertTrue(merged.journey.completedStageIDs.contains("chapter-1-stage-1"))
         XCTAssertTrue(merged.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
@@ -129,14 +129,20 @@ final class PlayerSaveMergerTests: XCTestCase {
 
     func testMergeTakesMaxHomesteadResources() {
         var local = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100))
-        local.homestead.resources = [.wood: 10, .stone: 4]
+        local.homestead.resources = [
+            HomesteadResource.wood.rawValue: 10,
+            HomesteadResource.stone.rawValue: 4
+        ]
 
         var remote = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100))
-        remote.homestead.resources = [.wood: 6, .stone: 9]
+        remote.homestead.resources = [
+            HomesteadResource.wood.rawValue: 6,
+            HomesteadResource.stone.rawValue: 9
+        ]
 
         let merged = PlayerSaveMerger.merge(local, remote)
 
-        XCTAssertEqual(merged.homestead.resources[.wood], 10)
-        XCTAssertEqual(merged.homestead.resources[.stone], 9)
+        XCTAssertEqual(merged.homestead.resources[HomesteadResource.wood.rawValue], 10)
+        XCTAssertEqual(merged.homestead.resources[HomesteadResource.stone.rawValue], 9)
     }
 }

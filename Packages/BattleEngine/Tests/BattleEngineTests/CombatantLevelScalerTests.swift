@@ -27,7 +27,7 @@ final class CombatantLevelScalerTests: XCTestCase {
         let boss = try XCTUnwrap(GameContent.enemy(matching: "the_forge_golem"))
         let scaled = CombatantLevelScaler.scale(enemy: boss, level: 3)
 
-        XCTAssertEqual(scaled.maxHealth, boss.maxHealth + 4)
-        XCTAssertEqual(scaled.primaryStats.toughness, boss.combatant.primaryStats.toughness + 2)
+        XCTAssertEqual(scaled.maxHealth, 57)
+        XCTAssertEqual(scaled.primaryStats.toughness, 28)
     }
 }

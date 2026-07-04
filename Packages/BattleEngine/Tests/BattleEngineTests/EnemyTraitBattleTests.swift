@@ -20,7 +20,7 @@ final class EnemyTraitBattleTests: XCTestCase {
                 pet: CombatantRuntime(combatant: pet),
                 enemy: CombatantRuntime(combatant: enemyBuild.combatant)
             ),
-            rng: SeededRandomNumberGenerator(seed: 0),
+            rng: SeededRandomNumberGenerator(seed: 1772),
             nextEffectID: 1,
             nextEventID: 1,
             events: [],
@@ -41,12 +41,13 @@ final class EnemyTraitBattleTests: XCTestCase {
         let skeleton = enemyBuild(id: "skeleton")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
-        var context = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
+        var physicalContext = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
+        var holyContext = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
 
-        let physical = context.resolveDamage(
+        let physical = physicalContext.resolveDamage(
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .physical, sourceActorID: hero.id)
         )
-        let holy = context.resolveDamage(
+        let holy = holyContext.resolveDamage(
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
@@ -73,8 +74,8 @@ final class EnemyTraitBattleTests: XCTestCase {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        XCTAssertEqual(first.healthLost, 5)
-        XCTAssertEqual(second.healthLost, 2)
+        XCTAssertEqual(first.healthLost, 6)
+        XCTAssertEqual(second.healthLost, 3)
     }
 
     func testLivingArmorCannotBeHealed() throws {
