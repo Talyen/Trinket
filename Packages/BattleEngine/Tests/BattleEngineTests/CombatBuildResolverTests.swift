@@ -1,5 +1,7 @@
 import XCTest
-@testable import Trinket
+import BattleEngine
+import TrinketContent
+import TrinketCore
 
 final class CombatBuildResolverTests: XCTestCase {
     func testEquippedStatAffixesMergeIntoEffectiveStats() throws {

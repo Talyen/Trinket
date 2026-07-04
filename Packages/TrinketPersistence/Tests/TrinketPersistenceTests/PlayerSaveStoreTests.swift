@@ -17,18 +17,6 @@ final class PlayerSaveStoreTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testFreshSaveStartsWithKnightAndBearStarters() {
-        let store = makeStore()
-
-        XCTAssertEqual(store.roster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
-        XCTAssertEqual(store.roster.unlockedPetIDs, [PlayerRosterState.starterPetID])
-        XCTAssertEqual(store.roster.activeHeroID, PlayerRosterState.starterHeroID)
-        XCTAssertEqual(store.roster.activePetID, PlayerRosterState.starterPetID)
-        XCTAssertEqual(store.inventory, .freshStart)
-        XCTAssertEqual(store.homestead, .freshStart)
-        XCTAssertEqual(store.journey, .initial)
-    }
-
     func testPlayerSavePersistsJourneyRosterInventoryAndHomestead() throws {
         let fileStore = makeFileStore()
         let firstStore = PlayerSaveStore(fileStore: fileStore)

@@ -1,7 +1,8 @@
 import XCTest
-@testable import Trinket
+import TrinketContent
+import TrinketCore
 
-final class ItemGenerationTests: XCTestCase {
+final class ItemGeneratorTests: XCTestCase {
     func testBasicItemsRollOneOrTwoAffixes() throws {
         let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1 ... 120)

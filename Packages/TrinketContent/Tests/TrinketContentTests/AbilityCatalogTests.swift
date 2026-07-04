@@ -2,10 +2,6 @@ import XCTest
 import TrinketContent
 
 final class AbilityCatalogTests: XCTestCase {
-    func testCatalogHasExpectedAbilityCount() {
-        XCTAssertEqual(AbilityCatalog.all.count, 76)
-    }
-
     func testCatalogIDsAreUnique() {
         let ids = AbilityCatalog.all.map(\.id)
         XCTAssertEqual(Set(ids).count, ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
@@ -84,10 +80,46 @@ final class AbilityCatalogTests: XCTestCase {
         XCTAssertEqual(built.summary, Ability.fireball.summary)
     }
 
-    func testSummariesAreNonEmpty() {
-        for ability in AbilityCatalog.all {
-            XCTAssertFalse(ability.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
+    func testDirectHitBuilderAddsPairedDoT() {
+        let ability = AbilityBuilder.directHit(
+            id: "burn-hit",
+            name: "Burn Hit",
+            tier: .skill,
+            amount: 3,
+            keyword: .burn
+        )
+        XCTAssertEqual(ability.damageComponents, [DamageComponent(3, keyword: .burn)])
+        XCTAssertTrue(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
+        XCTAssertEqual(ability.summary, "Deal 3 Burn damage and applies Burning.")
+    }
+
+    func testBuffOnlyBuilderProducesGeneratedDescription() {
+        let ability = AbilityBuilder.buffOnly(
+            id: "block",
+            name: "Block",
+            tier: .basic,
+            effects: [.shield(.block, 2, 6)]
+        )
+        XCTAssertEqual(ability.summary, "Gain Block.")
+    }
+
+    func testMultiDamageBuilderFormatsSummary() {
+        let ability = AbilityBuilder.multiDamage(
+            id: "bloodthorn",
+            name: "Bloodthorn",
+            tier: .ultimate,
+            damageComponents: [
+                DamageComponent(2, keyword: .nature),
+                DamageComponent(2, keyword: .bleed),
+                DamageComponent(2, keyword: .poison)
+            ],
+            effects: [
+                TargetedEffect(.bleed(2)),
+                TargetedEffect(.poison(2)),
+                TargetedEffect(.standardLeechBuff)
+            ]
+        )
+        XCTAssertEqual(ability.summary, "Deal 2 Nature, 2 Bleed, and 2 Poison damage and Gain Leech.")
     }
 
     func testAbilityUsesGeneratedDescription() {

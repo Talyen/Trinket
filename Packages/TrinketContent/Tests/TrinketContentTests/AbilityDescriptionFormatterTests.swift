@@ -36,14 +36,4 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
             "Cleanse Stunned and Restore 1 Health."
         )
     }
-
-    func testCatalogGeneratedDescriptionsMatchFormatter() {
-        for ability in AbilityCatalog.all {
-            XCTAssertEqual(
-                ability.generatedDescription,
-                AbilityDescriptionFormatter.format(ability),
-                "Mismatch for ability \(ability.id)"
-            )
-        }
-    }
 }

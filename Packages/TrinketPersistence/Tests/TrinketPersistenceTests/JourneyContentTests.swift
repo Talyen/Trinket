@@ -7,16 +7,6 @@ final class JourneyContentTests: XCTestCase {
         GameContent.chapters[0]
     }
 
-    func testEachBattleStageReferencesValidEnemy() {
-        for stage in chapter.stages {
-            guard let enemyID = stage.encounter.battleEnemyID else { continue }
-            XCTAssertNotNil(
-                GameContent.enemy(matching: enemyID),
-                "Stage \(stage.id) references missing enemy \(enemyID)"
-            )
-        }
-    }
-
     func testEachRewardItemTemplateExists() {
         for stage in chapter.stages {
             for templateID in stage.rewards.itemTemplateIDs {

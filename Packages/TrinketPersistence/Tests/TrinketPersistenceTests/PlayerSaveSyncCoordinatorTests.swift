@@ -232,6 +232,28 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertNil(fixture.coordinator.sessionToken)
     }
 
+    func testUploadConflictMergesAndRetriesUpload() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 20, recordChangeTag: "tag-v1")
+        )
+        await fixture.coordinator.start()
+        XCTAssertEqual(fixture.store.roster.gold, 20)
+
+        fixture.store.setGoldForTests(50)
+        await fixture.mock.setRemoteSave(
+            SaveTestSupport.makeRemote(modifiedAt: later, gold: 99, recordChangeTag: "tag-v2")
+        )
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await fixture.mock.waitUntilUploadCount(atLeast: 1)
+
+        XCTAssertEqual(fixture.coordinator.status, .upToDate)
+        let uploads = await fixture.mock.uploadedSavesSnapshot()
+        XCTAssertGreaterThanOrEqual(uploads.count, 1)
+    }
+
     // MARK: - Fixtures
 
     private func makeSyncedFixture() async throws -> SyncCoordinatorTestFixture {

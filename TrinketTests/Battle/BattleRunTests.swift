@@ -280,4 +280,65 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(summary.heroProgressionAfter.currentXP, 0)
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
+
+    func testMakeVictorySummaryIncludesBattleGoldAndTotalGold() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let configuration = ActiveBattleConfiguration.make(
+            stageID: "chapter-1-stage-1",
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            stageReward: StageReward(gold: 12, itemTemplateIDs: [])
+        )
+        let run = BattleRun(configuration: configuration)
+
+        while run.outcome == .ongoing {
+            _ = run.advanceOneStep()
+        }
+
+        let summary = run.makeVictorySummary(homestead: .freshStart)
+
+        XCTAssertEqual(summary.stageGold, 12)
+        XCTAssertGreaterThanOrEqual(summary.battleGold, 0)
+        XCTAssertEqual(summary.totalGold, summary.stageGold + summary.battleGold)
+    }
+
+    func testMakeVictorySummaryAppliesHomesteadMaterialBonuses() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let configuration = ActiveBattleConfiguration.make(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            stageReward: StageReward(
+                gold: 0,
+                itemTemplateIDs: [],
+                materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
+            )
+        )
+        let run = BattleRun(configuration: configuration)
+        let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
+
+        while run.outcome == .ongoing {
+            _ = run.advanceOneStep()
+        }
+
+        let summary = run.makeVictorySummary(homestead: homestead)
+
+        XCTAssertEqual(summary.materialRewards.first { $0.resource == .wood }?.quantity, 9)
+        XCTAssertEqual(summary.materialRewards.first { $0.resource == .stone }?.quantity, 4)
+    }
 }
