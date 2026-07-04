@@ -186,22 +186,24 @@ public struct ExperienceBar: View {
             endXP: pre.requiredXP,
             levelsGained: 1,
             newLevel: pre.level + 1,
-            newRequiredXP: pre.requiredXP + 50
+            newRequiredXP: CombatantProgression.requiredXP(forLevel: pre.level + 1)
         ))
 
         var nextLevel = pre.level + 1
-        var nextRequiredXP = pre.requiredXP + 50
+        var nextRequiredXP = CombatantProgression.requiredXP(forLevel: nextLevel)
         while nextLevel < post.level {
+            let upcomingLevel = nextLevel + 1
+            let upcomingRequiredXP = CombatantProgression.requiredXP(forLevel: upcomingLevel)
             segments.append(Segment(
                 startFraction: 0.0,
                 endFraction: 1.0,
                 endXP: nextRequiredXP,
                 levelsGained: 1,
-                newLevel: nextLevel + 1,
-                newRequiredXP: nextRequiredXP + 50
+                newLevel: upcomingLevel,
+                newRequiredXP: upcomingRequiredXP
             ))
-            nextLevel += 1
-            nextRequiredXP += 50
+            nextLevel = upcomingLevel
+            nextRequiredXP = upcomingRequiredXP
         }
 
         segments.append(Segment(

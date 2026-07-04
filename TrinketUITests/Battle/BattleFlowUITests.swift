@@ -21,7 +21,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         button("Knight card").tap()
         let knightHeader = combatantDetail.header(for: "Knight")
         assertExists(knightHeader)
-        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
+        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 155 experience")
         assertCombatantDetailSections()
         dismissSheet()
 

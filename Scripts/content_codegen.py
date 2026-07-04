@@ -113,7 +113,6 @@ class StageRow:
     encounter: str
     enemy_id: str
     gold: str
-    experience: str
     item_templates: str
     materials: str
 
@@ -236,7 +235,6 @@ def parse_stage_rows() -> list[StageRow]:
         "encounter",
         "enemy_id",
         "gold",
-        "experience",
         "item_templates",
         "materials",
     ]
@@ -930,7 +928,6 @@ def render_stage(row: StageRow) -> str:
                     encounter: {render_stage_encounter(row)},
                     rewards: StageReward(
                         gold: {row.gold},
-                        experience: {row.experience},
                         itemTemplateIDs: {parse_item_templates(row.item_templates)},
                         materialRewards: {parse_material_rewards(row.materials)}
                     )
@@ -962,7 +959,6 @@ def validate_stage_rows(rows: list[StageRow], enemy_ids: set[str] | None = None)
             ("chapter_number", row.chapter_number),
             ("stage_number", row.stage_number),
             ("gold", row.gold),
-            ("experience", row.experience),
         ):
             if not value.isdigit():
                 raise ValueError(f"{field_name} for {stage_id} must be an integer")

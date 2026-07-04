@@ -223,9 +223,10 @@ final class BattleRunTests: XCTestCase {
             hero: hero,
             pet: pet,
             enemy: enemy,
-            heroProgression: CombatantProgression(level: 2, currentXP: 10, requiredXP: 50),
-            petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 25),
-            stageReward: StageReward(gold: 12, experience: 8, itemTemplateIDs: []),
+            enemyEncounterLevel: 2,
+            heroProgression: CombatantProgression(level: 2, currentXP: 10, requiredXP: 155),
+            petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            stageReward: StageReward(gold: 12, itemTemplateIDs: []),
             rewardItemNames: ["Shortsword"]
         )
         let run = BattleRun(configuration: configuration)
@@ -235,15 +236,17 @@ final class BattleRunTests: XCTestCase {
         }
 
         let summary = run.makeVictorySummary(homestead: .freshStart)
+        let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
+        let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
         XCTAssertEqual(summary.stageGold, 12)
-        XCTAssertEqual(summary.experience, 8)
+        XCTAssertEqual(summary.experience, expectedHeroXP)
         XCTAssertEqual(summary.heroName, hero.name)
         XCTAssertEqual(summary.petName, pet.name)
         XCTAssertEqual(summary.itemNames, ["Shortsword"])
         XCTAssertEqual(summary.heroProgressionBefore.level, 2)
-        XCTAssertEqual(summary.heroProgressionAfter.currentXP, 18)
-        XCTAssertEqual(summary.petProgressionAfter.currentXP, 8)
+        XCTAssertEqual(summary.heroProgressionAfter.currentXP, 10 + expectedHeroXP)
+        XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 
     func testMakeVictorySummaryScalesExperienceByEncounterLevel() {
@@ -262,7 +265,7 @@ final class BattleRunTests: XCTestCase {
             enemyEncounterLevel: 1,
             heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: 100),
             petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
-            stageReward: StageReward(gold: 0, experience: 100, itemTemplateIDs: [])
+            stageReward: StageReward(gold: 0, itemTemplateIDs: [])
         )
         let run = BattleRun(configuration: configuration)
 
@@ -271,9 +274,10 @@ final class BattleRunTests: XCTestCase {
         }
 
         let summary = run.makeVictorySummary(homestead: .freshStart)
+        let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
         XCTAssertEqual(summary.experience, 0)
         XCTAssertEqual(summary.heroProgressionAfter.currentXP, 0)
-        XCTAssertEqual(summary.petProgressionAfter.currentXP, 100)
+        XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 }

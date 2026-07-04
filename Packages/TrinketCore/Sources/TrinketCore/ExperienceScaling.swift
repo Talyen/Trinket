@@ -1,5 +1,26 @@
 import Foundation
 
+public enum ProgressionBracket: Equatable, Sendable {
+    case early
+    case mid
+    case late
+
+    public static func forLevel(_ level: Int) -> ProgressionBracket {
+        if level < 20 { return .early }
+        if level < 40 { return .mid }
+        return .late
+    }
+
+    /// Target equal-level battles to advance one level.
+    public var targetBattlesPerLevel: Double {
+        switch self {
+        case .early: return 1.5
+        case .mid: return 2.5
+        case .late: return 3.5
+        }
+    }
+}
+
 public enum ExperienceScaling {
     public static let underlevelCutoff = 10
 
@@ -12,6 +33,20 @@ public enum ExperienceScaling {
 
         let normalized = 1.0 - (Double(gap) / Double(underlevelCutoff))
         return smoothstep(normalized)
+    }
+
+    public static func baseBattleAward(forPlayerLevel level: Int) -> Int {
+        let required = CombatantProgression.requiredXP(forLevel: level)
+        let battles = ProgressionBracket.forLevel(level).targetBattlesPerLevel
+        return max(1, Int((Double(required) / battles).rounded()))
+    }
+
+    public static func battleAward(playerLevel: Int, enemyLevel: Int) -> Int {
+        adjustedAward(
+            baseExperience: baseBattleAward(forPlayerLevel: playerLevel),
+            playerLevel: playerLevel,
+            enemyLevel: enemyLevel
+        )
     }
 
     public static func adjustedAward(

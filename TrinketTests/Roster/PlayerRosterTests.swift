@@ -55,10 +55,10 @@ final class PlayerRosterTests: XCTestCase {
         )
         roster.setLoadout(customLoadout, for: knight)
 
-        roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 200)
+        roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 220)
         XCTAssertEqual(roster.battleConfiguredCombatant(knight).abilities.map(\.id), ["shield-bash", "spiked-shield"])
 
-        roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 350)
+        roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
         XCTAssertEqual(
             roster.battleConfiguredCombatant(knight).abilities.map(\.id),
             ["shield-bash", "spiked-shield", "plate-mail"]

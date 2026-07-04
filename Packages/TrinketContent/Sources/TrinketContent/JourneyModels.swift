@@ -104,25 +104,22 @@ public enum StageEncounter: Hashable, Sendable {
 
 public struct StageReward: Hashable, Sendable {
     public let gold: Int
-    public let experience: Int
     public let itemTemplateIDs: [String]
     public let materialRewards: [ResourceAmount]
 
     public init(
         gold: Int,
-        experience: Int,
         itemTemplateIDs: [String],
         materialRewards: [ResourceAmount] = []
     ) {
         self.gold = gold
-        self.experience = experience
         self.itemTemplateIDs = itemTemplateIDs
         self.materialRewards = materialRewards
     }
 
-    public static let empty = StageReward(gold: 0, experience: 0, itemTemplateIDs: [])
+    public static let empty = StageReward(gold: 0, itemTemplateIDs: [])
 
     public var hasRewards: Bool {
-        gold > 0 || experience > 0 || !itemTemplateIDs.isEmpty || !materialRewards.isEmpty
+        gold > 0 || !itemTemplateIDs.isEmpty || !materialRewards.isEmpty
     }
 }

@@ -94,15 +94,12 @@ final class BattleRun {
     }
 
     func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {
-        let baseXP = configuration.stageReward?.experience ?? 0
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
-        let heroXP = ExperienceScaling.adjustedAward(
-            baseExperience: baseXP,
+        let heroXP = ExperienceScaling.battleAward(
             playerLevel: configuration.heroProgression.level,
             enemyLevel: enemyLevel
         )
-        let petXP = ExperienceScaling.adjustedAward(
-            baseExperience: baseXP,
+        let petXP = ExperienceScaling.battleAward(
             playerLevel: configuration.petProgression.level,
             enemyLevel: enemyLevel
         )

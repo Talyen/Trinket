@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 import TrinketContent
 
 public struct StageCompletionContext: Sendable {
@@ -123,18 +124,10 @@ public enum StageCompletion {
             ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
 
         context.roster.grantGold(stage.rewards.gold + battleEarnedGold)
-        grantScaledExperience(
-            stage.rewards.experience,
-            enemyLevel: encounterLevel,
-            to: hero,
-            roster: &context.roster
-        )
-        grantScaledExperience(
-            stage.rewards.experience,
-            enemyLevel: encounterLevel,
-            to: pet,
-            roster: &context.roster
-        )
+        if case .battle = stage.encounter {
+            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &context.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &context.roster)
+        }
         context.homestead.grant(context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards))
 
         for templateID in stage.rewards.itemTemplateIDs {
@@ -152,18 +145,16 @@ public enum StageCompletion {
         return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
     }
 
-    private static func grantScaledExperience(
-        _ baseExperience: Int,
+    private static func grantBattleExperience(
         enemyLevel: Int,
         to combatant: Combatant,
         roster: inout PlayerRosterState
     ) {
         let playerLevel = roster.progression(for: combatant).level
-        let scaled = ExperienceScaling.adjustedAward(
-            baseExperience: baseExperience,
+        let award = ExperienceScaling.battleAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel
         )
-        roster.grantExperience(scaled, to: combatant)
+        roster.grantExperience(award, to: combatant)
     }
 }
