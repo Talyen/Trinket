@@ -1,7 +1,6 @@
 import XCTest
-@testable import Trinket
+@testable import TrinketContent
 
-/// Art catalog cross-references live in the app target because `ArtCatalog` is generated there.
 final class ArtCatalogIntegrationTests: XCTestCase {
     func testEveryCatalogAbilityHasArt() {
         for ability in AbilityCatalog.all {
@@ -55,26 +54,16 @@ final class ArtCatalogIntegrationTests: XCTestCase {
         }
     }
 
-    func testEnemyArtInManifest() {
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["living_armor"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["mimic"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["mud_elemental"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["necromancer"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["plague_doctor"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["skeleton"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["the_blight_treant"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["the_forge_golem"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["the_frostwarden"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["the_iron_bear"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["goblin"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["fire_elemental"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["frost_elemental"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["slime"])
-        XCTAssertNotNil(ArtCatalog.combatantArtByID["will_o_wisp"])
-    }
-
-    func testPlaceholderEnemyNotInCatalog() {
-        XCTAssertNil(ArtCatalog.combatantArtByID["placeholder_enemy"])
+    func testEncounterArtReferencesExistInCatalog() {
+        for chapter in GameContent.chapters {
+            for stage in chapter.stages {
+                guard let artID = GameContent.encounterArtID(for: stage) else { continue }
+                XCTAssertNotNil(
+                    ArtCatalog.encounterArtByID[artID],
+                    "Stage \(stage.id) references missing encounter art \(artID)"
+                )
+            }
+        }
     }
 
     private func referencedAbilityIDs() -> Set<String> {

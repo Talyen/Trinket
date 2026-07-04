@@ -16,10 +16,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "TrinketCore",
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
-            ]
+            name: "TrinketCore"
         ),
         .testTarget(
             name: "TrinketCoreTests",

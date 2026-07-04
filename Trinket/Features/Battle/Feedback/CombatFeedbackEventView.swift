@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketCore
 
 struct CombatFeedbackEventView: View {
     let event: ActionEvent

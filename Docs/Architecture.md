@@ -6,26 +6,27 @@ High-level structure for Trinket after the Swift package migration.
 
 ```text
 Trinket/                    App target — shell, features, presentation glue
-  App/                      Entry, environment, tab routing, package re-exports
+  App/                      Entry, environment, tab routing
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  Battle/                   BattleRun, ActiveBattleConfiguration, victory UI wiring
-  State/                    AppState, BattleSession, OptionsStore
+  BattleShell/              BattleRun, ActiveBattleConfiguration, victory orchestration
+  State/                    AppState, BattleSession, PlayFlowCoordinator, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
-  Content/                  App-only content extensions (encounter art overrides)
-  Generated/                Art/music codegen output (do not edit)
-  Shared/                   Reusable SwiftUI (cards, detail panes, layout)
-  Audio/                    Music director
+  Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
+  Audio/                    Music director and AVFoundation glue
+  Assets.xcassets           Processed art (HEIC) from ArtManifest
+  Resources/Music           AAC tracks from MusicManifest
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
-  TrinketContent/           Catalogs + Generated/ ability and affix catalogs
+  TrinketContent/           Catalogs + Generated/ content, art, music, and SFX catalogs
   BattleEngine/             Combat simulation, effect handlers, simulator
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
-  TrinketDesignSystem/      TrinketDesign chrome + ExperienceBar
+  TrinketDesignSystem/      TrinketDesign chrome + ExperienceBar (TrinketCore only)
 
-ContentManifest/            abilities.tsv, affixes.tsv
+ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.tsv, …
 ArtManifest/                curated-assets.tsv
 MusicManifest/              music.tsv
+SoundManifest/              sfx.tsv
 Raw Assets/                 Source art/music/SFX (not in Xcode target)
 Scripts/                    generate, build, test, CI helpers
 ```
@@ -33,23 +34,23 @@ Scripts/                    generate, build, test, CI helpers
 Manifests and pipelines live outside the app folder:
 
 - `ContentManifest/*.tsv` → `Scripts/content_codegen.py` → `Packages/TrinketContent/Sources/TrinketContent/Generated/`
-- `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Trinket/Generated/ArtCatalog.generated.swift`
-- `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh`
+- `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Packages/TrinketContent/.../Generated/ArtCatalog.generated.swift` + `Trinket/Assets.xcassets`
+- `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh` → `Packages/TrinketContent/.../Generated/MusicCatalog.generated.swift` + `Trinket/Resources/Music`
+- `SoundManifest/sfx.tsv` → `Scripts/prepare-sfx-assets.sh` → `Packages/TrinketContent/.../Generated/SFXCatalog.generated.swift`
 
 ## Module ownership
 
 | Concern | Owner | Notes |
 |---------|-------|-------|
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
-| Heroes, pets, enemies, abilities, affixes, stages | `TrinketContent` | Roster + enemies manifest-generated; abilities/affixes/stages manifest-generated |
+| Heroes, pets, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
-| Shared UI chrome | `TrinketDesignSystem` | `TrinketDesign`, `ExperienceBar` |
-| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, launch args |
+| Shared UI chrome | `TrinketDesignSystem` | `TrinketDesign`, `ExperienceBar`, `HomesteadTint` colors |
+| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, `PlayFlowCoordinator`, launch args |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
-| Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text |
-| Art/music runtime catalogs | `Trinket/Generated` | Generated from manifests |
-| Encounter art overrides | `Trinket/Content` | Thin app extensions until manifest-driven |
+| Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
+| Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
 
 ## Product tabs vs code
 
@@ -74,12 +75,13 @@ Code mapping:
 **Single entry point:** `./Scripts/generate.sh`
 
 1. Validate `ContentManifest` TSV files
-2. Regenerate content catalogs and ability shorthand
-3. Run `publicize_trinket_core.py` on generated Swift (adds `public` to generated types)
-4. Optionally prepare art/music (`--assets`)
-5. Run XcodeGen
+2. Regenerate content catalogs (emits `public` directly from `content_codegen.py`)
+3. Optionally prepare art, music, and SFX catalogs (`--assets`)
+4. Run XcodeGen
 
 **Drift check:** `./Scripts/assert-generated-output.sh` (CI runs this after `generate.sh`).
+
+**Boundary check:** `./Scripts/check-module-boundaries.sh` (CI gate + `ci-locally.sh`).
 
 After editing `ContentManifest/` or custom ability catalog files under `Packages/TrinketContent/Sources/TrinketContent/Content/`:
 
@@ -88,7 +90,7 @@ After editing `ContentManifest/` or custom ability catalog files under `Packages
 git add Packages/TrinketContent/Sources/TrinketContent/Generated/
 ```
 
-After editing art or music manifests:
+After editing art, music, or SFX manifests:
 
 ```sh
 ./Scripts/generate.sh --assets
@@ -101,16 +103,20 @@ After editing art or music manifests:
 ```text
 TrinketCore
   ↑
-TrinketContent          (Combatant, AbilityLoadout, roster + journey catalogs)
+TrinketContent
   ↑
-BattleEngine
+  ├── BattleEngine
+  ├── TrinketPersistence
+  └── Trinket app
+
+TrinketCore
   ↑
-TrinketPersistence      (depends on TrinketCore + TrinketContent only)
-  ↑
-TrinketDesignSystem     (depends on TrinketCore; Keyword visual styles)
+TrinketDesignSystem
   ↑
 Trinket app
 ```
+
+`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent`. `TrinketDesignSystem` depends on `TrinketCore` only; homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
 
 Packages must not import `Trinket` app code or SwiftUI feature views.
 
@@ -118,17 +124,18 @@ Packages must not import `Trinket` app code or SwiftUI feature views.
 
 | Layer | May import | Must not import |
 |-------|------------|-----------------|
-| `Battle/` | packages, `Models/`, `Content/` | `Features/` |
+| `BattleShell/` | packages, `Models/` | `Features/` |
 | `Features/` | packages, `State/`, `Shared/`, `Models/` | — |
-| `State/` | packages, `Models/`, `Content/` | feature views |
+| `State/` | packages, `Models/` | feature views |
 | `Models/` | packages, SwiftUI | `State/`, `Features/` |
 
-`Trinket/App/ExportedDependencies.swift` re-exports all packages into the app module for ergonomics. Prefer explicit `import` in new files when dependencies are narrow.
+App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imports.py` can bootstrap imports after refactors.
 
 ## Persistence overview
 
 - **Canonical save:** `PlayerSave` encoded by `TrinketPersistence`; `PlayerSaveStore` is the write-through hub.
 - **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore` observe/mutate slices of the save.
+- **Options/preferences:** `OptionsStore` (theme, volumes) uses `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
 - **Sync:** `PlayerSaveSyncCoordinator` debounces local writes and reconciles by `modifiedAt`; disabled in tests via `-disable-cloud-sync`.
 - **App glue:** `Trinket/State/Persistence/PlayerSaveSyncFactory.swift` wires CloudKit vs local-only sync at launch.
 - **Pre-ship:** `Docs/CloudKitPreShipChecklist.md`
@@ -137,6 +144,7 @@ Packages must not import `Trinket` app code or SwiftUI feature views.
 
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
+- Swift 6 strict concurrency enabled on all package targets
 - XCTest unit + XCUITest UI (tiered via `.xctestplan` files)
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
@@ -145,10 +153,10 @@ Packages must not import `Trinket` app code or SwiftUI feature views.
 
 ## Migration status
 
-Swift package extraction (phases 0–6) is **complete**. Remaining work is boundary tightening, content-pipeline expansion, and documentation — not another target split.
+Swift package extraction (phases 0–6) is **complete**. Boundary tightening and content-pipeline expansion are in progress:
 
-### Follow-up improvements (not yet done)
-
-- SFX pipeline for `Raw Assets/Sound Effects/`
-- Incremental Swift 6 strict concurrency per package
-- Narrow `ExportedDependencies.swift` re-exports
+- ✅ Explicit package imports in the app (no blanket re-exports)
+- ✅ Manifest-driven item bases and encounter art
+- ✅ Art/music/SFX catalogs owned by `TrinketContent`
+- ✅ CI module-boundary enforcement
+- 🔜 Populate `SoundManifest/sfx.tsv` when `Raw Assets/Sound Effects/` sources land

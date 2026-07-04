@@ -7,7 +7,7 @@ Trinket keeps raw art and app-ready art separate.
 - `Raw Assets/`: unoptimized source library copied from Alchemy. Do not add this folder to Xcode target membership on purpose.
 - `ArtManifest/curated-assets.tsv`: source-of-truth manifest for selected art.
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
-- `Trinket/Generated/ArtCatalog.generated.swift`: generated Swift lookup table for curated assets.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift`: generated Swift lookup table for curated assets.
 
 ## Manifest Format
 

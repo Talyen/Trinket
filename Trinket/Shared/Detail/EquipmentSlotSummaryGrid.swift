@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketCore
+import TrinketContent
 
 struct EquipmentSlotSummaryGrid: View {
     let role: Combatant.Role

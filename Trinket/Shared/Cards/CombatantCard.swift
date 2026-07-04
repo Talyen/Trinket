@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct CombatantCard: View {
     let combatant: Combatant

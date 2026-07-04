@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketCore
+import TrinketContent
 
 struct CombatantHeroHeader: View {
     let combatant: Combatant

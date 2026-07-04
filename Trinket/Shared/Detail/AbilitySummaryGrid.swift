@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketCore
+import TrinketContent
 
 struct AbilitySummaryGrid: View {
     let combatant: Combatant

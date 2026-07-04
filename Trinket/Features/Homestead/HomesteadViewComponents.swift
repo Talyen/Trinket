@@ -1,4 +1,8 @@
 import SwiftUI
+import TrinketCore
+import TrinketContent
+import TrinketPersistence
+import TrinketDesignSystem
 
 struct HomesteadProjectStatus {
     let definition: HomesteadNodeDefinition

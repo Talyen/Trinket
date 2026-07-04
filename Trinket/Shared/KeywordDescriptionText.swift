@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketCore
 
 struct KeywordDescriptionText: View {
     let text: String

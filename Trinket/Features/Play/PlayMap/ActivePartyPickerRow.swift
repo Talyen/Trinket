@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 
 struct ActivePartyPickerRow: View {
     let hero: Combatant

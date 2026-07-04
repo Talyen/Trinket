@@ -1,6 +1,8 @@
 import Foundation
 import TrinketContent
 import TrinketPersistence
+import TrinketContent
+import TrinketPersistence
 
 extension AppState {
     var playChapter: Chapter {

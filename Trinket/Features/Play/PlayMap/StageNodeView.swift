@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct StageNodeView: View {
     let stage: Stage

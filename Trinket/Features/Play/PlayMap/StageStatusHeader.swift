@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 
 struct StageStatusHeader: View {
     let stage: Stage

@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct ChapterHeroHeader: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency

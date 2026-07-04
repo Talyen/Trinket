@@ -1,4 +1,7 @@
 import SwiftUI
+import TrinketContent
+import BattleEngine
+import TrinketPersistence
 
 enum BattleOutcome: Equatable {
     case ongoing

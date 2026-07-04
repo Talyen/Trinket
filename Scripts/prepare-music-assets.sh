@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 manifest="MusicManifest/music.tsv"
 resources_dir="Trinket/Resources/Music"
-generated_dir="Trinket/Generated"
+generated_dir="Packages/TrinketContent/Sources/TrinketContent/Generated"
 generated_swift="$generated_dir/MusicCatalog.generated.swift"
 bitrate="${MUSIC_AAC_BITRATE:-96000}"
 
@@ -94,7 +94,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
       echo "Boss music '$id' must include boss_enemy_id." >&2
       exit 1
     fi
-    if ! grep -q "id: \"$boss_enemy_id\".*isBoss: true" Packages/BattleEngine/Sources/BattleEngine/Content/GameContentEnemies.swift; then
+    if ! grep -q "id: \"$boss_enemy_id\"" Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift; then
       echo "Boss music '$id' references missing or non-boss enemy '$boss_enemy_id'." >&2
       exit 1
     fi
@@ -159,20 +159,20 @@ cat > "$generated_swift" <<SWIFT
 
 import Foundation
 
-enum MusicCatalog {
-    static let allTracks: [MusicTrack] = [
+public enum MusicCatalog {
+    public static let allTracks: [MusicTrack] = [
 $(cat "$tracks_temp")
     ]
 
-    static let menuTrackIDs: [String] = [
+    public static let menuTrackIDs: [String] = [
 $(cat "$menu_temp")
     ]
 
-    static let battleTrackIDs: [String] = [
+    public static let battleTrackIDs: [String] = [
 $(cat "$battle_temp")
     ]
 
-    static let bossTrackIDByEnemyID: [String: String] = [
+    public static let bossTrackIDByEnemyID: [String: String] = [
 $(cat "$boss_temp")
     ]
 }

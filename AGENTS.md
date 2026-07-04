@@ -16,7 +16,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## Battle Module
 
-Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/Battle/BattleRun.swift`, `ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
+Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/BattleShell/BattleRun.swift`, `ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
 
 Key patterns:
 - Effects are value-type structs conforming to `BattleEffectHandler`; lookup by `EffectKind` dictionary in `BattleState`.
@@ -26,7 +26,7 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine`).
+- Chrome via `TrinketDesign`; no ad-hoc `.buttonStyle`, materials, capsules, simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
 - Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Packages/TrinketDesignSystem/`.
 
 ## Git Workflow
@@ -104,7 +104,7 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders (`
 6. New user flow → `accessibilityIdentifier` + one smoke UI test.
 7. Run `./Scripts/test.sh unit` (full, unfiltered) before commit when package code changed.
 
-**Test ownership:** Battle rules → `Packages/BattleEngine/Tests/README.md`. Catalog invariants → `Packages/TrinketContent/Tests/README.md`. App shell orchestration only in `TrinketTests/`; do not unit-test package types there. Art catalog cross-refs stay in `TrinketTests/Content/ArtCatalogIntegrationTests.swift` because `ArtCatalog` is app-generated.
+**Test ownership:** Battle rules → `Packages/BattleEngine/Tests/README.md`. Catalog invariants → `Packages/TrinketContent/Tests/` (`ArtCatalogIntegrationTests`, `GameContentCatalogInvariantTests`). App shell orchestration only in `TrinketTests/`.
 
 ## UI Tests
 

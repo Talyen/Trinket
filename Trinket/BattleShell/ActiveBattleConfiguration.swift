@@ -1,5 +1,7 @@
 import SwiftUI
 import BattleEngine
+import TrinketCore
+import TrinketContent
 
 struct ActiveBattleConfiguration: Identifiable {
     let id = UUID()

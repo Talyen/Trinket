@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct StageDeckView: View {
     @Environment(AppState.self) private var appState

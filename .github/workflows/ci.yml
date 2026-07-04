@@ -51,6 +51,9 @@ jobs:
       - name: Style check
         run: ./Scripts/test.sh style
 
+      - name: Module boundary check
+        run: ./Scripts/check-module-boundaries.sh
+
   build:
     name: Build for testing
     needs: gate

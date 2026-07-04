@@ -25,10 +25,7 @@ let package = Package(
     targets: [
         .target(
             name: "BattleEngine",
-            dependencies: ["TrinketCore", "TrinketContent"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
-            ]
+            dependencies: ["TrinketCore", "TrinketContent"]
         ),
         .executableTarget(
             name: "BalanceSweepCLI",
@@ -36,10 +33,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BattleEngineTests",
-            dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-strict-concurrency=off"]),
-            ]
+            dependencies: ["BattleEngine", "TrinketCore", "TrinketContent"]
         ),
     ]
 )

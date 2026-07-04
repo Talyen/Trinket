@@ -9,14 +9,16 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 - `ContentManifest/stages.tsv`: manifest-driven chapter stages, encounters, and rewards.
 - `ContentManifest/combatants.tsv`: manifest-driven heroes and pets (ability choices + stats).
 - `ContentManifest/enemies.tsv`: manifest-driven enemies (loadout + boss flags).
-- `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
+- `ContentManifest/item_bases.tsv`: manifest-driven weapon, armor, and trinket base types.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift`: generated affix catalog.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalog{Basic,Skill,Ultimate}.generated.swift`: generated manifest abilities by tier.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift`: generated `extension Ability` shorthand.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift`: generated journey chapters from `stages.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift`: generated heroes and pets from `combatants.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift`: generated enemies from `enemies.tsv`.
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift`: generated homestead nodes from `homestead_nodes.tsv`.
+- `ContentManifest/homestead_nodes.tsv`: manifest-driven homestead nodes (one row per tier).
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift`: generated item base catalog.
+- `Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift`: generated stage encounter art overrides from `stages.tsv`.
 - `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`: custom abilities that do not fit manifest patterns.
 
 ## Manifest Formats
@@ -54,7 +56,7 @@ Custom abilities with unusual targeting, multi-step combos, or description overr
 Tab-separated columns:
 
 ```text
-chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	experience	item_templates	materials
+chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	item_templates	materials	encounter_art_id	encounter_art_title
 ```
 
 - `theme`: chapter theme enum case (e.g. `verdantForest`).
@@ -62,6 +64,18 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter
 - `enemy_id`: required for `battle`; empty otherwise.
 - `item_templates`: comma-separated item template IDs.
 - `materials`: pipe-separated `resource:amount` tokens (e.g. `wood:8|stone:3`).
+- `encounter_art_id` / `encounter_art_title`: optional pair for non-battle stages; references `ArtCatalog.encounterArtByID`.
+
+### Item bases (`ContentManifest/item_bases.tsv`)
+
+Tab-separated columns:
+
+```text
+id	name	slot	keywords
+```
+
+- `slot`: `weapon`, `armor`, or `trinket`.
+- `keywords`: comma-separated keyword affinities (e.g. `physical,bleed,poison`).
 
 Roster catalogs are manifest-driven via `combatants.tsv` and `enemies.tsv`. Hand-written roster Swift files are thin wrappers over generated output.
 

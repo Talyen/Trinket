@@ -1,4 +1,7 @@
 import SwiftUI
+import TrinketCore
+import TrinketContent
+import TrinketDesignSystem
 
 struct ItemSlotPickerView: View {
     let slot: ItemSlot

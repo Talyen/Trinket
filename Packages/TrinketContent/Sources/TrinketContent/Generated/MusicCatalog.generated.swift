@@ -2,8 +2,8 @@
 
 import Foundation
 
-enum MusicCatalog {
-    static let allTracks: [MusicTrack] = [
+public enum MusicCatalog {
+    public static let allTracks: [MusicTrack] = [
         MusicTrack(
             id: "menu_1",
             kind: .menu,
@@ -123,14 +123,14 @@ enum MusicCatalog {
         ),
     ]
 
-    static let menuTrackIDs: [String] = [
+    public static let menuTrackIDs: [String] = [
         "menu_1",
         "menu_2",
         "menu_3",
         "menu_4",
     ]
 
-    static let battleTrackIDs: [String] = [
+    public static let battleTrackIDs: [String] = [
         "battle_1",
         "battle_2",
         "battle_3",
@@ -138,7 +138,7 @@ enum MusicCatalog {
         "battle_5",
     ]
 
-    static let bossTrackIDByEnemyID: [String: String] = [
+    public static let bossTrackIDByEnemyID: [String: String] = [
         "the_blight_treant": "boss_blight_treant",
         "the_forge_golem": "boss_forge_golem",
         "the_frostwarden": "boss_frostwarden",

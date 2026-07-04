@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketCore
 
 extension ChapterTheme {
     var tint: Color {

@@ -1,4 +1,5 @@
 import SwiftUI
+import BattleEngine
 
 struct BattleLogSheet: View {
     @Environment(\.dismiss) private var dismiss

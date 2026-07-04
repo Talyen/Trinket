@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketContent
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState

@@ -1,4 +1,6 @@
 import SwiftUI
+import TrinketContent
+import TrinketDesignSystem
 
 struct PartyPickerSheet: View {
     @Environment(\.dismiss) private var dismiss

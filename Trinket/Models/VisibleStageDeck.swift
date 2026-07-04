@@ -1,3 +1,4 @@
+import TrinketContent
 struct VisibleStageDeck {
     let cards: [StageDeckCard]
     let scrollTargetID: String?
