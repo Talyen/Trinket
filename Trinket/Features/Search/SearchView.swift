@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketPersistence
 
-
 struct SearchView: View {
     @Environment(AppState.self) private var appState
     @State private var searchText = ""

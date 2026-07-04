@@ -1,7 +1,8 @@
 import SwiftUI
-#if canImport(UIKit)
-import TrinketPersistence
 import UIKit
+import TrinketPersistence
+
+#if canImport(UIKit)
 #endif
 
 final class CloudSyncAppDelegate: NSObject, UIApplicationDelegate {

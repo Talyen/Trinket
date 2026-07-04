@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var battleRun: BattleRun

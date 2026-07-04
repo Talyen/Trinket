@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-
 struct CombatantCollectionDetailView: View {
     @Environment(AppState.self) private var appState
     let combatant: Combatant

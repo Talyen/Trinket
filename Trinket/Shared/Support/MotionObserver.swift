@@ -1,7 +1,6 @@
 import SwiftUI
 import CoreMotion
 
-
 @Observable
 final class MotionObserver {
     private let manager = CMMotionManager()

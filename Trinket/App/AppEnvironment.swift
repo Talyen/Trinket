@@ -1,7 +1,6 @@
 import Foundation
 import TrinketDesignSystem
 
-
 struct AppEnvironment {
     static let shared = load()
 

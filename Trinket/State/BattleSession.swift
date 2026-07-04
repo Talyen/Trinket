@@ -4,7 +4,6 @@ import Observation
 import TrinketContent
 import TrinketPersistence
 
-
 @MainActor
 @Observable
 final class BattleSession {

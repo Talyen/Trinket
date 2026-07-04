@@ -2,7 +2,6 @@ import Foundation
 import TrinketContent
 import AVFoundation
 
-
 @MainActor
 final class MusicPlayer {
     private let isDisabled: Bool

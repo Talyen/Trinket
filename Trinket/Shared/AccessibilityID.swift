@@ -1,7 +1,6 @@
 import Foundation
 import TrinketContent
 
-
 enum AccessibilityID {
     enum Screen {
         static let play = "Play Screen"

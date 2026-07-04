@@ -5,7 +5,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-
 enum CombatantDetailNavigationChrome {
     case visible
     case hidden

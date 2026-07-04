@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketCore
 import TrinketDesignSystem
 
-
 struct VictoryView: View {
     let enemyName: String
     let summary: BattleVictorySummary

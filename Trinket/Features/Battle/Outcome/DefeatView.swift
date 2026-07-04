@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-
 struct DefeatView: View {
     let enemyName: String
     let onBattleAgain: () -> Void

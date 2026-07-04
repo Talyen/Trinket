@@ -1,7 +1,6 @@
 import Foundation
 import TrinketContent
 
-
 struct BattleMusicPreview: Equatable, Identifiable {
     let stageID: String
     let enemyID: String

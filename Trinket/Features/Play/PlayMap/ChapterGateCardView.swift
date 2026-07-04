@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 struct ChapterGateCardView: View {
     let chapter: Chapter
 

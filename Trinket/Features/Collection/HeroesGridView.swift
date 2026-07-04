@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-
 struct HeroesGridView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedCombatant: CombatantCollectionDetailSelection?

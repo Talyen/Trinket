@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

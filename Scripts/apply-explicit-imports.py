@@ -169,8 +169,9 @@ def normalize_imports(lines: list[str]) -> list[str]:
         body.extend(prefix)
     body.extend(f"import {module}" for module in imports)
     if suffix:
-        if body and body[-1].strip():
-            body.append("")
+        while suffix and suffix[0].strip() == "":
+            suffix.pop(0)
+        body.append("")
         body.extend(suffix)
 
     return body
@@ -196,11 +197,10 @@ def apply_imports(path: Path) -> bool:
             insert_at += 1
 
     normalized = normalize_imports(lines)
-    if normalized == original_lines:
-        return False
-
-    path.write_text("\n".join(normalized) + "\n")
-    return True
+    changed = normalized != original_lines
+    if changed:
+        path.write_text("\n".join(normalized) + "\n")
+    return changed
 
 
 def main() -> int:

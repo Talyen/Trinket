@@ -1,6 +1,5 @@
 import TrinketContent
 
-
 extension Enemy {
     static var randomNormalCombatant: Combatant {
         let normals = GameContent.enemies.filter { !$0.isBoss }

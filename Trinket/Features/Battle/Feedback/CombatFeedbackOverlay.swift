@@ -1,7 +1,6 @@
 import BattleEngine
 import SwiftUI
 
-
 struct CombatFeedbackOverlay: View {
     let events: [ActionEvent]
     let reduceMotion: Bool

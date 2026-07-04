@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 
-
 struct AbilitySummaryGrid: View {
     let combatant: Combatant
     let progression: CombatantProgression

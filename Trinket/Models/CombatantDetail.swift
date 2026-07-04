@@ -2,7 +2,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-
 struct CombatantCardDetail: Hashable, Identifiable {
     let combatant: Combatant
     let progression: CombatantProgression

@@ -4,7 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-
 struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState

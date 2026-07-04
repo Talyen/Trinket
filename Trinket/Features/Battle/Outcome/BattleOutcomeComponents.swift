@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct BattleOutcomeShell<Content: View>: View {
     let symbolName: String
     let symbolColor: Color

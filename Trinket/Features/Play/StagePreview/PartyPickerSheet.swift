@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 enum PartyPickerKind: String, Identifiable {
     case hero = "Hero"
     case pet = "Pet"

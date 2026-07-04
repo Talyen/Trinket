@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-
 enum BattleOutcome: Equatable {
     case ongoing
     case victory

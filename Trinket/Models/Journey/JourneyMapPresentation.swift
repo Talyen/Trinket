@@ -1,7 +1,6 @@
 import TrinketContent
 import TrinketPersistence
 
-
 enum JourneyMapPresentation {
     static func gateChapter(after chapter: Chapter, in chapters: [Chapter]) -> Chapter {
         guard let chapterIndex = chapters.firstIndex(where: { $0.id == chapter.id }),

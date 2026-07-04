@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-
 @Observable
 final class OptionsStore {
     private let defaults: UserDefaults

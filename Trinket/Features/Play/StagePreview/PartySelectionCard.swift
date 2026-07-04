@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 struct PartySelectionCard: View {
     let title: String
     let combatant: Combatant

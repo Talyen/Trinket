@@ -1,6 +1,5 @@
 import AVFoundation
 
-
 enum AudioSessionCoordinator {
     static func configureForGameMusic() {
         do {

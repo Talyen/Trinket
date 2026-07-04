@@ -1,6 +1,5 @@
 import CoreGraphics
 
-
 enum HeroHeaderLayout {
     static func headerHeight(forWidth width: CGFloat) -> CGFloat {
         max(width * 4.0 / 3.0, 300)

@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 struct ChapterJourneyHero: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 

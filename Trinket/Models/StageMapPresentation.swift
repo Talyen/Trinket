@@ -2,7 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
-
 enum StageMapID {
     static func chapterGate(for chapter: Chapter) -> String {
         "chapter-gate-\(chapter.id)"

@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketCore
 
-
 enum GameMode: String, CaseIterable, Identifiable {
     case battle = "Battle"
 

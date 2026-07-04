@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketContent
 
-
 struct ChapterArt: View {
     let chapter: Chapter
     let reduceTransparency: Bool

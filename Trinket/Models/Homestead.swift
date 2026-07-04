@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 
-
 extension HomesteadResource {
     var displayName: String {
         switch self {

@@ -1,7 +1,6 @@
 import SwiftUI
 import TrinketContent
 
-
 struct EncounterArtwork: View {
     let stage: Stage
     let isLocked: Bool

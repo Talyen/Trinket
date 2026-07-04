@@ -4,7 +4,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-
 struct ActiveBattleConfiguration: Identifiable {
     let id = UUID()
     let stageID: String?

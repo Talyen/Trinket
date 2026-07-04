@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
