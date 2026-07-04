@@ -12,17 +12,6 @@ struct ChapterHeroHeader: View {
                 TrinketDesign.Colors.appBackground
 
                 ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
-
-                LinearGradient(
-                    colors: [
-                        .black.opacity(0.03),
-                        .black.opacity(0.08),
-                        .black.opacity(0.56)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .accessibilityHidden(true)
             }
 
             VStack(alignment: .leading, spacing: 12) {

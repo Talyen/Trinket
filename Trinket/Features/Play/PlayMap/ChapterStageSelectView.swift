@@ -13,8 +13,6 @@ struct ChapterStageSelectView: View {
     let activePet: Combatant
     let heroes: [Combatant]
     let pets: [Combatant]
-    let activeHeroID: String
-    let activePetID: String
     let onStageTap: (Stage) -> Void
     let onSetActiveHero: (Combatant) -> Void
     let onSetActivePet: (Combatant) -> Void
@@ -26,8 +24,6 @@ struct ChapterStageSelectView: View {
         activePet: Combatant,
         heroes: [Combatant],
         pets: [Combatant],
-        activeHeroID: String,
-        activePetID: String,
         onStageTap: @escaping (Stage) -> Void,
         onSetActiveHero: @escaping (Combatant) -> Void,
         onSetActivePet: @escaping (Combatant) -> Void
@@ -38,8 +34,6 @@ struct ChapterStageSelectView: View {
         self.activePet = activePet
         self.heroes = heroes
         self.pets = pets
-        self.activeHeroID = activeHeroID
-        self.activePetID = activePetID
         self.onStageTap = onStageTap
         self.onSetActiveHero = onSetActiveHero
         self.onSetActivePet = onSetActivePet
@@ -54,7 +48,7 @@ struct ChapterStageSelectView: View {
                         coordinateSpaceName: scrollCoordinateSpaceName
                     )
 
-                    LazyVStack(alignment: .leading, spacing: 14) {
+                    LazyVStack(alignment: .leading, spacing: 24) {
                         ForEach(presentation.rows) { row in
                             rowView(row)
                                 .id(row.id)
@@ -85,7 +79,6 @@ struct ChapterStageSelectView: View {
                 PartyPickerSheet(
                     kind: picker,
                     combatants: combatants(for: picker),
-                    selectedID: selectedID(for: picker),
                     onSelect: { combatant in
                         select(combatant, for: picker)
                     }
@@ -149,15 +142,6 @@ struct ChapterStageSelectView: View {
         }
     }
 
-    private func selectedID(for picker: PartyPickerKind) -> String {
-        switch picker {
-        case .hero:
-            return activeHeroID
-        case .pet:
-            return activePetID
-        }
-    }
-
     private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
         switch picker {
         case .hero:
@@ -185,17 +169,6 @@ private struct ChapterJourneyHero: View {
                 ChapterArt(chapter: chapter, reduceTransparency: reduceTransparency)
             } overlay: {
                 ZStack(alignment: .bottomLeading) {
-                    LinearGradient(
-                        colors: [
-                            .black.opacity(0.06),
-                            .clear,
-                            .black.opacity(0.92)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .accessibilityHidden(true)
-
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Chapter \(chapter.number)")
                             .font(.subheadline.weight(.semibold))
@@ -268,14 +241,7 @@ private struct ActiveStageCard: View {
                 .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
                 .clipShape(TrinketDesign.cardShape)
 
-            VStack(alignment: .leading, spacing: 8) {
-                StageStatusHeader(stage: stage, state: .active)
-
-                Text(stage.flavorText)
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            StageStatusHeader(stage: stage, state: .active)
 
             ActivePartyPickerRow(
                 hero: activeHero,
@@ -301,7 +267,7 @@ private struct ActiveStageCard: View {
         .background(Color(.secondarySystemBackground), in: TrinketDesign.cardShape)
         .overlay {
             TrinketDesign.cardShape
-                .stroke(stage.encounter.mapTint.opacity(0.42), lineWidth: 1.5)
+                .stroke(Color.secondary.opacity(0.22), lineWidth: 1.5)
         }
         .shadow(color: .black.opacity(0.10), radius: 10, y: 4)
     }
@@ -316,14 +282,7 @@ private struct LockedStageCard: View {
                 .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
                 .clipShape(TrinketDesign.cardShape)
 
-            VStack(alignment: .leading, spacing: 8) {
-                StageStatusHeader(stage: stage, state: .future)
-
-                Text(stage.flavorText)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            StageStatusHeader(stage: stage, state: .future)
         }
         .padding(14)
         .background(Color(.tertiarySystemBackground).opacity(0.70), in: TrinketDesign.cardShape)

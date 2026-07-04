@@ -12,27 +12,25 @@ struct EncounterArtwork: View {
                     .scaledToFill()
                     .saturation(isLocked ? 0.48 : 1)
                     .opacity(isLocked ? 0.72 : 1)
+                    .blur(radius: isLocked ? 4 : 0)
                     .accessibilityLabel(art.accessibilityLabel)
             } else {
                 stage.encounter.mapTint.opacity(0.14)
+                    .blur(radius: isLocked ? 4 : 0)
                 Image(systemName: stage.encounter.symbolName)
                     .font(.system(size: 42, weight: .semibold))
                     .foregroundStyle(stage.encounter.mapTint)
                     .symbolRenderingMode(.hierarchical)
                     .accessibilityHidden(true)
+                    .blur(radius: isLocked ? 4 : 0)
             }
 
             if isLocked {
-                Rectangle()
-                    .fill(.black.opacity(0.22))
-                    .accessibilityHidden(true)
-
-                Label("Locked", systemImage: "lock.fill")
-                    .font(.headline.weight(.semibold))
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 38, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.black.opacity(0.36), in: Capsule())
+                    .shadow(color: .black.opacity(0.52), radius: 8, y: 2)
+                    .accessibilityHidden(true)
             }
         }
         .frame(maxWidth: .infinity)

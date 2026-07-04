@@ -7,8 +7,8 @@ struct JourneyScrollTransition: ViewModifier {
         if isEnabled {
             content.scrollTransition(.interactive, axis: .vertical) { view, phase in
                 view
-                    .scaleEffect(phase.isIdentity ? 1.03 : 0.94)
-                    .blur(radius: min(abs(phase.value) * 0.75, 0.75))
+                    .scaleEffect(1.06 - min(abs(phase.value), 1) * 0.18)
+                    .blur(radius: min(abs(phase.value), 1) * 2.0)
             }
         } else {
             content

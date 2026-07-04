@@ -66,7 +66,6 @@ struct StagePreviewSheet: View {
                 PartyPickerSheet(
                     kind: picker,
                     combatants: combatants(for: picker),
-                    selectedID: selectedID(for: picker),
                     onSelect: { combatant in
                         select(combatant, for: picker)
                     }
@@ -201,15 +200,6 @@ struct StagePreviewSheet: View {
             return appState.roster.heroes
         case .pet:
             return appState.roster.pets
-        }
-    }
-
-    private func selectedID(for picker: PartyPickerKind) -> String {
-        switch picker {
-        case .hero:
-            return appState.roster.current.activeHeroID
-        case .pet:
-            return appState.roster.current.activePetID
         }
     }
 

@@ -153,9 +153,9 @@ struct StageNodeView: View {
     private var borderColor: Color {
         switch state {
         case .active:
-            return stage.encounter.mapTint.opacity(0.46)
+            return Color.secondary.opacity(0.22)
         case .completed, .justCompleted:
-            return TrinketDesign.Colors.success.opacity(0.24)
+            return Color.secondary.opacity(0.16)
         case .future:
             return Color.secondary.opacity(0.16)
         }
