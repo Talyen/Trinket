@@ -62,7 +62,7 @@ final class AbilityCatalogTests: XCTestCase {
     func testBloodthornUsesDamageComponents() {
         XCTAssertEqual(Ability.bloodthorn.damageComponents.count, 3)
         XCTAssertEqual(Ability.bloodthorn.directDamage, 6)
-        XCTAssertEqual(Ability.fireball.directDamage, 3)
+        XCTAssertEqual(Ability.fireball.directDamage, 2)
         XCTAssertEqual(Ability.fireball.damageKeyword, .burn)
     }
 

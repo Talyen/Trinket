@@ -69,6 +69,8 @@ final class SimulationMatchupAssemblerTests: XCTestCase {
             using: &rng
         )
 
+        let earlyEnemy = CombatantLevelScaler.scale(enemy: enemy, level: 1)
+
         let configured = SimulationMatchupAssembler.assemble(
             hero: hero,
             pet: pet,
@@ -81,13 +83,14 @@ final class SimulationMatchupAssemblerTests: XCTestCase {
         )
 
         XCTAssertGreaterThan(configured.hero.maxHealth, hero.maxHealth)
+        XCTAssertGreaterThan(configured.enemy.maxHealth, earlyEnemy.maxHealth)
         XCTAssertFalse(configured.heroModifiers == .zero)
         XCTAssertEqual(configured.context.tier, .middle)
     }
 }
 
 final class AnomalyDetectorTests: XCTestCase {
-    func testDetectsHardCounterAndUnderpoweredAbility() {
+    func testDetectsHardCounterTimeoutAndUnderpoweredAbility() {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .early,
@@ -95,11 +98,27 @@ final class AnomalyDetectorTests: XCTestCase {
                 petID: "wolf",
                 enemyID: "strong",
                 isBoss: false,
+                isElite: false,
                 loadoutSampleIndex: 0,
                 winCount: 1,
+                tickLimitCount: 0,
                 runCount: 10,
                 averageTickCount: 12,
                 averageActionCount: 8
+            ),
+            MatchupSweepRow(
+                tier: .early,
+                heroID: "alchemist",
+                petID: "golden_retriever",
+                enemyID: "goblin",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 0,
+                tickLimitCount: 10,
+                runCount: 10,
+                averageTickCount: 480,
+                averageActionCount: 40
             )
         ]
         let abilityRows = [
@@ -120,6 +139,7 @@ final class AnomalyDetectorTests: XCTestCase {
         let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: abilityRows)
 
         XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
+        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
         XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
     }
 }

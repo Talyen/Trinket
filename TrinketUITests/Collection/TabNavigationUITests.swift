@@ -7,7 +7,7 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         let knightHeader = combatantDetail.header(for: "Knight")
         assertExists(knightHeader)
-        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 120 experience")
+        XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 155 experience")
         assertCombatantDetailSections()
 
         scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
@@ -45,7 +45,7 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         let wolfHeader = combatantDetail.header(for: "Wolf")
         assertExists(wolfHeader)
-        XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 100 experience")
+        XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 155 experience")
         assertCombatantDetailSections()
 
         dismissSheet()

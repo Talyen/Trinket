@@ -19,12 +19,12 @@ buff_only	gold	gold	Gold	basic				resource_gain:gold:1
 buff_only	manaBerries	mana-berries	Mana Berries	basic				resource_gain:gold:1		
 buff_only	manaCrystals	mana-crystals	Mana Crystals	basic				resource_gain:gold:1		
 buff_only	smellingSalts	smelling-salts	Smelling Salts	basic				cleanse:stun|instant_heal:health:1		
-direct_hit	acidPotion	acid-potion	Acid Potion	skill	3	poison				
+direct_hit	acidPotion	acid-potion	Acid Potion	skill	2	poison				
 direct_hit	burningBlade	burning-blade	Burning Blade	skill	3	burn				
 direct_hit	cinderbloom	cinderbloom	Cinderbloom	skill	3	burn				
 direct_hit	coldSnap	cold-snap	Cold Snap	skill	3	freeze				
-direct_hit	fireball	fireball	Fireball	skill	3	burn				
-direct_hit	frostbolt	frostbolt	Frostbolt	skill	3	freeze				
+direct_hit	fireball	fireball	Fireball	skill	2	burn				
+direct_hit	frostbolt	frostbolt	Frostbolt	skill	2	freeze				
 direct_hit	lightningArrow	lightning-arrow	Lightning Arrow	skill	3	nature				
 direct_hit	lightningBolt	lightning-bolt	Lightning Bolt	skill	3	nature				
 direct_hit	poisonDagger	poison-dagger	Poison Dagger	skill	3	poison				
@@ -54,7 +54,7 @@ direct_hit	packTactics	pack-tactics	Pack Tactics	ultimate	3	physical				standard
 direct_hit	phoenixFeather	phoenix-feather	Phoenix Feather	ultimate	6	burn				instant_heal:health:3
 direct_hit	serratedArrowhead	serrated-arrowhead	Serrated Arrowhead	ultimate	6	bleed				
 direct_hit	sunburst	sunburst	Sunburst	ultimate	6	holy				instant_heal:health:2
-buff_only	crystalBulwark	crystal-bulwark	Crystal Bulwark	ultimate				shield:block:5:6|mitigation:armor:0.35:6		
+buff_only	crystalBulwark	crystal-bulwark	Crystal Bulwark	ultimate				shield:block:4:6|mitigation:armor:0.30:6		
 buff_only	goldenPlate	golden-plate	Golden Plate	ultimate				mitigation:armor:0.30:6|resource_gain:gold:4		
 buff_only	luckPotion	luck-potion	Luck Potion	ultimate				resource_gain:gold:3|instant_heal:health:2		
 buff_only	panaceaPotion	panacea-potion	Panacea Potion	ultimate				cleanse|instant_heal:health:4		

@@ -38,6 +38,18 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
     }
 }
 
+public struct EnemyGearCompensation: Equatable, Sendable {
+    public let healthMultiplier: Double
+    public let primaryStatMultiplier: Double
+    public let statDelta: StatGrowthDelta
+
+    public static let none = EnemyGearCompensation(
+        healthMultiplier: 1.0,
+        primaryStatMultiplier: 1.0,
+        statDelta: .zero
+    )
+}
+
 public enum StatGrowth {
     /// Levels above identity (level 1). Level 1 returns zero growth.
     public static func levelsAboveIdentity(_ level: Int) -> Int {
@@ -98,7 +110,7 @@ public enum StatGrowth {
             return bossGrowth(levelsAbove: levelsAbove, identityStats: identityStats)
         }
 
-        var delta = StatGrowthDelta(maxHealth: every(levelsAbove, interval: 2, amount: 1))
+        var delta = StatGrowthDelta(maxHealth: levelsAbove)
         let archetypeGrowth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
         delta.strength = archetypeGrowth.strength
         delta.agility = archetypeGrowth.agility
@@ -141,12 +153,113 @@ public enum StatGrowth {
             $0.value(in: identityStats) > $1.value(in: identityStats)
         }
 
-        var delta = StatGrowthDelta(maxHealth: levelsAbove * 2)
+        var delta = StatGrowthDelta(
+            maxHealth: Int((Double(levelsAbove) * 1.7).rounded()) + (levelsAbove / 15)
+        )
         ranked.first?.apply(levelsAbove, to: &delta)
         if ranked.count > 1 {
             ranked[1].apply(every(levelsAbove, interval: 2, amount: 1), to: &delta)
         }
         return delta
+    }
+
+    public static func enemyLateGameBracketBonus(identityStats: PrimaryStats) -> StatGrowthDelta {
+        enum StatKey: CaseIterable {
+            case strength, agility, toughness, intellect, wisdom
+
+            func value(in stats: PrimaryStats) -> Int {
+                switch self {
+                case .strength: return stats.strength
+                case .agility: return stats.agility
+                case .toughness: return stats.toughness
+                case .intellect: return stats.intellect
+                case .wisdom: return stats.wisdom
+                }
+            }
+
+            func apply(_ amount: Int, to delta: inout StatGrowthDelta) {
+                switch self {
+                case .strength: delta.strength += amount
+                case .agility: delta.agility += amount
+                case .toughness: delta.toughness += amount
+                case .intellect: delta.intellect += amount
+                case .wisdom: delta.wisdom += amount
+                }
+            }
+        }
+
+        var delta = StatGrowthDelta(toughness: 2)
+        if let topStat = StatKey.allCases.max(by: { $0.value(in: identityStats) < $1.value(in: identityStats) }) {
+            topStat.apply(1, to: &delta)
+        }
+        return delta
+    }
+
+    /// Smooth gear-compensation tuned for balance targets:
+    /// fodder 90–99% / 80–90% / 70–80% and bosses-elites ~70–80% across tiers.
+    public static func enemyGearCompensation(
+        level: Int,
+        identityStats: PrimaryStats,
+        isBoss: Bool = false,
+        isElite: Bool = false
+    ) -> EnemyGearCompensation {
+        let progress = smoothstep(min(max(Double(level) / 40.0, 0), 1))
+        let midT = smoothstep(min(max((Double(level) - 5.0) / 20.0, 0), 1))
+        let lateT = smoothstep(min(max((Double(level) - 18.0) / 22.0, 0), 1))
+        let earlyT = smoothstep(min(max((14.0 - Double(level)) / 14.0, 0), 1))
+        let midPeakT = smoothstep(max(0, 1.0 - abs(Double(level) - 20.0) / 12.0))
+        let bracket = enemyLateGameBracketBonus(identityStats: identityStats)
+
+        let healthMultiplier: Double
+        let primaryStatMultiplier: Double
+        let statScale: Double
+        let extraToughness: Int
+
+        if isBoss {
+            // Bosses spike threat via stats; keep late HP moderate to avoid 100-tick stalls.
+            healthMultiplier = 1.0 + 0.10 + (0.08 * progress) + (0.06 * midT) + (0.02 * lateT)
+                + (0.82 * earlyT) + (0.30 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.10 * progress) + (0.16 * midT) + (0.22 * lateT)
+                + (0.46 * earlyT) + (0.20 * midPeakT)
+            statScale = (0.50 * progress) + (0.32 * midT) + (0.48 * lateT) + (0.62 * earlyT) + (0.34 * midPeakT)
+            extraToughness = Int((1.0 + (1.5 * lateT) + (2.5 * earlyT) + (1.5 * midPeakT)).rounded())
+        } else if isElite {
+            healthMultiplier = 1.0 + 0.10 + (0.14 * progress) + (0.14 * midT) + (0.18 * lateT)
+                + (1.46 * earlyT) + (0.28 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.12 * progress) + (0.18 * midT) + (0.20 * lateT)
+                + (0.60 * earlyT) + (0.22 * midPeakT)
+            statScale = (0.55 * progress) + (0.35 * midT) + (0.52 * lateT) + (0.74 * earlyT) + (0.34 * midPeakT)
+            extraToughness = Int((1.0 + (1.5 * lateT) + (4.3 * earlyT) + (1.5 * midPeakT)).rounded())
+        } else {
+            healthMultiplier = 1.0 + 0.06 + (0.12 * progress) + (0.58 * midT) + (0.32 * lateT)
+                + (0.22 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.05 * progress) + (0.46 * midT) + (0.28 * lateT)
+                + (0.16 * midPeakT)
+            statScale = (0.55 * progress) + (0.70 * midT) + (0.38 * lateT) + (0.30 * midPeakT)
+            extraToughness = Int((1.0 + (2.0 * midT) + (1.0 * lateT) + (1.0 * midPeakT)).rounded())
+        }
+
+        let statDelta = StatGrowthDelta(
+            strength: scaledByCurve(bracket.strength, statScale),
+            agility: scaledByCurve(bracket.agility, statScale),
+            toughness: scaledByCurve(bracket.toughness + extraToughness, statScale),
+            intellect: scaledByCurve(bracket.intellect, statScale),
+            wisdom: scaledByCurve(bracket.wisdom, statScale)
+        )
+        return EnemyGearCompensation(
+            healthMultiplier: healthMultiplier,
+            primaryStatMultiplier: primaryStatMultiplier,
+            statDelta: statDelta
+        )
+    }
+
+    private static func scaledByCurve(_ amount: Int, _ t: Double) -> Int {
+        Int((Double(amount) * t).rounded())
+    }
+
+    private static func smoothstep(_ value: Double) -> Double {
+        let clamped = min(max(value, 0), 1)
+        return clamped * clamped * (3 - (2 * clamped))
     }
 
     public static func apply(

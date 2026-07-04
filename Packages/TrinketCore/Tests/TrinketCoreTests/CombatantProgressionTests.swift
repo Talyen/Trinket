@@ -2,24 +2,31 @@ import TrinketCore
 import XCTest
 
 final class CombatantProgressionTests: XCTestCase {
+    func testRequiredXPFollowsQuadraticCurve() {
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 1), 100)
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 2), 155)
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 3), 220)
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 6), 475)
+    }
+
     func testAddingExperienceLevelsUpWhenThresholdReached() {
         let progression = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
         let leveled = progression.addingExperience(10)
         XCTAssertEqual(leveled.level, 2)
         XCTAssertEqual(leveled.currentXP, 5)
-        XCTAssertEqual(leveled.requiredXP, 150)
+        XCTAssertEqual(leveled.requiredXP, 155)
     }
 
     func testAddingExperienceCanLevelMultipleTimes() {
         let progression = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
         let leveled = progression.addingExperience(200)
         XCTAssertEqual(leveled.level, 3)
-        XCTAssertEqual(leveled.currentXP, 45)
-        XCTAssertEqual(leveled.requiredXP, 200)
+        XCTAssertEqual(leveled.currentXP, 40)
+        XCTAssertEqual(leveled.requiredXP, 220)
     }
 
     func testAddingNonPositiveExperienceIsNoOp() {
-        let progression = CombatantProgression(level: 2, currentXP: 40, requiredXP: 120)
+        let progression = CombatantProgression(level: 2, currentXP: 40, requiredXP: 155)
         XCTAssertEqual(progression.addingExperience(0), progression)
         XCTAssertEqual(progression.addingExperience(-10), progression)
     }
@@ -39,15 +46,12 @@ final class CombatantProgressionTests: XCTestCase {
     }
 
     func testUnlocksRespectsAbilityTierLevels() {
-        let early = CombatantProgression(level: 2, currentXP: 0, requiredXP: 100)
+        let early = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         XCTAssertTrue(early.unlocks(.basic))
-        XCTAssertFalse(early.unlocks(.skill))
+        XCTAssertTrue(early.unlocks(.skill))
         XCTAssertFalse(early.unlocks(.ultimate))
 
-        let mid = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)
-        XCTAssertTrue(mid.unlocks(.skill))
-
-        let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 100)
+        let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
         XCTAssertTrue(late.unlocks(.ultimate))
     }
 }

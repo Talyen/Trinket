@@ -64,8 +64,19 @@ final class StageRewardTests: XCTestCase {
         journey = ctx.journey
 
         XCTAssertEqual(roster.gold, firstStage.rewards.gold)
-        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + firstStage.rewards.experience)
-        XCTAssertEqual(roster.progression(for: pet).currentXP, petXPBefore + firstStage.rewards.experience)
+        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
+        let heroLevel = PlayerRosterState.initial.progression(for: hero).level
+        let petLevel = PlayerRosterState.initial.progression(for: pet).level
+        let expectedHeroXP = ExperienceScaling.battleAward(
+            playerLevel: heroLevel,
+            enemyLevel: encounterLevel
+        )
+        let expectedPetXP = ExperienceScaling.battleAward(
+            playerLevel: petLevel,
+            enemyLevel: encounterLevel
+        )
+        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + expectedHeroXP)
+        XCTAssertEqual(roster.progression(for: pet).currentXP, petXPBefore + expectedPetXP)
         XCTAssertNotNil(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(homestead.resources[.wood], 8)
         XCTAssertEqual(homestead.resources[.stone], 3)
@@ -118,7 +129,6 @@ final class StageRewardTests: XCTestCase {
             encounter: .event,
             rewards: StageReward(
                 gold: 0,
-                experience: 0,
                 itemTemplateIDs: [],
                 materialRewards: [ResourceAmount(.food, 4)]
             )
@@ -212,7 +222,7 @@ final class StageRewardTests: XCTestCase {
             stageNumber: 99,
             flavorText: "Test",
             encounter: .event,
-            rewards: StageReward(gold: 10, experience: 15, itemTemplateIDs: ["missing-template"])
+            rewards: StageReward(gold: 10, itemTemplateIDs: ["missing-template"])
         )
 
         StageCompletion.claimRewardsIfNeeded(
@@ -227,8 +237,56 @@ final class StageRewardTests: XCTestCase {
         )
 
         XCTAssertEqual(roster.gold, 10)
-        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + 15)
+        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore)
         XCTAssertTrue(inventory.items.isEmpty)
         XCTAssertTrue(journey.hasClaimedRewards(for: stageWithBadTemplate))
+    }
+
+    func testNonBattleStagesGrantNoExperience() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let heroXPBefore = roster.progression(for: hero).currentXP
+        let eventStage = chapter.stages[1]
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: eventStage,
+            hero: hero,
+            pet: pet,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore)
+    }
+
+    func testScaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
+        let heroXPBefore = roster.progression(for: hero).currentXP
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            pet: pet,
+            enemyEncounterLevel: 5,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore)
+        XCTAssertGreaterThan(roster.progression(for: pet).currentXP, 0)
     }
 }

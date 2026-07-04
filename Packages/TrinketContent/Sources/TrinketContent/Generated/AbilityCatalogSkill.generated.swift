@@ -2,138 +2,138 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityCatalogSkillGenerated {
-    public static let acidPotion = AbilityBuilder.directHit(
+enum AbilityCatalogSkillGenerated {
+    static let acidPotion = AbilityBuilder.directHit(
         id: "acid-potion", name: "Acid Potion", tier: .skill,
-        amount: 3, keyword: .poison
+        amount: 2, keyword: .poison
     )
 
-    public static let burningBlade = AbilityBuilder.directHit(
+    static let burningBlade = AbilityBuilder.directHit(
         id: "burning-blade", name: "Burning Blade", tier: .skill,
         amount: 3, keyword: .burn
     )
 
-    public static let cinderbloom = AbilityBuilder.directHit(
+    static let cinderbloom = AbilityBuilder.directHit(
         id: "cinderbloom", name: "Cinderbloom", tier: .skill,
         amount: 3, keyword: .burn
     )
 
-    public static let coldSnap = AbilityBuilder.directHit(
+    static let coldSnap = AbilityBuilder.directHit(
         id: "cold-snap", name: "Cold Snap", tier: .skill,
         amount: 3, keyword: .freeze
     )
 
-    public static let fireball = AbilityBuilder.directHit(
+    static let fireball = AbilityBuilder.directHit(
         id: "fireball", name: "Fireball", tier: .skill,
-        amount: 3, keyword: .burn
+        amount: 2, keyword: .burn
     )
 
-    public static let frostbolt = AbilityBuilder.directHit(
+    static let frostbolt = AbilityBuilder.directHit(
         id: "frostbolt", name: "Frostbolt", tier: .skill,
-        amount: 3, keyword: .freeze
+        amount: 2, keyword: .freeze
     )
 
-    public static let lightningArrow = AbilityBuilder.directHit(
+    static let lightningArrow = AbilityBuilder.directHit(
         id: "lightning-arrow", name: "Lightning Arrow", tier: .skill,
         amount: 3, keyword: .nature
     )
 
-    public static let lightningBolt = AbilityBuilder.directHit(
+    static let lightningBolt = AbilityBuilder.directHit(
         id: "lightning-bolt", name: "Lightning Bolt", tier: .skill,
         amount: 3, keyword: .nature
     )
 
-    public static let poisonDagger = AbilityBuilder.directHit(
+    static let poisonDagger = AbilityBuilder.directHit(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
         amount: 3, keyword: .poison
     )
 
-    public static let sapArrow = AbilityBuilder.directHit(
+    static let sapArrow = AbilityBuilder.directHit(
         id: "sap-arrow", name: "Sap Arrow", tier: .skill,
         amount: 3, keyword: .stun
     )
 
-    public static let serratedEdge = AbilityBuilder.directHit(
+    static let serratedEdge = AbilityBuilder.directHit(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
         amount: 3, keyword: .bleed
     )
 
-    public static let smite = AbilityBuilder.directHit(
+    static let smite = AbilityBuilder.directHit(
         id: "smite", name: "Smite", tier: .skill,
         amount: 3, keyword: .holy
     )
 
-    public static let venomArrow = AbilityBuilder.directHit(
+    static let venomArrow = AbilityBuilder.directHit(
         id: "venom-arrow", name: "Venom Arrow", tier: .skill,
         amount: 3, keyword: .poison
     )
 
-    public static let venomFangs = AbilityBuilder.directHit(
+    static let venomFangs = AbilityBuilder.directHit(
         id: "venom-fangs", name: "Venom Fangs", tier: .skill,
         amount: 3, keyword: .poison
     )
 
-    public static let cauterize = AbilityBuilder.directHit(
+    static let cauterize = AbilityBuilder.directHit(
         id: "cauterize", name: "Cauterize", tier: .skill,
         amount: 3, keyword: .burn,
         extras: [TargetedEffect(.instantHeal(.health, 2))]
     )
 
-    public static let graspingVines = AbilityBuilder.directHit(
+    static let graspingVines = AbilityBuilder.directHit(
         id: "grasping-vines", name: "Grasping Vines", tier: .skill,
         amount: 3, keyword: .nature,
         description: "Deal 3 Nature damage.\nRestore 1 Health.",
         extras: [TargetedEffect(.instantHeal(.health, 1))]
     )
 
-    public static let roulette = AbilityBuilder.directHit(
+    static let roulette = AbilityBuilder.directHit(
         id: "roulette", name: "Roulette", tier: .skill,
         amount: 3, keyword: .physical,
         extras: [TargetedEffect(.resourceGain(.gold, 3))]
     )
 
-    public static let steal = AbilityBuilder.directHit(
+    static let steal = AbilityBuilder.directHit(
         id: "steal", name: "Steal", tier: .skill,
         amount: 3, keyword: .physical,
         extras: [TargetedEffect(.resourceGain(.gold, 3))]
     )
 
-    public static let darkPact = AbilityBuilder.buffOnly(
+    static let darkPact = AbilityBuilder.buffOnly(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
         effects: [.instantHeal(.health, 3), .standardLeechBuff]
     )
 
-    public static let haste = AbilityBuilder.buffOnly(
+    static let haste = AbilityBuilder.buffOnly(
         id: "haste", name: "Haste", tier: .skill,
         effects: [.mitigation(.armor, 0.25, 6)]
     )
 
-    public static let heal = AbilityBuilder.buffOnly(
+    static let heal = AbilityBuilder.buffOnly(
         id: "heal", name: "Heal", tier: .skill,
         effects: [.instantHeal(.health, 3)]
     )
 
-    public static let healthPotion = AbilityBuilder.buffOnly(
+    static let healthPotion = AbilityBuilder.buffOnly(
         id: "health-potion", name: "Health Potion", tier: .skill,
         effects: [.instantHeal(.health, 3)]
     )
 
-    public static let manaShield = AbilityBuilder.buffOnly(
+    static let manaShield = AbilityBuilder.buffOnly(
         id: "mana-shield", name: "Mana Shield", tier: .skill,
         effects: [.shield(.block, 3, 6)]
     )
 
-    public static let stoneskinPotion = AbilityBuilder.buffOnly(
+    static let stoneskinPotion = AbilityBuilder.buffOnly(
         id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
         effects: [.mitigation(.armor, 0.30, 6)]
     )
 
-    public static let tithe = AbilityBuilder.buffOnly(
+    static let tithe = AbilityBuilder.buffOnly(
         id: "tithe", name: "Tithe", tier: .skill,
         effects: [.resourceGain(.gold, 2), .instantHeal(.health, 1)]
     )
 
-    public static let all: [Ability] = [
+    static let all: [Ability] = [
         acidPotion,
         burningBlade,
         cinderbloom,

@@ -22,7 +22,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
                         gold: 12,
-                        experience: 50,
                         itemTemplateIDs: ["shortsword-basic"],
                         materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
                     )
@@ -36,7 +35,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .event,
                     rewards: StageReward(
                         gold: 8,
-                        experience: 30,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.food, 4), ResourceAmount(.herbs, 2)]
                     )
@@ -50,7 +48,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "skeleton"),
                     rewards: StageReward(
                         gold: 14,
-                        experience: 60,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 5)]
                     )
@@ -64,7 +61,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .shop,
                     rewards: StageReward(
                         gold: 5,
-                        experience: 20,
                         itemTemplateIDs: ["leather_armor-basic"],
                         materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.iron, 2)]
                     )
@@ -78,7 +74,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "mud_elemental"),
                     rewards: StageReward(
                         gold: 18,
-                        experience: 75,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.stone, 9), ResourceAmount(.herbs, 3)]
                     )
@@ -92,7 +87,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .rest,
                     rewards: StageReward(
                         gold: 0,
-                        experience: 35,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.food, 8), ResourceAmount(.herbs, 5)]
                     )
@@ -106,7 +100,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "plague_doctor"),
                     rewards: StageReward(
                         gold: 22,
-                        experience: 90,
                         itemTemplateIDs: ["emerald_ring-basic"],
                         materialRewards: [ResourceAmount(.herbs, 7), ResourceAmount(.crystal, 1)]
                     )
@@ -120,7 +113,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .event,
                     rewards: StageReward(
                         gold: 10,
-                        experience: 25,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.food, 6)]
                     )
@@ -134,7 +126,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "living_armor"),
                     rewards: StageReward(
                         gold: 26,
-                        experience: 105,
                         itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.stone, 12), ResourceAmount(.iron, 5)]
                     )
@@ -148,7 +139,6 @@ public enum GameContentChaptersGenerated {
                     encounter: .battle(enemyID: "the_blight_treant"),
                     rewards: StageReward(
                         gold: 40,
-                        experience: 150,
                         itemTemplateIDs: ["longsword-astral"],
                         materialRewards: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 3)]
                     )

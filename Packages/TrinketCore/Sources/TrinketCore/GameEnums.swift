@@ -140,7 +140,7 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable 
         case .basic:
             return 1
         case .skill:
-            return 3
+            return 1
         case .ultimate:
             return 6
         }

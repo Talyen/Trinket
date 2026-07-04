@@ -2,106 +2,106 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityCatalogUltimateGenerated {
-    public static let blessedAegis = AbilityBuilder.directHit(
+enum AbilityCatalogUltimateGenerated {
+    static let blessedAegis = AbilityBuilder.directHit(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
         amount: 6, keyword: .holy,
         extras: [TargetedEffect(.shield(.block, 4, 6))]
     )
 
-    public static let combustion = AbilityBuilder.directHit(
+    static let combustion = AbilityBuilder.directHit(
         id: "combustion", name: "Combustion", tier: .ultimate,
         amount: 6, keyword: .burn
     )
 
-    public static let concussiveShot = AbilityBuilder.directHit(
+    static let concussiveShot = AbilityBuilder.directHit(
         id: "concussive-shot", name: "Concussive Shot", tier: .ultimate,
         amount: 6, keyword: .stun
     )
 
-    public static let hemorrhage = AbilityBuilder.directHit(
+    static let hemorrhage = AbilityBuilder.directHit(
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
         amount: 6, keyword: .bleed,
         extras: [TargetedEffect(.standardLeechBuff)]
     )
 
-    public static let holyRadiance = AbilityBuilder.directHit(
+    static let holyRadiance = AbilityBuilder.directHit(
         id: "holy-radiance", name: "Holy Radiance", tier: .ultimate,
         amount: 6, keyword: .holy,
         extras: [TargetedEffect(.instantHeal(.health, 3))]
     )
 
-    public static let meteor = AbilityBuilder.directHit(
+    static let meteor = AbilityBuilder.directHit(
         id: "meteor", name: "Meteor", tier: .ultimate,
         amount: 6, keyword: .burn
     )
 
-    public static let packTactics = AbilityBuilder.directHit(
+    static let packTactics = AbilityBuilder.directHit(
         id: "pack-tactics", name: "Pack Tactics", tier: .ultimate,
         amount: 3, keyword: .physical,
         extras: [TargetedEffect(.standardLeechBuff)]
     )
 
-    public static let phoenixFeather = AbilityBuilder.directHit(
+    static let phoenixFeather = AbilityBuilder.directHit(
         id: "phoenix-feather", name: "Phoenix Feather", tier: .ultimate,
         amount: 6, keyword: .burn,
         extras: [TargetedEffect(.instantHeal(.health, 3))]
     )
 
-    public static let serratedArrowhead = AbilityBuilder.directHit(
+    static let serratedArrowhead = AbilityBuilder.directHit(
         id: "serrated-arrowhead", name: "Serrated Arrowhead", tier: .ultimate,
         amount: 6, keyword: .bleed
     )
 
-    public static let sunburst = AbilityBuilder.directHit(
+    static let sunburst = AbilityBuilder.directHit(
         id: "sunburst", name: "Sunburst", tier: .ultimate,
         amount: 6, keyword: .holy,
         extras: [TargetedEffect(.instantHeal(.health, 2))]
     )
 
-    public static let crystalBulwark = AbilityBuilder.buffOnly(
+    static let crystalBulwark = AbilityBuilder.buffOnly(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
-        effects: [.shield(.block, 5, 6), .mitigation(.armor, 0.35, 6)]
+        effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.30, 6)]
     )
 
-    public static let goldenPlate = AbilityBuilder.buffOnly(
+    static let goldenPlate = AbilityBuilder.buffOnly(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
         effects: [.mitigation(.armor, 0.30, 6), .resourceGain(.gold, 4)]
     )
 
-    public static let luckPotion = AbilityBuilder.buffOnly(
+    static let luckPotion = AbilityBuilder.buffOnly(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
         effects: [.resourceGain(.gold, 3), .instantHeal(.health, 2)]
     )
 
-    public static let panaceaPotion = AbilityBuilder.buffOnly(
+    static let panaceaPotion = AbilityBuilder.buffOnly(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,
         effects: [.cleanse(nil), .instantHeal(.health, 4)]
     )
 
-    public static let plateMail = AbilityBuilder.buffOnly(
+    static let plateMail = AbilityBuilder.buffOnly(
         id: "plate-mail", name: "Plate Mail", tier: .ultimate,
         effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.30, 6)]
     )
 
-    public static let sanctifiedPlate = AbilityBuilder.buffOnly(
+    static let sanctifiedPlate = AbilityBuilder.buffOnly(
         id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate,
         effects: [.mitigation(.armor, 0.30, 6), .instantHeal(.health, 2)]
     )
 
-    public static let bloodthorn = AbilityBuilder.multiDamage(
+    static let bloodthorn = AbilityBuilder.multiDamage(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         damageComponents: [DamageComponent(2, keyword: .nature), DamageComponent(2, keyword: .bleed), DamageComponent(2, keyword: .poison)],
         effects: [TargetedEffect(.bleed(2)), TargetedEffect(.poison(2)), TargetedEffect(.standardLeechBuff)]
     )
 
-    public static let faustianBargain = AbilityBuilder.multiDamage(
+    static let faustianBargain = AbilityBuilder.multiDamage(
         id: "faustian-bargain", name: "Faustian Bargain", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .physical), DamageComponent(3, keyword: .physical, target: .actor)],
         effects: [TargetedEffect(.resourceGain(.gold, 3))]
     )
 
-    public static let all: [Ability] = [
+    static let all: [Ability] = [
         blessedAegis,
         combustion,
         concussiveShot,

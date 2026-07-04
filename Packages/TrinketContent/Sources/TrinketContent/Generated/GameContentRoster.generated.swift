@@ -51,8 +51,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 15,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.block, .manaCrystals],
-                skills: [.healthPotion, .acidPotion],
+                basics: [.stab, .block],
+                skills: [.acidPotion, .healthPotion],
                 ultimates: [.panaceaPotion, .luckPotion]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 5, toughness: 5, intellect: 8, wisdom: 10),
@@ -65,7 +65,7 @@ public enum GameContentRosterGenerated {
             maxHealth: 17,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.kindling, .slash],
+                basics: [.kindling, .fangs],
                 skills: [.briarShield, .graspingVines],
                 ultimates: [.bloodthorn, .thornMail]
             ),
@@ -188,8 +188,8 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.gold, .apple],
-                skills: [.healthPotion, .tithe],
+                basics: [.apple, .gold],
+                skills: [.stoneskinPotion, .tithe],
                 ultimates: [.luckPotion, .goldenPlate]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 6, toughness: 7, intellect: 3, wisdom: 9),
