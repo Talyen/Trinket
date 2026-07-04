@@ -155,31 +155,25 @@ xcodebuild_show_destinations() {
 }
 
 ensure_ios_simulator_platform() {
-  local destinations
-  destinations="$(xcodebuild_show_destinations 2>/dev/null || true)"
-
-  # Check for concrete (non-placeholder, non-"not installed") iOS Simulator destinations
-  if echo "$destinations" | python3 -c '
-import re, sys
-text = sys.stdin.read()
-# Look for concrete simulator destinations (not placeholders, not errors)
-for line in text.splitlines():
-    if "platform:iOS Simulator" not in line:
-        continue
-    if "dvtdevice-DVTiOSDeviceSimulatorPlaceholder" in line:
-        continue
-    if "not installed" in line:
-        raise SystemExit(1)
-    # Found a concrete destination
-    raise SystemExit(0)
-# No concrete destination found
-raise SystemExit(1)
-' 2>/dev/null; then
+  # Check if any iOS Simulator runtime is installed via simctl
+  if xcrun simctl runtime list 2>/dev/null | grep -q "^iOS "; then
     return 0
   fi
 
-  echo "No iOS Simulator runtime found; downloading iOS platform..." >&2
-  xcodebuild -downloadPlatform iOS
+  echo "No iOS Simulator runtime found; downloading..." >&2
+
+  # Accept license and run first launch tasks
+  sudo xcodebuild -license accept 2>/dev/null || true
+  xcodebuild -runFirstLaunch 2>/dev/null || true
+
+  # Try downloading the platform (may fail on restricted runners)
+  if xcodebuild -downloadPlatform iOS 2>/dev/null; then
+    return 0
+  fi
+
+  # Fallback: try downloading all platforms
+  echo "Trying -downloadAllPlatforms..." >&2
+  xcodebuild -downloadAllPlatforms
 }
 
 destination_listed_by_xcodebuild() {
