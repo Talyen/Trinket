@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Applies Thorns and Mana-on-hit reactive effects after health is lost.
+/// Applies Thorns, trait thorns, shield erosion, and mitigation shred after health is lost.
 package struct ReactiveOnHitStep: DamageStep {
     public static let stepName = "ReactiveOnHit"
     public static let phase: DamagePhase = .post
@@ -12,6 +12,26 @@ package struct ReactiveOnHitStep: DamageStep {
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
         guard state.healthLost > 0, let sourceActorID = state.sourceActorID else { return }
         guard let attacker = context.roster.combatant(for: sourceActorID) else { return }
+
+        if let damageKeyword = state.damageKeyword {
+            EnemyTraitEngine.applyShieldErosion(
+                keyword: damageKeyword,
+                to: state.combatant,
+                context: &context
+            )
+            EnemyTraitEngine.applyMitigationShred(
+                keyword: damageKeyword,
+                to: state.combatant,
+                context: &context
+            )
+        }
+
+        state.damageEvents.append(contentsOf: EnemyTraitEngine.traitThornsDamage(
+            damageTaken: state.healthLost,
+            defender: state.combatant,
+            attackerID: sourceActorID,
+            in: &context
+        ))
 
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         for active in activeEffects {

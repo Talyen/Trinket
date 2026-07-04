@@ -35,8 +35,15 @@ struct CombatantDetailPane: View {
         )
     }
 
-    private var traitDefinition: CombatantTraitDefinition? {
+    private var heroOrPetTrait: CombatantTraitDefinition? {
         GameContent.trait(forCombatantID: combatant.id)
+    }
+
+    private var enemyTraits: [CombatantTraitDefinition] {
+        guard combatant.role == .enemy,
+              let enemy = GameContent.enemy(matching: combatant.id)
+        else { return [] }
+        return GameContent.traits(for: enemy)
     }
 
     private var effectiveCombatant: Combatant {
@@ -74,15 +81,22 @@ struct CombatantDetailPane: View {
                             statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
                         }
 
-                        if let traitDefinition {
-                            section("Trait", sectionID: AccessibilityID.CombatantDetail.traitSection) {
-                                Text(traitDefinition.name)
-                                    .font(.body.weight(.semibold))
-                                KeywordDescriptionText(text: traitDefinition.description)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityIdentifier(AccessibilityID.CombatantDetail.traitDescription)
-                            }
+                        if let heroOrPetTrait {
+                            traitSection(
+                                title: "Trait",
+                                trait: heroOrPetTrait,
+                                sectionID: AccessibilityID.CombatantDetail.traitSection,
+                                descriptionID: AccessibilityID.CombatantDetail.traitDescription
+                            )
+                        }
+
+                        if !enemyTraits.isEmpty {
+                            traitSection(
+                                title: "Traits",
+                                traits: enemyTraits,
+                                sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
+                                descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
+                            )
                         }
 
                         if !activeEffectSummaries.isEmpty {
@@ -136,6 +150,35 @@ struct CombatantDetailPane: View {
             } action: { _, state in
                 let threshold = headerHeight - state.topInset - 44
                 titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
+            }
+        }
+    }
+
+    private func traitSection(
+        title: String,
+        trait: CombatantTraitDefinition,
+        sectionID: String,
+        descriptionID: String
+    ) -> some View {
+        traitSection(title: title, traits: [trait], sectionID: sectionID, descriptionID: descriptionID)
+    }
+
+    private func traitSection(
+        title: String,
+        traits: [CombatantTraitDefinition],
+        sectionID: String,
+        descriptionID: String
+    ) -> some View {
+        section(title, sectionID: sectionID) {
+            ForEach(traits) { trait in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(trait.name)
+                        .font(.body.weight(.semibold))
+                    KeywordDescriptionText(text: trait.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(descriptionID)
+                }
             }
         }
     }

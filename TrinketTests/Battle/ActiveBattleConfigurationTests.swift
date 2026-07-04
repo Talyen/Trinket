@@ -48,6 +48,21 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         XCTAssertEqual(configuration.hero.primaryStats.strength, knight.primaryStats.strength)
     }
 
+    func testMakeResolvesEnemyTraitModifiers() throws {
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let skeleton = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
+
+        let configuration = ActiveBattleConfiguration.make(
+            hero: knight,
+            pet: wolf,
+            enemy: skeleton.combatant
+        )
+
+        XCTAssertGreaterThan(configuration.enemyModifiers.damageTakenVulnerability(for: .holy), 0)
+        XCTAssertGreaterThan(configuration.enemyModifiers.controlResistancePercent, 0)
+    }
+
     func testMakePreservesStageMetadata() throws {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })

@@ -15,7 +15,10 @@ public struct DecayingDoTHandler: BattleEffectHandler {
 
     public func tick(_ active: ActiveEffect, on target: Combatant, in context: inout BattleEngineContext) -> EffectTickOutcome {
         guard matches(active.effect) else { return EffectTickOutcome() }
-        let nextPotency = active.effect.potencyAfterTick()
+        let slowPercent = context.modifiers(for: target.id).burnDecaySlowPercent
+        let nextPotency = keyword == .burn
+            ? active.effect.potencyAfterTick(burnDecaySlowPercent: slowPercent)
+            : active.effect.potencyAfterTick()
         if nextPotency > 0 {
             let events = DoTDamage.resolveTick(
                 basePotency: nextPotency,
@@ -113,16 +116,18 @@ public struct BleedHandler: BattleEffectHandler {
 
     public func apply(
         _ effect: Effect,
-        ability _: Ability,
+        ability: Ability,
         source: Combatant,
         target: Combatant,
         action: ActionApplyContext,
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let skipImmediate = action.shouldSkipImmediateDoT(potency: potency, keyword: .bleed)
+        let bonus = EnemyTraitEngine.bonusBleedPotency(ability: ability, sourceID: source.id, in: context)
+        let adjustedPotency = potency + bonus
+        let skipImmediate = action.shouldSkipImmediateDoT(potency: adjustedPotency, keyword: .bleed)
         let events = context.applyBleed(
-            potency: potency,
+            potency: adjustedPotency,
             to: target,
             sourceActorID: source.id,
             dealImmediateDamage: !skipImmediate

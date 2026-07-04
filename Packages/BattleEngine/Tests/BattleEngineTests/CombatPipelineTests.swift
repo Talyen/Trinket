@@ -21,9 +21,10 @@ final class CombatPipelineTests: XCTestCase {
             id: "source", role: .hero, maxHealth: 50,
             primaryStats: sourcePrimaryStats
         )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
-            pet: CombatantRuntime(combatant: CombatantFixtures.combatant(id: "pet", role: .pet)),
+            pet: CombatantRuntime(combatant: pet),
             enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
         )
         return BattleEngineContext(
@@ -34,7 +35,13 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            build: BattleCombatBuild(
+                hero: source,
+                pet: pet,
+                enemy: target,
+                heroModifiers: .zero,
+                petModifiers: .zero
+            )
         )
     }
 
@@ -296,7 +303,13 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            build: BattleCombatBuild(
+                hero: source,
+                pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+                enemy: target,
+                heroModifiers: .zero,
+                petModifiers: .zero
+            )
         )
 
         context.applyControlMeter(1, keyword: .stun, to: target, sourceActorID: "source")

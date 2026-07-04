@@ -24,6 +24,19 @@ final class GameContentTraitCatalogTests: XCTestCase {
         XCTAssertEqual(Set(GameContent.combatantTraitIDs.keys), combatantIDs)
     }
 
+    func testEveryEnemyHasPositiveAndNegativeTraits() {
+        let traitIDs = Set(GameContent.traits.map(\.id))
+        for enemy in GameContent.enemies {
+            XCTAssertTrue(traitIDs.contains(enemy.positiveTraitID), "\(enemy.name) positive trait")
+            XCTAssertTrue(traitIDs.contains(enemy.negativeTraitID), "\(enemy.name) negative trait")
+            XCTAssertNotEqual(
+                enemy.positiveTraitID,
+                enemy.negativeTraitID,
+                "\(enemy.name) should not reuse the same trait"
+            )
+        }
+    }
+
     func testTraitDescriptionsAreNonEmpty() {
         for trait in GameContent.traits {
             XCTAssertFalse(trait.name.isEmpty, "Trait \(trait.id) needs a name")

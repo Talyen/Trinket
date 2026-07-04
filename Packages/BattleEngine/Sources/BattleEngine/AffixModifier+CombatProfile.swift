@@ -58,6 +58,8 @@ public extension AffixModifier {
             profile.armorGrantedBonus += amount
         case let .damageTakenPercent(keyword, amount):
             profile.damageTakenReduction[keyword, default: 0] += amount
+        case let .damageTakenVulnerability(keyword, amount):
+            profile.damageTakenVulnerability[keyword, default: 0] += amount
         case let .petDamageDealt(amount):
             profile.petDamageDealtBonus += amount
         default:

@@ -17,7 +17,7 @@ package struct DodgeGateStep: DamageStep {
               context.roster.health(for: state.combatant) > 0,
               state.sourceActorID != nil
         else { return }
-        let chance = state.combatant.primaryStats.dodgeChance
+        let chance = dodgeChance(for: state, in: context)
         if Double.random(in: 0 ... 1, using: &context.rng) < chance {
             state.damageEvents.append(context.nextEvent(
                 kind: .effect,
@@ -32,5 +32,15 @@ package struct DodgeGateStep: DamageStep {
             ))
             state.isDodged = true
         }
+    }
+
+    private func dodgeChance(for state: DamageResolutionState, in context: BattleEngineContext) -> Double {
+        var chance = state.combatant.primaryStats.dodgeChance
+        let profile = context.modifiers(for: state.combatant.id)
+        chance += profile.dodgeChanceBonus
+        if state.damageKeyword == .physical {
+            chance += profile.physicalDodgeChanceBonus
+        }
+        return min(0.75, chance)
     }
 }

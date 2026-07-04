@@ -27,6 +27,7 @@ final class BattleRun {
             enemy: configuration.enemy,
             heroModifiers: configuration.heroModifiers,
             petModifiers: configuration.petModifiers,
+            enemyModifiers: configuration.enemyModifiers,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max)
         )
     }

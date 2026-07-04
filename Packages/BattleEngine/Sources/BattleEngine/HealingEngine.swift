@@ -9,6 +9,9 @@ package enum HealingEngine {
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
         guard context.roster.health(for: request.target) > 0 else { return .empty }
+        if context.modifiers(for: request.target.id).cannotBeHealed {
+            return .empty
+        }
         let bonus = request.sourceActorID.map { context.modifiers(for: $0).healthRestoredBonus } ?? 0
         var restored = 0
         context.roster.mutateRuntime(for: request.target) { restored = $0.heal(request.amount + bonus) }
@@ -62,7 +65,9 @@ package enum HealingEngine {
         guard leechPct > 0 else { return .empty }
 
         var restored = Int(ceil(Double(damage) * leechPct))
-        restored += context.modifiers(for: sourceActorID).leechHealingBonus
+        let profile = context.modifiers(for: sourceActorID)
+        restored = Int(ceil(Double(restored) * profile.leechHealingMultiplier))
+        restored += profile.leechHealingBonus
         guard restored > 0 else { return .empty }
 
         let healOutcome = resolveHeal(

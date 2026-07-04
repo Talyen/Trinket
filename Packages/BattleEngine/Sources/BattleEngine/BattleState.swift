@@ -65,6 +65,7 @@ public struct BattleState {
         initialGold: Int = 0,
         heroModifiers: CombatModifierProfile = .zero,
         petModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64? = nil,
         tracksLog: Bool = true
     ) {
@@ -87,6 +88,7 @@ public struct BattleState {
             initialGold: initialGold,
             heroModifiers: heroModifiers,
             petModifiers: petModifiers,
+            enemyModifiers: enemyModifiers,
             rngSeed: seed
         )
 

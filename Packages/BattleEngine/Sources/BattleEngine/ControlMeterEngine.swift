@@ -14,6 +14,16 @@ package enum ControlMeterEngine {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
         if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) { return [] }
 
+        let profile = context.modifiers(for: combatant.id)
+        var adjustedAmount = amount
+        if profile.controlResistancePercent > 0 {
+            adjustedAmount = Int(floor(Double(adjustedAmount) * (1 - min(1, profile.controlResistancePercent))))
+        }
+        if keyword == .freeze, profile.freezeControlVulnerabilityPercent > 0 {
+            adjustedAmount = Int(ceil(Double(adjustedAmount) * (1 + profile.freezeControlVulnerabilityPercent)))
+        }
+        guard adjustedAmount > 0 else { return [] }
+
         let threshold = controlMeterThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
@@ -21,7 +31,7 @@ package enum ControlMeterEngine {
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
-        let newAmount = min(existingAmount + amount, threshold)
+        let newAmount = min(existingAmount + adjustedAmount, threshold)
 
         if newAmount >= threshold {
             return applyThresholdReached(

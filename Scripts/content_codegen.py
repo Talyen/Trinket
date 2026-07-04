@@ -171,6 +171,8 @@ class EnemyRow:
     toughness: str
     intellect: str
     wisdom: str
+    positive_trait_id: str
+    negative_trait_id: str
 
 
 @dataclass
@@ -339,6 +341,8 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "toughness",
         "intellect",
         "wisdom",
+        "positive_trait_id",
+        "negative_trait_id",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -430,6 +434,9 @@ def modifier_token_to_swift(token: str) -> str:
     if token.startswith("damage_taken_percent:"):
         _, keyword, amount = token.split(":", 2)
         return f".damageTakenPercent(.{keyword}, {amount})"
+    if token.startswith("damage_taken_vulnerability:"):
+        _, keyword, amount = token.split(":", 2)
+        return f".damageTakenVulnerability(.{keyword}, {amount})"
     if token.startswith("pet_damage_dealt:"):
         return f".petDamageDealt({token.split(':', 1)[1]})"
     if token.startswith("maximum_mana:"):
@@ -454,6 +461,45 @@ def triggers_swift(raw: str) -> str:
             parts.append(f"gainGoldBonusHealSelf: {token.split(':', 1)[1]}")
         elif token.startswith("on_restore_health_heal_hero:"):
             parts.append(f"restoreHealthAlsoHealHero: {token.split(':', 1)[1]}")
+        elif token.startswith("control_resistance:"):
+            parts.append(f"controlResistancePercent: {token.split(':', 1)[1]}")
+        elif token.startswith("dodge_chance_bonus:"):
+            parts.append(f"dodgeChanceBonus: {token.split(':', 1)[1]}")
+        elif token.startswith("physical_dodge_chance_bonus:"):
+            parts.append(f"physicalDodgeChanceBonus: {token.split(':', 1)[1]}")
+        elif token.startswith("ambush_bonus:"):
+            parts.append(f"ambushBonusDamage: {token.split(':', 1)[1]}")
+        elif token.startswith("regeneration:"):
+            _, amount, interval = token.split(":", 2)
+            parts.append(f"regenerationAmount: {amount}")
+            parts.append(f"regenerationIntervalTicks: {interval}")
+        elif token.startswith("passive_armor:"):
+            parts.append(f"passiveArmorPercent: {token.split(':', 1)[1]}")
+        elif token.startswith("thorns_percent:"):
+            parts.append(f"thornsPercent: {token.split(':', 1)[1]}")
+        elif token.startswith("cannot_be_healed:"):
+            parts.append("cannotBeHealed: true")
+        elif token.startswith("burn_decay_slow:"):
+            parts.append(f"burnDecaySlowPercent: {token.split(':', 1)[1]}")
+        elif token.startswith("shield_erosion_on:"):
+            _, keyword, ticks = token.split(":", 2)
+            parts.append(f"shieldErosionKeyword: .{keyword}")
+            parts.append(f"shieldErosionTicks: {ticks}")
+        elif token.startswith("mitigation_shred_on:"):
+            _, keyword, multiplier, duration = token.split(":", 3)
+            parts.append(f"mitigationShredKeyword: .{keyword}")
+            parts.append(f"mitigationShredMultiplier: {multiplier}")
+            parts.append(f"mitigationShredDurationTicks: {duration}")
+        elif token.startswith("freeze_control_vulnerability:"):
+            parts.append(f"freezeControlVulnerabilityPercent: {token.split(':', 1)[1]}")
+        elif token.startswith("armor_effectiveness_penalty:"):
+            parts.append(f"armorEffectivenessPenaltyPercent: {token.split(':', 1)[1]}")
+        elif token.startswith("grasping_vines_heal_bonus:"):
+            parts.append(f"graspingVinesHealBonus: {token.split(':', 1)[1]}")
+        elif token.startswith("leech_healing_multiplier:"):
+            parts.append(f"leechHealingMultiplier: {token.split(':', 1)[1]}")
+        elif token.startswith("hemorrhage_bleed_bonus:"):
+            parts.append(f"hemorrhageBleedBonus: {token.split(':', 1)[1]}")
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     if not parts:
@@ -819,7 +865,9 @@ def validate_combatant_rows(
         render_party_combatant(row)
 
 
-def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str]) -> None:
+def validate_enemy_rows(
+    rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str], trait_ids: set[str]
+) -> None:
     seen: set[str] = set()
     for row in rows:
         if row.id in seen:
@@ -849,6 +897,14 @@ def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combata
             _validate_positive_int(stat, getattr(row, stat), row.id)
 
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
+        _require_non_empty("positive_trait_id", row.positive_trait_id, row.id)
+        _require_non_empty("negative_trait_id", row.negative_trait_id, row.id)
+        if row.positive_trait_id not in trait_ids:
+            raise ValueError(f"Unknown positive_trait_id '{row.positive_trait_id}' for enemy {row.id}")
+        if row.negative_trait_id not in trait_ids:
+            raise ValueError(f"Unknown negative_trait_id '{row.negative_trait_id}' for enemy {row.id}")
+        if row.positive_trait_id == row.negative_trait_id:
+            raise ValueError(f"Enemy {row.id} cannot use the same trait for positive and negative")
         render_enemy(row)
 
 
@@ -888,7 +944,9 @@ def render_enemy(row: EnemyRow) -> str:
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}{max_mana_clause}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
         f"primaryStats: {primary_stats_swift(row)}, "
-        f"growthArchetype: .{row.growth_archetype}){flag_clause})"
+        f"growthArchetype: .{row.growth_archetype}), "
+        f"positiveTraitID: \"{swift_escape(row.positive_trait_id)}\", "
+        f"negativeTraitID: \"{swift_escape(row.negative_trait_id)}\"{flag_clause})"
     )
 
 
@@ -1451,7 +1509,12 @@ def validate_manifests() -> tuple[
     validate_trait_rows(trait_rows)
     validate_ability_rows(ability_rows)
     validate_combatant_rows(combatant_rows, ability_symbols, {row.id for row in trait_rows})
-    validate_enemy_rows(enemy_rows, ability_symbols, {row.id for row in combatant_rows})
+    validate_enemy_rows(
+        enemy_rows,
+        ability_symbols,
+        {row.id for row in combatant_rows},
+        {row.id for row in trait_rows},
+    )
     validate_stage_rows(stage_rows, enemy_ids={row.id for row in enemy_rows})
     validate_homestead_node_rows(homestead_rows)
     validate_item_base_rows(item_base_rows)

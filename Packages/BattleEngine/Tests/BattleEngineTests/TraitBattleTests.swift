@@ -27,6 +27,7 @@ final class TraitBattleTests: XCTestCase {
             build: BattleCombatBuild(
                 hero: hero,
                 pet: pet,
+                enemy: enemy,
                 heroModifiers: heroModifiers,
                 petModifiers: petModifiers
             )

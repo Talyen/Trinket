@@ -38,6 +38,18 @@ public enum CombatBuildResolver {
         return CombatBuild(combatant: builtCombatant, modifiers: profile)
     }
 
+    public static func build(enemy: Enemy) -> CombatBuild {
+        var profile = CombatModifierProfile.zero
+        if let positiveTrait = GameContent.positiveTrait(for: enemy) {
+            positiveTrait.apply(to: &profile)
+        }
+        if let negativeTrait = GameContent.negativeTrait(for: enemy) {
+            negativeTrait.apply(to: &profile)
+        }
+
+        return CombatBuild(combatant: enemy.combatant, modifiers: profile)
+    }
+
     private static func affixProfile(for item: InventoryItem) -> CombatModifierProfile {
         item.affixes.reduce(into: CombatModifierProfile.zero) { partial, affix in
             guard let definition = GameContent.itemAffixDefinitions.first(where: { $0.id == affix.id }) else {

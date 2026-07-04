@@ -17,6 +17,7 @@ struct ActiveBattleConfiguration: Identifiable {
     let petEquipmentLoadout: EquipmentLoadout
     let heroModifiers: CombatModifierProfile
     let petModifiers: CombatModifierProfile
+    let enemyModifiers: CombatModifierProfile
     let inventoryState: PlayerInventoryState
     let stageReward: StageReward?
     let rewardItemNames: [String]
@@ -33,6 +34,7 @@ struct ActiveBattleConfiguration: Identifiable {
         petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
         heroModifiers: CombatModifierProfile = .zero,
         petModifiers: CombatModifierProfile = .zero,
+        enemyModifiers: CombatModifierProfile = .zero,
         inventoryState: PlayerInventoryState = .initial,
         stageReward: StageReward? = nil,
         rewardItemNames: [String] = []
@@ -48,6 +50,7 @@ struct ActiveBattleConfiguration: Identifiable {
         self.petEquipmentLoadout = petEquipmentLoadout
         self.heroModifiers = heroModifiers
         self.petModifiers = petModifiers
+        self.enemyModifiers = enemyModifiers
         self.inventoryState = inventoryState
         self.stageReward = stageReward
         self.rewardItemNames = rewardItemNames
@@ -79,11 +82,18 @@ struct ActiveBattleConfiguration: Identifiable {
             equipmentLoadout: petEquipmentLoadout,
             inventory: inventoryState.items
         )
+        let enemyBuild: CombatBuild
+        if let enemy,
+           let catalogEnemy = GameContent.enemy(matching: enemy.id) {
+            enemyBuild = CombatBuildResolver.build(enemy: catalogEnemy)
+        } else {
+            enemyBuild = CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
+        }
         return ActiveBattleConfiguration(
             stageID: stageID,
             hero: heroBuild.combatant,
             pet: petBuild.combatant,
-            enemy: enemy,
+            enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
             heroProgression: heroProgression,
             petProgression: petProgression,
@@ -91,6 +101,7 @@ struct ActiveBattleConfiguration: Identifiable {
             petEquipmentLoadout: petEquipmentLoadout,
             heroModifiers: heroBuild.modifiers,
             petModifiers: petBuild.modifiers,
+            enemyModifiers: enemyBuild.modifiers,
             inventoryState: inventoryState,
             stageReward: stageReward,
             rewardItemNames: rewardItemNames

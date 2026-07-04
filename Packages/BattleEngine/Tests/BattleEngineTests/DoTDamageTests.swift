@@ -28,7 +28,8 @@ final class DoTDamageTests: XCTestCase {
             initialGold: 0,
             build: BattleCombatBuild(
                 hero: source,
-                pet: target,
+                pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+                enemy: target,
                 heroModifiers: heroModifiers,
                 petModifiers: .zero
             )

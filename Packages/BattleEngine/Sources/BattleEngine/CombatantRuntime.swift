@@ -41,6 +41,15 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant has triggered Death's Door once this battle.
     public var hasConsumedDeathsDoor: Bool
 
+    /// True after this combatant's ambush trait has added its first-strike bonus.
+    public var hasTriggeredAmbush: Bool
+
+    /// Tick until which mitigation from armor effects is reduced by `mitigationShredMultiplier`.
+    public var mitigationShredUntilTick: Int
+
+    /// Multiplier applied to armor mitigation while shred is active (e.g. 0.5 halves armor).
+    public var mitigationShredMultiplier: Double
+
     public init(
         combatant: Combatant,
         initialHealth: Int? = nil,
@@ -50,12 +59,18 @@ public struct CombatantRuntime: Hashable {
         initialNextReadyAtTick: Int? = nil,
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
-        hasConsumedDeathsDoor: Bool = false
+        hasConsumedDeathsDoor: Bool = false,
+        hasTriggeredAmbush: Bool = false,
+        mitigationShredUntilTick: Int = 0,
+        mitigationShredMultiplier: Double = 1
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
         self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
+        self.hasTriggeredAmbush = hasTriggeredAmbush
+        self.mitigationShredUntilTick = mitigationShredUntilTick
+        self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
         currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
         activeEffects = initialActiveEffects

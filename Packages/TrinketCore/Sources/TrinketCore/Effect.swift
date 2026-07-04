@@ -122,10 +122,13 @@ public enum Effect: Hashable, Sendable {
         }
     }
 
-    public func potencyAfterTick() -> Int {
+    public func potencyAfterTick(burnDecaySlowPercent: Double = 0) -> Int {
         switch self {
         case let .burn(potency):
-            return potency / 2
+            let normalNext = potency / 2
+            let loss = potency - normalNext
+            let adjustedLoss = Int(floor(Double(loss) * (1 - min(1, max(0, burnDecaySlowPercent)))))
+            return potency - adjustedLoss
         case let .poison(potency):
             let decrease = max(1, potency * 25 / 100)
             return potency - decrease
