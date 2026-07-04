@@ -1,6 +1,6 @@
 import SwiftUI
-import TrinketContent
 import BattleEngine
+import TrinketContent
 import TrinketPersistence
 
 enum BattleOutcome: Equatable {

@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 @testable import Trinket
 
 enum CombatantFixtures {

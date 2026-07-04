@@ -2,8 +2,6 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
-import TrinketCore
-import TrinketContent
 
 extension HomesteadResource {
     var displayName: String {

@@ -2,7 +2,6 @@ import Foundation
 import Observation
 import BattleEngine
 import TrinketContent
-import TrinketContent
 import TrinketPersistence
 
 @MainActor

@@ -1,5 +1,6 @@
-import TrinketCore
 import TrinketContent
+import TrinketCore
+
 struct CombatantCardDetail: Hashable, Identifiable {
     let combatant: Combatant
     let progression: CombatantProgression

@@ -48,8 +48,9 @@ final class JourneyMapPresentationTests: XCTestCase {
         })
     }
 
-    func testGateChapterUsesPlaceholderWhenNextChapterMissing() {
-        let gateChapter = JourneyMapPresentation.gateChapter(after: GameContent.chapters.last!, in: GameContent.chapters)
+    func testGateChapterUsesPlaceholderWhenNextChapterMissing() throws {
+        let lastChapter = try XCTUnwrap(GameContent.chapters.last)
+        let gateChapter = JourneyMapPresentation.gateChapter(after: lastChapter, in: GameContent.chapters)
 
         XCTAssertEqual(gateChapter.id, StageMapID.placeholderGate(afterChapterNumber: gateChapter.number))
     }

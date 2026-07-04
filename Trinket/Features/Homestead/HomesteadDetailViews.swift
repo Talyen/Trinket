@@ -1,8 +1,8 @@
 import SwiftUI
-import TrinketCore
 import TrinketContent
-import TrinketPersistence
+import TrinketCore
 import TrinketDesignSystem
+import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
