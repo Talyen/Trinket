@@ -48,6 +48,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
     public let petID: String
     public let enemyID: String
     public let isBoss: Bool
+    public let isElite: Bool
     public let loadoutSampleIndex: Int
     public let winCount: Int
     public let tickLimitCount: Int
@@ -61,6 +62,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
         petID: String,
         enemyID: String,
         isBoss: Bool,
+        isElite: Bool = false,
         loadoutSampleIndex: Int,
         winCount: Int,
         tickLimitCount: Int = 0,
@@ -73,6 +75,7 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable {
         self.petID = petID
         self.enemyID = enemyID
         self.isBoss = isBoss
+        self.isElite = isElite
         self.loadoutSampleIndex = loadoutSampleIndex
         self.winCount = winCount
         self.tickLimitCount = tickLimitCount

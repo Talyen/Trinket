@@ -16,6 +16,7 @@ public struct BalanceSweepTriple: Equatable, Hashable, Sendable {
     public var petID: String { pet.id }
     public var enemyID: String { enemy.id }
     public var isBoss: Bool { enemy.isBoss }
+    public var isElite: Bool { enemy.isElite }
 }
 
 public enum BalanceSweepCatalog {

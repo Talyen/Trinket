@@ -82,14 +82,26 @@ public enum BalanceReportRenderer {
             let rows = result.matchupRows.filter { $0.tier == tier }
             guard !rows.isEmpty else { continue }
             let averageWinRate = rows.map(\.winRate).reduce(0, +) / Double(rows.count)
-            let inTargetBand = rows.filter { $0.winRate >= 0.90 && $0.winRate <= 0.99 }.count
+            let inTargetBand = rows.filter { row in
+                let band = AnomalyDetector.targetBand(for: row)
+                return row.winRate >= band.min && row.winRate <= band.max
+            }.count
             let timeoutRows = rows.filter { $0.tickLimitCount > 0 }.count
+            let targetLabel: String
+            switch tier {
+            case .early:
+                targetLabel = "90–99% (normal) / 70–80% (elite/boss)"
+            case .middle:
+                targetLabel = "80–90% (normal) / 70–80% (elite/boss)"
+            case .lateGame:
+                targetLabel = "70–80%"
+            }
             cards.append("""
             <div class="card">
               <span>\(escape(tier.displayName))</span>
               <strong>\(percent(averageWinRate))</strong>
               <span>avg win rate · \(rows.count) rows</span>
-              <span>\(inTargetBand) in 90–99% band · \(timeoutRows) timeout rows</span>
+              <span>\(inTargetBand) in target band (\(targetLabel)) · \(timeoutRows) timeout rows</span>
             </div>
             """)
         }
@@ -121,7 +133,7 @@ public enum BalanceReportRenderer {
     }
 
     private static func matchupSection(_ result: BalanceSweepResult) -> String {
-        let rows = result.matchupRows.filter { !$0.isBoss }
+        let rows = result.matchupRows.filter { !$0.isBoss && !$0.isElite }
         return tableSection(
             title: "Matchups (Non-Boss)",
             headers: ["Tier", "Hero", "Pet", "Enemy", "Sample", "Win Rate", "Timeouts", "Avg Ticks"],
@@ -144,20 +156,22 @@ public enum BalanceReportRenderer {
     }
 
     private static func bossSection(_ result: BalanceSweepResult) -> String {
-        let rows = result.matchupRows.filter(\.isBoss)
+        let rows = result.matchupRows.filter { $0.isBoss || $0.isElite }
         guard !rows.isEmpty else { return "" }
 
         return tableSection(
-            title: "Boss Matchups",
-            headers: ["Tier", "Hero", "Pet", "Boss", "Sample", "Win Rate", "Timeouts", "Avg Ticks"],
+            title: "Boss & Elite Matchups",
+            headers: ["Tier", "Hero", "Pet", "Enemy", "Kind", "Sample", "Win Rate", "Timeouts", "Avg Ticks"],
             bodyRows: rows.map { row in
                 let rowClass = anomalyClass(for: row, anomalies: result.anomalies)
+                let kind = row.isBoss ? "Boss" : "Elite"
                 return """
                 <tr class=\"\(rowClass)\">
                   <td>\(escape(row.tier.displayName))</td>
                   <td>\(escape(row.heroID))</td>
                   <td>\(escape(row.petID))</td>
                   <td>\(escape(row.enemyID))</td>
+                  <td>\(kind)</td>
                   <td>\(row.loadoutSampleIndex)</td>
                   <td>\(percent(row.winRate))</td>
                   <td>\(row.tickLimitCount)/\(row.runCount)</td>
@@ -260,6 +274,7 @@ private struct MatchupSweepRowExport: Codable {
     let petID: String
     let enemyID: String
     let isBoss: Bool
+    let isElite: Bool
     let loadoutSampleIndex: Int
     let winCount: Int
     let tickLimitCount: Int
@@ -275,6 +290,7 @@ private struct MatchupSweepRowExport: Codable {
         petID = row.petID
         enemyID = row.enemyID
         isBoss = row.isBoss
+        isElite = row.isElite
         loadoutSampleIndex = row.loadoutSampleIndex
         winCount = row.winCount
         tickLimitCount = row.tickLimitCount

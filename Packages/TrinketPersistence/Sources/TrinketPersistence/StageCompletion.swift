@@ -26,6 +26,7 @@ public enum StageCompletion {
         hero: Combatant,
         pet: Combatant,
         battleEarnedGold: Int = 0,
+        enemyEncounterLevel: Int? = nil,
         roster: inout PlayerRosterState,
         inventory: inout PlayerInventoryState,
         homestead: inout PlayerHomesteadState,
@@ -43,6 +44,7 @@ public enum StageCompletion {
             hero: hero,
             pet: pet,
             battleEarnedGold: battleEarnedGold,
+            enemyEncounterLevel: enemyEncounterLevel,
             context: &ctx,
             resolveTemplate: resolveTemplate
         )
@@ -99,6 +101,7 @@ public enum StageCompletion {
             hero: hero,
             pet: pet,
             battleEarnedGold: battleEarnedGold,
+            enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
             context: &context,
             resolveTemplate: resolveTemplate
         )
@@ -110,14 +113,28 @@ public enum StageCompletion {
         hero: Combatant,
         pet: Combatant,
         battleEarnedGold: Int = 0,
+        enemyEncounterLevel: Int? = nil,
         context: inout StageCompletionContext,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
         guard !context.journey.hasClaimedRewards(for: stage) else { return }
 
+        let encounterLevel = enemyEncounterLevel
+            ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
+
         context.roster.grantGold(stage.rewards.gold + battleEarnedGold)
-        context.roster.grantExperience(stage.rewards.experience, to: hero)
-        context.roster.grantExperience(stage.rewards.experience, to: pet)
+        grantScaledExperience(
+            stage.rewards.experience,
+            enemyLevel: encounterLevel,
+            to: hero,
+            roster: &context.roster
+        )
+        grantScaledExperience(
+            stage.rewards.experience,
+            enemyLevel: encounterLevel,
+            to: pet,
+            roster: &context.roster
+        )
         context.homestead.grant(context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards))
 
         for templateID in stage.rewards.itemTemplateIDs {
@@ -126,5 +143,27 @@ public enum StageCompletion {
         }
 
         context.journey.markRewardsClaimed(for: stage)
+    }
+
+    private static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
+        guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else {
+            return 1
+        }
+        return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+    }
+
+    private static func grantScaledExperience(
+        _ baseExperience: Int,
+        enemyLevel: Int,
+        to combatant: Combatant,
+        roster: inout PlayerRosterState
+    ) {
+        let playerLevel = roster.progression(for: combatant).level
+        let scaled = ExperienceScaling.adjustedAward(
+            baseExperience: baseExperience,
+            playerLevel: playerLevel,
+            enemyLevel: enemyLevel
+        )
+        roster.grantExperience(scaled, to: combatant)
     }
 }

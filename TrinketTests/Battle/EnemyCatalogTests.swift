@@ -9,7 +9,14 @@ final class EnemyCatalogTests: XCTestCase {
         "the_iron_bear"
     ]
 
-    private let bossBaseHealth: Set<Int> = [22, 24, 25, 26]
+    private let bossBaseHealth: Set<Int> = [24, 26, 27, 28]
+
+    private let eliteIDs: Set<String> = [
+        "living_armor",
+        "mimic",
+        "necromancer",
+        "plague_doctor"
+    ]
 
     func testEnemyCount() {
         XCTAssertEqual(GameContent.enemies.count, 15)
@@ -19,10 +26,34 @@ final class EnemyCatalogTests: XCTestCase {
         for enemy in GameContent.enemies {
             if bossIDs.contains(enemy.id) {
                 XCTAssertTrue(enemy.isBoss, "\(enemy.name) should be a boss")
+                XCTAssertFalse(enemy.isElite, "\(enemy.name) should not also be elite")
             } else {
                 XCTAssertFalse(enemy.isBoss, "\(enemy.name) should not be a boss")
             }
         }
+    }
+
+    func testEliteClassification() {
+        for enemy in GameContent.enemies {
+            if eliteIDs.contains(enemy.id) {
+                XCTAssertTrue(enemy.isElite, "\(enemy.name) should be elite")
+                XCTAssertFalse(enemy.isBoss, "\(enemy.name) should not be a boss")
+            } else if !bossIDs.contains(enemy.id) {
+                XCTAssertFalse(enemy.isElite, "\(enemy.name) should not be elite")
+            }
+        }
+    }
+
+    func testIronBearUsesBashAndMoltenBulwark() throws {
+        let bear = try XCTUnwrap(GameContent.enemies.first { $0.id == "the_iron_bear" })
+        let loadout = bear.combatant.abilityLoadout
+        XCTAssertEqual(loadout.basic, .bash)
+        XCTAssertEqual(loadout.ultimate, .moltenBulwark)
+    }
+
+    func testBlightTreantUsesFangs() throws {
+        let treant = try XCTUnwrap(GameContent.enemies.first { $0.id == "the_blight_treant" })
+        XCTAssertEqual(treant.combatant.abilityLoadout.basic, .fangs)
     }
 
     func testEachEnemyHasBasicSkillUltimate() {
@@ -41,6 +72,9 @@ final class EnemyCatalogTests: XCTestCase {
                     bossBaseHealth.contains(enemy.maxHealth),
                     "\(enemy.name) should use a boss base HP band"
                 )
+            } else if enemy.isElite {
+                XCTAssertGreaterThanOrEqual(enemy.maxHealth, 12, "\(enemy.name) should have elite base HP")
+                XCTAssertLessThanOrEqual(enemy.maxHealth, 15, "\(enemy.name) should have elite base HP")
             } else {
                 XCTAssertGreaterThanOrEqual(enemy.maxHealth, 11, "\(enemy.name) should have fodder base HP")
                 XCTAssertLessThanOrEqual(enemy.maxHealth, 14, "\(enemy.name) should have fodder base HP")

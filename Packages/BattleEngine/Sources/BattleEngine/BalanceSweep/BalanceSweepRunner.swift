@@ -193,6 +193,7 @@ extension BalanceSweepRunner {
             petID: triple.petID,
             enemyID: triple.enemyID,
             isBoss: triple.isBoss,
+            isElite: triple.isElite,
             loadoutSampleIndex: workItem.sampleIndex,
             winCount: simulation.winCount,
             tickLimitCount: simulation.tickLimitCount,

@@ -142,6 +142,7 @@ class EnemyRow:
     name: str
     max_health: str
     is_boss: str
+    is_elite: str
     growth_archetype: str
     abilities: str
     strength: str
@@ -286,6 +287,7 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "name",
         "max_health",
         "is_boss",
+        "is_elite",
         "growth_archetype",
         "abilities",
         "strength",
@@ -694,6 +696,10 @@ def validate_enemy_rows(rows: list[EnemyRow], ability_symbols: set[str], combata
         _require_non_empty("enemy name", row.name, row.id)
         if row.is_boss not in {"true", "false"}:
             raise ValueError(f"is_boss for {row.id} must be true or false")
+        if row.is_elite not in {"true", "false"}:
+            raise ValueError(f"is_elite for {row.id} must be true or false")
+        if row.is_boss == "true" and row.is_elite == "true":
+            raise ValueError(f"{row.id} cannot be both boss and elite")
         if row.growth_archetype not in VALID_GROWTH_ARCHETYPES:
             raise ValueError(f"Invalid growth archetype '{row.growth_archetype}' for {row.id}")
 
@@ -729,13 +735,20 @@ def render_party_combatant(row: CombatantRow) -> str:
 
 
 def render_enemy(row: EnemyRow) -> str:
-    boss_clause = ", isBoss: true" if row.is_boss == "true" else ""
+    flags: list[str] = []
+    if row.is_boss == "true":
+        flags.append("isBoss: true")
+    if row.is_elite == "true":
+        flags.append("isElite: true")
+    flag_clause = ""
+    if flags:
+        flag_clause = ", " + ", ".join(flags)
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
         f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
         f"primaryStats: {primary_stats_swift(row)}, "
-        f"growthArchetype: .{row.growth_archetype}){boss_clause})"
+        f"growthArchetype: .{row.growth_archetype}){flag_clause})"
     )
 
 

@@ -2,36 +2,49 @@ import Foundation
 
 public enum AnomalyDetector {
     public struct Thresholds: Equatable, Sendable {
-        public let targetWinRateMin: Double
-        public let targetWinRateMax: Double
         public let hardCounterWinRate: Double
         public let timeoutRate: Double
         public let underpoweredAbilityWinRate: Double
         public let overpoweredAbilityWinRate: Double
-        public let bossLateGameWinRateMin: Double
-        public let bossLateGameWinRateMax: Double
 
         public init(
-            targetWinRateMin: Double = 0.90,
-            targetWinRateMax: Double = 0.99,
             hardCounterWinRate: Double = 0.25,
             timeoutRate: Double = 0.10,
             underpoweredAbilityWinRate: Double = 0.45,
-            overpoweredAbilityWinRate: Double = 0.55,
-            bossLateGameWinRateMin: Double = 0.85,
-            bossLateGameWinRateMax: Double = 0.99
+            overpoweredAbilityWinRate: Double = 0.55
         ) {
-            self.targetWinRateMin = targetWinRateMin
-            self.targetWinRateMax = targetWinRateMax
             self.hardCounterWinRate = hardCounterWinRate
             self.timeoutRate = timeoutRate
             self.underpoweredAbilityWinRate = underpoweredAbilityWinRate
             self.overpoweredAbilityWinRate = overpoweredAbilityWinRate
-            self.bossLateGameWinRateMin = bossLateGameWinRateMin
-            self.bossLateGameWinRateMax = bossLateGameWinRateMax
         }
 
         public static let `default` = Thresholds()
+    }
+
+    public struct WinRateBand: Equatable, Sendable {
+        public let min: Double
+        public let max: Double
+
+        public init(min: Double, max: Double) {
+            self.min = min
+            self.max = max
+        }
+    }
+
+    public static func targetBand(for row: MatchupSweepRow) -> WinRateBand {
+        if row.isBoss || row.isElite {
+            return WinRateBand(min: 0.70, max: 0.80)
+        }
+
+        switch row.tier {
+        case .early:
+            return WinRateBand(min: 0.90, max: 0.99)
+        case .middle:
+            return WinRateBand(min: 0.80, max: 0.90)
+        case .lateGame:
+            return WinRateBand(min: 0.70, max: 0.80)
+        }
     }
 
     public static func detect(
@@ -42,6 +55,8 @@ public enum AnomalyDetector {
         var anomalies: [BalanceAnomaly] = []
 
         for row in matchupRows {
+            let target = targetBand(for: row)
+
             if row.tickLimitRate >= thresholds.timeoutRate {
                 anomalies.append(
                     BalanceAnomaly(
@@ -63,46 +78,24 @@ public enum AnomalyDetector {
                         value: row.winRate
                     )
                 )
-            } else if row.winRate < thresholds.targetWinRateMin {
+            } else if row.winRate < target.min {
                 anomalies.append(
                     BalanceAnomaly(
                         kind: .belowTarget,
                         severity: .warning,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate))",
+                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
                 )
-            } else if row.winRate > thresholds.targetWinRateMax {
+            } else if row.winRate > target.max {
                 anomalies.append(
                     BalanceAnomaly(
                         kind: .aboveTarget,
                         severity: .warning,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate))",
+                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
                 )
-            }
-
-            if row.isBoss, row.tier == .lateGame {
-                if row.winRate < thresholds.bossLateGameWinRateMin {
-                    anomalies.append(
-                        BalanceAnomaly(
-                            kind: .bossTuning,
-                            severity: .critical,
-                            detail: "Late boss \(row.enemyID) vs \(row.heroID)+\(row.petID) win rate \(percent(row.winRate)) (under-tuned)",
-                            value: row.winRate
-                        )
-                    )
-                } else if row.winRate > thresholds.bossLateGameWinRateMax {
-                    anomalies.append(
-                        BalanceAnomaly(
-                            kind: .bossTuning,
-                            severity: .warning,
-                            detail: "Late boss \(row.enemyID) vs \(row.heroID)+\(row.petID) win rate \(percent(row.winRate)) (over-tuned)",
-                            value: row.winRate
-                        )
-                    )
-                }
             }
         }
 

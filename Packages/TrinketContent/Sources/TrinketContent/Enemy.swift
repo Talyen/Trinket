@@ -6,13 +6,16 @@ public struct Enemy: Identifiable, Hashable, Sendable {
 
     public let combatant: Combatant
     public let isBoss: Bool
+    public let isElite: Bool
 
     public init(
         combatant: Combatant,
-        isBoss: Bool = false
+        isBoss: Bool = false,
+        isElite: Bool = false
     ) {
         self.combatant = combatant
         self.isBoss = isBoss
+        self.isElite = isElite
     }
 
     public var id: String {
@@ -25,6 +28,10 @@ public struct Enemy: Identifiable, Hashable, Sendable {
 
     public var maxHealth: Int {
         combatant.maxHealth
+    }
+
+    public var isChallenging: Bool {
+        isBoss || isElite
     }
 
     public static var fallbackCombatant: Combatant {

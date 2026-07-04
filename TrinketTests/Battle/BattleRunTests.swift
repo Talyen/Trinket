@@ -245,4 +245,35 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(summary.heroProgressionAfter.currentXP, 18)
         XCTAssertEqual(summary.petProgressionAfter.currentXP, 8)
     }
+
+    func testMakeVictorySummaryScalesExperienceByEncounterLevel() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let configuration = ActiveBattleConfiguration.make(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            enemyEncounterLevel: 1,
+            heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: 100),
+            petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            stageReward: StageReward(gold: 0, experience: 100, itemTemplateIDs: [])
+        )
+        let run = BattleRun(configuration: configuration)
+
+        while run.outcome == .ongoing {
+            _ = run.advanceOneStep()
+        }
+
+        let summary = run.makeVictorySummary(homestead: .freshStart)
+
+        XCTAssertEqual(summary.experience, 0)
+        XCTAssertEqual(summary.heroProgressionAfter.currentXP, 0)
+        XCTAssertEqual(summary.petProgressionAfter.currentXP, 100)
+    }
 }
