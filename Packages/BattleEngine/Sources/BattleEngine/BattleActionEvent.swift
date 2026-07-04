@@ -32,10 +32,19 @@ public struct ActionEvent: Identifiable, Equatable {
         case cleanseApplied
         case purgeApplied
         case dodgeApplied
+        case criticalApplied
         case leechApplied
         case mitigationHalved
         case deathsDoorTriggered
         case deathsDoorExpired
+        case hasteApplied
+        case thornsApplied
+        case thornsTriggered
+        case markedApplied
+        case markedConsumed
+        case criticalChanceApplied
+        case manaShieldApplied
+        case manaShieldTriggered
     }
 
     public let id: Int

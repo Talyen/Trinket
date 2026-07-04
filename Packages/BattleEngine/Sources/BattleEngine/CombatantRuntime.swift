@@ -153,9 +153,14 @@ public struct CombatantRuntime: Hashable {
 
     /// Records that this combatant just acted on `tick` and schedules the
     /// next ready tick.
-    public mutating func markActed(atTick tick: Int) {
+    public mutating func markActed(atTick tick: Int, activeEffects: [ActiveEffect] = []) {
         actionCount += 1
-        nextReadyAtTick = tick + actionSpeed.effectiveInterval
+        let hasteReduction = activeEffects.contains { active in
+            if case .haste = active.effect { return active.remainingTicks > 0 }
+            return false
+        } ? 1 : 0
+        let interval = max(1, actionSpeed.effectiveInterval - hasteReduction)
+        nextReadyAtTick = tick + interval
     }
 
     public mutating func setEffects(_ effects: [ActiveEffect]) {

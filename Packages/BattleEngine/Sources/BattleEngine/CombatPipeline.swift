@@ -18,7 +18,9 @@ package enum CombatPipeline {
             damageKeyword: request.keyword,
             applyStatBonus: request.options.applyStatBonus,
             applyItemBonus: request.options.applyItemBonus,
-            applyDodge: request.options.applyDodge
+            applyDodge: request.options.applyDodge,
+            abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed
         )
 
         DamagePipeline.run(state: &state, in: &context)

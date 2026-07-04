@@ -18,7 +18,8 @@ public extension BattleEngineContext {
         sourceActorID: String? = nil,
         applyStatBonus: Bool = true,
         applyItemBonus: Bool = true,
-        applyDodge: Bool = true
+        applyDodge: Bool = true,
+        ability: Ability? = nil
     ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
         let outcome = resolveDamage(
             DamageRequest(
@@ -29,7 +30,9 @@ public extension BattleEngineContext {
                 options: DamageOptions(
                     applyStatBonus: applyStatBonus,
                     applyItemBonus: applyItemBonus,
-                    applyDodge: applyDodge
+                    applyDodge: applyDodge,
+                    abilityCriticalChanceBonus: ability?.criticalChanceBonus ?? 0,
+                    guaranteedCriticalIfEnemyBuffed: ability?.guaranteedCriticalIfEnemyBuffed ?? false
                 )
             )
         )

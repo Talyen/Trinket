@@ -7,15 +7,21 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var applyStatBonus: Bool
     public var applyItemBonus: Bool
     public var applyDodge: Bool
+    public var abilityCriticalChanceBonus: Double
+    public var guaranteedCriticalIfEnemyBuffed: Bool
 
     public init(
         applyStatBonus: Bool = true,
         applyItemBonus: Bool = true,
-        applyDodge: Bool = true
+        applyDodge: Bool = true,
+        abilityCriticalChanceBonus: Double = 0,
+        guaranteedCriticalIfEnemyBuffed: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
         self.applyDodge = applyDodge
+        self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
+        self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
     }
 
     /// Direct ability hit: full bonuses and dodge checks.

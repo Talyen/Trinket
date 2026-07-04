@@ -3,24 +3,9 @@ import Foundation
 import TrinketCore
 
 public enum AbilityCatalogSkillGenerated {
-    public static let acidPotion = AbilityBuilder.directHit(
-        id: "acid-potion", name: "Acid Potion", tier: .skill,
-        amount: 2, keyword: .poison
-    )
-
     public static let burningBlade = AbilityBuilder.directHit(
         id: "burning-blade", name: "Burning Blade", tier: .skill,
         amount: 3, keyword: .burn
-    )
-
-    public static let cinderbloom = AbilityBuilder.directHit(
-        id: "cinderbloom", name: "Cinderbloom", tier: .skill,
-        amount: 3, keyword: .burn
-    )
-
-    public static let coldSnap = AbilityBuilder.directHit(
-        id: "cold-snap", name: "Cold Snap", tier: .skill,
-        amount: 3, keyword: .freeze
     )
 
     public static let fireball = AbilityBuilder.directHit(
@@ -53,54 +38,10 @@ public enum AbilityCatalogSkillGenerated {
         amount: 3, keyword: .stun
     )
 
-    public static let serratedEdge = AbilityBuilder.directHit(
-        id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        amount: 3, keyword: .bleed
-    )
-
-    public static let smite = AbilityBuilder.directHit(
-        id: "smite", name: "Smite", tier: .skill,
-        amount: 3, keyword: .holy
-    )
-
-    public static let venomArrow = AbilityBuilder.directHit(
-        id: "venom-arrow", name: "Venom Arrow", tier: .skill,
-        amount: 3, keyword: .poison
-    )
-
-    public static let venomFangs = AbilityBuilder.directHit(
-        id: "venom-fangs", name: "Venom Fangs", tier: .skill,
-        amount: 3, keyword: .poison
-    )
-
-    public static let cauterize = AbilityBuilder.directHit(
-        id: "cauterize", name: "Cauterize", tier: .skill,
-        amount: 3, keyword: .burn,
-        extras: [TargetedEffect(.instantHeal(.health, 2))]
-    )
-
-    public static let graspingVines = AbilityBuilder.directHit(
-        id: "grasping-vines", name: "Grasping Vines", tier: .skill,
-        amount: 3, keyword: .nature,
-        description: "Deal 3 Nature damage.\nRestore 1 Health.",
-        extras: [TargetedEffect(.instantHeal(.health, 1))]
-    )
-
     public static let roulette = AbilityBuilder.directHit(
         id: "roulette", name: "Roulette", tier: .skill,
         amount: 3, keyword: .physical,
         extras: [TargetedEffect(.resourceGain(.gold, 3))]
-    )
-
-    public static let steal = AbilityBuilder.directHit(
-        id: "steal", name: "Steal", tier: .skill,
-        amount: 3, keyword: .physical,
-        extras: [TargetedEffect(.resourceGain(.gold, 3))]
-    )
-
-    public static let darkPact = AbilityBuilder.buffOnly(
-        id: "dark-pact", name: "Dark Pact", tier: .skill,
-        effects: [.instantHeal(.health, 3), .standardLeechBuff]
     )
 
     public static let haste = AbilityBuilder.buffOnly(
@@ -108,19 +49,9 @@ public enum AbilityCatalogSkillGenerated {
         effects: [.mitigation(.armor, 0.25, 6)]
     )
 
-    public static let heal = AbilityBuilder.buffOnly(
-        id: "heal", name: "Heal", tier: .skill,
-        effects: [.instantHeal(.health, 3)]
-    )
-
     public static let healthPotion = AbilityBuilder.buffOnly(
         id: "health-potion", name: "Health Potion", tier: .skill,
         effects: [.instantHeal(.health, 3)]
-    )
-
-    public static let manaShield = AbilityBuilder.buffOnly(
-        id: "mana-shield", name: "Mana Shield", tier: .skill,
-        effects: [.shield(.block, 3, 6)]
     )
 
     public static let stoneskinPotion = AbilityBuilder.buffOnly(
@@ -134,29 +65,16 @@ public enum AbilityCatalogSkillGenerated {
     )
 
     public static let all: [Ability] = [
-        acidPotion,
         burningBlade,
-        cinderbloom,
-        coldSnap,
         fireball,
         frostbolt,
         lightningArrow,
         lightningBolt,
         poisonDagger,
         sapArrow,
-        serratedEdge,
-        smite,
-        venomArrow,
-        venomFangs,
-        cauterize,
-        graspingVines,
         roulette,
-        steal,
-        darkPact,
         haste,
-        heal,
         healthPotion,
-        manaShield,
         stoneskinPotion,
         tithe
     ]

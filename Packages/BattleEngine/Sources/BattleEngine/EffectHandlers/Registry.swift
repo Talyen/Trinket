@@ -21,7 +21,12 @@ public enum EffectHandlers {
         .purge: PurgeHandler(),
         .purgeRandom: PurgeRandomHandler(),
         .halveMitigation: HalveMitigationHandler(),
-        .deathsDoor: DeathsDoorHandler()
+        .deathsDoor: DeathsDoorHandler(),
+        .haste: HasteHandler(),
+        .thorns: ThornsHandler(),
+        .marked: MarkedHandler(),
+        .criticalChanceBonus: CriticalChanceBonusHandler(),
+        .restoreManaOnHit: RestoreManaOnHitHandler()
     ]
 
     public static let all: [EffectKind: any BattleEffectHandler] = handlerByKind

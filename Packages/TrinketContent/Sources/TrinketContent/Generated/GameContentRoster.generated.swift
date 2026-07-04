@@ -51,7 +51,7 @@ public enum GameContentRosterGenerated {
             maxHealth: 15,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.stab, .block],
+                basics: [.causticJab, .block],
                 skills: [.acidPotion, .healthPotion],
                 ultimates: [.panaceaPotion, .luckPotion]
             ),
@@ -124,7 +124,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.rayOfFrost, .iceShot],
                 skills: [.frostbolt, .coldSnap],
-                ultimates: [.glacialWard, .meteor]
+                ultimates: [.glacialWard, .blizzard]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 4, intellect: 10, wisdom: 4),
             growthArchetype: .mage
@@ -148,8 +148,8 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 15,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .fangs],
-                skills: [.serratedEdge, .haste],
+                basics: [.rendingSlash, .fangs],
+                skills: [.serratedEdge, .predatorsHaste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 5, intellect: 3, wisdom: 3),
@@ -175,8 +175,8 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 14,
             abilityChoices: AbilityChoices(
-                basics: [.slash, .fangs],
-                skills: [.serratedEdge, .haste],
+                basics: [.rendingSlash, .fangs],
+                skills: [.serratedEdge, .predatorsHaste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 5, intellect: 2, wisdom: 4),
@@ -188,7 +188,7 @@ public enum GameContentRosterGenerated {
             role: .pet,
             maxHealth: 16,
             abilityChoices: AbilityChoices(
-                basics: [.apple, .gold],
+                basics: [.apple, .sniffOut],
                 skills: [.stoneskinPotion, .tithe],
                 ultimates: [.luckPotion, .goldenPlate]
             ),
@@ -202,8 +202,8 @@ public enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 8,
             abilityChoices: AbilityChoices(
-                basics: [.manaCrystals, .rayOfFrost],
-                skills: [.cleanse, .heal],
+                basics: [.wiseFrost, .stargaze],
+                skills: [.sageHeal, .cleanse],
                 ultimates: [.panaceaPotion, .exorcism]
             ),
             primaryStats: PrimaryStats(strength: 2, agility: 6, toughness: 5, intellect: 7, wisdom: 10),
@@ -216,7 +216,7 @@ public enum GameContentRosterGenerated {
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .blackjack],
-                skills: [.darkPact, .sunderArmor],
+                skills: [.gravePact, .sunderArmor],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 5, toughness: 7, intellect: 5, wisdom: 4),
@@ -231,7 +231,7 @@ public enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .manaCrystals],
                 skills: [.manaPotion, .manaShield],
-                ultimates: [.crystalBulwark, .combustion]
+                ultimates: [.manaBulwark, .combustion]
             ),
             primaryStats: PrimaryStats(strength: 3, agility: 7, toughness: 4, intellect: 9, wisdom: 7),
             growthArchetype: .mage
@@ -243,7 +243,7 @@ public enum GameContentRosterGenerated {
             maxHealth: 14,
             maxMana: 7,
             abilityChoices: AbilityChoices(
-                basics: [.gold, .kindling],
+                basics: [.pixieDust, .kindling],
                 skills: [.cleanse, .heal],
                 ultimates: [.panaceaPotion, .sunburst]
             ),

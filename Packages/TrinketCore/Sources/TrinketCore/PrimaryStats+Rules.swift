@@ -38,4 +38,21 @@ public extension PrimaryStats {
         let agilityResist = 1.0 + Double(agility) * 0.01
         return max(1, Int(ceil(baseThreshold * agilityResist)))
     }
+
+    /// Base critical-hit chance for damage of the given keyword, before ability
+    /// or item bonuses. Capped at 75%.
+    public func criticalChance(for keyword: Keyword) -> Double {
+        let statBonus: Double
+        switch keyword {
+        case .physical, .bleed, .stun:
+            statBonus = Double(agility) * 0.0025
+        case .burn, .freeze:
+            statBonus = Double(intellect) * 0.0025
+        case .poison, .holy, .nature:
+            statBonus = Double(wisdom) * 0.0025
+        default:
+            statBonus = 0
+        }
+        return min(0.75, 0.05 + statBonus)
+    }
 }

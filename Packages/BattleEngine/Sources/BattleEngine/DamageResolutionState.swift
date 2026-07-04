@@ -14,6 +14,8 @@ package struct DamageResolutionState {
     public let applyStatBonus: Bool
     public let applyItemBonus: Bool
     public let applyDodge: Bool
+    public let abilityCriticalChanceBonus: Double
+    public let guaranteedCriticalIfEnemyBuffed: Bool
 
     /// Damage remaining after each step. `BonusStep` initializes this to
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
@@ -44,6 +46,31 @@ package struct DamageResolutionState {
     /// Set to `true` by `DodgeGateStep` when the incoming attack is dodged;
     /// the orchestrator then short-circuits and returns `(0, damageEvents)`.
     public var isDodged: Bool = false
+
+    /// Set to `true` by `CriticalGateStep` when the hit critically strikes.
+    public var isCritical: Bool = false
+
+    public init(
+        amount: Int,
+        combatant: Combatant,
+        sourceActorID: String?,
+        damageKeyword: Keyword?,
+        applyStatBonus: Bool,
+        applyItemBonus: Bool,
+        applyDodge: Bool,
+        abilityCriticalChanceBonus: Double = 0,
+        guaranteedCriticalIfEnemyBuffed: Bool = false
+    ) {
+        self.amount = amount
+        self.combatant = combatant
+        self.sourceActorID = sourceActorID
+        self.damageKeyword = damageKeyword
+        self.applyStatBonus = applyStatBonus
+        self.applyItemBonus = applyItemBonus
+        self.applyDodge = applyDodge
+        self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
+        self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+    }
 }
 
 /// One step in the damage pipeline. Steps are stateless structs registered

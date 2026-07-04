@@ -8,6 +8,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public let damageComponents: [DamageComponent]
     public let descriptionOverride: String?
     public let targetedEffects: [TargetedEffect]
+    public let manaCost: Int
+    public let criticalChanceBonus: Double
+    public let guaranteedCriticalIfEnemyBuffed: Bool
 
     public var effects: [Effect] {
         targetedEffects.map(\.effect)
@@ -20,13 +23,19 @@ public struct Ability: Identifiable, Hashable, Sendable {
         description: String? = nil,
         damageComponents: [DamageComponent] = [],
         effects: [Effect] = [],
-        targetedEffects: [TargetedEffect]? = nil
+        targetedEffects: [TargetedEffect]? = nil,
+        manaCost: Int = 0,
+        criticalChanceBonus: Double = 0,
+        guaranteedCriticalIfEnemyBuffed: Bool = false
     ) {
         self.id = id
         self.name = name
         self.tier = tier
         self.damageComponents = damageComponents
         descriptionOverride = description
+        self.manaCost = manaCost
+        self.criticalChanceBonus = criticalChanceBonus
+        self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {
@@ -42,7 +51,10 @@ public struct Ability: Identifiable, Hashable, Sendable {
         damageKeyword: Keyword = .physical,
         description: String? = nil,
         effects: [Effect] = [],
-        targetedEffects: [TargetedEffect]? = nil
+        targetedEffects: [TargetedEffect]? = nil,
+        manaCost: Int = 0,
+        criticalChanceBonus: Double = 0,
+        guaranteedCriticalIfEnemyBuffed: Bool = false
     ) {
         let components = directDamage > 0
             ? [DamageComponent(directDamage, keyword: damageKeyword)]
@@ -54,7 +66,10 @@ public struct Ability: Identifiable, Hashable, Sendable {
             description: description,
             damageComponents: components,
             effects: effects,
-            targetedEffects: targetedEffects
+            targetedEffects: targetedEffects,
+            manaCost: manaCost,
+            criticalChanceBonus: criticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed
         )
     }
 

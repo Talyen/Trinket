@@ -46,6 +46,18 @@ public extension BattleEngineContext {
         return actual
     }
 
+    func mana(of combatant: Combatant) -> Int {
+        roster.runtime(for: combatant)?.currentMana ?? 0
+    }
+
+    @discardableResult
+    mutating func spendMana(_ amount: Int, for combatant: Combatant) -> Int {
+        guard var runtime = roster.runtime(for: combatant) else { return 0 }
+        let actual = runtime.spendMana(amount)
+        roster.update(runtime)
+        return actual
+    }
+
     func runtime(for combatant: Combatant) -> CombatantRuntime {
         guard let runtime = roster.runtime(for: combatant) else {
             preconditionFailure("Unknown combatant id \(combatant.id)")

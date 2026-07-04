@@ -19,6 +19,11 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case purgeRandom
     case halveMitigation
     case deathsDoor
+    case haste
+    case thorns
+    case marked
+    case criticalChanceBonus
+    case restoreManaOnHit
 }
 
 public extension Effect {
@@ -41,6 +46,11 @@ public extension Effect {
         case .purgeRandom: return .purgeRandom
         case .halveMitigation: return .halveMitigation
         case .deathsDoor: return .deathsDoor
+        case .haste: return .haste
+        case .thorns: return .thorns
+        case .marked: return .marked
+        case .criticalChanceBonus: return .criticalChanceBonus
+        case .restoreManaOnHit: return .restoreManaOnHit
         }
     }
 
@@ -48,10 +58,11 @@ public extension Effect {
     /// strip from allies.
     public var isRemovableDebuff: Bool {
         switch self {
-        case .burn, .poison, .bleed, .controlMeter:
+        case .burn, .poison, .bleed, .controlMeter, .marked:
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge,
-             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor:
+             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
+             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
             return false
         }
     }
@@ -60,7 +71,7 @@ public extension Effect {
     /// strip from enemies.
     public var isRemovableBuff: Bool {
         switch self {
-        case .shield, .mitigation, .leech:
+        case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
             return true
         default:
             return false
@@ -73,7 +84,8 @@ public extension Effect {
     public var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
-             .shield, .mitigation, .leech, .deathsDoor:
+             .shield, .mitigation, .leech, .deathsDoor,
+             .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:

@@ -2,19 +2,19 @@ id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	streng
 knight	Knight	hero	17	0	tank	bash,shieldBash	smite,spikedShield	blessedAegis,plateMail	9	3	11	2	4
 rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	5	11	4	3	6
 wizard	Wizard	hero	14	10	mage	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	12	3
-alchemist	Alchemist	hero	15	8	support	stab,block	acidPotion,healthPotion	panaceaPotion,luckPotion	2	5	5	8	10
+alchemist	Alchemist	hero	15	8	support	causticJab,block	acidPotion,healthPotion	panaceaPotion,luckPotion	2	5	5	8	10
 druid	Druid	hero	17	8	support	kindling,fangs	briarShield,graspingVines	bloodthorn,thornMail	3	4	8	4	11
 ranger	Ranger	hero	14	0	assassin	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	10	4	2	6
 warlock	Warlock	hero	14	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7
 bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	plateMail,thornMail	9	3	10	2	4
-frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,meteor	2	6	4	10	4
+frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4
 lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5
-panther	Panther	pet	15	0	bruiser	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	8	9	5	3	3
+panther	Panther	pet	15	0	bruiser	rendingSlash,fangs	serratedEdge,predatorsHaste	packTactics,hemorrhage	8	9	5	3	3
 phoenix	Phoenix	pet	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	2	6	4	9	7
-wolf	Wolf	pet	14	0	assassin	slash,fangs	serratedEdge,haste	packTactics,hemorrhage	7	10	5	2	4
-golden_retriever	Golden Retriever	pet	16	0	support	apple,gold	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9
-library_owl	Library Owl	pet	14	8	support	manaCrystals,rayOfFrost	cleanse,heal	panaceaPotion,exorcism	2	6	5	7	10
-risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	darkPact,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4
-mana_moth	Mana Moth	pet	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	crystalBulwark,combustion	3	7	4	9	7
-pixie	Pixie	pet	14	7	support	gold,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8
+wolf	Wolf	pet	14	0	assassin	rendingSlash,fangs	serratedEdge,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4
+golden_retriever	Golden Retriever	pet	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9
+library_owl	Library Owl	pet	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	2	6	5	7	10
+risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	gravePact,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4
+mana_moth	Mana Moth	pet	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	manaBulwark,combustion	3	7	4	9	7
+pixie	Pixie	pet	14	7	support	pixieDust,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8
 shield_scarab	Shield Scarab	pet	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	12	2	4

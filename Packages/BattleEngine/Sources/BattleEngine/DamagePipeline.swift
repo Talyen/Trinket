@@ -38,14 +38,18 @@ package enum DamagePipeline {
     package static var steps: [AnyDamageStep] {
         [
             AnyDamageStep(DodgeGateStep.self),
+            AnyDamageStep(CriticalGateStep.self),
             AnyDamageStep(DamageBonusStep.self),
+            AnyDamageStep(MarkedBonusStep.self),
             AnyDamageStep(MitigationStep.self),
             AnyDamageStep(ItemReductionStep.self),
             AnyDamageStep(ShieldAbsorptionStep.self),
+            AnyDamageStep(CriticalMultiplyStep.self),
             AnyDamageStep(TakeDamageStep.self),
             AnyDamageStep(DeathsDoorStep.self),
             AnyDamageStep(LeechStep.self),
-            AnyDamageStep(ControlMeterStep.self)
+            AnyDamageStep(ControlMeterStep.self),
+            AnyDamageStep(ReactiveOnHitStep.self)
         ]
     }
 
@@ -81,7 +85,9 @@ package enum DamagePipeline {
             damageKeyword: request.keyword,
             applyStatBonus: request.options.applyStatBonus,
             applyItemBonus: request.options.applyItemBonus,
-            applyDodge: request.options.applyDodge
+            applyDodge: request.options.applyDodge,
+            abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed
         )
 
         var executed: [String] = []
