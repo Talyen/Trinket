@@ -71,6 +71,42 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.roster.current.gold, initialGold)
     }
 
+    func testCompleteActiveBattleAdvancesJourneyWhenPersistFails() throws {
+        let fileStore = PlayerSaveFileStore(directoryURL: directoryURL)
+        let playerSave = PlayerSaveStore(
+            fileStore: fileStore,
+            immediatePersistRetryCount: 1,
+            immediatePersistRetryDelayNanoseconds: 0
+        )
+        let state = AppTestSupport.makeAppState(playerSave: playerSave, fileStore: fileStore)
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = state.battle.startBattle(
+            stage: stage,
+            hero: state.roster.activeHero,
+            pet: state.roster.activePet,
+            roster: state.roster,
+            inventory: state.inventory
+        )
+        let configuration = try XCTUnwrap(state.battle.activeBattle)
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o555))],
+            ofItemAtPath: directoryURL.path
+        )
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: NSNumber(value: Int16(0o755))],
+                ofItemAtPath: directoryURL.path
+            )
+        }
+
+        state.completeActiveBattle(configuration, battleEarnedGold: 0)
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
+        XCTAssertTrue(state.playerSave.hasPendingPersist)
+    }
+
     func testMapScrollFocusIDReturnsActiveStageWhenInProgress() {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
 

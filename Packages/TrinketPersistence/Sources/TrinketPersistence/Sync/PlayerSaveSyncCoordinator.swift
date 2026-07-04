@@ -18,7 +18,6 @@ public final class PlayerSaveSyncCoordinator {
     private let sync: any PlayerSaveSyncing
     private let sessionLease: any PlayerAccountSessionLeasing
     private weak var playerSaveStore: PlayerSaveStore?
-    private var uploadTask: Task<Void, Never>?
     private var pendingUploadSave: PlayerSave?
     private var isProcessingUploads = false
     private var isApplyingRemoteSave = false
@@ -84,6 +83,7 @@ public final class PlayerSaveSyncCoordinator {
     public func closeSession() async {
         guard sessionPhase == .active else { return }
 
+        playerSaveStore?.flushPendingPersistIfNeeded()
         await checkpointUploadIfNeeded()
 
         if let sessionToken {
@@ -96,12 +96,12 @@ public final class PlayerSaveSyncCoordinator {
 
     public func uploadImmediately(_ save: PlayerSave) async {
         pendingUploadSave = save
-        uploadTask?.cancel()
         await processUploadQueue()
     }
 
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
+        playerSaveStore.flushPendingPersistIfNeeded()
         await enqueueUpload(playerSaveStore.currentSave)
     }
 
@@ -174,7 +174,6 @@ public final class PlayerSaveSyncCoordinator {
 
     private func enqueueUpload(_ save: PlayerSave) async {
         pendingUploadSave = save
-        uploadTask?.cancel()
         await processUploadQueue()
     }
 

@@ -69,6 +69,30 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         XCTAssertNil(fileStore.load())
     }
 
+    func testMigrateLegacyUserDefaultsPreservesKeyWhenSaveFails() throws {
+        let fileStore = makeFileStore()
+        var journey = JourneyProgressState.initial
+        journey.completedStageIDs.insert("chapter-1-stage-1")
+        journey.activeStageID = "chapter-1-stage-2"
+        let data = try PlayerSaveCoding.makeEncoder().encode(journey)
+        UserDefaults.standard.set(data, forKey: legacyJourneyKey)
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o555))],
+            ofItemAtPath: directoryURL.path
+        )
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: NSNumber(value: Int16(0o755))],
+                ofItemAtPath: directoryURL.path
+            )
+        }
+
+        XCTAssertNil(fileStore.load())
+        XCTAssertNotNil(UserDefaults.standard.data(forKey: legacyJourneyKey))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileStore.saveFileURL.path))
+    }
+
     func testMigrateLegacyUserDefaultsJourney() throws {
         let fileStore = makeFileStore()
         var journey = JourneyProgressState.initial

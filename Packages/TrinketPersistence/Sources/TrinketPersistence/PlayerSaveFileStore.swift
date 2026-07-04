@@ -72,9 +72,10 @@ public struct PlayerSaveFileStore {
             let data = try encoder.encode(playerSave)
             try data.write(to: temporaryURL, options: .atomic)
             if fileManager.fileExists(atPath: saveFileURL.path) {
-                try fileManager.removeItem(at: saveFileURL)
+                _ = try fileManager.replaceItemAt(saveFileURL, withItemAt: temporaryURL)
+            } else {
+                try fileManager.moveItem(at: temporaryURL, to: saveFileURL)
             }
-            try fileManager.moveItem(at: temporaryURL, to: saveFileURL)
         } catch {
             logger.error("Failed to save player progress: \(error.localizedDescription, privacy: .public)")
             throw PlayerSavePersistenceError.writeFailed
@@ -113,7 +114,14 @@ public struct PlayerSaveFileStore {
 
         var playerSave = PlayerSave.fresh
         playerSave.journey = journey
-        try? save(playerSave)
+        do {
+            try save(playerSave)
+        } catch {
+            logger.error(
+                "Failed to persist migrated legacy journey progress: \(error.localizedDescription, privacy: .public)"
+            )
+            return nil
+        }
         UserDefaults.standard.removeObject(forKey: Self.legacyJourneyKey)
         logger.info("Migrated legacy journey progress into PlayerSave.")
         return playerSave

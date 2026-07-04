@@ -4,6 +4,7 @@ struct BattleVictorySummary: Equatable {
     let stageGold: Int
     let battleGold: Int
     let experience: Int
+    let petExperience: Int
     let heroName: String
     let petName: String
     let itemNames: [String]
@@ -15,5 +16,9 @@ struct BattleVictorySummary: Equatable {
 
     var totalGold: Int {
         stageGold + battleGold
+    }
+
+    var hasExperienceAwards: Bool {
+        experience > 0 || petExperience > 0
     }
 }

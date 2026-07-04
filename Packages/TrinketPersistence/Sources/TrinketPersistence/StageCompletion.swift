@@ -106,7 +106,9 @@ public enum StageCompletion {
             context: &context,
             resolveTemplate: resolveTemplate
         )
-        context.journey.complete(stage, in: chapters)
+        if !context.journey.isCompleted(stage) {
+            context.journey.complete(stage, in: chapters)
+        }
     }
 
     public static func claimRewardsIfNeeded(

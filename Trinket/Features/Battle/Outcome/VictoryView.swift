@@ -33,7 +33,7 @@ struct VictoryView: View {
 
     @ViewBuilder
     private var experienceContent: some View {
-        if summary.experience > 0 {
+        if summary.hasExperienceAwards {
             VStack(alignment: .leading, spacing: 12) {
                 ExperienceBar(
                     combatantName: summary.heroName,

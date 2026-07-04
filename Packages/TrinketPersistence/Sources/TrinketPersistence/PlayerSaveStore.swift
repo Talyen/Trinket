@@ -6,7 +6,10 @@ import os
 @Observable
 public final class PlayerSaveStore {
     private let fileStore: PlayerSaveFileStore
+    private let immediatePersistRetryCount: Int
+    private let immediatePersistRetryDelayNanoseconds: UInt64
     private var save: PlayerSave
+    private var pendingPersistSave: PlayerSave?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -14,6 +17,10 @@ public final class PlayerSaveStore {
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
     public private(set) var loadedFromDisk = false
     public var onLocalSave: ((PlayerSave) -> Void)?
+
+    public var hasPendingPersist: Bool {
+        pendingPersistSave != nil
+    }
 
     public var journey: JourneyProgressState {
         get { save.journey }
@@ -39,8 +46,14 @@ public final class PlayerSaveStore {
         save
     }
 
-    public init(fileStore: PlayerSaveFileStore = PlayerSaveFileStore()) {
+    public init(
+        fileStore: PlayerSaveFileStore = PlayerSaveFileStore(),
+        immediatePersistRetryCount: Int = 3,
+        immediatePersistRetryDelayNanoseconds: UInt64 = 50_000_000
+    ) {
         self.fileStore = fileStore
+        self.immediatePersistRetryCount = max(1, immediatePersistRetryCount)
+        self.immediatePersistRetryDelayNanoseconds = immediatePersistRetryDelayNanoseconds
         if let loaded = fileStore.load() {
             loadedFromDisk = true
             save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
@@ -50,22 +63,65 @@ public final class PlayerSaveStore {
     }
 
     public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
-        try mutateThrowing(update)
+        flushPendingPersistIfNeeded()
+
+        var candidate = save
+        update(&candidate)
+        candidate = PlayerSaveSanitizer.sanitize(candidate)
+
+        var lastWriteFailure = false
+        for attempt in 0 ..< immediatePersistRetryCount {
+            if attempt > 0 {
+                briefRetryPause(attempt: attempt)
+            }
+            do {
+                try commitSave(candidate, optimisticOnFailure: false)
+                return
+            } catch let error as PlayerSavePersistenceError {
+                switch error {
+                case .writeFailed:
+                    lastWriteFailure = true
+                case .invalidSave:
+                    throw error
+                }
+            }
+        }
+
+        if lastWriteFailure {
+            try commitSave(candidate, optimisticOnFailure: true)
+        }
+    }
+
+    public func flushPendingPersistIfNeeded() {
+        guard let pending = pendingPersistSave else { return }
+
+        do {
+            try fileStore.save(pending)
+            save = pending
+            pendingPersistSave = nil
+            lastPersistenceError = nil
+            onLocalSave?(save)
+        } catch {
+            lastPersistenceError = .writeFailed
+            logger.error(
+                "Failed to flush pending player save: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
     public func resetGameplayProgress() throws {
         var fresh = PlayerSave.fresh
         fresh.sessionGeneration = save.sessionGeneration &+ 1
-        try commitLocalSave(fresh)
+        try commitSave(fresh)
     }
 
     public func applyTestSeed() throws {
-        try commitLocalSave(.testSeed)
+        try commitSave(.testSeed)
     }
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
-        try commitExternalSave(migrated)
+        try commitSave(migrated, stampLocalMutation: false, notifyLocalSave: false)
         loadedFromDisk = true
     }
 
@@ -73,54 +129,67 @@ public final class PlayerSaveStore {
         do {
             try mutateThrowing(update)
         } catch let error as PlayerSavePersistenceError {
-            lastPersistenceError = error
-            logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
+            if case .invalidSave = error {
+                lastPersistenceError = error
+                logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
+            }
         } catch {
             logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
         }
     }
 
     private func mutateThrowing(_ update: (inout PlayerSave) -> Void) throws {
+        flushPendingPersistIfNeeded()
+
         var candidate = save
         update(&candidate)
         candidate = PlayerSaveSanitizer.sanitize(candidate)
-        try commitLocalSave(candidate)
+        try commitSave(candidate, optimisticOnFailure: true)
     }
 
-    private func commitLocalSave(_ candidate: PlayerSave) throws {
-        let persisted = PlayerSaveSanitizer.sanitize(candidate.markedLocalMutation())
-        try persistSave(persisted, notifySync: true)
-    }
-
-    private func commitExternalSave(_ candidate: PlayerSave) throws {
-        let persisted = PlayerSaveSanitizer.sanitize(candidate)
-        try persistSave(persisted, notifySync: false)
-    }
-
-    private func persistSave(_ persisted: PlayerSave, notifySync: Bool) throws {
+    private func commitSave(
+        _ candidate: PlayerSave,
+        stampLocalMutation: Bool = true,
+        optimisticOnFailure: Bool = false,
+        notifyLocalSave: Bool = true
+    ) throws {
+        var prepared = candidate
+        if stampLocalMutation {
+            prepared = candidate.markedLocalMutation()
+        } else {
+            prepared.schemaVersion = PlayerSave.currentSchemaVersion
+        }
+        let persisted = PlayerSaveSanitizer.sanitize(prepared)
         try PlayerSaveSanitizer.validate(persisted)
-        var lastError: Error?
-        for _ in 1 ... 3 {
-            do {
-                try fileStore.save(persisted)
+
+        do {
+            try fileStore.save(persisted)
+            save = persisted
+            loadedFromDisk = true
+            pendingPersistSave = nil
+            lastPersistenceError = nil
+            if notifyLocalSave {
+                onLocalSave?(save)
+            }
+        } catch {
+            lastPersistenceError = .writeFailed
+            logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
+            if optimisticOnFailure {
                 save = persisted
-                loadedFromDisk = true
-                lastPersistenceError = nil
-                if notifySync {
+                pendingPersistSave = persisted
+                if notifyLocalSave {
                     onLocalSave?(save)
                 }
-                return
-            } catch let error as PlayerSavePersistenceError {
-                lastError = error
-            } catch {
-                lastError = error
+            } else {
+                throw PlayerSavePersistenceError.writeFailed
             }
         }
-        if let error = lastError as? PlayerSavePersistenceError {
-            lastPersistenceError = error
-            throw error
-        }
-        throw lastError ?? PlayerSavePersistenceError.writeFailed
+    }
+
+    private func briefRetryPause(attempt: Int) {
+        guard immediatePersistRetryDelayNanoseconds > 0 else { return }
+        let delay = Double(immediatePersistRetryDelayNanoseconds * UInt64(attempt)) / 1_000_000_000
+        Thread.sleep(forTimeInterval: delay)
     }
 
     private func resolvedRoster() -> PlayerRosterState {

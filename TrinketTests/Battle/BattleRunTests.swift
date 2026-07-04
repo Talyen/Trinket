@@ -313,7 +313,8 @@ final class BattleRunTests: XCTestCase {
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
         XCTAssertEqual(summary.experience, 0)
-        XCTAssertEqual(summary.heroProgressionAfter.currentXP, 0)
+        XCTAssertEqual(summary.petExperience, expectedPetXP)
+        XCTAssertEqual(summary.hasExperienceAwards, true)
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 

@@ -11,6 +11,7 @@ enum AppTestSupport {
 
     static func makeAppState(
         arguments: [String] = [],
+        playerSave: PlayerSaveStore? = nil,
         fileStore: PlayerSaveFileStore? = nil,
         directoryURL: URL,
         sync: (any PlayerSaveSyncing)? = nil,
@@ -18,6 +19,7 @@ enum AppTestSupport {
     ) -> AppState {
         AppState(
             environment: makeEnvironment(arguments: arguments),
+            playerSave: playerSave,
             sync: sync ?? defaultSync,
             fileStore: fileStore ?? SaveTestSupport.makeFileStore(directoryURL: directoryURL),
             userDefaults: userDefaults

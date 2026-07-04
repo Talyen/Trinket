@@ -76,9 +76,13 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
     }
 
-    func testPersistFailureLeavesSaveUnchanged() throws {
+    func testPersistFailureUpdatesMemoryAndQueuesPendingFlush() throws {
         let fileStore = makeFileStore()
-        let store = makeStore()
+        let store = PlayerSaveStore(
+            fileStore: fileStore,
+            immediatePersistRetryCount: 1,
+            immediatePersistRetryDelayNanoseconds: 0
+        )
         store.grantGold(10)
 
         try FileManager.default.setAttributes(
@@ -94,11 +98,57 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         store.grantGold(5)
 
-        XCTAssertEqual(store.roster.gold, 10)
+        XCTAssertEqual(store.roster.gold, 15)
+        XCTAssertTrue(store.hasPendingPersist)
         XCTAssertEqual(store.lastPersistenceError, .writeFailed)
 
-        let reloaded = PlayerSaveStore(fileStore: fileStore)
-        XCTAssertEqual(reloaded.roster.gold, 10)
+        let reloadedBeforeFlush = PlayerSaveStore(fileStore: fileStore)
+        XCTAssertEqual(reloadedBeforeFlush.roster.gold, 10)
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o755))],
+            ofItemAtPath: directoryURL.path
+        )
+        store.flushPendingPersistIfNeeded()
+
+        XCTAssertFalse(store.hasPendingPersist)
+        XCTAssertNil(store.lastPersistenceError)
+
+        let reloadedAfterFlush = PlayerSaveStore(fileStore: fileStore)
+        XCTAssertEqual(reloadedAfterFlush.roster.gold, 15)
+    }
+
+    func testPerformBatchMutationAppliesOptimisticallyWhenPersistFails() throws {
+        let fileStore = makeFileStore()
+        let store = PlayerSaveStore(
+            fileStore: fileStore,
+            immediatePersistRetryCount: 1,
+            immediatePersistRetryDelayNanoseconds: 0
+        )
+
+        try FileManager.default.setAttributes(
+            [.posixPermissions: NSNumber(value: Int16(0o555))],
+            ofItemAtPath: directoryURL.path
+        )
+        defer {
+            try? FileManager.default.setAttributes(
+                [.posixPermissions: NSNumber(value: Int16(0o755))],
+                ofItemAtPath: directoryURL.path
+            )
+        }
+
+        var journey = store.journey
+        journey.completedStageIDs.insert("chapter-1-stage-1")
+        journey.activeStageID = "chapter-1-stage-2"
+
+        try store.performBatchMutation { save in
+            save.journey = journey
+            save.roster.gold = 42
+        }
+
+        XCTAssertEqual(store.journey.activeStageID, "chapter-1-stage-2")
+        XCTAssertEqual(store.roster.gold, 42)
+        XCTAssertTrue(store.hasPendingPersist)
     }
 
     func testSanitizerUsesCatalogOrderForLastCompletedStage() {
@@ -112,17 +162,32 @@ final class PlayerSaveStoreTests: XCTestCase {
     }
 
     func testApplyRemoteSavePreservesModifiedAt() throws {
+        let fileStore = makeFileStore()
         let store = makeStore()
-        let remoteDate = Date(timeIntervalSince1970: 1_600_000_000)
-        var remote = PlayerSave.fresh
-        remote.modifiedAt = remoteDate
-        remote.roster.gold = 50
+        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        var remoteSave = PlayerSave.fresh
+        remoteSave.modifiedAt = remoteTimestamp
+        remoteSave.roster.gold = 99
 
-        try store.applyRemoteSave(remote)
+        try store.applyRemoteSave(remoteSave)
 
-        XCTAssertEqual(store.currentSave.modifiedAt, remoteDate)
-        XCTAssertEqual(store.roster.gold, 50)
+        XCTAssertEqual(store.currentSave.modifiedAt, remoteTimestamp)
+        XCTAssertEqual(store.roster.gold, 99)
         XCTAssertTrue(store.loadedFromDisk)
+    }
+
+    func testLocalMutationUpdatesModifiedAt() throws {
+        let fileStore = makeFileStore()
+        let store = makeStore()
+        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
+        var remoteSave = PlayerSave.fresh
+        remoteSave.modifiedAt = remoteTimestamp
+        try store.applyRemoteSave(remoteSave)
+
+        let beforeLocalEdit = store.currentSave.modifiedAt
+        store.grantGold(1)
+
+        XCTAssertGreaterThan(store.currentSave.modifiedAt, beforeLocalEdit)
     }
 
     func testLoadedFromDiskWhenSaveFileExists() throws {
