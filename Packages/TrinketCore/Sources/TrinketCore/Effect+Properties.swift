@@ -18,6 +18,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case purge
     case purgeRandom
     case halveMitigation
+    case deathsDoor
 }
 
 public extension Effect {
@@ -39,6 +40,7 @@ public extension Effect {
         case .purge: return .purge
         case .purgeRandom: return .purgeRandom
         case .halveMitigation: return .halveMitigation
+        case .deathsDoor: return .deathsDoor
         }
     }
 
@@ -49,7 +51,7 @@ public extension Effect {
         case .burn, .poison, .bleed, .controlMeter:
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge,
-             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation:
+             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor:
             return false
         }
     }
@@ -71,7 +73,7 @@ public extension Effect {
     public var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
-             .shield, .mitigation, .leech:
+             .shield, .mitigation, .leech, .deathsDoor:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:

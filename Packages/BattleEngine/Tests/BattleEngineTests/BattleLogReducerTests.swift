@@ -205,4 +205,41 @@ final class BattleLogReducerTests: XCTestCase {
 
         XCTAssertEqual(projection.entries, BattleLogProjection.entries(from: events, matchup: matchup))
     }
+
+    func testDeathsDoorTriggeredLogLine() {
+        let event = ActionEvent(
+            id: 1,
+            kind: .effect,
+            effectKind: .deathsDoorTriggered,
+            actorName: "Hero",
+            abilityName: "Death's Door",
+            targetID: "hero",
+            targetName: "Hero",
+            amount: 0,
+            keyword: .deathsDoor
+        )
+        XCTAssertEqual(BattleLogReducer.line(for: event, matchup: sampleMatchup()), "Hero is on Death's Door.")
+    }
+
+    func testDeathsDoorExpiredLogLine() {
+        let event = ActionEvent(
+            id: 1,
+            kind: .effect,
+            effectKind: .deathsDoorExpired,
+            actorName: "Hero",
+            abilityName: "Death's Door",
+            targetID: "hero",
+            targetName: "Hero",
+            amount: 0,
+            keyword: .deathsDoor
+        )
+        XCTAssertEqual(BattleLogReducer.line(for: event, matchup: sampleMatchup()), "Hero's Death's Door fades.")
+    }
+
+    private func sampleMatchup() -> BattleMatchup {
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
+        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
+        return BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+    }
 }

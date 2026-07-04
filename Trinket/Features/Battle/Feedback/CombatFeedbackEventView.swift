@@ -93,6 +93,8 @@ private extension ActionEventDisplay {
             return Keyword.dodge.visualStyle
         case .control:
             return .stun
+        case .deathsDoor:
+            return Keyword.deathsDoor.visualStyle
         default:
             return keyword.visualStyle
         }

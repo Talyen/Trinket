@@ -31,6 +31,8 @@ public enum EffectPresentation {
             return "\(keyword.rawValue): \(Int(percent * 100))%"
         case .leech:
             return "Leech"
+        case .deathsDoor:
+            return "Death's Door"
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }

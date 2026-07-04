@@ -38,6 +38,9 @@ public struct CombatantRuntime: Hashable {
     /// Flat maximum-mana bonus from equipped item affixes.
     public let maximumManaBonus: Int
 
+    /// True after this combatant has triggered Death's Door once this battle.
+    public var hasConsumedDeathsDoor: Bool
+
     public init(
         combatant: Combatant,
         initialHealth: Int? = nil,
@@ -46,11 +49,13 @@ public struct CombatantRuntime: Hashable {
         initialActionSpeed: ActionSpeed? = nil,
         initialNextReadyAtTick: Int? = nil,
         maximumHealthBonus: Int = 0,
-        maximumManaBonus: Int = 0
+        maximumManaBonus: Int = 0,
+        hasConsumedDeathsDoor: Bool = false
     ) {
         self.combatant = combatant
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
+        self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
         currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
         activeEffects = initialActiveEffects

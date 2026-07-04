@@ -91,6 +91,49 @@ final class BattleStateTests: XCTestCase {
         XCTAssertFalse(battle.isEnemyDefeated)
     }
 
+    func testPartyNotDefeatedWhenOneMemberOnDeathsDoor() {
+        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 5)
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 1)
+        let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash], maxHealth: 100)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+
+        battle.withEngineContext { context in
+            _ = context.applyDamage(1, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        }
+        XCTAssertFalse(battle.isPetAlive)
+
+        battle.withEngineContext { context in
+            _ = context.applyDamage(5, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        }
+        XCTAssertEqual(battle.health(of: battle.hero), 1)
+        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .deathsDoor })
+        XCTAssertFalse(battle.isPartyDefeated)
+    }
+
+    func testPartyDefeatWhenBothDeathsDoorConsumedAndExpired() {
+        let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, maxHealth: 3)
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, maxHealth: 3)
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+
+        battle.withEngineContext { context in
+            _ = context.applyDamage(3, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        }
+        XCTAssertFalse(battle.isPartyDefeated)
+
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
+            _ = battle.advanceOneStep()
+        }
+
+        battle.withEngineContext { context in
+            _ = context.applyDamage(3, to: battle.hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyDamage(3, to: battle.pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        }
+
+        XCTAssertTrue(battle.isPartyDefeated)
+    }
+
     func testSmiteDealsHolyDamageType() {
         let smite = Ability.smite
         XCTAssertEqual(smite.damageKeyword, .holy)

@@ -13,6 +13,7 @@ import TrinketContent
 /// then cleanse).
 public enum EffectSummaryBuilder {
     private static let priorityOrder: [EffectKind] = [
+        .deathsDoor,
         .burn, .poison,
         .bleed,
         .shield, .mitigation,

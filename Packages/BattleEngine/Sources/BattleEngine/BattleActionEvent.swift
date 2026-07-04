@@ -34,6 +34,8 @@ public struct ActionEvent: Identifiable, Equatable {
         case dodgeApplied
         case leechApplied
         case mitigationHalved
+        case deathsDoorTriggered
+        case deathsDoorExpired
     }
 
     public let id: Int

@@ -11,6 +11,7 @@ final class DamagePipelineTests: XCTestCase {
         "ItemReduction",
         "ShieldAbsorption",
         "TakeDamage",
+        "DeathsDoor",
         "Leech",
         "ControlMeter"
     ]

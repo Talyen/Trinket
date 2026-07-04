@@ -108,6 +108,19 @@ final class EffectSummaryBuilderTests: XCTestCase {
         XCTAssertEqual(summaries.first?.text, "Leech: 10% leech, 6 ticks left.")
     }
 
+    func testDeathsDoorSummary() {
+        let effects = [
+            ActiveEffect(id: 1, effect: .deathsDoor, remainingTicks: BattleTiming.deathsDoorDurationTicks)
+        ]
+        let summaries = EffectSummaryBuilder.build(for: effects)
+        XCTAssertEqual(summaries.count, 1)
+        XCTAssertEqual(summaries.first?.keyword, .deathsDoor)
+        XCTAssertEqual(
+            summaries.first?.text,
+            "Death's Door: heal soon or the next fatal blow will end them."
+        )
+    }
+
     // MARK: - Empty / no-summaries
 
     func testEmptyEffectsProducesEmptySummaries() {

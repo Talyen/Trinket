@@ -24,6 +24,7 @@ public struct ActionEventDisplay: Equatable {
         case dodge
         case shieldAbsorbed
         case generic
+        case deathsDoor
     }
 }
 
@@ -94,7 +95,18 @@ public enum ActionEventFormatter {
             return mitigationHalvedDisplay(for: event)
         case .dodgeApplied:
             return dodgeDisplay(for: event)
+        case .deathsDoorTriggered, .deathsDoorExpired:
+            return deathsDoorDisplay(for: event)
         }
+    }
+
+    private static func deathsDoorDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        ActionEventDisplay(
+            emphasis: .deathsDoor,
+            keyword: .deathsDoor,
+            text: Keyword.deathsDoor.rawValue,
+            secondaryText: nil
+        )
     }
 
     private static func mitigationAppliedDisplay(for event: ActionEvent) -> ActionEventDisplay {

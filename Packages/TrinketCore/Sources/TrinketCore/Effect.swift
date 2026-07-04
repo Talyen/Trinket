@@ -45,6 +45,7 @@ public enum Effect: Hashable, Sendable {
     case purge(Keyword?)
     case purgeRandom
     case halveMitigation(Keyword)
+    case deathsDoor
 
     public static let bleedDoTTickCount = 3
     public static let standardLeechPercent = 0.10
@@ -67,6 +68,7 @@ public enum Effect: Hashable, Sendable {
         case let .purge(k?): return k
         case .purge(nil), .purgeRandom: return .purge
         case let .halveMitigation(k): return k
+        case .deathsDoor: return .deathsDoor
         }
     }
 
@@ -84,7 +86,7 @@ public enum Effect: Hashable, Sendable {
         case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
         case .burn, .poison, .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveMitigation, .controlMeter: return 0
+             .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor: return 0
         }
     }
 
@@ -108,7 +110,8 @@ public enum Effect: Hashable, Sendable {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom:
             return .abilityTarget
-        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom:
+        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom,
+             .deathsDoor:
             return .actor
         }
     }

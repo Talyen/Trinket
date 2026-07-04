@@ -74,4 +74,23 @@ public extension BattleEngineContext {
         )
         setActiveEffects(effects, for: target)
     }
+
+    mutating func prependEffect(
+        _ effect: Effect,
+        to target: Combatant,
+        sourceID: String? = nil,
+        remainingTicks: Int
+    ) {
+        var effects = activeEffects(for: target)
+        effects.insert(
+            ActiveEffect(
+                id: consumeNextEffectID(),
+                effect: effect,
+                remainingTicks: remainingTicks,
+                sourceActorID: sourceID
+            ),
+            at: 0
+        )
+        setActiveEffects(effects, for: target)
+    }
 }

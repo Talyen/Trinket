@@ -156,6 +156,15 @@ final class ActionEventFormatterTests: XCTestCase {
         XCTAssertEqual(display.emphasis, .dodge)
     }
 
+    func testDeathsDoorTriggeredDisplay() {
+        let display = ActionEventFormatter.display(
+            for: event(kind: .effect, effectKind: .deathsDoorTriggered, keyword: .deathsDoor)
+        )
+        XCTAssertEqual(display.text, "Death's Door")
+        XCTAssertEqual(display.emphasis, .deathsDoor)
+        XCTAssertEqual(display.keyword, .deathsDoor)
+    }
+
     // MARK: - Edge cases
 
     func testEffectWithNilEffectKindFallsBackToKeyword() {
