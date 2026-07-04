@@ -57,8 +57,8 @@ public struct ResourceGainHandler: BattleEffectHandler {
             context.addGold(amount, sourceActorID: source.id)
             loggedAmount = amount + bonus
         default:
-            context.addGold(amount, sourceActorID: source.id)
-            loggedAmount = amount
+            assertionFailure("Unhandled resourceGain keyword: \(keyword)")
+            return EffectApplyOutcome(events: [], didApply: false)
         }
         let event = context.nextEvent(
             kind: .effect,

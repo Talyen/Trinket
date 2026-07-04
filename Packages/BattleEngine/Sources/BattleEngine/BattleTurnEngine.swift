@@ -1,8 +1,13 @@
 import Foundation
+import os
 import TrinketCore
 import TrinketContent
 
 public enum BattleTurnEngine {
+    private static let logger = Logger(
+        subsystem: "com.ryanmcintire.Trinket",
+        category: "BattleTurnEngine"
+    )
     public static func readyCombatants(in context: BattleEngineContext) -> [Combatant] {
         context.roster.readyCombatants(atTick: context.tickCount).map(\.combatant)
     }
@@ -177,7 +182,11 @@ public enum BattleTurnEngine {
                 enemy: matchup.enemy
             )
 
-            guard let handler = EffectHandlers.all[effect.kind] else { continue }
+            guard let handler = EffectHandlers.all[effect.kind] else {
+                assertionFailure("Missing effect handler for \(effect.kind)")
+                logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
+                continue
+            }
             let outcome = handler.apply(
                 effect,
                 ability: ability,

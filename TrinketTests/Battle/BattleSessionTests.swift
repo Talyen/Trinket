@@ -122,7 +122,7 @@ final class BattleSessionTests: XCTestCase {
         )
         let original = try XCTUnwrap(appState.battle.activeBattle)
 
-        appState.battle.restartBattle(using: appState.roster)
+        appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
 
         let restarted = try XCTUnwrap(appState.battle.activeBattle)
         XCTAssertEqual(restarted.stageID, original.stageID)

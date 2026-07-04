@@ -71,7 +71,7 @@ final class BattleSession {
         return nil
     }
 
-    func restartBattle(using roster: PlayerRosterStore) {
+    func restartBattle(using roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
         guard let activeBattle else { return }
 
         guard
@@ -85,11 +85,11 @@ final class BattleSession {
             pet: pet,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            heroProgression: activeBattle.heroProgression,
-            petProgression: activeBattle.petProgression,
-            heroEquipmentLoadout: activeBattle.heroEquipmentLoadout,
-            petEquipmentLoadout: activeBattle.petEquipmentLoadout,
-            inventoryState: activeBattle.inventoryState,
+            heroProgression: roster.current.progression(for: hero),
+            petProgression: roster.current.progression(for: pet),
+            heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
+            petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
+            inventoryState: inventory.current,
             stageReward: activeBattle.stageReward,
             rewardItemNames: activeBattle.rewardItemNames
         )

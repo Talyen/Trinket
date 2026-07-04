@@ -23,10 +23,6 @@ struct PlayView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
-            .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-                guard newValue == nil else { return }
-                appState.journey.requestMapScroll(to: appState.mapScrollFocusID(for: appState.journey.current))
-            }
     }
 
     @ViewBuilder

@@ -33,7 +33,7 @@ struct BattleView: View {
                         if hasStageProgression {
                             appState.completeActiveBattle(configuration, battleEarnedGold: victorySummary.battleGold)
                         } else {
-                            appState.battle.restartBattle(using: appState.roster)
+                            appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                         }
                     }
                 )
@@ -41,7 +41,7 @@ struct BattleView: View {
                 DefeatView(
                     enemyName: battleRun.enemy.name,
                     onBattleAgain: {
-                        appState.battle.restartBattle(using: appState.roster)
+                        appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                     }
                 )
             } else {
