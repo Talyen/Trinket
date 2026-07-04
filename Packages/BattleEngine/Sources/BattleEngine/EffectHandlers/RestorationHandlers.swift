@@ -28,6 +28,9 @@ public struct InstantHealHandler: BattleEffectHandler {
             ),
             in: &context
         )
+        guard outcome.healthRestored > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         return EffectApplyOutcome(events: outcome.events, didApply: true)
     }
 }

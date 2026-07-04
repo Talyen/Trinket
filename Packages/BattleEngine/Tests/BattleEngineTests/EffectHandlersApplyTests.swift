@@ -109,6 +109,20 @@ final class EffectHandlersApplyTests: XCTestCase {
         XCTAssertEqual(outcome.events.first?.amount, battle.health(of: battle.hero) - before)
     }
 
+    func testInstantHealHandlerDoesNotApplyAtFullHealth() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let hero = battle.hero
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .instantHeal(.health, 5),
+            ability: CombatantFixtures.ability(),
+            source: hero,
+            target: hero,
+            battle: &battle
+        )
+        XCTAssertFalse(outcome.didApply)
+        XCTAssertTrue(outcome.events.isEmpty)
+    }
+
     func testResourceGainHandlerAddsGold() {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)

@@ -22,8 +22,8 @@ package struct DamageResolutionState {
     /// Total damage after stat + item bonuses, before shields and mitigation.
     public var dealt: Int = 0
 
-    /// Post-mitigation damage used for stun/freeze buildup. Set after
-    /// `ItemReductionStep` from `remaining`, before shields absorb damage.
+    /// Post-mitigation damage before shields. Retained for diagnostics; control
+    /// buildup uses `healthLost` after shields absorb damage.
     public var buildupDamage: Int = 0
 
     /// Stat and item bonus components used by the control-meter buildup step.
@@ -269,7 +269,7 @@ package struct LeechStep: DamageStep {
 }
 
 /// Step 8: for `.stun` or `.freeze` keywords, applies control-meter
-/// buildup against the target using post-mitigation, pre-shield damage.
+/// buildup against the target using HP damage dealt after shields.
 package struct ControlMeterStep: DamageStep {
     public static let stepName = "ControlMeter"
     public static let phase: DamagePhase = .post
@@ -277,13 +277,13 @@ package struct ControlMeterStep: DamageStep {
     public init() {}
 
     public func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        guard state.buildupDamage > 0,
+        guard state.healthLost > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-            state.buildupDamage,
+            state.healthLost,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,

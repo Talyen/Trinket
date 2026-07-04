@@ -292,6 +292,41 @@ final class BattleStateTests: XCTestCase {
         }
     }
 
+    func testSimultaneousPartyAndEnemyDefeatCountsAsPartyDefeat() {
+        let hero = Combatant(
+            id: "warlock",
+            name: "Warlock",
+            role: .hero,
+            maxHealth: 3,
+            actionIntervalTicks: 1,
+            abilities: [.faustianBargain]
+        )
+        let pet = Combatant(
+            id: "pet",
+            name: "Pet",
+            role: .pet,
+            maxHealth: 20,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 6,
+            actionIntervalTicks: 100,
+            abilities: []
+        )
+        var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
+
+        while !battle.isBattleOver {
+            _ = advance(&battle)
+        }
+
+        XCTAssertTrue(battle.isPartyDefeated)
+        XCTAssertTrue(battle.isEnemyDefeated)
+    }
+
     private var heroId: String {
         GameContent.heroes[0].id
     }

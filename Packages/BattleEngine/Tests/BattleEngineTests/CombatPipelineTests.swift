@@ -322,7 +322,7 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertEqual(amount, 10, "50% mitigation should halve stun buildup from 20 to 10")
     }
 
-    func testStunBuildupAppliesWhenShieldAbsorbsAllDamage() {
+    func testStunBuildupDoesNotApplyWhenShieldAbsorbsAllDamage() {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 0)
         let (lost, _) = context.applyDamage(
@@ -334,7 +334,7 @@ final class CombatPipelineTests: XCTestCase {
 
         XCTAssertEqual(lost, 0)
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
-        XCTAssertEqual(buildup?.effect.controlMeterValues?.amount, 5)
+        XCTAssertNil(buildup, "Fully shielded hits should not build control meters")
     }
 
     // MARK: - Pipeline ordering
@@ -347,6 +347,7 @@ final class CombatPipelineTests: XCTestCase {
             "ItemReduction",
             "ShieldAbsorption",
             "TakeDamage",
+            "DeathsDoor",
             "Leech",
             "ControlMeter"
         ])
