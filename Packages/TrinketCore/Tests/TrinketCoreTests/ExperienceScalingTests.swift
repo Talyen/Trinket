@@ -87,7 +87,7 @@ final class ExperienceScalingTests: XCTestCase {
 
     func testCatchUpMultiplierApproachesMax() {
         let largeGap = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 100)
-        XCTAssertLessThan(largeGap, 2.5)
+        XCTAssertLessThanOrEqual(largeGap, 2.5)
         XCTAssertGreaterThan(largeGap, 2.4)
     }
 

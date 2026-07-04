@@ -164,7 +164,7 @@ public enum StageCompletion {
             playerLevel: playerLevel,
             enemyLevel: enemyLevel
         )
-        let adjustedAward = max(1, Int((Double(award) * multiplier).rounded()))
+        let adjustedAward = award > 0 ? max(1, Int((Double(award) * multiplier).rounded())) : 0
         roster.grantExperience(adjustedAward, to: combatant)
     }
 }

@@ -67,16 +67,30 @@ final class StageRewardTests: XCTestCase {
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let petLevel = PlayerRosterState.initial.progression(for: pet).level
-        let expectedHeroXP = ExperienceScaling.battleAward(
+        let heroCatchUp = ExperienceScaling.catchUpMultiplier(
+            for: heroLevel,
+            highestLevel: PlayerRosterState.initial.highestHeroLevel
+        )
+        let petCatchUp = ExperienceScaling.catchUpMultiplier(
+            for: petLevel,
+            highestLevel: PlayerRosterState.initial.highestPetLevel
+        )
+        let baseHeroAward = ExperienceScaling.battleAward(
             playerLevel: heroLevel,
             enemyLevel: encounterLevel
         )
-        let expectedPetXP = ExperienceScaling.battleAward(
+        let basePetAward = ExperienceScaling.battleAward(
             playerLevel: petLevel,
             enemyLevel: encounterLevel
         )
-        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore + expectedHeroXP)
-        XCTAssertEqual(roster.progression(for: pet).currentXP, petXPBefore + expectedPetXP)
+        let expectedHeroProgression = PlayerRosterState.initial.progression(for: hero).addingExperience(
+            baseHeroAward > 0 ? Int((Double(baseHeroAward) * heroCatchUp).rounded()) : 0
+        )
+        let expectedPetProgression = PlayerRosterState.initial.progression(for: pet).addingExperience(
+            basePetAward > 0 ? Int((Double(basePetAward) * petCatchUp).rounded()) : 0
+        )
+        XCTAssertEqual(roster.progression(for: hero), expectedHeroProgression)
+        XCTAssertEqual(roster.progression(for: pet), expectedPetProgression)
         XCTAssertNotNil(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(homestead.resources[.wood], 8)
         XCTAssertEqual(homestead.resources[.stone], 3)

@@ -116,8 +116,8 @@ final class BattleRun {
             playerLevel: configuration.petProgression.level,
             enemyLevel: enemyLevel
         )
-        let heroXP = max(1, Int((Double(baseHeroXP) * heroCatchUp).rounded()))
-        let petXP = max(1, Int((Double(basePetXP) * petCatchUp).rounded()))
+        let heroXP = baseHeroXP > 0 ? max(1, Int((Double(baseHeroXP) * heroCatchUp).rounded())) : 0
+        let petXP = basePetXP > 0 ? max(1, Int((Double(basePetXP) * petCatchUp).rounded())) : 0
         let heroAfter = configuration.heroProgression.addingExperience(heroXP)
         let petAfter = configuration.petProgression.addingExperience(petXP)
         let materialRewards = homestead.adjustedMaterialRewards(

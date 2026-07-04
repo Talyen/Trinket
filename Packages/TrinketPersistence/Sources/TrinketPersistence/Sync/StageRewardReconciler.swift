@@ -104,7 +104,7 @@ enum StageRewardReconciler {
             playerLevel: heroLevel,
             enemyLevel: encounterLevel
         )
-        let heroAward = max(1, Int((Double(heroBaseAward) * heroCatchUp).rounded()))
+        let heroAward = heroBaseAward > 0 ? max(1, Int((Double(heroBaseAward) * heroCatchUp).rounded())) : 0
         if !experienceAwardReflected(
             local: localRoster.progression(for: hero),
             merged: mergedRoster.progression(for: hero),
@@ -122,7 +122,7 @@ enum StageRewardReconciler {
             playerLevel: petLevel,
             enemyLevel: encounterLevel
         )
-        let petAward = max(1, Int((Double(petBaseAward) * petCatchUp).rounded()))
+        let petAward = petBaseAward > 0 ? max(1, Int((Double(petBaseAward) * petCatchUp).rounded())) : 0
         if !experienceAwardReflected(
             local: localRoster.progression(for: pet),
             merged: mergedRoster.progression(for: pet),
