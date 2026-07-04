@@ -183,24 +183,42 @@ public enum StatGrowth {
         return delta
     }
 
-    /// Smooth gear-compensation ramp from level 1 through 40+ (replaces mid/late bracket cliffs).
-    /// Health reaches +25% at level 40; primary stats scale the late-game bracket bonus by the same curve.
+    /// Smooth gear-compensation ramp from level 1 through 40+.
+    /// Fodder enemies emphasize the mid curve; bosses and elites add a late-game curve.
     public static func enemyGearCompensation(
         level: Int,
-        identityStats: PrimaryStats
+        identityStats: PrimaryStats,
+        isBoss: Bool = false,
+        isElite: Bool = false
     ) -> (healthMultiplier: Double, statDelta: StatGrowthDelta) {
         guard level > 1 else { return (1.0, .zero) }
 
-        let normalized = min(max(Double(level - 1) / 39.0, 0), 1)
-        let t = smoothstep(normalized)
-        let healthMultiplier = 1.0 + (0.25 * t)
+        let fullT = smoothstep(min(max(Double(level - 1) / 39.0, 0), 1))
+        let midT = smoothstep(min(max((Double(level) - 8.0) / 22.0, 0), 1))
+        let lateT = smoothstep(min(max((Double(level) - 18.0) / 22.0, 0), 1))
+        let challenging = isBoss || isElite
         let bracket = enemyLateGameBracketBonus(identityStats: identityStats)
+
+        let healthMultiplier: Double
+        let statScale: Double
+        let extraToughness: Int
+
+        if challenging {
+            healthMultiplier = 1.0 + (0.12 * fullT) + (0.08 * midT) + (0.20 * lateT)
+            statScale = (0.50 * fullT) + (0.20 * midT) + (0.55 * lateT)
+            extraToughness = Int((2.0 * lateT).rounded())
+        } else {
+            healthMultiplier = 1.0 + (0.12 * fullT) + (0.20 * midT)
+            statScale = (0.45 * fullT) + (0.40 * midT)
+            extraToughness = Int((1.0 * midT).rounded())
+        }
+
         let statDelta = StatGrowthDelta(
-            strength: scaledByCurve(bracket.strength, t),
-            agility: scaledByCurve(bracket.agility, t),
-            toughness: scaledByCurve(bracket.toughness + 1, t),
-            intellect: scaledByCurve(bracket.intellect, t),
-            wisdom: scaledByCurve(bracket.wisdom, t)
+            strength: scaledByCurve(bracket.strength, statScale),
+            agility: scaledByCurve(bracket.agility, statScale),
+            toughness: scaledByCurve(bracket.toughness + extraToughness, statScale),
+            intellect: scaledByCurve(bracket.intellect, statScale),
+            wisdom: scaledByCurve(bracket.wisdom, statScale)
         )
         return (healthMultiplier, statDelta)
     }

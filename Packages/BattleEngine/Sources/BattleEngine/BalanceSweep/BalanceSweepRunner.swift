@@ -132,12 +132,9 @@ extension BalanceSweepRunner {
                 using: &sampleRNG
             )
         } else {
-            heroLoadout = AbilityLoadoutSampler.defaultLoadout(
-                for: triple.hero,
-                progression: progression
-            )
-            petLoadout = AbilityLoadoutSampler.defaultLoadout(
-                for: triple.pet,
+            (heroLoadout, petLoadout) = AbilityLoadoutSampler.defaultLoadoutPair(
+                hero: triple.hero,
+                pet: triple.pet,
                 progression: progression
             )
         }

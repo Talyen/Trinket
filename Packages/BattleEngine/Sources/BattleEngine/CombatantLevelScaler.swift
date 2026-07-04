@@ -21,7 +21,12 @@ public enum CombatantLevelScaler {
             identityStats: enemy.combatant.primaryStats
         )
         let scaled = scaledCombatant(enemy.combatant, growth: growth)
-        return applyEnemyGearCompensation(to: scaled, level: level)
+        return applyEnemyGearCompensation(
+            to: scaled,
+            level: level,
+            isBoss: enemy.isBoss,
+            isElite: enemy.isElite
+        )
     }
 
     private static func scaledCombatant(_ combatant: Combatant, growth: StatGrowthDelta) -> Combatant {
@@ -45,10 +50,17 @@ public enum CombatantLevelScaler {
     }
 
     /// Compensates for player gear at higher levels without giving enemies equipment.
-    private static func applyEnemyGearCompensation(to combatant: Combatant, level: Int) -> Combatant {
+    private static func applyEnemyGearCompensation(
+        to combatant: Combatant,
+        level: Int,
+        isBoss: Bool,
+        isElite: Bool
+    ) -> Combatant {
         let compensation = StatGrowth.enemyGearCompensation(
             level: level,
-            identityStats: combatant.primaryStats
+            identityStats: combatant.primaryStats,
+            isBoss: isBoss,
+            isElite: isElite
         )
         guard compensation.healthMultiplier != 1.0 || compensation.statDelta != .zero else {
             return combatant

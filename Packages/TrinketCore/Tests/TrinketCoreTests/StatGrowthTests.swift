@@ -47,16 +47,17 @@ final class StatGrowthTests: XCTestCase {
         let stats = PrimaryStats(strength: 5, agility: 7, toughness: 5, intellect: 2, wisdom: 5)
         let baseline = StatGrowth.enemyGearCompensation(level: 1, identityStats: stats)
         let early = StatGrowth.enemyGearCompensation(level: 10, identityStats: stats)
-        let mid = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats)
-        let late = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats)
+        let mid = StatGrowth.enemyGearCompensation(level: 20, identityStats: stats, isBoss: false, isElite: false)
+        let lateFodder = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats, isBoss: false, isElite: false)
+        let lateBoss = StatGrowth.enemyGearCompensation(level: 40, identityStats: stats, isBoss: true, isElite: false)
 
         XCTAssertEqual(baseline.healthMultiplier, 1.0, accuracy: 0.001)
         XCTAssertEqual(baseline.statDelta, .zero)
         XCTAssertLessThan(baseline.healthMultiplier, early.healthMultiplier)
         XCTAssertLessThan(early.healthMultiplier, mid.healthMultiplier)
-        XCTAssertLessThan(mid.healthMultiplier, late.healthMultiplier)
-        XCTAssertEqual(late.healthMultiplier, 1.25, accuracy: 0.01)
-        XCTAssertLessThan(early.statDelta.toughness, late.statDelta.toughness)
+        XCTAssertLessThan(mid.healthMultiplier, lateFodder.healthMultiplier)
+        XCTAssertLessThan(lateFodder.healthMultiplier, lateBoss.healthMultiplier)
+        XCTAssertLessThan(early.statDelta.toughness, lateBoss.statDelta.toughness)
     }
 
     func testApplyMergesGrowthIntoStats() {
