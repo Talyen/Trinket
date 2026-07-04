@@ -3,35 +3,35 @@
 import SwiftUI
 import TrinketCore
 
-public struct CombatantArtReference: Hashable {
+public struct CombatantArtReference: Hashable, @unchecked Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
     public let focalPoint: UnitPoint
     public let accessibilityLabel: String
 }
 
-public struct AbilityArtReference: Hashable {
+public struct AbilityArtReference: Hashable, Sendable {
     public let imageName: String
     public let accessibilityLabel: String
 }
 
-public struct ItemArtReference: Hashable {
+public struct ItemArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
     public let accessibilityLabel: String
 }
 
-public struct SlotBackgroundArtReference: Hashable {
+public struct SlotBackgroundArtReference: Hashable, Sendable {
     public let imageName: String
     public let accessibilityLabel: String
 }
 
-public struct BackgroundArtReference: Hashable {
+public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
     public let accessibilityLabel: String
 }
 
-public struct EncounterArtReference: Hashable {
+public struct EncounterArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
     public let accessibilityLabel: String
