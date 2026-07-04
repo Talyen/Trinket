@@ -159,6 +159,7 @@ public struct BalanceAnomaly: Equatable, Sendable, Identifiable {
         case belowTarget
         case aboveTarget
         case timeout
+        case prolongedFight
         case underpoweredAbility
         case overpoweredAbility
         case bossTuning

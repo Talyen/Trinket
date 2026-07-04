@@ -55,5 +55,5 @@ public enum BalanceSweepDefaults {
     public static let runsPerMatchup = 20
     public static let loadoutSamplesPerMatchup = 5
     public static let baseSeed: UInt64 = 42_026
-    public static let maxTicks = 500
+    public static let maxTicks = 100
 }

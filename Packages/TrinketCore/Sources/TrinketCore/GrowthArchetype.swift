@@ -141,7 +141,9 @@ public enum StatGrowth {
             $0.value(in: identityStats) > $1.value(in: identityStats)
         }
 
-        var delta = StatGrowthDelta(maxHealth: (levelsAbove * 2) + (levelsAbove / 10))
+        var delta = StatGrowthDelta(
+            maxHealth: Int((Double(levelsAbove) * 2.5).rounded()) + (levelsAbove / 8)
+        )
         ranked.first?.apply(levelsAbove, to: &delta)
         if ranked.count > 1 {
             ranked[1].apply(every(levelsAbove, interval: 2, amount: 1), to: &delta)
@@ -179,6 +181,37 @@ public enum StatGrowth {
             topStat.apply(1, to: &delta)
         }
         return delta
+    }
+
+    /// Smooth gear-compensation ramp from level 1 through 40+ (replaces mid/late bracket cliffs).
+    /// Health reaches +25% at level 40; primary stats scale the late-game bracket bonus by the same curve.
+    public static func enemyGearCompensation(
+        level: Int,
+        identityStats: PrimaryStats
+    ) -> (healthMultiplier: Double, statDelta: StatGrowthDelta) {
+        guard level > 1 else { return (1.0, .zero) }
+
+        let normalized = min(max(Double(level - 1) / 39.0, 0), 1)
+        let t = smoothstep(normalized)
+        let healthMultiplier = 1.0 + (0.25 * t)
+        let bracket = enemyLateGameBracketBonus(identityStats: identityStats)
+        let statDelta = StatGrowthDelta(
+            strength: scaledByCurve(bracket.strength, t),
+            agility: scaledByCurve(bracket.agility, t),
+            toughness: scaledByCurve(bracket.toughness + 1, t),
+            intellect: scaledByCurve(bracket.intellect, t),
+            wisdom: scaledByCurve(bracket.wisdom, t)
+        )
+        return (healthMultiplier, statDelta)
+    }
+
+    private static func scaledByCurve(_ amount: Int, _ t: Double) -> Int {
+        Int((Double(amount) * t).rounded())
+    }
+
+    private static func smoothstep(_ value: Double) -> Double {
+        let clamped = min(max(value, 0), 1)
+        return clamped * clamped * (3 - (2 * clamped))
     }
 
     public static func apply(

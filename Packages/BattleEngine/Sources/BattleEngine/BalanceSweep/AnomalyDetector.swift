@@ -4,17 +4,20 @@ public enum AnomalyDetector {
     public struct Thresholds: Equatable, Sendable {
         public let hardCounterWinRate: Double
         public let timeoutRate: Double
+        public let prolongedFightTicks: Int
         public let underpoweredAbilityWinRate: Double
         public let overpoweredAbilityWinRate: Double
 
         public init(
             hardCounterWinRate: Double = 0.25,
             timeoutRate: Double = 0.10,
+            prolongedFightTicks: Int = 100,
             underpoweredAbilityWinRate: Double = 0.45,
             overpoweredAbilityWinRate: Double = 0.55
         ) {
             self.hardCounterWinRate = hardCounterWinRate
             self.timeoutRate = timeoutRate
+            self.prolongedFightTicks = prolongedFightTicks
             self.underpoweredAbilityWinRate = underpoweredAbilityWinRate
             self.overpoweredAbilityWinRate = overpoweredAbilityWinRate
         }
@@ -62,8 +65,17 @@ public enum AnomalyDetector {
                     BalanceAnomaly(
                         kind: .timeout,
                         severity: .critical,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) timed out \(percent(row.tickLimitRate)) of runs",
+                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) exceeded \(thresholds.prolongedFightTicks)-tick limit \(percent(row.tickLimitRate)) of runs",
                         value: row.tickLimitRate
+                    )
+                )
+            } else if row.averageTickCount > Double(thresholds.prolongedFightTicks) {
+                anomalies.append(
+                    BalanceAnomaly(
+                        kind: .prolongedFight,
+                        severity: .critical,
+                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) averaged \(String(format: "%.0f", row.averageTickCount)) ticks (limit \(thresholds.prolongedFightTicks))",
+                        value: row.averageTickCount
                     )
                 )
             }

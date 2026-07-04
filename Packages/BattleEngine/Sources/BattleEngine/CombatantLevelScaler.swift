@@ -21,7 +21,7 @@ public enum CombatantLevelScaler {
             identityStats: enemy.combatant.primaryStats
         )
         let scaled = scaledCombatant(enemy.combatant, growth: growth)
-        return applyEnemyPowerBracket(to: scaled, level: level)
+        return applyEnemyGearCompensation(to: scaled, level: level)
     }
 
     private static func scaledCombatant(_ combatant: Combatant, growth: StatGrowthDelta) -> Combatant {
@@ -44,38 +44,25 @@ public enum CombatantLevelScaler {
         )
     }
 
-    /// Compensates for player gear at mid/late progression without giving enemies equipment.
-    private static func applyEnemyPowerBracket(to combatant: Combatant, level: Int) -> Combatant {
-        guard level >= SimulationPowerTier.middle.level else {
+    /// Compensates for player gear at higher levels without giving enemies equipment.
+    private static func applyEnemyGearCompensation(to combatant: Combatant, level: Int) -> Combatant {
+        let compensation = StatGrowth.enemyGearCompensation(
+            level: level,
+            identityStats: combatant.primaryStats
+        )
+        guard compensation.healthMultiplier != 1.0 || compensation.statDelta != .zero else {
             return combatant
-        }
-
-        let bracket: StatGrowthDelta
-        let healthMultiplier: Double
-        if level >= SimulationPowerTier.lateGame.level {
-            healthMultiplier = 1.25
-            bracket = StatGrowth.enemyLateGameBracketBonus(identityStats: combatant.primaryStats)
-        } else {
-            healthMultiplier = 1.12
-            bracket = StatGrowthDelta(toughness: 1)
         }
 
         let scaledHealth = max(
             1,
-            Int((Double(combatant.maxHealth) * healthMultiplier).rounded()) + bracket.maxHealth
+            Int((Double(combatant.maxHealth) * compensation.healthMultiplier).rounded())
         )
         let merged = StatGrowth.apply(
             maxHealth: scaledHealth,
             maxMana: combatant.maxMana,
             primaryStats: combatant.primaryStats,
-            growth: StatGrowthDelta(
-                strength: bracket.strength,
-                agility: bracket.agility,
-                toughness: bracket.toughness,
-                intellect: bracket.intellect,
-                wisdom: bracket.wisdom,
-                maxMana: bracket.maxMana
-            )
+            growth: compensation.statDelta
         )
 
         return Combatant(

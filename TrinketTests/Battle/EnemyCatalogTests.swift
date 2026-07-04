@@ -44,6 +44,14 @@ final class EnemyCatalogTests: XCTestCase {
         }
     }
 
+    func testMimicUsesPhysicalAssassinKitWithoutPoison() throws {
+        let mimic = try XCTUnwrap(GameContent.enemies.first { $0.id == "mimic" })
+        let loadout = mimic.combatant.abilityLoadout
+        XCTAssertEqual(loadout.basic, .stab)
+        XCTAssertEqual(loadout.skill, .blackjack)
+        XCTAssertEqual(loadout.ultimate, .hemorrhage)
+    }
+
     func testIronBearUsesBashAndMoltenBulwark() throws {
         let bear = try XCTUnwrap(GameContent.enemies.first { $0.id == "the_iron_bear" })
         let loadout = bear.combatant.abilityLoadout
