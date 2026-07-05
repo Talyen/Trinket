@@ -75,7 +75,7 @@ final class PlayerSaveMigrationTests: XCTestCase {
         try v1JSON.write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
 
         let loaded = try XCTUnwrap(fileStore.load())
-        let store = PlayerSaveStore(fileStore: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
 
         XCTAssertEqual(loaded.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertNotEqual(loaded.modifiedAt, .distantPast)

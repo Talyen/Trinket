@@ -81,8 +81,22 @@ public struct PlayerSaveFileStore {
     public func quarantineCorruptSaves() {
         for url in [saveFileURL, backupFileURL] where fileManager.fileExists(atPath: url.path) {
             let quarantineURL = url.appendingPathExtension("corrupt")
-            try? fileManager.removeItem(at: quarantineURL)
-            try? fileManager.moveItem(at: url, to: quarantineURL)
+            if fileManager.fileExists(atPath: quarantineURL.path) {
+                do {
+                    try fileManager.removeItem(at: quarantineURL)
+                } catch {
+                    logger.warning(
+                        "Failed to remove existing quarantine file at \(quarantineURL.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                    )
+                }
+            }
+            do {
+                try fileManager.moveItem(at: url, to: quarantineURL)
+            } catch {
+                logger.error(
+                    "Failed to quarantine corrupt save at \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                )
+            }
         }
     }
 

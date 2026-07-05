@@ -1,5 +1,11 @@
 import Foundation
+import os
 import TrinketCore
+
+private let savedEffectLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "SavedEffect"
+)
 
 public enum SavedEffect: Codable, Equatable, Sendable {
     case burn(potency: Int)
@@ -33,7 +39,9 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             self = saved
             return
         }
-        assertionFailure("Unencodable effect: \(effect)")
+        savedEffectLogger.error(
+            "Unencodable effect: \(String(describing: effect), privacy: .public)"
+        )
         self = .deathsDoor
     }
 

@@ -37,9 +37,13 @@ public enum PlayerSaveSessionAuthority {
                 : .uploadLocal
         }
 
+        if local == remote.save {
+            return .keepLocal
+        }
+
         let merged = PlayerSaveMerger.merge(local, remote.save)
         if merged == local {
-            return .uploadLocal
+            return merged == remote.save ? .keepLocal : .uploadLocal
         }
         if merged == remote.save {
             return .applyRemote(remote.save)

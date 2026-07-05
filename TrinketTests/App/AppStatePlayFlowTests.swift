@@ -109,7 +109,8 @@ final class AppStatePlayFlowTests: XCTestCase {
         let playerSave = PlayerSaveStore(
             fileStore: fileStore,
             immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0
+            immediatePersistRetryDelayNanoseconds: 0,
+            persistDebounceNanoseconds: 0
         )
         let state = AppTestSupport.makeAppState(
             playerSave: playerSave,

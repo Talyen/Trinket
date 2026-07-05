@@ -338,15 +338,27 @@ final class StageRewardTests: XCTestCase {
         XCTAssertGreaterThan(roster.progression(for: pet).currentXP, 0)
     }
 
-    func testClaimRewardsIfNeededGrantsBattleGoldWhenAlreadyClaimed() throws {
+    func testClaimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
         var roster = PlayerRosterState.initial
         var inventory = PlayerInventoryState(items: [])
         var homestead = PlayerHomesteadState.freshStart
         var journey = JourneyProgressState.initial
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        journey.markRewardsClaimed(for: firstStage)
-        let goldBefore = roster.gold
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            pet: pet,
+            battleEarnedGold: 9,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+        let goldAfterFirstClaim = roster.gold
+        let heroXPAfterFirstClaim = roster.progression(for: hero).currentXP
+        let itemCountAfterFirstClaim = inventory.items.count
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
@@ -359,7 +371,10 @@ final class StageRewardTests: XCTestCase {
             journey: &journey
         )
 
-        XCTAssertEqual(roster.gold, goldBefore + 9)
+        XCTAssertEqual(roster.gold, goldAfterFirstClaim)
+        XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPAfterFirstClaim)
+        XCTAssertEqual(inventory.items.count, itemCountAfterFirstClaim)
+        XCTAssertTrue(journey.hasClaimedRewards(for: firstStage))
     }
 
     func testRewardItemPreservesCatalogAffixes() throws {

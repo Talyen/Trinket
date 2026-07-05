@@ -1,6 +1,8 @@
 import AVFoundation
 import Foundation
+import os
 import TrinketContent
+import TrinketPersistence
 
 @MainActor
 final class MusicPlayer {
@@ -11,6 +13,10 @@ final class MusicPlayer {
     private var fadeTask: Task<Void, Never>?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
     private var hasConfiguredSession = false
+    private let logger = Logger(
+        subsystem: PlayerSaveDefaults.loggingSubsystem,
+        category: "Audio"
+    )
 
     init(isDisabled: Bool, fadeDuration: TimeInterval = 0.9) {
         self.isDisabled = isDisabled
@@ -124,18 +130,18 @@ final class MusicPlayer {
 
     private func makePlayer(for request: MusicPlaybackRequest) -> AVAudioPlayer? {
         guard let url = resourceURL(for: request.track) else {
-            #if DEBUG
-            print("Missing music resource: \(request.track.resourceName).\(request.track.fileExtension)")
-            #endif
+            logger.warning(
+                "Missing music resource: \(request.track.resourceName, privacy: .public).\(request.track.fileExtension, privacy: .public)"
+            )
             return nil
         }
 
         do {
             return try AVAudioPlayer(contentsOf: url)
         } catch {
-            #if DEBUG
-            print("Unable to load music resource \(url.lastPathComponent): \(error.localizedDescription)")
-            #endif
+            logger.error(
+                "Unable to load music resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
             return nil
         }
     }

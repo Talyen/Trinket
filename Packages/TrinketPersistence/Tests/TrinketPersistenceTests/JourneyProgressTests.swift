@@ -95,11 +95,13 @@ final class JourneyProgressTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: directoryURL) }
 
         let fileStore = PlayerSaveFileStore(directoryURL: directoryURL)
-        let saveStore = PlayerSaveStore(fileStore: fileStore)
+        let saveStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         let firstStore = PlayerJourneyStore(saveStore: saveStore)
         firstStore.complete(chapter.stages[0], in: GameContent.chapters)
 
-        let secondStore = PlayerJourneyStore(saveStore: PlayerSaveStore(fileStore: fileStore))
+        let secondStore = PlayerJourneyStore(
+            saveStore: PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        )
         XCTAssertEqual(secondStore.current.activeStageID, "chapter-1-stage-2")
         XCTAssertTrue(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))
     }

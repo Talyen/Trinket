@@ -8,8 +8,12 @@ public final class PlayerSaveStore {
     private let fileStore: PlayerSaveFileStore
     private let immediatePersistRetryCount: Int
     private let immediatePersistRetryDelayNanoseconds: UInt64
+    private let persistDebounceNanoseconds: UInt64
     private var save: PlayerSave
     private var pendingPersistSave: PlayerSave?
+    private var debouncedPersistSave: PlayerSave?
+    private var debouncedPersistTask: Task<Void, Never>?
+    private var isPersisting = false
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -20,7 +24,7 @@ public final class PlayerSaveStore {
     public var onLocalSave: ((PlayerSave) -> Void)?
 
     public var hasPendingPersist: Bool {
-        pendingPersistSave != nil
+        pendingPersistSave != nil || debouncedPersistSave != nil
     }
 
     public var journey: JourneyProgressState {
@@ -50,11 +54,13 @@ public final class PlayerSaveStore {
     public init(
         fileStore: PlayerSaveFileStore = PlayerSaveFileStore(),
         immediatePersistRetryCount: Int = 3,
-        immediatePersistRetryDelayNanoseconds: UInt64 = 50_000_000
+        immediatePersistRetryDelayNanoseconds: UInt64 = 50_000_000,
+        persistDebounceNanoseconds: UInt64 = 300_000_000
     ) {
         self.fileStore = fileStore
         self.immediatePersistRetryCount = max(1, immediatePersistRetryCount)
         self.immediatePersistRetryDelayNanoseconds = immediatePersistRetryDelayNanoseconds
+        self.persistDebounceNanoseconds = persistDebounceNanoseconds
         switch fileStore.loadOutcome() {
         case let .loaded(loaded):
             loadedFromDisk = true
@@ -69,6 +75,7 @@ public final class PlayerSaveStore {
     }
 
     public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
+        cancelDebouncedPersist()
         flushPendingPersistIfNeeded()
 
         var candidate = save
@@ -96,6 +103,8 @@ public final class PlayerSaveStore {
     }
 
     public func flushPendingPersistIfNeeded() {
+        flushDebouncedPersistIfNeeded()
+
         guard let pending = pendingPersistSave else { return }
 
         do {
@@ -113,16 +122,19 @@ public final class PlayerSaveStore {
     }
 
     public func resetGameplayProgress() throws {
+        cancelDebouncedPersist()
         var fresh = PlayerSave.fresh
         fresh.sessionGeneration = save.sessionGeneration &+ 1
         try commitSave(fresh)
     }
 
     public func applyTestSeed() throws {
+        cancelDebouncedPersist()
         try commitSave(.testSeed)
     }
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
+        cancelDebouncedPersist()
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
         try commitSave(migrated, stampLocalMutation: false, notifyLocalSave: false)
         loadedFromDisk = true
@@ -147,7 +159,70 @@ public final class PlayerSaveStore {
         var candidate = save
         update(&candidate)
         candidate = PlayerSaveSanitizer.sanitize(candidate)
-        try commitSave(candidate, optimisticOnFailure: true)
+        var prepared = candidate.markedLocalMutation()
+        let persisted = PlayerSaveSanitizer.sanitize(prepared)
+        try PlayerSaveSanitizer.validate(persisted)
+
+        save = persisted
+        loadedFromDisk = true
+        lastPersistenceError = nil
+        onLocalSave?(save)
+        scheduleDebouncedPersist(persisted)
+    }
+
+    private func scheduleDebouncedPersist(_ candidate: PlayerSave) {
+        debouncedPersistSave = candidate
+        debouncedPersistTask?.cancel()
+
+        guard persistDebounceNanoseconds > 0 else {
+            flushDebouncedPersistIfNeeded()
+            return
+        }
+
+        debouncedPersistTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: self?.persistDebounceNanoseconds ?? 0)
+            guard !Task.isCancelled else { return }
+            self?.flushDebouncedPersistIfNeeded()
+        }
+    }
+
+    private func cancelDebouncedPersist() {
+        debouncedPersistTask?.cancel()
+        debouncedPersistTask = nil
+        debouncedPersistSave = nil
+    }
+
+    private func flushDebouncedPersistIfNeeded() {
+        debouncedPersistTask?.cancel()
+        debouncedPersistTask = nil
+
+        guard let candidate = debouncedPersistSave else { return }
+        debouncedPersistSave = nil
+
+        if isPersisting {
+            debouncedPersistSave = candidate
+            return
+        }
+
+        isPersisting = true
+        defer {
+            isPersisting = false
+            if debouncedPersistSave != nil {
+                flushDebouncedPersistIfNeeded()
+            }
+        }
+
+        do {
+            try fileStore.save(candidate)
+            save = candidate
+            loadedFromDisk = true
+            pendingPersistSave = nil
+            lastPersistenceError = nil
+        } catch {
+            lastPersistenceError = .writeFailed
+            pendingPersistSave = candidate
+            logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private func commitSave(
@@ -170,6 +245,7 @@ public final class PlayerSaveStore {
             save = persisted
             loadedFromDisk = true
             pendingPersistSave = nil
+            debouncedPersistSave = nil
             lastPersistenceError = nil
             if notifyLocalSave {
                 onLocalSave?(save)

@@ -19,7 +19,10 @@ enum SaveTestSupport {
     }
 
     static func makeSaveStore(directoryURL: URL) -> PlayerSaveStore {
-        PlayerSaveStore(fileStore: makeFileStore(directoryURL: directoryURL))
+        PlayerSaveStore(
+            fileStore: makeFileStore(directoryURL: directoryURL),
+            persistDebounceNanoseconds: 0
+        )
     }
 
     nonisolated static func makeSave(modifiedAt: Date, gold: Int = 0) -> PlayerSave {

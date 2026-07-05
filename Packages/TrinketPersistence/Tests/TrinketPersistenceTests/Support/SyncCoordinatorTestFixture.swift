@@ -27,7 +27,10 @@ struct SyncCoordinatorTestFixture {
         if let localSave {
             try SaveTestSupport.writeSave(localSave, to: fileStore)
         }
-        let store = PlayerSaveStore(fileStore: fileStore)
+        let store = PlayerSaveStore(
+            fileStore: fileStore,
+            persistDebounceNanoseconds: 0
+        )
         let coordinator = PlayerSaveSyncCoordinator(
             sync: mock,
             playerSaveStore: store

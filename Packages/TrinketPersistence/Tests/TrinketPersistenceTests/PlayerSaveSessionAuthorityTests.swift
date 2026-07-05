@@ -92,4 +92,35 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         let outcome = PlayerSaveSessionAuthority.reconcile(local: nil, remote: nil)
         XCTAssertEqual(outcome, .keepLocal)
     }
+
+    func testEqualSavesKeepLocal() {
+        let syncedAt = Date(timeIntervalSince1970: 1700000000)
+        let local = SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 25)
+        let remote = RemotePlayerSave(
+            save: local,
+            modifiedAt: syncedAt,
+            recordChangeTag: "remote"
+        )
+
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+
+        XCTAssertEqual(outcome, .keepLocal)
+    }
+
+    func testMergedEqualToBothKeepsLocal() {
+        let syncedAt = Date(timeIntervalSince1970: 1700000000)
+        let local = SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 25)
+        var remoteSave = SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 25)
+        remoteSave.journey.completedStageIDs = local.journey.completedStageIDs
+        remoteSave.journey.claimedRewardStageIDs = local.journey.claimedRewardStageIDs
+        let remote = RemotePlayerSave(
+            save: remoteSave,
+            modifiedAt: syncedAt,
+            recordChangeTag: "remote"
+        )
+
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+
+        XCTAssertEqual(outcome, .keepLocal)
+    }
 }

@@ -140,7 +140,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.roster.current, .freshStart)
         XCTAssertEqual(state.inventory.current, .freshStart)
 
-        let reloadedStore = PlayerSaveStore(fileStore: fileStore)
+        let reloadedStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         XCTAssertEqual(reloadedStore.roster, .freshStart)
     }
 

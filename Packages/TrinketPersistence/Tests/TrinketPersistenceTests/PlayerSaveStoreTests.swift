@@ -19,7 +19,7 @@ final class PlayerSaveStoreTests: XCTestCase {
 
     func testPlayerSavePersistsJourneyRosterInventoryAndHomestead() throws {
         let fileStore = makeFileStore()
-        let firstStore = PlayerSaveStore(fileStore: fileStore)
+        let firstStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
@@ -27,7 +27,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         firstStore.advanceJourneyToStage("chapter-1-stage-2")
 
-        let secondStore = PlayerSaveStore(fileStore: fileStore)
+        let secondStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
 
         XCTAssertEqual(secondStore.roster.gold, 42)
         XCTAssertEqual(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP, 20)
@@ -70,7 +70,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         )
         try fileStore.save(save)
 
-        let store = PlayerSaveStore(fileStore: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
 
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
@@ -81,7 +81,8 @@ final class PlayerSaveStoreTests: XCTestCase {
         let store = PlayerSaveStore(
             fileStore: fileStore,
             immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0
+            immediatePersistRetryDelayNanoseconds: 0,
+            persistDebounceNanoseconds: 0
         )
         store.grantGold(10)
 
@@ -102,7 +103,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertTrue(store.hasPendingPersist)
         XCTAssertEqual(store.lastPersistenceError, .writeFailed)
 
-        let reloadedBeforeFlush = PlayerSaveStore(fileStore: fileStore)
+        let reloadedBeforeFlush = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         XCTAssertEqual(reloadedBeforeFlush.roster.gold, 10)
 
         try FileManager.default.setAttributes(
@@ -114,7 +115,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertFalse(store.hasPendingPersist)
         XCTAssertNil(store.lastPersistenceError)
 
-        let reloadedAfterFlush = PlayerSaveStore(fileStore: fileStore)
+        let reloadedAfterFlush = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
         XCTAssertEqual(reloadedAfterFlush.roster.gold, 15)
     }
 
@@ -123,7 +124,8 @@ final class PlayerSaveStoreTests: XCTestCase {
         let store = PlayerSaveStore(
             fileStore: fileStore,
             immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0
+            immediatePersistRetryDelayNanoseconds: 0,
+            persistDebounceNanoseconds: 0
         )
 
         try FileManager.default.setAttributes(
@@ -196,10 +198,33 @@ final class PlayerSaveStoreTests: XCTestCase {
         save.roster.gold = 7
         try fileStore.save(save)
 
-        let store = PlayerSaveStore(fileStore: fileStore)
+        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
 
         XCTAssertTrue(store.loadedFromDisk)
         XCTAssertEqual(store.roster.gold, 7)
+    }
+
+    func testValidateRejectsNegativeProgressionXP() {
+        var save = PlayerSave.fresh
+        save.roster.progressions["knight"] = CombatantProgression(level: 1, currentXP: -1, requiredXP: 100)
+
+        XCTAssertThrowsError(try PlayerSaveSanitizer.validate(save)) { error in
+            guard case let PlayerSavePersistenceError.invalidSave(message) = error else {
+                return XCTFail("Expected invalidSave, got \(error)")
+            }
+            XCTAssertTrue(message.contains("current XP"))
+        }
+    }
+
+    func testValidateRejectsInvalidSchemaVersion() {
+        var save = PlayerSave.fresh
+        save.schemaVersion = 0
+
+        XCTAssertThrowsError(try PlayerSaveSanitizer.validate(save)) { error in
+            guard case PlayerSavePersistenceError.invalidSave = error else {
+                XCTFail("Expected invalidSave, got \(error)")
+            }
+        }
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {
@@ -207,7 +232,10 @@ final class PlayerSaveStoreTests: XCTestCase {
     }
 
     private func makeStore() -> PlayerSaveStore {
-        PlayerSaveStore(fileStore: makeFileStore())
+        PlayerSaveStore(
+            fileStore: makeFileStore(),
+            persistDebounceNanoseconds: 0
+        )
     }
 }
 
