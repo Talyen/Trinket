@@ -114,7 +114,7 @@ final class CombatOutcomeTests: XCTestCase {
 
     func testResolveHealReturnsRestoredAmount() {
         var context = makeContext(seed: 1772)
-        _ = context.applyDamage(10, to: context.roster.enemy.combatant)
+        _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
         let outcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
@@ -122,31 +122,5 @@ final class CombatOutcomeTests: XCTestCase {
         XCTAssertEqual(outcome.healthRestored, context.roster.enemy.currentHealth - before)
         XCTAssertGreaterThan(outcome.healthRestored, 0)
         XCTAssertEqual(outcome.healthDelta, outcome.healthRestored)
-    }
-
-    func testLegacyApplyDamageMatchesResolveDamage() {
-        var legacyContext = makeContext(seed: 1772)
-        var requestContext = makeContext(seed: 1772)
-        let target = legacyContext.roster.enemy.combatant
-
-        let legacy = legacyContext.applyDamage(
-            12,
-            to: target,
-            damageKeyword: .physical,
-            sourceActorID: "source"
-        )
-        let resolved = requestContext.resolveDamage(
-            DamageRequest(
-                amount: 12,
-                target: target,
-                keyword: .physical,
-                sourceActorID: "source",
-                options: DamageOptions()
-            )
-        )
-
-        XCTAssertEqual(legacy.healthLost, resolved.healthLost)
-        XCTAssertEqual(legacy.damageEvents.map(\.effectKind), resolved.events.map(\.effectKind))
-        XCTAssertEqual(legacyContext.roster.enemy.currentHealth, requestContext.roster.enemy.currentHealth)
     }
 }

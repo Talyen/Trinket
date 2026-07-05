@@ -149,7 +149,6 @@
 		FB3299762F0E055E1941347A /* SmokePlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43A50775733A11230CAAA95 /* SmokePlayTests.swift */; };
 		FB768D6C41E3CBA4B39F3A8F /* ItemSlotPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769E5E691395F845BABD973F /* ItemSlotPickerView.swift */; };
 		FC89C4C57E58A816112E33A3 /* BattleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8582E665966D926FE0BE2 /* BattleLogSheet.swift */; };
-		FD7A5472E14CCB3F97A9BB09 /* AudioSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E1072E6390668F9CDAFDDF0 /* AudioSessionCoordinator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,7 +227,6 @@
 		769E5E691395F845BABD973F /* ItemSlotPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemSlotPickerView.swift; sourceTree = "<group>"; };
 		77D9C77B3383418401FDD73C /* music_boss_iron_bear.m4a */ = {isa = PBXFileReference; path = music_boss_iron_bear.m4a; sourceTree = "<group>"; };
 		79C259E3726A10BD6745322F /* BattleCombatantPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCombatantPane.swift; sourceTree = "<group>"; };
-		7E1072E6390668F9CDAFDDF0 /* AudioSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionCoordinator.swift; sourceTree = "<group>"; };
 		7EB76EE6F42007AD863D11BF /* TabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBar.swift; sourceTree = "<group>"; };
 		7F61C1802F0278951E5498F2 /* SmokeItemDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeItemDetailTests.swift; sourceTree = "<group>"; };
 		814777C4155CA6CD1EDBDC48 /* VolumeOptionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeOptionRow.swift; sourceTree = "<group>"; };
@@ -818,7 +816,6 @@
 		E9F765A6F219C684DBE51927 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				7E1072E6390668F9CDAFDDF0 /* AudioSessionCoordinator.swift */,
 				568CA731A0659B6B990993E3 /* MusicModels.swift */,
 				C9DCF85128AEC8577B0356E0 /* MusicPlayer.swift */,
 			);
@@ -1016,7 +1013,6 @@
 				C5E0C9B4A62F0F758A820E15 /* AppState.swift in Sources */,
 				C3D4E5F60718293A4B5C6D7F /* AppState+ShellLifecycle.swift in Sources */,
 				76E82C01E9E1D8478547C4D3 /* AppTypes.swift in Sources */,
-				FD7A5472E14CCB3F97A9BB09 /* AudioSessionCoordinator.swift in Sources */,
 				12C8D5FF54791EF0A9A26117 /* BattleCardGridLayout.swift in Sources */,
 				13AD98FA0DE6DB7A7518A2E2 /* BattleCombatantPane.swift in Sources */,
 				0099D46E2CE32DB0E3670FC2 /* BattleCombatantPaneConfiguration.swift in Sources */,

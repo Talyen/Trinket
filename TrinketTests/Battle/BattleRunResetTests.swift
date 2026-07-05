@@ -8,7 +8,7 @@ import XCTest
 final class BattleRunResetTests: XCTestCase {
     func testResetPreservesEnemyModifiers() throws {
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),
@@ -17,7 +17,7 @@ final class BattleRunResetTests: XCTestCase {
         let session = BattleSession()
         session.activeBattle = configuration
 
-        session.activeBattle = ActiveBattleConfiguration.make(
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 1,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),

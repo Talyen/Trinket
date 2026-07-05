@@ -70,7 +70,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testCompleteActiveBattleWithoutStageGrantsGoldOnly() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
@@ -90,7 +90,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testCompleteActiveBattleWithoutStageIgnoresZeroGold() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,

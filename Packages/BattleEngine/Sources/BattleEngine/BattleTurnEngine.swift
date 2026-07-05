@@ -154,13 +154,21 @@ public enum BattleTurnEngine {
                 amount += component.bonusAmount
             }
 
-            let (dealt, damageEvents) = context.applyDamage(
-                amount,
-                to: damageTarget,
-                damageKeyword: component.keyword,
-                sourceActorID: actor.id,
-                ability: ability
+            let damageOutcome = context.resolveDamage(
+                DamageRequest(
+                    amount: amount,
+                    target: damageTarget,
+                    keyword: component.keyword,
+                    sourceActorID: actor.id,
+                    options: DamageOptions(
+                        abilityCriticalChanceBonus: ability.criticalChanceBonus,
+                        guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
+                        qualifiesForAmbush: true
+                    )
+                )
             )
+            let dealt = damageOutcome.healthLost
+            let damageEvents = damageOutcome.events
             events.append(contentsOf: damageEvents)
             if amount > 0 {
                 var pairedAmount = amount

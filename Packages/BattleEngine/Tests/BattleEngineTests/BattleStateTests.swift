@@ -106,7 +106,7 @@ final class BattleStateTests: XCTestCase {
 
         let heroID = battle.hero
         battle.withEngineContext { context in
-            _ = context.applyDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(5, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
         XCTAssertEqual(battle.health(of: battle.hero), 1)
         XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { $0.effect.kind == .deathsDoor })
@@ -122,8 +122,8 @@ final class BattleStateTests: XCTestCase {
         let petID = battle.pet
 
         battle.withEngineContext { context in
-            _ = context.applyDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
         XCTAssertFalse(battle.isPartyDefeated)
 
@@ -132,8 +132,8 @@ final class BattleStateTests: XCTestCase {
         }
 
         battle.withEngineContext { context in
-            _ = context.applyDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-            _ = context.applyDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+            _ = context.applyTestDamage(3, to: petID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         }
 
         XCTAssertTrue(battle.isPartyDefeated)

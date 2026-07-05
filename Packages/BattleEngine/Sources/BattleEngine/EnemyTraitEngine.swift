@@ -92,14 +92,15 @@ package enum EnemyTraitEngine {
         else { return [] }
 
         let thornsAmount = max(1, Int(ceil(Double(damageTaken) * profile.thornsPercent)))
-        let (_, events) = context.applyDamage(
-            thornsAmount,
-            to: attacker,
-            damageKeyword: .physical,
-            sourceActorID: defender.id,
-            applyDodge: true,
-            isRetaliation: true
-        )
+        let events = context.resolveDamage(
+            DamageRequest(
+                amount: thornsAmount,
+                target: attacker,
+                keyword: .physical,
+                sourceActorID: defender.id,
+                options: DamageOptions(isRetaliation: true)
+            )
+        ).events
         return events.map { event in
             ActionEvent(
                 id: event.id,

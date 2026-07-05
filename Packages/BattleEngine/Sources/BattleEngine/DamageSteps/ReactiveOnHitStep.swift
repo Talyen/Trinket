@@ -38,14 +38,15 @@ package struct ReactiveOnHitStep: DamageStep {
             switch active.effect {
             case let .thorns(keyword, amount, _):
                 guard amount > 0 else { continue }
-                let (_, events) = context.applyDamage(
-                    amount,
-                    to: attacker.combatant,
-                    damageKeyword: keyword,
-                    sourceActorID: state.combatant.id,
-                    applyDodge: true,
-                    isRetaliation: true
-                )
+                let events = context.resolveDamage(
+                    DamageRequest(
+                        amount: amount,
+                        target: attacker.combatant,
+                        keyword: keyword,
+                        sourceActorID: state.combatant.id,
+                        options: DamageOptions(isRetaliation: true)
+                    )
+                ).events
                 var thornsEvents = events
                 if let lastIndex = thornsEvents.indices.last {
                     var event = thornsEvents[lastIndex]

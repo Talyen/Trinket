@@ -49,7 +49,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testActiveBattleTakesPriorityOverPreview() throws {
-        let battle = ActiveBattleConfiguration.make(
+        let battle = ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: GameContent.heroes[0],
@@ -71,7 +71,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testLeavingPlayReturnsToMenuEvenWithActiveBattle() throws {
-        let battle = ActiveBattleConfiguration.make(
+        let battle = ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-10",
             rngSeed: 0,
             hero: GameContent.heroes[0],

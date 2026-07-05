@@ -34,7 +34,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let session = makeSession(configuration: configuration)
 
         _ = session.advanceOneStep()
@@ -53,7 +53,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let session = makeSession(configuration: configuration)
 
         while !(session.state?.isBattleOver ?? true) {
@@ -84,7 +84,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let session = makeSession(configuration: configuration)
 
         _ = session.advanceOneStep()
@@ -92,7 +92,7 @@ final class BattleRunTests: XCTestCase {
         XCTAssertFalse(session.activeFeedbackEvents.isEmpty)
         XCTAssertLessThan(session.state?.health(of: session.state?.enemy ?? enemy) ?? 0, 100)
 
-        session.activeBattle = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
 
         XCTAssertTrue(session.activeFeedbackEvents.isEmpty)
         XCTAssertEqual(session.state?.health(of: session.state?.enemy ?? enemy), 100)
@@ -119,7 +119,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let session = makeSession(configuration: configuration)
 
         _ = session.advanceOneStep()
@@ -150,7 +150,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let session = makeSession(configuration: configuration)
 
         _ = session.advanceOneStep()
@@ -175,7 +175,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         _ = session.advanceOneStep()
 
@@ -191,7 +191,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -210,7 +210,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -244,7 +244,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -259,7 +259,7 @@ final class BattleRunTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         XCTAssertTrue(session.state?.isPartyDefeated ?? false)
         XCTAssertTrue(session.state?.isEnemyDefeated ?? false)
@@ -275,15 +275,17 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfiguration.make(
+        var rosterState = PlayerRosterState.initial
+        rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
+        rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,
             enemyEncounterLevel: 2,
-            heroProgression: CombatantProgression(level: 2, currentXP: 10, requiredXP: 155),
-            petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            roster: rosterState,
             stageReward: StageReward(gold: 12, itemTemplateIDs: []),
             rewardItemNames: ["Shortsword"]
         )
@@ -320,14 +322,16 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfiguration.make(
+        var rosterState = PlayerRosterState.initial
+        rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
+        rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,
             enemyEncounterLevel: 1,
-            heroProgression: CombatantProgression(level: 15, currentXP: 0, requiredXP: 100),
-            petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
+            roster: rosterState,
             stageReward: StageReward(gold: 0, itemTemplateIDs: [])
         )
         let session = makeSession(configuration: configuration)
@@ -358,7 +362,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
@@ -392,7 +396,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             pet: pet,

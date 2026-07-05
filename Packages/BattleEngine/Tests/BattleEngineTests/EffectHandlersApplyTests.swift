@@ -101,7 +101,7 @@ final class EffectHandlersApplyTests: XCTestCase {
     func testInstantHealHandlerHealsTarget() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let hero = battle.hero
-        _ = battle.withEngineContext { $0.applyDamage(30, to: hero) }
+        _ = battle.withEngineContext { $0.applyTestDamage(30, to: hero) }
         let before = battle.health(of: battle.hero)
         let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         XCTAssertTrue(outcome.didApply)

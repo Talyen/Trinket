@@ -34,8 +34,16 @@ struct CombatantCardDetail: Hashable, Identifiable {
     ) -> CombatantCardDetail {
         CombatantCardDetail(
             combatant: combatant,
-            progression: configuration.progression(for: combatant),
-            equipmentLoadout: configuration.equipmentLoadout(for: combatant),
+            progression: combatant.id == configuration.hero.id
+                ? configuration.heroProgression
+                : combatant.id == configuration.pet.id
+                    ? configuration.petProgression
+                    : .initial,
+            equipmentLoadout: combatant.id == configuration.hero.id
+                ? configuration.heroEquipmentLoadout
+                : combatant.id == configuration.pet.id
+                    ? configuration.petEquipmentLoadout
+                    : EquipmentLoadout(),
             inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries

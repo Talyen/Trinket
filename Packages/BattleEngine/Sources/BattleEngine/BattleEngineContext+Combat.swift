@@ -29,43 +29,6 @@ public extension BattleEngineContext {
         HealingEngine.resolveHeal(request, in: &self)
     }
 
-    mutating func applyDamage(
-        _ amount: Int,
-        to combatant: Combatant,
-        damageKeyword: Keyword? = nil,
-        sourceActorID: String? = nil,
-        applyStatBonus: Bool = true,
-        applyItemBonus: Bool = true,
-        applyDodge: Bool = true,
-        isRetaliation: Bool = false,
-        ability: Ability? = nil
-    ) -> (healthLost: Int, damageEvents: [ActionEvent]) {
-        let outcome = resolveDamage(
-            DamageRequest(
-                amount: amount,
-                target: combatant,
-                keyword: damageKeyword,
-                sourceActorID: sourceActorID,
-                options: DamageOptions(
-                    applyStatBonus: applyStatBonus,
-                    applyItemBonus: applyItemBonus,
-                    applyDodge: applyDodge,
-                    abilityCriticalChanceBonus: ability?.criticalChanceBonus ?? 0,
-                    guaranteedCriticalIfEnemyBuffed: ability?.guaranteedCriticalIfEnemyBuffed ?? false,
-                    isRetaliation: isRetaliation,
-                    qualifiesForAmbush: ability != nil
-                )
-            )
-        )
-        return (outcome.healthLost, outcome.events)
-    }
-
-    mutating func applyHeal(_ amount: Int, to combatant: Combatant, sourceActorID: String? = nil) {
-        _ = resolveHeal(
-            HealRequest(amount: amount, target: combatant, sourceActorID: sourceActorID)
-        )
-    }
-
     mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
         HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &self).events
     }
@@ -100,21 +63,6 @@ public extension BattleEngineContext {
         )
     }
 
-    mutating func applyDoTDamage(
-        _ amount: Int,
-        keyword: Keyword,
-        to combatant: Combatant,
-        sourceActorID: String?
-    ) -> (healthLost: Int, events: [ActionEvent]) {
-        let outcome = resolveDoTTick(
-            basePotency: amount,
-            keyword: keyword,
-            target: combatant,
-            sourceActorID: sourceActorID
-        )
-        return (outcome.healthLost, outcome.events)
-    }
-
     mutating func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,
@@ -124,21 +72,6 @@ public extension BattleEngineContext {
     ) -> [ActionEvent] {
         DoTApplicator.applyDecayingDoT(
             keyword: keyword,
-            potency: potency,
-            to: effectTarget,
-            sourceActorID: sourceActorID,
-            dealImmediateDamage: dealImmediateDamage,
-            in: &self
-        )
-    }
-
-    mutating func applyBleed(
-        potency: Int,
-        to effectTarget: Combatant,
-        sourceActorID: String,
-        dealImmediateDamage: Bool
-    ) -> [ActionEvent] {
-        DoTApplicator.applyBleed(
             potency: potency,
             to: effectTarget,
             sourceActorID: sourceActorID,

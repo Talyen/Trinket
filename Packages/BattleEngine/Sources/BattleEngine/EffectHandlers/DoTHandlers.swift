@@ -131,11 +131,12 @@ public struct BleedHandler: BattleEffectHandler {
         let bonus = EnemyTraitEngine.bonusBleedPotency(ability: ability, sourceID: source.id, in: context)
         let adjustedPotency = potency + bonus
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: .bleed)
-        let events = context.applyBleed(
+        let events = DoTApplicator.applyBleed(
             potency: adjustedPotency,
             to: target,
             sourceActorID: source.id,
-            dealImmediateDamage: !skipImmediate
+            dealImmediateDamage: !skipImmediate,
+            in: &context
         )
         return EffectApplyOutcome(events: events, didApply: true)
     }

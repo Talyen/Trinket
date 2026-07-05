@@ -32,7 +32,7 @@ final class DeathsDoorEngineTests: XCTestCase {
     func testTriggerOnFirstLethalHit() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        let (_, events) = context.applyDamage(
+        let (_, events) = context.applyTestDamage(
             5,
             to: hero,
             applyStatBonus: false,
@@ -53,7 +53,7 @@ final class DeathsDoorEngineTests: XCTestCase {
     func testEnemyNeverTriggers() {
         var context = makeContext(enemyHP: 5)
         let enemy = context.roster.enemy.combatant
-        _ = context.applyDamage(
+        _ = context.applyTestDamage(
             5,
             to: enemy,
             applyStatBonus: false,
@@ -68,8 +68,8 @@ final class DeathsDoorEngineTests: XCTestCase {
     func testProtectionClampsToOneWhileActive() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        _ = context.applyDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = context.applyDamage(20, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(20, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         XCTAssertEqual(context.roster.health(for: hero), 1)
         XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
@@ -78,7 +78,7 @@ final class DeathsDoorEngineTests: XCTestCase {
     func testSecondLethalAfterExpiryKills() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        _ = context.applyDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         var effects = context.activeEffects(for: hero)
         for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
@@ -88,7 +88,7 @@ final class DeathsDoorEngineTests: XCTestCase {
         context.roster.setActiveEffects(effects, for: hero)
 
         XCTAssertFalse(context.roster.isDeathsDoorActive(for: hero))
-        _ = context.applyDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         XCTAssertEqual(context.roster.health(for: hero), 0)
         XCTAssertFalse(context.roster.hero.isAlive)
     }
@@ -98,8 +98,8 @@ final class DeathsDoorEngineTests: XCTestCase {
         let hero = context.roster.hero.combatant
         let pet = context.roster.pet.combatant
 
-        _ = context.applyDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        _ = context.applyDamage(3, to: pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(3, to: pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
         XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: pet))
@@ -115,7 +115,7 @@ final class DeathsDoorEngineTests: XCTestCase {
             for: hero
         )
 
-        _ = context.applyDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         let effects = context.activeEffects(for: hero)
         XCTAssertEqual(effects.count, 2)
@@ -140,7 +140,7 @@ final class DeathsDoorEngineTests: XCTestCase {
     func testOverkillShowsActualHPLost() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
-        let (lost, _) = context.applyDamage(
+        let (lost, _) = context.applyTestDamage(
             40,
             to: hero,
             applyStatBonus: false,

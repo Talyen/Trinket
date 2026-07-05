@@ -9,7 +9,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
 
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
@@ -37,17 +37,18 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             displayName: baseType.name,
             affixes: [keen.resolved(for: .basic)]
         )
+        var rosterState = PlayerRosterState.initial
         var loadout = EquipmentLoadout()
         loadout.equip(item)
-        let inventory = PlayerInventoryState(items: [item])
+        rosterState.setEquipmentLoadout(loadout, for: knight)
 
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
             enemy: enemy,
-            heroEquipmentLoadout: loadout,
-            inventoryState: inventory
+            roster: rosterState,
+            inventory: PlayerInventoryState(items: [item])
         )
 
         XCTAssertEqual(configuration.heroModifiers.damageDealtBonus(for: .physical), 1)
@@ -59,7 +60,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let skeleton = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
 
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
@@ -76,7 +77,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         let enemy = try XCTUnwrap(try GameContent.enemy(matching: XCTUnwrap(stage.encounter.battleEnemyID))?.combatant)
 
-        let configuration = ActiveBattleConfiguration.make(
+        let configuration = ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
             rngSeed: 0,
             hero: knight,

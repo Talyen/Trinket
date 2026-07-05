@@ -26,7 +26,7 @@ final class HealingEngineTests: XCTestCase {
 
     func testResolveHealSilentEmitsNoEvents() {
         var context = makeContext(seed: 1772)
-        _ = context.applyDamage(10, to: context.roster.enemy.combatant)
+        _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
             in: &context
