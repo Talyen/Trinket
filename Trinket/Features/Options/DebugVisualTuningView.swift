@@ -25,122 +25,122 @@ struct VisualTuningVariant: Identifiable {
     static let gallery: [VisualTuningVariant] = [
         VisualTuningVariant(
             id: 1,
-            name: "Quiet Corner",
+            name: "Tonal Calm",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.055,
-                mainGlowStartRadius: 56,
-                mainGlowEndRadius: 720,
-                mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.025,
-                elementGlowStartRadius: 72,
-                elementGlowEndRadius: 620,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0
+                accentWashOpacity: 0.012,
+                surfaceWashOpacity: 0.080,
+                bandOpacity: 0.025,
+                bandHeight: 96,
+                bandSpacing: 280,
+                lineOpacity: 0.012,
+                lineSpacing: 22,
+                lineAngleDegrees: -8,
+                textureOpacity: 0.010
             )
         ),
         VisualTuningVariant(
             id: 2,
-            name: "Panel Warmth",
+            name: "Vellum",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.035,
-                mainGlowStartRadius: 110,
-                mainGlowEndRadius: 860,
-                mainGlowAnchor: .top,
-                elementGlowOpacity: 0.045,
-                elementGlowStartRadius: 82,
-                elementGlowEndRadius: 540,
-                elementGlowAnchor: .bottom,
-                textureOpacity: 0
+                accentWashOpacity: 0.020,
+                surfaceWashOpacity: 0.130,
+                bandOpacity: 0.000,
+                bandHeight: 120,
+                bandSpacing: 260,
+                lineOpacity: 0.018,
+                lineSpacing: 16,
+                lineAngleDegrees: 0,
+                textureOpacity: 0.022
             )
         ),
         VisualTuningVariant(
             id: 3,
-            name: "Center Veil",
+            name: "Ledger",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.045,
-                mainGlowStartRadius: 120,
-                mainGlowEndRadius: 900,
-                mainGlowAnchor: .center,
-                elementGlowOpacity: 0.018,
-                elementGlowStartRadius: 100,
-                elementGlowEndRadius: 700,
-                elementGlowAnchor: .topTrailing,
-                textureOpacity: 0
+                accentWashOpacity: 0.008,
+                surfaceWashOpacity: 0.055,
+                bandOpacity: 0.060,
+                bandHeight: 58,
+                bandSpacing: 118,
+                lineOpacity: 0.020,
+                lineSpacing: 24,
+                lineAngleDegrees: 0,
+                textureOpacity: 0.006
             )
         ),
         VisualTuningVariant(
             id: 4,
-            name: "Low Lift",
+            name: "Slate Inset",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.05,
-                mainGlowStartRadius: 80,
-                mainGlowEndRadius: 680,
-                mainGlowAnchor: .bottom,
-                elementGlowOpacity: 0.035,
-                elementGlowStartRadius: 72,
-                elementGlowEndRadius: 600,
-                elementGlowAnchor: .topLeading,
-                textureOpacity: 0
+                accentWashOpacity: 0.000,
+                surfaceWashOpacity: 0.035,
+                bandOpacity: 0.035,
+                bandHeight: 160,
+                bandSpacing: 210,
+                lineOpacity: 0.030,
+                lineSpacing: 30,
+                lineAngleDegrees: -18,
+                textureOpacity: 0.000
             )
         ),
         VisualTuningVariant(
             id: 5,
-            name: "Edge Light",
+            name: "Table Grain",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.04,
-                mainGlowStartRadius: 96,
-                mainGlowEndRadius: 760,
-                mainGlowAnchor: .trailing,
-                elementGlowOpacity: 0.03,
-                elementGlowStartRadius: 96,
-                elementGlowEndRadius: 760,
-                elementGlowAnchor: .leading,
-                textureOpacity: 0
+                accentWashOpacity: 0.018,
+                surfaceWashOpacity: 0.040,
+                bandOpacity: 0.020,
+                bandHeight: 72,
+                bandSpacing: 188,
+                lineOpacity: 0.038,
+                lineSpacing: 13,
+                lineAngleDegrees: -5,
+                textureOpacity: 0.026
             )
         ),
         VisualTuningVariant(
             id: 6,
-            name: "Battle Hush",
+            name: "Runic Paper",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.075,
-                mainGlowStartRadius: 52,
-                mainGlowEndRadius: 580,
-                mainGlowAnchor: .topLeading,
-                elementGlowOpacity: 0.055,
-                elementGlowStartRadius: 48,
-                elementGlowEndRadius: 520,
-                elementGlowAnchor: .bottomTrailing,
-                textureOpacity: 0
+                accentWashOpacity: 0.026,
+                surfaceWashOpacity: 0.110,
+                bandOpacity: 0.030,
+                bandHeight: 104,
+                bandSpacing: 170,
+                lineOpacity: 0.026,
+                lineSpacing: 19,
+                lineAngleDegrees: 24,
+                textureOpacity: 0.018
             )
         ),
         VisualTuningVariant(
             id: 7,
-            name: "Air Wash",
+            name: "Native Plain",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.028,
-                mainGlowStartRadius: 120,
-                mainGlowEndRadius: 900,
-                mainGlowAnchor: .top,
-                elementGlowOpacity: 0.016,
-                elementGlowStartRadius: 120,
-                elementGlowEndRadius: 820,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0
+                accentWashOpacity: 0.000,
+                surfaceWashOpacity: 0.070,
+                bandOpacity: 0.000,
+                bandHeight: 96,
+                bandSpacing: 240,
+                lineOpacity: 0.000,
+                lineSpacing: 18,
+                lineAngleDegrees: 0,
+                textureOpacity: 0.000
             )
         ),
         VisualTuningVariant(
             id: 8,
-            name: "Accent Pool",
+            name: "Map Bands",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.065,
-                mainGlowStartRadius: 44,
-                mainGlowEndRadius: 540,
-                mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.07,
-                elementGlowStartRadius: 40,
-                elementGlowEndRadius: 460,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0
+                accentWashOpacity: 0.014,
+                surfaceWashOpacity: 0.060,
+                bandOpacity: 0.075,
+                bandHeight: 148,
+                bandSpacing: 92,
+                lineOpacity: 0.010,
+                lineSpacing: 28,
+                lineAngleDegrees: -12,
+                textureOpacity: 0.000
             )
         )
     ]
@@ -168,65 +168,65 @@ struct DebugVisualTuningView: View {
                 }
             }
 
-            Section("Gradient") {
+            Section("Tonal Wash") {
                 SliderRow(
-                    title: "Glow",
-                    value: binding(\.mainGlowOpacity),
-                    range: 0 ... 0.36,
-                    format: .number.precision(.fractionLength(2))
+                    title: "Accent",
+                    value: binding(\.accentWashOpacity),
+                    range: 0 ... 0.06,
+                    format: .number.precision(.fractionLength(3))
                 )
                 SliderRow(
-                    title: "Start",
-                    value: binding(\.mainGlowStartRadius),
-                    range: 0 ... 120,
-                    format: .number.precision(.fractionLength(0))
+                    title: "Surface",
+                    value: binding(\.surfaceWashOpacity),
+                    range: 0 ... 0.18,
+                    format: .number.precision(.fractionLength(3))
                 )
-                SliderRow(
-                    title: "End",
-                    value: binding(\.mainGlowEndRadius),
-                    range: 280 ... 900,
-                    format: .number.precision(.fractionLength(0))
-                )
-
-                Picker("Anchor", selection: binding(\.mainGlowAnchor)) {
-                    ForEach(BackgroundGradientAnchor.allCases) { anchor in
-                        Text(anchor.displayName).tag(anchor)
-                    }
-                }
             }
 
-            Section("Element Glow") {
+            Section("Bands") {
                 SliderRow(
-                    title: "Glow",
-                    value: binding(\.elementGlowOpacity),
-                    range: 0 ... 0.24,
-                    format: .number.precision(.fractionLength(2))
+                    title: "Opacity",
+                    value: binding(\.bandOpacity),
+                    range: 0 ... 0.10,
+                    format: .number.precision(.fractionLength(3))
                 )
                 SliderRow(
-                    title: "Start",
-                    value: binding(\.elementGlowStartRadius),
-                    range: 0 ... 120,
+                    title: "Height",
+                    value: binding(\.bandHeight),
+                    range: 24 ... 220,
                     format: .number.precision(.fractionLength(0))
                 )
                 SliderRow(
-                    title: "End",
-                    value: binding(\.elementGlowEndRadius),
-                    range: 280 ... 900,
+                    title: "Spacing",
+                    value: binding(\.bandSpacing),
+                    range: 32 ... 320,
                     format: .number.precision(.fractionLength(0))
                 )
-
-                Picker("Anchor", selection: binding(\.elementGlowAnchor)) {
-                    ForEach(BackgroundGradientAnchor.allCases) { anchor in
-                        Text(anchor.displayName).tag(anchor)
-                    }
-                }
             }
 
-            Section("Texture") {
+            Section("Linework") {
+                SliderRow(
+                    title: "Opacity",
+                    value: binding(\.lineOpacity),
+                    range: 0 ... 0.06,
+                    format: .number.precision(.fractionLength(3))
+                )
+                SliderRow(
+                    title: "Spacing",
+                    value: binding(\.lineSpacing),
+                    range: 8 ... 40,
+                    format: .number.precision(.fractionLength(0))
+                )
+                SliderRow(
+                    title: "Angle",
+                    value: binding(\.lineAngleDegrees),
+                    range: -35 ... 35,
+                    format: .number.precision(.fractionLength(0))
+                )
                 SliderRow(
                     title: "Texture",
                     value: binding(\.textureOpacity),
-                    range: 0 ... 0.12,
+                    range: 0 ... 0.05,
                     format: .number.precision(.fractionLength(3))
                 )
             }

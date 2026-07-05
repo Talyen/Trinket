@@ -149,93 +149,49 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
     }
 }
 
-public enum BackgroundGradientAnchor: String, CaseIterable, Identifiable, Sendable {
-    case topLeading
-    case top
-    case topTrailing
-    case leading
-    case center
-    case trailing
-    case bottomLeading
-    case bottom
-    case bottomTrailing
-
-    public var id: String {
-        rawValue
-    }
-
-    public var displayName: String {
-        switch self {
-        case .topLeading: return "Top Leading"
-        case .top: return "Top"
-        case .topTrailing: return "Top Trailing"
-        case .leading: return "Leading"
-        case .center: return "Center"
-        case .trailing: return "Trailing"
-        case .bottomLeading: return "Bottom Leading"
-        case .bottom: return "Bottom"
-        case .bottomTrailing: return "Bottom Trailing"
-        }
-    }
-
-    var unitPoint: UnitPoint {
-        switch self {
-        case .topLeading: return .topLeading
-        case .top: return .top
-        case .topTrailing: return .topTrailing
-        case .leading: return .leading
-        case .center: return .center
-        case .trailing: return .trailing
-        case .bottomLeading: return .bottomLeading
-        case .bottom: return .bottom
-        case .bottomTrailing: return .bottomTrailing
-        }
-    }
-}
-
 public struct BackgroundTuningValues: Equatable, Sendable {
-    public var mainGlowOpacity: Double
-    public var mainGlowStartRadius: Double
-    public var mainGlowEndRadius: Double
-    public var mainGlowAnchor: BackgroundGradientAnchor
-    public var elementGlowOpacity: Double
-    public var elementGlowStartRadius: Double
-    public var elementGlowEndRadius: Double
-    public var elementGlowAnchor: BackgroundGradientAnchor
+    public var accentWashOpacity: Double
+    public var surfaceWashOpacity: Double
+    public var bandOpacity: Double
+    public var bandHeight: Double
+    public var bandSpacing: Double
+    public var lineOpacity: Double
+    public var lineSpacing: Double
+    public var lineAngleDegrees: Double
     public var textureOpacity: Double
 
     public init(
-        mainGlowOpacity: Double,
-        mainGlowStartRadius: Double,
-        mainGlowEndRadius: Double,
-        mainGlowAnchor: BackgroundGradientAnchor,
-        elementGlowOpacity: Double,
-        elementGlowStartRadius: Double,
-        elementGlowEndRadius: Double,
-        elementGlowAnchor: BackgroundGradientAnchor,
+        accentWashOpacity: Double,
+        surfaceWashOpacity: Double,
+        bandOpacity: Double,
+        bandHeight: Double,
+        bandSpacing: Double,
+        lineOpacity: Double,
+        lineSpacing: Double,
+        lineAngleDegrees: Double,
         textureOpacity: Double
     ) {
-        self.mainGlowOpacity = mainGlowOpacity
-        self.mainGlowStartRadius = mainGlowStartRadius
-        self.mainGlowEndRadius = mainGlowEndRadius
-        self.mainGlowAnchor = mainGlowAnchor
-        self.elementGlowOpacity = elementGlowOpacity
-        self.elementGlowStartRadius = elementGlowStartRadius
-        self.elementGlowEndRadius = elementGlowEndRadius
-        self.elementGlowAnchor = elementGlowAnchor
+        self.accentWashOpacity = accentWashOpacity
+        self.surfaceWashOpacity = surfaceWashOpacity
+        self.bandOpacity = bandOpacity
+        self.bandHeight = bandHeight
+        self.bandSpacing = bandSpacing
+        self.lineOpacity = lineOpacity
+        self.lineSpacing = lineSpacing
+        self.lineAngleDegrees = lineAngleDegrees
         self.textureOpacity = textureOpacity
     }
 
     public static let defaultPreview = BackgroundTuningValues(
-        mainGlowOpacity: 0.07,
-        mainGlowStartRadius: 44,
-        mainGlowEndRadius: 640,
-        mainGlowAnchor: .topTrailing,
-        elementGlowOpacity: 0.04,
-        elementGlowStartRadius: 56,
-        elementGlowEndRadius: 560,
-        elementGlowAnchor: .bottomLeading,
-        textureOpacity: 0
+        accentWashOpacity: 0.018,
+        surfaceWashOpacity: 0.10,
+        bandOpacity: 0.045,
+        bandHeight: 112,
+        bandSpacing: 252,
+        lineOpacity: 0.030,
+        lineSpacing: 18,
+        lineAngleDegrees: -12,
+        textureOpacity: 0.018
     )
 }
 
@@ -326,49 +282,106 @@ public struct TrinketScreenBackground: View {
 
     public var body: some View {
         let palette = theme.palette
+        let accentColor = elementTint ?? palette.ambientGlow
 
         ZStack {
             palette.appBackground
 
-            RadialGradient(
-                gradient: smoothGlowGradient(
-                    color: palette.ambientGlow,
-                    opacity: tuning?.mainGlowOpacity ?? mode.glowOpacity
-                ),
-                center: tuning?.mainGlowAnchor.unitPoint ?? .topTrailing,
-                startRadius: CGFloat(tuning?.mainGlowStartRadius ?? 12),
-                endRadius: CGFloat(tuning?.mainGlowEndRadius ?? 520)
-            )
+            if let tuning {
+                Rectangle()
+                    .fill(accentColor.opacity(tuning.accentWashOpacity))
+                    .blendMode(.softLight)
 
-            if let elementTint {
-                RadialGradient(
-                    gradient: smoothGlowGradient(
-                        color: elementTint,
-                        opacity: tuning?.elementGlowOpacity ?? 0.12
-                    ),
-                    center: tuning?.elementGlowAnchor.unitPoint ?? .bottomLeading,
-                    startRadius: CGFloat(tuning?.elementGlowStartRadius ?? 24),
-                    endRadius: CGFloat(tuning?.elementGlowEndRadius ?? 460)
-                )
-            }
+                Rectangle()
+                    .fill(palette.panelSurface.opacity(tuning.surfaceWashOpacity))
+                    .blendMode(.overlay)
 
-            let textureOpacity = tuning?.textureOpacity ?? palette.textureOpacity
-            if textureOpacity > 0 {
-                TrinketTextureLayer(opacity: textureOpacity)
+                if tuning.bandOpacity > 0 {
+                    TrinketTonalBandLayer(
+                        opacity: tuning.bandOpacity,
+                        height: tuning.bandHeight,
+                        spacing: tuning.bandSpacing
+                    )
+                }
+
+                if tuning.lineOpacity > 0 {
+                    TrinketLineworkLayer(
+                        opacity: tuning.lineOpacity,
+                        spacing: tuning.lineSpacing,
+                        angleDegrees: tuning.lineAngleDegrees
+                    )
+                }
+
+                if tuning.textureOpacity > 0 {
+                    TrinketTextureLayer(opacity: tuning.textureOpacity)
+                }
+            } else {
+                Rectangle()
+                    .fill(accentColor.opacity(mode.glowOpacity * 0.08))
+                    .blendMode(.softLight)
+
+                if palette.textureOpacity > 0 {
+                    TrinketTextureLayer(opacity: palette.textureOpacity * 0.28)
+                }
             }
         }
         .ignoresSafeArea()
     }
 }
 
-private func smoothGlowGradient(color: Color, opacity: Double) -> Gradient {
-    Gradient(stops: [
-        Gradient.Stop(color: color.opacity(opacity), location: 0),
-        Gradient.Stop(color: color.opacity(opacity * 0.72), location: 0.16),
-        Gradient.Stop(color: color.opacity(opacity * 0.38), location: 0.42),
-        Gradient.Stop(color: color.opacity(opacity * 0.14), location: 0.70),
-        Gradient.Stop(color: color.opacity(0), location: 1)
-    ])
+private struct TrinketTonalBandLayer: View {
+    let opacity: Double
+    let height: Double
+    let spacing: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            let step = max(height + spacing, 1)
+            let count = max(Int((proxy.size.height / step).rounded(.up)) + 2, 1)
+
+            VStack(spacing: CGFloat(spacing)) {
+                ForEach(0 ..< count, id: \.self) { index in
+                    Rectangle()
+                        .fill((index.isMultiple(of: 2) ? Color.white : Color.black).opacity(opacity))
+                        .blendMode(index.isMultiple(of: 2) ? .softLight : .overlay)
+                        .frame(height: CGFloat(height))
+                }
+            }
+            .offset(y: -CGFloat(height * 0.5))
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+private struct TrinketLineworkLayer: View {
+    let opacity: Double
+    let spacing: Double
+    let angleDegrees: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            let length = max(proxy.size.width, proxy.size.height) * 2
+            let count = max(Int((length / max(spacing, 1)).rounded(.up)), 1)
+
+            Canvas { context, _ in
+                let pathColor = Color.white.opacity(opacity)
+                let stroke = StrokeStyle(lineWidth: 0.6, lineCap: .round)
+
+                for index in 0 ..< count {
+                    let offset = CGFloat(index) * CGFloat(spacing)
+                    var path = Path()
+                    path.move(to: CGPoint(x: -length, y: offset))
+                    path.addLine(to: CGPoint(x: length, y: offset))
+                    context.stroke(path, with: .color(pathColor), style: stroke)
+                }
+            }
+            .frame(width: length, height: length)
+            .rotationEffect(.degrees(angleDegrees))
+            .offset(x: -(length - proxy.size.width) * 0.5, y: -(length - proxy.size.height) * 0.5)
+            .blendMode(.softLight)
+        }
+        .allowsHitTesting(false)
+    }
 }
 
 private struct TrinketTextureLayer: View {
@@ -376,14 +389,20 @@ private struct TrinketTextureLayer: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [.white.opacity(opacity), .clear, .black.opacity(opacity)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+            TrinketLineworkLayer(
+                opacity: opacity * 0.75,
+                spacing: 11,
+                angleDegrees: 0
+            )
+
+            TrinketLineworkLayer(
+                opacity: opacity * 0.45,
+                spacing: 17,
+                angleDegrees: 90
             )
 
             Rectangle()
-                .fill(.white.opacity(opacity * 0.45))
+                .fill(.black.opacity(opacity * 0.18))
                 .blendMode(.overlay)
         }
         .allowsHitTesting(false)
