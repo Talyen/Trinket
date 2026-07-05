@@ -4,7 +4,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · releases: `Docs/ReleasePipeline.md` · setup: `README.md`
 - Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
 
 ## Product & Architecture
@@ -37,9 +37,29 @@ Key patterns:
 - Do **not** `git push` unless the user explicitly asks.
 - Do **not** create or update pull requests unless the user explicitly asks.
 
+## Commit Messages
+
+Use this structure so release automation can generate changelogs and App Store notes:
+
+```
+<type>(<scope>): <imperative subject ≤72 chars>
+
+- <notable change>
+- <another change>
+
+User-Facing: yes | no
+Breaking: <description if only applicable>
+```
+
+- **Types:** `feat`, `fix`, `perf`, `refactor`, `content`, `style`, `test`, `ci`, `chore`, `docs`
+- Imperative subjects without a type prefix are acceptable (`Add session state restoration…`).
+- Set **`User-Facing: yes`** when players would notice; **`User-Facing: no`** for CI/style/refactor/tooling.
+- Do **not** edit `CHANGELOG.md` per commit — `./Scripts/release.sh` generates it at release time.
+- See `Docs/ReleasePipeline.md` for the full release workflow.
+
 ## Commands & Verification
 
-All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, XcodeGen), `assert-generated-output.sh`, `validate-manifests.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`). `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
+All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, XcodeGen), `assert-generated-output.sh`, `validate-manifests.sh`, `build.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `test-timing.sh`, `format.sh`, `lint.sh`, `ci-locally.sh`, `run-simulator.sh`, `prepare-art-assets.sh`, `capture-screenshot.sh`, `check-ui-style.sh` (`test.sh style`), `release.sh`, `release-notes.sh`, `release-notes-user.sh`, `validate-commit-msg.sh`. `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. `ci-locally.sh`/`test-deploy.sh` always `generate.sh` first. After `project.yml` changes, `generate.sh` before build/test.
 
 | Change | Check |
 |--------|-------|
@@ -49,6 +69,7 @@ All under `./Scripts/`: `generate.sh` (validates manifests, content codegen, Xco
 | Multi-step UI | `test-iterate.sh <SmokeClass> [ExhaustiveClass]` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
+| Release | `release.sh` (see `Docs/ReleasePipeline.md`) |
 
 **Test tiers** (fast → thorough):
 

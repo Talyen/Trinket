@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install git-cliff
+        run: ./Scripts/ensure-git-cliff.sh --version
+
+      - name: Validate changelog config
+        run: ./Scripts/release-notes.sh validate
+
+      - name: Generate release body
+        id: notes
+        run: |
+          BODY="$(./Scripts/release-notes.sh github-body "${GITHUB_REF_NAME}")"
+          {
+            echo "body<<EOF"
+            echo "$BODY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload App Store notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-release-notes
+          path: |
+            ReleaseNotes/en-US.txt
+            fastlane/metadata/en-US/release_notes.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Trinket ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.body }}
+          generate_release_notes: false

@@ -20,6 +20,8 @@ brew install xcodegen
 ./Scripts/test.sh unit
 ./Scripts/test.sh smoke
 ./Scripts/run-simulator.sh
+./Scripts/release.sh --dry-run # preview changelog + App Store notes
+./Scripts/release.sh           # cut a release (runs test-deploy.sh)
 ```
 
 ## Docs
@@ -33,3 +35,4 @@ brew install xcodegen
 - Music pipeline: `Docs/MusicPipeline.md`
 - Apple-native guidance: `Docs/AppleNativeGuidelines.md`
 - CloudKit pre-ship checklist: `Docs/CloudKitPreShipChecklist.md`
+- Release pipeline: `Docs/ReleasePipeline.md`

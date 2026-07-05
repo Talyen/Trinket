@@ -58,6 +58,9 @@ jobs:
       - name: Module boundary check
         run: ./Scripts/check-module-boundaries.sh
 
+      - name: Validate release notes config
+        run: ./Scripts/release-notes.sh validate
+
   build:
     name: Build for testing
     needs: gate
