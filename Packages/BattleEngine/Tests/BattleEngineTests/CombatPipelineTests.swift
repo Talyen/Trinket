@@ -35,13 +35,8 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(
-                hero: source,
-                pet: pet,
-                enemy: target,
-                heroModifiers: .zero,
-                petModifiers: .zero
-            )
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
     }
 
@@ -322,13 +317,8 @@ final class CombatPipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(
-                hero: source,
-                pet: CombatantFixtures.combatant(id: "pet", role: .pet),
-                enemy: target,
-                heroModifiers: .zero,
-                petModifiers: .zero
-            )
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
 
         context.applyControlMeter(1, keyword: .stun, to: target, sourceActorID: "source")

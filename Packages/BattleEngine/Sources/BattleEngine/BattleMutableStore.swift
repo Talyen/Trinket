@@ -14,7 +14,9 @@ public struct BattleMutableStore {
     public var events: [ActionEvent]
     public var gold: Int
     public let initialGold: Int
-    public let build: BattleCombatBuild
+    public let heroModifiers: CombatModifierProfile
+    public let petModifiers: CombatModifierProfile
+    public let enemyModifiers: CombatModifierProfile
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
     public var hasLoggedPartyDefeat: Bool
@@ -28,7 +30,9 @@ public struct BattleMutableStore {
         events: [ActionEvent],
         gold: Int,
         initialGold: Int,
-        build: BattleCombatBuild,
+        heroModifiers: CombatModifierProfile,
+        petModifiers: CombatModifierProfile,
+        enemyModifiers: CombatModifierProfile,
         actionCount: Int = 0,
         hasLoggedDefeat: Bool = false,
         hasLoggedPartyDefeat: Bool = false
@@ -41,7 +45,9 @@ public struct BattleMutableStore {
         self.events = events
         self.gold = gold
         self.initialGold = initialGold
-        self.build = build
+        self.heroModifiers = heroModifiers
+        self.petModifiers = petModifiers
+        self.enemyModifiers = enemyModifiers
         self.actionCount = actionCount
         self.hasLoggedDefeat = hasLoggedDefeat
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
@@ -60,14 +66,6 @@ public struct BattleMutableStore {
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64
     ) -> BattleMutableStore {
-        let build = BattleCombatBuild(
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            heroModifiers: heroModifiers,
-            petModifiers: petModifiers,
-            enemyModifiers: enemyModifiers
-        )
         let roster = BattleRoster(
             hero: CombatantRuntime(
                 combatant: hero,
@@ -98,7 +96,9 @@ public struct BattleMutableStore {
             events: [],
             gold: initialGold,
             initialGold: initialGold,
-            build: build
+            heroModifiers: heroModifiers,
+            petModifiers: petModifiers,
+            enemyModifiers: enemyModifiers
         )
     }
 }
@@ -111,7 +111,10 @@ public typealias BattleEngineContext = BattleMutableStore
 
 public extension BattleMutableStore {
     func modifiers(for combatantID: String) -> CombatModifierProfile {
-        build.modifiers(for: combatantID)
+        if combatantID == roster.hero.id { return heroModifiers }
+        if combatantID == roster.pet.id { return petModifiers }
+        if combatantID == roster.enemy.id { return enemyModifiers }
+        return .zero
     }
 
     mutating func consumeNextEffectID() -> Int {
@@ -121,7 +124,29 @@ public extension BattleMutableStore {
     }
 
     func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
-        build.adjustedOutgoingEffect(effect, sourceID: sourceID)
+        let profile = modifiers(for: sourceID)
+        switch effect {
+        case let .shield(keyword, buffer, durationTicks):
+            return .shield(
+                keyword,
+                buffer + profile.blockGainedBonus,
+                durationTicks + profile.blockDurationBonus
+            )
+        case let .mitigation(keyword, percent, durationTicks):
+            return .mitigation(
+                keyword,
+                percent + profile.armorGainedBonus,
+                durationTicks + profile.armorDurationBonus
+            )
+        case let .leech(keyword, percent, durationTicks):
+            return .leech(
+                keyword,
+                percent + profile.leechGainedBonus,
+                durationTicks + profile.leechDurationBonus
+            )
+        default:
+            return effect
+        }
     }
 
     mutating func addGold(_ amount: Int, sourceActorID: String) {

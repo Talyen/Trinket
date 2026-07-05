@@ -32,7 +32,8 @@ final class BattleMechanicsTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: hero, pet: pet, heroModifiers: .zero, petModifiers: .zero)
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
     }
 

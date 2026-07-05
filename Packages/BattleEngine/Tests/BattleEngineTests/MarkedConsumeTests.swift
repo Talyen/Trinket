@@ -24,7 +24,8 @@ final class MarkedConsumeTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: hero, pet: CombatantFixtures.combatant(id: "pet", role: .pet), heroModifiers: .zero, petModifiers: .zero)
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
 
         let outcome = context.resolveDamage(

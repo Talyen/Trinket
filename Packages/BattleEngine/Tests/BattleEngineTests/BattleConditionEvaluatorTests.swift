@@ -20,13 +20,8 @@ final class BattleConditionEvaluatorTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(
-                hero: hero,
-                pet: pet,
-                enemy: enemy,
-                heroModifiers: .zero,
-                petModifiers: .zero
-            )
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         context.roster.mutateRuntime(for: pet) { $0.currentHealth = 8 }

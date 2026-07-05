@@ -37,7 +37,8 @@ final class DamagePipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
     }
 
@@ -78,7 +79,8 @@ final class DamagePipelineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: source, pet: target, heroModifiers: .zero, petModifiers: .zero)
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
 
         let executed = DamagePipeline.executedStepNames(

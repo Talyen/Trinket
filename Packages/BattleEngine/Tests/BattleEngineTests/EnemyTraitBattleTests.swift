@@ -26,14 +26,9 @@ final class EnemyTraitBattleTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(
-                hero: hero,
-                pet: pet,
-                enemy: enemyBuild.combatant,
-                heroModifiers: .zero,
-                petModifiers: .zero,
-                enemyModifiers: enemyBuild.modifiers
-            )
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: enemyBuild.modifiers
         )
     }
 

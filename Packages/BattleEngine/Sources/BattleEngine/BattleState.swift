@@ -189,7 +189,7 @@ public struct BattleState {
     // MARK: - Modifier profile
 
     public func modifiers(for combatantID: String) -> CombatModifierProfile {
-        store.build.modifiers(for: combatantID)
+        store.modifiers(for: combatantID)
     }
 
     // MARK: - Engine context

@@ -205,8 +205,8 @@ package enum DamagePipeline {
         in context: BattleEngineContext
     ) -> Int {
         var bonus = context.modifiers(for: sourceActorID).damageDealtBonus(for: keyword)
-        if sourceActorID == context.build.petID {
-            bonus += context.build.heroModifiers.petDamageDealtBonus
+        if sourceActorID == context.roster.pet.id {
+            bonus += context.heroModifiers.petDamageDealtBonus
         }
         return bonus
     }

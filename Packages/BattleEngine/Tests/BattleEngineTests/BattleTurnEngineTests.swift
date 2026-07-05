@@ -34,7 +34,8 @@ final class BattleTurnEngineTests: XCTestCase {
             events: [],
             gold: 0,
             initialGold: 0,
-            build: BattleCombatBuild(hero: hero, pet: pet, heroModifiers: .zero, petModifiers: .zero)
+            heroModifiers: .zero,
+            petModifiers: .zero
         )
         return (context, BattleMatchup(hero: hero, pet: pet, enemy: enemy))
     }
