@@ -65,21 +65,3 @@ extension Keyword {
         }
     }
 }
-
-extension ItemSlot {
-    public struct VisualStyle: Sendable {
-        public let accentColor: Color
-
-        public static let weapon = VisualStyle(accentColor: Color.red)
-        public static let armor = VisualStyle(accentColor: Color.blue)
-        public static let trinket = VisualStyle(accentColor: Color.purple)
-    }
-
-    public var visualStyle: VisualStyle {
-        switch self {
-        case .weapon: return .weapon
-        case .armor: return .armor
-        case .trinket, .secondaryTrinket: return .trinket
-        }
-    }
-}

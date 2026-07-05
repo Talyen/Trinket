@@ -92,7 +92,3 @@ public extension View {
         modifier(PrimaryActionButtonModifier())
     }
 }
-
-public extension Color {
-    static let trinketDestructive = TrinketDesign.Colors.destructive
-}

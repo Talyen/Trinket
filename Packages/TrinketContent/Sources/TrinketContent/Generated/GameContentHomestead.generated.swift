@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentHomesteadGenerated {
-    public static let homesteadNodes: [HomesteadNodeDefinition] = [
+enum GameContentHomesteadGenerated {
+    static let homesteadNodes: [HomesteadNodeDefinition] = [
         HomesteadNodeDefinition(
             id: .wheatField,
             title: "Wheat Field",

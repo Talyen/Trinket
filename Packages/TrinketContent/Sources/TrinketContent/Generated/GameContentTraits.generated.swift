@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentTraitsGenerated {
-    public static let definitions: [CombatantTraitDefinition] = [
+enum GameContentTraitsGenerated {
+    static let definitions: [CombatantTraitDefinition] = [
         CombatantTraitDefinition(
             id: "oathbound",
             name: "Oathbound",

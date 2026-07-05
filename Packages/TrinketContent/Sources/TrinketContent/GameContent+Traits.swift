@@ -26,6 +26,6 @@ public extension GameContent {
     }
 }
 
-public enum GameContentTraits {
-    public static let definitions: [CombatantTraitDefinition] = GameContentTraitsGenerated.definitions
+enum GameContentTraits {
+    static let definitions: [CombatantTraitDefinition] = GameContentTraitsGenerated.definitions
 }

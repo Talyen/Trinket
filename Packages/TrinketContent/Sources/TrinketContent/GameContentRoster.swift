@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentRoster {
-    public static let heroes: [Combatant] = GameContentRosterGenerated.heroes
-    public static let pets: [Combatant] = GameContentRosterGenerated.pets
+enum GameContentRoster {
+    static let heroes: [Combatant] = GameContentRosterGenerated.heroes
+    static let pets: [Combatant] = GameContentRosterGenerated.pets
 }

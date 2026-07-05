@@ -706,8 +706,11 @@ def publicize(text: str) -> str:
     for line in lines:
         if depth == 0:
             if TOP_LEVEL.match(line) and not line.startswith("public "):
-                line = f"public {line}"
-                in_public_type = True
+                if re.search(r"\b\w+Generated\b", line):
+                    in_public_type = False
+                else:
+                    line = f"public {line}"
+                    in_public_type = True
             elif line.startswith("public extension "):
                 in_public_type = True
             elif line.startswith("extension ") and not line.startswith("public "):
@@ -993,8 +996,8 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
         )
 
     body = (
-        "public enum GameContentTraitsGenerated {\n"
-        "    public static let definitions: [CombatantTraitDefinition] = [\n"
+        "enum GameContentTraitsGenerated {\n"
+        "    static let definitions: [CombatantTraitDefinition] = [\n"
         + ",\n".join(entries)
         + ",\n    ]\n"
         "}\n"
@@ -1011,14 +1014,14 @@ def generate_roster_catalog(rows: list[CombatantRow]) -> None:
     hero_blocks = ",\n".join(render_party_combatant(row) for row in heroes)
     pet_blocks = ",\n".join(render_party_combatant(row) for row in pets)
     body = (
-        "public enum GameContentRosterGenerated {\n"
-        "    public static let combatantTraitIDs: [String: String] = [\n"
+        "enum GameContentRosterGenerated {\n"
+        "    static let combatantTraitIDs: [String: String] = [\n"
         f"{trait_map_entries}\n"
         "    ]\n\n"
-        "    public static let heroes: [Combatant] = [\n"
+        "    static let heroes: [Combatant] = [\n"
         f"{hero_blocks}\n"
         "    ]\n\n"
-        "    public static let pets: [Combatant] = [\n"
+        "    static let pets: [Combatant] = [\n"
         f"{pet_blocks}\n"
         "    ]\n"
         "}\n"
@@ -1029,8 +1032,8 @@ def generate_roster_catalog(rows: list[CombatantRow]) -> None:
 def generate_enemies_catalog(rows: list[EnemyRow]) -> None:
     enemy_blocks = ",\n".join(render_enemy(row) for row in rows)
     body = (
-        "public enum GameContentEnemiesGenerated {\n"
-        "    public static let enemies: [Enemy] = [\n"
+        "enum GameContentEnemiesGenerated {\n"
+        "    static let enemies: [Enemy] = [\n"
         f"{enemy_blocks}\n"
         "    ]\n"
         "}\n"
@@ -1277,8 +1280,8 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
         )
 
     body = (
-        "public enum GameContentChaptersGenerated {\n"
-        "    public static let chapters: [Chapter] = [\n"
+        "enum GameContentChaptersGenerated {\n"
+        "    static let chapters: [Chapter] = [\n"
         + ",\n".join(chapter_blocks)
         + "\n    ]\n}\n"
     )
@@ -1453,8 +1456,8 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
         for node_id in HOMESTEAD_NODE_ORDER
     )
     body = (
-        "public enum GameContentHomesteadGenerated {\n"
-        "    public static let homesteadNodes: [HomesteadNodeDefinition] = [\n"
+        "enum GameContentHomesteadGenerated {\n"
+        "    static let homesteadNodes: [HomesteadNodeDefinition] = [\n"
         + node_blocks
         + "\n    ]\n}\n"
     )
@@ -1487,8 +1490,8 @@ def generate_item_bases_catalog(rows: list[ItemBaseRow]) -> None:
             ")"
         )
     body = (
-        "public enum GameContentItemBasesGenerated {\n"
-        "    public static let itemBaseTypes: [ItemBaseType] = [\n"
+        "enum GameContentItemBasesGenerated {\n"
+        "    static let itemBaseTypes: [ItemBaseType] = [\n"
         + ",\n".join(entries)
         + "\n    ]\n}\n"
     )
@@ -1506,8 +1509,8 @@ def generate_encounter_art_catalog(rows: list[StageRow]) -> None:
             f'title: "{swift_escape(row.encounter_art_title)}")'
         )
     body = (
-        "public enum GameContentEncounterArtGenerated {\n"
-        "    public static let stageEncounterArt: [String: (id: String, title: String)] = [\n"
+        "enum GameContentEncounterArtGenerated {\n"
+        "    static let stageEncounterArt: [String: (id: String, title: String)] = [\n"
         + ",\n".join(entries)
         + "\n    ]\n}\n"
     )

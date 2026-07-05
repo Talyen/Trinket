@@ -2,64 +2,64 @@
 import Foundation
 import TrinketCore
 
-public enum AbilityCatalogBasicGenerated {
-    public static let anvil = AbilityBuilder.directHit(
+enum AbilityCatalogBasicGenerated {
+    static let anvil = AbilityBuilder.directHit(
         id: "anvil", name: "Anvil", tier: .basic,
         amount: 1, keyword: .stun
     )
 
-    public static let bash = AbilityBuilder.directHit(
+    static let bash = AbilityBuilder.directHit(
         id: "bash", name: "Bash", tier: .basic,
         amount: 1, keyword: .stun
     )
 
-    public static let fangs = AbilityBuilder.directHit(
+    static let fangs = AbilityBuilder.directHit(
         id: "fangs", name: "Fangs", tier: .basic,
         amount: 1, keyword: .bleed
     )
 
-    public static let kindling = AbilityBuilder.directHit(
+    static let kindling = AbilityBuilder.directHit(
         id: "kindling", name: "Kindling", tier: .basic,
         amount: 1, keyword: .burn
     )
 
-    public static let rayOfFrost = AbilityBuilder.directHit(
+    static let rayOfFrost = AbilityBuilder.directHit(
         id: "ray-of-frost", name: "Ray of Frost", tier: .basic,
         amount: 1, keyword: .freeze
     )
 
-    public static let slash = AbilityBuilder.directHit(
+    static let slash = AbilityBuilder.directHit(
         id: "slash", name: "Slash", tier: .basic,
         amount: 1, keyword: .physical
     )
 
-    public static let stab = AbilityBuilder.directHit(
+    static let stab = AbilityBuilder.directHit(
         id: "stab", name: "Stab", tier: .basic,
         amount: 1, keyword: .physical
     )
 
-    public static let gamblersShot = AbilityBuilder.directHit(
+    static let gamblersShot = AbilityBuilder.directHit(
         id: "gamblers-shot", name: "Gambler's Shot", tier: .basic,
         amount: 1, keyword: .physical,
         extras: [TargetedEffect(.resourceGain(.gold, 1))]
     )
 
-    public static let block = AbilityBuilder.buffOnly(
+    static let block = AbilityBuilder.buffOnly(
         id: "block", name: "Block", tier: .basic,
         effects: [.shield(.block, 2, 6), .thorns(.physical, 1, 6)]
     )
 
-    public static let bread = AbilityBuilder.buffOnly(
+    static let bread = AbilityBuilder.buffOnly(
         id: "bread", name: "Bread", tier: .basic,
         effects: [.instantHeal(.health, 1)]
     )
 
-    public static let smellingSalts = AbilityBuilder.buffOnly(
+    static let smellingSalts = AbilityBuilder.buffOnly(
         id: "smelling-salts", name: "Smelling Salts", tier: .basic,
         effects: [.cleanse(.stun), .instantHeal(.health, 1)]
     )
 
-    public static let all: [Ability] = [
+    static let all: [Ability] = [
         anvil,
         bash,
         fangs,

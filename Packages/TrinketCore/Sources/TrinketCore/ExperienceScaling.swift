@@ -1,18 +1,18 @@
 import Foundation
 
-public enum ProgressionBracket: Equatable, Sendable {
+enum ProgressionBracket: Equatable, Sendable {
     case early
     case mid
     case late
 
-    public static func forLevel(_ level: Int) -> ProgressionBracket {
+    static func forLevel(_ level: Int) -> ProgressionBracket {
         if level < 20 { return .early }
         if level < 40 { return .mid }
         return .late
     }
 
     /// Target equal-level battles to advance one level.
-    public var targetBattlesPerLevel: Double {
+    var targetBattlesPerLevel: Double {
         switch self {
         case .early: return 1.5
         case .mid: return 2.5

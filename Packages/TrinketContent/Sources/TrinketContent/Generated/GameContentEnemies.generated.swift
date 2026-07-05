@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentEnemiesGenerated {
-    public static let enemies: [Enemy] = [
+enum GameContentEnemiesGenerated {
+    static let enemies: [Enemy] = [
         Enemy(combatant: Combatant(id: "living_armor", name: "Living Armor", role: .enemy, maxHealth: 15, abilities: [.bash, .spikedShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 7, agility: 2, toughness: 10, intellect: 1, wisdom: 2), growthArchetype: .tank), positiveTraitID: "animated_plate", negativeTraitID: "hollow_shell", isElite: true),
         Enemy(combatant: Combatant(id: "mimic", name: "Mimic", role: .enemy, maxHealth: 14, abilities: [.stab, .serratedEdge, .hemorrhage], primaryStats: PrimaryStats(strength: 5, agility: 7, toughness: 4, intellect: 2, wisdom: 5), growthArchetype: .assassin), positiveTraitID: "ambush", negativeTraitID: "splintering_frame", isElite: true),
         Enemy(combatant: Combatant(id: "mud_elemental", name: "Mud Elemental", role: .enemy, maxHealth: 15, abilities: [.block, .briarShield, .crystalBulwark], primaryStats: PrimaryStats(strength: 4, agility: 2, toughness: 11, intellect: 3, wisdom: 4), growthArchetype: .tank), positiveTraitID: "quagmire", negativeTraitID: "desiccation"),

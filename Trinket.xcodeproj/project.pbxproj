@@ -37,7 +37,6 @@
 		321A804788F927C6DEAC7818 /* SmokePetDetailTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFBF7F4964275F65032A08C /* SmokePetDetailTests.swift */; };
 		3300AE189FC1CA8B733509D2 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4F5008156859F661347AEE /* AppEnvironment.swift */; };
 		37ADF903F66DB79B67268CC5 /* Combatant+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5805216343957A2362D33700 /* Combatant+Presentation.swift */; };
-		38CE428EFA48EBA693798946 /* Enemy+GameContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA22D8DE99B1709685B40F29 /* Enemy+GameContent.swift */; };
 		3AB0340125D10F66A14E0CD4 /* PetsGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D18968CA4AB10F7D9E651E /* PetsGridView.swift */; };
 		3AE3EEEACD1467005F4F20AE /* ChapterArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8C7C3D3126BF74BCE52E28 /* ChapterArt.swift */; };
 		3BDA24D7AA0729EED8B60A47 /* music_boss_frostwarden.m4a in Resources */ = {isa = PBXBuildFile; fileRef = D6A71A45CB0232807C35A833 /* music_boss_frostwarden.m4a */; };
@@ -103,7 +102,6 @@
 		AABB9B3A57BDA3409E37F833 /* CombatFeedbackOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */; };
 		AEBB4FC8F25FA1A431007BFA /* SessionStateStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75D32D7253C1FD8CD805DFD /* SessionStateStoreTests.swift */; };
 		AEDD4527F082E7ABA4521B8F /* AbilityCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B71B79EAE04A82ABAD865742 /* AbilityCard.swift */; };
-		B47074250012BAA11AF30B24 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23440CC93C6AF578800C827 /* Enums.swift */; };
 		B55FDF0B6DB7A601885C431D /* MusicDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 899EEFA79785C3120C8C8E1E /* MusicDirector.swift */; };
 		B580C9F53363446FFFFCF4A5 /* CombatantDetailPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E63D000DD0D87BF69B0536A /* CombatantDetailPane.swift */; };
 		BA8E7EE4C04A26945E262726 /* AppStatePlayFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 365F8B4B42A8B4B938E3BDE4 /* AppStatePlayFlowTests.swift */; };
@@ -291,7 +289,6 @@
 		C55218B0202C07C8ADF98E68 /* MusicDirectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicDirectorTests.swift; sourceTree = "<group>"; };
 		C7B564718B8D5A2471C70B61 /* SmokeSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeSearchTests.swift; sourceTree = "<group>"; };
 		C9DCF85128AEC8577B0356E0 /* MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayer.swift; sourceTree = "<group>"; };
-		CA22D8DE99B1709685B40F29 /* Enemy+GameContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Enemy+GameContent.swift"; sourceTree = "<group>"; };
 		D1D30B98EECEDB98A3608EDB /* music_menu_1.m4a */ = {isa = PBXFileReference; path = music_menu_1.m4a; sourceTree = "<group>"; };
 		D30D8843B8A0C5AA2AE1EA78 /* JourneyChapterGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JourneyChapterGate.swift; sourceTree = "<group>"; };
 		D5AECD5201167B93A91DFF3C /* PartyPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyPickerSheet.swift; sourceTree = "<group>"; };
@@ -313,7 +310,6 @@
 		EFE0DB7E80868E33B5F827DB /* SmokeCollectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeCollectionTests.swift; sourceTree = "<group>"; };
 		F11B241CDB6DAA90DC7E1311 /* music_boss_blight_treant.m4a */ = {isa = PBXFileReference; path = music_boss_blight_treant.m4a; sourceTree = "<group>"; };
 		F134CA07356C4E6289659328 /* ItemCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCard.swift; sourceTree = "<group>"; };
-		F23440CC93C6AF578800C827 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		F586133A7383F3D2E7BD70A8 /* music_battle_2.m4a */ = {isa = PBXFileReference; path = music_battle_2.m4a; sourceTree = "<group>"; };
 		F5C7110486A1F1BB78BD228C /* CombatantCollectionDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCollectionDetailSheet.swift; sourceTree = "<group>"; };
 		F5D3EF948D89460BB07123D6 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
@@ -539,8 +535,6 @@
 				F831763803FCF781C5CF74E0 /* ChapterJourneyPresentation.swift */,
 				5805216343957A2362D33700 /* Combatant+Presentation.swift */,
 				347BB1AB82B612306606BC5E /* CombatantDetail.swift */,
-				CA22D8DE99B1709685B40F29 /* Enemy+GameContent.swift */,
-				F23440CC93C6AF578800C827 /* Enums.swift */,
 				32F44736054B20248E91E5B6 /* Homestead.swift */,
 				AF030A34FF4BA9D3B829A66B /* Journey+Presentation.swift */,
 				BDCD65710AA06B20FC3BF8D3 /* StageMapPresentation.swift */,
@@ -1079,8 +1073,6 @@
 				E1BD7341C8C87737548D5F11 /* DefeatView.swift in Sources */,
 				1B17EF37C44E72F215CACD2F /* EmptySlots.swift in Sources */,
 				16C94B6EBC27917E2E808F9A /* EncounterArtwork.swift in Sources */,
-				38CE428EFA48EBA693798946 /* Enemy+GameContent.swift in Sources */,
-				B47074250012BAA11AF30B24 /* Enums.swift in Sources */,
 				716872C35EDD8C442DC523BD /* EquipmentSlotSummaryGrid.swift in Sources */,
 				F24A90029F8BE53F83549AD6 /* FlowLayout.swift in Sources */,
 				5FFDA92BAF3539D0427E04CE /* HeroHeaderLayout.swift in Sources */,

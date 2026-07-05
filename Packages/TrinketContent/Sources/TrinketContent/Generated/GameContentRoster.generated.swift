@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentRosterGenerated {
-    public static let combatantTraitIDs: [String: String] = [
+enum GameContentRosterGenerated {
+    static let combatantTraitIDs: [String: String] = [
         "knight": "oathbound",
         "rogue": "cutpurse",
         "wizard": "arcane_focus",
@@ -25,7 +25,7 @@ public enum GameContentRosterGenerated {
         "shield_scarab": "iron_carapace"
     ]
 
-    public static let heroes: [Combatant] = [
+    static let heroes: [Combatant] = [
         Combatant(
             id: "knight",
             name: "Knight",
@@ -123,7 +123,7 @@ public enum GameContentRosterGenerated {
         )
     ]
 
-    public static let pets: [Combatant] = [
+    static let pets: [Combatant] = [
         Combatant(
             id: "bear",
             name: "Bear",

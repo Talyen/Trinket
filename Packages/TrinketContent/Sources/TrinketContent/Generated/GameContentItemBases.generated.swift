@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum GameContentItemBasesGenerated {
-    public static let itemBaseTypes: [ItemBaseType] = [
+enum GameContentItemBasesGenerated {
+    static let itemBaseTypes: [ItemBaseType] = [
         ItemBaseType(id: "crossbow", name: "Crossbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
         ItemBaseType(id: "dagger", name: "Dagger", slot: .weapon, keywordAffinities: [.physical, .poison, .bleed, .leech]),
         ItemBaseType(id: "double_axe", name: "Double Axe", slot: .weapon, keywordAffinities: [.physical, .bleed, .leech]),

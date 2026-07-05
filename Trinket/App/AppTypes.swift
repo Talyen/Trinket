@@ -1,5 +1,3 @@
-import SwiftUI
-
 enum AppTab: String, CaseIterable {
     case play
     case collection

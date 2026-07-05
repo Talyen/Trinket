@@ -2,8 +2,8 @@
 import Foundation
 import TrinketCore
 
-public enum ItemAffixCatalogGenerated {
-    public static let definitions: [ItemAffixDefinition] = [
+enum ItemAffixCatalogGenerated {
+    static let definitions: [ItemAffixDefinition] = [
         ItemAffixCatalogSupport.affix(
             id: "mighty",
             title: "Mighty",

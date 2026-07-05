@@ -51,7 +51,7 @@ public struct PlayerSaveFileStore {
         }
     }
 
-    public func loadOutcome() -> PlayerSaveLoadOutcome {
+    func loadOutcome() -> PlayerSaveLoadOutcome {
         ensureDirectoryExists()
 
         let primaryExists = fileManager.fileExists(atPath: saveFileURL.path)
