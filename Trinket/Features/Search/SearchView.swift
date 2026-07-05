@@ -49,39 +49,13 @@ struct SearchView: View {
                 List {
                     if !results.heroes.isEmpty {
                         SearchResultSection(title: "Heroes", items: results.heroes) { combatant in
-                            NavigationLink {
-                                CombatantCollectionDetailView(
-                                    combatant: combatant,
-                                    progression: rosterState.progression(for: combatant),
-                                    inventoryState: inventoryState,
-                                    loadout: loadoutBinding(for: combatant, in: rosterState),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
-                                )
-                            } label: {
-                                CombatantCard(combatant: combatant)
-                                    .collectionShelfCardWidth()
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("\(combatant.name) collection card")
+                            combatantDetailLink(for: combatant, rosterState: rosterState, inventoryState: inventoryState)
                         }
                     }
 
                     if !results.pets.isEmpty {
                         SearchResultSection(title: "Pets", items: results.pets) { combatant in
-                            NavigationLink {
-                                CombatantCollectionDetailView(
-                                    combatant: combatant,
-                                    progression: rosterState.progression(for: combatant),
-                                    inventoryState: inventoryState,
-                                    loadout: loadoutBinding(for: combatant, in: rosterState),
-                                    equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState)
-                                )
-                            } label: {
-                                CombatantCard(combatant: combatant)
-                                    .collectionShelfCardWidth()
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("\(combatant.name) collection card")
+                            combatantDetailLink(for: combatant, rosterState: rosterState, inventoryState: inventoryState)
                         }
                     }
 
@@ -102,6 +76,28 @@ struct SearchView: View {
                 .scrollContentBackground(.hidden)
             }
         }
+    }
+
+    private func combatantDetailLink(
+        for combatant: Combatant,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState
+    ) -> some View {
+        NavigationLink {
+            CombatantDetailPane(
+                combatant: combatant,
+                progression: rosterState.progression(for: combatant),
+                loadout: appState.loadoutBinding(for: combatant),
+                equipmentLoadout: appState.equipmentLoadoutBinding(for: combatant),
+                inventoryState: inventoryState,
+                allowsEditing: rosterState.isUnlocked(combatant)
+            )
+        } label: {
+            CombatantCard(combatant: combatant)
+                .collectionShelfCardWidth()
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("\(combatant.name) collection card")
     }
 
     private struct SearchResults {
@@ -131,26 +127,6 @@ struct SearchView: View {
         }
 
         return SearchResults(heroes: matchingHeroes, pets: matchingPets, items: matchingItems)
-    }
-
-    private func loadoutBinding(for combatant: Combatant, in _: PlayerRosterState) -> Binding<AbilityLoadout> {
-        Binding {
-            appState.roster.current.loadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
-    }
-
-    private func equipmentLoadoutBinding(for combatant: Combatant, in _: PlayerRosterState) -> Binding<EquipmentLoadout> {
-        Binding {
-            appState.roster.current.equipmentLoadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setEquipmentLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
     }
 }
 

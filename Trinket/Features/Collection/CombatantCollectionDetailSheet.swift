@@ -53,12 +53,12 @@ struct CombatantCollectionDetailSheet: View {
         let combatants = rosterState.configuredCombatants(sourceCombatants(for: kind))
 
         if let combatant = combatants.first(where: { $0.id == combatantID }) {
-            CombatantCollectionDetailView(
+            CombatantDetailPane(
                 combatant: combatant,
                 progression: rosterState.progression(for: combatant),
+                loadout: appState.loadoutBinding(for: combatant),
+                equipmentLoadout: appState.equipmentLoadoutBinding(for: combatant),
                 inventoryState: inventoryState,
-                loadout: loadoutBinding(for: combatant, in: rosterState),
-                equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState),
                 allowsEditing: rosterState.isUnlocked(combatant),
                 navigationChrome: .hidden
             )
@@ -69,12 +69,12 @@ struct CombatantCollectionDetailSheet: View {
     }
 
     private func battleDetail(_ detail: CombatantCardDetail) -> some View {
-        CombatantCollectionDetailView(
+        CombatantDetailPane(
             combatant: detail.combatant,
             progression: detail.progression,
-            inventoryState: detail.inventoryState,
             loadout: .constant(detail.combatant.abilityLoadout),
             equipmentLoadout: .constant(detail.equipmentLoadout),
+            inventoryState: detail.inventoryState,
             allowsEditing: false,
             battleHealth: detail.health,
             activeEffectSummaries: detail.activeEffectSummaries,
@@ -97,29 +97,6 @@ struct CombatantCollectionDetailSheet: View {
             "Hero Not Found"
         case .pet:
             "Pet Not Found"
-        }
-    }
-
-    private func loadoutBinding(for combatant: Combatant, in _: PlayerRosterState) -> Binding<AbilityLoadout> {
-        Binding {
-            appState.roster.current.loadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setLoadout(newValue, for: combatant)
-            appState.roster.current = updated
-        }
-    }
-
-    private func equipmentLoadoutBinding(
-        for combatant: Combatant,
-        in _: PlayerRosterState
-    ) -> Binding<EquipmentLoadout> {
-        Binding {
-            appState.roster.current.equipmentLoadout(for: combatant)
-        } set: { newValue in
-            var updated = appState.roster.current
-            updated.setEquipmentLoadout(newValue, for: combatant)
-            appState.roster.current = updated
         }
     }
 }

@@ -11,17 +11,18 @@ enum CombatantDetailNavigationChrome {
 }
 
 struct CombatantDetailPane: View {
+    @Environment(AppState.self) private var appState
     let combatant: Combatant
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     @Binding var equipmentLoadout: EquipmentLoadout
-    @Binding var inventoryState: PlayerInventoryState
+    let inventoryState: PlayerInventoryState
     let allowsEditing: Bool
     var battleHealth: Int?
     var activeEffectSummaries: [EffectSummary] = []
     var navigationChrome: CombatantDetailNavigationChrome = .visible
-    @Binding var selectedItemSlot: ItemSlot?
 
+    @State private var selectedItemSlot: ItemSlot?
     @State private var headerHeight: CGFloat = 300
     @State private var heroOverscroll: CGFloat = 0
     @State private var titleOpacity: CGFloat = 0
@@ -153,6 +154,17 @@ struct CombatantDetailPane: View {
                 let threshold = headerHeight - state.topInset - 44
                 heroOverscroll = state.overscroll
                 titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
+            }
+            .sheet(item: $selectedItemSlot) { slot in
+                NavigationStack {
+                    ItemSlotPickerView(
+                        slot: slot,
+                        equipmentLoadout: $equipmentLoadout,
+                        inventoryState: appState.inventoryBinding()
+                    )
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
         }
     }

@@ -31,7 +31,7 @@ struct CollectionView: View {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     NavigationLink {
-                        HeroesGridView()
+                        CollectionCombatantGridView(kind: .hero)
                     } label: {
                         HStack(spacing: 6) {
                             Text("Heroes")
@@ -66,7 +66,7 @@ struct CollectionView: View {
 
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     NavigationLink {
-                        PetsGridView()
+                        CollectionCombatantGridView(kind: .pet)
                     } label: {
                         HStack(spacing: 6) {
                             Text("Pets")
