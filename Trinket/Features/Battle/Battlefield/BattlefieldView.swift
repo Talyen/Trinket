@@ -4,35 +4,25 @@ import TrinketDesignSystem
 
 struct BattlefieldView: View {
     let layout: BattleCardGridLayout.Metrics
-    let enemyPane: BattleCombatantPaneConfiguration
-    let partyPanes: [BattleCombatantPaneConfiguration]
-    let reduceMotion: Bool
-    let onCombatantTap: (Combatant) -> Void
+    let enemyPane: BattleCombatantPane
+    let heroPane: BattleCombatantPane
+    let petPane: BattleCombatantPane
 
     var body: some View {
         VStack(spacing: layout.cardSpacing) {
-            combatantPane(enemyPane, size: layout.enemySize)
+            sizedPane(enemyPane, size: layout.enemySize)
 
             HStack(spacing: layout.cardSpacing) {
-                ForEach(partyPanes) { pane in
-                    combatantPane(pane, size: layout.partySize)
-                }
+                sizedPane(heroPane, size: layout.partySize)
+                sizedPane(petPane, size: layout.partySize)
             }
         }
         .padding(layout.outerPadding)
     }
 
-    private func combatantPane(
-        _ configuration: BattleCombatantPaneConfiguration,
-        size: CGSize
-    ) -> some View {
-        BattleCombatantPane(
-            configuration: configuration,
-            reduceMotion: reduceMotion
-        ) {
-            onCombatantTap(configuration.combatant)
-        }
-        .frame(width: size.width, height: size.height)
-        .clipShape(TrinketDesign.cardShape)
+    private func sizedPane(_ pane: BattleCombatantPane, size: CGSize) -> some View {
+        pane
+            .frame(width: size.width, height: size.height)
+            .clipShape(TrinketDesign.cardShape)
     }
 }

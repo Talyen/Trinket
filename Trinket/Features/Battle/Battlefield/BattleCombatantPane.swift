@@ -1,3 +1,4 @@
+import BattleEngine
 import SwiftUI
 import TrinketContent
 import TrinketCore
@@ -9,12 +10,18 @@ struct BattleCombatantPane: View {
         case bottom
     }
 
-    let configuration: BattleCombatantPaneConfiguration
+    let combatant: Combatant
+    let health: Int
+    let maxHealth: Int
+    let mana: Int
+    let maxMana: Int
+    let healthBarPlacement: HealthBarPlacement
+    let events: [ActionEvent]
     let reduceMotion: Bool
     let onCombatantTap: () -> Void
 
-    private var combatant: Combatant {
-        configuration.combatant
+    private var hasMana: Bool {
+        maxMana > 0
     }
 
     var body: some View {
@@ -27,7 +34,7 @@ struct BattleCombatantPane: View {
                 healthBar
 
                 CombatFeedbackOverlay(
-                    events: configuration.events,
+                    events: events,
                     reduceMotion: reduceMotion
                 )
                 .padding(.horizontal, 8)
@@ -46,25 +53,25 @@ struct BattleCombatantPane: View {
     }
 
     private var healthText: String {
-        if configuration.hasMana {
-            return "\(configuration.health)/\(configuration.maxHealth) HP \(configuration.mana)/\(configuration.maxMana) MP"
+        if hasMana {
+            return "\(health)/\(maxHealth) HP \(mana)/\(maxMana) MP"
         }
-        return "\(configuration.health)/\(configuration.maxHealth) HP"
+        return "\(health)/\(maxHealth) HP"
     }
 
     private var healthBar: some View {
         healthChrome {
-            if configuration.hasMana {
+            if hasMana {
                 HStack(spacing: 4) {
                     CombatHealthBar(
-                        health: configuration.health,
-                        maxHealth: configuration.maxHealth,
+                        health: health,
+                        maxHealth: maxHealth,
                         fillColor: combatant.healthBarColor
                     )
 
                     CombatManaBar(
-                        mana: configuration.mana,
-                        maxMana: configuration.maxMana
+                        mana: mana,
+                        maxMana: maxMana
                     )
                 }
                 .accessibilityHidden(true)
@@ -72,8 +79,8 @@ struct BattleCombatantPane: View {
                 .padding(.vertical, 12)
             } else {
                 CombatHealthBar(
-                    health: configuration.health,
-                    maxHealth: configuration.maxHealth,
+                    health: health,
+                    maxHealth: maxHealth,
                     fillColor: combatant.healthBarColor
                 )
                 .accessibilityHidden(true)
@@ -88,8 +95,8 @@ struct BattleCombatantPane: View {
             LinearGradient(
                 // UIStyleCheck: allow - battle health bars need readable contrast over full-bleed art.
                 colors: [Color.black.opacity(0.42), .clear],
-                startPoint: configuration.healthBarPlacement == .top ? .top : .bottom,
-                endPoint: configuration.healthBarPlacement == .top ? .bottom : .top
+                startPoint: healthBarPlacement == .top ? .top : .bottom,
+                endPoint: healthBarPlacement == .top ? .bottom : .top
             )
             .frame(height: 54)
         }
@@ -99,13 +106,13 @@ struct BattleCombatantPane: View {
 
     private func healthChrome<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack {
-            if configuration.healthBarPlacement == .bottom {
+            if healthBarPlacement == .bottom {
                 Spacer(minLength: 0)
             }
 
             content()
 
-            if configuration.healthBarPlacement == .top {
+            if healthBarPlacement == .top {
                 Spacer(minLength: 0)
             }
         }

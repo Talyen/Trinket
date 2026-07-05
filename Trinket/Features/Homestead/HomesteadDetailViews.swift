@@ -59,11 +59,18 @@ struct HomesteadNodeDetailView: View {
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            HomesteadDetailActionBar(
-                status: status,
-                isBuilding: isBuilding,
-                action: buildOrUpgrade
-            )
+            VStack(spacing: 10) {
+                HomesteadProjectActionFooter(
+                    status: status,
+                    isBuilding: isBuilding,
+                    buildButtonAccessibilityID: status.detailBuildButtonAccessibilityID,
+                    onBuild: buildOrUpgrade
+                )
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            .trinketMaterial(.bottomBar, cornerRadius: 0)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .sensoryFeedback(.success, trigger: upgradeEventCount)
@@ -144,34 +151,6 @@ struct HomesteadDetailHeader: View {
         .trinketCardSurface()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(definition.title), tier \(status.currentTier) of \(definition.maxTier), \(status.statusTitle)")
-    }
-}
-
-struct HomesteadDetailActionBar: View {
-    let status: HomesteadProjectStatus
-    let isBuilding: Bool
-    let action: () -> Void
-
-    var body: some View {
-        VStack(spacing: 10) {
-            HomesteadProjectActionFooter(
-                status: status,
-                isBuilding: isBuilding,
-                buildButtonAccessibilityID: Self.accessibilityID(for: status),
-                onBuild: action
-            )
-        }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .trinketMaterial(.bottomBar, cornerRadius: 0)
-    }
-
-    static func accessibilityID(for status: HomesteadProjectStatus) -> String {
-        if status.currentTier == 0 {
-            return "Build \(status.definition.title) Button"
-        }
-        return "Upgrade \(status.definition.title) Button"
     }
 }
 

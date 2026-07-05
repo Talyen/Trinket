@@ -95,4 +95,11 @@ struct HomesteadProjectStatus {
     func hasEnough(_ amount: ResourceAmount) -> Bool {
         balance(for: amount) >= amount.quantity
     }
+
+    var detailBuildButtonAccessibilityID: String {
+        if currentTier == 0 {
+            return "Build \(definition.title) Button"
+        }
+        return "Upgrade \(definition.title) Button"
+    }
 }

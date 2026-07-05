@@ -47,17 +47,18 @@ struct SearchView: View {
                 .accessibilityIdentifier(AccessibilityID.Search.noResults)
             } else {
                 List {
-                    if !results.heroes.isEmpty {
-                        SearchResultSection(title: "Heroes", items: results.heroes) { combatant in
-                            combatantDetailLink(for: combatant, rosterState: rosterState, inventoryState: inventoryState)
-                        }
-                    }
-
-                    if !results.pets.isEmpty {
-                        SearchResultSection(title: "Pets", items: results.pets) { combatant in
-                            combatantDetailLink(for: combatant, rosterState: rosterState, inventoryState: inventoryState)
-                        }
-                    }
+                    combatantResultsSection(
+                        title: "Heroes",
+                        combatants: results.heroes,
+                        rosterState: rosterState,
+                        inventoryState: inventoryState
+                    )
+                    combatantResultsSection(
+                        title: "Pets",
+                        combatants: results.pets,
+                        rosterState: rosterState,
+                        inventoryState: inventoryState
+                    )
 
                     if !results.items.isEmpty {
                         SearchResultSection(title: "Items", items: results.items) { item in
@@ -74,6 +75,24 @@ struct SearchView: View {
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func combatantResultsSection(
+        title: String,
+        combatants: [Combatant],
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState
+    ) -> some View {
+        if !combatants.isEmpty {
+            SearchResultSection(title: title, items: combatants) { combatant in
+                combatantDetailLink(
+                    for: combatant,
+                    rosterState: rosterState,
+                    inventoryState: inventoryState
+                )
             }
         }
     }
@@ -115,18 +134,24 @@ struct SearchView: View {
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState
     ) -> SearchResults {
-        let matchingHeroes = rosterState.configuredCombatants(GameContent.heroes).filter {
-            rosterState.isUnlocked($0) && $0.name.localizedCaseInsensitiveContains(query)
-        }
-        let matchingPets = rosterState.configuredCombatants(GameContent.pets).filter {
-            rosterState.isUnlocked($0) && $0.name.localizedCaseInsensitiveContains(query)
-        }
-        let matchingItems = inventoryState.items.filter {
-            $0.displayName.localizedCaseInsensitiveContains(query) ||
-                $0.baseType.name.localizedCaseInsensitiveContains(query)
-        }
+        SearchResults(
+            heroes: matchingCombatants(from: GameContent.heroes, query: query, rosterState: rosterState),
+            pets: matchingCombatants(from: GameContent.pets, query: query, rosterState: rosterState),
+            items: inventoryState.items.filter {
+                $0.displayName.localizedCaseInsensitiveContains(query) ||
+                    $0.baseType.name.localizedCaseInsensitiveContains(query)
+            }
+        )
+    }
 
-        return SearchResults(heroes: matchingHeroes, pets: matchingPets, items: matchingItems)
+    private func matchingCombatants(
+        from catalog: [Combatant],
+        query: String,
+        rosterState: PlayerRosterState
+    ) -> [Combatant] {
+        rosterState.configuredCombatants(catalog).filter {
+            rosterState.isUnlocked($0) && $0.name.localizedCaseInsensitiveContains(query)
+        }
     }
 }
 

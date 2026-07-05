@@ -161,39 +161,35 @@ struct BattleView: View {
 
             BattlefieldView(
                 layout: layout,
-                enemyPane: paneConfiguration(
+                enemyPane: combatantPane(
                     for: battleState.enemy,
                     health: battleState.health(of: battleState.enemy),
                     healthBarPlacement: .bottom,
                     battleState: battleState
                 ),
-                partyPanes: [
-                    paneConfiguration(
-                        for: battleState.hero,
-                        health: battleState.health(of: battleState.hero),
-                        healthBarPlacement: .top,
-                        battleState: battleState
-                    ),
-                    paneConfiguration(
-                        for: battleState.pet,
-                        health: battleState.health(of: battleState.pet),
-                        healthBarPlacement: .top,
-                        battleState: battleState
-                    )
-                ],
-                reduceMotion: reduceMotion,
-                onCombatantTap: showDetails(for:)
+                heroPane: combatantPane(
+                    for: battleState.hero,
+                    health: battleState.health(of: battleState.hero),
+                    healthBarPlacement: .top,
+                    battleState: battleState
+                ),
+                petPane: combatantPane(
+                    for: battleState.pet,
+                    health: battleState.health(of: battleState.pet),
+                    healthBarPlacement: .top,
+                    battleState: battleState
+                )
             )
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
         }
     }
 
-    private func paneConfiguration(
+    private func combatantPane(
         for combatant: Combatant,
         health: Int,
         healthBarPlacement: BattleCombatantPane.HealthBarPlacement,
         battleState: BattleState
-    ) -> BattleCombatantPaneConfiguration {
+    ) -> BattleCombatantPane {
         let mana: Int
         let maxMana: Int
         if combatant.id == battleState.hero.id {
@@ -206,14 +202,16 @@ struct BattleView: View {
             mana = 0
             maxMana = 0
         }
-        return BattleCombatantPaneConfiguration(
+        return BattleCombatantPane(
             combatant: combatant,
             health: health,
             maxHealth: battleState.maxHealth(of: combatant),
             mana: mana,
             maxMana: maxMana,
             healthBarPlacement: healthBarPlacement,
-            events: feedbackEvents(for: combatant)
+            events: feedbackEvents(for: combatant),
+            reduceMotion: reduceMotion,
+            onCombatantTap: { showDetails(for: combatant) }
         )
     }
 
