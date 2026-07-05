@@ -1,11 +1,12 @@
 import TrinketPersistence
 import XCTest
 
-final class PlayerSaveSyncFactoryTests: XCTestCase {
+final class PlayerSaveSyncConfigurationTests: XCTestCase {
     func testMissingCloudKitEntitlementsUsesLocalOnlySync() {
         var didCreateCloudSync = false
+        let configuration = PlayerSaveSyncConfiguration()
 
-        let sync = PlayerSaveSyncFactory.makeSyncService(
+        let sync = configuration.makeSyncService(
             entitlementChecker: StubCloudKitEntitlementChecker(hasContainer: false),
             cloudSyncFactory: {
                 didCreateCloudSync = true
@@ -19,9 +20,9 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
 
     func testDisableCloudSyncFlagSkipsEntitlementCheck() {
         let entitlementChecker = SpyCloudKitEntitlementChecker(hasContainer: true)
+        let configuration = PlayerSaveSyncConfiguration(disableCloudSync: true)
 
-        let sync = PlayerSaveSyncFactory.makeSyncService(
-            configuration: PlayerSaveSyncConfiguration(disableCloudSync: true),
+        let sync = configuration.makeSyncService(
             entitlementChecker: entitlementChecker,
             cloudSyncFactory: { StubPlayerSaveSync() }
         )
@@ -32,9 +33,9 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
 
     func testResetStateFlagSkipsCloudSync() {
         let entitlementChecker = SpyCloudKitEntitlementChecker(hasContainer: true)
+        let configuration = PlayerSaveSyncConfiguration(resetState: true)
 
-        let sync = PlayerSaveSyncFactory.makeSyncService(
-            configuration: PlayerSaveSyncConfiguration(resetState: true),
+        let sync = configuration.makeSyncService(
             entitlementChecker: entitlementChecker,
             cloudSyncFactory: { StubPlayerSaveSync() }
         )
@@ -45,8 +46,9 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
 
     func testCloudKitEntitlementsUseCloudSyncFactory() {
         var didCreateCloudSync = false
+        let configuration = PlayerSaveSyncConfiguration()
 
-        let sync = PlayerSaveSyncFactory.makeSyncService(
+        let sync = configuration.makeSyncService(
             entitlementChecker: StubCloudKitEntitlementChecker(hasContainer: true),
             cloudSyncFactory: {
                 didCreateCloudSync = true

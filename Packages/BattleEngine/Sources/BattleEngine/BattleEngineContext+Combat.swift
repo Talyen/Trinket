@@ -4,7 +4,25 @@ import TrinketContent
 
 public extension BattleEngineContext {
     mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
-        CombatPipeline.resolveDamage(request, in: &self)
+        guard request.amount > 0 else { return .empty }
+
+        var state = DamageResolutionState(
+            amount: request.amount,
+            combatant: request.target,
+            sourceActorID: request.sourceActorID,
+            damageKeyword: request.keyword,
+            applyStatBonus: request.options.applyStatBonus,
+            applyItemBonus: request.options.applyItemBonus,
+            applyDodge: request.options.applyDodge,
+            abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
+            isRetaliation: request.options.isRetaliation,
+            qualifiesForAmbush: request.options.qualifiesForAmbush
+        )
+
+        DamagePipeline.run(state: &state, in: &self)
+
+        return CombatOutcome.fromDamage(state: state)
     }
 
     mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {

@@ -14,7 +14,6 @@ private let appStateLogger = Logger(
 final class AppState {
     let playerSave: PlayerSaveStore
     let syncCoordinator: PlayerSaveSyncCoordinator
-    let musicDirector: MusicDirector
     let musicPlayer: MusicPlayer
     var selectedTab: AppTab
     var roster: PlayerRosterStore
@@ -55,12 +54,10 @@ final class AppState {
             }
         }
 
-        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService(
-            configuration: PlayerSaveSyncConfiguration(
-                disableCloudSync: env.disableCloudSync,
-                resetState: env.resetState
-            )
-        )
+        let resolvedSync = sync ?? PlayerSaveSyncConfiguration(
+            disableCloudSync: env.disableCloudSync,
+            resetState: env.resetState
+        ).makeSyncService()
         let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
         if let appearanceOverride = env.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride
@@ -77,7 +74,6 @@ final class AppState {
             sync: resolvedSync,
             playerSaveStore: resolvedPlayerSave
         )
-        musicDirector = MusicDirector()
         musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
         roster = resolvedRoster
         inventory = resolvedInventory

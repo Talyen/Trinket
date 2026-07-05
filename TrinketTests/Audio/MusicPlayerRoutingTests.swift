@@ -2,11 +2,9 @@ import TrinketContent
 import XCTest
 @testable import Trinket
 
-final class MusicDirectorTests: XCTestCase {
-    private let director = MusicDirector()
-
+final class MusicPlayerRoutingTests: XCTestCase {
     func testMenuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: nil,
             activeBattle: nil,
@@ -20,7 +18,7 @@ final class MusicDirectorTests: XCTestCase {
     }
 
     func testNormalBattlePreviewPlaysBattleTrack() throws {
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
@@ -36,7 +34,7 @@ final class MusicDirectorTests: XCTestCase {
     }
 
     func testBossBattlePreviewPlaysBossTrack() throws {
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
             activeBattle: nil,
@@ -59,7 +57,7 @@ final class MusicDirectorTests: XCTestCase {
             enemy: GameContent.enemy(matching: "skeleton")?.combatant
         )
 
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
             activeBattle: battle,
@@ -81,7 +79,7 @@ final class MusicDirectorTests: XCTestCase {
             enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant
         )
 
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .collection,
             preview: nil,
             activeBattle: battle,
@@ -95,7 +93,7 @@ final class MusicDirectorTests: XCTestCase {
     }
 
     func testInactiveSceneSilencesAndPreservesPosition() {
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
@@ -107,7 +105,7 @@ final class MusicDirectorTests: XCTestCase {
     }
 
     func testMutedMusicSilencesAndPreservesPosition() {
-        let route = director.route(
+        let route = MusicPlayer.route(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
@@ -121,12 +119,12 @@ final class MusicDirectorTests: XCTestCase {
     private func trackRequest(from route: MusicRoute) throws -> MusicPlaybackRequest {
         guard case let .track(request) = route else {
             XCTFail("Expected track route, got \(route)")
-            throw MusicDirectorTestError.expectedTrack
+            throw MusicPlayerRoutingTestError.expectedTrack
         }
         return request
     }
 }
 
-private enum MusicDirectorTestError: Error {
+private enum MusicPlayerRoutingTestError: Error {
     case expectedTrack
 }

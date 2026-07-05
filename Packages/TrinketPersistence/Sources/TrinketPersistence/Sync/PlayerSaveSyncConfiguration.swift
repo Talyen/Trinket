@@ -8,15 +8,12 @@ public struct PlayerSaveSyncConfiguration: Sendable {
         self.disableCloudSync = disableCloudSync
         self.resetState = resetState
     }
-}
 
-public enum PlayerSaveSyncFactory {
-    public static func makeSyncService(
-        configuration: PlayerSaveSyncConfiguration = PlayerSaveSyncConfiguration(),
+    public func makeSyncService(
         entitlementChecker: any CloudKitEntitlementChecking = RuntimeCloudKitEntitlementChecker(),
         cloudSyncFactory: () -> any PlayerSaveSyncing = { CloudKitPlayerSaveSync() }
     ) -> any PlayerSaveSyncing {
-        if configuration.disableCloudSync || configuration.resetState {
+        if disableCloudSync || resetState {
             return LocalOnlyPlayerSaveSync()
         }
 

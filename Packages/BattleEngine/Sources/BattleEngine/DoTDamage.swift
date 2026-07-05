@@ -14,14 +14,13 @@ package enum DoTDamage {
     ) -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
 
-        let damageOutcome = CombatPipeline.resolveDamage(
+        let damageOutcome = context.resolveDamage(
             .doTTick(
                 amount: basePotency,
                 target: target,
                 keyword: keyword,
                 sourceActorID: sourceActorID
-            ),
-            in: &context
+            )
         )
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 

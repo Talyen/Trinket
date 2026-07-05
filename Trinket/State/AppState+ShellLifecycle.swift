@@ -16,14 +16,13 @@ extension AppState {
     }
 
     func refreshMusicRoute(scenePhase: ScenePhase) {
-        let route = musicDirector.route(
+        musicPlayer.refresh(
             selectedTab: selectedTab,
             preview: battle.preview,
             activeBattle: battle.activeBattle,
             sceneIsActive: scenePhase == .active,
-            musicVolume: options.musicVolume
+            volume: options.musicVolume
         )
-        musicPlayer.update(route: route, volume: options.musicVolume)
     }
 
     func applyShellRefresh(trigger: ShellRefreshTrigger, scenePhase: ScenePhase) {

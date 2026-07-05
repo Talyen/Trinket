@@ -3,7 +3,7 @@ import TrinketCore
 import TrinketContent
 
 /// Working state threaded through the named damage-resolution steps in
-/// `CombatPipeline.resolveDamage`. Each step mutates this struct in place; the
+/// `BattleEngineContext.resolveDamage`. Each step mutates this struct in place; the
 /// orchestrator reads the final `healthLost` and `damageEvents` once the
 /// pipeline completes.
 package struct DamageResolutionState {

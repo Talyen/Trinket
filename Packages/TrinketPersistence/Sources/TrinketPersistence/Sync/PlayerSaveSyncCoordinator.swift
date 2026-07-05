@@ -2,6 +2,14 @@ import Foundation
 import Observation
 import os
 
+public struct PlayerAccountSessionToken: Equatable, Sendable {
+    public let id: UUID
+
+    public init(id: UUID = UUID()) {
+        self.id = id
+    }
+}
+
 public enum PlayerSaveSessionPhase: Equatable {
     case bootstrapping
     case active
@@ -19,7 +27,6 @@ public final class PlayerSaveSyncCoordinator {
     public var hasActiveBattle: () -> Bool = { false }
 
     private let sync: any PlayerSaveSyncing
-    private let sessionLease: any PlayerAccountSessionLeasing
     private weak var playerSaveStore: PlayerSaveStore?
     private var pendingUploadSave: PlayerSave?
     private var isProcessingUploads = false
@@ -34,11 +41,9 @@ public final class PlayerSaveSyncCoordinator {
 
     public init(
         sync: any PlayerSaveSyncing,
-        playerSaveStore: PlayerSaveStore,
-        sessionLease: any PlayerAccountSessionLeasing = LocalDeviceSessionLease()
+        playerSaveStore: PlayerSaveStore
     ) {
         self.sync = sync
-        self.sessionLease = sessionLease
         self.playerSaveStore = playerSaveStore
         playerSaveStore.onLocalSave = { [weak self] save in
             self?.noteLocalCheckpoint(save)
@@ -49,14 +54,7 @@ public final class PlayerSaveSyncCoordinator {
         guard sessionPhase != .active else { return }
 
         if sessionToken == nil {
-            do {
-                sessionToken = try await sessionLease.acquireSession()
-            } catch {
-                logger.error("Failed to acquire account session: \(error.localizedDescription, privacy: .public)")
-                status = .error("Could not start a save session on this device.")
-                sessionPhase = .closed
-                return
-            }
+            sessionToken = PlayerAccountSessionToken()
         }
 
         await bootstrapAndActivate()
@@ -111,9 +109,8 @@ public final class PlayerSaveSyncCoordinator {
         playerSaveStore?.flushPendingPersistIfNeeded()
         await checkpointUploadIfNeeded()
 
-        if let sessionToken {
-            await sessionLease.releaseSession(sessionToken)
-            self.sessionToken = nil
+        if sessionToken != nil {
+            sessionToken = nil
         }
 
         sessionPhase = .closed

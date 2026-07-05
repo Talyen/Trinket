@@ -13,46 +13,72 @@ package enum DamagePhase: Sendable {
     case post
 }
 
-/// Type-erased damage step for registry-driven pipeline execution.
-package struct AnyDamageStep {
-    package let name: String
-    package let phase: DamagePhase
-    private let body: (inout DamageResolutionState, inout BattleEngineContext) -> Void
-
-    init<S: DamageStep>(_ stepType: S.Type) {
-        name = S.stepName
-        phase = S.phase
-        body = { state, context in
-            var step = stepType.init()
-            step.apply(to: &state, in: &context)
-        }
-    }
-
-    func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext) {
-        body(&state, &context)
-    }
-}
-
 /// Ordered registry and runner for damage resolution steps.
 package enum DamagePipeline {
-    package static var steps: [AnyDamageStep] {
-        [
-            AnyDamageStep(DodgeGateStep.self),
-            AnyDamageStep(CriticalGateStep.self),
-            AnyDamageStep(DamageBonusStep.self),
-            AnyDamageStep(MarkedBonusStep.self),
-            AnyDamageStep(MitigationStep.self),
-            AnyDamageStep(ItemReductionStep.self),
-            AnyDamageStep(ShieldAbsorptionStep.self),
-            AnyDamageStep(CriticalMultiplyStep.self),
-            AnyDamageStep(TakeDamageStep.self),
-            AnyDamageStep(MarkedConsumeStep.self),
-            AnyDamageStep(DeathsDoorStep.self),
-            AnyDamageStep(LeechStep.self),
-            AnyDamageStep(ControlMeterStep.self),
-            AnyDamageStep(ReactiveOnHitStep.self)
-        ]
+    private struct Step {
+        let name: String
+        let phase: DamagePhase
+        let apply: (inout DamageResolutionState, inout BattleEngineContext) -> Void
     }
+
+    private static let steps: [Step] = [
+        Step(name: DodgeGateStep.stepName, phase: DodgeGateStep.phase) { state, context in
+            var step = DodgeGateStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: CriticalGateStep.stepName, phase: CriticalGateStep.phase) { state, context in
+            var step = CriticalGateStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: DamageBonusStep.stepName, phase: DamageBonusStep.phase) { state, context in
+            var step = DamageBonusStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: MarkedBonusStep.stepName, phase: MarkedBonusStep.phase) { state, context in
+            var step = MarkedBonusStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: MitigationStep.stepName, phase: MitigationStep.phase) { state, context in
+            var step = MitigationStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: ItemReductionStep.stepName, phase: ItemReductionStep.phase) { state, context in
+            var step = ItemReductionStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: ShieldAbsorptionStep.stepName, phase: ShieldAbsorptionStep.phase) { state, context in
+            var step = ShieldAbsorptionStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: CriticalMultiplyStep.stepName, phase: CriticalMultiplyStep.phase) { state, context in
+            var step = CriticalMultiplyStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: TakeDamageStep.stepName, phase: TakeDamageStep.phase) { state, context in
+            var step = TakeDamageStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: MarkedConsumeStep.stepName, phase: MarkedConsumeStep.phase) { state, context in
+            var step = MarkedConsumeStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: DeathsDoorStep.stepName, phase: DeathsDoorStep.phase) { state, context in
+            var step = DeathsDoorStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: LeechStep.stepName, phase: LeechStep.phase) { state, context in
+            var step = LeechStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: ControlMeterStep.stepName, phase: ControlMeterStep.phase) { state, context in
+            var step = ControlMeterStep()
+            step.apply(to: &state, in: &context)
+        },
+        Step(name: ReactiveOnHitStep.stepName, phase: ReactiveOnHitStep.phase) { state, context in
+            var step = ReactiveOnHitStep()
+            step.apply(to: &state, in: &context)
+        }
+    ]
 
     public static var canonicalNames: [String] {
         steps.map(\.name)
@@ -68,7 +94,7 @@ package enum DamagePipeline {
                 continue
             }
             onStep?(step.name)
-            step.apply(to: &state, in: &context)
+            step.apply(&state, &context)
             if step.phase == .stochastic, state.isDodged {
                 return
             }

@@ -43,8 +43,6 @@ final class DamagePipelineTests: XCTestCase {
 
     func testRegistryCanonicalNamesMatchExpectedOrder() {
         XCTAssertEqual(DamagePipeline.canonicalNames, expectedStepNames)
-        XCTAssertEqual(DamageSteps.canonicalNames, expectedStepNames)
-        XCTAssertEqual(DamagePipeline.steps.map(\.name), expectedStepNames)
     }
 
     func testExecutedStepNamesMatchCanonicalOrderForFullHit() {
