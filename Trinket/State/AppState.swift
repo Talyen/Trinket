@@ -134,8 +134,7 @@ final class AppState {
                 scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
             }
             lastPlayFlowError = nil
-            sessionState.mapScrollStageID = scrollTarget
-            journey.requestMapScroll(to: scrollTarget)
+            sessionState.noteMapScrollFocus(scrollTarget)
         } catch {
             appStateLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
@@ -208,7 +207,6 @@ final class AppState {
         sessionState.clearBattleState()
         sessionState.selectedTab = nil
         selectedTab = .play
-        journey.mapScrollRequest = nil
         Task {
             await syncCoordinator.checkpointUploadIfNeeded()
         }
@@ -231,10 +229,7 @@ final class AppState {
 
     private func restoreMapScroll(environment: AppEnvironment) {
         if let mapScrollTarget = environment.mapScrollTarget {
-            journey.requestMapScroll(to: mapScrollTarget)
-        } else if let savedScrollTarget = sessionState.mapScrollStageID,
-                  Self.shouldRestoreMapScroll(savedScrollTarget, journey: journey.current) {
-            journey.requestMapScroll(to: savedScrollTarget)
+            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
         }
     }
 

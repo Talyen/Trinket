@@ -12,8 +12,6 @@ public final class PlayerJourneyStore {
         set { saveStore.journey = newValue }
     }
 
-    public var mapScrollRequest: MapScrollRequest?
-
     public init(saveStore: PlayerSaveStore) {
         self.saveStore = saveStore
     }
@@ -28,15 +26,5 @@ public final class PlayerJourneyStore {
         var updated = current
         updated.markRewardsClaimed(for: stage)
         current = updated
-    }
-
-    public func requestMapScroll(to targetID: String) {
-        mapScrollRequest = MapScrollRequest(targetID: targetID)
-    }
-
-    public func clearMapScrollRequest(_ request: MapScrollRequest) {
-        if mapScrollRequest?.id == request.id {
-            mapScrollRequest = nil
-        }
     }
 }

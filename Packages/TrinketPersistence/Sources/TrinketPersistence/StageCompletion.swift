@@ -29,6 +29,33 @@ public struct StageCompletionContext: Sendable {
 }
 
 public enum StageCompletion {
+    public static func battleExperienceAward(
+        playerLevel: Int,
+        enemyLevel: Int,
+        highestLevel: Int
+    ) -> Int {
+        ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: playerLevel,
+            enemyLevel: enemyLevel,
+            highestLevel: highestLevel
+        )
+    }
+
+    public static func resolvedMaterialRewards(
+        stageReward: StageReward,
+        homestead: PlayerHomesteadState,
+        override: [ResourceAmount]? = nil
+    ) -> [ResourceAmount] {
+        override ?? homestead.adjustedMaterialRewards(stageReward.materialRewards)
+    }
+
+    public static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
+        guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else {
+            return 1
+        }
+        return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+    }
+
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
@@ -76,8 +103,11 @@ public enum StageCompletion {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &context.roster)
             grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &context.roster)
         }
-        let resolvedMaterialRewards = materialRewards
-            ?? context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards)
+        let resolvedMaterialRewards = resolvedMaterialRewards(
+            stageReward: stage.rewards,
+            homestead: context.homestead,
+            override: materialRewards
+        )
         context.homestead.grant(resolvedMaterialRewards)
 
         for templateID in stage.rewards.itemTemplateIDs {
@@ -119,7 +149,7 @@ public enum StageCompletion {
         guard case .battle = stage.encounter else { return true }
 
         let encounterLevel = resolvedEncounterLevel(for: stage, in: chapters)
-        let heroAward = ExperienceScaling.battleAwardWithCatchUp(
+        let heroAward = battleExperienceAward(
             playerLevel: baseline.roster.progression(for: hero).level,
             enemyLevel: encounterLevel,
             highestLevel: baseline.roster.highestHeroLevel
@@ -132,7 +162,7 @@ public enum StageCompletion {
             return false
         }
 
-        let petAward = ExperienceScaling.battleAwardWithCatchUp(
+        let petAward = battleExperienceAward(
             playerLevel: baseline.roster.progression(for: pet).level,
             enemyLevel: encounterLevel,
             highestLevel: baseline.roster.highestPetLevel
@@ -157,13 +187,6 @@ public enum StageCompletion {
         return false
     }
 
-    private static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
-        guard let chapter = chapters.first(where: { $0.id == stage.chapterID }) else {
-            return 1
-        }
-        return EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-    }
-
     private static func grantBattleExperience(
         enemyLevel: Int,
         to combatant: Combatant,
@@ -173,7 +196,7 @@ public enum StageCompletion {
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
             : roster.highestPetLevel
-        let award = ExperienceScaling.battleAwardWithCatchUp(
+        let award = battleExperienceAward(
             playerLevel: playerLevel,
             enemyLevel: enemyLevel,
             highestLevel: highestLevel

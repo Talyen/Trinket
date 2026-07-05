@@ -110,11 +110,32 @@ final class SessionStateStoreTests: XCTestCase {
         store.selectedTab = .collection
         store.activeBattleStageID = "chapter-1-stage-1"
         store.mapScrollStageID = "chapter-1-stage-2"
+        store.noteMapScrollFocus("chapter-1-stage-3")
 
         store.clearAll()
 
         XCTAssertNil(store.selectedTab)
         XCTAssertNil(store.activeBattleStageID)
         XCTAssertNil(store.mapScrollStageID)
+        XCTAssertEqual(store.mapScrollNonce, 0)
+    }
+
+    func testNoteMapScrollFocusPersistsTargetAndBumpsNonce() {
+        let store = SessionStateStore(defaults: defaults)
+
+        store.noteMapScrollFocus("chapter-1-stage-2")
+
+        XCTAssertEqual(store.mapScrollStageID, "chapter-1-stage-2")
+        XCTAssertEqual(store.mapScrollNonce, 1)
+        XCTAssertEqual(defaults.string(forKey: "session.mapScrollStageID"), "chapter-1-stage-2")
+    }
+
+    func testNoteMapScrollFocusCanForceNonceWhenTargetUnchanged() {
+        let store = SessionStateStore(defaults: defaults)
+        store.noteMapScrollFocus("chapter-1-stage-2")
+
+        store.noteMapScrollFocus("chapter-1-stage-2", bumpEvenWhenUnchanged: true)
+
+        XCTAssertEqual(store.mapScrollNonce, 2)
     }
 }

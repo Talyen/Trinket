@@ -34,11 +34,4 @@ final class StageMapPresentationTests: XCTestCase {
 
         XCTAssertEqual(stage.mapLabel, "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
     }
-
-    func testMapScrollRequestIdentifiesTarget() {
-        let request = MapScrollRequest(targetID: "chapter-1-stage-2")
-
-        XCTAssertEqual(request.targetID, "chapter-1-stage-2")
-        XCTAssertNotNil(request.id)
-    }
 }

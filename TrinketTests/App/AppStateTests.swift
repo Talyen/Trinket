@@ -171,14 +171,15 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.journey.current, .initial)
     }
 
-    func testMapScrollTargetLaunchArgRequestsPlayMapScroll() {
+    func testMapScrollTargetLaunchArgSetsSessionScrollFocus() {
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         )
-        XCTAssertEqual(state.journey.mapScrollRequest?.targetID, "chapter-gate-placeholder-2")
+        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-gate-placeholder-2")
+        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
     }
 
-    func testCompleteStageUpdatesStoresAndRequestsMapScroll() throws {
+    func testCompleteStageUpdatesStoresAndMapScrollFocus() throws {
         let state = makeAppState(environment: makeEnvironment())
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         let initialGold = state.roster.current.gold
@@ -193,8 +194,8 @@ final class AppStateTests: XCTestCase {
         XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
         XCTAssertGreaterThan(state.roster.current.gold, initialGold)
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
-        XCTAssertEqual(state.journey.mapScrollRequest?.targetID, "chapter-1-stage-2")
         XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
+        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {

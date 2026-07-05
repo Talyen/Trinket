@@ -54,12 +54,11 @@ struct ChapterStageSelectView: View {
             .onDisappear {
                 appState.battle.setMusicPreview(for: nil)
             }
-            .onChange(of: appState.journey.mapScrollRequest?.id) { _, _ in
-                guard let request = appState.journey.mapScrollRequest else { return }
+            .onChange(of: appState.sessionState.mapScrollNonce) { _, _ in
+                guard let targetID = appState.sessionState.mapScrollStageID else { return }
                 withAnimation(scrollAnimation) {
-                    proxy.scrollTo(request.targetID, anchor: .center)
+                    proxy.scrollTo(targetID, anchor: .center)
                 }
-                appState.journey.clearMapScrollRequest(request)
             }
             .sheet(item: $partyPicker) { picker in
                 PartyPickerSheet(
@@ -105,17 +104,21 @@ struct ChapterStageSelectView: View {
     }
 
     private func scrollToInitialTarget(with proxy: ScrollViewProxy) {
-        let target = appState.journey.mapScrollRequest?.targetID ?? presentation.scrollTargetID
-        guard let target else { return }
+        guard let target = resolvedScrollTargetID() else { return }
 
         DispatchQueue.main.async {
             withAnimation(scrollAnimation) {
                 proxy.scrollTo(target, anchor: .center)
             }
-            if let request = appState.journey.mapScrollRequest, request.targetID == target {
-                appState.journey.clearMapScrollRequest(request)
-            }
         }
+    }
+
+    private func resolvedScrollTargetID() -> String? {
+        if let saved = appState.sessionState.mapScrollStageID,
+           AppState.shouldRestoreMapScroll(saved, journey: appState.journey.current) {
+            return saved
+        }
+        return presentation.scrollTargetID
     }
 
     private var activeStage: Stage? {

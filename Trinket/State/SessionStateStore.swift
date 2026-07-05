@@ -16,6 +16,8 @@ final class SessionStateStore {
         didSet { defaults.set(mapScrollStageID, forKey: Self.mapScrollStageIDKey) }
     }
 
+    private(set) var mapScrollNonce: UInt = 0
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let raw = defaults.string(forKey: Self.tabKey) {
@@ -34,6 +36,15 @@ final class SessionStateStore {
         selectedTab = nil
         activeBattleStageID = nil
         mapScrollStageID = nil
+        mapScrollNonce = 0
+    }
+
+    func noteMapScrollFocus(_ targetID: String, bumpEvenWhenUnchanged: Bool = false) {
+        let shouldBump = bumpEvenWhenUnchanged || mapScrollStageID != targetID
+        mapScrollStageID = targetID
+        if shouldBump {
+            mapScrollNonce &+= 1
+        }
     }
 
     private static let tabKey = "session.selectedTab"

@@ -173,7 +173,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
     }
 
-    func testResetGameplayProgressClearsBattleAndJourneyScroll() throws {
+    func testResetGameplayProgressClearsBattleAndMapScroll() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.battle.startBattle(
@@ -183,13 +183,13 @@ final class AppStatePlayFlowTests: XCTestCase {
             roster: state.roster,
             inventory: state.inventory
         )
-        state.journey.requestMapScroll(to: "chapter-1-stage-2")
+        state.sessionState.noteMapScrollFocus("chapter-1-stage-2")
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
         state.resetGameplayProgress()
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.journey.mapScrollRequest)
+        XCTAssertNil(state.sessionState.mapScrollStageID)
         XCTAssertEqual(state.selectedTab, .play)
         XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-1")
         XCTAssertTrue(state.journey.current.completedStageIDs.isEmpty)

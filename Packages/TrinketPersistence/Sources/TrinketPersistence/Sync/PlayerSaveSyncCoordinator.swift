@@ -37,7 +37,8 @@ public final class PlayerSaveSyncCoordinator {
         self.sync = sync
         self.playerSaveStore = playerSaveStore
         playerSaveStore.onLocalSave = { [weak self] save in
-            self?.noteLocalCheckpoint(save)
+            guard let self, !isApplyingRemoteSave else { return }
+            pendingUploadSave = save
         }
     }
 
@@ -50,8 +51,8 @@ public final class PlayerSaveSyncCoordinator {
 
         guard subscribeToChanges else { return }
         await registerSubscriptionIfNeeded()
-        if pendingUploadSave != nil {
-            await processUploadQueue()
+        if let pendingUploadSave {
+            await scheduleUpload(pendingUploadSave)
         }
     }
 
@@ -73,16 +74,12 @@ public final class PlayerSaveSyncCoordinator {
 
         let saveBefore = playerSaveStore.currentSave
         let appliedRemote = await reconcileOnce()
-        if appliedRemote {
-            return true
-        }
-        return playerSaveStore.currentSave != saveBefore
+        return appliedRemote || playerSaveStore.currentSave != saveBefore
     }
 
     /// Reconciles any remote save deferred while a battle was active.
     public func onBattleEnded() async {
-        guard deferredRemoteReconcile else { return }
-        guard sessionPhase == .active else { return }
+        guard deferredRemoteReconcile, sessionPhase == .active else { return }
         let applied = await reconcileOnce()
         if applied || status == .upToDate {
             deferredRemoteReconcile = false
@@ -106,11 +103,6 @@ public final class PlayerSaveSyncCoordinator {
 
     private func flushStoreIfNeeded() {
         playerSaveStore?.flushPendingPersistIfNeeded()
-    }
-
-    private func noteLocalCheckpoint(_ save: PlayerSave) {
-        guard !isApplyingRemoteSave else { return }
-        pendingUploadSave = save
     }
 
     private func reconcileOnce() async -> Bool {
@@ -173,16 +165,12 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     @discardableResult
-    private func deferReconcileIfBattleActive() -> Bool {
-        guard hasActiveBattle() else { return false }
-        deferredRemoteReconcile = true
-        status = .upToDate
-        return true
-    }
-
-    @discardableResult
     private func applyRemoteSaveIfSafe(_ remoteSave: PlayerSave) -> Bool {
-        if deferReconcileIfBattleActive() { return false }
+        if hasActiveBattle() {
+            deferredRemoteReconcile = true
+            status = .upToDate
+            return false
+        }
         applyRemoteSave(remoteSave)
         status = .upToDate
         return true
@@ -213,11 +201,8 @@ public final class PlayerSaveSyncCoordinator {
             return
         }
         pendingUploadSave = save
-        await processUploadQueue()
-    }
-
-    private func processUploadQueue() async {
         guard !isProcessingUploads else { return }
+
         isProcessingUploads = true
         defer { isProcessingUploads = false }
 
@@ -253,7 +238,11 @@ public final class PlayerSaveSyncCoordinator {
 
         let authoritative = PlayerSaveMerger.pickAuthoritative(local: liveLocal, remote: remote.save)
 
-        if deferReconcileIfBattleActive() { return }
+        if hasActiveBattle() {
+            deferredRemoteReconcile = true
+            status = .upToDate
+            return
+        }
 
         applyRemoteSave(authoritative)
         lastKnownRemoteChangeTag = remote.recordChangeTag

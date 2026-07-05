@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
@@ -30,25 +31,27 @@ struct BattleVictorySummary: Equatable {
         state: BattleState,
         homestead: PlayerHomesteadState
     ) -> BattleVictorySummary {
+        let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
-        let heroXP = ExperienceScaling.battleAwardWithCatchUp(
+        let heroXP = StageCompletion.battleExperienceAward(
             playerLevel: configuration.heroProgression.level,
             enemyLevel: enemyLevel,
             highestLevel: configuration.highestHeroLevel
         )
-        let petXP = ExperienceScaling.battleAwardWithCatchUp(
+        let petXP = StageCompletion.battleExperienceAward(
             playerLevel: configuration.petProgression.level,
             enemyLevel: enemyLevel,
             highestLevel: configuration.highestPetLevel
         )
         let heroAfter = configuration.heroProgression.addingExperience(heroXP)
         let petAfter = configuration.petProgression.addingExperience(petXP)
-        let materialRewards = homestead.adjustedMaterialRewards(
-            configuration.stageReward?.materialRewards ?? []
+        let materialRewards = StageCompletion.resolvedMaterialRewards(
+            stageReward: stageReward,
+            homestead: homestead
         )
 
         return BattleVictorySummary(
-            stageGold: configuration.stageReward?.gold ?? 0,
+            stageGold: stageReward.gold,
             battleGold: state.earnedGold,
             experience: heroXP,
             petExperience: petXP,
