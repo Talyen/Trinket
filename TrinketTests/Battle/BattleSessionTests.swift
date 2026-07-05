@@ -104,7 +104,9 @@ final class BattleSessionTests: XCTestCase {
 
         XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 0)
 
-        appState.roster.grantExperience(25, to: appState.roster.activeHero)
+        var updatedRoster = appState.roster.current
+        updatedRoster.grantExperience(25, to: appState.roster.activeHero)
+        appState.roster.current = updatedRoster
         appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
 
         XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 25)

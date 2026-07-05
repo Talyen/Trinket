@@ -147,7 +147,9 @@ final class AppState {
                 battleEarnedGold: battleEarnedGold
             )
         } else if battleEarnedGold > 0 {
-            roster.grantGold(battleEarnedGold)
+            var updatedRoster = roster.current
+            updatedRoster.grantGold(battleEarnedGold)
+            roster.current = updatedRoster
         }
         battle.endBattle()
     }

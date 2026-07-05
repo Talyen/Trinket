@@ -39,8 +39,8 @@ final class PlayerInventoryStoreTests: XCTestCase {
         saveStore.inventory = PlayerInventoryState(items: [weapon, armor])
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
 
-        XCTAssertEqual(inventoryStore.items(for: .weapon).map(\.id), ["weapon-item"])
-        XCTAssertEqual(inventoryStore.items(for: .armor).map(\.id), ["armor-item"])
+        XCTAssertEqual(inventoryStore.current.items(for: .weapon).map(\.id), ["weapon-item"])
+        XCTAssertEqual(inventoryStore.current.items(for: .armor).map(\.id), ["armor-item"])
     }
 
     func testItemsForSlotReflectsPersistedInventory() throws {
@@ -58,7 +58,7 @@ final class PlayerInventoryStoreTests: XCTestCase {
 
         let reloadedStore = PlayerInventoryStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
 
-        XCTAssertEqual(reloadedStore.items(for: .weapon).map(\.id), ["persisted-weapon"])
+        XCTAssertEqual(reloadedStore.current.items(for: .weapon).map(\.id), ["persisted-weapon"])
     }
 
     func testAddRewardItemWriteThroughToSaveStore() throws {

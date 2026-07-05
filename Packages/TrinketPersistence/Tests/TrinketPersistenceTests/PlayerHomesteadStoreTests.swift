@@ -25,7 +25,9 @@ final class PlayerHomesteadStoreTests: XCTestCase {
             resources: [.wood: 20, .stone: 10],
             nodeTiers: [:]
         )
-        rosterStore.grantGold(4)
+        var updatedRoster = rosterStore.current
+        updatedRoster.grantGold(4)
+        rosterStore.current = updatedRoster
         let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .wheatField))
 
         XCTAssertEqual(homesteadStore.buildOrUpgrade(definition, roster: rosterStore), .success)
@@ -44,7 +46,9 @@ final class PlayerHomesteadStoreTests: XCTestCase {
             resources: [.wood: 100, .stone: 100, .iron: 100],
             nodeTiers: [.wheatField: 1]
         )
-        rosterStore.grantGold(100)
+        var updatedRoster = rosterStore.current
+        updatedRoster.grantGold(100)
+        rosterStore.current = updatedRoster
         let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .blacksmithForge))
 
         XCTAssertEqual(

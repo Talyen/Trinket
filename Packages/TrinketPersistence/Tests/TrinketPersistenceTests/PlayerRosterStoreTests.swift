@@ -29,7 +29,9 @@ final class PlayerRosterStoreTests: XCTestCase {
         let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
 
-        rosterStore.grantGold(50)
+        var updated = rosterStore.current
+        updated.grantGold(50)
+        rosterStore.current = updated
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.gold, 50)
@@ -40,7 +42,9 @@ final class PlayerRosterStoreTests: XCTestCase {
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
 
-        rosterStore.grantExperience(25, to: knight)
+        var updated = rosterStore.current
+        updated.grantExperience(25, to: knight)
+        rosterStore.current = updated
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.progression(for: knight).currentXP, 25)
@@ -52,7 +56,9 @@ final class PlayerRosterStoreTests: XCTestCase {
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
 
-        rosterStore.setActiveHero(wizard)
+        var updated = rosterStore.current
+        updated.setActiveHero(wizard)
+        rosterStore.current = updated
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.activeHeroID, "wizard")
@@ -75,7 +81,9 @@ final class PlayerRosterStoreTests: XCTestCase {
             ultimate: .blessedAegis
         )
 
-        rosterStore.setLoadout(customLoadout, for: knight)
+        var updated = rosterStore.current
+        updated.setLoadout(customLoadout, for: knight)
+        rosterStore.current = updated
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.roster.loadout(for: knight), customLoadout)

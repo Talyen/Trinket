@@ -17,18 +17,6 @@ public final class PlayerInventoryStore {
         self.saveStore = saveStore
     }
 
-    public var items: [InventoryItem] {
-        current.items
-    }
-
-    public func items(for slot: ItemSlot) -> [InventoryItem] {
-        current.items(for: slot)
-    }
-
-    public func item(matching id: String?) -> InventoryItem? {
-        current.item(matching: id)
-    }
-
     public func addRewardItem(from template: InventoryItem, for stage: Stage) {
         var updated = current
         updated.addRewardItem(from: template, for: stage)

@@ -137,11 +137,13 @@ struct ChapterStageSelectView: View {
     }
 
     private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
+        var updatedRoster = appState.roster.current
         switch picker {
         case .hero:
-            appState.roster.setActiveHero(combatant)
+            updatedRoster.setActiveHero(combatant)
         case .pet:
-            appState.roster.setActivePet(combatant)
+            updatedRoster.setActivePet(combatant)
         }
+        appState.roster.current = updatedRoster
     }
 }

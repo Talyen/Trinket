@@ -53,7 +53,7 @@ struct CollectionView: View {
                         ForEach(appState.roster.collectionHeroes) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,
-                                isLocked: !appState.roster.isUnlocked(combatant),
+                                isLocked: !appState.roster.current.isUnlocked(combatant),
                                 cardWidth: nil,
                                 showsName: false
                             ) {
@@ -88,7 +88,7 @@ struct CollectionView: View {
                         ForEach(appState.roster.collectionPets) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,
-                                isLocked: !appState.roster.isUnlocked(combatant),
+                                isLocked: !appState.roster.current.isUnlocked(combatant),
                                 cardWidth: nil,
                                 showsName: false
                             ) {
