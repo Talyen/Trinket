@@ -127,6 +127,7 @@ struct BattleView: View {
             } label: {
                 Label("Combat Log", systemImage: "list.bullet.rectangle")
             }
+            .accessibilityIdentifier("Combat Log")
 
             if !isShowingVictory, !isShowingDefeat {
                 Divider()

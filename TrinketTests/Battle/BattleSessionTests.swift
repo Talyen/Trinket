@@ -38,6 +38,30 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNil(appState.battle.preview)
     }
 
+    func testStartBattleIgnoresRequestWhenBattleAlreadyActive() throws {
+        let appState = makeAppState()
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = appState.battle.startBattle(
+            stage: stage,
+            hero: appState.roster.activeHero,
+            pet: appState.roster.activePet,
+            roster: appState.roster,
+            inventory: appState.inventory
+        )
+        let firstBattleID = try XCTUnwrap(appState.battle.activeBattle?.id)
+
+        let message = appState.battle.startBattle(
+            stage: stage,
+            hero: appState.roster.activeHero,
+            pet: appState.roster.activePet,
+            roster: appState.roster,
+            inventory: appState.inventory
+        )
+
+        XCTAssertNil(message)
+        XCTAssertEqual(appState.battle.activeBattle?.id, firstBattleID)
+    }
+
     func testSetMusicPreviewUsesBattleEncounter() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)

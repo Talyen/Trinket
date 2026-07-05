@@ -13,6 +13,7 @@ struct BattleOutcomeShell<Content: View>: View {
     let onPrimaryAction: () -> Void
 
     @State private var symbolAnimationCount = 0
+    @State private var isCompleting = false
 
     var body: some View {
         ScrollView {
@@ -39,7 +40,11 @@ struct BattleOutcomeShell<Content: View>: View {
 
                 content()
 
-                Button(action: onPrimaryAction) {
+                Button {
+                    guard !isCompleting else { return }
+                    isCompleting = true
+                    onPrimaryAction()
+                } label: {
                     Text(primaryButtonTitle)
                         .frame(maxWidth: .infinity)
                 }
@@ -47,6 +52,7 @@ struct BattleOutcomeShell<Content: View>: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .tint(primaryButtonTint)
+                .disabled(isCompleting)
                 .accessibilityIdentifier(primaryButtonAccessibilityIdentifier)
                 .padding(.top, 8)
             }

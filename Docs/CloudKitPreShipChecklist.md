@@ -33,7 +33,7 @@ Use this checklist before enabling CloudKit sync in production or submitting Tri
 
 - [ ] Unit/UI tests run with **`-disable-cloud-sync`** (see `TestLaunchArg.testLaunchArgs`)
 - [ ] No CI job depends on iCloud credentials or CloudKit network access
-- [ ] `PlayerSaveReconcilerTests` and migration tests pass on every build
+- [ ] `PlayerSaveSessionAuthorityTests` and migration tests pass on every build
 
 ## Release Engineering
 

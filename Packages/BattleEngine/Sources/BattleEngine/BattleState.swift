@@ -75,7 +75,7 @@ public struct BattleState {
         self.enemy = resolvedEnemy
         self.tracksLog = tracksLog
 
-        let seed = rngSeed ?? UInt64.random(in: UInt64.min ... UInt64.max)
+        let seed = rngSeed ?? Self.defaultRNGSeed
         self.rngSeed = seed
 
         store = BattleMutableStore.make(

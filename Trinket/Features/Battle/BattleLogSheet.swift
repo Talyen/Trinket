@@ -22,6 +22,7 @@ struct BattleLogSheet: View {
                     Button("Close") {
                         dismiss()
                     }
+                    .accessibilityIdentifier("Close Combat Log")
                 }
             }
         }

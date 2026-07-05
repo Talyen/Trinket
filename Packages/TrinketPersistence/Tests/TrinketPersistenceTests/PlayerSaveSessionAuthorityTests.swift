@@ -75,4 +75,21 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         XCTAssertEqual(picked.roster.gold, 99)
         XCTAssertEqual(picked.sessionGeneration, 2)
     }
+
+    func testRemoteMissingUploadsLocal() {
+        let local = SaveTestSupport.makeSave(modifiedAt: syncedAt)
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: nil)
+        XCTAssertEqual(outcome, .uploadLocal)
+    }
+
+    func testLocalMissingAppliesRemote() {
+        let remote = SaveTestSupport.makeRemote(modifiedAt: syncedAt)
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: nil, remote: remote)
+        XCTAssertEqual(outcome, .applyRemote(remote.save))
+    }
+
+    func testBothMissingKeepsLocal() {
+        let outcome = PlayerSaveSessionAuthority.reconcile(local: nil, remote: nil)
+        XCTAssertEqual(outcome, .keepLocal)
+    }
 }

@@ -77,8 +77,8 @@ final class BattleMechanicsTests: XCTestCase {
         XCTAssertEqual(ability?.id, wizard.abilityLoadout.basic?.id)
     }
 
-    func testPredatorsHasteAppliesHasteBuff() {
-        let basePanther = try! XCTUnwrap(GameContent.pets.first { $0.id == "panther" })
+    func testPredatorsHasteAppliesHasteBuff() throws {
+        let basePanther = try XCTUnwrap(GameContent.pets.first { $0.id == "panther" })
         let panther = basePanther.withAbilityLoadout(
             AbilityLoadout(
                 basic: basePanther.abilityLoadout.basic,
@@ -89,7 +89,7 @@ final class BattleMechanicsTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, pet: panther, enemy: enemy)
-        var pantherRuntime = context.runtime(for: panther)
+        var pantherRuntime = try XCTUnwrap(context.runtime(for: panther))
         pantherRuntime.actionCount = 2
         context.updateRuntime(pantherRuntime)
         let matchup = BattleMatchup(hero: hero, pet: panther, enemy: enemy)

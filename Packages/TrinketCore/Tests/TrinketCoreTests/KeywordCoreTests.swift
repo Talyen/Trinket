@@ -19,7 +19,7 @@ final class KeywordCoreTests: XCTestCase {
 
     func testAllKeywordsHaveCategory() {
         for keyword in Keyword.allCases {
-            XCTAssertNotNil(keyword.category.rawValue)
+            XCTAssertFalse(keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
         }
     }
 
