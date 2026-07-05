@@ -50,11 +50,11 @@ final class BattleRunTests: XCTestCase {
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
-        while !run.isBattleOver {
+        while !run.state.isBattleOver {
             _ = run.advanceOneStep()
         }
 
-        XCTAssertTrue(run.isPartyDefeated)
+        XCTAssertTrue(run.state.isPartyDefeated)
         XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
@@ -84,13 +84,13 @@ final class BattleRunTests: XCTestCase {
         _ = run.advanceOneStep()
         _ = run.advanceOneStep()
         XCTAssertFalse(run.activeFeedbackEvents.isEmpty)
-        XCTAssertLessThan(run.enemyHealth, 100)
+        XCTAssertLessThan(run.state.health(of: run.state.enemy), 100)
 
         run.reset(from: configuration)
 
         XCTAssertTrue(run.activeFeedbackEvents.isEmpty)
-        XCTAssertEqual(run.enemyHealth, 100)
-        XCTAssertEqual(run.heroHealth, hero.maxHealth)
+        XCTAssertEqual(run.state.health(of: run.state.enemy), 100)
+        XCTAssertEqual(run.state.health(of: run.state.hero), hero.maxHealth)
     }
 
     func testRemoveFeedbackEventRemovesByID() throws {
@@ -245,8 +245,8 @@ final class BattleRunTests: XCTestCase {
         }
 
         XCTAssertEqual(run.outcome, .victory)
-        XCTAssertFalse(run.isPartyDefeated)
-        XCTAssertTrue(run.isEnemyDefeated)
+        XCTAssertFalse(run.state.isPartyDefeated)
+        XCTAssertTrue(run.state.isEnemyDefeated)
     }
 
     func testOutcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
@@ -255,8 +255,8 @@ final class BattleRunTests: XCTestCase {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
         let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        XCTAssertTrue(run.isPartyDefeated)
-        XCTAssertTrue(run.isEnemyDefeated)
+        XCTAssertTrue(run.state.isPartyDefeated)
+        XCTAssertTrue(run.state.isEnemyDefeated)
         XCTAssertEqual(run.outcome, .victory)
     }
 

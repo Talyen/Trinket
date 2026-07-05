@@ -20,81 +20,13 @@ final class BattleRun {
 
     init(configuration: ActiveBattleConfiguration) {
         self.configuration = configuration
-        state = BattleState(
-            hero: configuration.hero,
-            pet: configuration.pet,
-            enemy: configuration.enemy,
-            heroModifiers: configuration.heroModifiers,
-            petModifiers: configuration.petModifiers,
-            enemyModifiers: configuration.enemyModifiers,
-            rngSeed: configuration.rngSeed
-        )
-    }
-
-    var log: [LogEntry] {
-        state.log
-    }
-
-    var hero: Combatant {
-        state.hero
-    }
-
-    var pet: Combatant {
-        state.pet
-    }
-
-    var enemy: Combatant {
-        state.enemy
-    }
-
-    var heroHealth: Int {
-        state.health(of: state.hero)
-    }
-
-    var petHealth: Int {
-        state.health(of: state.pet)
-    }
-
-    var enemyHealth: Int {
-        state.health(of: state.enemy)
-    }
-
-    var heroMana: Int {
-        state.mana(of: state.hero)
-    }
-
-    var petMana: Int {
-        state.mana(of: state.pet)
-    }
-
-    var heroMaxMana: Int {
-        state.maxMana(of: state.hero)
-    }
-
-    var petMaxMana: Int {
-        state.maxMana(of: state.pet)
-    }
-
-    var earnedGold: Int {
-        state.earnedGold
-    }
-
-    var isBattleOver: Bool {
-        state.isBattleOver
-    }
-
-    var isEnemyDefeated: Bool {
-        state.isEnemyDefeated
-    }
-
-    var isPartyDefeated: Bool {
-        state.isPartyDefeated
+        state = Self.makeState(from: configuration)
     }
 
     var outcome: BattleOutcome {
         switch BattleOutcomeResolver.resolve(
-            isPartyDefeated: isPartyDefeated,
-            isEnemyDefeated: isEnemyDefeated
+            isPartyDefeated: state.isPartyDefeated,
+            isEnemyDefeated: state.isEnemyDefeated
         ) {
         case .victory: return .victory
         case .defeat: return .defeat
@@ -130,11 +62,11 @@ final class BattleRun {
 
         return BattleVictorySummary(
             stageGold: configuration.stageReward?.gold ?? 0,
-            battleGold: earnedGold,
+            battleGold: state.earnedGold,
             experience: heroXP,
             petExperience: petXP,
-            heroName: hero.name,
-            petName: pet.name,
+            heroName: state.hero.name,
+            petName: state.pet.name,
             itemNames: configuration.rewardItemNames,
             materialRewards: materialRewards,
             heroProgressionBefore: configuration.heroProgression,
@@ -145,7 +77,13 @@ final class BattleRun {
     }
 
     func reset(from configuration: ActiveBattleConfiguration) {
-        state = BattleState(
+        state = Self.makeState(from: configuration)
+        activeFeedbackEvents = []
+        feedbackDisplayedAt = [:]
+    }
+
+    private static func makeState(from configuration: ActiveBattleConfiguration) -> BattleState {
+        BattleState(
             hero: configuration.hero,
             pet: configuration.pet,
             enemy: configuration.enemy,
@@ -154,8 +92,6 @@ final class BattleRun {
             enemyModifiers: configuration.enemyModifiers,
             rngSeed: configuration.rngSeed
         )
-        activeFeedbackEvents = []
-        feedbackDisplayedAt = [:]
     }
 
     func removeFeedbackEvent(_ id: Int) {
@@ -183,17 +119,5 @@ final class BattleRun {
                 feedbackDisplayedAt[$0.id] = displayedAt
             }
         return step
-    }
-
-    func effectSummaries(for combatant: Combatant) -> [EffectSummary] {
-        state.effectSummaries(of: combatant)
-    }
-
-    func health(for combatant: Combatant) -> Int {
-        state.health(of: combatant)
-    }
-
-    func maxHealth(for combatant: Combatant) -> Int {
-        state.maxHealth(of: combatant)
     }
 }
