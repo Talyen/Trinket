@@ -217,23 +217,23 @@ final class AppStateTests: XCTestCase {
     }
 
     private func assertCollectionDetail(
-        _ selection: CombatantCollectionDetailSelection?,
-        kind: CombatantCollectionDetailSelection.Kind,
+        _ context: CombatantDetailContext?,
+        kind: CombatantDetailContext.Kind,
         combatantID: String,
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        guard let selection else {
-            XCTFail("Expected collection detail selection", file: file, line: line)
+        guard let context else {
+            XCTFail("Expected collection detail context", file: file, line: line)
             return
         }
 
-        switch selection.source {
-        case let .collection(actualKind, actualID):
+        switch context.presentation {
+        case let .roster(actualKind, actualID):
             XCTAssertEqual(actualKind, kind, file: file, line: line)
             XCTAssertEqual(actualID, combatantID, file: file, line: line)
-        case .battleSnapshot:
-            XCTFail("Expected collection detail, got battle snapshot", file: file, line: line)
+        case .snapshot:
+            XCTFail("Expected collection detail, got snapshot", file: file, line: line)
         }
     }
 }

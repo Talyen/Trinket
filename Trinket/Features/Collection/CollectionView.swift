@@ -5,12 +5,12 @@ import TrinketDesignSystem
 struct CollectionView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
-    @State private var selectedCombatant: CombatantCollectionDetailSelection?
+    @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
     private let initialItemID: String?
 
     init(
-        initialCombatantDetail: CombatantCollectionDetailSelection? = nil,
+        initialCombatantDetail: CombatantDetailContext? = nil,
         initialItemID: String? = nil
     ) {
         _selectedCombatant = State(initialValue: initialCombatantDetail)
@@ -57,7 +57,7 @@ struct CollectionView: View {
                                 cardWidth: nil,
                                 showsName: false
                             ) {
-                                selectedCombatant = CombatantCollectionDetailSelection(kind: .hero, combatantID: combatant.id)
+                                selectedCombatant = CombatantDetailContext(kind: .hero, combatantID: combatant.id)
                             }
                             .collectionShelfCardWidth()
                         }
@@ -92,7 +92,7 @@ struct CollectionView: View {
                                 cardWidth: nil,
                                 showsName: false
                             ) {
-                                selectedCombatant = CombatantCollectionDetailSelection(kind: .pet, combatantID: combatant.id)
+                                selectedCombatant = CombatantDetailContext(kind: .pet, combatantID: combatant.id)
                             }
                             .collectionShelfCardWidth()
                         }
@@ -164,8 +164,8 @@ struct CollectionView: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)
         }
-        .sheet(item: $selectedCombatant) { selection in
-            CombatantCollectionDetailSheet(selection: selection)
+        .sheet(item: $selectedCombatant) { context in
+            CombatantDetailContextView(context: context)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)

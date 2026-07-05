@@ -26,7 +26,7 @@ final class AppState {
     var journey: PlayerJourneyStore
     var lastPlayFlowError: String?
     let sessionState: SessionStateStore
-    let initialCollectionCombatantDetail: CombatantCollectionDetailSelection?
+    let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
     private static let launchBattleStageID = "chapter-1-stage-1"
 
@@ -71,6 +71,11 @@ final class AppState {
         let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
         let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
 
+        let launchTargets = AppLaunchBootstrap.launchTargets(
+            environment: env,
+            sessionState: resolvedSessionState
+        )
+
         self.playerSave = resolvedPlayerSave
         syncCoordinator = PlayerSaveSyncCoordinator(
             sync: resolvedSync,
@@ -84,15 +89,16 @@ final class AppState {
         battle = BattleSession()
         journey = resolvedJourney
         sessionState = resolvedSessionState
-        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
-        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
-        selectedTab = Self.selectedTab(environment: env, sessionState: resolvedSessionState)
+        initialCollectionCombatantDetail = launchTargets.initialCombatantDetail
+        initialCollectionItemID = launchTargets.initialItemID
+        selectedTab = launchTargets.selectedTab
 
         seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
         restoreMapScroll(environment: env)
-        applyLaunchScreenActions(environment: env)
 
-        if env.launchScreen != .battle, let stageID = sessionState.activeBattleStageID {
+        if launchTargets.shouldStartLaunchBattle {
+            startLaunchBattle()
+        } else if let stageID = launchTargets.restoredBattleStageID {
             startRestoredBattle(stageID: stageID)
         }
 
@@ -245,15 +251,6 @@ final class AppState {
         }
     }
 
-    private func applyLaunchScreenActions(environment: AppEnvironment) {
-        switch environment.launchScreen {
-        case .battle:
-            startLaunchBattle()
-        case .heroDetail, .petDetail, .itemDetail, .options, .none:
-            break
-        }
-    }
-
     private func startLaunchBattle() {
         guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
         _ = startBattleForStage(stage)
@@ -323,92 +320,46 @@ final class AppState {
         }
     }
 
-    private static func selectedTab(
-        environment: AppEnvironment,
-        sessionState: SessionStateStore
-    ) -> AppTab {
-        if let envTab = environment.launchTab {
-            return envTab
+    func updateShell(event: AppShellEvent, scenePhase: ScenePhase) {
+        switch event {
+        case .appeared:
+            if battle.activeBattle != nil, selectedTab != .play {
+                battle.isPaused = true
+            }
+        case let .selectedTabChanged(newTab):
+            sessionState.selectedTab = newTab
+            if battle.activeBattle != nil {
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                battle.isPaused = true
+            }
+        case .activeBattleStarted:
+            battle.isPaused = selectedTab != .play
+        case .activeBattleEnded:
+            battle.isPaused = false
+            musicPlayer.clearEncounterResumePositions()
+        case let .scenePhaseChanged(newPhase):
+            if newPhase != .active, battle.activeBattle != nil {
+                battle.isPaused = true
+            }
+            handleScenePhaseSideEffects(newPhase)
+            refreshMusic(scenePhase: newPhase)
+            return
+        case .musicInputsChanged:
+            break
         }
-        if let launchScreen = environment.launchScreen {
-            return tab(for: launchScreen)
-        }
-        return sessionState.selectedTab ?? .play
-    }
 
-    private static func tab(for launchScreen: LaunchScreen) -> AppTab {
-        switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
-            return .collection
-        case .battle:
-            return .play
-        case .options:
-            return .options
-        }
-    }
-
-    private static func collectionCombatantDetail(
-        for launchScreen: LaunchScreen?
-    ) -> CombatantCollectionDetailSelection? {
-        switch launchScreen {
-        case let .heroDetail(id):
-            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
-        case let .petDetail(id):
-            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
-        case .itemDetail, .battle, .options, .none:
-            nil
-        }
-    }
-
-    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
-        switch launchScreen {
-        case let .itemDetail(id):
-            id
-        case .heroDetail, .petDetail, .battle, .options, .none:
-            nil
-        }
-    }
-
-    func handleShellAppear(scenePhase: ScenePhase) {
-        if battle.activeBattle != nil, selectedTab != .play {
-            battle.isPaused = true
-        }
         refreshMusic(scenePhase: scenePhase)
     }
 
-    func handleSelectedTabChange(_ newTab: AppTab, scenePhase: ScenePhase) {
-        sessionState.selectedTab = newTab
-        if battle.activeBattle != nil {
-            // Leaving Play pauses combat; returning stays paused until the player resumes.
-            battle.isPaused = true
-        }
-        refreshMusic(scenePhase: scenePhase)
-    }
-
-    func handleActiveBattleStarted(scenePhase: ScenePhase) {
-        battle.isPaused = selectedTab != .play
-        refreshMusic(scenePhase: scenePhase)
-    }
-
-    func handleActiveBattleEnded(scenePhase: ScenePhase) {
-        battle.isPaused = false
-        musicPlayer.clearEncounterResumePositions()
-        refreshMusic(scenePhase: scenePhase)
-    }
-
-    func handleScenePhaseChange(_ newPhase: ScenePhase) {
-        if newPhase != .active, battle.activeBattle != nil {
-            battle.isPaused = true
-        }
-        refreshMusic(scenePhase: newPhase)
-        if newPhase == .inactive || newPhase == .background {
+    private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
+        if phase == .inactive || phase == .background {
             playerSave.flushPendingPersistIfNeeded()
         }
-        if newPhase == .background {
+        if phase == .background {
             Task {
                 await syncCoordinator.checkpointUploadIfNeeded()
             }
-        } else if newPhase == .active {
+        } else if phase == .active {
             Task {
                 await syncCoordinator.reconcileForegroundIfSafe()
             }

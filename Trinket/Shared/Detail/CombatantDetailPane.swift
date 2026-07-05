@@ -5,11 +5,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-enum CombatantDetailNavigationChrome {
-    case visible
-    case hidden
-}
-
 struct CombatantDetailPane: View {
     let combatant: Combatant
     let progression: CombatantProgression
@@ -19,7 +14,7 @@ struct CombatantDetailPane: View {
     let allowsEditing: Bool
     var battleHealth: Int?
     var activeEffectSummaries: [EffectSummary] = []
-    var navigationChrome: CombatantDetailNavigationChrome = .visible
+    var hidesNavigationBar = false
 
     @State private var selectedItemSlot: ItemSlot?
     @State private var headerHeight: CGFloat = 300
@@ -133,7 +128,7 @@ struct CombatantDetailPane: View {
             }
             .ignoresSafeArea(edges: .top)
             .trinketScreenBackground(.collection)
-            .combatantDetailNavigationChrome(navigationChrome, title: combatant.name, titleOpacity: titleOpacity)
+            .combatantDetailNavigationBar(hidden: hidesNavigationBar, title: combatant.name, titleOpacity: titleOpacity)
             .onAppear {
                 headerHeight = baseHeaderHeight
             }
@@ -237,13 +232,30 @@ struct CombatantDetailPane: View {
 
 extension CombatantDetailPane {
     init(
+        snapshot: CombatantCardDetail,
+        hidesNavigationBar: Bool = false
+    ) {
+        self.init(
+            combatant: snapshot.combatant,
+            progression: snapshot.progression,
+            loadout: .constant(snapshot.combatant.abilityLoadout),
+            equipmentLoadout: .constant(snapshot.equipmentLoadout),
+            inventoryState: .constant(snapshot.inventoryState),
+            allowsEditing: false,
+            battleHealth: snapshot.health,
+            activeEffectSummaries: snapshot.activeEffectSummaries,
+            hidesNavigationBar: hidesNavigationBar
+        )
+    }
+
+    init(
         appState: AppState,
         combatant: Combatant,
         rosterState: PlayerRosterState,
         allowsEditing: Bool? = nil,
         battleHealth: Int? = nil,
         activeEffectSummaries: [EffectSummary] = [],
-        navigationChrome: CombatantDetailNavigationChrome = .visible
+        hidesNavigationBar: Bool = false
     ) {
         self.init(
             combatant: combatant,
@@ -271,20 +283,21 @@ extension CombatantDetailPane {
             allowsEditing: allowsEditing ?? rosterState.isUnlocked(combatant),
             battleHealth: battleHealth,
             activeEffectSummaries: activeEffectSummaries,
-            navigationChrome: navigationChrome
+            hidesNavigationBar: hidesNavigationBar
         )
     }
 }
 
 private extension View {
     @ViewBuilder
-    func combatantDetailNavigationChrome(
-        _ chrome: CombatantDetailNavigationChrome,
+    func combatantDetailNavigationBar(
+        hidden: Bool,
         title: String,
         titleOpacity: CGFloat
     ) -> some View {
-        switch chrome {
-        case .visible:
+        if hidden {
+            toolbar(.hidden, for: .navigationBar)
+        } else {
             navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbarBackground(.hidden, for: .navigationBar)
@@ -297,8 +310,6 @@ private extension View {
                     }
                     .sharedBackgroundVisibility(.hidden)
                 }
-        case .hidden:
-            toolbar(.hidden, for: .navigationBar)
         }
     }
 }

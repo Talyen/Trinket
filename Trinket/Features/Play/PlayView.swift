@@ -12,8 +12,8 @@ struct PlayView: View {
         content
             .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
                 appState.battle.restorePauseAfterOverlay()
-            }, content: { selection in
-                CombatantCollectionDetailSheet(selection: selection)
+            }, content: { context in
+                CombatantDetailContextView(context: context)
                     .presentationDetents([.large])
                     .presentationContentInteraction(.resizes)
                     .presentationDragIndicator(.hidden)

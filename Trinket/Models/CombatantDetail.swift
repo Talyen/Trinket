@@ -3,6 +3,42 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
+import BattleEngine
+import TrinketContent
+import TrinketCore
+import TrinketPersistence
+
+struct CombatantDetailContext: Identifiable, Hashable {
+    enum Kind: Hashable {
+        case hero
+        case pet
+    }
+
+    enum Presentation: Hashable {
+        case roster(kind: Kind, combatantID: String)
+        case snapshot(CombatantCardDetail)
+    }
+
+    let presentation: Presentation
+
+    init(kind: Kind, combatantID: String) {
+        presentation = .roster(kind: kind, combatantID: combatantID)
+    }
+
+    init(snapshot: CombatantCardDetail) {
+        presentation = .snapshot(snapshot)
+    }
+
+    var id: String {
+        switch presentation {
+        case let .roster(kind, combatantID):
+            "\(kind)-\(combatantID)"
+        case let .snapshot(detail):
+            "snapshot-\(detail.combatant.id)"
+        }
+    }
+}
+
 struct CombatantCardDetail: Hashable, Identifiable {
     let combatant: Combatant
     let progression: CombatantProgression

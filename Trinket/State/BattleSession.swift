@@ -27,7 +27,7 @@ final class BattleSession {
     var isShowingDefeat = false
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
-    var overlayCombatantDetail: CombatantCollectionDetailSelection?
+    var overlayCombatantDetail: CombatantDetailContext?
     private(set) var state: BattleState?
     var activeFeedbackEvents: [ActionEvent] = []
     private var feedbackDisplayedAt: [Int: Date] = [:]
@@ -202,7 +202,7 @@ final class BattleSession {
         if activeBattle != nil {
             pauseForOverlay()
         }
-        overlayCombatantDetail = CombatantCollectionDetailSelection(battleSnapshot: detail)
+        overlayCombatantDetail = CombatantDetailContext(snapshot: detail)
     }
 
     func removeFeedbackEvent(_ id: Int) {

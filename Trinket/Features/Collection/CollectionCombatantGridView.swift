@@ -3,9 +3,9 @@ import TrinketDesignSystem
 
 struct CollectionCombatantGridView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedCombatant: CombatantCollectionDetailSelection?
+    @State private var selectedCombatant: CombatantDetailContext?
 
-    let kind: CombatantCollectionDetailSelection.Kind
+    let kind: CombatantDetailContext.Kind
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
@@ -35,7 +35,7 @@ struct CollectionCombatantGridView: View {
                             isLocked: !appState.roster.current.isUnlocked(combatant),
                             cardWidth: nil
                         ) {
-                            selectedCombatant = CombatantCollectionDetailSelection(
+                            selectedCombatant = CombatantDetailContext(
                                 kind: kind,
                                 combatantID: combatant.id
                             )
@@ -48,8 +48,8 @@ struct CollectionCombatantGridView: View {
         .trinketScreenBackground(.collection)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedCombatant) { selection in
-            CombatantCollectionDetailSheet(selection: selection)
+        .sheet(item: $selectedCombatant) { context in
+            CombatantDetailContextView(context: context)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)

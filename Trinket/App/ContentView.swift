@@ -44,26 +44,25 @@ struct ContentView: View {
         }
         .preferredColorScheme(appState.options.appearance.colorScheme)
         .onAppear {
-            appState.handleShellAppear(scenePhase: scenePhase)
+            appState.updateShell(event: .appeared, scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            appState.handleSelectedTabChange(newTab, scenePhase: scenePhase)
+            appState.updateShell(event: .selectedTabChanged(newTab), scenePhase: scenePhase)
         }
         .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-            if newValue == nil {
-                appState.handleActiveBattleEnded(scenePhase: scenePhase)
-            } else {
-                appState.handleActiveBattleStarted(scenePhase: scenePhase)
-            }
+            appState.updateShell(
+                event: newValue == nil ? .activeBattleEnded : .activeBattleStarted,
+                scenePhase: scenePhase
+            )
         }
         .onChange(of: appState.battle.preview?.id) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
+            appState.updateShell(event: .musicInputsChanged, scenePhase: scenePhase)
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
+            appState.updateShell(event: .musicInputsChanged, scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
-            appState.handleScenePhaseChange(newPhase)
+            appState.updateShell(event: .scenePhaseChanged(newPhase), scenePhase: newPhase)
         }
     }
 }
