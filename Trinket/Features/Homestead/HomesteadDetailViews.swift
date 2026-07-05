@@ -13,20 +13,12 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private var homestead: PlayerHomesteadState {
-        appState.homestead.current
-    }
-
-    private var roster: PlayerRosterState {
-        appState.roster.current
+    private var screen: HomesteadScreenState {
+        HomesteadScreenState(homestead: appState.homestead.current, roster: appState.roster.current)
     }
 
     private var status: HomesteadProjectStatus {
-        HomesteadProjectStatus(
-            definition: definition,
-            homestead: homestead,
-            roster: roster
-        )
+        screen.projectStatus(for: definition)
     }
 
     var body: some View {
@@ -35,7 +27,7 @@ struct HomesteadNodeDetailView: View {
                 HomesteadDetailHeader(definition: definition, status: status)
 
                 if !status.isUnlocked {
-                    HomesteadPrerequisiteSection(definition: definition, homestead: homestead)
+                    HomesteadPrerequisiteSection(definition: definition, homestead: screen.homestead)
                 }
 
                 HomesteadBonusSection(
@@ -75,17 +67,7 @@ struct HomesteadNodeDetailView: View {
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .sensoryFeedback(.success, trigger: upgradeEventCount)
-        .alert(
-            "Build Failed",
-            isPresented: Binding(
-                get: { homesteadBuildError != nil },
-                set: { if !$0 { homesteadBuildError = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(homesteadBuildError ?? "")
-        }
+        .homesteadBuildErrorAlert(error: $homesteadBuildError)
     }
 
     private var currentBonus: HomesteadBonus {
@@ -103,15 +85,17 @@ struct HomesteadNodeDetailView: View {
         isBuilding = true
         defer { isBuilding = false }
 
-        switch appState.homestead.buildOrUpgrade(definition, roster: appState.roster) {
+        switch HomesteadBuildSupport.buildOrUpgrade(
+            definition,
+            homestead: appState.homestead,
+            roster: appState.roster
+        ) {
         case .success:
             upgradeEventCount += 1
             guard !reduceMotion else { return }
             withAnimation(.snappy) {}
-        case .insufficientResources:
-            homesteadBuildError = "Not enough resources to build or upgrade this project."
-        case .persistFailed:
-            homesteadBuildError = "Couldn't save homestead progress. Try again."
+        case let .failed(message):
+            homesteadBuildError = message
         }
     }
 }
@@ -170,23 +154,12 @@ struct HomesteadDetailActionBar: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            if status.canBuildOrUpgrade {
-                Button(action: action) {
-                    Label(status.actionTitle, systemImage: "hammer.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-                .disabled(isBuilding)
-                .accessibilityIdentifier(HomesteadDetailActionBar.accessibilityID(for: status))
-            } else if status.isComplete {
-                Label("Complete", systemImage: "checkmark.seal.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(TrinketDesign.Colors.success)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-            } else {
-                HomesteadMissingSummary(status: status)
-            }
+            HomesteadProjectActionFooter(
+                status: status,
+                isBuilding: isBuilding,
+                buildButtonAccessibilityID: Self.accessibilityID(for: status),
+                onBuild: action
+            )
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.top, 12)

@@ -36,81 +36,50 @@ final class AppState {
         userDefaults: UserDefaults? = nil
     ) {
         let env = environment
-        let resolvedDefaults = userDefaults ?? .standard
-        let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
-        if env.resetState {
-            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-            resolvedFileStore.deleteSave()
-        }
-
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
-        if env.seedTestProgress {
-            do {
-                try resolvedPlayerSave.applyTestSeed()
-            } catch {
-                appStateLogger.error(
-                    "Failed to apply test seed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-
-        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService(
-            configuration: PlayerSaveSyncConfiguration(
-                disableCloudSync: env.disableCloudSync,
-                resetState: env.resetState
-            )
+        let dependencies = AppStateBootstrap.makeDependencies(
+            environment: env,
+            playerSave: playerSave,
+            sync: sync,
+            fileStore: fileStore,
+            userDefaults: userDefaults
         )
-        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
-        if let appearanceOverride = env.appearanceOverride {
-            resolvedOptions.appearance = appearanceOverride
-        }
 
-        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
-
-        self.playerSave = resolvedPlayerSave
-        syncCoordinator = PlayerSaveSyncCoordinator(sync: resolvedSync, playerSaveStore: resolvedPlayerSave)
-        musicDirector = MusicDirector()
-        musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
-        roster = PlayerRosterStore(saveStore: resolvedPlayerSave)
-        inventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
-        homestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
-        options = resolvedOptions
-        battle = BattleSession()
-        journey = PlayerJourneyStore(saveStore: resolvedPlayerSave)
-        sessionState = resolvedSessionState
-        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
-        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
-
-        // Tab precedence: collection deep links always open Collection; otherwise
-        // environment arg > launch-screen default > session state > default.
-        if Self.isCollectionDetailLaunch(env.launchScreen) {
-            selectedTab = .collection
-        } else if let envTab = env.launchTab {
-            selectedTab = envTab
-        } else if env.launchScreen != nil {
-            selectedTab = Self.defaultTab(for: env.launchScreen)
-        } else if let savedTab = sessionState.selectedTab {
-            selectedTab = savedTab
-        } else {
-            selectedTab = .play
-        }
+        playerSave = dependencies.playerSave
+        syncCoordinator = dependencies.syncCoordinator
+        musicDirector = dependencies.musicDirector
+        musicPlayer = dependencies.musicPlayer
+        roster = dependencies.roster
+        inventory = dependencies.inventory
+        homestead = dependencies.homestead
+        options = dependencies.options
+        battle = dependencies.battle
+        journey = dependencies.journey
+        sessionState = dependencies.sessionState
+        initialCollectionCombatantDetail = dependencies.initialCollectionCombatantDetail
+        initialCollectionItemID = dependencies.initialCollectionItemID
+        selectedTab = dependencies.selectedTab
 
         seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
-        if let mapScrollTarget = env.mapScrollTarget {
+        restoreMapScroll(environment: env)
+        applyLaunchScreenActions(environment: env)
+
+        if env.launchScreen != .battle, let stageID = sessionState.activeBattleStageID {
+            startRestoredBattle(stageID: stageID)
+        }
+
+        wireSyncAndBattleCallbacks()
+    }
+
+    private func restoreMapScroll(environment: AppEnvironment) {
+        if let mapScrollTarget = environment.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
         } else if let savedScrollTarget = sessionState.mapScrollStageID,
                   Self.shouldRestoreMapScroll(savedScrollTarget, journey: journey.current) {
             journey.requestMapScroll(to: savedScrollTarget)
         }
+    }
 
-        applyLaunchScreenActions(environment: env)
-
-        // Restore battle from session if no launch-screen battle was requested
-        if env.launchScreen != .battle, let stageID = sessionState.activeBattleStageID {
-            startRestoredBattle(stageID: stageID)
-        }
-
-        // Wire session state updates from battle lifecycle
+    private func wireSyncAndBattleCallbacks() {
         battle.onBattleStateChange = { [weak self] stageID in
             self?.sessionState.activeBattleStageID = stageID
         }
@@ -188,15 +157,6 @@ final class AppState {
         return true
     }
 
-    private static func isCollectionDetailLaunch(_ launchScreen: LaunchScreen?) -> Bool {
-        switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
-            true
-        case .battle, .options, .none:
-            false
-        }
-    }
-
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
         guard !completedStageIDs.isEmpty else { return }
 
@@ -233,41 +193,6 @@ final class AppState {
             appStateLogger.error(
                 "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
             )
-        }
-    }
-
-    private static func defaultTab(for launchScreen: LaunchScreen?) -> AppTab {
-        switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
-            return .collection
-        case .battle:
-            return .play
-        case .options:
-            return .options
-        case .none:
-            return .play
-        }
-    }
-
-    private static func collectionCombatantDetail(
-        for launchScreen: LaunchScreen?
-    ) -> CombatantCollectionDetailSelection? {
-        switch launchScreen {
-        case let .heroDetail(id):
-            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
-        case let .petDetail(id):
-            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
-        case .itemDetail, .battle, .options, .none:
-            nil
-        }
-    }
-
-    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
-        switch launchScreen {
-        case let .itemDetail(id):
-            id
-        case .heroDetail, .petDetail, .battle, .options, .none:
-            nil
         }
     }
 

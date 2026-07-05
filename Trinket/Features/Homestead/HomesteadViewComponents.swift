@@ -4,70 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-enum HomesteadProgression {
-    static func recommendedProject(
-        definitions: [HomesteadNodeDefinition],
-        homestead: PlayerHomesteadState,
-        roster: PlayerRosterState
-    ) -> HomesteadNodeDefinition? {
-        let statuses = definitions.map {
-            HomesteadProjectStatus(definition: $0, homestead: homestead, roster: roster)
-        }
-
-        return statuses.first(where: \.canBuildOrUpgrade)?.definition
-            ?? statuses.first(where: { $0.isUnlocked && !$0.isComplete })?.definition
-            ?? statuses.first(where: { !$0.isUnlocked })?.definition
-            ?? statuses.first?.definition
-    }
-
-    static func visibleDefinitions(
-        in category: HomesteadNodeCategory,
-        all definitions: [HomesteadNodeDefinition],
-        homestead: PlayerHomesteadState
-    ) -> [HomesteadNodeDefinition] {
-        let categoryDefinitions = definitions.filter { $0.category == category }
-        let visible = categoryDefinitions.filter { definition in
-            homestead.tier(for: definition.id) > 0 || homestead.isUnlocked(definition)
-        }
-
-        guard let nextLocked = categoryDefinitions.first(where: { definition in
-            !visible.contains(definition) && shouldRevealLocked(definition, homestead: homestead)
-        }) else {
-            return visible
-        }
-
-        return visible + [nextLocked]
-    }
-
-    static func walletResources(
-        for featured: HomesteadNodeDefinition?,
-        homestead: PlayerHomesteadState,
-        roster: PlayerRosterState
-    ) -> [HomesteadResource] {
-        var resources = HomesteadResource.allCases.filter { homestead.balance(for: $0, roster: roster) > 0 }
-        if let featured,
-           let nextTier = homestead.nextTier(for: featured) {
-            for amount in nextTier.cost where !resources.contains(amount.resource) {
-                resources.append(amount.resource)
-            }
-        }
-        return resources.isEmpty ? [.wood, .stone, .gold] : resources
-    }
-
-    private static func shouldRevealLocked(
-        _ definition: HomesteadNodeDefinition,
-        homestead: PlayerHomesteadState
-    ) -> Bool {
-        guard !definition.prerequisites.isEmpty else { return true }
-        return definition.prerequisites.allSatisfy { requirement in
-            guard let prerequisite = GameContent.homesteadNode(matching: requirement.nodeID) else {
-                return false
-            }
-            return homestead.tier(for: requirement.nodeID) > 0 || homestead.isUnlocked(prerequisite)
-        }
-    }
-}
-
 struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
@@ -180,21 +116,7 @@ struct HomesteadFeaturedProjectCard: View {
             // UIStyleCheck: allow - Art-forward project cards should navigate without button chrome.
             .buttonStyle(.plain)
 
-            if status.canBuildOrUpgrade {
-                Button(action: onBuild) {
-                    Label(status.actionTitle, systemImage: "hammer.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-            } else if status.isComplete {
-                Label("Complete", systemImage: "checkmark.seal.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(TrinketDesign.Colors.success)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-            } else {
-                HomesteadMissingSummary(status: status)
-            }
+            HomesteadProjectActionFooter(status: status, onBuild: onBuild)
         }
         .padding(14)
         .trinketCardSurface()
@@ -204,17 +126,53 @@ struct HomesteadFeaturedProjectCard: View {
     }
 
     private var featuredTitle: String {
-        if status.canBuildOrUpgrade { return status.nextTier?.tier == 1 ? "Ready to Build" : "Ready to Upgrade" }
         if !status.isUnlocked { return "Next Unlock" }
+        if status.canBuildOrUpgrade || status.isComplete { return status.statusTitle }
         return "Gather Materials"
+    }
+}
+
+struct HomesteadProjectActionFooter: View {
+    let status: HomesteadProjectStatus
+    var isBuilding: Bool = false
+    var buildButtonAccessibilityID: String?
+    let onBuild: (() -> Void)?
+
+    var body: some View {
+        if status.canBuildOrUpgrade, let onBuild {
+            buildButton(action: onBuild)
+        } else if status.isComplete {
+            Label("Complete", systemImage: "checkmark.seal.fill")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(TrinketDesign.Colors.success)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+        } else {
+            HomesteadMissingSummary(status: status)
+        }
+    }
+
+    @ViewBuilder
+    private func buildButton(action: @escaping () -> Void) -> some View {
+        let button = Button(action: action) {
+            Label(status.actionTitle, systemImage: "hammer.fill")
+                .frame(maxWidth: .infinity)
+        }
+        .trinketPrimaryActionButton()
+        .disabled(isBuilding)
+
+        if let buildButtonAccessibilityID {
+            button.accessibilityIdentifier(buildButtonAccessibilityID)
+        } else {
+            button
+        }
     }
 }
 
 struct HomesteadProjectSection: View {
     let category: HomesteadNodeCategory
     let definitions: [HomesteadNodeDefinition]
-    let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
+    let screen: HomesteadScreenState
     let recentUpgradeID: HomesteadNodeID?
 
     var body: some View {
@@ -227,11 +185,7 @@ struct HomesteadProjectSection: View {
                 ForEach(definitions) { definition in
                     HomesteadProjectRow(
                         definition: definition,
-                        status: HomesteadProjectStatus(
-                            definition: definition,
-                            homestead: homestead,
-                            roster: roster
-                        ),
+                        status: screen.projectStatus(for: definition),
                         isRecentlyUpgraded: recentUpgradeID == definition.id
                     )
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -451,6 +405,22 @@ struct HomesteadRequirementCountText: View {
             }
             .font(font)
             .contentTransition(.numericText())
+        }
+    }
+}
+
+extension View {
+    func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
+        alert(
+            "Build Failed",
+            isPresented: Binding(
+                get: { error.wrappedValue != nil },
+                set: { if !$0 { error.wrappedValue = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(error.wrappedValue ?? "")
         }
     }
 }
