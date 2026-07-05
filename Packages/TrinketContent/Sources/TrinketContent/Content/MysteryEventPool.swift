@@ -258,6 +258,9 @@ public enum MysteryEventPool {
     public static func pickMysteryEvent<RNG: RandomNumberGenerator>(
         using randomNumberGenerator: inout RNG
     ) -> MysteryEvent {
-        all.randomElement(using: &randomNumberGenerator)!
+        guard let event = all.randomElement(using: &randomNumberGenerator) else {
+            return all[0]
+        }
+        return event
     }
 }

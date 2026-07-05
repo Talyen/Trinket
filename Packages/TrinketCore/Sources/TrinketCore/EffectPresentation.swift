@@ -1,5 +1,4 @@
 import Foundation
-import TrinketCore
 
 /// Player-facing phrasing for `Effect` and `ActiveEffect`. Shared by battle
 /// logs, ability description generation, and combat HUD summaries.

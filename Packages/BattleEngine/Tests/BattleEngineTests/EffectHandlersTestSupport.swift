@@ -1,4 +1,3 @@
-import XCTest
 import BattleEngine
 import TrinketCore
 import TrinketContent
@@ -26,8 +25,11 @@ enum EffectHandlersTestSupport {
         action: ActionApplyContext = ActionApplyContext(),
         battle: inout BattleState
     ) -> EffectApplyOutcome {
-        battle.withEngineContext { context in
-            EffectHandlers.all[effect.kind]!.apply(
+        guard let handler = EffectHandlers.handler(for: effect.kind) else {
+            preconditionFailure("Missing handler for \(effect.kind)")
+        }
+        return battle.withEngineContext { context in
+            handler.apply(
                 effect,
                 ability: ability,
                 source: source,
@@ -43,8 +45,11 @@ enum EffectHandlersTestSupport {
         target: Combatant,
         battle: inout BattleState
     ) -> EffectTickOutcome {
-        battle.withEngineContext { context in
-            EffectHandlers.all[active.effect.kind]!.tick(active, on: target, in: &context)
+        guard let handler = EffectHandlers.handler(for: active.effect.kind) else {
+            preconditionFailure("Missing handler for \(active.effect.kind)")
+        }
+        return battle.withEngineContext { context in
+            handler.tick(active, on: target, in: &context)
         }
     }
 }

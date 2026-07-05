@@ -30,12 +30,28 @@ while IFS= read -r file; do
   fi
 done < <(find Packages -name '*.swift' -type f 2>/dev/null)
 
-# TrinketDesignSystem must not depend on TrinketContent at source level.
-if rg -q 'import TrinketContent' Packages/TrinketDesignSystem/Sources -g '*.swift'; then
-  while IFS= read -r file; do
-    violations+=("$file: TrinketDesignSystem must not import TrinketContent")
-  done < <(rg -l 'import TrinketContent' Packages/TrinketDesignSystem/Sources -g '*.swift')
-fi
+# TrinketDesignSystem must depend on TrinketCore only.
+for forbidden in TrinketContent BattleEngine TrinketPersistence; do
+  if rg -q "import $forbidden" Packages/TrinketDesignSystem/Sources -g '*.swift'; then
+    while IFS= read -r file; do
+      violations+=("$file: TrinketDesignSystem must not import $forbidden")
+    done < <(rg -l "import $forbidden" Packages/TrinketDesignSystem/Sources -g '*.swift')
+  fi
+done
+
+# BattleEngine and TrinketPersistence are siblings — no cross-imports.
+for pkg in BattleEngine TrinketPersistence; do
+  if [[ "$pkg" == "BattleEngine" ]]; then
+    forbidden="TrinketPersistence"
+  else
+    forbidden="BattleEngine"
+  fi
+  if rg -q "import $forbidden" "Packages/$pkg/Sources" -g '*.swift'; then
+    while IFS= read -r file; do
+      violations+=("$file: $pkg must not import $forbidden")
+    done < <(rg -l "import $forbidden" "Packages/$pkg/Sources" -g '*.swift')
+  fi
+done
 
 if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2

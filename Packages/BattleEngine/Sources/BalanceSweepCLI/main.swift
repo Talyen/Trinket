@@ -78,8 +78,8 @@ enum BalanceSweepCLI {
 
         let triples: [BalanceSweepTriple]?
         if options.smoke {
-            let hero = GameContent.heroes.first { $0.id == "wizard" }!
-            let pet = GameContent.pets.first { $0.id == "wolf" }!
+            let hero = try representativeCombatant(id: "wizard", from: GameContent.heroes, label: "hero")
+            let pet = try representativeCombatant(id: "wolf", from: GameContent.pets, label: "pet")
             triples = Array(GameContent.enemies.prefix(2)).map {
                 BalanceSweepTriple(hero: hero, pet: pet, enemy: $0)
             }

@@ -47,7 +47,9 @@ final class TraitBattleTests: XCTestCase {
             tier: .basic,
             targetedEffects: [TargetedEffect(effect)]
         )
-        let handler = EffectHandlers.handler(for: effect.kind)!
+        guard let handler = EffectHandlers.handler(for: effect.kind) else {
+            preconditionFailure("Missing handler for \(effect.kind)")
+        }
         return handler.apply(
             effect,
             ability: ability,

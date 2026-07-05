@@ -73,6 +73,7 @@ struct SearchView: View {
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)
+                .scrollDismissesKeyboard(.interactively)
             }
         }
     }
