@@ -69,7 +69,8 @@ public enum AbilityCatalogSkill {
         id: "dark-pact", name: "Dark Pact", tier: .skill,
         targetedEffects: [
             TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.standardLeechBuff)
+            TargetedEffect(.standardLeechBuff),
+            TargetedEffect(.cleanse(.poison))
         ],
         manaCost: 2
     )
@@ -121,7 +122,7 @@ public enum AbilityCatalogSkill {
         id: "predators-haste", name: "Predator's Haste", tier: .skill,
         targetedEffects: [
             TargetedEffect(.haste(4)),
-            TargetedEffect(.criticalChanceBonus(0.10, 6))
+            TargetedEffect(.criticalChanceBonus(0.15, 6))
         ]
     )
     public static let sageHeal = Ability(
@@ -145,7 +146,7 @@ public enum AbilityCatalogSkill {
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
             TargetedEffect(.shield(.block, 2, 6)),
-            TargetedEffect(.mitigation(.armor, 0.15, 6)),
+            TargetedEffect(.mitigation(.armor, 0.22, 6)),
             TargetedEffect(.thorns(.physical, 1, 6))
         ]
     )
@@ -171,9 +172,9 @@ public enum AbilityCatalogSkill {
     )
     public static let venomFangs = Ability(
         id: "venom-fangs", name: "Venom Fangs", tier: .skill,
-        damageComponents: [DamageComponent(3, keyword: .poison)],
+        damageComponents: [DamageComponent(2, keyword: .poison)],
         targetedEffects: [
-            TargetedEffect(.poison(3)),
+            TargetedEffect(.poison(2)),
             TargetedEffect(.bleed(1), condition: .enemyPoisoned)
         ]
     )

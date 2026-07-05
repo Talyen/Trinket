@@ -4,7 +4,7 @@ import TrinketCore
 public enum AbilityCatalogBasic {
     public static let apple = Ability(
         id: "apple", name: "Apple", tier: .basic,
-        targetedEffects: [TargetedEffect(.instantHeal(.health, 1), target: .lowestHealthAlly)]
+        targetedEffects: [TargetedEffect(.instantHeal(.health, 2), target: .lowestHealthAlly)]
     )
     public static let blackjack = Ability(
         id: "blackjack", name: "Blackjack", tier: .basic,
@@ -39,6 +39,7 @@ public enum AbilityCatalogBasic {
     )
     public static let manaBerries = Ability(
         id: "mana-berries", name: "Mana Berries", tier: .basic,
+        damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [TargetedEffect(.resourceGain(.mana, 1))]
     )
     public static let manaCrystals = Ability(
@@ -50,6 +51,7 @@ public enum AbilityCatalogBasic {
     )
     public static let pixieDust = Ability(
         id: "pixie-dust", name: "Pixie Dust", tier: .basic,
+        damageComponents: [DamageComponent(1, keyword: .burn)],
         targetedEffects: [TargetedEffect(.resourceGain(.mana, 1))]
     )
     public static let rendingSlash = Ability(
@@ -65,10 +67,11 @@ public enum AbilityCatalogBasic {
     )
     public static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,
-        targetedEffects: [TargetedEffect(.marked(2, 6))]
+        targetedEffects: [TargetedEffect(.marked(3, 6))]
     )
     public static let stargaze = Ability(
         id: "stargaze", name: "Stargaze", tier: .basic,
+        damageComponents: [DamageComponent(1, keyword: .freeze)],
         targetedEffects: [TargetedEffect(.resourceGain(.mana, 1))]
     )
     public static let wiseFrost = Ability(

@@ -39,7 +39,7 @@ final class AbilityDescriptionFormatterTests: XCTestCase {
     func testManaBerriesRestoreMana() {
         XCTAssertEqual(
             AbilityDescriptionFormatter.format(.manaBerries),
-            "Restore 1 Mana."
+            "Deal 1 Burn damage and Restore 1 Mana."
         )
     }
 

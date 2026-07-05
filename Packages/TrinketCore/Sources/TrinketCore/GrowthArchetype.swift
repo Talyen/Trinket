@@ -218,7 +218,7 @@ public enum StatGrowth {
         if isBoss {
             // Bosses spike threat via stats; keep late HP moderate to avoid 100-tick stalls.
             healthMultiplier = 1.0 + 0.10 + (0.08 * progress) + (0.06 * midT) + (0.02 * lateT)
-                + (0.82 * earlyT) + (0.30 * midPeakT)
+                + (0.70 * earlyT) + (0.30 * midPeakT)
             primaryStatMultiplier = 1.0 + (0.10 * progress) + (0.16 * midT) + (0.22 * lateT)
                 + (0.46 * earlyT) + (0.20 * midPeakT)
             statScale = (0.50 * progress) + (0.32 * midT) + (0.48 * lateT) + (0.62 * earlyT) + (0.34 * midPeakT)
@@ -227,16 +227,16 @@ public enum StatGrowth {
             healthMultiplier = 1.0 + 0.10 + (0.14 * progress) + (0.14 * midT) + (0.18 * lateT)
                 + (1.46 * earlyT) + (0.28 * midPeakT)
             primaryStatMultiplier = 1.0 + (0.12 * progress) + (0.18 * midT) + (0.20 * lateT)
-                + (0.60 * earlyT) + (0.22 * midPeakT)
+                + (0.50 * earlyT) + (0.18 * midPeakT)
             statScale = (0.55 * progress) + (0.35 * midT) + (0.52 * lateT) + (0.74 * earlyT) + (0.34 * midPeakT)
             extraToughness = Int((1.0 + (1.5 * lateT) + (4.3 * earlyT) + (1.5 * midPeakT)).rounded())
         } else {
-            healthMultiplier = 1.0 + 0.06 + (0.12 * progress) + (0.58 * midT) + (0.32 * lateT)
+            healthMultiplier = 1.0 + 0.06 + (0.12 * progress) + (0.58 * midT) + (0.40 * lateT)
                 + (0.22 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.05 * progress) + (0.46 * midT) + (0.28 * lateT)
+            primaryStatMultiplier = 1.0 + (0.05 * progress) + (0.46 * midT) + (0.35 * lateT)
                 + (0.16 * midPeakT)
-            statScale = (0.55 * progress) + (0.70 * midT) + (0.38 * lateT) + (0.30 * midPeakT)
-            extraToughness = Int((1.0 + (2.0 * midT) + (1.0 * lateT) + (1.0 * midPeakT)).rounded())
+            statScale = (0.55 * progress) + (0.70 * midT) + (0.46 * lateT) + (0.30 * midPeakT)
+            extraToughness = Int((1.0 + (1.5 * midT) + (1.0 * lateT) + (1.0 * midPeakT)).rounded())
         }
 
         let statDelta = StatGrowthDelta(

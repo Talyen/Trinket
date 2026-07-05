@@ -75,7 +75,8 @@ public enum AbilityCatalogUltimate {
         targetedEffects: [
             TargetedEffect(.shield(.block, 4, 6)),
             TargetedEffect(.mitigation(.armor, 0.30, 6)),
-            TargetedEffect(.resourceGain(.mana, 2))
+            TargetedEffect(.resourceGain(.mana, 2)),
+            TargetedEffect(.burn(2))
         ],
         manaCost: 3
     )
@@ -132,7 +133,8 @@ public enum AbilityCatalogUltimate {
         description: "Gain Armor and Thorns.",
         targetedEffects: [
             TargetedEffect(.mitigation(.armor, 0.25, 6)),
-            TargetedEffect(.thorns(.bleed, 2, 6))
+            TargetedEffect(.thorns(.bleed, 2, 6)),
+            TargetedEffect(.bleed(1))
         ]
     )
 

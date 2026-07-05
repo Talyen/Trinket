@@ -28,7 +28,7 @@ public enum AbilityCatalogUltimateGenerated {
 
     public static let plateMail = AbilityBuilder.buffOnly(
         id: "plate-mail", name: "Plate Mail", tier: .ultimate,
-        effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.30, 6)]
+        effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.22, 6)]
     )
 
     public static let sanctifiedPlate = AbilityBuilder.buffOnly(

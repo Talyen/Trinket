@@ -49,8 +49,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "soul_siphon",
             name: "Soul Siphon",
-            description: "Increases Leech duration by 1.",
-            modifiers: [.leechDuration(1)],
+            description: "Increases Leech duration by 2.",
+            modifiers: [.leechDuration(2)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -154,8 +154,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "quagmire",
             name: "Quagmire",
-            description: "Decreases Physical damage taken by 20%.",
-            modifiers: [.damageTakenPercent(.physical, 0.20)],
+            description: "Decreases Physical damage taken by 15%.",
+            modifiers: [.damageTakenPercent(.physical, 0.15)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -196,9 +196,9 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "ambush",
             name: "Ambush",
-            description: "First damaging hit each battle deals 3 bonus damage.",
+            description: "First damaging hit each battle deals 2 bonus damage.",
             modifiers: [],
-            triggers: CombatTraitTriggers(ambushBonusDamage: 3)
+            triggers: CombatTraitTriggers(ambushBonusDamage: 2)
         ),
         CombatantTraitDefinition(
             id: "grave_power",
@@ -210,16 +210,16 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "miasma",
             name: "Miasma",
-            description: "Increases Poison damage dealt by 1. Decreases Poison damage taken by 25%.",
-            modifiers: [.damageDealt(.poison, 1), .damageTakenPercent(.poison, 0.25)],
+            description: "Decreases Poison damage taken by 25%.",
+            modifiers: [.damageTakenPercent(.poison, 0.25)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
             id: "heartwood_renewal",
             name: "Heartwood Renewal",
-            description: "Restore 2 Health every 6 ticks. Grasping Vines restores 1 extra Health.",
+            description: "Restore 1 Health every 6 ticks. Grasping Vines restores 1 extra Health.",
             modifiers: [],
-            triggers: CombatTraitTriggers(regenerationAmount: 2, regenerationIntervalTicks: 6, graspingVinesHealBonus: 1)
+            triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTicks: 6, graspingVinesHealBonus: 1)
         ),
         CombatantTraitDefinition(
             id: "living_furnace",
@@ -301,8 +301,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "splintering_frame",
             name: "Splintering Frame",
-            description: "Takes 30% more Burn damage.",
-            modifiers: [.damageTakenVulnerability(.burn, 0.30)],
+            description: "Takes 30% more Burn damage and 20% more Bleed damage.",
+            modifiers: [.damageTakenVulnerability(.burn, 0.30), .damageTakenVulnerability(.bleed, 0.20)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -315,8 +315,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "frail_vessel",
             name: "Frail Vessel",
-            description: "Takes 25% more Physical damage. Armor from buffs is 15% less effective.",
-            modifiers: [.damageTakenVulnerability(.physical, 0.25)],
+            description: "Takes 25% more Physical damage and 15% more Burn damage. Armor from buffs is 15% less effective.",
+            modifiers: [.damageTakenVulnerability(.physical, 0.25), .damageTakenVulnerability(.burn, 0.15)],
             triggers: CombatTraitTriggers(armorEffectivenessPenaltyPercent: 0.15)
         ),
         CombatantTraitDefinition(

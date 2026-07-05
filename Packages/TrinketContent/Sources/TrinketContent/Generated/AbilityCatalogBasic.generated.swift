@@ -46,7 +46,7 @@ public enum AbilityCatalogBasicGenerated {
 
     public static let block = AbilityBuilder.buffOnly(
         id: "block", name: "Block", tier: .basic,
-        effects: [.shield(.block, 2, 6)]
+        effects: [.shield(.block, 2, 6), .thorns(.physical, 1, 6)]
     )
 
     public static let bread = AbilityBuilder.buffOnly(

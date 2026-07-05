@@ -573,6 +573,9 @@ def parse_effect_token(token: str) -> str:
     elif token.startswith("resource_gain:"):
         _, kind, amount = token.split(":", 2)
         effect = f".resourceGain(.{kind}, {amount})"
+    elif token.startswith("thorns:"):
+        _, keyword, amount, duration = token.split(":", 3)
+        effect = f".thorns(.{keyword}, {amount}, {duration})"
     elif token.startswith("halve_mitigation:"):
         effect = f".halveMitigation(.{token.split(':', 1)[1]})"
     else:

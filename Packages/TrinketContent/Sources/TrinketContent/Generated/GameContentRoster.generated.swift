@@ -111,7 +111,7 @@ public enum GameContentRosterGenerated {
             id: "warlock",
             name: "Warlock",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 9,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .fangs],

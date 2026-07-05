@@ -7,7 +7,7 @@ direct_hit	rayOfFrost	ray-of-frost	Ray of Frost	basic	1	freeze
 direct_hit	slash	slash	Slash	basic	1	physical				
 direct_hit	stab	stab	Stab	basic	1	physical				
 direct_hit	gamblersShot	gamblers-shot	Gambler's Shot	basic	1	physical				resource_gain:gold:1
-buff_only	block	block	Block	basic				shield:block:2:6		
+buff_only	block	block	Block	basic				shield:block:2:6|thorns:physical:1:6		
 buff_only	bread	bread	Bread	basic				instant_heal:health:1		
 buff_only	smellingSalts	smelling-salts	Smelling Salts	basic				cleanse:stun|instant_heal:health:1		
 direct_hit	burningBlade	burning-blade	Burning Blade	skill	3	burn				
@@ -26,7 +26,7 @@ direct_hit	blessedAegis	blessed-aegis	Blessed Aegis	ultimate	6	holy				shield:bl
 direct_hit	holyRadiance	holy-radiance	Holy Radiance	ultimate	6	holy				instant_heal:health:3
 direct_hit	sunburst	sunburst	Sunburst	ultimate	6	holy				instant_heal:health:2
 buff_only	luckPotion	luck-potion	Luck Potion	ultimate				resource_gain:gold:3|instant_heal:health:2		
-buff_only	plateMail	plate-mail	Plate Mail	ultimate				shield:block:4:6|mitigation:armor:0.30:6		
+buff_only	plateMail	plate-mail	Plate Mail	ultimate				shield:block:4:6|mitigation:armor:0.22:6		
 buff_only	sanctifiedPlate	sanctified-plate	Sanctified Plate	ultimate				mitigation:armor:0.30:6|instant_heal:health:2		
 multi_damage	bloodthorn	bloodthorn	Bloodthorn	ultimate				bleed:2|poison:2|standard_leech_buff	2:nature|2:bleed|2:poison	
 multi_damage	faustianBargain	faustian-bargain	Faustian Bargain	ultimate				resource_gain:gold:3	6:physical|3:physical:actor	

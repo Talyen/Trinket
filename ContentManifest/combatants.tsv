@@ -5,7 +5,7 @@ wizard	Wizard	hero	14	10	mage	kindling,rayOfFrost	fireball,frostbolt	meteor,glac
 alchemist	Alchemist	hero	15	8	support	causticJab,block	acidPotion,healthPotion	panaceaPotion,luckPotion	2	5	5	8	10	reinforced_formula
 druid	Druid	hero	17	8	support	kindling,fangs	briarShield,graspingVines	bloodthorn,thornMail	3	4	8	4	11	thornskin
 ranger	Ranger	hero	14	0	assassin	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	10	4	2	6	pack_leader
-warlock	Warlock	hero	14	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7	soul_siphon
+warlock	Warlock	hero	16	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7	soul_siphon
 bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	plateMail,thornMail	9	3	10	2	4	thick_hide
 frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4	permafrost
 lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5	cold_blood
