@@ -46,16 +46,16 @@ public extension AffixModifier {
             profile.damageDealtBonus[keyword, default: 0] += amount
         case let .healthRestored(amount):
             profile.healthRestoredBonus += amount
-        case let .leechGrantedPercent(amount):
-            profile.leechGrantedBonus += amount
+        case let .leechGainedPercent(amount):
+            profile.leechGainedBonus += amount
         case let .leechHealing(amount):
             profile.leechHealingBonus += amount
         case let .goldGained(amount):
             profile.goldGainedBonus += amount
-        case let .blockGranted(amount):
-            profile.blockGrantedBonus += amount
-        case let .armorGrantedPercent(amount):
-            profile.armorGrantedBonus += amount
+        case let .blockGained(amount):
+            profile.blockGainedBonus += amount
+        case let .armorGainedPercent(amount):
+            profile.armorGainedBonus += amount
         case let .damageTakenPercent(keyword, amount):
             profile.damageTakenReduction[keyword, default: 0] += amount
         case let .damageTakenVulnerability(keyword, amount):

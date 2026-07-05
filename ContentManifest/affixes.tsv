@@ -7,20 +7,20 @@ serrated	Serrated	weapon	bleed	10	Increases Bleed damage dealt by 1	Increases Bl
 envenomed	Envenomed	weapon	poison	10	Increases Poison damage dealt by 1	Increases Poison damage dealt by 2	damage_dealt:poison:1	damage_dealt:poison:2
 smoldering	Smoldering	weapon	burn	10	Increases Burn damage dealt by 1	Increases Burn damage dealt by 2	damage_dealt:burn:1	damage_dealt:burn:2
 consecrated	Consecrated	weapon	holy	8	Increases Holy damage dealt by 1	Increases Holy damage dealt by 3	damage_dealt:holy:1	damage_dealt:holy:3
-wild	Wild	weapon	nature	8	Increases Nature damage dealt by 1	Increases Nature damage dealt by 2	damage_dealt:nature:1	damage_dealt:nature:2
+wild	Wild	weapon	nature	8	Increases Nature damage dealt by 1	Increases Nature damage dealt by 3	damage_dealt:nature:1	damage_dealt:nature:3
 glacial	Glacial	weapon	freeze	8	Increases Freeze damage dealt by 1	Increases Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2
 concussive	Concussive	weapon	stun	8	Increases Stun damage dealt by 1	Increases Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2
 lingering	Lingering	weapon	bleed	8	Increases Bleed duration by 1	Increases Bleed duration by 2	bleed_duration:1	bleed_duration:2
 duelists	Duelist's	weapon	bleed,physical	8	Increases Agility by 1 and Bleed damage dealt by 1	Increases Agility by 2 and Bleed damage dealt by 2	agility:1|damage_dealt:bleed:1	agility:2|damage_dealt:bleed:2
 crusaders	Crusader's	weapon	holy,physical	8	Increases Strength by 1 and Holy damage dealt by 1	Increases Strength by 2 and Holy damage dealt by 2	strength:1|damage_dealt:holy:1	strength:2|damage_dealt:holy:2
 pyromancers	Pyromancer's	weapon	burn	8	Increases Intellect by 1 and Burn damage dealt by 1	Increases Intellect by 2 and Burn damage dealt by 2	intellect:1|damage_dealt:burn:1	intellect:2|damage_dealt:burn:2
-sentinel	Sentinel	weapon	block	8	Increases Block granted by 1	Increases Block granted by 3	block_granted:1	block_granted:3
-fortified	Fortified	weapon	armor	8	Increases Armor granted by 5%	Increases Armor granted by 15%	armor_granted_percent:0.05	armor_granted_percent:0.15
-defenders	Defender's	weapon	block,armor	8	Increases Block granted by 1 and Armor granted by 5%	Increases Block granted by 2 and Armor granted by 15%	block_granted:1|armor_granted_percent:0.05	block_granted:2|armor_granted_percent:0.15
+sentinel	Sentinel	weapon	block	8	Increases Block gained by 1	Increases Block gained by 3	block_gained:1	block_gained:3
+fortified	Fortified	weapon	armor	8	Increases Armor gained by 5%	Increases Armor gained by 15%	armor_gained_percent:0.05	armor_gained_percent:0.15
+defenders	Defender's	weapon	block,armor	8	Increases Block gained by 1 and Armor gained by 5%	Increases Block gained by 2 and Armor gained by 15%	block_gained:1|armor_gained_percent:0.05	block_gained:2|armor_gained_percent:0.15
 stalwart	Stalwart	armor	armor,block	12	Increases Toughness by 1	Increases Toughness by 3	toughness:1	toughness:3
 devout	Devout	armor	holy	12	Increases Wisdom by 1	Increases Wisdom by 3	wisdom:1	wisdom:3
-reinforced	Reinforced	armor	armor	12	Increases Armor granted by 10%	Increases Armor granted by 25%	armor_granted_percent:0.10	armor_granted_percent:0.25
-bulwark	Bulwark	armor	block	12	Increases Block granted by 2	Increases Block granted by 5	block_granted:2	block_granted:5
+reinforced	Reinforced	armor	armor	12	Increases Armor gained by 10%	Increases Armor gained by 25%	armor_gained_percent:0.10	armor_gained_percent:0.25
+bulwark	Bulwark	armor	block	12	Increases Block gained by 2	Increases Block gained by 5	block_gained:2	block_gained:5
 warding	Warding	armor	block	8	Increases Block duration by 1	Increases Block duration by 2	block_duration:1	block_duration:2
 anchored	Anchored	armor	armor	8	Increases Armor duration by 1	Increases Armor duration by 2	armor_duration:1	armor_duration:2
 vital	Vital	armor	health	10	Increases Health restored by 1	Increases Health restored by 3	health_restored:1	health_restored:3
@@ -28,18 +28,18 @@ emberguard	Emberguard	armor	burn,armor	8	Decreases Burn damage taken by 10%	Decr
 antidotal	Antidotal	armor	poison,health	8	Decreases Poison damage taken by 10%	Decreases Poison damage taken by 25%	damage_taken_percent:poison:0.10	damage_taken_percent:poison:0.25
 thick-skinned	Thick-Skinned	armor	bleed	8	Decreases Bleed damage taken by 10%	Decreases Bleed damage taken by 25%	damage_taken_percent:bleed:0.10	damage_taken_percent:bleed:0.25
 lifeweave	Lifeweave	armor	leech,health	8	Increases Health restored by 1	Increases Health restored by 3	health_restored:1	health_restored:3
-guardians	Guardian's	armor	block,armor	8	Increases Toughness by 1 and Block granted by 1	Increases Toughness by 2 and Block granted by 2	toughness:1|block_granted:1	toughness:2|block_granted:2
+guardians	Guardian's	armor	block,armor	8	Increases Toughness by 1 and Block gained by 1	Increases Toughness by 2 and Block gained by 2	toughness:1|block_gained:1	toughness:2|block_gained:2
 hale	Hale	trinket	health	10	Increases Maximum Health by 4	Increases Maximum Health by 12	maximum_health:4	maximum_health:12
-lucky	Lucky	trinket	gold	10	Increases Gold gained by 1	Increases Gold gained by 4	gold_gained:1	gold_gained:4
-vampiric	Vampiric	trinket	leech	8	Increases Leech granted by 5%	Increases Leech granted by 15%	leech_granted_percent:0.05	leech_granted_percent:0.15
+lucky	Lucky	trinket	gold	10	Increases Gold gained by 1	Increases Gold gained by 2	gold_gained:1	gold_gained:2
+vampiric	Vampiric	trinket	leech	8	Increases Leech gained by 5%	Increases Leech gained by 10%	leech_gained_percent:0.05	leech_gained_percent:0.10
 bloodstone	Bloodstone	trinket	leech,health	8	Increases health restored from Leech by 1	Increases health restored from Leech by 3	leech_healing:1	leech_healing:3
-verdant	Verdant	trinket	nature,health	10	Increases Nature damage dealt by 1	Increases Nature damage dealt by 2	damage_dealt:nature:1	damage_dealt:nature:2
-sparkling	Sparkling	trinket	holy	8	Increases Holy damage dealt by 1	Increases Holy damage dealt by 2	damage_dealt:holy:1	damage_dealt:holy:2
+verdant	Verdant	trinket	nature,health	10	Increases Nature damage dealt by 1	Increases Nature damage dealt by 3	damage_dealt:nature:1	damage_dealt:nature:3
+sparkling	Sparkling	trinket	holy	8	Increases Holy damage dealt by 1	Increases Holy damage dealt by 3	damage_dealt:holy:1	damage_dealt:holy:3
 steadfast	Steadfast	trinket	armor,block	8	Increases Block duration by 1 and Armor duration by 1	Increases Block duration by 2 and Armor duration by 2	block_duration:1|armor_duration:1	block_duration:2|armor_duration:2
-fatebound	Fatebound	trinket	holy,gold	8	Increases Holy damage dealt by 1 and Gold gained by 1	Increases Holy damage dealt by 2 and Gold gained by 4	damage_dealt:holy:1|gold_gained:1	damage_dealt:holy:2|gold_gained:4
+fatebound	Fatebound	trinket	holy,gold	8	Increases Holy damage dealt by 1 and Gold gained by 1	Increases Holy damage dealt by 3 and Gold gained by 2	damage_dealt:holy:1|gold_gained:1	damage_dealt:holy:3|gold_gained:2
 rime	Rime	trinket	freeze	8	Increases Freeze damage dealt by 1	Increases Freeze damage dealt by 2	damage_dealt:freeze:1	damage_dealt:freeze:2
-aegis	Aegis	trinket	block	8	Increases Block granted by 1	Increases Block granted by 3	block_granted:1	block_granted:3
-etched	Etched	trinket	armor	8	Increases Armor granted by 5%	Increases Armor granted by 15%	armor_granted_percent:0.05	armor_granted_percent:0.15
+aegis	Aegis	trinket	block	8	Increases Block gained by 1	Increases Block gained by 3	block_gained:1	block_gained:3
+etched	Etched	trinket	armor	8	Increases Armor gained by 5%	Increases Armor gained by 15%	armor_gained_percent:0.05	armor_gained_percent:0.15
 shocking	Shocking	trinket	stun	8	Increases Stun damage dealt by 1	Increases Stun damage dealt by 2	damage_dealt:stun:1	damage_dealt:stun:2
 gilded	Gilded	trinket	gold	8	Increases Gold gained by 1	Increases Gold gained by 2	gold_gained:1	gold_gained:2
 heartward	Heartward	trinket	health	8	Increases Health restored by 1 and Maximum Health by 2	Increases Health restored by 3 and Maximum Health by 6	health_restored:1|maximum_health:2	health_restored:3|maximum_health:6

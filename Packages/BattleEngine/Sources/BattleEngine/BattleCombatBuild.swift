@@ -47,19 +47,19 @@ public struct BattleCombatBuild: Equatable {
         case let .shield(keyword, buffer, durationTicks):
             return .shield(
                 keyword,
-                buffer + profile.blockGrantedBonus,
+                buffer + profile.blockGainedBonus,
                 durationTicks + profile.blockDurationBonus
             )
         case let .mitigation(keyword, percent, durationTicks):
             return .mitigation(
                 keyword,
-                percent + profile.armorGrantedBonus,
+                percent + profile.armorGainedBonus,
                 durationTicks + profile.armorDurationBonus
             )
         case let .leech(keyword, percent, durationTicks):
             return .leech(
                 keyword,
-                percent + profile.leechGrantedBonus,
+                percent + profile.leechGainedBonus,
                 durationTicks + profile.leechDurationBonus
             )
         default:

@@ -59,7 +59,7 @@ struct PlayView: View {
             ) {
                 stageMessage = message
             }
-        case .event, .shop, .rest:
+        case .event, .shop, .rest, .mysteryEvent:
             appState.completeStage(stage, hero: appState.roster.activeHero, pet: appState.roster.activePet)
         }
     }

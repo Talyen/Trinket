@@ -83,7 +83,7 @@ public enum ItemAffixCatalogGenerated {
             keywords: [.nature],
             weight: 8,
             basic: ItemAffixPower(description: "Increases Nature damage dealt by 1", modifiers: [.damageDealt(.nature, 1)]),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 2", modifiers: [.damageDealt(.nature, 2)])
+            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3", modifiers: [.damageDealt(.nature, 3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "glacial",
@@ -145,8 +145,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block granted by 1", modifiers: [.blockGranted(1)]),
-            astral: ItemAffixPower(description: "Increases Block granted by 3", modifiers: [.blockGranted(3)])
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)]),
+            astral: ItemAffixPower(description: "Increases Block gained by 3", modifiers: [.blockGained(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "fortified",
@@ -154,8 +154,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor granted by 5%", modifiers: [.armorGrantedPercent(0.05)]),
-            astral: ItemAffixPower(description: "Increases Armor granted by 15%", modifiers: [.armorGrantedPercent(0.15)])
+            basic: ItemAffixPower(description: "Increases Armor gained by 5%", modifiers: [.armorGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Armor gained by 15%", modifiers: [.armorGainedPercent(0.15)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "defenders",
@@ -163,8 +163,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.block, .armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block granted by 1 and Armor granted by 5%", modifiers: [.blockGranted(1), .armorGrantedPercent(0.05)]),
-            astral: ItemAffixPower(description: "Increases Block granted by 2 and Armor granted by 15%", modifiers: [.blockGranted(2), .armorGrantedPercent(0.15)])
+            basic: ItemAffixPower(description: "Increases Block gained by 1 and Armor gained by 5%", modifiers: [.blockGained(1), .armorGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Block gained by 2 and Armor gained by 15%", modifiers: [.blockGained(2), .armorGainedPercent(0.15)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "stalwart",
@@ -190,8 +190,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.armor],
             weight: 12,
-            basic: ItemAffixPower(description: "Increases Armor granted by 10%", modifiers: [.armorGrantedPercent(0.10)]),
-            astral: ItemAffixPower(description: "Increases Armor granted by 25%", modifiers: [.armorGrantedPercent(0.25)])
+            basic: ItemAffixPower(description: "Increases Armor gained by 10%", modifiers: [.armorGainedPercent(0.10)]),
+            astral: ItemAffixPower(description: "Increases Armor gained by 25%", modifiers: [.armorGainedPercent(0.25)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "bulwark",
@@ -199,8 +199,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.block],
             weight: 12,
-            basic: ItemAffixPower(description: "Increases Block granted by 2", modifiers: [.blockGranted(2)]),
-            astral: ItemAffixPower(description: "Increases Block granted by 5", modifiers: [.blockGranted(5)])
+            basic: ItemAffixPower(description: "Increases Block gained by 2", modifiers: [.blockGained(2)]),
+            astral: ItemAffixPower(description: "Increases Block gained by 5", modifiers: [.blockGained(5)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "warding",
@@ -271,8 +271,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.block, .armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Toughness by 1 and Block granted by 1", modifiers: [.toughness(1), .blockGranted(1)]),
-            astral: ItemAffixPower(description: "Increases Toughness by 2 and Block granted by 2", modifiers: [.toughness(2), .blockGranted(2)])
+            basic: ItemAffixPower(description: "Increases Toughness by 1 and Block gained by 1", modifiers: [.toughness(1), .blockGained(1)]),
+            astral: ItemAffixPower(description: "Increases Toughness by 2 and Block gained by 2", modifiers: [.toughness(2), .blockGained(2)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "hale",
@@ -290,7 +290,7 @@ public enum ItemAffixCatalogGenerated {
             keywords: [.gold],
             weight: 10,
             basic: ItemAffixPower(description: "Increases Gold gained by 1", modifiers: [.goldGained(1)]),
-            astral: ItemAffixPower(description: "Increases Gold gained by 4", modifiers: [.goldGained(4)])
+            astral: ItemAffixPower(description: "Increases Gold gained by 2", modifiers: [.goldGained(2)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "vampiric",
@@ -298,8 +298,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.leech],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Leech granted by 5%", modifiers: [.leechGrantedPercent(0.05)]),
-            astral: ItemAffixPower(description: "Increases Leech granted by 15%", modifiers: [.leechGrantedPercent(0.15)])
+            basic: ItemAffixPower(description: "Increases Leech gained by 5%", modifiers: [.leechGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Leech gained by 10%", modifiers: [.leechGainedPercent(0.10)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "bloodstone",
@@ -317,7 +317,7 @@ public enum ItemAffixCatalogGenerated {
             keywords: [.nature, .health],
             weight: 10,
             basic: ItemAffixPower(description: "Increases Nature damage dealt by 1", modifiers: [.damageDealt(.nature, 1)]),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 2", modifiers: [.damageDealt(.nature, 2)])
+            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3", modifiers: [.damageDealt(.nature, 3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "sparkling",
@@ -326,7 +326,7 @@ public enum ItemAffixCatalogGenerated {
             keywords: [.holy],
             weight: 8,
             basic: ItemAffixPower(description: "Increases Holy damage dealt by 1", modifiers: [.damageDealt(.holy, 1)]),
-            astral: ItemAffixPower(description: "Increases Holy damage dealt by 2", modifiers: [.damageDealt(.holy, 2)])
+            astral: ItemAffixPower(description: "Increases Holy damage dealt by 3", modifiers: [.damageDealt(.holy, 3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "steadfast",
@@ -344,7 +344,7 @@ public enum ItemAffixCatalogGenerated {
             keywords: [.holy, .gold],
             weight: 8,
             basic: ItemAffixPower(description: "Increases Holy damage dealt by 1 and Gold gained by 1", modifiers: [.damageDealt(.holy, 1), .goldGained(1)]),
-            astral: ItemAffixPower(description: "Increases Holy damage dealt by 2 and Gold gained by 4", modifiers: [.damageDealt(.holy, 2), .goldGained(4)])
+            astral: ItemAffixPower(description: "Increases Holy damage dealt by 3 and Gold gained by 2", modifiers: [.damageDealt(.holy, 3), .goldGained(2)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "rime",
@@ -361,8 +361,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Block granted by 1", modifiers: [.blockGranted(1)]),
-            astral: ItemAffixPower(description: "Increases Block granted by 3", modifiers: [.blockGranted(3)])
+            basic: ItemAffixPower(description: "Increases Block gained by 1", modifiers: [.blockGained(1)]),
+            astral: ItemAffixPower(description: "Increases Block gained by 3", modifiers: [.blockGained(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "etched",
@@ -370,8 +370,8 @@ public enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.armor],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Armor granted by 5%", modifiers: [.armorGrantedPercent(0.05)]),
-            astral: ItemAffixPower(description: "Increases Armor granted by 15%", modifiers: [.armorGrantedPercent(0.15)])
+            basic: ItemAffixPower(description: "Increases Armor gained by 5%", modifiers: [.armorGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Armor gained by 15%", modifiers: [.armorGainedPercent(0.15)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "shocking",

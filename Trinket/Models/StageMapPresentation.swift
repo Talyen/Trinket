@@ -104,7 +104,7 @@ extension StageEncounter {
         switch self {
         case .battle:
             return 1
-        case .event, .shop, .rest:
+        case .event, .shop, .rest, .mysteryEvent:
             return 4.0 / 3.0
         }
     }
@@ -113,7 +113,7 @@ extension StageEncounter {
         switch self {
         case .battle:
             return TrinketDesign.Colors.encounterBattle
-        case .event:
+        case .event, .mysteryEvent:
             return TrinketDesign.Colors.encounterEvent
         case .shop:
             return TrinketDesign.Colors.encounterShop

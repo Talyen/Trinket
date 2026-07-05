@@ -8,11 +8,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var maximumManaBonus: Int
     public var damageDealtBonus: [Keyword: Int]
     public var healthRestoredBonus: Int
-    public var leechGrantedBonus: Double
+    public var leechGainedBonus: Double
     public var leechHealingBonus: Int
     public var goldGainedBonus: Int
-    public var blockGrantedBonus: Int
-    public var armorGrantedBonus: Double
+    public var blockGainedBonus: Int
+    public var armorGainedBonus: Double
     public var blockDurationBonus: Int
     public var armorDurationBonus: Int
     public var leechDurationBonus: Int
@@ -52,11 +52,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         maximumManaBonus: Int = 0,
         damageDealtBonus: [Keyword: Int] = [:],
         healthRestoredBonus: Int = 0,
-        leechGrantedBonus: Double = 0,
+        leechGainedBonus: Double = 0,
         leechHealingBonus: Int = 0,
         goldGainedBonus: Int = 0,
-        blockGrantedBonus: Int = 0,
-        armorGrantedBonus: Double = 0,
+        blockGainedBonus: Int = 0,
+        armorGainedBonus: Double = 0,
         blockDurationBonus: Int = 0,
         armorDurationBonus: Int = 0,
         leechDurationBonus: Int = 0,
@@ -93,11 +93,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.maximumManaBonus = maximumManaBonus
         self.damageDealtBonus = damageDealtBonus
         self.healthRestoredBonus = healthRestoredBonus
-        self.leechGrantedBonus = leechGrantedBonus
+        self.leechGainedBonus = leechGainedBonus
         self.leechHealingBonus = leechHealingBonus
         self.goldGainedBonus = goldGainedBonus
-        self.blockGrantedBonus = blockGrantedBonus
-        self.armorGrantedBonus = armorGrantedBonus
+        self.blockGainedBonus = blockGainedBonus
+        self.armorGainedBonus = armorGainedBonus
         self.blockDurationBonus = blockDurationBonus
         self.armorDurationBonus = armorDurationBonus
         self.leechDurationBonus = leechDurationBonus
@@ -149,11 +149,11 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
             damageDealtBonus[keyword, default: 0] += amount
         }
         healthRestoredBonus += other.healthRestoredBonus
-        leechGrantedBonus += other.leechGrantedBonus
+        leechGainedBonus += other.leechGainedBonus
         leechHealingBonus += other.leechHealingBonus
         goldGainedBonus += other.goldGainedBonus
-        blockGrantedBonus += other.blockGrantedBonus
-        armorGrantedBonus += other.armorGrantedBonus
+        blockGainedBonus += other.blockGainedBonus
+        armorGainedBonus += other.armorGainedBonus
         blockDurationBonus += other.blockDurationBonus
         armorDurationBonus += other.armorDurationBonus
         leechDurationBonus += other.leechDurationBonus

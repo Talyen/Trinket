@@ -54,6 +54,7 @@ public enum StageEncounter: Hashable, Sendable {
     case event
     case shop
     case rest
+    case mysteryEvent(eventID: String)
 
     public var title: String {
         switch self {
@@ -65,6 +66,8 @@ public enum StageEncounter: Hashable, Sendable {
             return "Shop"
         case .rest:
             return "Rest"
+        case .mysteryEvent:
+            return "Mystery"
         }
     }
 
@@ -78,6 +81,8 @@ public enum StageEncounter: Hashable, Sendable {
             return "bag.fill"
         case .rest:
             return "tent.fill"
+        case .mysteryEvent:
+            return "sparkles"
         }
     }
 
@@ -91,12 +96,21 @@ public enum StageEncounter: Hashable, Sendable {
             return "Shop"
         case .rest:
             return "Rest"
+        case .mysteryEvent:
+            return "Investigate"
         }
     }
 
     public var battleEnemyID: String? {
         if case let .battle(enemyID) = self {
             return enemyID
+        }
+        return nil
+    }
+
+    public var mysteryEventID: String? {
+        if case let .mysteryEvent(eventID) = self {
+            return eventID
         }
         return nil
     }

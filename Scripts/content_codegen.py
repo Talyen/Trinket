@@ -415,16 +415,16 @@ def modifier_token_to_swift(token: str) -> str:
         return f".damageDealt(.{keyword}, {amount})"
     if token.startswith("health_restored:"):
         return f".healthRestored({token.split(':', 1)[1]})"
-    if token.startswith("leech_granted_percent:"):
-        return f".leechGrantedPercent({token.split(':', 1)[1]})"
+    if token.startswith("leech_gained_percent:"):
+        return f".leechGainedPercent({token.split(':', 1)[1]})"
     if token.startswith("leech_healing:"):
         return f".leechHealing({token.split(':', 1)[1]})"
     if token.startswith("gold_gained:"):
         return f".goldGained({token.split(':', 1)[1]})"
-    if token.startswith("block_granted:"):
-        return f".blockGranted({token.split(':', 1)[1]})"
-    if token.startswith("armor_granted_percent:"):
-        return f".armorGrantedPercent({token.split(':', 1)[1]})"
+    if token.startswith("block_gained:"):
+        return f".blockGained({token.split(':', 1)[1]})"
+    if token.startswith("armor_gained_percent:"):
+        return f".armorGainedPercent({token.split(':', 1)[1]})"
     if token.startswith("block_duration:"):
         return f".blockDuration({token.split(':', 1)[1]})"
     if token.startswith("armor_duration:"):

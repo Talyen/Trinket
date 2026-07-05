@@ -126,17 +126,41 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Idea:** Explore a talent tree or passive perk layer per Hero and possibly per Pet — choices that modify stats or ability behavior without new ability slots. Open question: shared tree shape vs. unique trees per combatant.
 - **Touches:** `TrinketCore` progression, collection detail UI, battle stat resolution
 
+### R-019 — Campfire Stage encounter
+- **Area:** Play
+- **Status:** scratch
+- **Idea:** Design a rest-and-prepare encounter where the player can camp between battles. Mechanics TBD — could involve pet interactions, cooking food for buffs, crafting gear from gathered materials, or spending resources to restore the party. A low-stakes breather between harder stages.
+- **Touches:** Play encounter routing, `ContentManifest`, inventory/crafting systems
+
+### R-020 — Corruption Altar Stage encounter
+- **Area:** Play
+- **Status:** scratch
+- **Idea:** An encounter centered on risk/reward item crafting. Players offer gear or materials at an altar to receive corrupted or upgraded versions — higher stats, random affixes, or tradeoffs (e.g. huge power with a curse). Mechanics TBD around pool, rarity shifts, and curse/boon balance.
+- **Touches:** Play encounter routing, `ContentManifest`, item model, `PlayerCollectionState`
+
+### R-021 — Alchemist's Shop & Potion Crafting
+- **Area:** Play
+- **Status:** scratch
+- **Idea:** A shopping encounter variant focused on consumables. Players browse or mix potions from ingredient inventories — healing, temporary buffs, maybe one-use combat effects. Potion-mixing mechanics TBD (combine reagents for different outcomes, discover recipes, etc.).
+- **Touches:** Play encounter routing, `ContentManifest`, consumable item model, economy
+
+### R-022 — Alternate Game Modes
+- **Area:** Play, Cross-cutting
+- **Status:** scratch
+- **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. Candidates: a dungeon-crawl gauntlet (multi-stage run with persistent damage), a boss-rush mode, or a roguelite mode (procedural picks, permadeath, stacking buffs). Goal: give players a way to level or gear alternate heroes/pets without replaying the same chapters.
+- **Touches:** `PlayFlowCoordinator`, `BattleSession`, mode selection UI, `TrinketCore` progression
+
 ---
 
 ## Art & Branding
 
-### R-019 — App icon
+### R-023 — App icon
 - **Area:** Platform
 - **Status:** scratch
 - **Idea:** Design and ship a production app icon, exploring Icon Composer and/or external image tools (e.g. Nano Banana Pro). Must read at small sizes on the Home Screen.
 - **Touches:** `Trinket/Assets.xcassets/AppIcon`
 
-### R-020 — Chapter art aspect ratio
+### R-024 — Chapter art aspect ratio
 - **Area:** Play, Art
 - **Status:** scratch
 - **Idea:** Evaluate cropping chapter hero art to 3:4 for consistency with combatant portrait cards and simpler layout math on the Play map header.
@@ -146,7 +170,7 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ## Agent Workflows
 
-### R-021 — Imagegen design spike workflow
+### R-025 — Imagegen design spike workflow
 - **Area:** Cross-cutting
 - **Status:** scratch
 - **Idea:** Document a repeatable agent workflow: generate a visual mock with imagegen, review with the user, then implement in SwiftUI against `TrinketDesign` — useful for screen-level redesign experiments without committing to the roadmap item list.

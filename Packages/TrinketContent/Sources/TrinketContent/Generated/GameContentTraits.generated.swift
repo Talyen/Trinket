@@ -7,8 +7,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "oathbound",
             name: "Oathbound",
-            description: "Increases Block granted by 1.",
-            modifiers: [.blockGranted(1)],
+            description: "Increases Block gained by 1.",
+            modifiers: [.blockGained(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -133,8 +133,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "iron_carapace",
             name: "Iron Carapace",
-            description: "Increases Block granted by 1 and Armor granted by 5%.",
-            modifiers: [.blockGranted(1), .armorGrantedPercent(0.05)],
+            description: "Increases Block gained by 1 and Armor gained by 5%.",
+            modifiers: [.blockGained(1), .armorGainedPercent(0.05)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -189,8 +189,8 @@ public enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "animated_plate",
             name: "Animated Plate",
-            description: "Increases Block granted by 2 and Armor granted by 10%.",
-            modifiers: [.blockGranted(2), .armorGrantedPercent(0.10)],
+            description: "Increases Block gained by 2 and Armor gained by 10%.",
+            modifiers: [.blockGained(2), .armorGainedPercent(0.10)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(

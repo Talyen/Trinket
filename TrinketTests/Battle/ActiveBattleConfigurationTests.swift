@@ -15,7 +15,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             enemy: enemy
         )
 
-        XCTAssertEqual(configuration.heroModifiers.blockGrantedBonus, 1)
+        XCTAssertEqual(configuration.heroModifiers.blockGainedBonus, 1)
         XCTAssertEqual(configuration.petModifiers.bleedDurationBonus, 1)
         XCTAssertEqual(configuration.heroModifiers.damageDealtBonus(for: .physical), 0)
         XCTAssertEqual(configuration.petModifiers.damageDealtBonus(for: .physical), 0)

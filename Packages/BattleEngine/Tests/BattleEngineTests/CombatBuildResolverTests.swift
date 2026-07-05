@@ -90,7 +90,7 @@ final class CombatBuildResolverTests: XCTestCase {
         )
 
         XCTAssertEqual(build.modifiers.maximumHealthBonus, 4)
-        XCTAssertEqual(build.modifiers.blockGrantedBonus, 3)
+        XCTAssertEqual(build.modifiers.blockGainedBonus, 3)
         XCTAssertEqual(build.effectiveMaxHealth, knight.maxHealth + knight.primaryStats.toughness + 4)
     }
 
@@ -102,7 +102,7 @@ final class CombatBuildResolverTests: XCTestCase {
             inventory: []
         )
 
-        XCTAssertEqual(build.modifiers.blockGrantedBonus, 1)
+        XCTAssertEqual(build.modifiers.blockGainedBonus, 1)
         XCTAssertEqual(GameContent.trait(forCombatantID: knight.id)?.name, "Oathbound")
     }
 }

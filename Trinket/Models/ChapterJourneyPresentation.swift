@@ -47,6 +47,10 @@ extension Stage {
 
     var encounterArtReference: EncounterArtReference? {
         if case .battle = encounter { return nil }
+        if case let .mysteryEvent(eventID) = encounter {
+            guard let artID = GameContent.mysteryEvent(matching: eventID)?.artID else { return nil }
+            return ArtCatalog.encounterArtByID[artID]
+        }
         guard let artID = GameContent.encounterArtID(for: self) else { return nil }
         return ArtCatalog.encounterArtByID[artID]
     }
@@ -61,6 +65,8 @@ extension Stage {
             return GameContent.encounterArtTitle(for: self) ?? "Merchant"
         case .rest:
             return GameContent.encounterArtTitle(for: self) ?? "Moonwell"
+        case let .mysteryEvent(eventID):
+            return GameContent.mysteryEvent(matching: eventID)?.title ?? "Mystery"
         }
     }
 }
