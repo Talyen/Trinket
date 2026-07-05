@@ -337,4 +337,39 @@ final class StageRewardTests: XCTestCase {
         XCTAssertEqual(roster.progression(for: hero).currentXP, heroXPBefore)
         XCTAssertGreaterThan(roster.progression(for: pet).currentXP, 0)
     }
+
+    func testClaimRewardsIfNeededGrantsBattleGoldWhenAlreadyClaimed() throws {
+        var roster = PlayerRosterState.initial
+        var inventory = PlayerInventoryState(items: [])
+        var homestead = PlayerHomesteadState.freshStart
+        var journey = JourneyProgressState.initial
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        journey.markRewardsClaimed(for: firstStage)
+        let goldBefore = roster.gold
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            pet: pet,
+            battleEarnedGold: 9,
+            roster: &roster,
+            inventory: &inventory,
+            homestead: &homestead,
+            journey: &journey
+        )
+
+        XCTAssertEqual(roster.gold, goldBefore + 9)
+    }
+
+    func testRewardItemPreservesCatalogAffixes() throws {
+        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        var inventory = PlayerInventoryState(items: [])
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 999)
+
+        inventory.addRewardItem(from: template, for: firstStage, using: &randomNumberGenerator)
+
+        let rewardItem = try XCTUnwrap(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        XCTAssertEqual(rewardItem.affixes, template.affixes)
+    }
 }

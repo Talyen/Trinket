@@ -13,6 +13,13 @@ struct CollectionView: View {
         initialItemID: String? = nil
     ) {
         _selectedCombatant = State(initialValue: initialCombatantDetail)
+        if let initialItemID {
+            _selectedItem = State(
+                initialValue: GameContent.itemTemplate(matching: initialItemID)
+            )
+        } else {
+            _selectedItem = State(initialValue: nil)
+        }
         self.initialItemID = initialItemID
     }
 
@@ -134,11 +141,12 @@ struct CollectionView: View {
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            guard selectedItem == nil,
-                  let initialItemID,
-                  let item = appState.inventory.current.item(matching: initialItemID)
-            else { return }
-            selectedItem = item
+            guard selectedItem == nil, let initialItemID else { return }
+            if let owned = appState.inventory.current.item(matching: initialItemID) {
+                selectedItem = owned
+            } else if let template = GameContent.itemTemplate(matching: initialItemID) {
+                selectedItem = template
+            }
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {

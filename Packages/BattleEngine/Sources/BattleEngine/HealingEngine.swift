@@ -34,7 +34,8 @@ package enum HealingEngine {
             )
         }
 
-        if let sourceActorID = request.sourceActorID,
+        if !request.suppressTraitReactions,
+           let sourceActorID = request.sourceActorID,
            let source = context.roster.combatant(for: sourceActorID)?.combatant,
            restored > 0 {
             events.append(contentsOf: TraitReactionEngine.healHeroAfterRestore(

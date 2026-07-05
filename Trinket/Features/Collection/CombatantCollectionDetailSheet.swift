@@ -59,6 +59,7 @@ struct CombatantCollectionDetailSheet: View {
                 inventoryState: inventoryState,
                 loadout: loadoutBinding(for: combatant, in: rosterState),
                 equipmentLoadout: equipmentLoadoutBinding(for: combatant, in: rosterState),
+                allowsEditing: rosterState.isUnlocked(combatant),
                 navigationChrome: .hidden
             )
         } else {

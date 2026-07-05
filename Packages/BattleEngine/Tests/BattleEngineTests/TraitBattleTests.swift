@@ -174,6 +174,6 @@ final class TraitBattleTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertGreaterThan(context.health(of: hero), 12)
+        XCTAssertEqual(context.health(of: hero), 13)
     }
 }

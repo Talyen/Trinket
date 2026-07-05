@@ -47,10 +47,18 @@ public enum BattleConditionEvaluator {
     ) -> Combatant {
         let heroHealth = context.health(of: hero)
         let petHealth = context.health(of: pet)
-        if heroHealth <= petHealth {
+        let heroAlive = heroHealth > 0
+        let petAlive = petHealth > 0
+        switch (heroAlive, petAlive) {
+        case (true, true):
+            return heroHealth <= petHealth ? hero : pet
+        case (true, false):
+            return hero
+        case (false, true):
+            return pet
+        case (false, false):
             return hero
         }
-        return pet
     }
 
     private static func hasDebuffKeyword(

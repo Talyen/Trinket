@@ -24,7 +24,8 @@ package struct DamageBonusStep: DamageStep {
                     in: context
                 )
                 : 0
-            if let runtime = context.roster.runtime(for: actor.combatant),
+            if state.qualifiesForAmbush,
+               let runtime = context.roster.runtime(for: actor.combatant),
                !runtime.hasTriggeredAmbush {
                 let ambushBonus = context.modifiers(for: sourceActorID).ambushBonusDamage
                 if ambushBonus > 0 {

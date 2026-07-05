@@ -163,7 +163,15 @@ public enum BattleTurnEngine {
             )
             events.append(contentsOf: damageEvents)
             if amount > 0 {
-                pairedDirectDamage.append((component.keyword, amount))
+                var pairedAmount = amount
+                if component.keyword == .bleed {
+                    pairedAmount += EnemyTraitEngine.bonusBleedPotency(
+                        ability: ability,
+                        sourceID: actor.id,
+                        in: context
+                    )
+                }
+                pairedDirectDamage.append((component.keyword, pairedAmount))
             }
             if component.target == .abilityTarget {
                 totalDealtToAbilityTarget += dealt

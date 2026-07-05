@@ -81,7 +81,7 @@ enum StageRewardReconciler {
             return false
         }
 
-        for reward in stage.rewards.materialRewards {
+        for reward in mergedHomestead.adjustedMaterialRewards(stage.rewards.materialRewards) {
             let localQuantity = localHomestead.resources[reward.resource, default: 0]
             if mergedHomestead.resources[reward.resource, default: 0] < localQuantity + reward.quantity {
                 return false

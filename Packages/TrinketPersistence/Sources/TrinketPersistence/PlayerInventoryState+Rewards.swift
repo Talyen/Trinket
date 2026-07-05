@@ -12,13 +12,7 @@ public extension PlayerInventoryState {
         for stage: Stage,
         using randomNumberGenerator: inout RNG
     ) {
-        let rewardItem = ItemGenerator().generate(
-            id: "\(stage.id)-\(template.templateID)",
-            templateID: template.templateID,
-            baseType: template.baseType,
-            rarity: template.rarity,
-            using: &randomNumberGenerator
-        )
+        let rewardItem = template.rewardInstance(for: stage.id)
         guard !items.contains(where: { $0.id == rewardItem.id }) else { return }
         items.append(rewardItem)
     }

@@ -86,7 +86,7 @@ final class AppState {
             selectedTab = .play
         }
 
-        seedJourneyProgress(completedStageIDs: env.completedStageIDs)
+        seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
         if let mapScrollTarget = env.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
         } else if let savedScrollTarget = sessionState.mapScrollStageID,
@@ -105,6 +105,12 @@ final class AppState {
         // Wire session state updates from battle lifecycle
         battle.onBattleStateChange = { [weak self] stageID in
             self?.sessionState.activeBattleStageID = stageID
+        }
+        battle.onBattleEnded = { [weak self] in
+            Task { await self?.syncCoordinator.onBattleEnded() }
+        }
+        syncCoordinator.hasActiveBattle = { [weak self] in
+            self?.battle.activeBattle != nil ?? false
         }
     }
 
@@ -166,6 +172,7 @@ final class AppState {
             appStateLogger.error(
                 "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
             )
+            return
         }
         battle.endBattle()
         sessionState.clearBattleState()
@@ -175,16 +182,45 @@ final class AppState {
         }
     }
 
-    private func seedJourneyProgress(completedStageIDs: [String]) {
+    private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
         guard !completedStageIDs.isEmpty else { return }
-        journey.current = .initial
 
         let stagesByID = Dictionary(
             uniqueKeysWithValues: GameContent.chapters.flatMap(\.stages).map { ($0.id, $0) }
         )
-        completedStageIDs.compactMap { stagesByID[$0] }.forEach { stage in
-            journey.complete(stage, in: GameContent.chapters)
-            journey.markRewardsClaimed(for: stage)
+        let stages = completedStageIDs.compactMap { stagesByID[$0] }
+        guard !stages.isEmpty else { return }
+
+        var context = StageCompletionContext(
+            roster: roster.current,
+            inventory: inventory.current,
+            homestead: homestead.current,
+            journey: resetState ? .initial : journey.current
+        )
+
+        for stage in stages {
+            StageCompletion.claimRewardsIfNeeded(
+                for: stage,
+                hero: roster.activeHero,
+                pet: roster.activePet,
+                context: &context
+            )
+            if !context.journey.isCompleted(stage) {
+                context.journey.complete(stage, in: GameContent.chapters)
+            }
+        }
+
+        do {
+            try playerSave.performBatchMutation { save in
+                save.roster = SavedRosterState(context.roster)
+                save.inventory = SavedInventoryState(context.inventory)
+                save.homestead = SavedHomesteadState(context.homestead)
+                save.journey = context.journey
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 

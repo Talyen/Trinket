@@ -120,7 +120,12 @@ public enum StageCompletion {
         context: inout StageCompletionContext,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
-        guard !context.journey.hasClaimedRewards(for: stage) else { return }
+        guard !context.journey.hasClaimedRewards(for: stage) else {
+            if battleEarnedGold > 0 {
+                context.roster.grantGold(battleEarnedGold)
+            }
+            return
+        }
 
         let encounterLevel = enemyEncounterLevel
             ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)

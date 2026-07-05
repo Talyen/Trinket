@@ -82,4 +82,26 @@ final class EnemyTraitBattleTests: XCTestCase {
         let livingArmor = enemyBuild(id: "living_armor")
         XCTAssertTrue(livingArmor.modifiers.cannotBeHealed)
     }
+
+    func testHemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
+        let necromancer = enemyBuild(id: "necromancer")
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 100)
+        var context = makeContext(hero: hero, pet: pet, enemyBuild: necromancer)
+        var enemyRuntime = try XCTUnwrap(context.runtime(for: necromancer.combatant))
+        enemyRuntime.actionCount = 5
+        context.updateRuntime(enemyRuntime)
+
+        let heroHealthBefore = context.health(of: hero)
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: necromancer.combatant)
+
+        _ = BattleTurnEngine.performAction(
+            actor: necromancer.combatant,
+            abilityTarget: hero,
+            matchup: matchup,
+            context: &context
+        )
+
+        XCTAssertEqual(context.health(of: hero), heroHealthBefore - 6)
+    }
 }

@@ -66,7 +66,8 @@ package enum TraitReactionEngine {
                     abilityName: source.traitDisplayName,
                     keyword: .health,
                     displayAmount: amount
-                )
+                ),
+                suppressTraitReactions: true
             ),
             in: &context
         )

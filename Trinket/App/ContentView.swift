@@ -80,9 +80,6 @@ struct ContentView: View {
                 appState.playerSave.flushPendingPersistIfNeeded()
             }
             if newPhase == .background {
-                if appState.battle.activeBattle != nil {
-                    appState.sessionState.activeBattleStageID = nil
-                }
                 Task {
                     await appState.syncCoordinator.checkpointUploadIfNeeded()
                 }

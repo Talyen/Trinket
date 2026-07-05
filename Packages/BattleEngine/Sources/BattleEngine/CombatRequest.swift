@@ -11,6 +11,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var guaranteedCriticalIfEnemyBuffed: Bool
     /// When true, retaliation damage skips reactive on-hit effects (thorns ping-pong).
     public var isRetaliation: Bool
+    /// When true, ambush trait bonus may apply on this damage (direct ability hits only).
+    public var qualifiesForAmbush: Bool
 
     public init(
         applyStatBonus: Bool = true,
@@ -18,7 +20,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         applyDodge: Bool = true,
         abilityCriticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
-        isRetaliation: Bool = false
+        isRetaliation: Bool = false,
+        qualifiesForAmbush: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
@@ -26,6 +29,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.isRetaliation = isRetaliation
+        self.qualifiesForAmbush = qualifiesForAmbush
     }
 
     /// Direct ability hit: full bonuses and dodge checks.
@@ -72,7 +76,7 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
             target: target,
             keyword: keyword,
             sourceActorID: sourceActorID,
-            options: .directAbilityHit
+            options: DamageOptions(qualifiesForAmbush: true)
         )
     }
 
@@ -106,15 +110,19 @@ public struct HealRequest: Equatable, Hashable, Sendable {
     public var sourceActorID: String?
     public var logAs: HealLogPolicy
 
+    public var suppressTraitReactions: Bool
+
     public init(
         amount: Int,
         target: Combatant,
         sourceActorID: String? = nil,
-        logAs: HealLogPolicy = .silent
+        logAs: HealLogPolicy = .silent,
+        suppressTraitReactions: Bool = false
     ) {
         self.amount = amount
         self.target = target
         self.sourceActorID = sourceActorID
         self.logAs = logAs
+        self.suppressTraitReactions = suppressTraitReactions
     }
 }

@@ -2,6 +2,7 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 import XCTest
+@testable import BattleEngine
 @testable import Trinket
 
 @MainActor
@@ -246,6 +247,21 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(run.outcome, .victory)
         XCTAssertFalse(run.isPartyDefeated)
         XCTAssertTrue(run.isEnemyDefeated)
+    }
+
+    func testOutcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+
+        run.state.store.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
+        run.state.store.roster.mutateRuntime(for: pet) { $0.currentHealth = 0 }
+        run.state.store.roster.mutateRuntime(for: enemy) { $0.currentHealth = 0 }
+
+        XCTAssertTrue(run.isPartyDefeated)
+        XCTAssertTrue(run.isEnemyDefeated)
+        XCTAssertEqual(run.outcome, .victory)
     }
 
     func testMakeVictorySummaryIncludesStageAndBattleRewards() {

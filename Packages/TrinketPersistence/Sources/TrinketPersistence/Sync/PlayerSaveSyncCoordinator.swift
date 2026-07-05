@@ -15,12 +15,17 @@ public final class PlayerSaveSyncCoordinator {
     public private(set) var sessionPhase: PlayerSaveSessionPhase = .closed
     public private(set) var sessionToken: PlayerAccountSessionToken?
 
+    /// Returns whether a battle is currently in progress on the active session.
+    public var hasActiveBattle: () -> Bool = { false }
+
     private let sync: any PlayerSaveSyncing
     private let sessionLease: any PlayerAccountSessionLeasing
     private weak var playerSaveStore: PlayerSaveStore?
     private var pendingUploadSave: PlayerSave?
     private var isProcessingUploads = false
     private var isApplyingRemoteSave = false
+    private var deferredRemoteReconcile = false
+    private var reconcileInFlight: Task<Bool, Never>?
     private var lastKnownRemoteChangeTag: String?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -56,7 +61,7 @@ public final class PlayerSaveSyncCoordinator {
 
         if sessionPhase != .bootstrapping {
             sessionPhase = .bootstrapping
-            await reconcileAtSessionStart()
+            _ = await reconcileOnce()
         }
 
         sessionPhase = .active
@@ -69,13 +74,13 @@ public final class PlayerSaveSyncCoordinator {
     public func pullAndReconcile() async {
         guard sessionPhase != .active else { return }
         sessionPhase = .bootstrapping
-        await reconcileAtSessionStart()
+        _ = await reconcileOnce()
         sessionPhase = .active
     }
 
     public func reconcileForegroundIfSafe(hasActiveBattle: Bool) async {
         guard sessionPhase == .active, !hasActiveBattle else { return }
-        await reconcileAtSessionStart()
+        _ = await reconcileOnce()
     }
 
     public func syncNow() async {
@@ -93,11 +98,19 @@ public final class PlayerSaveSyncCoordinator {
         guard sessionPhase == .active else { return false }
 
         let saveBefore = playerSaveStore.currentSave
-        let appliedRemote = await reconcileAtSessionStart()
+        let appliedRemote = await reconcileOnce()
         if appliedRemote {
             return true
         }
         return playerSaveStore.currentSave != saveBefore
+    }
+
+    /// Reconciles any remote save deferred while a battle was active.
+    public func onBattleEnded() async {
+        guard deferredRemoteReconcile else { return }
+        deferredRemoteReconcile = false
+        guard sessionPhase == .active else { return }
+        _ = await reconcileOnce()
     }
 
     /// Ends the active session, checkpoints cloud state, and releases the lease.
@@ -131,6 +144,20 @@ public final class PlayerSaveSyncCoordinator {
         pendingUploadSave = save
     }
 
+    private func reconcileOnce() async -> Bool {
+        if let reconcileInFlight {
+            return await reconcileInFlight.value
+        }
+
+        let task = Task { @MainActor [weak self] () -> Bool in
+            guard let self else { return false }
+            return await reconcileAtSessionStart()
+        }
+        reconcileInFlight = task
+        defer { reconcileInFlight = nil }
+        return await task.value
+    }
+
     @discardableResult
     private func reconcileAtSessionStart() async -> Bool {
         guard let playerSaveStore else { return false }
@@ -153,6 +180,11 @@ public final class PlayerSaveSyncCoordinator {
             }
 
             if !playerSaveStore.loadedFromDisk, let remote {
+                if hasActiveBattle() {
+                    deferredRemoteReconcile = true
+                    status = .upToDate
+                    return false
+                }
                 applyRemoteSave(remote.save)
                 status = .upToDate
                 return true
@@ -165,6 +197,11 @@ public final class PlayerSaveSyncCoordinator {
                 status = .upToDate
                 return false
             case let .applyRemote(remoteSave):
+                if hasActiveBattle() {
+                    deferredRemoteReconcile = true
+                    status = .upToDate
+                    return false
+                }
                 applyRemoteSave(remoteSave)
                 status = .upToDate
                 return true
@@ -172,6 +209,11 @@ public final class PlayerSaveSyncCoordinator {
                 await enqueueUpload(local)
                 return false
             case let .applyMerged(mergedSave):
+                if hasActiveBattle() {
+                    deferredRemoteReconcile = true
+                    status = .upToDate
+                    return false
+                }
                 applyRemoteSave(mergedSave)
                 await enqueueUpload(mergedSave)
                 return true
@@ -237,7 +279,7 @@ public final class PlayerSaveSyncCoordinator {
         } catch let error as PlayerSaveSyncError {
             switch error {
             case let .recordConflict(remote):
-                await resolveUploadConflict(local: save, remote: remote)
+                await resolveUploadConflict(remote: remote)
             }
         } catch {
             logger.error("Upload failed: \(error.localizedDescription, privacy: .public)")
@@ -245,10 +287,12 @@ public final class PlayerSaveSyncCoordinator {
         }
     }
 
-    private func resolveUploadConflict(local: PlayerSave, remote: RemotePlayerSave) async {
+    private func resolveUploadConflict(remote: RemotePlayerSave) async {
         guard let playerSaveStore else { return }
+        playerSaveStore.flushPendingPersistIfNeeded()
+        let liveLocal = playerSaveStore.currentSave
 
-        let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: local, remote: remote.save)
+        let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: liveLocal, remote: remote.save)
         applyRemoteSave(authoritative)
         lastKnownRemoteChangeTag = remote.recordChangeTag
 
@@ -264,6 +308,7 @@ public final class PlayerSaveSyncCoordinator {
 
     private func applyRemoteSave(_ remoteSave: PlayerSave) {
         guard let playerSaveStore else { return }
+        let saveBeforeApply = playerSaveStore.currentSave
         isApplyingRemoteSave = true
         do {
             try playerSaveStore.applyRemoteSave(remoteSave)
@@ -272,5 +317,9 @@ public final class PlayerSaveSyncCoordinator {
             status = .error("Could not apply cloud save on this device.")
         }
         isApplyingRemoteSave = false
+
+        if playerSaveStore.currentSave.modifiedAt > saveBeforeApply.modifiedAt {
+            pendingUploadSave = playerSaveStore.currentSave
+        }
     }
 }

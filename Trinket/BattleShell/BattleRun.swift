@@ -93,6 +93,7 @@ final class BattleRun {
     }
 
     var outcome: BattleOutcome {
+        if isEnemyDefeated, isPartyDefeated { return .victory }
         if isPartyDefeated { return .defeat }
         if isEnemyDefeated { return .victory }
         return .ongoing

@@ -130,6 +130,14 @@ final class PlayerRosterStateTests: XCTestCase {
         XCTAssertNil(loadout.itemID(for: .weapon))
     }
 
+    func testItemMatchingResolvesTemplateIDForRewardInstances() throws {
+        var inventory = PlayerInventoryState(items: [])
+        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        inventory.addRewardItem(from: template, for: GameContent.chapters[0].stages[0])
+
+        XCTAssertNotNil(inventory.item(matching: "shortsword-basic"))
+    }
+
     func testSetEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {
         var roster = PlayerRosterState.initial
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })

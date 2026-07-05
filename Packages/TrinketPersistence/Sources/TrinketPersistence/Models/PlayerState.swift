@@ -23,7 +23,10 @@ public struct PlayerInventoryState: Equatable, Hashable, Sendable {
 
     public func item(matching id: String?) -> InventoryItem? {
         guard let id else { return nil }
-        return items.first { $0.id == id }
+        if let exact = items.first(where: { $0.id == id }) {
+            return exact
+        }
+        return items.first { $0.templateID == id }
     }
 
     public func items(for slot: ItemSlot) -> [InventoryItem] {

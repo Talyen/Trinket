@@ -34,7 +34,8 @@ public extension BattleEngineContext {
                     applyDodge: applyDodge,
                     abilityCriticalChanceBonus: ability?.criticalChanceBonus ?? 0,
                     guaranteedCriticalIfEnemyBuffed: ability?.guaranteedCriticalIfEnemyBuffed ?? false,
-                    isRetaliation: isRetaliation
+                    isRetaliation: isRetaliation,
+                    qualifiesForAmbush: ability != nil
                 )
             )
         )

@@ -13,6 +13,7 @@ final class BattleSession {
     var overlayCombatantDetail: CombatantCollectionDetailSelection?
     var pauseStateBeforeOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
+    var onBattleEnded: (() -> Void)?
 
     func endBattle() {
         activeBattle = nil
@@ -21,6 +22,7 @@ final class BattleSession {
         overlayCombatantDetail = nil
         pauseStateBeforeOverlay = nil
         onBattleStateChange?(nil)
+        onBattleEnded?()
     }
 
     func setMusicPreview(for stage: Stage?) {
