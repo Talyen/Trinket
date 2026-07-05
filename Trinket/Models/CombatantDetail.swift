@@ -1,3 +1,4 @@
+import BattleEngine
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
@@ -21,6 +22,36 @@ struct CombatantCardDetail: Hashable, Identifiable {
             equipmentLoadout: EquipmentLoadout(),
             inventoryState: .initial,
             health: combatant.maxHealth,
+            activeEffectSummaries: []
+        )
+    }
+
+    static func battleSnapshot(
+        configuration: ActiveBattleConfiguration,
+        combatant: Combatant,
+        health: Int,
+        activeEffectSummaries: [EffectSummary]
+    ) -> CombatantCardDetail {
+        CombatantCardDetail(
+            combatant: combatant,
+            progression: configuration.progression(for: combatant),
+            equipmentLoadout: configuration.equipmentLoadout(for: combatant),
+            inventoryState: configuration.inventoryState,
+            health: health,
+            activeEffectSummaries: activeEffectSummaries
+        )
+    }
+
+    static func stageEnemyPreview(
+        encounter: StageEncounterEnemy,
+        inventoryState: PlayerInventoryState
+    ) -> CombatantCardDetail {
+        CombatantCardDetail(
+            combatant: encounter.combatant,
+            progression: .initial,
+            equipmentLoadout: EquipmentLoadout(),
+            inventoryState: inventoryState,
+            health: encounter.combatant.maxHealth,
             activeEffectSummaries: []
         )
     }

@@ -5,12 +5,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-enum BattleOutcome: Equatable {
-    case ongoing
-    case victory
-    case defeat
-}
-
 @MainActor
 @Observable
 final class BattleSession {
@@ -35,16 +29,12 @@ final class BattleSession {
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
 
-    var outcome: BattleOutcome {
-        guard let state else { return .ongoing }
-        switch BattleOutcomeResolver.resolve(
+    var outcome: BattleSimulationOutcome? {
+        guard let state else { return nil }
+        return BattleOutcomeResolver.resolve(
             isPartyDefeated: state.isPartyDefeated,
             isEnemyDefeated: state.isEnemyDefeated
-        ) {
-        case .victory: return .victory
-        case .defeat: return .defeat
-        case .tickLimit, .none: return .ongoing
-        }
+        )
     }
 
     func endBattle() {
@@ -85,9 +75,8 @@ final class BattleSession {
         }
 
         preview = nil
-        activeBattle = ActiveBattleConfiguration.make(
+        activeBattle = makeActiveBattle(
             stageID: stage.id,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: encounter.combatant,
@@ -111,9 +100,8 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = ActiveBattleConfiguration.make(
+        self.activeBattle = makeActiveBattle(
             stageID: activeBattle.stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
@@ -122,46 +110,6 @@ final class BattleSession {
             inventory: inventory,
             stageReward: activeBattle.stageReward,
             rewardItemNames: activeBattle.rewardItemNames
-        )
-    }
-
-    func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {
-        guard let configuration = activeBattle,
-              let state
-        else {
-            preconditionFailure("Victory summary requested without active battle")
-        }
-
-        let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
-        let heroXP = ExperienceScaling.battleAwardWithCatchUp(
-            playerLevel: configuration.heroProgression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestHeroLevel
-        )
-        let petXP = ExperienceScaling.battleAwardWithCatchUp(
-            playerLevel: configuration.petProgression.level,
-            enemyLevel: enemyLevel,
-            highestLevel: configuration.highestPetLevel
-        )
-        let heroAfter = configuration.heroProgression.addingExperience(heroXP)
-        let petAfter = configuration.petProgression.addingExperience(petXP)
-        let materialRewards = homestead.adjustedMaterialRewards(
-            configuration.stageReward?.materialRewards ?? []
-        )
-
-        return BattleVictorySummary(
-            stageGold: configuration.stageReward?.gold ?? 0,
-            battleGold: state.earnedGold,
-            experience: heroXP,
-            petExperience: petXP,
-            heroName: state.hero.name,
-            petName: state.pet.name,
-            itemNames: configuration.rewardItemNames,
-            materialRewards: materialRewards,
-            heroProgressionBefore: configuration.heroProgression,
-            heroProgressionAfter: heroAfter,
-            petProgressionBefore: configuration.petProgression,
-            petProgressionAfter: petAfter
         )
     }
 
@@ -221,6 +169,31 @@ final class BattleSession {
                 feedbackDisplayedAt[$0.id] = displayedAt
             }
         return step
+    }
+
+    private func makeActiveBattle(
+        stageID: String?,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore,
+        stageReward: StageReward?,
+        rewardItemNames: [String]
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
+            stageID: stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            roster: roster,
+            inventory: inventory,
+            stageReward: stageReward,
+            rewardItemNames: rewardItemNames
+        )
     }
 
     private func resetRun(from configuration: ActiveBattleConfiguration) {

@@ -219,11 +219,14 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant, battleState: BattleState) {
-        appState.battle.presentCombatantDetail(details(
-            for: combatant,
-            health: battleState.health(of: combatant),
-            activeEffectSummaries: battleState.effectSummaries(of: combatant)
-        ))
+        appState.battle.presentCombatantDetail(
+            CombatantCardDetail.battleSnapshot(
+                configuration: configuration,
+                combatant: combatant,
+                health: battleState.health(of: combatant),
+                activeEffectSummaries: battleState.effectSummaries(of: combatant)
+            )
+        )
     }
 
     private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
@@ -247,29 +250,19 @@ struct BattleView: View {
         case .victory:
             if stageRewardsAlreadyClaimed {
                 appState.completeActiveBattle(configuration, battleEarnedGold: battleSession.state?.earnedGold ?? 0)
-            } else {
-                victorySummary = battleSession.makeVictorySummary(homestead: appState.homestead.current)
+            } else if let battleState = battleSession.state {
+                victorySummary = BattleVictorySummary.make(
+                    configuration: configuration,
+                    state: battleState,
+                    homestead: appState.homestead.current
+                )
                 isShowingVictory = true
             }
         case .defeat:
             isShowingDefeat = true
-        case .ongoing:
+        case .none, .tickLimit:
             break
         }
     }
 
-    private func details(
-        for combatant: Combatant,
-        health: Int,
-        activeEffectSummaries: [EffectSummary]
-    ) -> CombatantCardDetail {
-        CombatantCardDetail(
-            combatant: combatant,
-            progression: configuration.progression(for: combatant),
-            equipmentLoadout: configuration.equipmentLoadout(for: combatant),
-            inventoryState: configuration.inventoryState,
-            health: health,
-            activeEffectSummaries: activeEffectSummaries
-        )
-    }
 }

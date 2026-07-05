@@ -179,7 +179,7 @@ final class BattleRunTests: XCTestCase {
 
         _ = session.advanceOneStep()
 
-        XCTAssertEqual(session.outcome, .ongoing)
+        XCTAssertNil(session.outcome)
     }
 
     func testOutcomeReportsVictoryWhenEnemyDefeated() {
@@ -193,7 +193,7 @@ final class BattleRunTests: XCTestCase {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
@@ -212,7 +212,7 @@ final class BattleRunTests: XCTestCase {
         )
         let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
@@ -246,7 +246,7 @@ final class BattleRunTests: XCTestCase {
         )
         let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
@@ -266,7 +266,7 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(session.outcome, .victory)
     }
 
-    func testMakeVictorySummaryIncludesStageAndBattleRewards() {
+    func testMakeVictorySummaryIncludesStageAndBattleRewards() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -289,11 +289,15 @@ final class BattleRunTests: XCTestCase {
         )
         let session = makeSession(configuration: configuration)
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
-        let summary = session.makeVictorySummary(homestead: .freshStart)
+        let summary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: try XCTUnwrap(session.state),
+            homestead: .freshStart
+        )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
@@ -307,7 +311,7 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 
-    func testMakeVictorySummaryScalesExperienceByEncounterLevel() {
+    func testMakeVictorySummaryScalesExperienceByEncounterLevel() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -328,11 +332,15 @@ final class BattleRunTests: XCTestCase {
         )
         let session = makeSession(configuration: configuration)
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
-        let summary = session.makeVictorySummary(homestead: .freshStart)
+        let summary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: try XCTUnwrap(session.state),
+            homestead: .freshStart
+        )
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
         XCTAssertEqual(summary.experience, 0)
@@ -341,7 +349,7 @@ final class BattleRunTests: XCTestCase {
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 
-    func testMakeVictorySummaryIncludesBattleGoldAndTotalGold() {
+    func testMakeVictorySummaryIncludesBattleGoldAndTotalGold() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -360,18 +368,22 @@ final class BattleRunTests: XCTestCase {
         )
         let session = makeSession(configuration: configuration)
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
-        let summary = session.makeVictorySummary(homestead: .freshStart)
+        let summary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: try XCTUnwrap(session.state),
+            homestead: .freshStart
+        )
 
         XCTAssertEqual(summary.stageGold, 12)
         XCTAssertGreaterThanOrEqual(summary.battleGold, 0)
         XCTAssertEqual(summary.totalGold, summary.stageGold + summary.battleGold)
     }
 
-    func testMakeVictorySummaryAppliesHomesteadMaterialBonuses() {
+    func testMakeVictorySummaryAppliesHomesteadMaterialBonuses() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -394,11 +406,15 @@ final class BattleRunTests: XCTestCase {
         let session = makeSession(configuration: configuration)
         let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
 
-        while session.outcome == .ongoing {
+        while session.outcome == nil {
             _ = session.advanceOneStep()
         }
 
-        let summary = session.makeVictorySummary(homestead: homestead)
+        let summary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: try XCTUnwrap(session.state),
+            homestead: homestead
+        )
 
         XCTAssertEqual(summary.materialRewards.first { $0.resource == .wood }?.quantity, 9)
         XCTAssertEqual(summary.materialRewards.first { $0.resource == .stone }?.quantity, 4)

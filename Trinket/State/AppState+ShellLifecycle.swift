@@ -1,5 +1,12 @@
 import SwiftUI
 
+enum ShellRefreshTrigger {
+    case appear
+    case selectedTab(AppTab)
+    case activeBattleStarted
+    case activeBattleEnded
+}
+
 extension AppState {
     func syncBattlePauseForCurrentTab() {
         guard battle.activeBattle != nil else { return }
@@ -19,31 +26,22 @@ extension AppState {
         musicPlayer.update(route: route, volume: options.musicVolume)
     }
 
-    func handleSelectedTabChange(_ newTab: AppTab, scenePhase: ScenePhase) {
-        sessionState.selectedTab = newTab
-        if battle.activeBattle != nil {
-            // Leaving Play pauses combat; returning stays paused until the player resumes.
-            battle.isPaused = true
+    func applyShellRefresh(trigger: ShellRefreshTrigger, scenePhase: ScenePhase) {
+        switch trigger {
+        case .appear:
+            syncBattlePauseForCurrentTab()
+        case let .selectedTab(newTab):
+            sessionState.selectedTab = newTab
+            if battle.activeBattle != nil {
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                battle.isPaused = true
+            }
+        case .activeBattleStarted:
+            battle.isPaused = selectedTab != .play
+        case .activeBattleEnded:
+            battle.isPaused = false
+            musicPlayer.clearEncounterResumePositions()
         }
-        refreshMusicRoute(scenePhase: scenePhase)
-    }
-
-    func handleActiveBattleStarted(scenePhase: ScenePhase) {
-        battle.isPaused = selectedTab != .play
-        refreshMusicRoute(scenePhase: scenePhase)
-    }
-
-    func handleActiveBattleEnded(scenePhase: ScenePhase) {
-        battle.isPaused = false
-        refreshMusicRoute(scenePhase: scenePhase)
-        musicPlayer.clearEncounterResumePositions()
-    }
-
-    func handleMusicPreviewChange(scenePhase: ScenePhase) {
-        refreshMusicRoute(scenePhase: scenePhase)
-    }
-
-    func handleMusicVolumeChange(scenePhase: ScenePhase) {
         refreshMusicRoute(scenePhase: scenePhase)
     }
 
@@ -64,10 +62,5 @@ extension AppState {
                 await syncCoordinator.reconcileForegroundIfSafe()
             }
         }
-    }
-
-    func handleShellAppear(scenePhase: ScenePhase) {
-        syncBattlePauseForCurrentTab()
-        refreshMusicRoute(scenePhase: scenePhase)
     }
 }

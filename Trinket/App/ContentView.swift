@@ -44,23 +44,23 @@ struct ContentView: View {
         }
         .preferredColorScheme(appState.options.appearance.colorScheme)
         .onAppear {
-            appState.handleShellAppear(scenePhase: scenePhase)
+            appState.applyShellRefresh(trigger: .appear, scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            appState.handleSelectedTabChange(newTab, scenePhase: scenePhase)
+            appState.applyShellRefresh(trigger: .selectedTab(newTab), scenePhase: scenePhase)
         }
         .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
             if newValue == nil {
-                appState.handleActiveBattleEnded(scenePhase: scenePhase)
+                appState.applyShellRefresh(trigger: .activeBattleEnded, scenePhase: scenePhase)
             } else {
-                appState.handleActiveBattleStarted(scenePhase: scenePhase)
+                appState.applyShellRefresh(trigger: .activeBattleStarted, scenePhase: scenePhase)
             }
         }
         .onChange(of: appState.battle.preview?.id) { _, _ in
-            appState.handleMusicPreviewChange(scenePhase: scenePhase)
+            appState.refreshMusicRoute(scenePhase: scenePhase)
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
-            appState.handleMusicVolumeChange(scenePhase: scenePhase)
+            appState.refreshMusicRoute(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
             appState.handleScenePhaseChange(newPhase)
