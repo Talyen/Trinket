@@ -185,41 +185,26 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
     }
 
     public func roster(inventoryItemIDs: Set<String>) -> PlayerRosterState {
-        let combatantsByID = Dictionary(
-            uniqueKeysWithValues: (GameContent.heroes + GameContent.pets).map { ($0.id, $0) }
-        )
-
-        var resolvedAbilityLoadouts: [String: AbilityLoadout] = [:]
-        for (combatantID, savedLoadout) in abilityLoadouts {
-            guard let combatant = combatantsByID[combatantID] else { continue }
-            resolvedAbilityLoadouts[combatantID] = savedLoadout.loadout(
-                defaults: combatant.abilityLoadout,
-                choices: combatant.abilityChoices
-            )
-        }
-
-        var resolvedEquipmentLoadouts: [String: EquipmentLoadout] = [:]
-        for (combatantID, savedLoadout) in equipmentLoadouts {
-            resolvedEquipmentLoadouts[combatantID] = savedLoadout.loadout(inventoryItemIDs: inventoryItemIDs)
-        }
-
         let unlockedHeroIDSet = Set(unlockedHeroIDs)
         let unlockedPetIDSet = Set(unlockedPetIDs)
-        let resolvedHeroID = unlockedHeroIDSet.contains(activeHeroID)
-            ? activeHeroID
-            : (unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID)
-        let resolvedPetID = unlockedPetIDSet.contains(activePetID)
-            ? activePetID
-            : (unlockedPetIDs.first ?? PlayerRosterState.starterPetID)
+        let (resolvedHeroID, resolvedPetID) = SavedRosterHydration.resolveActiveSelection(
+            activeHeroID: activeHeroID,
+            activePetID: activePetID,
+            unlockedHeroIDs: unlockedHeroIDSet,
+            unlockedPetIDs: unlockedPetIDSet
+        )
 
         return PlayerRosterState(
             activeHeroID: resolvedHeroID,
             activePetID: resolvedPetID,
             unlockedHeroIDs: unlockedHeroIDSet,
             unlockedPetIDs: unlockedPetIDSet,
-            abilityLoadouts: resolvedAbilityLoadouts,
+            abilityLoadouts: SavedRosterHydration.resolveAbilityLoadouts(from: abilityLoadouts),
             progressions: progressions,
-            equipmentLoadouts: resolvedEquipmentLoadouts,
+            equipmentLoadouts: SavedRosterHydration.resolveEquipmentLoadouts(
+                from: equipmentLoadouts,
+                inventoryItemIDs: inventoryItemIDs
+            ),
             gold: gold,
             primaryStatOverrides: primaryStats
         )

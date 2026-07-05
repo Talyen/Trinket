@@ -7,18 +7,13 @@ import TrinketDesignSystem
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var isShowingBattleLog = false
-    @State private var isShowingVictory = false
-    @State private var isShowingDefeat = false
     @State private var timelineStartDate: Date
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let configuration: ActiveBattleConfiguration
 
-    @State private var victorySummary: BattleVictorySummary?
-
     init(configuration: ActiveBattleConfiguration) {
         self.configuration = configuration
-        _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())
     }
 
@@ -31,7 +26,7 @@ struct BattleView: View {
 
     private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
         Group {
-            if isShowingVictory, let victorySummary {
+            if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
                 VictoryView(
                     enemyName: battleState.enemy.name,
                     summary: victorySummary,
@@ -48,7 +43,7 @@ struct BattleView: View {
                         }
                     }
                 )
-            } else if isShowingDefeat {
+            } else if battleSession.isShowingDefeat {
                 DefeatView(
                     enemyName: battleState.enemy.name,
                     onBattleAgain: {
@@ -60,13 +55,13 @@ struct BattleView: View {
             }
         }
         .trinketScreenBackground(.battle)
-        .navigationTitle(isShowingVictory ? "Victory" : isShowingDefeat ? "Defeat" : "")
+        .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackgroundVisibility(isShowingVictory || isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
+        .toolbarBackgroundVisibility(battleSession.isShowingVictory || battleSession.isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 4) {
-                    if !isShowingVictory, !isShowingDefeat {
+                    if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
                         Button {
                             battleSession.isPaused.toggle()
                         } label: {
@@ -76,7 +71,7 @@ struct BattleView: View {
                         .accessibilityIdentifier("Battle Pause Button")
                     }
 
-                    battleActionsMenu
+                    battleActionsMenu(battleSession: battleSession)
                 }
             }
         }
@@ -94,9 +89,7 @@ struct BattleView: View {
             }
         }
         .onChange(of: configuration.id) { _, _ in
-            isShowingVictory = false
-            isShowingDefeat = false
-            victorySummary = nil
+            battleSession.clearOutcomePresentation()
             timelineStartDate = Date()
         }
     }
@@ -126,7 +119,7 @@ struct BattleView: View {
         }
     }
 
-    private var battleActionsMenu: some View {
+    private func battleActionsMenu(battleSession: BattleSession) -> some View {
         Menu {
             Button {
                 isShowingBattleLog = true
@@ -135,7 +128,7 @@ struct BattleView: View {
             }
             .accessibilityIdentifier("Combat Log")
 
-            if !isShowingVictory, !isShowingDefeat {
+            if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
                 Divider()
 
                 Button(role: .destructive) {
@@ -237,36 +230,13 @@ struct BattleView: View {
         battleSession.activeFeedbackEvents.filter { $0.targetID == combatant.id }
     }
 
-    private func canAutoAdvanceBattle(battleSession: BattleSession, battleState: BattleState) -> Bool {
-        !battleState.isBattleOver &&
-            !isShowingVictory &&
-            !isShowingDefeat &&
-            !battleSession.isPaused
-    }
-
     private func advanceBattleTick(battleSession: BattleSession) {
-        guard let battleState = battleSession.state,
-              canAutoAdvanceBattle(battleSession: battleSession, battleState: battleState) else { return }
-
-        battleSession.advanceOneStep()
-
-        switch battleSession.outcome {
-        case .victory:
-            if stageRewardsAlreadyClaimed {
-                appState.grantBattleEarnedGold(battleSession.state?.earnedGold ?? 0)
-                appState.completeActiveBattle(configuration, battleEarnedGold: 0)
-            } else if let battleState = battleSession.state {
-                victorySummary = BattleVictorySummary.make(
-                    configuration: configuration,
-                    state: battleState,
-                    homestead: appState.homestead.current
-                )
-                isShowingVictory = true
-            }
-        case .defeat:
-            isShowingDefeat = true
-        case .none, .tickLimit:
-            break
+        if case let .completeWithEarnedGold(gold) = battleSession.advanceAutoTick(
+            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
+            homestead: appState.homestead.current
+        ) {
+            appState.grantBattleEarnedGold(gold)
+            appState.completeActiveBattle(configuration, battleEarnedGold: 0)
         }
     }
 

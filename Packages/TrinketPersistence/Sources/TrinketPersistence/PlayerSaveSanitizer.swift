@@ -121,9 +121,6 @@ public enum PlayerSaveSanitizer {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = Set(GameContent.heroes.map(\.id))
         let validPetIDs = Set(GameContent.pets.map(\.id))
-        let combatantsByID = Dictionary(
-            uniqueKeysWithValues: (GameContent.heroes + GameContent.pets).map { ($0.id, $0) }
-        )
 
         var sanitized = roster
         sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filter { validHeroIDs.contains($0) }
@@ -138,35 +135,28 @@ public enum PlayerSaveSanitizer {
 
         let unlockedHeroIDs = Set(sanitized.unlockedHeroIDs)
         let unlockedPetIDs = Set(sanitized.unlockedPetIDs)
+        let (resolvedHeroID, resolvedPetID) = SavedRosterHydration.resolveActiveSelection(
+            activeHeroID: sanitized.activeHeroID,
+            activePetID: sanitized.activePetID,
+            unlockedHeroIDs: unlockedHeroIDs,
+            unlockedPetIDs: unlockedPetIDs
+        )
+        sanitized.activeHeroID = resolvedHeroID
+        sanitized.activePetID = resolvedPetID
 
-        if !unlockedHeroIDs.contains(sanitized.activeHeroID) {
-            sanitized.activeHeroID = sanitized.unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID
-        }
-        if !unlockedPetIDs.contains(sanitized.activePetID) {
-            sanitized.activePetID = sanitized.unlockedPetIDs.first ?? PlayerRosterState.starterPetID
-        }
+        let resolvedEquipment = SavedRosterHydration.resolveEquipmentLoadouts(
+            from: roster.equipmentLoadouts,
+            inventoryItemIDs: inventoryItemIDs,
+            inventoryItems: inventory.items
+        )
+        sanitized.equipmentLoadouts = resolvedEquipment.mapValues(SavedEquipmentLoadout.init)
 
-        sanitized.equipmentLoadouts = [:]
-        for (combatantID, savedLoadout) in roster.equipmentLoadouts {
-            guard let combatant = combatantsByID[combatantID] else { continue }
-            let resolved = savedLoadout
-                .loadout(inventoryItemIDs: inventoryItemIDs)
-                .sanitized(for: combatant, inventory: inventory.items)
-            sanitized.equipmentLoadouts[combatantID] = SavedEquipmentLoadout(resolved)
+        var abilityLoadouts = roster.abilityLoadouts
+        for combatantID in Array(abilityLoadouts.keys) where SavedRosterHydration.combatantsByID[combatantID] == nil {
+            abilityLoadouts.removeValue(forKey: combatantID)
         }
-
-        sanitized.abilityLoadouts = roster.abilityLoadouts
-        for combatantID in Array(sanitized.abilityLoadouts.keys) {
-            guard let combatant = combatantsByID[combatantID] else {
-                sanitized.abilityLoadouts.removeValue(forKey: combatantID)
-                continue
-            }
-            let resolved = sanitized.abilityLoadouts[combatantID]?.loadout(
-                defaults: combatant.abilityLoadout,
-                choices: combatant.abilityChoices
-            ) ?? combatant.abilityLoadout
-            sanitized.abilityLoadouts[combatantID] = SavedAbilityLoadout(resolved)
-        }
+        sanitized.abilityLoadouts = SavedRosterHydration.resolveAbilityLoadouts(from: abilityLoadouts)
+            .mapValues(SavedAbilityLoadout.init)
 
         return sanitized
     }

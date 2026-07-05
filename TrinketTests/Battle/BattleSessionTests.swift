@@ -1,6 +1,7 @@
 import TrinketContent
 import TrinketPersistence
 import XCTest
+@testable import BattleEngine
 @testable import Trinket
 
 @MainActor
@@ -248,6 +249,95 @@ final class BattleSessionTests: XCTestCase {
         appState.battle.setMusicPreview(for: shopStage)
 
         XCTAssertNil(appState.battle.preview)
+    }
+
+    func testAdvanceAutoTickShowsVictorySummaryWhenEnemyDefeated() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let session = BattleSession()
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+
+        while session.outcome == nil {
+            _ = session.advanceAutoTick(stageRewardsAlreadyClaimed: false, homestead: .freshStart)
+        }
+
+        XCTAssertTrue(session.isShowingVictory)
+        XCTAssertNotNil(session.victorySummary)
+        XCTAssertFalse(session.isShowingDefeat)
+    }
+
+    func testAdvanceAutoTickCompletesImmediatelyWhenStageRewardsAlreadyClaimed() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let session = BattleSession()
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+
+        var completion: BattleAutoTickAction?
+        while session.outcome == nil {
+            completion = session.advanceAutoTick(stageRewardsAlreadyClaimed: true, homestead: .freshStart)
+            if completion != nil { break }
+        }
+
+        XCTAssertEqual(completion, .completeWithEarnedGold(session.state?.earnedGold ?? 0))
+        XCTAssertFalse(session.isShowingVictory)
+        XCTAssertNil(session.victorySummary)
+    }
+
+    func testAdvanceAutoTickDoesNotAdvanceWhilePaused() {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
+        let session = BattleSession()
+        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        session.isPaused = true
+        let tickBefore = session.state?.tickCount ?? 0
+
+        _ = session.advanceAutoTick(stageRewardsAlreadyClaimed: false, homestead: .freshStart)
+
+        XCTAssertEqual(session.state?.tickCount, tickBefore)
+    }
+
+    func testClearOutcomePresentationResetsVictoryAndDefeatFlags() {
+        let session = BattleSession()
+        session.isShowingVictory = true
+        session.isShowingDefeat = true
+        session.victorySummary = BattleVictorySummary(
+            stageGold: 1,
+            battleGold: 2,
+            experience: 3,
+            petExperience: 4,
+            heroName: "Hero",
+            petName: "Pet",
+            itemNames: [],
+            materialRewards: [],
+            heroProgressionBefore: .initial,
+            heroProgressionAfter: .initial,
+            petProgressionBefore: .initial,
+            petProgressionAfter: .initial
+        )
+
+        session.clearOutcomePresentation()
+
+        XCTAssertFalse(session.isShowingVictory)
+        XCTAssertFalse(session.isShowingDefeat)
+        XCTAssertNil(session.victorySummary)
     }
 
     private func makeAppState() -> AppState {

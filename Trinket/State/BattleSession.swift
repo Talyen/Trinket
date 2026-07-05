@@ -5,6 +5,10 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
+enum BattleAutoTickAction: Equatable {
+    case completeWithEarnedGold(Int)
+}
+
 @MainActor
 @Observable
 final class BattleSession {
@@ -19,6 +23,9 @@ final class BattleSession {
     }
 
     var isPaused = false
+    var isShowingVictory = false
+    var isShowingDefeat = false
+    var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCollectionDetailSelection?
     private(set) var state: BattleState?
@@ -40,12 +47,55 @@ final class BattleSession {
     func endBattle() {
         activeBattle = nil
         isPaused = false
+        clearOutcomePresentation()
         preview = nil
         overlayCombatantDetail = nil
         overlayPauseDepth = 0
         pauseStateBeforeFirstOverlay = nil
         onBattleStateChange?(nil)
         onBattleEnded?()
+    }
+
+    func clearOutcomePresentation() {
+        isShowingVictory = false
+        isShowingDefeat = false
+        victorySummary = nil
+    }
+
+    func canAutoAdvanceTick() -> Bool {
+        guard let state, !state.isBattleOver, !isPaused else { return false }
+        return !isShowingVictory && !isShowingDefeat
+    }
+
+    @discardableResult
+    func advanceAutoTick(
+        stageRewardsAlreadyClaimed: Bool,
+        homestead: PlayerHomesteadState
+    ) -> BattleAutoTickAction? {
+        guard canAutoAdvanceTick(),
+              let configuration = activeBattle else { return nil }
+
+        advanceOneStep()
+
+        switch outcome {
+        case .victory:
+            if stageRewardsAlreadyClaimed {
+                return .completeWithEarnedGold(state?.earnedGold ?? 0)
+            }
+            guard let battleState = state else { return nil }
+            victorySummary = BattleVictorySummary.make(
+                configuration: configuration,
+                state: battleState,
+                homestead: homestead
+            )
+            isShowingVictory = true
+            return nil
+        case .defeat:
+            isShowingDefeat = true
+            return nil
+        case .none, .tickLimit:
+            return nil
+        }
     }
 
     func setMusicPreview(for stage: Stage?) {
@@ -185,11 +235,13 @@ final class BattleSession {
         )
         activeFeedbackEvents = []
         feedbackDisplayedAt = [:]
+        clearOutcomePresentation()
     }
 
     private func clearRunState() {
         state = nil
         activeFeedbackEvents = []
         feedbackDisplayedAt = [:]
+        clearOutcomePresentation()
     }
 }
