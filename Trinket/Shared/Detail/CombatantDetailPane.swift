@@ -11,12 +11,11 @@ enum CombatantDetailNavigationChrome {
 }
 
 struct CombatantDetailPane: View {
-    @Environment(AppState.self) private var appState
     let combatant: Combatant
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     @Binding var equipmentLoadout: EquipmentLoadout
-    let inventoryState: PlayerInventoryState
+    @Binding var inventoryState: PlayerInventoryState
     let allowsEditing: Bool
     var battleHealth: Int?
     var activeEffectSummaries: [EffectSummary] = []
@@ -160,7 +159,7 @@ struct CombatantDetailPane: View {
                     ItemSlotPickerView(
                         slot: slot,
                         equipmentLoadout: $equipmentLoadout,
-                        inventoryState: appState.inventoryBinding()
+                        inventoryState: $inventoryState
                     )
                 }
                 .presentationDetents([.large])
@@ -233,6 +232,47 @@ struct CombatantDetailPane: View {
         var offsetY: CGFloat
         var topInset: CGFloat
         var overscroll: CGFloat
+    }
+}
+
+extension CombatantDetailPane {
+    init(
+        appState: AppState,
+        combatant: Combatant,
+        rosterState: PlayerRosterState,
+        allowsEditing: Bool? = nil,
+        battleHealth: Int? = nil,
+        activeEffectSummaries: [EffectSummary] = [],
+        navigationChrome: CombatantDetailNavigationChrome = .visible
+    ) {
+        self.init(
+            combatant: combatant,
+            progression: rosterState.progression(for: combatant),
+            loadout: Binding(
+                get: { appState.roster.current.loadout(for: combatant) },
+                set: { newValue in
+                    var updated = appState.roster.current
+                    updated.setLoadout(newValue, for: combatant)
+                    appState.roster.current = updated
+                }
+            ),
+            equipmentLoadout: Binding(
+                get: { appState.roster.current.equipmentLoadout(for: combatant) },
+                set: { newValue in
+                    var updated = appState.roster.current
+                    updated.setEquipmentLoadout(newValue, for: combatant)
+                    appState.roster.current = updated
+                }
+            ),
+            inventoryState: Binding(
+                get: { appState.inventory.current },
+                set: { appState.inventory.current = $0 }
+            ),
+            allowsEditing: allowsEditing ?? rosterState.isUnlocked(combatant),
+            battleHealth: battleHealth,
+            activeEffectSummaries: activeEffectSummaries,
+            navigationChrome: navigationChrome
+        )
     }
 }
 

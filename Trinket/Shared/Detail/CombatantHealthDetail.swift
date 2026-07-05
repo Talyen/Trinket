@@ -1,33 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
 
-struct CombatantHealthDetail: View {
-    let health: Int
-    let maxHealth: Int
-    let fillColor: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Spacer()
-
-                Text("\(health)/\(maxHealth) HP")
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-
-            CombatHealthBar(
-                health: health,
-                maxHealth: maxHealth,
-                fillColor: fillColor
-            )
-            .accessibilityLabel("Health")
-            .accessibilityValue("\(health) of \(maxHealth) HP")
-        }
-        .padding(.vertical, 4)
-    }
-}
-
 struct CombatHealthBar: View {
     let health: Int
     let maxHealth: Int

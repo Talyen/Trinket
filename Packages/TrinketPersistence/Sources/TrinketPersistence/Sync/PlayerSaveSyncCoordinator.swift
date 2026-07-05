@@ -41,27 +41,33 @@ public final class PlayerSaveSyncCoordinator {
         }
     }
 
-    public func start() async {
-        await activateSession(subscribe: true)
-    }
+    public func activateSession(subscribeToChanges: Bool) async {
+        guard sessionPhase != .active else { return }
 
-    public func pullAndReconcile() async {
-        await activateSession(subscribe: false)
+        sessionPhase = .bootstrapping
+        _ = await reconcileOnce()
+        sessionPhase = .active
+
+        guard subscribeToChanges else { return }
+        await registerSubscriptionIfNeeded()
+        if pendingUploadSave != nil {
+            await processUploadQueue()
+        }
     }
 
     public func reconcileForegroundIfSafe() async {
         guard sessionPhase == .active, !hasActiveBattle() else { return }
-        playerSaveStore?.flushPendingPersistIfNeeded()
+        flushStoreIfNeeded()
         _ = await reconcileOnce()
     }
 
     /// Fetches and reconciles remote changes after a CloudKit push notification.
     public func reconcileFromRemoteNotification() async -> Bool {
         guard let playerSaveStore else { return false }
-        playerSaveStore.flushPendingPersistIfNeeded()
+        flushStoreIfNeeded()
 
         if sessionPhase != .active {
-            await start()
+            await activateSession(subscribeToChanges: true)
         }
         guard sessionPhase == .active else { return false }
 
@@ -87,29 +93,19 @@ public final class PlayerSaveSyncCoordinator {
     public func closeSession() async {
         guard sessionPhase == .active else { return }
 
-        playerSaveStore?.flushPendingPersistIfNeeded()
+        flushStoreIfNeeded()
         await checkpointUploadIfNeeded()
         sessionPhase = .closed
     }
 
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
-        playerSaveStore.flushPendingPersistIfNeeded()
+        flushStoreIfNeeded()
         await scheduleUpload(playerSaveStore.currentSave)
     }
 
-    private func activateSession(subscribe: Bool) async {
-        guard sessionPhase != .active else { return }
-
-        sessionPhase = .bootstrapping
-        _ = await reconcileOnce()
-        sessionPhase = .active
-
-        guard subscribe else { return }
-        await registerSubscriptionIfNeeded()
-        if pendingUploadSave != nil {
-            await processUploadQueue()
-        }
+    private func flushStoreIfNeeded() {
+        playerSaveStore?.flushPendingPersistIfNeeded()
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
@@ -252,7 +248,7 @@ public final class PlayerSaveSyncCoordinator {
 
     private func resolveUploadConflict(remote: RemotePlayerSave) async {
         guard let playerSaveStore else { return }
-        playerSaveStore.flushPendingPersistIfNeeded()
+        flushStoreIfNeeded()
         let liveLocal = playerSaveStore.currentSave
 
         let authoritative = PlayerSaveMerger.pickAuthoritative(local: liveLocal, remote: remote.save)

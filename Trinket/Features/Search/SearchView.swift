@@ -50,14 +50,12 @@ struct SearchView: View {
                     combatantResultsSection(
                         title: "Heroes",
                         combatants: results.heroes,
-                        rosterState: rosterState,
-                        inventoryState: inventoryState
+                        rosterState: rosterState
                     )
                     combatantResultsSection(
                         title: "Pets",
                         combatants: results.pets,
-                        rosterState: rosterState,
-                        inventoryState: inventoryState
+                        rosterState: rosterState
                     )
 
                     if !results.items.isEmpty {
@@ -83,33 +81,24 @@ struct SearchView: View {
     private func combatantResultsSection(
         title: String,
         combatants: [Combatant],
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState
+        rosterState: PlayerRosterState
     ) -> some View {
         if !combatants.isEmpty {
             SearchResultSection(title: title, items: combatants) { combatant in
-                combatantDetailLink(
-                    for: combatant,
-                    rosterState: rosterState,
-                    inventoryState: inventoryState
-                )
+                combatantDetailLink(for: combatant, rosterState: rosterState)
             }
         }
     }
 
     private func combatantDetailLink(
         for combatant: Combatant,
-        rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState
+        rosterState: PlayerRosterState
     ) -> some View {
         NavigationLink {
             CombatantDetailPane(
+                appState: appState,
                 combatant: combatant,
-                progression: rosterState.progression(for: combatant),
-                loadout: appState.loadoutBinding(for: combatant),
-                equipmentLoadout: appState.equipmentLoadoutBinding(for: combatant),
-                inventoryState: inventoryState,
-                allowsEditing: rosterState.isUnlocked(combatant)
+                rosterState: rosterState
             )
         } label: {
             CombatantCard(combatant: combatant)

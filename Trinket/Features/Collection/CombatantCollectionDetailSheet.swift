@@ -49,17 +49,13 @@ struct CombatantCollectionDetailSheet: View {
     @ViewBuilder
     private func collectionDetail(kind: CombatantCollectionDetailSelection.Kind, combatantID: String) -> some View {
         let rosterState = appState.roster.current
-        let inventoryState = appState.inventory.current
         let combatants = rosterState.configuredCombatants(sourceCombatants(for: kind))
 
         if let combatant = combatants.first(where: { $0.id == combatantID }) {
             CombatantDetailPane(
+                appState: appState,
                 combatant: combatant,
-                progression: rosterState.progression(for: combatant),
-                loadout: appState.loadoutBinding(for: combatant),
-                equipmentLoadout: appState.equipmentLoadoutBinding(for: combatant),
-                inventoryState: inventoryState,
-                allowsEditing: rosterState.isUnlocked(combatant),
+                rosterState: rosterState,
                 navigationChrome: .hidden
             )
         } else {
@@ -74,7 +70,7 @@ struct CombatantCollectionDetailSheet: View {
             progression: detail.progression,
             loadout: .constant(detail.combatant.abilityLoadout),
             equipmentLoadout: .constant(detail.equipmentLoadout),
-            inventoryState: detail.inventoryState,
+            inventoryState: .constant(detail.inventoryState),
             allowsEditing: false,
             battleHealth: detail.health,
             activeEffectSummaries: detail.activeEffectSummaries,

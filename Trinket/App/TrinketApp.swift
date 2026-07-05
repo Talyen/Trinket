@@ -51,7 +51,7 @@ struct TrinketApp: App {
                     #if canImport(UIKit)
                     appDelegate.syncCoordinator = appState.syncCoordinator
                     #endif
-                    await appState.syncCoordinator.start()
+                    await appState.syncCoordinator.activateSession(subscribeToChanges: true)
                 }
         }
     }

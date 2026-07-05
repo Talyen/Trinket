@@ -22,7 +22,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testStartReconcilesAndSubscribesWhenAvailable() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
@@ -37,7 +37,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             directoryURL: directoryURL,
             accountStatus: .unavailable("iCloud is signed out.")
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
 
         XCTAssertEqual(fixture.coordinator.status, .iCloudUnavailable("iCloud is signed out."))
         let fetchCount = await fixture.mock.fetchCallCount()
@@ -54,7 +54,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             accountStatus: .unavailable("iCloud is signed out.")
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.coordinator.status, .iCloudUnavailable("iCloud is signed out."))
         let fetchCount = await fixture.mock.fetchCallCount()
@@ -68,7 +68,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         XCTAssertEqual(fixture.store.roster.gold, 99)
@@ -85,7 +85,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: earlier, gold: 5)
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         XCTAssertEqual(fixture.store.roster.gold, 42)
@@ -102,7 +102,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: nil
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         let uploads = await fixture.mock.uploadedSavesSnapshot()
@@ -117,7 +117,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 77)
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.store.roster.gold, 77)
         let uploadCount = await fixture.mock.uploadedSaveCount()
@@ -133,7 +133,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: RemotePlayerSave(save: save, modifiedAt: syncedAt, recordChangeTag: "remote")
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
         let uploadsAfterFirst = await fixture.mock.uploadedSaveCount()
         await fixture.coordinator.reconcileForegroundIfSafe()
 
@@ -153,7 +153,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             fixture.store.setGoldForTests(100)
         }
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.store.roster.gold, 100)
     }
@@ -164,12 +164,12 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         XCTAssertEqual(fixture.store.roster.gold, 99)
 
         fixture.store.setGoldForTests(55)
         await fixture.mock.setRemoteSave(SaveTestSupport.makeRemote(modifiedAt: later, gold: 12))
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.store.roster.gold, 55)
     }
@@ -178,7 +178,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testLocalMutationDuringActiveSessionDefersUploadUntilCheckpoint() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         fixture.store.setGoldForTests(33)
 
         let uploadCountBeforeCheckpoint = await fixture.mock.uploadedSaveCount()
@@ -195,7 +195,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testRapidMutationsUploadLatestCheckpoint() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         fixture.store.grantGoldForTests(10)
         fixture.store.grantGoldForTests(5)
 
@@ -209,7 +209,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testCheckpointFlushesPendingPersistBeforeUpload() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
 
         try FileManager.default.setAttributes(
             [.posixPermissions: NSNumber(value: Int16(0o555))],
@@ -236,7 +236,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testUnavailableAccountDuringCheckpointSetsStatus() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         await fixture.mock.setAccountStatus(.unavailable("iCloud is signed out."))
         fixture.store.setGoldForTests(20)
 
@@ -255,7 +255,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 10, recordChangeTag: "remote-tag")
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
 
         await fixture.mock.setRemoteSave(
             SaveTestSupport.makeRemote(modifiedAt: earlier, gold: 50, recordChangeTag: "newer-tag")
@@ -275,7 +275,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             fetchError: MockSyncError.fetchFailed
         )
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.coordinator.status, .error("Playing offline on this device."))
         let fetchCount = await fixture.mock.fetchCallCount()
@@ -289,7 +289,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0),
             uploadError: MockSyncError.uploadFailed
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         fixture.store.setGoldForTests(12)
 
         await fixture.coordinator.checkpointUploadIfNeeded()
@@ -303,7 +303,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
     func testCloseSessionReleasesLeaseAndReturnsToClosed() async throws {
         let fixture = try await makeSyncedFixture()
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
 
         await fixture.coordinator.closeSession()
@@ -317,7 +317,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 20, recordChangeTag: "tag-v1")
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         XCTAssertEqual(fixture.store.roster.gold, 20)
 
         fixture.store.setGoldForTests(50)
@@ -355,7 +355,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         )
         fixture.store.setGoldForTests(17)
 
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
 
         let uploads = await fixture.mock.uploadedSavesSnapshot()
@@ -369,7 +369,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 20, recordChangeTag: "tag-v1")
         )
         fixture.coordinator.hasActiveBattle = { true }
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
 
         fixture.store.setGoldForTests(50)
         await fixture.mock.setRemoteSave(
@@ -390,7 +390,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         )
         fixture.coordinator.hasActiveBattle = { true }
 
-        await fixture.coordinator.pullAndReconcile()
+        await fixture.coordinator.activateSession(subscribeToChanges: false)
 
         XCTAssertEqual(fixture.store.roster.gold, 10)
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
@@ -407,7 +407,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
             localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
             remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
         )
-        await fixture.coordinator.start()
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
         XCTAssertEqual(fixture.store.roster.gold, 99)
 
         fixture.store.setGoldForTests(25)
