@@ -155,8 +155,8 @@ final class AppState {
            let stage = GameContent.stage(id: stageID) {
             completeStage(
                 stage,
-                hero: configuration.hero,
-                pet: configuration.pet,
+                hero: configuration.hero.combatant,
+                pet: configuration.pet.combatant,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards
             )

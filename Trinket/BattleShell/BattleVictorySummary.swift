@@ -32,19 +32,19 @@ struct BattleVictorySummary: Equatable {
         homestead: PlayerHomesteadState
     ) -> BattleVictorySummary {
         let stageReward = configuration.stageReward ?? StageReward(gold: 0, itemTemplateIDs: [])
-        let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
+        let enemyLevel = configuration.enemyEncounterLevel ?? configuration.hero.progression.level
         let heroXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.heroProgression.level,
+            playerLevel: configuration.hero.progression.level,
             enemyLevel: enemyLevel,
             highestLevel: configuration.highestHeroLevel
         )
         let petXP = StageCompletion.battleExperienceAward(
-            playerLevel: configuration.petProgression.level,
+            playerLevel: configuration.pet.progression.level,
             enemyLevel: enemyLevel,
             highestLevel: configuration.highestPetLevel
         )
-        let heroAfter = configuration.heroProgression.addingExperience(heroXP)
-        let petAfter = configuration.petProgression.addingExperience(petXP)
+        let heroAfter = configuration.hero.progression.addingExperience(heroXP)
+        let petAfter = configuration.pet.progression.addingExperience(petXP)
         let materialRewards = StageCompletion.resolvedMaterialRewards(
             stageReward: stageReward,
             homestead: homestead
@@ -59,9 +59,9 @@ struct BattleVictorySummary: Equatable {
             petName: state.pet.name,
             itemNames: configuration.rewardItemNames,
             materialRewards: materialRewards,
-            heroProgressionBefore: configuration.heroProgression,
+            heroProgressionBefore: configuration.hero.progression,
             heroProgressionAfter: heroAfter,
-            petProgressionBefore: configuration.petProgression,
+            petProgressionBefore: configuration.pet.progression,
             petProgressionAfter: petAfter
         )
     }

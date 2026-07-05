@@ -152,7 +152,7 @@ public enum BattleSimulator {
             capturedLog = []
         }
         let outcome: BattleSimulationOutcome
-        if let resolved = BattleOutcomeResolver.resolve(
+        if let resolved = BattleSimulationOutcome.resolve(
             isPartyDefeated: battle.isPartyDefeated,
             isEnemyDefeated: battle.isEnemyDefeated
         ) {

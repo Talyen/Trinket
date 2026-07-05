@@ -16,12 +16,12 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             enemy: enemy
         )
 
-        XCTAssertEqual(configuration.heroModifiers.blockGainedBonus, 1)
-        XCTAssertEqual(configuration.petModifiers.bleedDurationBonus, 1)
-        XCTAssertEqual(configuration.heroModifiers.damageDealtBonus(for: .physical), 0)
-        XCTAssertEqual(configuration.petModifiers.damageDealtBonus(for: .physical), 0)
-        XCTAssertEqual(configuration.hero.id, knight.id)
-        XCTAssertEqual(configuration.pet.id, wolf.id)
+        XCTAssertEqual(configuration.hero.modifiers.blockGainedBonus, 1)
+        XCTAssertEqual(configuration.pet.modifiers.bleedDurationBonus, 1)
+        XCTAssertEqual(configuration.hero.modifiers.damageDealtBonus(for: .physical), 0)
+        XCTAssertEqual(configuration.pet.modifiers.damageDealtBonus(for: .physical), 0)
+        XCTAssertEqual(configuration.hero.combatant.id, knight.id)
+        XCTAssertEqual(configuration.pet.combatant.id, wolf.id)
     }
 
     func testMakeResolvesEquippedItemModifiers() throws {
@@ -51,8 +51,8 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             inventory: PlayerInventoryState(items: [item])
         )
 
-        XCTAssertEqual(configuration.heroModifiers.damageDealtBonus(for: .physical), 1)
-        XCTAssertEqual(configuration.hero.primaryStats.strength, knight.primaryStats.strength)
+        XCTAssertEqual(configuration.hero.modifiers.damageDealtBonus(for: .physical), 1)
+        XCTAssertEqual(configuration.hero.combatant.primaryStats.strength, knight.primaryStats.strength)
     }
 
     func testMakeResolvesEnemyTraitModifiers() throws {

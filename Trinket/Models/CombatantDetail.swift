@@ -3,11 +3,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-import BattleEngine
-import TrinketContent
-import TrinketCore
-import TrinketPersistence
-
 struct CombatantDetailContext: Identifiable, Hashable {
     enum Kind: Hashable {
         case hero
@@ -68,18 +63,11 @@ struct CombatantCardDetail: Hashable, Identifiable {
         health: Int,
         activeEffectSummaries: [EffectSummary]
     ) -> CombatantCardDetail {
-        CombatantCardDetail(
+        let rosterContext = configuration.rosterContext(for: combatant.id)
+        return CombatantCardDetail(
             combatant: combatant,
-            progression: combatant.id == configuration.hero.id
-                ? configuration.heroProgression
-                : combatant.id == configuration.pet.id
-                    ? configuration.petProgression
-                    : .initial,
-            equipmentLoadout: combatant.id == configuration.hero.id
-                ? configuration.heroEquipmentLoadout
-                : combatant.id == configuration.pet.id
-                    ? configuration.petEquipmentLoadout
-                    : EquipmentLoadout(),
+            progression: rosterContext?.progression ?? .initial,
+            equipmentLoadout: rosterContext?.equipmentLoadout ?? EquipmentLoadout(),
             inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries

@@ -3,26 +3,33 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
+struct PartyMemberBattleSnapshot: Equatable {
+    let combatant: Combatant
+    let progression: CombatantProgression
+    let equipmentLoadout: EquipmentLoadout
+    let modifiers: CombatModifierProfile
+}
+
 struct ActiveBattleConfiguration: Identifiable {
     let id = UUID()
     let stageID: String?
     let rngSeed: UInt64
-    let hero: Combatant
-    let pet: Combatant
+    let hero: PartyMemberBattleSnapshot
+    let pet: PartyMemberBattleSnapshot
     let enemy: Combatant?
     let enemyEncounterLevel: Int?
-    let heroProgression: CombatantProgression
-    let petProgression: CombatantProgression
     let highestHeroLevel: Int
     let highestPetLevel: Int
-    let heroEquipmentLoadout: EquipmentLoadout
-    let petEquipmentLoadout: EquipmentLoadout
-    let heroModifiers: CombatModifierProfile
-    let petModifiers: CombatModifierProfile
     let enemyModifiers: CombatModifierProfile
     let inventoryState: PlayerInventoryState
     let stageReward: StageReward?
     let rewardItemNames: [String]
+
+    func rosterContext(for combatantID: String) -> PartyMemberBattleSnapshot? {
+        if combatantID == hero.combatant.id { return hero }
+        if combatantID == pet.combatant.id { return pet }
+        return nil
+    }
 
     static func make(
         stageID: String? = nil,
@@ -67,18 +74,22 @@ struct ActiveBattleConfiguration: Identifiable {
         return ActiveBattleConfiguration(
             stageID: stageID,
             rngSeed: rngSeed,
-            hero: heroBuild.combatant,
-            pet: petBuild.combatant,
+            hero: PartyMemberBattleSnapshot(
+                combatant: heroBuild.combatant,
+                progression: resolvedHeroProgression,
+                equipmentLoadout: resolvedHeroEquipmentLoadout,
+                modifiers: heroBuild.modifiers
+            ),
+            pet: PartyMemberBattleSnapshot(
+                combatant: petBuild.combatant,
+                progression: resolvedPetProgression,
+                equipmentLoadout: resolvedPetEquipmentLoadout,
+                modifiers: petBuild.modifiers
+            ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
-            heroProgression: resolvedHeroProgression,
-            petProgression: resolvedPetProgression,
             highestHeroLevel: resolvedHighestHeroLevel,
             highestPetLevel: resolvedHighestPetLevel,
-            heroEquipmentLoadout: resolvedHeroEquipmentLoadout,
-            petEquipmentLoadout: resolvedPetEquipmentLoadout,
-            heroModifiers: heroBuild.modifiers,
-            petModifiers: petBuild.modifiers,
             enemyModifiers: enemyBuild.modifiers,
             inventoryState: resolvedInventoryState,
             stageReward: stageReward,

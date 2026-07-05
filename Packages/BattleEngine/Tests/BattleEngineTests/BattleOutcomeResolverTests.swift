@@ -6,28 +6,28 @@ import TrinketContent
 final class BattleOutcomeResolverTests: XCTestCase {
     func testSimultaneousDefeatResolvesAsVictory() {
         XCTAssertEqual(
-            BattleOutcomeResolver.resolve(isPartyDefeated: true, isEnemyDefeated: true),
+            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true),
             .victory
         )
     }
 
     func testPartyDefeatResolvesAsDefeat() {
         XCTAssertEqual(
-            BattleOutcomeResolver.resolve(isPartyDefeated: true, isEnemyDefeated: false),
+            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: false),
             .defeat
         )
     }
 
     func testEnemyDefeatResolvesAsVictory() {
         XCTAssertEqual(
-            BattleOutcomeResolver.resolve(isPartyDefeated: false, isEnemyDefeated: true),
+            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: true),
             .victory
         )
     }
 
     func testOngoingBattleReturnsNil() {
         XCTAssertNil(
-            BattleOutcomeResolver.resolve(isPartyDefeated: false, isEnemyDefeated: false)
+            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: false)
         )
     }
 }

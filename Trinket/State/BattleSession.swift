@@ -34,7 +34,7 @@ final class BattleSession {
 
     var outcome: BattleSimulationOutcome? {
         guard let state else { return nil }
-        return BattleOutcomeResolver.resolve(
+        return BattleSimulationOutcome.resolve(
             isPartyDefeated: state.isPartyDefeated,
             isEnemyDefeated: state.isEnemyDefeated
         )
@@ -144,9 +144,9 @@ final class BattleSession {
     func restartBattle(using roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
         guard let activeBattle else { return }
 
-        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.id })
+        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
             ?? roster.activeHero
-        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
+        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
             ?? roster.activePet
 
         self.activeBattle = ActiveBattleConfiguration.make(
@@ -237,11 +237,11 @@ final class BattleSession {
 
     private func resetRun(from configuration: ActiveBattleConfiguration) {
         state = BattleState(
-            hero: configuration.hero,
-            pet: configuration.pet,
+            hero: configuration.hero.combatant,
+            pet: configuration.pet.combatant,
             enemy: configuration.enemy,
-            heroModifiers: configuration.heroModifiers,
-            petModifiers: configuration.petModifiers,
+            heroModifiers: configuration.hero.modifiers,
+            petModifiers: configuration.pet.modifiers,
             enemyModifiers: configuration.enemyModifiers,
             rngSeed: configuration.rngSeed
         )

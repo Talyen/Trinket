@@ -63,6 +63,13 @@ public enum BattleSimulationOutcome: Equatable {
     case victory
     case defeat
     case tickLimit
+
+    public static func resolve(isPartyDefeated: Bool, isEnemyDefeated: Bool) -> BattleSimulationOutcome? {
+        if isEnemyDefeated, isPartyDefeated { return .victory }
+        if isPartyDefeated { return .defeat }
+        if isEnemyDefeated { return .victory }
+        return nil
+    }
 }
 
 public struct BattleSimulationMetrics: Equatable {

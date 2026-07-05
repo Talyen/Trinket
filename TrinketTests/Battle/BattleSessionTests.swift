@@ -103,14 +103,14 @@ final class BattleSessionTests: XCTestCase {
             inventory: appState.inventory
         )
 
-        XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 0)
+        XCTAssertEqual(appState.battle.activeBattle?.hero.progression.currentXP, 0)
 
         var updatedRoster = appState.roster.current
         updatedRoster.grantExperience(25, to: appState.roster.activeHero)
         appState.roster.current = updatedRoster
         appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
 
-        XCTAssertEqual(appState.battle.activeBattle?.heroProgression.currentXP, 25)
+        XCTAssertEqual(appState.battle.activeBattle?.hero.progression.currentXP, 25)
     }
 
     func testPresentCombatantDetailWithoutActiveBattleDoesNotPauseSession() throws {
@@ -184,7 +184,7 @@ final class BattleSessionTests: XCTestCase {
 
         let restarted = try XCTUnwrap(appState.battle.activeBattle)
         XCTAssertEqual(restarted.stageID, original.stageID)
-        XCTAssertEqual(restarted.hero.id, original.hero.id)
+        XCTAssertEqual(restarted.hero.combatant.id, original.hero.combatant.id)
         XCTAssertNotEqual(restarted.id, original.id)
     }
 
