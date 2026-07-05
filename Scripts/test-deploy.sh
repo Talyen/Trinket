@@ -3,8 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# Full deploy gate. Runs the same checks as ci-locally.sh plus the full UI
-# suite. Intended for pre-merge / nightly runs, not the local iteration loop.
+# Full deploy gate. Runs CI gate checks plus unit and full UI tests.
+# Intended for pre-merge / nightly runs, not the local iteration loop.
 #
 # Examples:
 #   ./Scripts/test-deploy.sh
@@ -34,12 +34,25 @@ echo "=== Generating Xcode project ==="
 ./Scripts/generate.sh
 
 echo ""
+echo "=== Assert generated output is committed ==="
+./Scripts/assert-generated-output.sh
+
+echo ""
+echo "=== Module boundary check ==="
+./Scripts/check-module-boundaries.sh
+
+echo ""
 echo "=== Style check ==="
 ./Scripts/test.sh style
 
 echo ""
+echo "=== Validate release notes config ==="
+./Scripts/release-notes.sh validate
+
+echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit
+./Scripts/test-timing.sh assert-budget --mode unit --max-wall 300
 
 echo ""
 echo "=== Full UI tests ==="

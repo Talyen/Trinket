@@ -6,6 +6,8 @@ DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
 
+# shellcheck source=build-stamp.sh
+source "$SCRIPT_DIR/build-stamp.sh"
 # shellcheck source=ensure-simulator.sh
 source "$SCRIPT_DIR/ensure-simulator.sh"
 
@@ -35,7 +37,7 @@ for package in "${PACKAGES[@]}"; do
 done
 
 for mode in unit smoke ui; do
-  touch "$RESULTS_DIR/.last-build-${mode}.stamp"
+  touch_build_stamp "$RESULTS_DIR" "$mode"
 done
 
 echo "=== build-for-testing complete ==="

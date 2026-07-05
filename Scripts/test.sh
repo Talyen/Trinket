@@ -6,6 +6,9 @@ DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
 
+# shellcheck source=build-stamp.sh
+source "$SCRIPT_DIR/build-stamp.sh"
+
 # Parse arguments
 MODE="unit"
 NO_BUILD=false
@@ -205,8 +208,7 @@ RUN_FINGERPRINT="$MODE"
 for target in "${TARGETS[@]}"; do
   RUN_FINGERPRINT+="_$target"
 done
-RUN_KEY="$(printf "%s" "$RUN_FINGERPRINT" | shasum -a 256 | awk '{print $1}')"
-BUILD_STAMP="$RESULTS_DIR/.last-build-$RUN_KEY.stamp"
+BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$RUN_FINGERPRINT")"
 
 assert_no_build_is_fresh() {
   if [[ "$USED_FAST_ALIAS" == "true" ]]; then

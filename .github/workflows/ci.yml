@@ -35,14 +35,15 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
+            /opt/homebrew/Cellar/ripgrep
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-3
           restore-keys: |
-            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-
 
       - name: Install tooling
         run: |
-          brew install xcodegen swiftlint swiftformat
-          for formula in xcodegen swiftlint swiftformat; do
+          brew install xcodegen swiftlint swiftformat ripgrep
+          for formula in xcodegen swiftlint swiftformat ripgrep; do
             brew link --overwrite "$formula" 2>/dev/null || true
           done
 
@@ -81,14 +82,15 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
+            /opt/homebrew/Cellar/ripgrep
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-3
           restore-keys: |
-            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-
 
       - name: Install tooling
         run: |
-          brew install xcodegen swiftlint swiftformat
-          for formula in xcodegen swiftlint swiftformat; do
+          brew install xcodegen swiftlint swiftformat ripgrep
+          for formula in xcodegen swiftlint swiftformat ripgrep; do
             brew link --overwrite "$formula" 2>/dev/null || true
           done
 
@@ -133,14 +135,15 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
+            /opt/homebrew/Cellar/ripgrep
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-3
           restore-keys: |
-            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-
 
       - name: Install tooling
         run: |
-          brew install xcodegen swiftlint swiftformat
-          for formula in xcodegen swiftlint swiftformat; do
+          brew install xcodegen swiftlint swiftformat ripgrep
+          for formula in xcodegen swiftlint swiftformat ripgrep; do
             brew link --overwrite "$formula" 2>/dev/null || true
           done
 
@@ -152,9 +155,10 @@ jobs:
           restore-keys: |
             deriveddata-${{ runner.os }}-xcode-26-
 
+      - name: Generate project
+        run: ./Scripts/generate.sh
+
       - name: Unit tests
-        env:
-          SKIP_GENERATE: 1
         run: ./Scripts/test.sh --no-build unit
 
       - name: Assert unit timing budget
@@ -189,14 +193,15 @@ jobs:
             /opt/homebrew/Cellar/xcodegen
             /opt/homebrew/Cellar/swiftlint
             /opt/homebrew/Cellar/swiftformat
-          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-2
+            /opt/homebrew/Cellar/ripgrep
+          key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-3
           restore-keys: |
-            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-
+            brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-
 
       - name: Install tooling
         run: |
-          brew install xcodegen swiftlint swiftformat
-          for formula in xcodegen swiftlint swiftformat; do
+          brew install xcodegen swiftlint swiftformat ripgrep
+          for formula in xcodegen swiftlint swiftformat ripgrep; do
             brew link --overwrite "$formula" 2>/dev/null || true
           done
 
@@ -208,10 +213,11 @@ jobs:
           restore-keys: |
             deriveddata-${{ runner.os }}-xcode-26-
 
+      - name: Generate project
+        run: ./Scripts/generate.sh
+
       - name: UI smoke tests
         if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive')
-        env:
-          SKIP_GENERATE: 1
         run: ./Scripts/test.sh --no-build smoke
 
       - name: Assert smoke timing budget
@@ -220,8 +226,6 @@ jobs:
 
       - name: Full UI tests
         if: (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-        env:
-          SKIP_GENERATE: 1
         run: ./Scripts/test.sh --no-build ui
 
       - name: Assert UI timing budget

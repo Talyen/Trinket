@@ -8,6 +8,7 @@ Portrait-first native iOS fantasy idle auto-battler.
 - Swift 6.0
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 - SwiftLint and SwiftFormat (`brew install swiftlint swiftformat`)
+- Ripgrep (`brew install ripgrep`) for `./Scripts/check-module-boundaries.sh`
 - Python 3 (content codegen)
 
 ## Setup
@@ -15,7 +16,7 @@ Portrait-first native iOS fantasy idle auto-battler.
 ```sh
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -runFirstLaunch
-brew install xcodegen swiftlint swiftformat
+brew install xcodegen swiftlint swiftformat ripgrep
 ```
 
 Optional commit-message hook (advisory warnings):

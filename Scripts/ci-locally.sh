@@ -7,6 +7,10 @@ echo "=== Generating Xcode project ==="
 ./Scripts/generate.sh
 
 echo ""
+echo "=== Assert generated output is committed ==="
+./Scripts/assert-generated-output.sh
+
+echo ""
 echo "=== Module boundary check ==="
 ./Scripts/check-module-boundaries.sh
 

@@ -44,6 +44,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 TRACKED_PATHS=(
+  "Trinket.xcodeproj/project.pbxproj"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogBasic.generated.swift"
   "Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogSkill.generated.swift"
@@ -82,7 +83,7 @@ if git diff --quiet -- "${TRACKED_PATHS[@]}" \
 fi
 
 echo "ERROR: Generated output is stale or uncommitted." >&2
-echo "Run ./Scripts/generate.sh and commit the updated files." >&2
+echo "Run ./Scripts/generate.sh and commit the updated files (including Trinket.xcodeproj when project.yml changed)." >&2
 if [[ "$INCLUDE_ASSETS" == true ]]; then
   echo "For art/music manifest edits, use ./Scripts/generate.sh --assets" >&2
 fi
