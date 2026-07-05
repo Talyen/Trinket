@@ -1,20 +1,23 @@
 import Foundation
 import os
-import TrinketPersistence
 
-private let entitlementLogger = Logger(
-    subsystem: PlayerSaveDefaults.loggingSubsystem,
-    category: "CloudKitEntitlement"
-)
+public struct PlayerSaveSyncConfiguration: Sendable {
+    public var disableCloudSync: Bool
+    public var resetState: Bool
 
-enum PlayerSaveSyncFactory {
-    static func makeSyncService(
-        environment: AppEnvironment = .shared,
+    public init(disableCloudSync: Bool = false, resetState: Bool = false) {
+        self.disableCloudSync = disableCloudSync
+        self.resetState = resetState
+    }
+}
+
+public enum PlayerSaveSyncFactory {
+    public static func makeSyncService(
+        configuration: PlayerSaveSyncConfiguration = PlayerSaveSyncConfiguration(),
         entitlementChecker: any CloudKitEntitlementChecking = RuntimeCloudKitEntitlementChecker(),
         cloudSyncFactory: () -> any PlayerSaveSyncing = { CloudKitPlayerSaveSync() }
     ) -> any PlayerSaveSyncing {
-        let env = environment
-        if env.disableCloudSync || env.resetState {
+        if configuration.disableCloudSync || configuration.resetState {
             return LocalOnlyPlayerSaveSync()
         }
 
@@ -28,15 +31,17 @@ enum PlayerSaveSyncFactory {
     }
 }
 
-protocol CloudKitEntitlementChecking {
+public protocol CloudKitEntitlementChecking: Sendable {
     func hasCloudKitContainer(identifier: String) -> Bool
 }
 
-struct RuntimeCloudKitEntitlementChecker: CloudKitEntitlementChecking {
+public struct RuntimeCloudKitEntitlementChecker: CloudKitEntitlementChecking {
     private static let cloudKitServicesEntitlementKey = "com.apple.developer.icloud-services"
     private static let containerIdentifiersEntitlementKey = "com.apple.developer.icloud-container-identifiers"
 
-    func hasCloudKitContainer(identifier: String) -> Bool {
+    public init() {}
+
+    public func hasCloudKitContainer(identifier: String) -> Bool {
         let entitlements = Bundle.main.signedEntitlements()
         guard
             entitlementValues(
@@ -67,6 +72,11 @@ struct RuntimeCloudKitEntitlementChecker: CloudKitEntitlementChecking {
         return []
     }
 }
+
+private let entitlementLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "CloudKitEntitlement"
+)
 
 private extension Bundle {
     func signedEntitlements() -> [String: Any] {

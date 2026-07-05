@@ -54,7 +54,12 @@ final class AppState {
             }
         }
 
-        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
+        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService(
+            configuration: PlayerSaveSyncConfiguration(
+                disableCloudSync: env.disableCloudSync,
+                resetState: env.resetState
+            )
+        )
         let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
         if let appearanceOverride = env.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride

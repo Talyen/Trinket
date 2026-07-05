@@ -26,7 +26,7 @@ struct ActiveBattleConfiguration: Identifiable {
 
     init(
         stageID: String? = nil,
-        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max),
+        rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
@@ -66,7 +66,7 @@ struct ActiveBattleConfiguration: Identifiable {
 
     static func make(
         stageID: String? = nil,
-        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max),
+        rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,

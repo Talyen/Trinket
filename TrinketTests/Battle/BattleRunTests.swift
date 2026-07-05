@@ -28,7 +28,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
         _ = run.advanceOneStep()
@@ -47,7 +47,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
         while !run.isBattleOver {
@@ -78,7 +78,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
         _ = run.advanceOneStep()
@@ -113,7 +113,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
         _ = run.advanceOneStep()
@@ -144,7 +144,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let configuration = ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy)
+        let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
         let run = BattleRun(configuration: configuration)
 
         _ = run.advanceOneStep()
@@ -169,7 +169,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         _ = run.advanceOneStep()
 
@@ -185,7 +185,7 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while run.outcome == .ongoing {
             _ = run.advanceOneStep()
@@ -204,7 +204,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while run.outcome == .ongoing {
             _ = run.advanceOneStep()
@@ -238,7 +238,7 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         while run.outcome == .ongoing {
             _ = run.advanceOneStep()
@@ -253,7 +253,7 @@ final class BattleRunTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
+        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
         XCTAssertTrue(run.isPartyDefeated)
         XCTAssertTrue(run.isEnemyDefeated)
@@ -271,6 +271,7 @@ final class BattleRunTests: XCTestCase {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let configuration = ActiveBattleConfiguration.make(
             stageID: "chapter-1-stage-1",
+            rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -310,6 +311,7 @@ final class BattleRunTests: XCTestCase {
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -344,6 +346,7 @@ final class BattleRunTests: XCTestCase {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let configuration = ActiveBattleConfiguration.make(
             stageID: "chapter-1-stage-1",
+            rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -372,6 +375,7 @@ final class BattleRunTests: XCTestCase {
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: hero,
             pet: pet,
             enemy: enemy,

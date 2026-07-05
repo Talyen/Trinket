@@ -15,4 +15,4 @@ Test ownership for `Packages/TrinketPersistence/Tests/TrinketPersistenceTests/`.
 | Stage rewards | `StageRewardTests`, `HomesteadStateTests` | End-to-end grants; homestead math unit tests |
 | Saved effect encoding | `SavedEffectRoundtripTests` | Cross-package contract with `TrinketCore` |
 
-**Not here:** real `CloudKitPlayerSaveSync` I/O. App launch wiring → `TrinketTests/Persistence/PlayerSaveSyncFactoryTests.swift`.
+| Sync factory | `PlayerSaveSyncFactoryTests` | CloudKit entitlement gating vs local-only |

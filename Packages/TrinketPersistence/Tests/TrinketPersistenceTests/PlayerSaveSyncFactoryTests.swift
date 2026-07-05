@@ -1,13 +1,11 @@
 import TrinketPersistence
 import XCTest
-@testable import Trinket
 
 final class PlayerSaveSyncFactoryTests: XCTestCase {
     func testMissingCloudKitEntitlementsUsesLocalOnlySync() {
         var didCreateCloudSync = false
 
         let sync = PlayerSaveSyncFactory.makeSyncService(
-            environment: makeEnvironment(),
             entitlementChecker: StubCloudKitEntitlementChecker(hasContainer: false),
             cloudSyncFactory: {
                 didCreateCloudSync = true
@@ -23,7 +21,20 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
         let entitlementChecker = SpyCloudKitEntitlementChecker(hasContainer: true)
 
         let sync = PlayerSaveSyncFactory.makeSyncService(
-            environment: makeEnvironment(arguments: ["-disable-cloud-sync"]),
+            configuration: PlayerSaveSyncConfiguration(disableCloudSync: true),
+            entitlementChecker: entitlementChecker,
+            cloudSyncFactory: { StubPlayerSaveSync() }
+        )
+
+        XCTAssertTrue(sync is LocalOnlyPlayerSaveSync)
+        XCTAssertEqual(entitlementChecker.checkedIdentifiers, [])
+    }
+
+    func testResetStateFlagSkipsCloudSync() {
+        let entitlementChecker = SpyCloudKitEntitlementChecker(hasContainer: true)
+
+        let sync = PlayerSaveSyncFactory.makeSyncService(
+            configuration: PlayerSaveSyncConfiguration(resetState: true),
             entitlementChecker: entitlementChecker,
             cloudSyncFactory: { StubPlayerSaveSync() }
         )
@@ -36,7 +47,6 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
         var didCreateCloudSync = false
 
         let sync = PlayerSaveSyncFactory.makeSyncService(
-            environment: makeEnvironment(),
             entitlementChecker: StubCloudKitEntitlementChecker(hasContainer: true),
             cloudSyncFactory: {
                 didCreateCloudSync = true
@@ -46,10 +56,6 @@ final class PlayerSaveSyncFactoryTests: XCTestCase {
 
         XCTAssertTrue(sync is StubPlayerSaveSync)
         XCTAssertTrue(didCreateCloudSync)
-    }
-
-    private func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
-        AppEnvironment.parse(arguments: arguments, environment: [:])
     }
 }
 

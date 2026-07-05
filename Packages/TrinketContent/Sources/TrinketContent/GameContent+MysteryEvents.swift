@@ -10,7 +10,9 @@ public extension GameContent {
         MysteryEventPool.mysteryEvent(matching: id)
     }
 
-    static func pickMysteryEvent() -> MysteryEvent {
-        MysteryEventPool.pickMysteryEvent()
+    static func pickMysteryEvent<RNG: RandomNumberGenerator>(
+        using randomNumberGenerator: inout RNG
+    ) -> MysteryEvent {
+        MysteryEventPool.pickMysteryEvent(using: &randomNumberGenerator)
     }
 }

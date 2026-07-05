@@ -255,7 +255,9 @@ public enum MysteryEventPool {
         all.first { $0.id == id }
     }
 
-    public static func pickMysteryEvent() -> MysteryEvent {
-        all.randomElement()!
+    public static func pickMysteryEvent<RNG: RandomNumberGenerator>(
+        using randomNumberGenerator: inout RNG
+    ) -> MysteryEvent {
+        all.randomElement(using: &randomNumberGenerator)!
     }
 }

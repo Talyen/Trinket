@@ -4,27 +4,53 @@ Goal: Side effects (I/O, shared/global mutation, non-deterministic primitives) c
 
 ## Targets
 
-- `rg -n '\.random\(|\.randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)' --type swift -g '!*Tests*' -g '!**/Generated/*' -g '!**/rng*'` — target 0 in `Packages/BattleEngine/` and `Packages/TrinketCore/`
-- `rg -n 'UserDefaults|UserDefaults\.standard' --type swift -g '!*Tests*'` — should appear only in `OptionsStore` and test helpers
-- `rg -n 'FileManager|write\(to:|\.write\(' --type swift -g '!*Tests*' -g '!**/Generated/*'` — should appear only in `TrinketPersistence/`
-- `rg -n 'AVPlayer|AVAudioEngine|MPMusicPlayer' --type swift -g '!*Tests*'` — should appear only in `Trinket/Audio/`
-- `rg -n 'CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'` — should appear only in `TrinketPersistence/`
+Run from repo root:
+
+```bash
+# Unseeded randomness / clocks — target 0 in core rule packages
+rg -n '(?<!\(using: &[^)]*)\.(random\(|randomElement\(|shuffle\()|(?<!using: &[^)]*)UUID\(\)|Date\(\)' \
+  --type swift -g '!*Tests*' -g '!**/Generated/*' -g '!**/rng*' \
+  Packages/BattleEngine/Sources/BattleEngine Packages/TrinketCore/
+
+# Seeded RNG in battle simulation is allowed (e.g. Double.random(using: &context.rng)).
+# Tooling under BattleBalanceTools/ and BalanceSweepCLI/ is excluded from the target above.
+
+# UserDefaults — allowed seams only
+rg -n 'UserDefaults|UserDefaults\.standard' --type swift -g '!*Tests*'
+# Expected: OptionsStore, SessionStateStore, PlayerSaveFileStore (legacy migration), AppState wiring
+
+# File I/O — persistence + documented tooling
+rg -n 'FileManager|write\(to:|\.write\(' --type swift -g '!*Tests*' -g '!**/Generated/*'
+# Expected: TrinketPersistence/ and BalanceSweepCLI/ (balance report output)
+
+# AVFoundation playback types
+rg -n 'AVPlayer|AVAudioEngine|MPMusicPlayer' --type swift -g '!*Tests*'
+# Expected: 0 matches (Trinket/Audio/ uses AVAudioPlayer)
+
+# CloudKit
+rg -n 'CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
+# Expected: TrinketPersistence/ only
+```
 
 ## Checks
 
 ### Deterministic battle engine
 
-- `Packages/BattleEngine/` must use `state.rng` (seeded via `BattleStateTestFactory`) — no direct `Double.random(in:)`, `Int.random`, `.randomElement()`, or `UUID()`
+- `Packages/BattleEngine/Sources/BattleEngine/` must use `state.rng` or an injected `RandomNumberGenerator` — no unseeded `Double.random(in:)`, `Int.random`, `.randomElement()`, or `UUID()`
 - `EffectHandlers` take `RNG` as parameter; verify no handler calls global randomness
 - Battle simulation must be reproducible: same seed → same outcome (enforced by `BattleEngineTests` using seed 0)
-- `Math.random` analogues in Swift (`Float.random`, `Bool.random`) are forbidden in model/rule code — always route through `state.rng`
+- `Math.random` analogues in Swift (`Float.random`, `Bool.random`) are forbidden in model/rule code unless passed `using: &rng`
+- `BattleBalanceTools/` and `BalanceSweepCLI/` are offline tooling; `Date()` timestamps and sampler RNG are acceptable there
 
 ### Persistence boundaries
 
 - `PlayerSaveStore` is the single write-through hub; all disk/CloudKit writes route through it
 - Domain stores (`PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`) mutate in-memory state then delegate persistence — no direct `FileManager` or `JSONEncoder` calls outside `TrinketPersistence`
-- `UserDefaults` is intentional only for `OptionsStore` (theme, volumes, preferences) — not part of `PlayerSave`
-- `PlayerSaveSyncCoordinator` owns CloudKit reconciliation; test via `-disable-cloud-sync` to isolate
+- `UserDefaults` is intentional for:
+  - `OptionsStore` (theme, volumes, preferences)
+  - `SessionStateStore` (tab, in-flight battle, map scroll restoration — not part of `PlayerSave`)
+  - `PlayerSaveFileStore` one-time legacy journey migration only
+- `PlayerSaveSyncCoordinator` owns CloudKit reconciliation; `PlayerSaveSyncFactory` (in `TrinketPersistence`) selects CloudKit vs local-only sync; test via `-disable-cloud-sync` to isolate
 
 ### Audio side effects
 
@@ -32,13 +58,15 @@ Goal: Side effects (I/O, shared/global mutation, non-deterministic primitives) c
 - Music director and SFX triggers go through catalog types from `TrinketContent` — no raw audio URLs in feature views
 - `AVPlayer`/`AVAudioEngine` references outside `Trinket/Audio/` are violations
 
-### Non-determinism in UI
+### Non-determinism in UI / orchestration
 
 - SwiftUI `onAppear`, `task`, button actions may trigger async work, but randomness (e.g. battle damage display) must source from the battle outcome, not new `random()` calls
+- Per-battle RNG seeds are generated at the orchestration seam (`BattleRNGSeed` / `BattleSession`), not in `ActiveBattleConfiguration` defaults
+- Content randomness (`ItemGenerator`, `pickMysteryEvent`, etc.) must accept an injected `RandomNumberGenerator`
 - For UI-only randomness (e.g. decorative animations), initialize lazily with `@State var x = { … }()` or `State(initialValue: …)` — not at the view level in `let`/`var`
 
 ### Fixes
 
 - Inject the dependency (RNG, clock, store) as a parameter rather than calling the global
-- Push the effect to the designated seam (persistence → `TrinketPersistence`, audio → `Trinket/Audio/`, randomness → `state.rng`)
+- Push the effect to the designated seam (persistence → `TrinketPersistence`, audio → `Trinket/Audio/`, battle seed → `BattleSession`, randomness → `state.rng` or injected RNG)
 - Add a `// UIStyleCheck: allow - <reason>` bypass comment only when the alternative is worse than the side-effect; aim for zero

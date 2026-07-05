@@ -65,6 +65,7 @@ final class BattleSession {
         }
         activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -93,6 +94,7 @@ final class BattleSession {
 
         self.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
+            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,

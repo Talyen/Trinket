@@ -1,3 +1,4 @@
+import TrinketCore
 import XCTest
 @testable import TrinketContent
 
@@ -60,7 +61,8 @@ final class MysteryEventCatalogTests: XCTestCase {
     }
 
     func testPickMysteryEventReturnsValidEvent() {
-        let picked = GameContent.pickMysteryEvent()
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
+        let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
         XCTAssertTrue(GameContent.mysteryEvents.contains(picked))
     }
 }

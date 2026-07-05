@@ -10,6 +10,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
 
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: knight,
             pet: wolf,
             enemy: enemy
@@ -41,6 +42,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let inventory = PlayerInventoryState(items: [item])
 
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: knight,
             pet: wolf,
             enemy: enemy,
@@ -58,6 +60,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let skeleton = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
 
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: knight,
             pet: wolf,
             enemy: skeleton.combatant
@@ -75,6 +78,7 @@ final class ActiveBattleConfigurationTests: XCTestCase {
 
         let configuration = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: 0,
             hero: knight,
             pet: wolf,
             enemy: enemy,

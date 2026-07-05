@@ -10,6 +10,7 @@ final class BattleRunResetTests: XCTestCase {
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
         let enemyBuild = CombatBuildResolver.build(enemy: enemy)
         let configuration = ActiveBattleConfiguration(
+            rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),
             enemy: enemyBuild.combatant,

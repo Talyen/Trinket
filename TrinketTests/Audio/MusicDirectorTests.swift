@@ -53,6 +53,7 @@ final class MusicDirectorTests: XCTestCase {
     func testActiveBattleTakesPriorityOverPreview() throws {
         let battle = ActiveBattleConfiguration(
             stageID: "chapter-1-stage-1",
+            rngSeed: 0,
             hero: GameContent.heroes[0],
             pet: GameContent.pets[0],
             enemy: GameContent.enemy(matching: "skeleton")?.combatant
@@ -74,6 +75,7 @@ final class MusicDirectorTests: XCTestCase {
     func testLeavingPlayReturnsToMenuEvenWithActiveBattle() throws {
         let battle = ActiveBattleConfiguration(
             stageID: "chapter-1-stage-10",
+            rngSeed: 0,
             hero: GameContent.heroes[0],
             pet: GameContent.pets[0],
             enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant

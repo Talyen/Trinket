@@ -71,6 +71,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
             enemy: enemy
@@ -90,6 +91,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
         let configuration = ActiveBattleConfiguration.make(
+            rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
             enemy: enemy

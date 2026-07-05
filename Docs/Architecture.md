@@ -135,9 +135,8 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 
 - **Canonical save:** `PlayerSave` encoded by `TrinketPersistence`; `PlayerSaveStore` is the write-through hub.
 - **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore` observe/mutate slices of the save.
-- **Options/preferences:** `OptionsStore` (theme, volumes) uses `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
-- **Sync:** `PlayerSaveSyncCoordinator` debounces local writes and reconciles by `modifiedAt`; disabled in tests via `-disable-cloud-sync`.
-- **App glue:** `Trinket/State/Persistence/PlayerSaveSyncFactory.swift` wires CloudKit vs local-only sync at launch.
+- **Options/preferences:** `OptionsStore` (theme, volumes) and `SessionStateStore` (tab/battle restoration) use `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
+- **Sync:** `PlayerSaveSyncCoordinator` debounces local writes and reconciles by `modifiedAt`; `PlayerSaveSyncFactory` (in `TrinketPersistence`) picks CloudKit vs local-only at launch; disabled in tests via `-disable-cloud-sync`.
 - **Pre-ship:** `Docs/CloudKitPreShipChecklist.md`
 
 ## Tech stack
