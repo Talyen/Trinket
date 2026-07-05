@@ -5,9 +5,12 @@ import TrinketPersistence
 enum HomesteadProgression {
     static func recommendedProject(
         definitions: [HomesteadNodeDefinition],
-        screen: HomesteadScreenState
+        homestead: PlayerHomesteadState,
+        roster: PlayerRosterState
     ) -> HomesteadNodeDefinition? {
-        let statuses = definitions.map { screen.projectStatus(for: $0) }
+        let statuses = definitions.map {
+            HomesteadProjectStatus(definition: $0, homestead: homestead, roster: roster)
+        }
 
         return statuses.first(where: \.canBuildOrUpgrade)?.definition
             ?? statuses.first(where: { $0.isUnlocked && !$0.isComplete })?.definition
@@ -36,11 +39,12 @@ enum HomesteadProgression {
 
     static func walletResources(
         for featured: HomesteadNodeDefinition?,
-        screen: HomesteadScreenState
+        homestead: PlayerHomesteadState,
+        roster: PlayerRosterState
     ) -> [HomesteadResource] {
-        var resources = HomesteadResource.allCases.filter { screen.balance(for: $0) > 0 }
+        var resources = HomesteadResource.allCases.filter { homestead.balance(for: $0, roster: roster) > 0 }
         if let featured,
-           let nextTier = screen.homestead.nextTier(for: featured) {
+           let nextTier = homestead.nextTier(for: featured) {
             for amount in nextTier.cost where !resources.contains(amount.resource) {
                 resources.append(amount.resource)
             }

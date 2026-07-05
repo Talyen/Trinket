@@ -13,12 +13,11 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private var screen: HomesteadScreenState {
-        HomesteadScreenState(homestead: appState.homestead.current, roster: appState.roster.current)
-    }
+    private var homestead: PlayerHomesteadState { appState.homestead.current }
+    private var roster: PlayerRosterState { appState.roster.current }
 
     private var status: HomesteadProjectStatus {
-        screen.projectStatus(for: definition)
+        HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster)
     }
 
     var body: some View {
@@ -27,7 +26,7 @@ struct HomesteadNodeDetailView: View {
                 HomesteadDetailHeader(definition: definition, status: status)
 
                 if !status.isUnlocked {
-                    HomesteadPrerequisiteSection(definition: definition, homestead: screen.homestead)
+                    HomesteadPrerequisiteSection(definition: definition, homestead: homestead)
                 }
 
                 HomesteadBonusSection(
@@ -92,16 +91,12 @@ struct HomesteadNodeDetailView: View {
         isBuilding = true
         defer { isBuilding = false }
 
-        switch HomesteadBuildSupport.buildOrUpgrade(
-            definition,
-            homestead: appState.homestead,
-            roster: appState.roster
-        ) {
+        switch performHomesteadBuildOrUpgrade(definition, homestead: appState.homestead, roster: appState.roster) {
         case .success:
             upgradeEventCount += 1
             guard !reduceMotion else { return }
             withAnimation(.snappy) {}
-        case let .failed(message):
+        case let .failure(message):
             homesteadBuildError = message
         }
     }

@@ -4,6 +4,21 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+func performHomesteadBuildOrUpgrade(
+    _ definition: HomesteadNodeDefinition,
+    homestead: PlayerHomesteadStore,
+    roster: PlayerRosterStore
+) -> Result<Void, String> {
+    switch homestead.buildOrUpgrade(definition, roster: roster) {
+    case .success:
+        return .success(())
+    case .insufficientResources:
+        return .failure("Not enough resources to build or upgrade this project.")
+    case .persistFailed:
+        return .failure("Couldn't save homestead progress. Try again.")
+    }
+}
+
 struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
@@ -57,12 +72,26 @@ struct HomesteadResourcePill: View {
     }
 }
 
-struct HomesteadFeaturedProjectCard: View {
+struct HomesteadProjectCard: View {
+    enum Style {
+        case featured(onBuild: () -> Void)
+        case compact(isRecentlyUpgraded: Bool)
+    }
+
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
-    let onBuild: () -> Void
+    let style: Style
 
     var body: some View {
+        switch style {
+        case let .featured(onBuild):
+            featuredCard(onBuild: onBuild)
+        case let .compact(isRecentlyUpgraded):
+            compactCard(isRecentlyUpgraded: isRecentlyUpgraded)
+        }
+    }
+
+    private func featuredCard(onBuild: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             NavigationLink {
                 HomesteadNodeDetailView(definition: definition)
@@ -96,12 +125,7 @@ struct HomesteadFeaturedProjectCard: View {
                                 .foregroundStyle(.secondary)
                         }
 
-                        if let bonus = status.nextBonus ?? definition.tier(status.currentTier)?.bonus {
-                            Text(bonus.description)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        bonusText(font: .subheadline)
 
                         HomesteadTierPips(
                             currentTier: status.currentTier,
@@ -123,6 +147,72 @@ struct HomesteadFeaturedProjectCard: View {
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
+    }
+
+    private func compactCard(isRecentlyUpgraded: Bool) -> some View {
+        NavigationLink {
+            HomesteadNodeDetailView(definition: definition)
+        } label: {
+            HStack(spacing: 12) {
+                HomesteadBuildingArtwork(definition: definition)
+                    .frame(width: 78, height: 78)
+                    .saturation(status.isUnlocked ? 1 : 0.12)
+                    .opacity(status.isUnlocked ? 1 : 0.58)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(definition.title)
+                            .font(.headline)
+                            .foregroundStyle(status.isUnlocked ? .primary : .secondary)
+                            .lineLimit(2)
+
+                        Spacer(minLength: 0)
+
+                        Text("Tier \(status.currentTier)/\(definition.maxTier)")
+                            .font(.caption.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    bonusText(font: .caption)
+                        .lineLimit(2)
+
+                    HomesteadTierPips(
+                        currentTier: status.currentTier,
+                        maxTier: definition.maxTier,
+                        tint: definition.tint,
+                        isUnlocked: status.isUnlocked
+                    )
+
+                    HomesteadStatusBadge(status: status)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .trinketSurface(.denseRow)
+            .overlay {
+                if isRecentlyUpgraded {
+                    TrinketDesign.cardShape
+                        .stroke(TrinketDesign.Colors.success.opacity(0.72), lineWidth: 2)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        // UIStyleCheck: allow - Project rows use the whole row as the native navigation affordance.
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
+    }
+
+    @ViewBuilder
+    private func bonusText(font: Font) -> some View {
+        if let bonus = status.nextBonus ?? definition.tier(status.currentTier)?.bonus {
+            Text(bonus.description)
+                .font(font)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var featuredTitle: String {
@@ -172,7 +262,8 @@ struct HomesteadProjectActionFooter: View {
 struct HomesteadProjectSection: View {
     let category: HomesteadNodeCategory
     let definitions: [HomesteadNodeDefinition]
-    let screen: HomesteadScreenState
+    let homestead: PlayerHomesteadState
+    let roster: PlayerRosterState
     let recentUpgradeID: HomesteadNodeID?
 
     var body: some View {
@@ -183,82 +274,20 @@ struct HomesteadProjectSection: View {
 
             VStack(spacing: 10) {
                 ForEach(definitions) { definition in
-                    HomesteadProjectRow(
+                    HomesteadProjectCard(
                         definition: definition,
-                        status: screen.projectStatus(for: definition),
-                        isRecentlyUpgraded: recentUpgradeID == definition.id
+                        status: HomesteadProjectStatus(
+                            definition: definition,
+                            homestead: homestead,
+                            roster: roster
+                        ),
+                        style: .compact(isRecentlyUpgraded: recentUpgradeID == definition.id)
                     )
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         }
-    }
-}
-
-struct HomesteadProjectRow: View {
-    let definition: HomesteadNodeDefinition
-    let status: HomesteadProjectStatus
-    let isRecentlyUpgraded: Bool
-
-    var body: some View {
-        NavigationLink {
-            HomesteadNodeDetailView(definition: definition)
-        } label: {
-            HStack(spacing: 12) {
-                HomesteadBuildingArtwork(definition: definition)
-                    .frame(width: 78, height: 78)
-                    .saturation(status.isUnlocked ? 1 : 0.12)
-                    .opacity(status.isUnlocked ? 1 : 0.58)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(definition.title)
-                            .font(.headline)
-                            .foregroundStyle(status.isUnlocked ? .primary : .secondary)
-                            .lineLimit(2)
-
-                        Spacer(minLength: 0)
-
-                        Text("Tier \(status.currentTier)/\(definition.maxTier)")
-                            .font(.caption.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if let bonus = status.nextBonus ?? definition.tier(status.currentTier)?.bonus {
-                        Text(bonus.description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-
-                    HomesteadTierPips(
-                        currentTier: status.currentTier,
-                        maxTier: definition.maxTier,
-                        tint: definition.tint,
-                        isUnlocked: status.isUnlocked
-                    )
-
-                    HomesteadStatusBadge(status: status)
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .trinketSurface(.denseRow)
-            .overlay {
-                if isRecentlyUpgraded {
-                    TrinketDesign.cardShape
-                        .stroke(TrinketDesign.Colors.success.opacity(0.72), lineWidth: 2)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        // UIStyleCheck: allow - Project rows use the whole row as the native navigation affordance.
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 }
 
@@ -340,44 +369,6 @@ struct HomesteadTierPips: View {
     private func fillColor(for tier: Int) -> Color {
         guard isUnlocked else { return .secondary.opacity(0.18) }
         return tier <= currentTier ? tint : .secondary.opacity(0.24)
-    }
-}
-
-struct HomesteadCompactCostChips: View {
-    let cost: [ResourceAmount]
-    let status: HomesteadProjectStatus
-
-    var body: some View {
-        FlowLayout(spacing: 6, lineSpacing: 6) {
-            ForEach(cost) { amount in
-                let balance = status.balance(for: amount)
-                HStack(spacing: 5) {
-                    Image(systemName: amount.resource.symbolName)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(amount.resource.tint)
-
-                    Text(amount.resource.displayName)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.78)
-
-                    HomesteadRequirementCountText(
-                        balance: balance,
-                        required: amount.quantity,
-                        font: .caption.monospacedDigit().weight(.semibold)
-                    )
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background {
-                    Capsule(style: .continuous)
-                        .fill(status.hasEnough(amount) ? amount.resource.tint.opacity(0.12) : Color(.tertiarySystemBackground))
-                }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(amount.resource.displayName), \(status.balance(for: amount)) available, \(amount.quantity) required")
-            }
-        }
     }
 }
 

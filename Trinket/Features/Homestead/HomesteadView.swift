@@ -11,32 +11,43 @@ struct HomesteadView: View {
     @State private var recentUpgradeID: HomesteadNodeID?
     @State private var homesteadBuildError: String?
 
-    private var screen: HomesteadScreenState {
-        HomesteadScreenState(homestead: appState.homestead.current, roster: appState.roster.current)
-    }
+    private var homestead: PlayerHomesteadState { appState.homestead.current }
+    private var roster: PlayerRosterState { appState.roster.current }
 
     private var allDefinitions: [HomesteadNodeDefinition] {
         GameContent.homesteadNodes
     }
 
     private var featuredDefinition: HomesteadNodeDefinition? {
-        HomesteadProgression.recommendedProject(definitions: allDefinitions, screen: screen)
+        HomesteadProgression.recommendedProject(
+            definitions: allDefinitions,
+            homestead: homestead,
+            roster: roster
+        )
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadResourceWallet(
-                    homestead: screen.homestead,
-                    roster: screen.roster,
-                    resources: HomesteadProgression.walletResources(for: featuredDefinition, screen: screen)
+                    homestead: homestead,
+                    roster: roster,
+                    resources: HomesteadProgression.walletResources(
+                        for: featuredDefinition,
+                        homestead: homestead,
+                        roster: roster
+                    )
                 )
 
                 if let featuredDefinition {
-                    HomesteadFeaturedProjectCard(
+                    HomesteadProjectCard(
                         definition: featuredDefinition,
-                        status: screen.projectStatus(for: featuredDefinition),
-                        onBuild: { buildOrUpgrade(featuredDefinition) }
+                        status: HomesteadProjectStatus(
+                            definition: featuredDefinition,
+                            homestead: homestead,
+                            roster: roster
+                        ),
+                        style: .featured(onBuild: { buildOrUpgrade(featuredDefinition) })
                     )
                 }
 
@@ -46,7 +57,8 @@ struct HomesteadView: View {
                         HomesteadProjectSection(
                             category: category,
                             definitions: definitions,
-                            screen: screen,
+                            homestead: homestead,
+                            roster: roster,
                             recentUpgradeID: recentUpgradeID
                         )
                     }
@@ -64,11 +76,7 @@ struct HomesteadView: View {
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        switch HomesteadBuildSupport.buildOrUpgrade(
-            definition,
-            homestead: appState.homestead,
-            roster: appState.roster
-        ) {
+        switch performHomesteadBuildOrUpgrade(definition, homestead: appState.homestead, roster: appState.roster) {
         case .success:
             recentUpgradeID = definition.id
             upgradeEventCount += 1
@@ -76,7 +84,7 @@ struct HomesteadView: View {
             withAnimation(.snappy) {
                 recentUpgradeID = definition.id
             }
-        case let .failed(message):
+        case let .failure(message):
             homesteadBuildError = message
         }
     }
@@ -85,7 +93,7 @@ struct HomesteadView: View {
         HomesteadProgression.visibleDefinitions(
             in: category,
             all: allDefinitions,
-            homestead: screen.homestead
+            homestead: homestead
         )
     }
 }
