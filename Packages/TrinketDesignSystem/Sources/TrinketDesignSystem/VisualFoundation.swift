@@ -11,7 +11,6 @@ public struct ThemePalette: Sendable {
     public let accent: Color
     public let shadow: ShadowStyle
     public let textureOpacity: Double
-    public let particlesEnabledByDefault: Bool
 
     public init(
         appBackground: Color,
@@ -23,8 +22,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color,
         accent: Color,
         shadow: ShadowStyle,
-        textureOpacity: Double,
-        particlesEnabledByDefault: Bool
+        textureOpacity: Double
     ) {
         self.appBackground = appBackground
         self.secondaryBackground = secondaryBackground
@@ -36,7 +34,6 @@ public struct ThemePalette: Sendable {
         self.accent = accent
         self.shadow = shadow
         self.textureOpacity = textureOpacity
-        self.particlesEnabledByDefault = particlesEnabledByDefault
     }
 
     public static let darkTabletop = ThemePalette(
@@ -49,8 +46,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color(red: 0.95, green: 0.58, blue: 0.18),
         accent: Color(red: 0.95, green: 0.68, blue: 0.27),
         shadow: .elevated,
-        textureOpacity: 0.075,
-        particlesEnabledByDefault: true
+        textureOpacity: 0.075
     )
 
     public static let warmParchment = ThemePalette(
@@ -63,8 +59,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color(red: 0.98, green: 0.72, blue: 0.36),
         accent: Color(red: 0.66, green: 0.40, blue: 0.17),
         shadow: .subtle,
-        textureOpacity: 0.055,
-        particlesEnabledByDefault: false
+        textureOpacity: 0.055
     )
 
     public static let arcaneNight = ThemePalette(
@@ -77,8 +72,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color(red: 0.40, green: 0.31, blue: 0.96),
         accent: Color(red: 0.58, green: 0.48, blue: 0.95),
         shadow: .elevated,
-        textureOpacity: 0.06,
-        particlesEnabledByDefault: true
+        textureOpacity: 0.06
     )
 
     public static let forestAlchemy = ThemePalette(
@@ -91,8 +85,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color(red: 0.37, green: 0.72, blue: 0.28),
         accent: Color(red: 0.50, green: 0.72, blue: 0.34),
         shadow: .elevated,
-        textureOpacity: 0.065,
-        particlesEnabledByDefault: true
+        textureOpacity: 0.065
     )
 
     public static let systemNative = ThemePalette(
@@ -105,8 +98,7 @@ public struct ThemePalette: Sendable {
         ambientGlow: Color.accentColor,
         accent: Color.accentColor,
         shadow: .subtle,
-        textureOpacity: 0,
-        particlesEnabledByDefault: false
+        textureOpacity: 0
     )
 }
 
@@ -207,7 +199,6 @@ public extension EnvironmentValues {
 
 public struct TrinketScreenBackground: View {
     @Environment(\.trinketTheme) private var theme
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let mode: BackgroundMode
     private let elementTint: Color?
@@ -248,10 +239,6 @@ public struct TrinketScreenBackground: View {
             if palette.textureOpacity > 0 {
                 TrinketTextureLayer(opacity: palette.textureOpacity)
             }
-
-            if palette.particlesEnabledByDefault, !reduceMotion, mode != .denseList {
-                TrinketAtmosphereLayer(tint: elementTint ?? palette.ambientGlow, mode: mode)
-            }
         }
         .ignoresSafeArea()
     }
@@ -273,25 +260,6 @@ private struct TrinketTextureLayer: View {
                 .blendMode(.overlay)
         }
         .allowsHitTesting(false)
-    }
-}
-
-private struct TrinketAtmosphereLayer: View {
-    let tint: Color
-    let mode: BackgroundMode
-
-    var body: some View {
-        Canvas { context, size in
-            let count = mode == .battle ? 14 : 8
-            for index in 0 ..< count {
-                let x = size.width * CGFloat((index * 37 % 100)) / 100
-                let y = size.height * CGFloat((index * 61 % 100)) / 100
-                let rect = CGRect(x: x, y: y, width: 2, height: 2)
-                context.fill(Path(ellipseIn: rect), with: .color(tint.opacity(0.18)))
-            }
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 
