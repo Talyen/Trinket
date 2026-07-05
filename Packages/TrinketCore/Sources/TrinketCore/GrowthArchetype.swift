@@ -231,12 +231,13 @@ public enum StatGrowth {
             statScale = (0.55 * progress) + (0.35 * midT) + (0.52 * lateT) + (0.74 * earlyT) + (0.34 * midPeakT)
             extraToughness = Int((1.0 + (1.5 * lateT) + (4.3 * earlyT) + (1.5 * midPeakT)).rounded())
         } else {
-            healthMultiplier = 1.0 + 0.06 + (0.12 * progress) + (0.58 * midT) + (0.40 * lateT)
-                + (0.22 * midPeakT)
-            primaryStatMultiplier = 1.0 + (0.05 * progress) + (0.46 * midT) + (0.35 * lateT)
-                + (0.16 * midPeakT)
-            statScale = (0.55 * progress) + (0.70 * midT) + (0.46 * lateT) + (0.30 * midPeakT)
-            extraToughness = Int((1.0 + (1.5 * midT) + (1.0 * lateT) + (1.0 * midPeakT)).rounded())
+            // Fodder: extra compensation for 2v1 party advantage at matched level.
+            healthMultiplier = 1.0 + 0.08 + (0.14 * progress) + (0.64 * midT) + (0.46 * lateT)
+                + (0.26 * midPeakT)
+            primaryStatMultiplier = 1.0 + (0.06 * progress) + (0.52 * midT) + (0.40 * lateT)
+                + (0.20 * midPeakT)
+            statScale = (0.58 * progress) + (0.76 * midT) + (0.52 * lateT) + (0.34 * midPeakT)
+            extraToughness = Int((1.0 + (1.8 * midT) + (1.2 * lateT) + (1.2 * midPeakT)).rounded())
         }
 
         let statDelta = StatGrowthDelta(

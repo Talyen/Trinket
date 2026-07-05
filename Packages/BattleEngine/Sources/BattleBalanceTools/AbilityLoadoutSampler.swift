@@ -23,15 +23,34 @@ public enum AbilityLoadoutSampler {
     public static func defaultLoadoutPair(
         hero: Combatant,
         pet: Combatant,
-        progression: CombatantProgression
+        progression: CombatantProgression,
+        mode: LoadoutSamplingMode = .realistic
     ) -> (AbilityLoadout, AbilityLoadout) {
         var rng = SeededRandomNumberGenerator(seed: 0)
         return constrainedLoadoutPair(
             hero: hero,
             pet: pet,
             progression: progression,
+            mode: mode,
             using: &rng,
             randomize: false
+        )
+    }
+
+    public static func randomLoadoutPair<RNG: RandomNumberGenerator>(
+        hero: Combatant,
+        pet: Combatant,
+        progression: CombatantProgression,
+        mode: LoadoutSamplingMode = .realistic,
+        using randomNumberGenerator: inout RNG
+    ) -> (AbilityLoadout, AbilityLoadout) {
+        constrainedLoadoutPair(
+            hero: hero,
+            pet: pet,
+            progression: progression,
+            mode: mode,
+            using: &randomNumberGenerator,
+            randomize: true
         )
     }
 
@@ -71,12 +90,12 @@ public enum AbilityLoadoutSampler {
         progression: CombatantProgression,
         using randomNumberGenerator: inout RNG
     ) -> (AbilityLoadout, AbilityLoadout) {
-        constrainedLoadoutPair(
+        randomLoadoutPair(
             hero: hero,
             pet: pet,
             progression: progression,
-            using: &randomNumberGenerator,
-            randomize: true
+            mode: .realistic,
+            using: &randomNumberGenerator
         )
     }
 
@@ -112,6 +131,7 @@ public enum AbilityLoadoutSampler {
         hero: Combatant,
         pet: Combatant,
         progression: CombatantProgression,
+        mode: LoadoutSamplingMode,
         using randomNumberGenerator: inout RNG,
         randomize: Bool
     ) -> (AbilityLoadout, AbilityLoadout) {
@@ -119,8 +139,18 @@ public enum AbilityLoadoutSampler {
         var petLoadout: AbilityLoadout
 
         if randomize {
-            heroLoadout = randomLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
-            petLoadout = randomLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
+            heroLoadout = sampledLoadout(
+                for: hero,
+                progression: progression,
+                mode: mode,
+                using: &randomNumberGenerator
+            )
+            petLoadout = sampledLoadout(
+                for: pet,
+                progression: progression,
+                mode: mode,
+                using: &randomNumberGenerator
+            )
         } else {
             heroLoadout = damageBiasedLoadout(for: hero, progression: progression, using: &randomNumberGenerator)
             petLoadout = damageBiasedLoadout(for: pet, progression: progression, using: &randomNumberGenerator)
@@ -135,6 +165,35 @@ public enum AbilityLoadoutSampler {
             using: &randomNumberGenerator
         )
         return (heroLoadout, petLoadout)
+    }
+
+    private static func sampledLoadout<RNG: RandomNumberGenerator>(
+        for combatant: Combatant,
+        progression: CombatantProgression,
+        mode: LoadoutSamplingMode,
+        using randomNumberGenerator: inout RNG
+    ) -> AbilityLoadout {
+        switch mode {
+        case .optimistic:
+            return damageBiasedLoadout(
+                for: combatant,
+                progression: progression,
+                using: &randomNumberGenerator
+            )
+        case .realistic:
+            if Bool.random(using: &randomNumberGenerator) {
+                return damageBiasedLoadout(
+                    for: combatant,
+                    progression: progression,
+                    using: &randomNumberGenerator
+                )
+            }
+            return randomLoadout(
+                for: combatant,
+                progression: progression,
+                using: &randomNumberGenerator
+            )
+        }
     }
 
     private static func damageBiasedLoadout<RNG: RandomNumberGenerator>(

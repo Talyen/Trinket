@@ -12,8 +12,7 @@ public enum BalanceSweepRunner {
     }
 
     public static func run(_ request: BalanceSweepRequest = .default) -> BalanceSweepResult {
-        let triples = request.triples ?? BalanceSweepCatalog.allTriples()
-        let workItems = buildWorkItems(triples: triples, request: request)
+        let workItems = buildWorkItems(request: request)
         let matchupRows = runMatchups(workItems, request: request)
 
         let abilityRows = request.includeAbilityAnalysis
@@ -24,12 +23,25 @@ public enum BalanceSweepRunner {
             matchupRows: matchupRows,
             abilityRows: abilityRows
         )
+        let kpis = BalanceSweepKPIs.compute(from: matchupRows)
+        let gateViolations = BalanceGateEvaluator.evaluate(
+            BalanceSweepResult(
+                request: request,
+                matchupRows: matchupRows,
+                abilityRows: abilityRows,
+                anomalies: anomalies,
+                kpis: kpis,
+                generatedAt: Date()
+            )
+        )
 
         return BalanceSweepResult(
             request: request,
             matchupRows: matchupRows,
             abilityRows: abilityRows,
             anomalies: anomalies,
+            kpis: kpis,
+            gateViolations: gateViolations,
             generatedAt: Date()
         )
     }
@@ -43,14 +55,15 @@ public enum BalanceSweepRunner {
         )
     }
 
-    private static func buildWorkItems(
-        triples: [BalanceSweepTriple],
-        request: BalanceSweepRequest
-    ) -> [MatchupWorkItem] {
+    private static func buildWorkItems(request: BalanceSweepRequest) -> [MatchupWorkItem] {
         var workItems: [MatchupWorkItem] = []
         var matchupIndex = 0
 
         for tier in request.tiers {
+            let triples = request.triples ?? BalanceSweepCatalog.triples(
+                for: tier,
+                stageWeighted: request.stageWeighted
+            )
             let sampleCount = tier.usesRandomLoadouts ? request.loadoutSamplesPerMatchup : 1
             for triple in triples {
                 for sampleIndex in 0 ..< sampleCount {
@@ -130,13 +143,15 @@ extension BalanceSweepRunner {
                 hero: triple.hero,
                 pet: triple.pet,
                 progression: progression,
+                mode: request.loadoutSamplingMode,
                 using: &sampleRNG
             )
         } else {
             (heroLoadout, petLoadout) = AbilityLoadoutSampler.defaultLoadoutPair(
                 hero: triple.hero,
                 pet: triple.pet,
-                progression: progression
+                progression: progression,
+                mode: request.loadoutSamplingMode
             )
         }
 

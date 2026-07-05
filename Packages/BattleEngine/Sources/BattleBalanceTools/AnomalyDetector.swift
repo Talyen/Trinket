@@ -1,23 +1,32 @@
 import Foundation
 
+public enum EnemyDifficultyRole: String, Sendable, Codable, CaseIterable {
+    case fodder
+    case elite
+    case boss
+}
+
 public enum AnomalyDetector {
     public struct Thresholds: Equatable, Sendable {
         public let hardCounterWinRate: Double
         public let timeoutRate: Double
-        public let prolongedFightTicks: Int
+        public let minFightTicks: Int
+        public let maxFightTicks: Int
         public let underpoweredAbilityWinRate: Double
         public let overpoweredAbilityWinRate: Double
 
         public init(
             hardCounterWinRate: Double = 0.25,
             timeoutRate: Double = 0.10,
-            prolongedFightTicks: Int = 100,
+            minFightTicks: Int = BalanceSweepDefaults.minFightTicks,
+            maxFightTicks: Int = BalanceSweepDefaults.maxFightTicks,
             underpoweredAbilityWinRate: Double = 0.45,
             overpoweredAbilityWinRate: Double = 0.55
         ) {
             self.hardCounterWinRate = hardCounterWinRate
             self.timeoutRate = timeoutRate
-            self.prolongedFightTicks = prolongedFightTicks
+            self.minFightTicks = minFightTicks
+            self.maxFightTicks = maxFightTicks
             self.underpoweredAbilityWinRate = underpoweredAbilityWinRate
             self.overpoweredAbilityWinRate = overpoweredAbilityWinRate
         }
@@ -28,26 +37,62 @@ public enum AnomalyDetector {
     public struct WinRateBand: Equatable, Sendable {
         public let min: Double
         public let max: Double
+        public let role: EnemyDifficultyRole
+        public let tier: SimulationPowerTier
 
-        public init(min: Double, max: Double) {
+        public init(min: Double, max: Double, role: EnemyDifficultyRole, tier: SimulationPowerTier) {
             self.min = min
             self.max = max
+            self.role = role
+            self.tier = tier
         }
     }
 
-    public static func targetBand(for row: MatchupSweepRow) -> WinRateBand {
-        if row.isBoss || row.isElite {
-            return WinRateBand(min: 0.70, max: 0.80)
-        }
+    public static func enemyRole(for row: MatchupSweepRow) -> EnemyDifficultyRole {
+        if row.isBoss { return .boss }
+        if row.isElite { return .elite }
+        return .fodder
+    }
 
-        switch row.tier {
-        case .early:
-            return WinRateBand(min: 0.90, max: 0.99)
-        case .middle:
-            return WinRateBand(min: 0.80, max: 0.90)
-        case .lateGame:
-            return WinRateBand(min: 0.70, max: 0.80)
+    public static func enemyRole(isBoss: Bool, isElite: Bool) -> EnemyDifficultyRole {
+        if isBoss { return .boss }
+        if isElite { return .elite }
+        return .fodder
+    }
+
+    /// Win-rate targets by simulation tier and enemy role.
+    ///
+    /// | Role   | Early   | Middle  | Late    |
+    /// |--------|---------|---------|---------|
+    /// | Fodder | 90–99%  | 80–90%  | 70–80%  |
+    /// | Elite  | 80–90%  | 70–80%  | 60–70%  |
+    /// | Boss   | 70–80%  | 60–70%  | 50–60%  |
+    public static func targetBand(for row: MatchupSweepRow) -> WinRateBand {
+        targetBand(tier: row.tier, role: enemyRole(for: row))
+    }
+
+    public static func targetBand(tier: SimulationPowerTier, role: EnemyDifficultyRole) -> WinRateBand {
+        let bounds: (min: Double, max: Double)
+        switch (tier, role) {
+        case (.early, .fodder): bounds = (0.90, 0.99)
+        case (.middle, .fodder): bounds = (0.80, 0.90)
+        case (.lateGame, .fodder): bounds = (0.70, 0.80)
+        case (.early, .elite): bounds = (0.80, 0.90)
+        case (.middle, .elite): bounds = (0.70, 0.80)
+        case (.lateGame, .elite): bounds = (0.60, 0.70)
+        case (.early, .boss): bounds = (0.70, 0.80)
+        case (.middle, .boss): bounds = (0.60, 0.70)
+        case (.lateGame, .boss): bounds = (0.50, 0.60)
         }
+        return WinRateBand(min: bounds.min, max: bounds.max, role: role, tier: tier)
+    }
+
+    public static func isDurationInBand(
+        averageTickCount: Double,
+        thresholds: Thresholds = .default
+    ) -> Bool {
+        averageTickCount >= Double(thresholds.minFightTicks)
+            && averageTickCount <= Double(thresholds.maxFightTicks)
     }
 
     public static func detect(
@@ -59,6 +104,7 @@ public enum AnomalyDetector {
 
         for row in matchupRows {
             let target = targetBand(for: row)
+            let roleLabel = target.role.rawValue
 
             if row.tickLimitRate >= thresholds.timeoutRate {
                 anomalies.append(
@@ -66,17 +112,27 @@ public enum AnomalyDetector {
                         kind: .timeout,
                         severity: .critical,
                         subjectID: row.id,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) exceeded \(thresholds.prolongedFightTicks)-tick limit \(percent(row.tickLimitRate)) of runs",
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) exceeded \(thresholds.maxFightTicks)-tick limit \(percent(row.tickLimitRate)) of runs",
                         value: row.tickLimitRate
                     )
                 )
-            } else if row.averageTickCount > Double(thresholds.prolongedFightTicks) {
+            } else if row.averageTickCount > Double(thresholds.maxFightTicks) {
                 anomalies.append(
                     BalanceAnomaly(
-                        kind: .prolongedFight,
+                        kind: .timeout,
                         severity: .critical,
                         subjectID: row.id,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) averaged \(String(format: "%.0f", row.averageTickCount)) ticks (limit \(thresholds.prolongedFightTicks))",
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) averaged \(String(format: "%.0f", row.averageTickCount)) ticks (max \(thresholds.maxFightTicks))",
+                        value: row.averageTickCount
+                    )
+                )
+            } else if row.averageTickCount < Double(thresholds.minFightTicks) {
+                anomalies.append(
+                    BalanceAnomaly(
+                        kind: .tooShort,
+                        severity: .warning,
+                        subjectID: row.id,
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) averaged \(String(format: "%.0f", row.averageTickCount)) ticks (min \(thresholds.minFightTicks))",
                         value: row.averageTickCount
                     )
                 )
@@ -89,7 +145,7 @@ public enum AnomalyDetector {
                         kind: .hardCounter,
                         severity: .critical,
                         subjectID: row.id,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate))",
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate))",
                         value: row.winRate
                     )
                 )
@@ -99,7 +155,7 @@ public enum AnomalyDetector {
                         kind: .belowTarget,
                         severity: .warning,
                         subjectID: row.id,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
                 )
@@ -109,7 +165,7 @@ public enum AnomalyDetector {
                         kind: .aboveTarget,
                         severity: .warning,
                         subjectID: row.id,
-                        detail: "\(row.tier.displayName): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
+                        detail: "\(row.tier.displayName) (\(roleLabel)): \(row.heroID)+\(row.petID) vs \(row.enemyID) win rate \(percent(row.winRate)) (target \(percent(target.min))-\(percent(target.max)))",
                         value: row.winRate
                     )
                 )

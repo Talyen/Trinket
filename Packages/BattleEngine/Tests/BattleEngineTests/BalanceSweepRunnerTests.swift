@@ -24,6 +24,7 @@ final class BalanceSweepRunnerTests: XCTestCase {
         XCTAssertEqual(result.matchupRows.count, 2)
         XCTAssertTrue(result.abilityRows.isEmpty)
         XCTAssertFalse(result.matchupRows.contains { $0.runCount != 2 })
+        XCTAssertEqual(result.kpis.totalMatchupRows, 2)
     }
 
     func testGenerateBalanceReport() throws {
@@ -47,7 +48,83 @@ final class BalanceSweepRunnerTests: XCTestCase {
 
         XCTAssertFalse(result.matchupRows.isEmpty)
         XCTAssertTrue(html.contains("Balance Sweep Report"))
+        XCTAssertTrue(html.contains("KPIs"))
         XCTAssertFalse(json.isEmpty)
+    }
+}
+
+final class BalanceSweepKPIsTests: XCTestCase {
+    func testComputeTracksInBandPerfectWinAndDuration() {
+        let rows = [
+            MatchupSweepRow(
+                tier: .middle,
+                heroID: "knight",
+                petID: "wolf",
+                enemyID: "goblin",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 14,
+                tickLimitCount: 0,
+                runCount: 20,
+                averageTickCount: 42,
+                averageActionCount: 30
+            ),
+            MatchupSweepRow(
+                tier: .middle,
+                heroID: "knight",
+                petID: "wolf",
+                enemyID: "slime",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 20,
+                tickLimitCount: 0,
+                runCount: 20,
+                averageTickCount: 5,
+                averageActionCount: 4
+            )
+        ]
+
+        let kpis = BalanceSweepKPIs.compute(from: rows)
+        XCTAssertEqual(kpis.totalMatchupRows, 2)
+        XCTAssertEqual(kpis.inBandCount, 1)
+        XCTAssertEqual(kpis.perfectWinCount, 1)
+        XCTAssertEqual(kpis.durationInBandCount, 1)
+    }
+}
+
+final class BalanceGateEvaluatorTests: XCTestCase {
+    func testFlagsFodderPerfectWinRateViolation() {
+        let request = BalanceSweepRequest(tiers: [.middle])
+        let rows = (0 ..< 10).map { index in
+            MatchupSweepRow(
+                tier: .middle,
+                heroID: "knight",
+                petID: "wolf",
+                enemyID: "enemy-\(index)",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 20,
+                tickLimitCount: 0,
+                runCount: 20,
+                averageTickCount: 30,
+                averageActionCount: 20
+            )
+        }
+        let kpis = BalanceSweepKPIs.compute(from: rows)
+        let result = BalanceSweepResult(
+            request: request,
+            matchupRows: rows,
+            abilityRows: [],
+            anomalies: [],
+            kpis: kpis,
+            generatedAt: Date()
+        )
+
+        let violations = BalanceGateEvaluator.evaluate(result)
+        XCTAssertTrue(violations.contains { $0.metric == "middle.fodder.perfectWinRate" })
     }
 }
 
@@ -91,7 +168,17 @@ final class SimulationMatchupAssemblerTests: XCTestCase {
 }
 
 final class AnomalyDetectorTests: XCTestCase {
-    func testDetectsHardCounterTimeoutAndUnderpoweredAbility() {
+    func testTargetBandsByRoleAndTier() {
+        let earlyFodder = AnomalyDetector.targetBand(tier: .early, role: .fodder)
+        XCTAssertEqual(earlyFodder.min, 0.90)
+        XCTAssertEqual(earlyFodder.max, 0.99)
+
+        let lateBoss = AnomalyDetector.targetBand(tier: .lateGame, role: .boss)
+        XCTAssertEqual(lateBoss.min, 0.50)
+        XCTAssertEqual(lateBoss.max, 0.60)
+    }
+
+    func testDetectsHardCounterTimeoutTooShortAndUnderpoweredAbility() {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .early,
@@ -118,8 +205,22 @@ final class AnomalyDetectorTests: XCTestCase {
                 winCount: 0,
                 tickLimitCount: 10,
                 runCount: 10,
-                averageTickCount: 480,
+                averageTickCount: 100,
                 averageActionCount: 40
+            ),
+            MatchupSweepRow(
+                tier: .middle,
+                heroID: "knight",
+                petID: "wolf",
+                enemyID: "slime",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 20,
+                tickLimitCount: 0,
+                runCount: 20,
+                averageTickCount: 4,
+                averageActionCount: 3
             )
         ]
         let abilityRows = [
@@ -141,6 +242,29 @@ final class AnomalyDetectorTests: XCTestCase {
 
         XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
         XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
+        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.tooShort })
         XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
+    }
+
+    func testDetectsAboveTargetForPerfectFodderWin() {
+        let matchupRows = [
+            MatchupSweepRow(
+                tier: .middle,
+                heroID: "knight",
+                petID: "wolf",
+                enemyID: "goblin",
+                isBoss: false,
+                isElite: false,
+                loadoutSampleIndex: 0,
+                winCount: 20,
+                tickLimitCount: 0,
+                runCount: 20,
+                averageTickCount: 25,
+                averageActionCount: 18
+            )
+        ]
+
+        let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: [])
+        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.aboveTarget })
     }
 }

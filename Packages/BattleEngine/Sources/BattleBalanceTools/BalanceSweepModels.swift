@@ -3,6 +3,11 @@ import TrinketCore
 import TrinketContent
 import BattleEngine
 
+public enum LoadoutSamplingMode: String, Codable, Sendable, CaseIterable {
+    case optimistic
+    case realistic
+}
+
 public struct BalanceSweepRequest: Equatable, Sendable {
     public let tiers: [SimulationPowerTier]
     public let runsPerMatchup: Int
@@ -12,6 +17,8 @@ public struct BalanceSweepRequest: Equatable, Sendable {
     public let representativeHeroID: String
     public let representativePetID: String
     public let maxTicks: Int
+    public let stageWeighted: Bool
+    public let loadoutSamplingMode: LoadoutSamplingMode
     public let triples: [BalanceSweepTriple]?
 
     public init(
@@ -23,6 +30,8 @@ public struct BalanceSweepRequest: Equatable, Sendable {
         representativeHeroID: String = BalanceSweepDefaults.representativeHeroID,
         representativePetID: String = BalanceSweepDefaults.representativePetID,
         maxTicks: Int = BalanceSweepDefaults.maxTicks,
+        stageWeighted: Bool = false,
+        loadoutSamplingMode: LoadoutSamplingMode = .realistic,
         triples: [BalanceSweepTriple]? = nil
     ) {
         self.tiers = tiers
@@ -33,13 +42,23 @@ public struct BalanceSweepRequest: Equatable, Sendable {
         self.representativeHeroID = representativeHeroID
         self.representativePetID = representativePetID
         self.maxTicks = max(1, maxTicks)
+        self.stageWeighted = stageWeighted
+        self.loadoutSamplingMode = loadoutSamplingMode
         self.triples = triples
     }
 
     public static let `default` = BalanceSweepRequest()
 
     var encodedTripleCount: Int {
-        triples?.count ?? BalanceSweepCatalog.allTriples().count
+        if let triples {
+            return triples.count
+        }
+        if stageWeighted {
+            return tiers.reduce(0) { partial, tier in
+                partial + BalanceSweepCatalog.triples(for: tier, stageWeighted: true).count
+            }
+        }
+        return BalanceSweepCatalog.allTriples().count
     }
 }
 
@@ -52,6 +71,8 @@ public struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
     public let representativeHeroID: String
     public let representativePetID: String
     public let maxTicks: Int
+    public let stageWeighted: Bool
+    public let loadoutSamplingMode: String
     public let tripleCount: Int
 
     public init(request: BalanceSweepRequest) {
@@ -63,6 +84,8 @@ public struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
         representativeHeroID = request.representativeHeroID
         representativePetID = request.representativePetID
         maxTicks = request.maxTicks
+        stageWeighted = request.stageWeighted
+        loadoutSamplingMode = request.loadoutSamplingMode.rawValue
         tripleCount = request.encodedTripleCount
     }
 }
@@ -188,6 +211,7 @@ public struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
         case belowTarget
         case aboveTarget
         case timeout
+        case tooShort
         case prolongedFight
         case underpoweredAbility
         case overpoweredAbility
@@ -232,6 +256,8 @@ public struct BalanceSweepResult: Equatable, Sendable, Codable {
     public let matchupRows: [MatchupSweepRow]
     public let abilityRows: [AbilityComparisonRow]
     public let anomalies: [BalanceAnomaly]
+    public let kpis: BalanceSweepKPIs
+    public let gateViolations: [BalanceGateViolation]
     public let generatedAt: Date
 
     public init(
@@ -239,12 +265,16 @@ public struct BalanceSweepResult: Equatable, Sendable, Codable {
         matchupRows: [MatchupSweepRow],
         abilityRows: [AbilityComparisonRow],
         anomalies: [BalanceAnomaly],
+        kpis: BalanceSweepKPIs,
+        gateViolations: [BalanceGateViolation] = [],
         generatedAt: Date
     ) {
         self.request = BalanceSweepRequestSnapshot(request: request)
         self.matchupRows = matchupRows
         self.abilityRows = abilityRows
         self.anomalies = anomalies
+        self.kpis = kpis
+        self.gateViolations = gateViolations
         self.generatedAt = generatedAt
     }
 }

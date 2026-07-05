@@ -38,6 +38,8 @@ public enum BalanceReportRenderer {
         html.append("</header>")
 
         html.append(summarySection(result))
+        html.append(kpiSection(result))
+        html.append(gateSection(result))
         html.append(anomalySection(result))
         html.append(matchupSection(result))
         html.append(bossSection(result))
@@ -64,21 +66,13 @@ public enum BalanceReportRenderer {
                 return row.winRate >= band.min && row.winRate <= band.max
             }.count
             let timeoutRows = rows.filter { $0.tickLimitCount > 0 }.count
-            let targetLabel: String
-            switch tier {
-            case .early:
-                targetLabel = "90–99% (normal) / 70–80% (elite/boss)"
-            case .middle:
-                targetLabel = "80–90% (normal) / 70–80% (elite/boss)"
-            case .lateGame:
-                targetLabel = "70–80%"
-            }
+            let targetLabel = roleTargetSummary(for: tier)
             cards.append("""
             <div class="card">
               <span>\(escape(tier.displayName))</span>
               <strong>\(percent(averageWinRate))</strong>
               <span>avg win rate · \(rows.count) rows</span>
-              <span>\(inTargetBand) in target band (\(targetLabel)) · \(timeoutRows) timeout rows</span>
+              <span>\(inTargetBand) in target band (\(escape(targetLabel))) · \(timeoutRows) timeout rows</span>
             </div>
             """)
         }
@@ -89,6 +83,63 @@ public enum BalanceReportRenderer {
           <div class="summary-grid">\(cards.joined())</div>
         </section>
         """
+    }
+
+    private static func kpiSection(_ result: BalanceSweepResult) -> String {
+        let kpis = result.kpis
+        var cards: [String] = []
+        cards.append("""
+        <div class="card">
+          <span>Overall</span>
+          <strong>\(percent(kpis.inBandRate))</strong>
+          <span>in band · \(percent(kpis.perfectWinRate)) perfect wins</span>
+          <span>\(percent(kpis.durationInBandRate)) duration in 10–100 ticks</span>
+        </div>
+        """)
+
+        for tierRaw in result.request.tiers {
+            guard let tierKPI = kpis.byTier[tierRaw] else { continue }
+            let tierName = SimulationPowerTier(rawValue: tierRaw)?.displayName ?? tierRaw
+            cards.append("""
+            <div class="card">
+              <span>\(escape(tierName))</span>
+              <strong>\(percent(tierKPI.inBandRate))</strong>
+              <span>in band · \(percent(tierKPI.perfectWinRate)) perfect wins</span>
+              <span>\(percent(tierKPI.durationInBandRate)) duration in band</span>
+            </div>
+            """)
+        }
+
+        return """
+        <section>
+          <h2>KPIs</h2>
+          <div class="summary-grid">\(cards.joined())</div>
+        </section>
+        """
+    }
+
+    private static func gateSection(_ result: BalanceSweepResult) -> String {
+        guard !result.gateViolations.isEmpty else {
+            return "<section><h2>Balance Gate</h2><p>All CI gate thresholds passed.</p></section>"
+        }
+
+        let items = result.gateViolations.map { violation in
+            "<li class=\"anomaly\">\(escape(violation.detail))</li>"
+        }.joined()
+
+        return """
+        <section>
+          <h2>Balance Gate</h2>
+          <ul class="anomalies">\(items)</ul>
+        </section>
+        """
+    }
+
+    private static func roleTargetSummary(for tier: SimulationPowerTier) -> String {
+        let fodder = AnomalyDetector.targetBand(tier: tier, role: .fodder)
+        let elite = AnomalyDetector.targetBand(tier: tier, role: .elite)
+        let boss = AnomalyDetector.targetBand(tier: tier, role: .boss)
+        return "fodder \(percent(fodder.min))–\(percent(fodder.max)), elite \(percent(elite.min))–\(percent(elite.max)), boss \(percent(boss.min))–\(percent(boss.max))"
     }
 
     private static func anomalySection(_ result: BalanceSweepResult) -> String {

@@ -37,6 +37,24 @@ jobs:
       - name: Validate release notes config
         run: ./Scripts/release-notes.sh validate
 
+  balance-gate:
+    name: Balance gate
+    needs: gate
+    runs-on: macos-latest
+    steps:
+      - uses: ./.github/actions/setup-trinket
+
+      - name: Run CI balance gate sweep
+        run: ./Scripts/assert-balance-gate.sh
+
+      - name: Upload balance gate report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: balance-gate-report-${{ github.run_id }}
+          path: .DerivedData/BalanceReports/ci-gate.*
+          if-no-files-found: ignore
+
   build:
     name: Build for testing
     needs: gate
