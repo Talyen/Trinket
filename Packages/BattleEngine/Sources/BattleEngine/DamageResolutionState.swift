@@ -34,25 +34,25 @@ package struct DamageResolutionState {
     public var statBonus: Int = 0
     public var itemBonus: Int = 0
 
-    /// Working copy of the target's active effects. `ShieldAbsorptionStep`
-    /// mutates this copy after mitigation and item reduction; `TakeDamageStep`
-    /// commits it back to the roster.
+    /// Working copy of the target's active effects. Shield absorption mutates
+    /// this copy after mitigation and item reduction; take-damage commits it
+    /// back to the roster.
     public var activeEffects: [ActiveEffect] = []
 
-    /// Health actually subtracted by `TakeDamageStep`.
+    /// Health actually subtracted by the take-damage step.
     public var healthLost: Int = 0
 
     /// Accumulated events emitted by the dodge, shield, and control-meter steps.
     public var damageEvents: [ActionEvent] = []
 
-    /// Set to `true` by `DodgeGateStep` when the incoming attack is dodged;
+    /// Set to `true` by the dodge gate when the incoming attack is dodged;
     /// the orchestrator then short-circuits and returns `(0, damageEvents)`.
     public var isDodged: Bool = false
 
-    /// Set to `true` by `CriticalGateStep` when the hit critically strikes.
+    /// Set to `true` by the critical gate when the hit critically strikes.
     public var isCritical: Bool = false
 
-    /// Set to `true` when `MarkedBonusStep` adds bonus damage from a Mark.
+    /// Set to `true` when marked bonus damage is applied.
     public var markedBonusApplied: Bool = false
 
     public init(
@@ -82,11 +82,3 @@ package struct DamageResolutionState {
     }
 }
 
-/// One step in the damage pipeline. Steps are stateless structs registered
-/// in `DamagePipeline.steps` and executed in canonical order.
-protocol DamageStep {
-    static var stepName: String { get }
-    static var phase: DamagePhase { get }
-    init()
-    mutating func apply(to state: inout DamageResolutionState, in context: inout BattleEngineContext)
-}
