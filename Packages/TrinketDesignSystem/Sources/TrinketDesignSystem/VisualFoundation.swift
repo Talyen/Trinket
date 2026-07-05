@@ -150,6 +150,10 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
 }
 
 public struct BackgroundTuningValues: Equatable, Sendable {
+    public var tintHue: Double
+    public var tintSaturation: Double
+    public var tintBrightness: Double
+    public var tintOpacity: Double
     public var accentWashOpacity: Double
     public var surfaceWashOpacity: Double
     public var bandOpacity: Double
@@ -161,6 +165,10 @@ public struct BackgroundTuningValues: Equatable, Sendable {
     public var textureOpacity: Double
 
     public init(
+        tintHue: Double,
+        tintSaturation: Double,
+        tintBrightness: Double,
+        tintOpacity: Double,
         accentWashOpacity: Double,
         surfaceWashOpacity: Double,
         bandOpacity: Double,
@@ -171,6 +179,10 @@ public struct BackgroundTuningValues: Equatable, Sendable {
         lineAngleDegrees: Double,
         textureOpacity: Double
     ) {
+        self.tintHue = tintHue
+        self.tintSaturation = tintSaturation
+        self.tintBrightness = tintBrightness
+        self.tintOpacity = tintOpacity
         self.accentWashOpacity = accentWashOpacity
         self.surfaceWashOpacity = surfaceWashOpacity
         self.bandOpacity = bandOpacity
@@ -183,6 +195,10 @@ public struct BackgroundTuningValues: Equatable, Sendable {
     }
 
     public static let defaultPreview = BackgroundTuningValues(
+        tintHue: 0.10,
+        tintSaturation: 0.42,
+        tintBrightness: 0.48,
+        tintOpacity: 0.12,
         accentWashOpacity: 0.018,
         surfaceWashOpacity: 0.10,
         bandOpacity: 0.045,
@@ -288,6 +304,14 @@ public struct TrinketScreenBackground: View {
             palette.appBackground
 
             if let tuning {
+                Rectangle()
+                    .fill(Color(
+                        hue: tuning.tintHue,
+                        saturation: tuning.tintSaturation,
+                        brightness: tuning.tintBrightness
+                    ).opacity(tuning.tintOpacity))
+                    .blendMode(.overlay)
+
                 Rectangle()
                     .fill(accentColor.opacity(tuning.accentWashOpacity))
                     .blendMode(.softLight)
