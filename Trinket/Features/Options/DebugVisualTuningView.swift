@@ -25,122 +25,122 @@ struct VisualTuningVariant: Identifiable {
     static let gallery: [VisualTuningVariant] = [
         VisualTuningVariant(
             id: 1,
-            name: "Soft Corner",
+            name: "Quiet Corner",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.12,
-                mainGlowStartRadius: 18,
-                mainGlowEndRadius: 620,
+                mainGlowOpacity: 0.055,
+                mainGlowStartRadius: 56,
+                mainGlowEndRadius: 720,
                 mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.08,
-                elementGlowStartRadius: 24,
-                elementGlowEndRadius: 500,
+                elementGlowOpacity: 0.025,
+                elementGlowStartRadius: 72,
+                elementGlowEndRadius: 620,
                 elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0.035
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 2,
-            name: "Deep Wash",
+            name: "Panel Warmth",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.20,
-                mainGlowStartRadius: 8,
-                mainGlowEndRadius: 560,
-                mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.10,
-                elementGlowStartRadius: 18,
-                elementGlowEndRadius: 420,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0.075
+                mainGlowOpacity: 0.035,
+                mainGlowStartRadius: 110,
+                mainGlowEndRadius: 860,
+                mainGlowAnchor: .top,
+                elementGlowOpacity: 0.045,
+                elementGlowStartRadius: 82,
+                elementGlowEndRadius: 540,
+                elementGlowAnchor: .bottom,
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 3,
-            name: "Centered Haze",
+            name: "Center Veil",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.15,
-                mainGlowStartRadius: 40,
-                mainGlowEndRadius: 700,
+                mainGlowOpacity: 0.045,
+                mainGlowStartRadius: 120,
+                mainGlowEndRadius: 900,
                 mainGlowAnchor: .center,
-                elementGlowOpacity: 0.06,
-                elementGlowStartRadius: 28,
-                elementGlowEndRadius: 460,
-                elementGlowAnchor: .bottom,
-                textureOpacity: 0.045
+                elementGlowOpacity: 0.018,
+                elementGlowStartRadius: 100,
+                elementGlowEndRadius: 700,
+                elementGlowAnchor: .topTrailing,
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 4,
-            name: "Low Ember",
+            name: "Low Lift",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.18,
-                mainGlowStartRadius: 18,
-                mainGlowEndRadius: 520,
-                mainGlowAnchor: .bottomTrailing,
-                elementGlowOpacity: 0.14,
-                elementGlowStartRadius: 20,
-                elementGlowEndRadius: 520,
+                mainGlowOpacity: 0.05,
+                mainGlowStartRadius: 80,
+                mainGlowEndRadius: 680,
+                mainGlowAnchor: .bottom,
+                elementGlowOpacity: 0.035,
+                elementGlowStartRadius: 72,
+                elementGlowEndRadius: 600,
                 elementGlowAnchor: .topLeading,
-                textureOpacity: 0.055
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 5,
-            name: "Airy",
+            name: "Edge Light",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.09,
-                mainGlowStartRadius: 80,
-                mainGlowEndRadius: 780,
-                mainGlowAnchor: .top,
-                elementGlowOpacity: 0.05,
-                elementGlowStartRadius: 48,
-                elementGlowEndRadius: 620,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0.02
+                mainGlowOpacity: 0.04,
+                mainGlowStartRadius: 96,
+                mainGlowEndRadius: 760,
+                mainGlowAnchor: .trailing,
+                elementGlowOpacity: 0.03,
+                elementGlowStartRadius: 96,
+                elementGlowEndRadius: 760,
+                elementGlowAnchor: .leading,
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 6,
-            name: "Vignette",
+            name: "Battle Hush",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.24,
-                mainGlowStartRadius: 4,
-                mainGlowEndRadius: 430,
-                mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.12,
-                elementGlowStartRadius: 16,
-                elementGlowEndRadius: 360,
-                elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0.09
+                mainGlowOpacity: 0.075,
+                mainGlowStartRadius: 52,
+                mainGlowEndRadius: 580,
+                mainGlowAnchor: .topLeading,
+                elementGlowOpacity: 0.055,
+                elementGlowStartRadius: 48,
+                elementGlowEndRadius: 520,
+                elementGlowAnchor: .bottomTrailing,
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 7,
-            name: "Side Light",
+            name: "Air Wash",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.16,
-                mainGlowStartRadius: 22,
-                mainGlowEndRadius: 650,
-                mainGlowAnchor: .trailing,
-                elementGlowOpacity: 0.09,
-                elementGlowStartRadius: 22,
-                elementGlowEndRadius: 520,
-                elementGlowAnchor: .leading,
-                textureOpacity: 0.04
+                mainGlowOpacity: 0.028,
+                mainGlowStartRadius: 120,
+                mainGlowEndRadius: 900,
+                mainGlowAnchor: .top,
+                elementGlowOpacity: 0.016,
+                elementGlowStartRadius: 120,
+                elementGlowEndRadius: 820,
+                elementGlowAnchor: .bottomLeading,
+                textureOpacity: 0
             )
         ),
         VisualTuningVariant(
             id: 8,
-            name: "Bright Rune",
+            name: "Accent Pool",
             values: BackgroundTuningValues(
-                mainGlowOpacity: 0.28,
-                mainGlowStartRadius: 10,
-                mainGlowEndRadius: 500,
+                mainGlowOpacity: 0.065,
+                mainGlowStartRadius: 44,
+                mainGlowEndRadius: 540,
                 mainGlowAnchor: .topTrailing,
-                elementGlowOpacity: 0.18,
-                elementGlowStartRadius: 16,
-                elementGlowEndRadius: 440,
+                elementGlowOpacity: 0.07,
+                elementGlowStartRadius: 40,
+                elementGlowEndRadius: 460,
                 elementGlowAnchor: .bottomLeading,
-                textureOpacity: 0.065
+                textureOpacity: 0
             )
         )
     ]

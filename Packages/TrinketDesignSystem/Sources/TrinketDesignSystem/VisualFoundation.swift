@@ -227,15 +227,15 @@ public struct BackgroundTuningValues: Equatable, Sendable {
     }
 
     public static let defaultPreview = BackgroundTuningValues(
-        mainGlowOpacity: 0.18,
-        mainGlowStartRadius: 12,
-        mainGlowEndRadius: 520,
+        mainGlowOpacity: 0.07,
+        mainGlowStartRadius: 44,
+        mainGlowEndRadius: 640,
         mainGlowAnchor: .topTrailing,
-        elementGlowOpacity: 0.12,
-        elementGlowStartRadius: 24,
-        elementGlowEndRadius: 460,
+        elementGlowOpacity: 0.04,
+        elementGlowStartRadius: 56,
+        elementGlowEndRadius: 560,
         elementGlowAnchor: .bottomLeading,
-        textureOpacity: 0.065
+        textureOpacity: 0
     )
 }
 
@@ -331,10 +331,10 @@ public struct TrinketScreenBackground: View {
             palette.appBackground
 
             RadialGradient(
-                colors: [
-                    palette.ambientGlow.opacity(tuning?.mainGlowOpacity ?? mode.glowOpacity),
-                    palette.ambientGlow.opacity(0)
-                ],
+                gradient: smoothGlowGradient(
+                    color: palette.ambientGlow,
+                    opacity: tuning?.mainGlowOpacity ?? mode.glowOpacity
+                ),
                 center: tuning?.mainGlowAnchor.unitPoint ?? .topTrailing,
                 startRadius: CGFloat(tuning?.mainGlowStartRadius ?? 12),
                 endRadius: CGFloat(tuning?.mainGlowEndRadius ?? 520)
@@ -342,10 +342,10 @@ public struct TrinketScreenBackground: View {
 
             if let elementTint {
                 RadialGradient(
-                    colors: [
-                        elementTint.opacity(tuning?.elementGlowOpacity ?? 0.12),
-                        elementTint.opacity(0)
-                    ],
+                    gradient: smoothGlowGradient(
+                        color: elementTint,
+                        opacity: tuning?.elementGlowOpacity ?? 0.12
+                    ),
                     center: tuning?.elementGlowAnchor.unitPoint ?? .bottomLeading,
                     startRadius: CGFloat(tuning?.elementGlowStartRadius ?? 24),
                     endRadius: CGFloat(tuning?.elementGlowEndRadius ?? 460)
@@ -359,6 +359,16 @@ public struct TrinketScreenBackground: View {
         }
         .ignoresSafeArea()
     }
+}
+
+private func smoothGlowGradient(color: Color, opacity: Double) -> Gradient {
+    Gradient(stops: [
+        Gradient.Stop(color: color.opacity(opacity), location: 0),
+        Gradient.Stop(color: color.opacity(opacity * 0.72), location: 0.16),
+        Gradient.Stop(color: color.opacity(opacity * 0.38), location: 0.42),
+        Gradient.Stop(color: color.opacity(opacity * 0.14), location: 0.70),
+        Gradient.Stop(color: color.opacity(0), location: 1)
+    ])
 }
 
 private struct TrinketTextureLayer: View {
