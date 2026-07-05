@@ -31,8 +31,8 @@ extension HomesteadResource {
     var tint: Color {
         switch self {
         case .wood: return .brown
-        case .stone: return Color(red: 0.58, green: 0.54, blue: 0.48)
-        case .iron: return Color(red: 0.30, green: 0.39, blue: 0.48)
+        case .stone: return Color("ResourceStone", bundle: .main)
+        case .iron: return Color("ResourceIron", bundle: .main)
         case .food: return .orange
         case .herbs: return .green
         case .crystal: return .blue

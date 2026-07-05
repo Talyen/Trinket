@@ -14,10 +14,10 @@ public enum TrinketDesign {
         public static let healthTrailingDamage = Color.red.opacity(0.35)
         public static let healthRestore = Color.green
 
-        public static let encounterBattle = Color(red: 0.86, green: 0.18, blue: 0.16)
-        public static let encounterEvent = Color(red: 0.46, green: 0.36, blue: 0.86)
-        public static let encounterShop = Color(red: 0.88, green: 0.48, blue: 0.16)
-        public static let encounterRest = Color(red: 0.10, green: 0.64, blue: 0.58)
+        public static let encounterBattle = Color("EncounterBattle", bundle: .main)
+        public static let encounterEvent = Color("EncounterEvent", bundle: .main)
+        public static let encounterShop = Color("EncounterShop", bundle: .main)
+        public static let encounterRest = Color("EncounterRest", bundle: .main)
     }
 
     public enum Metrics {

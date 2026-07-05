@@ -27,18 +27,18 @@ extension Keyword {
         public static let block = VisualStyle(color: Color.blue, symbolName: "shield.fill")
         public static let armor = VisualStyle(color: Color.gray, symbolName: "shield.lefthalf.filled")
         public static let health = VisualStyle(color: Color.red, secondaryColor: Color.green, symbolName: "heart.fill")
-        public static let gold = VisualStyle(color: Color(red: 1.0, green: 0.85, blue: 0.3), symbolName: "dollarsign.circle.fill", prefersDarkForeground: true)
-        public static let holy = VisualStyle(color: Color(red: 1.0, green: 0.95, blue: 0.78), symbolName: "sun.max.fill", prefersDarkForeground: true)
-        public static let poison = VisualStyle(color: Color(red: 0.2, green: 0.6, blue: 0.2), symbolName: "drop.triangle.fill")
-        public static let bleed = VisualStyle(color: Color(red: 0.55, green: 0.0, blue: 0.0), symbolName: "drop.fill")
-        public static let leech = VisualStyle(color: Color(red: 0.85, green: 0.2, blue: 0.55), symbolName: "drop.fill")
-        public static let nature = VisualStyle(color: Color(red: 0.1, green: 0.7, blue: 0.4), symbolName: "leaf.fill")
-        public static let freeze = VisualStyle(color: Color(red: 0.6, green: 0.85, blue: 1.0), symbolName: "snowflake", prefersDarkForeground: true)
-        public static let dodge = VisualStyle(color: Color(red: 0.3, green: 0.7, blue: 0.9), symbolName: "arrowshape.turn.up.left.circle.fill")
-        public static let purge = VisualStyle(color: Color(red: 0.75, green: 0.55, blue: 1.0), symbolName: "sparkles")
-        public static let mana = VisualStyle(color: Color(red: 0.45, green: 0.15, blue: 1.0), symbolName: "star.fill")
+        public static let gold = VisualStyle(color: Color("KeywordGold", bundle: .main), symbolName: "dollarsign.circle.fill", prefersDarkForeground: true)
+        public static let holy = VisualStyle(color: Color("KeywordHoly", bundle: .main), symbolName: "sun.max.fill", prefersDarkForeground: true)
+        public static let poison = VisualStyle(color: Color("KeywordPoison", bundle: .main), symbolName: "drop.triangle.fill")
+        public static let bleed = VisualStyle(color: Color("KeywordBleed", bundle: .main), symbolName: "drop.fill")
+        public static let leech = VisualStyle(color: Color("KeywordLeech", bundle: .main), symbolName: "drop.fill")
+        public static let nature = VisualStyle(color: Color("KeywordNature", bundle: .main), symbolName: "leaf.fill")
+        public static let freeze = VisualStyle(color: Color("KeywordFreeze", bundle: .main), symbolName: "snowflake", prefersDarkForeground: true)
+        public static let dodge = VisualStyle(color: Color("KeywordDodge", bundle: .main), symbolName: "arrowshape.turn.up.left.circle.fill")
+        public static let purge = VisualStyle(color: Color("KeywordPurge", bundle: .main), symbolName: "sparkles")
+        public static let mana = VisualStyle(color: Color("KeywordMana", bundle: .main), symbolName: "star.fill")
         public static let deathsDoor = VisualStyle(
-            color: Color(red: 0.45, green: 0.0, blue: 0.0),
+            color: Color("KeywordDeathsDoor", bundle: .main),
             symbolName: "heart.slash.fill"
         )
     }
