@@ -292,8 +292,7 @@ struct HomesteadProjectRow: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(12)
-            .background(Color(.secondarySystemBackground), in: TrinketDesign.cardShape)
+            .trinketSurface(.denseRow)
             .overlay {
                 if isRecentlyUpgraded {
                     TrinketDesign.cardShape
@@ -348,8 +347,7 @@ struct HomesteadMissingSummary: View {
 
             Spacer(minLength: 0)
         }
-        .padding(12)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .trinketSurface(.secondary)
         .accessibilityElement(children: .combine)
     }
 

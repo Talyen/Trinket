@@ -14,7 +14,7 @@ struct OptionsView: View {
                 HStack {
                     Picker(selection: $options.theme) {
                         ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
-                            Text(themeOption.rawValue).tag(themeOption)
+                            Text(themeOption.displayName).tag(themeOption)
                         }
                     } label: {
                         EmptyView()
@@ -54,6 +54,8 @@ struct OptionsView: View {
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
         }
+        .scrollContentBackground(.hidden)
+        .trinketScreenBackground(.denseList)
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")

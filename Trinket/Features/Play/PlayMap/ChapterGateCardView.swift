@@ -34,13 +34,7 @@ struct ChapterGateCardView: View {
 
             Spacer(minLength: 0)
         }
-        .padding(TrinketDesign.Metrics.contentMargin)
         .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 272, alignment: .topLeading)
-        .background(Color(.tertiarySystemBackground).opacity(0.68))
-        .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        }
+        .trinketSurface(.disabled)
     }
 }

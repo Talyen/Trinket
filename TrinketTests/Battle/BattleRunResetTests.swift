@@ -1,13 +1,13 @@
-import XCTest
-@testable import Trinket
 import BattleEngine
 import TrinketContent
 import TrinketPersistence
+import XCTest
+@testable import Trinket
 
 final class BattleRunResetTests: XCTestCase {
     @MainActor
     func testResetPreservesEnemyModifiers() throws {
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: "plague_doctor"))
+        let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
         let enemyBuild = CombatBuildResolver.build(enemy: enemy)
         let configuration = ActiveBattleConfiguration(
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),

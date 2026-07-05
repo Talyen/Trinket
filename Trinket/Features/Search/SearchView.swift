@@ -10,7 +10,7 @@ struct SearchView: View {
 
     var body: some View {
         searchContent
-            .background(TrinketDesign.Colors.appBackground)
+            .trinketScreenBackground(.denseList)
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")

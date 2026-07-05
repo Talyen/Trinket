@@ -250,14 +250,10 @@ final class BattleRunTests: XCTestCase {
     }
 
     func testOutcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1)
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1)
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
         let run = BattleRun(configuration: ActiveBattleConfiguration.make(hero: hero, pet: pet, enemy: enemy))
-
-        run.state.store.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
-        run.state.store.roster.mutateRuntime(for: pet) { $0.currentHealth = 0 }
-        run.state.store.roster.mutateRuntime(for: enemy) { $0.currentHealth = 0 }
 
         XCTAssertTrue(run.isPartyDefeated)
         XCTAssertTrue(run.isEnemyDefeated)

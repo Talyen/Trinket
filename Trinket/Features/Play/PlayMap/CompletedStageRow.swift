@@ -36,8 +36,7 @@ struct CompletedStageRow: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(TrinketDesign.Colors.success)
         }
-        .padding(12)
-        .background(Color(.tertiarySystemBackground).opacity(0.54), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .trinketSurface(.denseRow)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), complete, \(stage.encounterSubjectName)")

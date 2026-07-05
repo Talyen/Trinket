@@ -101,8 +101,7 @@ struct AppEnvironment {
         guard let idx = arguments.firstIndex(of: "-theme"),
               arguments.indices.contains(idx + 1)
         else { return nil }
-        let val = arguments[idx + 1].lowercased()
-        return TrinketDesign.AppTheme.allCases.first { $0.rawValue.lowercased() == val }
+        return TrinketDesign.AppTheme(rawValue: arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {

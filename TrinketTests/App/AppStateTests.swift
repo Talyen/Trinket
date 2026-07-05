@@ -123,7 +123,7 @@ final class AppStateTests: XCTestCase {
             environment: makeEnvironment(arguments: ["-theme", "light"])
         )
 
-        XCTAssertEqual(state.options.theme, .light)
+        XCTAssertEqual(state.options.theme, .warmParchment)
     }
 
     func testResetStateWipesPersistedSave() throws {

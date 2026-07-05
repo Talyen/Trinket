@@ -21,7 +21,7 @@ Packages/
   TrinketContent/           Catalogs + Generated/ content, art, music, and SFX catalogs
   BattleEngine/             Combat simulation, effect handlers, simulator
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
-  TrinketDesignSystem/      TrinketDesign chrome + ExperienceBar (TrinketCore only)
+  TrinketDesignSystem/      App chrome, theme presets, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
 
 ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -46,7 +46,7 @@ Manifests and pipelines live outside the app folder:
 | Heroes, pets, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
-| Shared UI chrome | `TrinketDesignSystem` | `TrinketDesign`, `ExperienceBar`, `HomesteadTint` colors |
+| Shared UI chrome | `TrinketDesignSystem` | Theme presets, backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
 | Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, `PlayFlowCoordinator`, launch args |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
 | Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
@@ -57,7 +57,7 @@ Manifests and pipelines live outside the app folder:
 Persistent player-facing tabs (`Docs/CoreDesignConcepts.md`):
 
 ```text
-Play → Heroes → Inventory → Homestead → Options
+Play → Collection → Homestead → Search → Options
 ```
 
 Code mapping:
@@ -65,7 +65,7 @@ Code mapping:
 | UI label | `AppTab` | Feature folder |
 |----------|----------|----------------|
 | Play | `.play` | `Features/Play` |
-| Heroes / Pets / Inventory | `.collection` | `Features/Collection` |
+| Collection | `.collection` | `Features/Collection` — Heroes, Pets, and Inventory |
 | Homestead | `.homestead` | `Features/Homestead` |
 | Options | `.options` | `Features/Options` |
 | Search | `.search` | `Features/Search` — **inventory search utility**; not a primary product tab |
@@ -116,7 +116,7 @@ TrinketDesignSystem
 Trinket app
 ```
 
-`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent`. `TrinketDesignSystem` depends on `TrinketCore` only; homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
+`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent`. `TrinketDesignSystem` depends on `TrinketCore` only so shared chrome can use domain primitives such as `Keyword` and `ItemSlot` without importing feature or content catalogs. Homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
 
 Packages must not import `Trinket` app code or SwiftUI feature views.
 

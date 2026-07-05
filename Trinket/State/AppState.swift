@@ -94,8 +94,7 @@ final class AppState {
         if let mapScrollTarget = env.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
         } else if let savedScrollTarget = sessionState.mapScrollStageID,
-                  Self.shouldRestoreMapScroll(savedScrollTarget, journey: journey.current)
-        {
+                  Self.shouldRestoreMapScroll(savedScrollTarget, journey: journey.current) {
             journey.requestMapScroll(to: savedScrollTarget)
         }
 
@@ -114,7 +113,8 @@ final class AppState {
             Task { await self?.syncCoordinator.onBattleEnded() }
         }
         syncCoordinator.hasActiveBattle = { [weak self] in
-            self?.battle.activeBattle != nil ?? false
+            guard let self else { return false }
+            return self.battle.activeBattle != nil
         }
     }
 
@@ -148,7 +148,7 @@ final class AppState {
         guard let stage = GameContent.chapters
             .flatMap(\.stages)
             .first(where: { $0.id == stageID }),
-              case .battle = stage.encounter
+            case .battle = stage.encounter
         else {
             sessionState.activeBattleStageID = nil
             return

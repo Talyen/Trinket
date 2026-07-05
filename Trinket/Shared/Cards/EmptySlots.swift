@@ -35,6 +35,8 @@ struct EmptyAbilitySlotCard: View {
 }
 
 struct EmptyItemSlotCard: View {
+    @Environment(\.trinketTheme) private var theme
+
     let slot: ItemSlot
     var lockLabel: String?
     var reservesLabelSpace: Bool = true
@@ -54,7 +56,7 @@ struct EmptyItemSlotCard: View {
                             .scaledToFill()
                     } else {
                         TrinketDesign.cardShape
-                            .fill(TrinketDesign.Colors.appBackground)
+                            .fill(theme.palette.secondaryBackground)
                     }
                 }
                 .clipShape(TrinketDesign.cardShape)

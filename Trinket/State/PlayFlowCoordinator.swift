@@ -23,9 +23,10 @@ extension AppState {
         var scrollTarget = mapScrollFocusID(for: journey.current)
         do {
             try playerSave.performBatchMutation { save in
+                let inventory = save.inventory.inventory()
                 var context = StageCompletionContext(
-                    roster: save.playerRoster(inventoryItemIDs: Set(save.inventory.items.map(\.id))),
-                    inventory: save.inventory.inventory(),
+                    roster: save.playerRoster(inventoryItemIDs: Set(inventory.items.map(\.id))),
+                    inventory: inventory,
                     homestead: save.homestead.homestead(),
                     journey: save.journey
                 )

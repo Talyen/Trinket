@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
@@ -41,7 +42,9 @@ struct ContentView: View {
                 }
             }
         }
+        .environment(\.trinketTheme, appState.options.theme)
         .preferredColorScheme(appState.options.theme.colorScheme)
+        .tint(appState.options.theme.palette.accent)
         .onAppear {
             syncBattlePauseForCurrentTab()
             refreshMusicRoute(scenePhase: scenePhase)

@@ -45,8 +45,7 @@ struct CompactPartyButton: View {
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
             }
-            .padding(8)
-            .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous))
+            .trinketSurface(.denseRow)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("\(title) Party Picker")

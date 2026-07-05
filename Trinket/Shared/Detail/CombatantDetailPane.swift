@@ -128,11 +128,11 @@ struct CombatantDetailPane: View {
                             .padding(.vertical, 4)
                         }
                     }
-                    .background(TrinketDesign.Colors.appBackground)
+                    .trinketScreenBackground(.collection)
                 }
             }
             .ignoresSafeArea(edges: .top)
-            .background(TrinketDesign.Colors.appBackground)
+            .trinketScreenBackground(.collection)
             .combatantDetailNavigationChrome(navigationChrome, title: combatant.name, titleOpacity: titleOpacity)
             .onAppear {
                 headerHeight = baseHeaderHeight

@@ -43,7 +43,7 @@ struct PartyPickerSheet: View {
                 }
                 .padding(TrinketDesign.Metrics.contentMargin)
             }
-            .background(TrinketDesign.Colors.appBackground)
+            .trinketScreenBackground(.modal)
             .navigationTitle("Choose \(kind.rawValue)")
             .navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier(kind.accessibilityIdentifier)
@@ -52,12 +52,14 @@ struct PartyPickerSheet: View {
 }
 
 private struct PartyPickerCombatantCard: View {
+    @Environment(\.trinketTheme) private var theme
+
     let combatant: Combatant
 
     var body: some View {
         VStack(spacing: 8) {
             TrinketDesign.cardShape
-                .fill(Color(.tertiarySystemBackground).opacity(0.35))
+                .fill(theme.palette.secondaryBackground)
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)

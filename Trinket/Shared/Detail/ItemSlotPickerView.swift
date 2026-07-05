@@ -63,7 +63,7 @@ struct ItemSlotPickerView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .sensoryFeedback(.selection, trigger: selectedItemID)
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.modal)
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {

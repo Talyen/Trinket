@@ -52,7 +52,7 @@ struct BattleView: View {
                 battlefieldWithTimeline
             }
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.battle)
         .navigationTitle(isShowingVictory ? "Victory" : isShowingDefeat ? "Defeat" : "")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackgroundVisibility(isShowingVictory || isShowingDefeat ? .automatic : .hidden, for: .navigationBar)

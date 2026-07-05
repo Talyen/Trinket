@@ -2,7 +2,7 @@ import SwiftUI
 
 public enum TrinketDesign {
     public enum Colors {
-        public static let appBackground = Color(.systemBackground)
+        public static let appBackground = AppTheme.default.palette.appBackground
         public static let cardArtAccent = Color.accentColor
         public static let success = Color.green
         public static let destructive = Color.red
@@ -21,6 +21,11 @@ public enum TrinketDesign {
     }
 
     public enum Metrics {
+        public static let extraSmallSpacing: CGFloat = 4
+        public static let smallSpacing: CGFloat = 8
+        public static let mediumSpacing: CGFloat = 12
+        public static let largeSpacing: CGFloat = 16
+        public static let extraLargeSpacing: CGFloat = 24
         public static let cardLabelReservedHeight: CGFloat = 38
         public static let statBarHeight: CGFloat = 7
         public static let contentMargin: CGFloat = 20
@@ -42,20 +47,71 @@ public enum TrinketDesign {
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
 
-    public enum AppTheme: String, CaseIterable, Identifiable, Sendable {
-        case system = "System"
-        case light = "Light"
-        case dark = "Dark"
+    public enum AppTheme: CaseIterable, Identifiable, RawRepresentable, Sendable {
+        case darkTabletop
+        case warmParchment
+        case arcaneNight
+        case forestAlchemy
+        case systemNative
+
+        public static let `default` = AppTheme.darkTabletop
+
+        public init?(rawValue: String) {
+            let normalized = rawValue
+                .lowercased()
+                .replacingOccurrences(of: "-", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            switch normalized {
+            case "dark tabletop", "dark":
+                self = .darkTabletop
+            case "warm parchment", "parchment", "light":
+                self = .warmParchment
+            case "arcane night", "arcane":
+                self = .arcaneNight
+            case "forest alchemy", "forest":
+                self = .forestAlchemy
+            case "system native", "system":
+                self = .systemNative
+            default:
+                return nil
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .darkTabletop: return "Dark Tabletop"
+            case .warmParchment: return "Warm Parchment"
+            case .arcaneNight: return "Arcane Night"
+            case .forestAlchemy: return "Forest Alchemy"
+            case .systemNative: return "System Native"
+            }
+        }
 
         public var id: String {
             rawValue
         }
 
+        public var displayName: String {
+            rawValue
+        }
+
         public var colorScheme: ColorScheme? {
             switch self {
-            case .system: return nil
-            case .light: return .light
-            case .dark: return .dark
+            case .darkTabletop, .arcaneNight, .forestAlchemy: return .dark
+            case .warmParchment: return .light
+            case .systemNative: return nil
+            }
+        }
+
+        public var palette: ThemePalette {
+            switch self {
+            case .darkTabletop: return .darkTabletop
+            case .warmParchment: return .warmParchment
+            case .arcaneNight: return .arcaneNight
+            case .forestAlchemy: return .forestAlchemy
+            case .systemNative: return .systemNative
             }
         }
     }

@@ -3,6 +3,8 @@ import TrinketContent
 import TrinketDesignSystem
 
 struct ItemCard: View {
+    @Environment(\.trinketTheme) private var theme
+
     let item: InventoryItem
     var showsAffixCount: Bool
     var showsName: Bool = true
@@ -19,7 +21,7 @@ struct ItemCard: View {
                             .scaledToFill()
                     } else {
                         TrinketDesign.cardShape
-                            .fill(TrinketDesign.Colors.appBackground)
+                            .fill(theme.palette.secondaryBackground)
                     }
                 }
                 .clipShape(TrinketDesign.cardShape)

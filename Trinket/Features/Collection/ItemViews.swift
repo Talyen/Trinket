@@ -57,7 +57,7 @@ struct InventoryGridView: View {
             }
             .padding(TrinketDesign.Metrics.contentMargin)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.collection)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search items")
@@ -158,7 +158,7 @@ struct ItemDetailView: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.denseList)
         .navigationTitle(item.displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

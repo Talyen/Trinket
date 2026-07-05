@@ -138,7 +138,7 @@ struct CollectionView: View {
             .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.collection)
         .accessibilityIdentifier("Collection Screen")
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)

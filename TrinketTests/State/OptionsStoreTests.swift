@@ -30,21 +30,32 @@ final class OptionsStoreTests: XCTestCase {
         #endif
         XCTAssertEqual(store.effectsVolume, 0.85, accuracy: 0.001)
         XCTAssertTrue(store.hapticsEnabled)
-        XCTAssertEqual(store.theme, .dark)
+        XCTAssertEqual(store.theme, .darkTabletop)
     }
 
     func testLoadsPreviouslyStoredValues() {
         defaults.set(0.4, forKey: "options.musicVolume")
         defaults.set(0.6, forKey: "options.effectsVolume")
         defaults.set(false, forKey: "options.hapticsEnabled")
-        defaults.set(TrinketDesign.AppTheme.light.rawValue, forKey: "options.theme")
+        defaults.set(TrinketDesign.AppTheme.warmParchment.rawValue, forKey: "options.theme")
 
         let store = OptionsStore(defaults: defaults)
 
         XCTAssertEqual(store.musicVolume, 0.4, accuracy: 0.001)
         XCTAssertEqual(store.effectsVolume, 0.6, accuracy: 0.001)
         XCTAssertFalse(store.hapticsEnabled)
-        XCTAssertEqual(store.theme, .light)
+        XCTAssertEqual(store.theme, .warmParchment)
+    }
+
+    func testLoadsLegacyThemeValues() {
+        defaults.set("Light", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .warmParchment)
+
+        defaults.set("Dark", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .darkTabletop)
+
+        defaults.set("System", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .systemNative)
     }
 
     func testMusicVolumePersistsOnChange() {
@@ -73,9 +84,9 @@ final class OptionsStoreTests: XCTestCase {
 
     func testThemePersistsOnChange() {
         let store = OptionsStore(defaults: defaults)
-        store.theme = .system
+        store.theme = .systemNative
 
-        XCTAssertEqual(defaults.string(forKey: "options.theme"), TrinketDesign.AppTheme.system.rawValue)
-        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .system)
+        XCTAssertEqual(defaults.string(forKey: "options.theme"), TrinketDesign.AppTheme.systemNative.rawValue)
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .systemNative)
     }
 }

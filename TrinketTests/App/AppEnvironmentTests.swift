@@ -73,9 +73,10 @@ final class AppEnvironmentTests: XCTestCase {
     }
 
     func testThemeOverrideParsesKnownThemes() {
-        XCTAssertEqual(parse(arguments: ["-theme", "dark"]).themeOverride, .dark)
-        XCTAssertEqual(parse(arguments: ["-theme", "Light"]).themeOverride, .light)
-        XCTAssertEqual(parse(arguments: ["-theme", "system"]).themeOverride, .system)
+        XCTAssertEqual(parse(arguments: ["-theme", "dark"]).themeOverride, .darkTabletop)
+        XCTAssertEqual(parse(arguments: ["-theme", "Light"]).themeOverride, .warmParchment)
+        XCTAssertEqual(parse(arguments: ["-theme", "system"]).themeOverride, .systemNative)
+        XCTAssertEqual(parse(arguments: ["-theme", "arcane-night"]).themeOverride, .arcaneNight)
     }
 
     func testInvalidThemeOverrideReturnsNil() {

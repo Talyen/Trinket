@@ -46,13 +46,7 @@ struct ActiveStageCard: View {
             .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title)")
             .sensoryFeedback(.selection, trigger: actionFeedbackTrigger)
         }
-        .padding(14)
-        .background(Color(.secondarySystemBackground), in: TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .stroke(stage.encounter.mapTint.opacity(0.42), lineWidth: 1.5)
-        }
-        .shadow(color: .black.opacity(0.10), radius: 10, y: 4)
+        .trinketSurface(.selected)
     }
 }
 

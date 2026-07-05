@@ -29,7 +29,7 @@ struct PetsGridView: View {
             }
             .padding(TrinketDesign.Metrics.contentMargin)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.collection)
         .navigationTitle("Pets")
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { selection in

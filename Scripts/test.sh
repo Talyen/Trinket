@@ -205,10 +205,29 @@ rm -rf "$RESULT_BUNDLE_PATH"
 
 ACTION="test"
 RUN_FINGERPRINT="$MODE"
-for target in "${TARGETS[@]}"; do
-  RUN_FINGERPRINT+="_$target"
-done
+if [[ ${#TARGETS[@]} -gt 0 ]]; then
+  for target in "${TARGETS[@]}"; do
+    RUN_FINGERPRINT+="_$target"
+  done
+fi
 BUILD_STAMP="$(build_stamp_path "$RESULTS_DIR" "$RUN_FINGERPRINT")"
+
+record_timing() {
+  if [[ ${#TARGETS[@]} -gt 0 ]]; then
+    ./Scripts/test-timing.sh record \
+      --mode "$MODE" \
+      --wall "$TEST_WALL_SECONDS" \
+      --xcresult "$RESULT_BUNDLE_PATH" \
+      $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
+      "${TARGETS[@]}"
+  else
+    ./Scripts/test-timing.sh record \
+      --mode "$MODE" \
+      --wall "$TEST_WALL_SECONDS" \
+      --xcresult "$RESULT_BUNDLE_PATH" \
+      $([[ "$NO_BUILD" == "true" ]] && echo --no-build)
+  fi
+}
 
 assert_no_build_is_fresh() {
   if [[ "$USED_FAST_ALIAS" == "true" ]]; then
@@ -278,7 +297,7 @@ run_package_tests() {
   ensure_simulator_pool "$pool_size"
 
   for package in "${packages[@]}"; do
-    local udid="${SIMULATOR_POOL_UDIDS[$((index + 1))]}"
+    local udid="${SIMULATOR_POOL_UDIDS[$index]}"
     local destination
     destination="$(destination_for_udid "$udid")"
     local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
@@ -338,15 +357,23 @@ if [[ "$MODE" == "unit" ]]; then
 fi
 
 XCODEBUILD_EXIT_CODE=0
-run_xcodebuild xcodebuild "$ACTION" \
-  -project Trinket.xcodeproj \
-  -scheme Trinket \
-  -sdk iphonesimulator \
-  -destination "$SIMULATOR_DESTINATION" \
-  -derivedDataPath "$DERIVED_DATA_PATH" \
-  -resultBundlePath "$RESULT_BUNDLE_PATH" \
-  "${TEST_TARGET_FLAG[@]}" \
-  "${PARALLEL_FLAGS[@]}" || XCODEBUILD_EXIT_CODE=$?
+XCODEBUILD_ARGS=(
+  "$ACTION"
+  -project Trinket.xcodeproj
+  -scheme Trinket
+  -sdk iphonesimulator
+  -destination "$SIMULATOR_DESTINATION"
+  -derivedDataPath "$DERIVED_DATA_PATH"
+  -resultBundlePath "$RESULT_BUNDLE_PATH"
+)
+if [[ ${#TEST_TARGET_FLAG[@]} -gt 0 ]]; then
+  XCODEBUILD_ARGS+=("${TEST_TARGET_FLAG[@]}")
+fi
+if [[ ${#PARALLEL_FLAGS[@]} -gt 0 ]]; then
+  XCODEBUILD_ARGS+=("${PARALLEL_FLAGS[@]}")
+fi
+
+run_xcodebuild xcodebuild "${XCODEBUILD_ARGS[@]}" || XCODEBUILD_EXIT_CODE=$?
 
 TEST_WALL_SECONDS=$SECONDS
 
@@ -356,12 +383,7 @@ fi
 
 if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
   if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
-    ./Scripts/test-timing.sh record \
-      --mode "$MODE" \
-      --wall "$TEST_WALL_SECONDS" \
-      --xcresult "$RESULT_BUNDLE_PATH" \
-      $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
-      "${TARGETS[@]}"
+    record_timing
     echo ""
     echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
   fi
@@ -378,12 +400,7 @@ if [[ "$NO_BUILD" == "false" ]]; then
 fi
 
 if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
-  ./Scripts/test-timing.sh record \
-    --mode "$MODE" \
-    --wall "$TEST_WALL_SECONDS" \
-    --xcresult "$RESULT_BUNDLE_PATH" \
-    $([[ "$NO_BUILD" == "true" ]] && echo --no-build) \
-    "${TARGETS[@]}"
+  record_timing
   echo ""
   echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"
 fi

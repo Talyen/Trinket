@@ -26,6 +26,14 @@ Play -> Collection -> Homestead -> Search -> Options
 
 The **Collection** tab groups Heroes, Pets, and Inventory behind an in-tab category switch. Heroes and Pets share one collection area; Inventory is a separate category because Items are expected to become a core reward and equipment loop. **Search** is a system search-role tab for inventory lookup — a utility surface, not a primary product destination. See `Docs/Architecture.md` for the `AppTab` mapping.
 
+## Visual Foundation
+
+Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/StyleGuide/AppVisualFoundation.md`, with v2 reference boards in `Docs/StyleGuide/VisualReferences/v2/`.
+
+The default preset is Dark Tabletop: charcoal-brown base, warm amber glow, faint grain, solid readable surfaces, and restrained material for overlays. Other presets exist for testing and accessibility comparison, but screens should request semantic backgrounds, surfaces, materials, typography, spacing, and Keyword styles rather than hardcoded colors.
+
+3:4 card art remains the central game motif. Use atmosphere, Keyword particles, and glow as accents around meaning and feedback, not as busy full-screen wallpaper behind utility screens.
+
 ## Chapters And Stages
 
 The core journey is chapter-scoped vertical progression. Chapter 1 is `The Verdant Forest`. The Play tab shows one chapter at a time, starting with immersive full-bleed chapter art that collapses into a compact pinned chapter header while the player scrolls through that chapter's stages. All stages in the current chapter are visible. Completed stages compress into history rows, the active stage is a large inline card with the primary encounter action, and future stages remain visible with real art/details but locked actions. The next chapter appears as a locked teaser after the current chapter's final stage; completed chapters can be browsed later as history but are not replayable in the current loop.
@@ -40,7 +48,7 @@ Stage completion advances persistent journey progress, grants stub rewards once,
 
 Heroes are primary player combatants. They are represented as identity-first 3:4 full-art cards with exact health, abilities, effects, and formulas available through detail views rather than crowded onto card art.
 
-Hero detail views use native pushed navigation from the Heroes tab. The overview should stay scannable: large art, name, level/experience, health, and focused detail sections.
+Hero detail views use native pushed navigation from the Collection tab. The overview should stay scannable: large art, name, level/experience, health, and focused detail sections.
 
 ## Pets
 
@@ -95,7 +103,7 @@ Regression coverage: `BattleGoldenPathTests` in `BattleEngineTests` pins determi
 
 ## Items
 
-Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the top-level Inventory tab and can also appear through equipment or reward flows.
+Items are the umbrella concept for inventory objects, gear-like rewards, affixes, and bonuses. Items live in the Collection tab's Inventory surface and can also appear through equipment or reward flows.
 
 Let players evaluate individual Items from clear item details. Avoid automatic "best for this hero" judgments unless later playtesting shows the inventory experience needs stronger guidance.
 

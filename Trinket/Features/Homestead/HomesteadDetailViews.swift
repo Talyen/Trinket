@@ -63,7 +63,7 @@ struct HomesteadNodeDetailView: View {
             .padding(.top, 12)
             .padding(.bottom, 120)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.homestead)
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
@@ -191,8 +191,7 @@ struct HomesteadDetailActionBar: View {
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .padding(.top, 12)
         .padding(.bottom, 8)
-        // UIStyleCheck: allow - Pinned action chrome intentionally uses native material.
-        .background(.regularMaterial)
+        .trinketMaterial(.bottomBar, cornerRadius: 0)
     }
 
     static func accessibilityID(for status: HomesteadProjectStatus) -> String {
@@ -229,11 +228,7 @@ struct HomesteadPrerequisiteSection: View {
                     .accessibilityLabel("\(title(for: requirement.nodeID)), \(homestead.tier(for: requirement.nodeID)) of \(requirement.minimumTier)")
                 }
             }
-            .padding(14)
-            .background {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
-            }
+            .trinketSurface(.secondary)
         }
     }
 
@@ -262,12 +257,8 @@ struct HomesteadBonusSection: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color(.secondarySystemBackground))
-            }
+            .trinketSurface(.secondary)
         }
     }
 }

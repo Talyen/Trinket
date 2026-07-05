@@ -60,7 +60,7 @@ struct AbilityTierPickerSheet: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .sensoryFeedback(.selection, trigger: selectedAbilityID)
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.modal)
         .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)
     }

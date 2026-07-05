@@ -72,7 +72,7 @@ struct HomesteadView: View {
             .padding(.top, 12)
             .padding(.bottom, 112)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.homestead)
         .navigationTitle("Homestead")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)

@@ -29,7 +29,7 @@ struct HeroesGridView: View {
             }
             .padding(TrinketDesign.Metrics.contentMargin)
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.collection)
         .navigationTitle("Heroes")
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { selection in

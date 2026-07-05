@@ -3,9 +3,8 @@ import SwiftUI
 public struct CardSurfaceModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
-            .background(.thinMaterial)
+            .trinketSurface(.card)
             .clipShape(TrinketDesign.cardShape)
-            .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
     }
 }
 

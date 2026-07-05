@@ -19,12 +19,7 @@ struct LockedStageCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(14)
-        .background(Color(.tertiarySystemBackground).opacity(0.70), in: TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .stroke(Color.secondary.opacity(0.16), lineWidth: 1)
-        }
+        .trinketSurface(.disabled)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(StageMapID.stageNode(for: stage))
         .accessibilityLabel("\(stage.mapLabel), locked \(stage.encounter.title), \(stage.encounterSubjectName)")

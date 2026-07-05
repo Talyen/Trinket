@@ -34,7 +34,7 @@ struct ChapterStageSelectView: View {
             }
             .scrollIndicators(.hidden)
             .ignoresSafeArea(edges: .top)
-            .background(TrinketDesign.Colors.appBackground)
+            .trinketScreenBackground(.playJourney)
             .accessibilityIdentifier(AccessibilityID.Screen.play)
             .onScrollGeometryChange(for: CGFloat.self) { geometry in
                 HeroHeaderLayout.overscroll(
@@ -73,7 +73,7 @@ struct ChapterStageSelectView: View {
                 .presentationDragIndicator(.visible)
             }
         }
-        .background(TrinketDesign.Colors.appBackground)
+        .trinketScreenBackground(.playJourney)
         .toolbar(.hidden, for: .navigationBar)
         .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
