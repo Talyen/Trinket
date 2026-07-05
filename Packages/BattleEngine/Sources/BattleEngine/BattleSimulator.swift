@@ -79,6 +79,7 @@ public enum BattleSimulator {
                 enemy: matchup.enemy,
                 heroModifiers: .zero,
                 petModifiers: .zero,
+                enemyModifiers: .zero,
                 context: SimulationBuildContext(
                     tier: .early,
                     heroLoadout: matchup.hero.abilityLoadout,
@@ -106,6 +107,7 @@ public enum BattleSimulator {
                 enemy: configured.enemy,
                 heroModifiers: configured.heroModifiers,
                 petModifiers: configured.petModifiers,
+                enemyModifiers: configured.enemyModifiers,
                 rngSeed: options.seed,
                 tracksLog: useIncrementalLog
             ),
@@ -150,10 +152,11 @@ public enum BattleSimulator {
             capturedLog = []
         }
         let outcome: BattleSimulationOutcome
-        if battle.isPartyDefeated {
-            outcome = .defeat
-        } else if battle.isEnemyDefeated {
-            outcome = .victory
+        if let resolved = BattleOutcomeResolver.resolve(
+            isPartyDefeated: battle.isPartyDefeated,
+            isEnemyDefeated: battle.isEnemyDefeated
+        ) {
+            outcome = resolved
         } else {
             outcome = .tickLimit
         }

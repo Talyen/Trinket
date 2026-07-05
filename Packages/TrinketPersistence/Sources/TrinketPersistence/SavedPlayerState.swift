@@ -146,7 +146,7 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
         progressions = roster.progressions
         equipmentLoadouts = roster.equipmentLoadouts.mapValues(SavedEquipmentLoadout.init)
         gold = roster.gold
-        primaryStats = [:]
+        primaryStats = roster.primaryStatOverrides
     }
 
     public init(
@@ -220,7 +220,8 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
             abilityLoadouts: resolvedAbilityLoadouts,
             progressions: progressions,
             equipmentLoadouts: resolvedEquipmentLoadouts,
-            gold: gold
+            gold: gold,
+            primaryStatOverrides: primaryStats
         )
     }
 }

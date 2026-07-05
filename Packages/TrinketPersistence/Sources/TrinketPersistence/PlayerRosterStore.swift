@@ -112,12 +112,14 @@ public final class PlayerRosterStore {
     public var activeHero: Combatant {
         heroes.first { $0.id == current.activeHeroID } ??
             heroes.first ??
+            GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID } ??
             collectionHeroes[0]
     }
 
     public var activePet: Combatant {
         pets.first { $0.id == current.activePetID } ??
             pets.first ??
+            GameContent.pets.first { $0.id == PlayerRosterState.starterPetID } ??
             collectionPets[0]
     }
 }

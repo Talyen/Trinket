@@ -6,6 +6,7 @@ struct CollectionView: View {
     @Environment(AppState.self) private var appState
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantCollectionDetailSelection?
+    @State private var showMissingItem = false
     private let initialItemID: String?
 
     init(
@@ -138,6 +139,7 @@ struct CollectionView: View {
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
         }
         .background(TrinketDesign.Colors.appBackground)
+        .accessibilityIdentifier("Collection Screen")
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -146,7 +148,14 @@ struct CollectionView: View {
                 selectedItem = owned
             } else if let template = GameContent.itemTemplate(matching: initialItemID) {
                 selectedItem = template
+            } else {
+                showMissingItem = true
             }
+        }
+        .alert("Item Not Found", isPresented: $showMissingItem) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That item isn't in your collection.")
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {

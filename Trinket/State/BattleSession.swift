@@ -11,7 +11,8 @@ final class BattleSession {
     var isPaused = false
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCollectionDetailSelection?
-    var pauseStateBeforeOverlay: Bool?
+    private var overlayPauseDepth = 0
+    private var pauseStateBeforeFirstOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
 
@@ -20,7 +21,8 @@ final class BattleSession {
         isPaused = false
         preview = nil
         overlayCombatantDetail = nil
-        pauseStateBeforeOverlay = nil
+        overlayPauseDepth = 0
+        pauseStateBeforeFirstOverlay = nil
         onBattleStateChange?(nil)
         onBattleEnded?()
     }
@@ -108,17 +110,25 @@ final class BattleSession {
     }
 
     func pauseForOverlay() {
-        pauseStateBeforeOverlay = isPaused
+        if overlayPauseDepth == 0 {
+            pauseStateBeforeFirstOverlay = isPaused
+        }
+        overlayPauseDepth += 1
         isPaused = true
     }
 
     func restorePauseAfterOverlay() {
+        guard overlayPauseDepth > 0 else { return }
+        overlayPauseDepth -= 1
         guard activeBattle != nil else {
-            pauseStateBeforeOverlay = nil
+            overlayPauseDepth = 0
+            pauseStateBeforeFirstOverlay = nil
             return
         }
-        isPaused = pauseStateBeforeOverlay ?? false
-        pauseStateBeforeOverlay = nil
+        if overlayPauseDepth == 0 {
+            isPaused = pauseStateBeforeFirstOverlay ?? false
+            pauseStateBeforeFirstOverlay = nil
+        }
     }
 
     func presentCombatantDetail(_ detail: CombatantCardDetail) {

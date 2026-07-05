@@ -363,6 +363,7 @@ final class CombatPipelineTests: XCTestCase {
             "ShieldAbsorption",
             "CriticalMultiply",
             "TakeDamage",
+            "MarkedConsume",
             "DeathsDoor",
             "Leech",
             "ControlMeter",

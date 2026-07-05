@@ -108,9 +108,11 @@ public final class PlayerSaveSyncCoordinator {
     /// Reconciles any remote save deferred while a battle was active.
     public func onBattleEnded() async {
         guard deferredRemoteReconcile else { return }
-        deferredRemoteReconcile = false
         guard sessionPhase == .active else { return }
-        _ = await reconcileOnce()
+        let applied = await reconcileOnce()
+        if applied || status == .upToDate {
+            deferredRemoteReconcile = false
+        }
     }
 
     /// Ends the active session, checkpoints cloud state, and releases the lease.
@@ -293,6 +295,13 @@ public final class PlayerSaveSyncCoordinator {
         let liveLocal = playerSaveStore.currentSave
 
         let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: liveLocal, remote: remote.save)
+
+        if hasActiveBattle() {
+            deferredRemoteReconcile = true
+            status = .upToDate
+            return
+        }
+
         applyRemoteSave(authoritative)
         lastKnownRemoteChangeTag = remote.recordChangeTag
 

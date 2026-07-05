@@ -64,6 +64,7 @@ struct CombatantCollectionDetailSheet: View {
             )
         } else {
             ContentUnavailableView(missingTitle(for: kind), systemImage: "questionmark.circle")
+                .accessibilityIdentifier("Combatant Not Found")
         }
     }
 
@@ -99,9 +100,9 @@ struct CombatantCollectionDetailSheet: View {
         }
     }
 
-    private func loadoutBinding(for combatant: Combatant, in rosterState: PlayerRosterState) -> Binding<AbilityLoadout> {
+    private func loadoutBinding(for combatant: Combatant, in _: PlayerRosterState) -> Binding<AbilityLoadout> {
         Binding {
-            rosterState.loadout(for: combatant)
+            appState.roster.current.loadout(for: combatant)
         } set: { newValue in
             var updated = appState.roster.current
             updated.setLoadout(newValue, for: combatant)
@@ -111,10 +112,10 @@ struct CombatantCollectionDetailSheet: View {
 
     private func equipmentLoadoutBinding(
         for combatant: Combatant,
-        in rosterState: PlayerRosterState
+        in _: PlayerRosterState
     ) -> Binding<EquipmentLoadout> {
         Binding {
-            rosterState.equipmentLoadout(for: combatant)
+            appState.roster.current.equipmentLoadout(for: combatant)
         } set: { newValue in
             var updated = appState.roster.current
             updated.setEquipmentLoadout(newValue, for: combatant)

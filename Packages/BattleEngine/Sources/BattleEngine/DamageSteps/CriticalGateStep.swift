@@ -2,7 +2,8 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Rolls for a critical hit after dodge. Doubles `remaining` damage on success.
+/// Rolls for a critical hit after dodge. `CriticalMultiplyStep` doubles
+/// post-mitigation damage when this step succeeds.
 package struct CriticalGateStep: DamageStep {
     public static let stepName = "CriticalGate"
     public static let phase: DamagePhase = .stochastic

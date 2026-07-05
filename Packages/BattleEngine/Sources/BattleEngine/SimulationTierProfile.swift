@@ -76,6 +76,7 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
     public let enemy: Combatant
     public let heroModifiers: CombatModifierProfile
     public let petModifiers: CombatModifierProfile
+    public let enemyModifiers: CombatModifierProfile
     public let context: SimulationBuildContext
     public let enemyID: String
     public let isBoss: Bool
@@ -86,6 +87,7 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
         enemy: Combatant,
         heroModifiers: CombatModifierProfile,
         petModifiers: CombatModifierProfile,
+        enemyModifiers: CombatModifierProfile = .zero,
         context: SimulationBuildContext,
         enemyID: String,
         isBoss: Bool
@@ -95,6 +97,7 @@ public struct ConfiguredSimulationMatchup: Equatable, Sendable {
         self.enemy = enemy
         self.heroModifiers = heroModifiers
         self.petModifiers = petModifiers
+        self.enemyModifiers = enemyModifiers
         self.context = context
         self.enemyID = enemyID
         self.isBoss = isBoss

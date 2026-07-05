@@ -56,6 +56,7 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
 
         XCTAssertNil(fileStore.load())
+        XCTAssertEqual(fileStore.loadOutcome(), .corrupt)
     }
 
     func testDeleteSaveRemovesAllSaveFiles() throws {

@@ -9,6 +9,13 @@ public enum PlayerSaveMigration {
     )
 
     public static func migrate(_ save: PlayerSave) -> PlayerSave {
+        if save.schemaVersion > PlayerSave.currentSchemaVersion {
+            logger.error(
+                "Save schema v\(save.schemaVersion, privacy: .public) is newer than supported v\(PlayerSave.currentSchemaVersion, privacy: .public). Starting fresh."
+            )
+            return .fresh
+        }
+
         var current = save
         while current.schemaVersion < PlayerSave.currentSchemaVersion {
             switch current.schemaVersion {

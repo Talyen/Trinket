@@ -23,7 +23,7 @@ public final class PlayerHomesteadStore {
         current = updated
     }
 
-    public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> Bool {
+    public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> HomesteadBuildResult {
         var didUpgrade = false
         do {
             try saveStore.performBatchMutation { save in
@@ -35,8 +35,8 @@ public final class PlayerHomesteadStore {
                 didUpgrade = true
             }
         } catch {
-            return false
+            return .persistFailed
         }
-        return didUpgrade
+        return didUpgrade ? .success : .insufficientResources
     }
 }

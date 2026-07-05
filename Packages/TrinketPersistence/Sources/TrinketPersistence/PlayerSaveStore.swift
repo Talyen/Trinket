@@ -16,6 +16,7 @@ public final class PlayerSaveStore {
     )
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
     public private(set) var loadedFromDisk = false
+    public private(set) var hadCorruptSaveOnLoad = false
     public var onLocalSave: ((PlayerSave) -> Void)?
 
     public var hasPendingPersist: Bool {
@@ -54,10 +55,15 @@ public final class PlayerSaveStore {
         self.fileStore = fileStore
         self.immediatePersistRetryCount = max(1, immediatePersistRetryCount)
         self.immediatePersistRetryDelayNanoseconds = immediatePersistRetryDelayNanoseconds
-        if let loaded = fileStore.load() {
+        switch fileStore.loadOutcome() {
+        case let .loaded(loaded):
             loadedFromDisk = true
-            save = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(loaded))
-        } else {
+            save = loaded
+        case .corrupt:
+            hadCorruptSaveOnLoad = true
+            fileStore.quarantineCorruptSaves()
+            save = PlayerSaveSanitizer.sanitize(.fresh)
+        case .missing:
             save = PlayerSaveSanitizer.sanitize(.fresh)
         }
     }

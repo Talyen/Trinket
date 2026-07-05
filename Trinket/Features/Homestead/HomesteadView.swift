@@ -9,6 +9,7 @@ struct HomesteadView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var upgradeEventCount = 0
     @State private var recentUpgradeID: HomesteadNodeID?
+    @State private var homesteadBuildError: String?
 
     private var homesteadState: PlayerHomesteadState {
         appState.homestead.current
@@ -76,16 +77,32 @@ struct HomesteadView: View {
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .sensoryFeedback(.success, trigger: upgradeEventCount)
+        .alert(
+            "Build Failed",
+            isPresented: Binding(
+                get: { homesteadBuildError != nil },
+                set: { if !$0 { homesteadBuildError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(homesteadBuildError ?? "")
+        }
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        guard appState.homestead.buildOrUpgrade(definition, roster: appState.roster) else { return }
-        recentUpgradeID = definition.id
-        upgradeEventCount += 1
-
-        guard !reduceMotion else { return }
-        withAnimation(.snappy) {
+        switch appState.homestead.buildOrUpgrade(definition, roster: appState.roster) {
+        case .success:
             recentUpgradeID = definition.id
+            upgradeEventCount += 1
+            guard !reduceMotion else { return }
+            withAnimation(.snappy) {
+                recentUpgradeID = definition.id
+            }
+        case .insufficientResources:
+            homesteadBuildError = "Not enough resources to build or upgrade this project."
+        case .persistFailed:
+            homesteadBuildError = "Couldn't save homestead progress. Try again."
         }
     }
 

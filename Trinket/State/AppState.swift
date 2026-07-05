@@ -23,6 +23,7 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
+    var lastPlayFlowError: String?
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantCollectionDetailSelection?
     let initialCollectionItemID: String?
@@ -75,8 +76,11 @@ final class AppState {
         initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
         initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
 
-        // Tab precedence: environment arg > session state > default
-        if let envTab = env.launchTab {
+        // Tab precedence: collection deep links always open Collection; otherwise
+        // environment arg > launch-screen default > session state > default.
+        if Self.isCollectionDetailLaunch(env.launchScreen) {
+            selectedTab = .collection
+        } else if let envTab = env.launchTab {
             selectedTab = envTab
         } else if env.launchScreen != nil {
             selectedTab = Self.defaultTab(for: env.launchScreen)
@@ -165,20 +169,33 @@ final class AppState {
         selectedTab = .play
     }
 
-    func resetGameplayProgress() {
+    @discardableResult
+    func resetGameplayProgress() -> Bool {
         do {
             try playerSave.resetGameplayProgress()
         } catch {
             appStateLogger.error(
                 "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
             )
-            return
+            return false
         }
         battle.endBattle()
         sessionState.clearBattleState()
+        sessionState.selectedTab = nil
+        selectedTab = .play
         journey.mapScrollRequest = nil
         Task {
             await syncCoordinator.uploadImmediately(playerSave.currentSave)
+        }
+        return true
+    }
+
+    private static func isCollectionDetailLaunch(_ launchScreen: LaunchScreen?) -> Bool {
+        switch launchScreen {
+        case .heroDetail, .petDetail, .itemDetail:
+            true
+        case .battle, .options, .none:
+            false
         }
     }
 

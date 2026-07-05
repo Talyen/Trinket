@@ -52,6 +52,9 @@ package struct DamageResolutionState {
     /// Set to `true` by `CriticalGateStep` when the hit critically strikes.
     public var isCritical: Bool = false
 
+    /// Set to `true` when `MarkedBonusStep` adds bonus damage from a Mark.
+    public var markedBonusApplied: Bool = false
+
     public init(
         amount: Int,
         combatant: Combatant,

@@ -4,6 +4,7 @@ import TrinketDesignSystem
 struct OptionsView: View {
     @Environment(AppState.self) private var appState
     @State private var isResetConfirmationPresented = false
+    @State private var resetErrorMessage: String?
 
     var body: some View {
         @Bindable var options = appState.options
@@ -61,11 +62,24 @@ struct OptionsView: View {
             isPresented: $isResetConfirmationPresented
         ) {
             Button("Reset Game Progress", role: .destructive) {
-                appState.resetGameplayProgress()
+                if !appState.resetGameplayProgress() {
+                    resetErrorMessage = "Couldn't reset progress. Try again."
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This permanently deletes journey, roster, and inventory progress on this device and iCloud. Settings are kept.")
+        }
+        .alert(
+            "Reset Failed",
+            isPresented: Binding(
+                get: { resetErrorMessage != nil },
+                set: { if !$0 { resetErrorMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(resetErrorMessage ?? "")
         }
     }
 }

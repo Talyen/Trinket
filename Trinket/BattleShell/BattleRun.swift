@@ -93,10 +93,14 @@ final class BattleRun {
     }
 
     var outcome: BattleOutcome {
-        if isEnemyDefeated, isPartyDefeated { return .victory }
-        if isPartyDefeated { return .defeat }
-        if isEnemyDefeated { return .victory }
-        return .ongoing
+        switch BattleOutcomeResolver.resolve(
+            isPartyDefeated: isPartyDefeated,
+            isEnemyDefeated: isEnemyDefeated
+        ) {
+        case .victory: return .victory
+        case .defeat: return .defeat
+        case .tickLimit, .none: return .ongoing
+        }
     }
 
     func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {

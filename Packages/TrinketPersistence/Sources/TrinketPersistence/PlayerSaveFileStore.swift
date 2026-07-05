@@ -43,18 +43,47 @@ public struct PlayerSaveFileStore {
     }
 
     public func load() -> PlayerSave? {
+        switch loadOutcome() {
+        case let .loaded(save):
+            save
+        case .missing, .corrupt:
+            nil
+        }
+    }
+
+    public func loadOutcome() -> PlayerSaveLoadOutcome {
         ensureDirectoryExists()
 
+        let primaryExists = fileManager.fileExists(atPath: saveFileURL.path)
+        let backupExists = fileManager.fileExists(atPath: backupFileURL.path)
+
         if let save = loadSave(from: saveFileURL) {
-            return save
+            return .loaded(save)
         }
 
         if let save = loadSave(from: backupFileURL) {
             logger.warning("Recovered player save from backup file.")
-            return save
+            return .loaded(save)
         }
 
-        return migrateLegacyUserDefaultsJourney()
+        if let save = migrateLegacyUserDefaultsJourney() {
+            return .loaded(save)
+        }
+
+        if primaryExists || backupExists {
+            logger.error("Player save files exist but could not be decoded.")
+            return .corrupt
+        }
+
+        return .missing
+    }
+
+    public func quarantineCorruptSaves() {
+        for url in [saveFileURL, backupFileURL] where fileManager.fileExists(atPath: url.path) {
+            let quarantineURL = url.appendingPathExtension("corrupt")
+            try? fileManager.removeItem(at: quarantineURL)
+            try? fileManager.moveItem(at: url, to: quarantineURL)
+        }
     }
 
     public func save(_ playerSave: PlayerSave) throws {

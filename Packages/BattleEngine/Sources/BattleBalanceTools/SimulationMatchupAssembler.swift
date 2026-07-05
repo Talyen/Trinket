@@ -41,12 +41,15 @@ public enum SimulationMatchupAssembler {
             seed: seed
         )
 
+        let enemyBuild = CombatBuildResolver.build(enemy: enemy)
+
         return ConfiguredSimulationMatchup(
             hero: heroBuild.combatant,
             pet: petBuild.combatant,
             enemy: scaledEnemy,
             heroModifiers: heroBuild.modifiers,
             petModifiers: petBuild.modifiers,
+            enemyModifiers: enemyBuild.modifiers,
             context: context,
             enemyID: enemy.id,
             isBoss: enemy.isBoss

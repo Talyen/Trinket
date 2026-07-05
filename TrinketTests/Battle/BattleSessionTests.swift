@@ -220,7 +220,6 @@ final class BattleSessionTests: XCTestCase {
         appState.battle.restorePauseAfterOverlay()
 
         XCTAssertTrue(appState.battle.isPaused)
-        XCTAssertNil(appState.battle.pauseStateBeforeOverlay)
     }
 
     func testSetMusicPreviewClearsWhenBattleActive() throws {

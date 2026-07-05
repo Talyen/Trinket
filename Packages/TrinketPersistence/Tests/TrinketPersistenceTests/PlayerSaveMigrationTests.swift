@@ -206,4 +206,15 @@ final class PlayerSaveMigrationTests: XCTestCase {
         XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
         XCTAssertEqual(migrated.sessionGeneration, 0)
     }
+
+    func testMigrateRejectsSaveFromNewerSchemaVersion() {
+        var futureSave = PlayerSave.fresh
+        futureSave.schemaVersion = PlayerSave.currentSchemaVersion + 1
+        futureSave.roster.gold = 999
+
+        let migrated = PlayerSaveMigration.migrate(futureSave)
+
+        XCTAssertEqual(migrated.schemaVersion, PlayerSave.currentSchemaVersion)
+        XCTAssertEqual(migrated.roster.gold, 0)
+    }
 }

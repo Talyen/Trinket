@@ -61,6 +61,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedPetIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
     public var gold: Int = 0
+    public var primaryStatOverrides: [String: PrimaryStats] = [:]
 
     public init(
         activeHeroID: String,
@@ -70,7 +71,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         abilityLoadouts: [String: AbilityLoadout],
         progressions: [String: CombatantProgression],
         equipmentLoadouts: [String: EquipmentLoadout],
-        gold: Int = 0
+        gold: Int = 0,
+        primaryStatOverrides: [String: PrimaryStats] = [:]
     ) {
         self.activeHeroID = activeHeroID
         self.activePetID = activePetID
@@ -80,6 +82,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
         self.gold = gold
+        self.primaryStatOverrides = primaryStatOverrides
     }
 
     public static var freshStart: PlayerRosterState {
@@ -168,7 +171,9 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public func configuredCombatant(_ combatant: Combatant) -> Combatant {
-        combatant.withAbilityLoadout(loadout(for: combatant))
+        let withLoadout = combatant.withAbilityLoadout(loadout(for: combatant))
+        guard let overrides = primaryStatOverrides[combatant.id] else { return withLoadout }
+        return withLoadout.withPrimaryStats(overrides)
     }
 
     public func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {

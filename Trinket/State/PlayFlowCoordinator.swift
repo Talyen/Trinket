@@ -20,36 +20,38 @@ extension AppState {
         pet: Combatant,
         battleEarnedGold: Int = 0
     ) -> String {
-        var context = StageCompletionContext(
-            roster: roster.current,
-            inventory: inventory.current,
-            homestead: homestead.current,
-            journey: journey.current
-        )
-        StageCompletion.complete(
-            stage,
-            hero: hero,
-            pet: pet,
-            battleEarnedGold: battleEarnedGold,
-            in: GameContent.chapters,
-            context: &context
-        )
+        var scrollTarget = mapScrollFocusID(for: journey.current)
         do {
             try playerSave.performBatchMutation { save in
+                var context = StageCompletionContext(
+                    roster: save.playerRoster(inventoryItemIDs: Set(save.inventory.items.map(\.id))),
+                    inventory: save.inventory.inventory(),
+                    homestead: save.homestead.homestead(),
+                    journey: save.journey
+                )
+                StageCompletion.complete(
+                    stage,
+                    hero: hero,
+                    pet: pet,
+                    battleEarnedGold: battleEarnedGold,
+                    in: GameContent.chapters,
+                    context: &context
+                )
                 save.roster = SavedRosterState(context.roster)
                 save.inventory = SavedInventoryState(context.inventory)
                 save.homestead = SavedHomesteadState(context.homestead)
                 save.journey = context.journey
+                scrollTarget = mapScrollFocusID(for: context.journey)
             }
+            lastPlayFlowError = nil
+            sessionState.mapScrollStageID = scrollTarget
+            journey.requestMapScroll(to: scrollTarget)
         } catch {
             playFlowLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
             )
+            lastPlayFlowError = "Progress couldn't be saved. Try again."
         }
-
-        let scrollTarget = mapScrollFocusID(for: context.journey)
-        sessionState.mapScrollStageID = scrollTarget
-        journey.requestMapScroll(to: scrollTarget)
         return scrollTarget
     }
 

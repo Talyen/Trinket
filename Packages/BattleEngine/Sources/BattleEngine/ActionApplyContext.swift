@@ -12,7 +12,7 @@ public struct ActionApplyContext {
         self.pairedDirectDamage = pairedDirectDamage
     }
 
-    public func shouldSkipImmediateDoT(potency: Int, keyword: Keyword) -> Bool {
-        pairedDirectDamage.contains(where: { $0 == (keyword, potency) })
+    public func shouldSkipImmediateDoT(keyword: Keyword) -> Bool {
+        pairedDirectDamage.contains { $0.0 == keyword }
     }
 }

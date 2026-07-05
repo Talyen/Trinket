@@ -28,7 +28,7 @@ final class PlayerHomesteadStoreTests: XCTestCase {
         rosterStore.grantGold(4)
         let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .wheatField))
 
-        XCTAssertTrue(homesteadStore.buildOrUpgrade(definition, roster: rosterStore))
+        XCTAssertEqual(homesteadStore.buildOrUpgrade(definition, roster: rosterStore), .success)
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.homestead.tier(for: .wheatField), 1)
@@ -47,7 +47,10 @@ final class PlayerHomesteadStoreTests: XCTestCase {
         rosterStore.grantGold(100)
         let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .blacksmithForge))
 
-        XCTAssertFalse(homesteadStore.buildOrUpgrade(definition, roster: rosterStore))
+        XCTAssertEqual(
+            homesteadStore.buildOrUpgrade(definition, roster: rosterStore),
+            .insufficientResources
+        )
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         XCTAssertEqual(reloaded.homestead.tier(for: .blacksmithForge), 0)

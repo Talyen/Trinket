@@ -103,6 +103,20 @@ public struct Combatant: Identifiable, Hashable, Sendable {
             growthArchetype: growthArchetype
         )
     }
+
+    public func withPrimaryStats(_ primaryStats: PrimaryStats) -> Combatant {
+        Combatant(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: maxHealth,
+            maxMana: maxMana,
+            actionIntervalTicks: actionIntervalTicks,
+            abilityChoices: abilityChoices,
+            primaryStats: primaryStats,
+            growthArchetype: growthArchetype
+        )
+    }
 }
 
 public extension Combatant.Role {

@@ -46,6 +46,13 @@ struct ChapterStageSelectView: View {
             }
             .onAppear {
                 scrollToInitialTarget(with: proxy)
+                updateMusicPreview()
+            }
+            .onChange(of: appState.journey.current.activeStageID) { _, _ in
+                updateMusicPreview()
+            }
+            .onDisappear {
+                appState.battle.setMusicPreview(for: nil)
             }
             .onChange(of: appState.journey.mapScrollRequest?.id) { _, _ in
                 guard let request = appState.journey.mapScrollRequest else { return }
@@ -98,15 +105,22 @@ struct ChapterStageSelectView: View {
     }
 
     private func scrollToInitialTarget(with proxy: ScrollViewProxy) {
-        guard let target = presentation.scrollTargetID,
-              target != appState.playChapter.stages.first?.id
-        else { return }
+        guard let target = presentation.scrollTargetID else { return }
 
         DispatchQueue.main.async {
             withAnimation(scrollAnimation) {
                 proxy.scrollTo(target, anchor: .center)
             }
         }
+    }
+
+    private var activeStage: Stage? {
+        guard let stageID = appState.journey.current.activeStageID else { return nil }
+        return GameContent.chapters.flatMap(\.stages).first { $0.id == stageID }
+    }
+
+    private func updateMusicPreview() {
+        appState.battle.setMusicPreview(for: activeStage)
     }
 
     private var scrollAnimation: Animation? {

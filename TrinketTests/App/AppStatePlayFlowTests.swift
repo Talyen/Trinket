@@ -187,6 +187,7 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertNil(state.journey.mapScrollRequest)
+        XCTAssertEqual(state.selectedTab, .play)
         XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-1")
         XCTAssertTrue(state.journey.current.completedStageIDs.isEmpty)
     }
