@@ -26,11 +26,12 @@ struct BattleView: View {
 
     var body: some View {
         @Bindable var battleSession = appState.battle
+        let battleState = battleRun.state
 
         Group {
             if isShowingVictory, let victorySummary {
                 VictoryView(
-                    enemyName: battleRun.enemy.name,
+                    enemyName: battleState.enemy.name,
                     summary: victorySummary,
                     primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
                     onPrimaryAction: {
@@ -43,7 +44,7 @@ struct BattleView: View {
                 )
             } else if isShowingDefeat {
                 DefeatView(
-                    enemyName: battleRun.enemy.name,
+                    enemyName: battleState.enemy.name,
                     onBattleAgain: {
                         appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                     }
@@ -77,7 +78,7 @@ struct BattleView: View {
             appState.battle.restorePauseAfterOverlay()
         }, content: {
             BattleLogSheet(
-                entries: battleRun.log
+                entries: battleRun.state.log
             )
             .presentationDetents([.medium])
         })
@@ -153,26 +154,31 @@ struct BattleView: View {
     }
 
     private var battlefield: some View {
-        GeometryReader { geometry in
+        let battleState = battleRun.state
+
+        return GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
             BattlefieldView(
                 layout: layout,
                 enemyPane: paneConfiguration(
-                    for: battleRun.enemy,
-                    health: battleRun.enemyHealth,
-                    healthBarPlacement: .bottom
+                    for: battleState.enemy,
+                    health: battleState.health(of: battleState.enemy),
+                    healthBarPlacement: .bottom,
+                    battleState: battleState
                 ),
                 partyPanes: [
                     paneConfiguration(
-                        for: battleRun.hero,
-                        health: battleRun.heroHealth,
-                        healthBarPlacement: .top
+                        for: battleState.hero,
+                        health: battleState.health(of: battleState.hero),
+                        healthBarPlacement: .top,
+                        battleState: battleState
                     ),
                     paneConfiguration(
-                        for: battleRun.pet,
-                        health: battleRun.petHealth,
-                        healthBarPlacement: .top
+                        for: battleState.pet,
+                        health: battleState.health(of: battleState.pet),
+                        healthBarPlacement: .top,
+                        battleState: battleState
                     )
                 ],
                 reduceMotion: reduceMotion,
@@ -185,16 +191,17 @@ struct BattleView: View {
     private func paneConfiguration(
         for combatant: Combatant,
         health: Int,
-        healthBarPlacement: BattleCombatantPane.HealthBarPlacement
+        healthBarPlacement: BattleCombatantPane.HealthBarPlacement,
+        battleState: BattleState
     ) -> BattleCombatantPaneConfiguration {
         let mana: Int
         let maxMana: Int
-        if combatant.id == battleRun.hero.id {
-            mana = battleRun.heroMana
-            maxMana = battleRun.heroMaxMana
-        } else if combatant.id == battleRun.pet.id {
-            mana = battleRun.petMana
-            maxMana = battleRun.petMaxMana
+        if combatant.id == battleState.hero.id {
+            mana = battleState.mana(of: battleState.hero)
+            maxMana = battleState.maxMana(of: battleState.hero)
+        } else if combatant.id == battleState.pet.id {
+            mana = battleState.mana(of: battleState.pet)
+            maxMana = battleState.maxMana(of: battleState.pet)
         } else {
             mana = 0
             maxMana = 0
@@ -202,7 +209,7 @@ struct BattleView: View {
         return BattleCombatantPaneConfiguration(
             combatant: combatant,
             health: health,
-            maxHealth: battleRun.maxHealth(for: combatant),
+            maxHealth: battleState.maxHealth(of: combatant),
             mana: mana,
             maxMana: maxMana,
             healthBarPlacement: healthBarPlacement,
@@ -211,10 +218,11 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant) {
+        let battleState = battleRun.state
         appState.battle.presentCombatantDetail(details(
             for: combatant,
-            health: battleRun.health(for: combatant),
-            activeEffectSummaries: battleRun.effectSummaries(for: combatant)
+            health: battleState.health(of: combatant),
+            activeEffectSummaries: battleState.effectSummaries(of: combatant)
         ))
     }
 
@@ -223,7 +231,7 @@ struct BattleView: View {
     }
 
     private var canAutoAdvanceBattle: Bool {
-        !battleRun.isBattleOver &&
+        !battleRun.state.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
             !appState.battle.isPaused
@@ -237,7 +245,7 @@ struct BattleView: View {
         switch battleRun.outcome {
         case .victory:
             if stageRewardsAlreadyClaimed {
-                appState.completeActiveBattle(configuration, battleEarnedGold: battleRun.earnedGold)
+                appState.completeActiveBattle(configuration, battleEarnedGold: battleRun.state.earnedGold)
             } else {
                 victorySummary = battleRun.makeVictorySummary(homestead: appState.homestead.current)
                 isShowingVictory = true
@@ -265,14 +273,14 @@ struct BattleView: View {
     }
 
     private func progression(for combatant: Combatant) -> CombatantProgression {
-        if combatant.id == battleRun.hero.id { return configuration.heroProgression }
-        if combatant.id == battleRun.pet.id { return configuration.petProgression }
+        if combatant.id == battleRun.state.hero.id { return configuration.heroProgression }
+        if combatant.id == battleRun.state.pet.id { return configuration.petProgression }
         return .initial
     }
 
     private func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
-        if combatant.id == battleRun.hero.id { return configuration.heroEquipmentLoadout }
-        if combatant.id == battleRun.pet.id { return configuration.petEquipmentLoadout }
+        if combatant.id == battleRun.state.hero.id { return configuration.heroEquipmentLoadout }
+        if combatant.id == battleRun.state.pet.id { return configuration.petEquipmentLoadout }
         return EquipmentLoadout()
     }
 }
