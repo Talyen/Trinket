@@ -21,10 +21,10 @@ Combat is idle by default. A Hero and Pet alternate abilities against a single E
 The persistent tab bar is:
 
 ```text
-Play -> Heroes -> Inventory -> Homestead -> Options
+Play -> Collection -> Homestead -> Search -> Options
 ```
 
-`Heroes` is the shared collection area for both Heroes and Pets, with an in-page switch between the two collections. `Inventory` is a top-level collection surface because Items are expected to become a core reward and equipment loop.
+The **Collection** tab groups Heroes, Pets, and Inventory behind an in-tab category switch. Heroes and Pets share one collection area; Inventory is a separate category because Items are expected to become a core reward and equipment loop. **Search** is a system search-role tab for inventory lookup — a utility surface, not a primary product destination. See `Docs/Architecture.md` for the `AppTab` mapping.
 
 ## Chapters And Stages
 

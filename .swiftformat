@@ -7,4 +7,4 @@
 --self remove
 --importgrouping testable-bottom
 --disable wrapMultilineStatementBraces
---exclude Trinket/Generated,.DerivedData,.build
+--exclude Packages/TrinketContent/Sources/TrinketContent/Generated,.DerivedData,.build

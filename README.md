@@ -2,31 +2,64 @@
 
 Portrait-first native iOS fantasy idle auto-battler.
 
-## Setup
+## Requirements
 
-Requires Xcode and XcodeGen.
+- Xcode 26+ with iOS 26 simulator runtime
+- Swift 6.0
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+- SwiftLint and SwiftFormat (`brew install swiftlint swiftformat`)
+- Python 3 (content codegen)
+
+## Setup
 
 ```sh
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -runFirstLaunch
-brew install xcodegen
+brew install xcodegen swiftlint swiftformat
+```
+
+Optional commit-message hook (advisory warnings):
+
+```sh
+git config core.hooksPath .githooks
+```
+
+## First Run
+
+```sh
+./Scripts/generate.sh    # validate manifests, codegen, XcodeGen — run before first build
+./Scripts/build.sh
+./Scripts/run-simulator.sh
+```
+
+For manifest, art, music, or SFX edits:
+
+```sh
+./Scripts/generate.sh --assets
 ```
 
 ## Common Commands
 
 ```sh
-./Scripts/generate.sh          # validate manifests, codegen, XcodeGen
+./Scripts/generate.sh              # validate manifests, codegen, XcodeGen
 ./Scripts/build.sh
-./Scripts/test.sh unit
-./Scripts/test.sh smoke
+./Scripts/test.sh unit             # TrinketTests + all package test schemes
+./Scripts/test.sh smoke            # UI smoke (~2 min)
+./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
+./Scripts/test.sh style            # format + lint + UI style check
+./Scripts/ci-locally.sh            # pre-push: generate, boundaries, style, unit, smoke
+./Scripts/test-deploy.sh           # pre-merge: generate, style, unit, full UI
 ./Scripts/run-simulator.sh
-./Scripts/release.sh --dry-run # preview changelog + App Store notes
-./Scripts/release.sh           # cut a release (runs test-deploy.sh)
+./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)
+./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)
 ```
+
+Agent workflow and test conventions: `AGENTS.md`.
 
 ## Docs
 
-- Architecture and module plan: `Docs/Architecture.md`
+Start with **`Docs/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
+
 - Agent workflow: `AGENTS.md`
 - Core design concepts: `Docs/CoreDesignConcepts.md`
 - Product roadmap (scratch ideas): `Docs/Roadmap.md`
