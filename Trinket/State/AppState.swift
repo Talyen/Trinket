@@ -138,13 +138,7 @@ final class AppState {
             .first(where: { $0.id == Self.launchBattleStageID })
         else { return }
 
-        _ = battle.startBattle(
-            stage: stage,
-            hero: roster.activeHero,
-            pet: roster.activePet,
-            roster: roster,
-            inventory: inventory
-        )
+        startBattle(on: stage)
     }
 
     private static let launchBattleStageID = "chapter-1-stage-1"
@@ -164,6 +158,11 @@ final class AppState {
             return
         }
 
+        startBattle(on: stage)
+        selectedTab = .play
+    }
+
+    private func startBattle(on stage: Stage) {
         _ = battle.startBattle(
             stage: stage,
             hero: roster.activeHero,
@@ -171,7 +170,6 @@ final class AppState {
             roster: roster,
             inventory: inventory
         )
-        selectedTab = .play
     }
 
     @discardableResult
@@ -234,10 +232,7 @@ final class AppState {
 
         do {
             try playerSave.performBatchMutation { save in
-                save.roster = SavedRosterState(context.roster)
-                save.inventory = SavedInventoryState(context.inventory)
-                save.homestead = SavedHomesteadState(context.homestead)
-                save.journey = context.journey
+                context.apply(to: &save)
             }
         } catch {
             appStateLogger.error(

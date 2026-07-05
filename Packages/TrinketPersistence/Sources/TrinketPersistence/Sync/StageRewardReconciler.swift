@@ -52,10 +52,13 @@ enum StageRewardReconciler {
             journey = context.journey
         }
 
-        updated.roster = SavedRosterState(roster)
-        updated.inventory = SavedInventoryState(inventory)
-        updated.homestead = SavedHomesteadState(homestead)
-        updated.journey = journey
+        var context = StageCompletionContext(
+            roster: roster,
+            inventory: inventory,
+            homestead: homestead,
+            journey: journey
+        )
+        context.apply(to: &updated)
         return updated
     }
 

@@ -60,25 +60,18 @@ final class BattleSession {
         let enemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
         preview = nil
-        let rewardItemNames = stage.rewards.itemTemplateIDs.compactMap { templateID in
-            GameContent.itemTemplate(matching: templateID)?.displayName
-        }
-        activeBattle = ActiveBattleConfiguration.make(
+        activeBattle = makeConfiguration(
             stageID: stage.id,
-            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: enemy,
             enemyEncounterLevel: encounterLevel,
-            heroProgression: roster.current.progression(for: hero),
-            petProgression: roster.current.progression(for: pet),
-            highestHeroLevel: roster.current.highestHeroLevel,
-            highestPetLevel: roster.current.highestPetLevel,
-            heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
-            petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
-            inventoryState: inventory.current,
             stageReward: stage.rewards,
-            rewardItemNames: rewardItemNames
+            rewardItemNames: stage.rewards.itemTemplateIDs.compactMap { templateID in
+                GameContent.itemTemplate(matching: templateID)?.displayName
+            },
+            roster: roster,
+            inventory: inventory
         )
         onBattleStateChange?(stage.id)
         return nil
@@ -92,13 +85,37 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = ActiveBattleConfiguration.make(
+        self.activeBattle = makeConfiguration(
             stageID: activeBattle.stageID,
-            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+            stageReward: activeBattle.stageReward,
+            rewardItemNames: activeBattle.rewardItemNames,
+            roster: roster,
+            inventory: inventory
+        )
+    }
+
+    private func makeConfiguration(
+        stageID: String?,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        stageReward: StageReward?,
+        rewardItemNames: [String],
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
+            stageID: stageID,
+            rngSeed: BattleRNGSeed.fresh(),
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
             heroProgression: roster.current.progression(for: hero),
             petProgression: roster.current.progression(for: pet),
             highestHeroLevel: roster.current.highestHeroLevel,
@@ -106,8 +123,8 @@ final class BattleSession {
             heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
             petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
             inventoryState: inventory.current,
-            stageReward: activeBattle.stageReward,
-            rewardItemNames: activeBattle.rewardItemNames
+            stageReward: stageReward,
+            rewardItemNames: rewardItemNames
         )
     }
 

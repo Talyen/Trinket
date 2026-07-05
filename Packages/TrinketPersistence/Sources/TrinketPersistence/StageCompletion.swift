@@ -19,6 +19,13 @@ public struct StageCompletionContext: Sendable {
         self.homestead = homestead
         self.journey = journey
     }
+
+    public mutating func apply(to save: inout PlayerSave) {
+        save.roster = SavedRosterState(roster)
+        save.inventory = SavedInventoryState(inventory)
+        save.homestead = SavedHomesteadState(homestead)
+        save.journey = journey
+    }
 }
 
 public enum StageCompletion {

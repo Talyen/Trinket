@@ -30,6 +30,14 @@ enum JourneyMapPresentation {
 
     static func scrollFocusID(
         for progress: JourneyProgressState,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> String {
+        let chapter = chapters.first { $0.id == progress.activeChapterID } ?? chapters[0]
+        return scrollFocusID(for: progress, chapter: chapter, chapters: chapters)
+    }
+
+    static func scrollFocusID(
+        for progress: JourneyProgressState,
         chapter: Chapter,
         chapters: [Chapter]
     ) -> String {

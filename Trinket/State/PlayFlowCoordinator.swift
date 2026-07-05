@@ -38,10 +38,7 @@ extension AppState {
                     in: GameContent.chapters,
                     context: &context
                 )
-                save.roster = SavedRosterState(context.roster)
-                save.inventory = SavedInventoryState(context.inventory)
-                save.homestead = SavedHomesteadState(context.homestead)
-                save.journey = context.journey
+                context.apply(to: &save)
                 scrollTarget = mapScrollFocusID(for: context.journey)
             }
             lastPlayFlowError = nil
@@ -69,23 +66,6 @@ extension AppState {
     }
 
     func mapScrollFocusID(for progress: JourneyProgressState) -> String {
-        if let activeStageID = progress.activeStageID {
-            return activeStageID
-        }
-
-        let chapter = GameContent.chapter(id: progress.activeChapterID) ?? GameContent.chapters[0]
-        let gateChapter = GameContent.nextChapter(after: chapter) ?? placeholderGateChapter(after: chapter)
-        return StageMapID.chapterGate(for: gateChapter)
-    }
-
-    private func placeholderGateChapter(after chapter: Chapter) -> Chapter {
-        let nextNumber = chapter.number + 1
-        return Chapter(
-            id: StageMapID.placeholderGate(afterChapterNumber: nextNumber),
-            number: nextNumber,
-            title: "",
-            theme: chapter.theme,
-            stages: []
-        )
+        JourneyMapPresentation.scrollFocusID(for: progress)
     }
 }
