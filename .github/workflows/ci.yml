@@ -20,6 +20,8 @@ jobs:
     name: Generate and style
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup-trinket
 
       - name: Generate project
@@ -42,6 +44,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup-trinket
 
       - name: Run CI balance gate sweep
@@ -60,6 +64,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup-trinket
         with:
           restore-derived-data: 'true'
@@ -88,6 +94,8 @@ jobs:
     needs: build
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup-trinket
         with:
           restore-derived-data: 'true'
@@ -123,6 +131,8 @@ jobs:
     needs: build
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/setup-trinket
         with:
           restore-derived-data: 'true'
