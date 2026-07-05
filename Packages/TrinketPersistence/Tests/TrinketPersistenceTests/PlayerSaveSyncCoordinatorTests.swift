@@ -26,7 +26,6 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(fixture.coordinator.status, .upToDate)
         XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
-        XCTAssertNotNil(fixture.coordinator.sessionToken)
         let fetchCount = await fixture.mock.fetchCallCount()
         let subscribeCount = await fixture.mock.subscribeInvocationCount()
         XCTAssertEqual(fetchCount, 1)
@@ -295,7 +294,6 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.coordinator.closeSession()
 
         XCTAssertEqual(fixture.coordinator.sessionPhase, .closed)
-        XCTAssertNil(fixture.coordinator.sessionToken)
     }
 
     func testUploadConflictMergesAndRetriesUpload() async throws {

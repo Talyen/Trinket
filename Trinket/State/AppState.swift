@@ -1,8 +1,16 @@
 import Foundation
 import Observation
 import os
+import SwiftUI
 import TrinketContent
 import TrinketPersistence
+
+enum ShellRefreshTrigger {
+    case appear
+    case selectedTab(AppTab)
+    case activeBattleStarted
+    case activeBattleEnded
+}
 
 private let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -295,31 +303,16 @@ final class AppState {
         environment: AppEnvironment,
         sessionState: SessionStateStore
     ) -> AppTab {
-        if isCollectionDetailLaunch(environment.launchScreen) {
-            return .collection
-        }
         if let envTab = environment.launchTab {
             return envTab
         }
-        if environment.launchScreen != nil {
-            return defaultTab(for: environment.launchScreen)
+        if let launchScreen = environment.launchScreen {
+            return tab(for: launchScreen)
         }
-        if let savedTab = sessionState.selectedTab {
-            return savedTab
-        }
-        return .play
+        return sessionState.selectedTab ?? .play
     }
 
-    private static func isCollectionDetailLaunch(_ launchScreen: LaunchScreen?) -> Bool {
-        switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
-            true
-        case .battle, .options, .none:
-            false
-        }
-    }
-
-    private static func defaultTab(for launchScreen: LaunchScreen?) -> AppTab {
+    private static func tab(for launchScreen: LaunchScreen) -> AppTab {
         switch launchScreen {
         case .heroDetail, .petDetail, .itemDetail:
             return .collection
@@ -327,8 +320,6 @@ final class AppState {
             return .play
         case .options:
             return .options
-        case .none:
-            return .play
         }
     }
 
@@ -352,5 +343,55 @@ final class AppState {
         case .heroDetail, .petDetail, .battle, .options, .none:
             nil
         }
+    }
+
+    func applyShellRefresh(trigger: ShellRefreshTrigger, scenePhase: ScenePhase) {
+        switch trigger {
+        case .appear:
+            if battle.activeBattle != nil, selectedTab != .play {
+                battle.isPaused = true
+            }
+        case let .selectedTab(newTab):
+            sessionState.selectedTab = newTab
+            if battle.activeBattle != nil {
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                battle.isPaused = true
+            }
+        case .activeBattleStarted:
+            battle.isPaused = selectedTab != .play
+        case .activeBattleEnded:
+            battle.isPaused = false
+            musicPlayer.clearEncounterResumePositions()
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func handleScenePhaseChange(_ newPhase: ScenePhase) {
+        if newPhase != .active, battle.activeBattle != nil {
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: newPhase)
+        if newPhase == .inactive || newPhase == .background {
+            playerSave.flushPendingPersistIfNeeded()
+        }
+        if newPhase == .background {
+            Task {
+                await syncCoordinator.checkpointUploadIfNeeded()
+            }
+        } else if newPhase == .active {
+            Task {
+                await syncCoordinator.reconcileForegroundIfSafe()
+            }
+        }
+    }
+
+    private func refreshMusic(scenePhase: ScenePhase) {
+        musicPlayer.refresh(
+            selectedTab: selectedTab,
+            preview: battle.preview,
+            activeBattle: battle.activeBattle,
+            sceneIsActive: scenePhase == .active,
+            volume: options.musicVolume
+        )
     }
 }

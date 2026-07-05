@@ -57,13 +57,23 @@ struct ContentView: View {
             }
         }
         .onChange(of: appState.battle.preview?.id) { _, _ in
-            appState.refreshMusicRoute(scenePhase: scenePhase)
+            refreshMusicRoute()
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
-            appState.refreshMusicRoute(scenePhase: scenePhase)
+            refreshMusicRoute()
         }
         .onChange(of: scenePhase) { _, newPhase in
             appState.handleScenePhaseChange(newPhase)
         }
+    }
+
+    private func refreshMusicRoute() {
+        appState.musicPlayer.refresh(
+            selectedTab: appState.selectedTab,
+            preview: appState.battle.preview,
+            activeBattle: appState.battle.activeBattle,
+            sceneIsActive: scenePhase == .active,
+            volume: appState.options.musicVolume
+        )
     }
 }

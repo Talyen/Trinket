@@ -2,14 +2,6 @@ import Foundation
 import Observation
 import os
 
-public struct PlayerAccountSessionToken: Equatable, Sendable {
-    public let id: UUID
-
-    public init(id: UUID = UUID()) {
-        self.id = id
-    }
-}
-
 public enum PlayerSaveSessionPhase: Equatable {
     case bootstrapping
     case active
@@ -21,7 +13,6 @@ public enum PlayerSaveSessionPhase: Equatable {
 public final class PlayerSaveSyncCoordinator {
     public private(set) var status: PlayerSaveSyncStatus = .idle
     public private(set) var sessionPhase: PlayerSaveSessionPhase = .closed
-    public private(set) var sessionToken: PlayerAccountSessionToken?
 
     /// Returns whether a battle is currently in progress on the active session.
     public var hasActiveBattle: () -> Bool = { false }
@@ -51,22 +42,11 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     public func start() async {
-        guard sessionPhase != .active else { return }
-
-        if sessionToken == nil {
-            sessionToken = PlayerAccountSessionToken()
-        }
-
-        await bootstrapAndActivate()
-        await registerSubscriptionIfNeeded()
-        if pendingUploadSave != nil {
-            await processUploadQueue()
-        }
+        await activateSession(subscribe: true)
     }
 
     public func pullAndReconcile() async {
-        guard sessionPhase != .active else { return }
-        await bootstrapAndActivate()
+        await activateSession(subscribe: false)
     }
 
     public func reconcileForegroundIfSafe() async {
@@ -108,11 +88,6 @@ public final class PlayerSaveSyncCoordinator {
 
         playerSaveStore?.flushPendingPersistIfNeeded()
         await checkpointUploadIfNeeded()
-
-        if sessionToken != nil {
-            sessionToken = nil
-        }
-
         sessionPhase = .closed
     }
 
@@ -122,12 +97,18 @@ public final class PlayerSaveSyncCoordinator {
         await scheduleUpload(playerSaveStore.currentSave)
     }
 
-    private func bootstrapAndActivate() async {
-        if sessionPhase != .bootstrapping {
-            sessionPhase = .bootstrapping
-            _ = await reconcileOnce()
-        }
+    private func activateSession(subscribe: Bool) async {
+        guard sessionPhase != .active else { return }
+
+        sessionPhase = .bootstrapping
+        _ = await reconcileOnce()
         sessionPhase = .active
+
+        guard subscribe else { return }
+        await registerSubscriptionIfNeeded()
+        if pendingUploadSave != nil {
+            await processUploadQueue()
+        }
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
@@ -141,41 +122,35 @@ public final class PlayerSaveSyncCoordinator {
         }
 
         let task = Task { @MainActor [weak self] () -> Bool in
-            guard let self else { return false }
-            return await reconcileAtSessionStart()
+            guard let self, let playerSaveStore else { return false }
+
+            status = .syncing
+            guard await guardAccountAvailable() else { return false }
+
+            do {
+                let local = playerSaveStore.currentSave
+                let remote = try await sync.fetchRemoteSave()
+                if let remote {
+                    lastKnownRemoteChangeTag = remote.recordChangeTag
+                }
+
+                if !playerSaveStore.loadedFromDisk, let remote {
+                    return applyRemoteSaveIfSafe(remote.save)
+                }
+
+                return await applyReconcileOutcome(
+                    PlayerSaveMerger.reconcile(local: local, remote: remote),
+                    local: local
+                )
+            } catch {
+                logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
+                status = .error("Playing offline on this device.")
+                return false
+            }
         }
         reconcileInFlight = task
         defer { reconcileInFlight = nil }
         return await task.value
-    }
-
-    @discardableResult
-    private func reconcileAtSessionStart() async -> Bool {
-        guard let playerSaveStore else { return false }
-
-        status = .syncing
-        guard await guardAccountAvailable() else { return false }
-
-        do {
-            let local = playerSaveStore.currentSave
-            let remote = try await sync.fetchRemoteSave()
-            if let remote {
-                lastKnownRemoteChangeTag = remote.recordChangeTag
-            }
-
-            if !playerSaveStore.loadedFromDisk, let remote {
-                return applyRemoteSaveIfSafe(remote.save)
-            }
-
-            return await applyReconcileOutcome(
-                PlayerSaveMerger.reconcile(local: local, remote: remote),
-                local: local
-            )
-        } catch {
-            logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
-            status = .error("Playing offline on this device.")
-            return false
-        }
     }
 
     @discardableResult
@@ -200,12 +175,16 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     @discardableResult
+    private func deferReconcileIfBattleActive() -> Bool {
+        guard hasActiveBattle() else { return false }
+        deferredRemoteReconcile = true
+        status = .upToDate
+        return true
+    }
+
+    @discardableResult
     private func applyRemoteSaveIfSafe(_ remoteSave: PlayerSave) -> Bool {
-        if hasActiveBattle() {
-            deferredRemoteReconcile = true
-            status = .upToDate
-            return false
-        }
+        if deferReconcileIfBattleActive() { return false }
         applyRemoteSave(remoteSave)
         status = .upToDate
         return true
@@ -273,11 +252,7 @@ public final class PlayerSaveSyncCoordinator {
 
         let authoritative = PlayerSaveMerger.pickAuthoritative(local: liveLocal, remote: remote.save)
 
-        if hasActiveBattle() {
-            deferredRemoteReconcile = true
-            status = .upToDate
-            return
-        }
+        if deferReconcileIfBattleActive() { return }
 
         applyRemoteSave(authoritative)
         lastKnownRemoteChangeTag = remote.recordChangeTag
