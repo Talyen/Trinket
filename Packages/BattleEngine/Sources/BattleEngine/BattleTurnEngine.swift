@@ -67,7 +67,7 @@ public enum BattleTurnEngine {
         matchup: BattleMatchup,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let turnNumber = context.runtime(for: actor).actionCount + 1
+        let turnNumber = (context.runtime(for: actor)?.actionCount ?? 0) + 1
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, context: context) else {
             recordAction(for: actor, context: &context)
@@ -222,7 +222,6 @@ public enum BattleTurnEngine {
             )
 
             guard let handler = EffectHandlers.all[effect.kind] else {
-                assertionFailure("Missing effect handler for \(effect.kind)")
                 logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
                 continue
             }
@@ -247,7 +246,7 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) {
         context.actionCount += 1
-        var runtime = context.runtime(for: actor)
+        guard var runtime = context.runtime(for: actor) else { return }
         let activeEffects = context.activeEffects(for: actor)
         runtime.markActed(atTick: context.tickCount, activeEffects: activeEffects)
         context.updateRuntime(runtime)

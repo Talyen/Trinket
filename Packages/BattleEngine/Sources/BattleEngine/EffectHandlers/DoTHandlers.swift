@@ -4,12 +4,17 @@ import TrinketContent
 
 public struct DecayingDoTHandler: BattleEffectHandler {
     public let keyword: Keyword
+    public let kind: EffectKind
 
-    public var kind: EffectKind {
+    public init(keyword: Keyword) {
+        self.keyword = keyword
         switch keyword {
-        case .burn: return .burn
-        case .poison: return .poison
-        default: preconditionFailure("Unsupported decaying DoT keyword \(keyword)")
+        case .burn:
+            kind = .burn
+        case .poison:
+            kind = .poison
+        default:
+            kind = .burn
         }
     }
 
@@ -75,7 +80,7 @@ public struct DecayingDoTHandler: BattleEffectHandler {
         switch keyword {
         case .burn: return .burn(potency)
         case .poison: return .poison(potency)
-        default: preconditionFailure("Unsupported decaying DoT keyword \(keyword)")
+        default: return .burn(potency)
         }
     }
 }

@@ -29,7 +29,12 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             self = saved
             return
         }
-        self = SavedEffect.keywordBacked(effect)
+        if let saved = SavedEffect.keywordBacked(effect) {
+            self = saved
+            return
+        }
+        assertionFailure("Unencodable effect: \(effect)")
+        self = .deathsDoor
     }
 
     private static func direct(_ effect: Effect) -> SavedEffect? {
@@ -63,7 +68,7 @@ public enum SavedEffect: Codable, Equatable, Sendable {
         }
     }
 
-    private static func keywordBacked(_ effect: Effect) -> SavedEffect {
+    private static func keywordBacked(_ effect: Effect) -> SavedEffect? {
         switch effect {
         case let .controlMeter(keyword, amount, threshold):
             return .controlMeter(keyword: keyword.rawValue, amount: amount, threshold: threshold)
@@ -81,10 +86,8 @@ public enum SavedEffect: Codable, Equatable, Sendable {
             return .halveMitigation(keyword: keyword.rawValue)
         case let .thorns(keyword, amount, duration):
             return .thorns(keyword: keyword.rawValue, amount: amount, duration: duration)
-        case .burn, .poison, .bleed, .cleanse, .cleanseRandom, .purge, .purgeRandom,
-             .deathsDoor, .haste, .marked, .criticalChanceBonus, .restoreManaOnHit:
-            assertionFailure("Effect should be handled by direct(_:): \(effect)")
-            return .deathsDoor
+        default:
+            return nil
         }
     }
 

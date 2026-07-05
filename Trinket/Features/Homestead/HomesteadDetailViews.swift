@@ -8,6 +8,7 @@ struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var upgradeEventCount = 0
+    @State private var isBuilding = false
 
     let definition: HomesteadNodeDefinition
 
@@ -65,7 +66,11 @@ struct HomesteadNodeDetailView: View {
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            HomesteadDetailActionBar(status: status, action: buildOrUpgrade)
+            HomesteadDetailActionBar(
+                status: status,
+                isBuilding: isBuilding,
+                action: buildOrUpgrade
+            )
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .sensoryFeedback(.success, trigger: upgradeEventCount)
@@ -82,6 +87,9 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
+        guard !isBuilding else { return }
+        isBuilding = true
+        defer { isBuilding = false }
         guard appState.homestead.buildOrUpgrade(definition, roster: appState.roster) else { return }
         upgradeEventCount += 1
         guard !reduceMotion else { return }
@@ -138,6 +146,7 @@ struct HomesteadDetailHeader: View {
 
 struct HomesteadDetailActionBar: View {
     let status: HomesteadProjectStatus
+    let isBuilding: Bool
     let action: () -> Void
 
     var body: some View {
@@ -148,6 +157,8 @@ struct HomesteadDetailActionBar: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
+                .disabled(isBuilding)
+                .accessibilityIdentifier(HomesteadDetailActionBar.accessibilityID(for: status))
             } else if status.isComplete {
                 Label("Complete", systemImage: "checkmark.seal.fill")
                     .font(.subheadline.weight(.semibold))
@@ -163,6 +174,13 @@ struct HomesteadDetailActionBar: View {
         .padding(.bottom, 8)
         // UIStyleCheck: allow - Pinned action chrome intentionally uses native material.
         .background(.regularMaterial)
+    }
+
+    static func accessibilityID(for status: HomesteadProjectStatus) -> String {
+        if status.currentTier == 0 {
+            return "Build \(status.definition.title) Button"
+        }
+        return "Upgrade \(status.definition.title) Button"
     }
 }
 

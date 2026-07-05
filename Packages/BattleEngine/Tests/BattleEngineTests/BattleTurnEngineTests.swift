@@ -53,16 +53,16 @@ final class BattleTurnEngineTests: XCTestCase {
         XCTAssertFalse(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
     }
 
-    func testConsumeActionSkipRecordsActionForScheduling() {
+    func testConsumeActionSkipRecordsActionForScheduling() throws {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
         let enemy = context.roster.enemy.combatant
-        let before = context.runtime(for: enemy).actionCount
+        let before = try XCTUnwrap(context.runtime(for: enemy)?.actionCount)
 
         _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        XCTAssertEqual(context.runtime(for: enemy).actionCount, before + 1)
+        XCTAssertEqual(try XCTUnwrap(context.runtime(for: enemy)?.actionCount), before + 1)
         XCTAssertEqual(context.actionCount, 1)
     }
 

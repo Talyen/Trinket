@@ -4,8 +4,8 @@ import TrinketCore
 import TrinketContent
 
 final class EnemyTraitBattleTests: XCTestCase {
-    private func enemyBuild(id: String) -> CombatBuild {
-        let enemy = try! XCTUnwrap(GameContent.enemy(matching: id))
+    private func enemyBuild(id: String) throws -> CombatBuild {
+        let enemy = try XCTUnwrap(GameContent.enemy(matching: id))
         return CombatBuildResolver.build(enemy: enemy)
     }
 
@@ -38,7 +38,7 @@ final class EnemyTraitBattleTests: XCTestCase {
     }
 
     func testSkeletonTakesExtraHolyDamage() throws {
-        let skeleton = enemyBuild(id: "skeleton")
+        let skeleton = try enemyBuild(id: "skeleton")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         var physicalContext = makeContext(hero: hero, pet: pet, enemyBuild: skeleton)
@@ -56,13 +56,13 @@ final class EnemyTraitBattleTests: XCTestCase {
     }
 
     func testGoblinNimbleDodgeAndScrawnyVulnerability() throws {
-        let goblin = enemyBuild(id: "goblin")
+        let goblin = try enemyBuild(id: "goblin")
         XCTAssertGreaterThan(goblin.modifiers.dodgeChanceBonus, 0)
         XCTAssertGreaterThan(goblin.modifiers.damageTakenVulnerability(for: .physical), 0)
     }
 
     func testMimicAmbushAddsFirstStrikeDamage() throws {
-        let mimic = enemyBuild(id: "mimic")
+        let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 30)
         var context = makeContext(hero: hero, pet: pet, enemyBuild: mimic)
@@ -79,12 +79,12 @@ final class EnemyTraitBattleTests: XCTestCase {
     }
 
     func testLivingArmorCannotBeHealed() throws {
-        let livingArmor = enemyBuild(id: "living_armor")
+        let livingArmor = try enemyBuild(id: "living_armor")
         XCTAssertTrue(livingArmor.modifiers.cannotBeHealed)
     }
 
     func testHemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
-        let necromancer = enemyBuild(id: "necromancer")
+        let necromancer = try enemyBuild(id: "necromancer")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 100)
         var context = makeContext(hero: hero, pet: pet, enemyBuild: necromancer)

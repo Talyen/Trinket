@@ -7,6 +7,7 @@ import TrinketPersistence
 struct ActiveBattleConfiguration: Identifiable {
     let id = UUID()
     let stageID: String?
+    let rngSeed: UInt64
     let hero: Combatant
     let pet: Combatant
     let enemy: Combatant?
@@ -26,6 +27,7 @@ struct ActiveBattleConfiguration: Identifiable {
 
     init(
         stageID: String? = nil,
+        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max),
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
@@ -44,6 +46,7 @@ struct ActiveBattleConfiguration: Identifiable {
         rewardItemNames: [String] = []
     ) {
         self.stageID = stageID
+        self.rngSeed = rngSeed
         self.hero = hero
         self.pet = pet
         self.enemy = enemy
@@ -64,6 +67,7 @@ struct ActiveBattleConfiguration: Identifiable {
 
     static func make(
         stageID: String? = nil,
+        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max),
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
@@ -99,6 +103,7 @@ struct ActiveBattleConfiguration: Identifiable {
         }
         return ActiveBattleConfiguration(
             stageID: stageID,
+            rngSeed: rngSeed,
             hero: heroBuild.combatant,
             pet: petBuild.combatant,
             enemy: enemyBuild.combatant,

@@ -28,7 +28,7 @@ final class BattleRun {
             heroModifiers: configuration.heroModifiers,
             petModifiers: configuration.petModifiers,
             enemyModifiers: configuration.enemyModifiers,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max)
+            rngSeed: configuration.rngSeed
         )
     }
 
@@ -148,7 +148,8 @@ final class BattleRun {
             enemy: configuration.enemy,
             heroModifiers: configuration.heroModifiers,
             petModifiers: configuration.petModifiers,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max)
+            enemyModifiers: configuration.enemyModifiers,
+            rngSeed: configuration.rngSeed
         )
         activeFeedbackEvents = []
         feedbackDisplayedAt = [:]

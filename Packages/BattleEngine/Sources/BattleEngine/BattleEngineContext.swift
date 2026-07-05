@@ -58,11 +58,8 @@ public extension BattleEngineContext {
         return actual
     }
 
-    func runtime(for combatant: Combatant) -> CombatantRuntime {
-        guard let runtime = roster.runtime(for: combatant) else {
-            preconditionFailure("Unknown combatant id \(combatant.id)")
-        }
-        return runtime
+    func runtime(for combatant: Combatant) -> CombatantRuntime? {
+        roster.runtime(for: combatant)
     }
 
     mutating func updateRuntime(_ runtime: CombatantRuntime) {

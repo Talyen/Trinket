@@ -45,6 +45,8 @@ final class BattleSession {
         roster: PlayerRosterStore,
         inventory: PlayerInventoryStore
     ) -> StageMapMessage? {
+        guard activeBattle == nil else { return nil }
+
         guard let enemyID = stage.encounter.battleEnemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID),
               let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })

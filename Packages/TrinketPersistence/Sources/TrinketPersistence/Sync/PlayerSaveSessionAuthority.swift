@@ -1,5 +1,12 @@
 import Foundation
 
+public enum PlayerSaveReconcileOutcome: Equatable {
+    case keepLocal
+    case applyRemote(PlayerSave)
+    case uploadLocal
+    case applyMerged(PlayerSave)
+}
+
 /// Picks a single authoritative save snapshot at session start.
 /// Field-wise merge runs when both sides share a session generation.
 public enum PlayerSaveSessionAuthority {

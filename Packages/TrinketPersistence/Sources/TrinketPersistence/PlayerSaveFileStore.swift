@@ -83,9 +83,14 @@ public struct PlayerSaveFileStore {
     }
 
     public func deleteSave() {
-        try? fileManager.removeItem(at: saveFileURL)
-        try? fileManager.removeItem(at: backupFileURL)
-        try? fileManager.removeItem(at: directoryURL.appendingPathComponent("PlayerSave.json.tmp"))
+        for url in [saveFileURL, backupFileURL, directoryURL.appendingPathComponent("PlayerSave.json.tmp")] {
+            guard fileManager.fileExists(atPath: url.path) else { continue }
+            do {
+                try fileManager.removeItem(at: url)
+            } catch {
+                logger.error("Failed to delete save file at \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            }
+        }
     }
 
     private func loadSave(from url: URL) -> PlayerSave? {
@@ -106,9 +111,17 @@ public struct PlayerSaveFileStore {
     }
 
     private func migrateLegacyUserDefaultsJourney() -> PlayerSave? {
-        guard let data = UserDefaults.standard.data(forKey: Self.legacyJourneyKey),
-              let journey = try? decoder.decode(JourneyProgressState.self, from: data)
-        else {
+        guard let data = UserDefaults.standard.data(forKey: Self.legacyJourneyKey) else {
+            return nil
+        }
+
+        let journey: JourneyProgressState
+        do {
+            journey = try decoder.decode(JourneyProgressState.self, from: data)
+        } catch {
+            logger.error(
+                "Failed to decode legacy journey progress: \(error.localizedDescription, privacy: .public)"
+            )
             return nil
         }
 

@@ -1,5 +1,11 @@
 import Foundation
+import os
 import TrinketPersistence
+
+private let entitlementLogger = Logger(
+    subsystem: PlayerSaveDefaults.loggingSubsystem,
+    category: "CloudKitEntitlement"
+)
 
 enum PlayerSaveSyncFactory {
     static func makeSyncService(
@@ -66,7 +72,7 @@ private extension Bundle {
     func signedEntitlements() -> [String: Any] {
         guard
             let executableURL,
-            let executableData = try? Data(contentsOf: executableURL)
+            let executableData = readExecutableData(at: executableURL)
         else {
             return [:]
         }
@@ -90,11 +96,7 @@ private extension Data {
             let start = range(of: startMarker, options: [], in: searchRange),
             let end = range(of: endMarker, options: [], in: start.upperBound ..< endIndex) {
             let plistData = self[start.lowerBound ..< end.upperBound]
-            if let dictionary = try? PropertyListSerialization.propertyList(
-                from: plistData,
-                options: [],
-                format: nil
-            ) as? [String: Any] {
+            if let dictionary = parseEmbeddedPropertyListDictionary(Data(plistData)) {
                 dictionaries.append(dictionary)
             }
 
@@ -102,5 +104,31 @@ private extension Data {
         }
 
         return dictionaries
+    }
+}
+
+private func parseEmbeddedPropertyListDictionary(_ data: Data) -> [String: Any]? {
+    do {
+        return try PropertyListSerialization.propertyList(
+            from: data,
+            options: [],
+            format: nil
+        ) as? [String: Any]
+    } catch {
+        entitlementLogger.debug(
+            "Skipped embedded plist segment: \(error.localizedDescription, privacy: .public)"
+        )
+        return nil
+    }
+}
+
+private func readExecutableData(at url: URL) -> Data? {
+    do {
+        return try Data(contentsOf: url)
+    } catch {
+        entitlementLogger.debug(
+            "Failed to read executable entitlements: \(error.localizedDescription, privacy: .public)"
+        )
+        return nil
     }
 }

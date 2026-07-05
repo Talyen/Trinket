@@ -1,22 +1,5 @@
 import SwiftUI
 
-@available(iOS 26.0, *)
-public struct FloatingGlassControlButtonModifier: ViewModifier {
-    public func body(content: Content) -> some View {
-        content
-            .buttonStyle(.glass)
-    }
-}
-
-@available(iOS 26.0, *)
-public struct FloatingGlassToggleModifier: ViewModifier {
-    public func body(content: Content) -> some View {
-        content
-            .toggleStyle(.button)
-            .buttonStyle(.glass)
-    }
-}
-
 public struct CardSurfaceModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
@@ -90,17 +73,6 @@ public struct PrimaryActionButtonModifier: ViewModifier {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .buttonBorderShape(.roundedRectangle)
-    }
-}
-
-@available(iOS 26.0, *)
-public extension View {
-    func trinketFloatingGlassControl() -> some View {
-        modifier(FloatingGlassControlButtonModifier())
-    }
-
-    func trinketFloatingGlassToggle() -> some View {
-        modifier(FloatingGlassToggleModifier())
     }
 }
 
