@@ -2,7 +2,7 @@ import SwiftUI
 
 public enum TrinketDesign {
     public enum Colors {
-        public static let appBackground = AppTheme.default.palette.appBackground
+        public static let appBackground = Color(.systemBackground)
         public static let cardArtAccent = Color.accentColor
         public static let success = Color.green
         public static let destructive = Color.red
@@ -47,59 +47,13 @@ public enum TrinketDesign {
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
 
-    public enum AppTheme: CaseIterable, Identifiable, RawRepresentable, Sendable {
-        case darkTabletop
-        case warmParchment
-        case arcaneNight
-        case forestAlchemy
+    public enum AppTheme: Sendable {
+        case standard
 
-        public static let `default` = AppTheme.darkTabletop
-
-        public init?(rawValue: String) {
-            let normalized = rawValue
-                .lowercased()
-                .replacingOccurrences(of: "-", with: " ")
-                .replacingOccurrences(of: "_", with: " ")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-
-            switch normalized {
-            case "graphite", "dark tabletop", "dark", "system native", "system":
-                self = .darkTabletop
-            case "parchment", "warm parchment", "light":
-                self = .warmParchment
-            case "obsidian", "arcane night", "arcane":
-                self = .arcaneNight
-            case "linen", "stone linen", "forest alchemy", "forest":
-                self = .forestAlchemy
-            default:
-                return nil
-            }
-        }
-
-        public var rawValue: String {
-            switch self {
-            case .darkTabletop: return "Graphite"
-            case .warmParchment: return "Parchment"
-            case .arcaneNight: return "Obsidian"
-            case .forestAlchemy: return "Linen"
-            }
-        }
-
-        public var id: String {
-            rawValue
-        }
-
-        public var displayName: String {
-            rawValue
-        }
+        public static let `default` = AppTheme.standard
 
         public var palette: ThemePalette {
-            switch self {
-            case .darkTabletop: return ThemePalette.darkTabletop.systemCanvasPalette()
-            case .warmParchment: return ThemePalette.warmParchment.systemCanvasPalette()
-            case .arcaneNight: return ThemePalette.arcaneNight.systemCanvasPalette()
-            case .forestAlchemy: return ThemePalette.forestAlchemy.systemCanvasPalette()
-            }
+            ThemePalette.apple
         }
     }
 

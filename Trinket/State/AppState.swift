@@ -56,9 +56,6 @@ final class AppState {
 
         let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService()
         let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
-        if let themeOverride = env.themeOverride {
-            resolvedOptions.theme = themeOverride
-        }
         if let appearanceOverride = env.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride
         }

@@ -5,103 +5,37 @@ public struct ThemePalette: Sendable {
     public let secondaryBackground: Color
     public let elevatedBackground: Color
     public let panelSurface: Color
-    public let overlayScrim: Color
     public let subtleStroke: Color
-    public let ambientGlow: Color
     public let accent: Color
     public let shadow: ShadowStyle
-    public let textureOpacity: Double
 
     public init(
         appBackground: Color,
         secondaryBackground: Color,
         elevatedBackground: Color,
         panelSurface: Color,
-        overlayScrim: Color,
         subtleStroke: Color,
-        ambientGlow: Color,
         accent: Color,
-        shadow: ShadowStyle,
-        textureOpacity: Double
+        shadow: ShadowStyle
     ) {
         self.appBackground = appBackground
         self.secondaryBackground = secondaryBackground
         self.elevatedBackground = elevatedBackground
         self.panelSurface = panelSurface
-        self.overlayScrim = overlayScrim
         self.subtleStroke = subtleStroke
-        self.ambientGlow = ambientGlow
         self.accent = accent
         self.shadow = shadow
-        self.textureOpacity = textureOpacity
     }
 
-    public static let darkTabletop = ThemePalette(
+    public static let apple = ThemePalette(
         appBackground: Color(.systemBackground),
         secondaryBackground: Color(.secondarySystemBackground),
         elevatedBackground: Color(.tertiarySystemBackground),
         panelSurface: Color(.secondarySystemBackground),
-        overlayScrim: Color.black.opacity(0.46),
-        subtleStroke: Color(red: 0.62, green: 0.60, blue: 0.56).opacity(0.32),
-        ambientGlow: Color(red: 0.72, green: 0.70, blue: 0.66),
-        accent: Color(red: 0.58, green: 0.56, blue: 0.52),
-        shadow: .elevated,
-        textureOpacity: 0
+        subtleStroke: Color(.separator),
+        accent: Color.accentColor,
+        shadow: .elevated
     )
-
-    public static let warmParchment = ThemePalette(
-        appBackground: Color(.systemBackground),
-        secondaryBackground: Color(.secondarySystemBackground),
-        elevatedBackground: Color(.tertiarySystemBackground),
-        panelSurface: Color(.secondarySystemBackground),
-        overlayScrim: Color(red: 0.20, green: 0.17, blue: 0.13).opacity(0.18),
-        subtleStroke: Color(red: 0.58, green: 0.53, blue: 0.45).opacity(0.30),
-        ambientGlow: Color(red: 0.78, green: 0.74, blue: 0.66),
-        accent: Color(red: 0.55, green: 0.49, blue: 0.40),
-        shadow: .subtle,
-        textureOpacity: 0
-    )
-
-    public static let arcaneNight = ThemePalette(
-        appBackground: Color(.systemBackground),
-        secondaryBackground: Color(.secondarySystemBackground),
-        elevatedBackground: Color(.tertiarySystemBackground),
-        panelSurface: Color(.secondarySystemBackground),
-        overlayScrim: Color.black.opacity(0.52),
-        subtleStroke: Color(red: 0.66, green: 0.66, blue: 0.68).opacity(0.34),
-        ambientGlow: Color(red: 0.82, green: 0.82, blue: 0.80),
-        accent: Color(red: 0.68, green: 0.68, blue: 0.66),
-        shadow: .elevated,
-        textureOpacity: 0
-    )
-
-    public static let forestAlchemy = ThemePalette(
-        appBackground: Color(.systemBackground),
-        secondaryBackground: Color(.secondarySystemBackground),
-        elevatedBackground: Color(.tertiarySystemBackground),
-        panelSurface: Color(.secondarySystemBackground),
-        overlayScrim: Color(red: 0.16, green: 0.15, blue: 0.13).opacity(0.38),
-        subtleStroke: Color(red: 0.60, green: 0.57, blue: 0.50).opacity(0.30),
-        ambientGlow: Color(red: 0.76, green: 0.72, blue: 0.62),
-        accent: Color(red: 0.57, green: 0.53, blue: 0.45),
-        shadow: .elevated,
-        textureOpacity: 0
-    )
-
-    public func systemCanvasPalette() -> ThemePalette {
-        ThemePalette(
-            appBackground: Color(.systemBackground),
-            secondaryBackground: Color(.secondarySystemBackground),
-            elevatedBackground: Color(.tertiarySystemBackground),
-            panelSurface: Color(.secondarySystemBackground),
-            overlayScrim: overlayScrim,
-            subtleStroke: subtleStroke,
-            ambientGlow: ambientGlow,
-            accent: accent,
-            shadow: shadow,
-            textureOpacity: 0
-        )
-    }
 }
 
 public struct ShadowStyle: Sendable {
@@ -193,20 +127,7 @@ public enum TypographyRole: Sendable {
     }
 }
 
-private struct TrinketThemeKey: EnvironmentKey {
-    static let defaultValue = TrinketDesign.AppTheme.default
-}
-
-public extension EnvironmentValues {
-    var trinketTheme: TrinketDesign.AppTheme {
-        get { self[TrinketThemeKey.self] }
-        set { self[TrinketThemeKey.self] = newValue }
-    }
-}
-
 public struct TrinketScreenBackground: View {
-    @Environment(\.trinketTheme) private var theme
-
     private let mode: BackgroundMode
     private let elementTint: Color?
 
@@ -216,9 +137,7 @@ public struct TrinketScreenBackground: View {
     }
 
     public var body: some View {
-        let palette = theme.palette
-
-        palette.appBackground
+        Color(.systemBackground)
             .ignoresSafeArea()
     }
 }
@@ -236,13 +155,11 @@ public struct ScreenBackgroundModifier: ViewModifier {
 }
 
 public struct SurfaceModifier: ViewModifier {
-    @Environment(\.trinketTheme) private var theme
-
     let role: SurfaceRole
     let isPressed: Bool
 
     public func body(content: Content) -> some View {
-        let style = SurfaceStyle(role: role, palette: theme.palette)
+        let style = SurfaceStyle(role: role, palette: ThemePalette.apple)
 
         content
             .padding(style.padding)
@@ -353,7 +270,6 @@ private struct SurfaceStyle {
 }
 
 public struct MaterialRoleModifier: ViewModifier {
-    @Environment(\.trinketTheme) private var theme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let role: MaterialRole
@@ -362,15 +278,15 @@ public struct MaterialRoleModifier: ViewModifier {
     public func body(content: Content) -> some View {
         if reduceTransparency {
             content
-                .background(theme.palette.panelSurface, in: shape)
+                .background(ThemePalette.apple.panelSurface, in: shape)
                 .overlay {
-                    shape.stroke(theme.palette.subtleStroke, lineWidth: 1)
+                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
                 }
         } else {
             content
                 .background(material, in: shape)
                 .overlay {
-                    shape.stroke(theme.palette.subtleStroke, lineWidth: 1)
+                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
                 }
         }
     }

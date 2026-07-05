@@ -10,7 +10,6 @@ struct AppEnvironment {
     let seedTestProgress: Bool
     let disableCloudSync: Bool
     let disableAudio: Bool
-    let themeOverride: TrinketDesign.AppTheme?
     let appearanceOverride: TrinketDesign.AppAppearance?
     let completedStageIDs: [String]
     /// Scroll target ID for the Play map (`ScrollViewReader` row id), used by UI tests.
@@ -28,7 +27,6 @@ struct AppEnvironment {
         seedTestProgress: Bool,
         disableCloudSync: Bool,
         disableAudio: Bool,
-        themeOverride: TrinketDesign.AppTheme?,
         appearanceOverride: TrinketDesign.AppAppearance?,
         completedStageIDs: [String],
         mapScrollTarget: String?,
@@ -40,7 +38,6 @@ struct AppEnvironment {
         self.seedTestProgress = seedTestProgress
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
-        self.themeOverride = themeOverride
         self.appearanceOverride = appearanceOverride
         self.completedStageIDs = completedStageIDs
         self.mapScrollTarget = mapScrollTarget
@@ -64,7 +61,6 @@ struct AppEnvironment {
             seedTestProgress: arguments.contains("-seed-test-progress"),
             disableCloudSync: arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests,
             disableAudio: arguments.contains("-disable-audio") || isRunningTests,
-            themeOverride: themeOverride(from: arguments),
             appearanceOverride: appearanceOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
@@ -99,13 +95,6 @@ struct AppEnvironment {
         case "battle": return .battle
         default: return nil
         }
-    }
-
-    private static func themeOverride(from arguments: [String]) -> TrinketDesign.AppTheme? {
-        guard let idx = arguments.firstIndex(of: "-theme"),
-              arguments.indices.contains(idx + 1)
-        else { return nil }
-        return TrinketDesign.AppTheme(rawValue: arguments[idx + 1])
     }
 
     private static func appearanceOverride(from arguments: [String]) -> TrinketDesign.AppAppearance? {

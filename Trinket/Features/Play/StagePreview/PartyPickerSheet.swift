@@ -52,14 +52,12 @@ struct PartyPickerSheet: View {
 }
 
 private struct PartyPickerCombatantCard: View {
-    @Environment(\.trinketTheme) private var theme
-
     let combatant: Combatant
 
     var body: some View {
         VStack(spacing: 8) {
             TrinketDesign.cardShape
-                .fill(theme.palette.secondaryBackground)
+                .fill(Color(.secondarySystemBackground))
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)

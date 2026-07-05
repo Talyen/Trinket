@@ -70,9 +70,21 @@ if [[ "$MODE" == "style" ]]; then
   exit 0
 fi
 
+GENERATE_STAMP="$RESULTS_DIR/.last-generate.stamp"
 if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
-  # Always run generate to validate manifests, refresh codegen, and update XcodeGen.
-  ./Scripts/generate.sh
+  if [[ -f "$GENERATE_STAMP" ]]; then
+    newer_sources="$(find ContentManifest project.yml Scripts/content_codegen.py -newer "$GENERATE_STAMP" -print -quit 2>/dev/null)"
+    if [[ -z "$newer_sources" ]]; then
+      echo "Content sources unchanged; skipping generate."
+    else
+      echo "=== Content sources changed; running generate ==="
+      ./Scripts/generate.sh
+    fi
+  else
+    echo "=== Running generate ==="
+    ./Scripts/generate.sh
+  fi
+  touch "$GENERATE_STAMP"
 fi
 
 # shellcheck source=ensure-simulator.sh
@@ -380,7 +392,7 @@ if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
 fi
 
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
-  echo "Running package tests in parallel..."
+  echo "Running package tests in parallel (setting up simulator pool)..."
   run_package_tests "$ACTION" || exit 1
 fi
 

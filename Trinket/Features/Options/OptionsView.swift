@@ -11,13 +11,6 @@ struct OptionsView: View {
 
         Form {
             Section("Appearance") {
-                Picker("Style", selection: $options.theme) {
-                    ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
-                        Text(themeOption.displayName).tag(themeOption)
-                    }
-                }
-                .accessibilityIdentifier("Theme Picker")
-
                 Picker("Mode", selection: $options.appearance) {
                     ForEach(TrinketDesign.AppAppearance.allCases) { appearance in
                         Text(appearance.displayName).tag(appearance)

@@ -42,9 +42,7 @@ struct ContentView: View {
                 }
             }
         }
-        .environment(\.trinketTheme, appState.options.theme)
         .preferredColorScheme(appState.options.appearance.colorScheme)
-        .tint(appState.options.theme.palette.accent)
         .onAppear {
             syncBattlePauseForCurrentTab()
             refreshMusicRoute(scenePhase: scenePhase)
