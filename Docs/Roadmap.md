@@ -156,9 +156,9 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-023 — App icon
 - **Area:** Platform
-- **Status:** scratch
+- **Status:** shipped
 - **Idea:** Design and ship a production app icon, exploring Icon Composer and/or external image tools (e.g. Nano Banana Pro). Must read at small sizes on the Home Screen.
-- **Touches:** `Trinket/Assets.xcassets/AppIcon`
+- **Touches:** `Trinket/Assets.xcassets/AppIcon`, `Scripts/prepare-app-icon.sh`
 
 ### R-024 — Chapter art aspect ratio
 - **Area:** Play, Art

@@ -58,6 +58,9 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
 
   echo "=== Preparing SFX catalog ==="
   ./Scripts/prepare-sfx-assets.sh
+
+  echo "=== Preparing app icon ==="
+  ./Scripts/prepare-app-icon.sh
 fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
