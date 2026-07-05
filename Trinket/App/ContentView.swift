@@ -44,69 +44,26 @@ struct ContentView: View {
         }
         .preferredColorScheme(appState.options.appearance.colorScheme)
         .onAppear {
-            syncBattlePauseForCurrentTab()
-            refreshMusicRoute(scenePhase: scenePhase)
+            appState.handleShellAppear(scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            appState.sessionState.selectedTab = newTab
-            if appState.battle.activeBattle != nil {
-                // Leaving Play pauses combat; returning stays paused until the player resumes.
-                appState.battle.isPaused = true
-            }
-            refreshMusicRoute(scenePhase: scenePhase)
+            appState.handleSelectedTabChange(newTab, scenePhase: scenePhase)
         }
         .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-            guard newValue != nil else {
-                appState.battle.isPaused = false
-                refreshMusicRoute(scenePhase: scenePhase)
-                appState.musicPlayer.clearEncounterResumePositions()
-                return
+            if newValue == nil {
+                appState.handleActiveBattleEnded(scenePhase: scenePhase)
+            } else {
+                appState.handleActiveBattleStarted(scenePhase: scenePhase)
             }
-
-            appState.battle.isPaused = appState.selectedTab != .play
-            refreshMusicRoute(scenePhase: scenePhase)
         }
         .onChange(of: appState.battle.preview?.id) { _, _ in
-            refreshMusicRoute(scenePhase: scenePhase)
+            appState.handleMusicPreviewChange(scenePhase: scenePhase)
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
-            refreshMusicRoute(scenePhase: scenePhase)
+            appState.handleMusicVolumeChange(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
-            if newPhase != .active, appState.battle.activeBattle != nil {
-                appState.battle.isPaused = true
-            }
-            refreshMusicRoute(scenePhase: newPhase)
-            if newPhase == .inactive || newPhase == .background {
-                appState.playerSave.flushPendingPersistIfNeeded()
-            }
-            if newPhase == .background {
-                Task {
-                    await appState.syncCoordinator.checkpointUploadIfNeeded()
-                }
-            } else if newPhase == .active {
-                Task {
-                    await appState.syncCoordinator.reconcileForegroundIfSafe()
-                }
-            }
+            appState.handleScenePhaseChange(newPhase)
         }
-    }
-
-    private func syncBattlePauseForCurrentTab() {
-        guard appState.battle.activeBattle != nil else { return }
-        if appState.selectedTab != .play {
-            appState.battle.isPaused = true
-        }
-    }
-
-    private func refreshMusicRoute(scenePhase: ScenePhase) {
-        let route = appState.musicDirector.route(
-            selectedTab: appState.selectedTab,
-            preview: appState.battle.preview,
-            activeBattle: appState.battle.activeBattle,
-            sceneIsActive: scenePhase == .active,
-            musicVolume: appState.options.musicVolume
-        )
-        appState.musicPlayer.update(route: route, volume: appState.options.musicVolume)
     }
 }

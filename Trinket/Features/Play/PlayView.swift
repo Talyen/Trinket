@@ -70,21 +70,14 @@ struct PlayView: View {
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
-        guard let enemyID = stage.encounter.battleEnemyID,
-              let enemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapter(id: stage.chapterID)
-        else { return nil }
+        guard let encounter = StageEncounterResolver.resolve(for: stage) else { return nil }
 
-        let combatant = CombatantLevelScaler.scale(
-            enemy: enemy,
-            level: EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        )
         return CombatantCardDetail(
-            combatant: combatant,
+            combatant: encounter.combatant,
             progression: .initial,
             equipmentLoadout: EquipmentLoadout(),
             inventoryState: appState.inventory.current,
-            health: combatant.maxHealth,
+            health: encounter.combatant.maxHealth,
             activeEffectSummaries: []
         )
     }

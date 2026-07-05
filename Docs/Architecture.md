@@ -8,7 +8,7 @@ High-level structure for Trinket after the Swift package migration.
 Trinket/                    App target — shell, features, presentation glue
   App/                      Entry, environment, tab routing
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  BattleShell/              BattleRun, ActiveBattleConfiguration, victory orchestration
+  BattleShell/              ActiveBattleConfiguration, StageEncounterResolver, victory orchestration
   State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)

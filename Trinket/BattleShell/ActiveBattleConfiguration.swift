@@ -43,37 +43,8 @@ struct ActiveBattleConfiguration: Identifiable {
         pet: Combatant,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        rewardItemNames: [String] = [],
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore
-    ) -> ActiveBattleConfiguration {
-        make(
-            stageID: stageID,
-            rngSeed: rngSeed,
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            heroProgression: roster.current.progression(for: hero),
-            petProgression: roster.current.progression(for: pet),
-            highestHeroLevel: roster.current.highestHeroLevel,
-            highestPetLevel: roster.current.highestPetLevel,
-            heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
-            petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
-            inventoryState: inventory.current,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames
-        )
-    }
-
-    static func make(
-        stageID: String? = nil,
-        rngSeed: UInt64,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant? = nil,
-        enemyEncounterLevel: Int? = nil,
+        roster: PlayerRosterStore? = nil,
+        inventory: PlayerInventoryStore? = nil,
         heroProgression: CombatantProgression = .initial,
         petProgression: CombatantProgression = .initial,
         highestHeroLevel: Int? = nil,
@@ -84,17 +55,29 @@ struct ActiveBattleConfiguration: Identifiable {
         stageReward: StageReward? = nil,
         rewardItemNames: [String] = []
     ) -> ActiveBattleConfiguration {
-        let scaledHero = CombatantLevelScaler.scale(combatant: hero, level: heroProgression.level)
-        let scaledPet = CombatantLevelScaler.scale(combatant: pet, level: petProgression.level)
+        let resolvedHeroProgression = roster?.current.progression(for: hero) ?? heroProgression
+        let resolvedPetProgression = roster?.current.progression(for: pet) ?? petProgression
+        let resolvedHighestHeroLevel = roster?.current.highestHeroLevel
+            ?? highestHeroLevel
+            ?? resolvedHeroProgression.level
+        let resolvedHighestPetLevel = roster?.current.highestPetLevel
+            ?? highestPetLevel
+            ?? resolvedPetProgression.level
+        let resolvedHeroEquipmentLoadout = roster?.current.equipmentLoadout(for: hero) ?? heroEquipmentLoadout
+        let resolvedPetEquipmentLoadout = roster?.current.equipmentLoadout(for: pet) ?? petEquipmentLoadout
+        let resolvedInventoryState = inventory?.current ?? inventoryState
+
+        let scaledHero = CombatantLevelScaler.scale(combatant: hero, level: resolvedHeroProgression.level)
+        let scaledPet = CombatantLevelScaler.scale(combatant: pet, level: resolvedPetProgression.level)
         let heroBuild = CombatBuildResolver.build(
             combatant: scaledHero,
-            equipmentLoadout: heroEquipmentLoadout,
-            inventory: inventoryState.items
+            equipmentLoadout: resolvedHeroEquipmentLoadout,
+            inventory: resolvedInventoryState.items
         )
         let petBuild = CombatBuildResolver.build(
             combatant: scaledPet,
-            equipmentLoadout: petEquipmentLoadout,
-            inventory: inventoryState.items
+            equipmentLoadout: resolvedPetEquipmentLoadout,
+            inventory: resolvedInventoryState.items
         )
         let enemyBuild: CombatBuild
         if let enemy,
@@ -110,16 +93,16 @@ struct ActiveBattleConfiguration: Identifiable {
             pet: petBuild.combatant,
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
-            heroProgression: heroProgression,
-            petProgression: petProgression,
-            highestHeroLevel: highestHeroLevel ?? heroProgression.level,
-            highestPetLevel: highestPetLevel ?? petProgression.level,
-            heroEquipmentLoadout: heroEquipmentLoadout,
-            petEquipmentLoadout: petEquipmentLoadout,
+            heroProgression: resolvedHeroProgression,
+            petProgression: resolvedPetProgression,
+            highestHeroLevel: resolvedHighestHeroLevel,
+            highestPetLevel: resolvedHighestPetLevel,
+            heroEquipmentLoadout: resolvedHeroEquipmentLoadout,
+            petEquipmentLoadout: resolvedPetEquipmentLoadout,
             heroModifiers: heroBuild.modifiers,
             petModifiers: petBuild.modifiers,
             enemyModifiers: enemyBuild.modifiers,
-            inventoryState: inventoryState,
+            inventoryState: resolvedInventoryState,
             stageReward: stageReward,
             rewardItemNames: rewardItemNames
         )

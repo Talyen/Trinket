@@ -2,19 +2,50 @@ import BattleEngine
 import Foundation
 import Observation
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
+
+enum BattleOutcome: Equatable {
+    case ongoing
+    case victory
+    case defeat
+}
 
 @MainActor
 @Observable
 final class BattleSession {
-    var activeBattle: ActiveBattleConfiguration?
+    var activeBattle: ActiveBattleConfiguration? {
+        didSet {
+            if let activeBattle {
+                resetRun(from: activeBattle)
+            } else {
+                clearRunState()
+            }
+        }
+    }
+
     var isPaused = false
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCollectionDetailSelection?
+    private(set) var state: BattleState?
+    var activeFeedbackEvents: [ActionEvent] = []
+    private var feedbackDisplayedAt: [Int: Date] = [:]
     private var overlayPauseDepth = 0
     private var pauseStateBeforeFirstOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
+
+    var outcome: BattleOutcome {
+        guard let state else { return .ongoing }
+        switch BattleOutcomeResolver.resolve(
+            isPartyDefeated: state.isPartyDefeated,
+            isEnemyDefeated: state.isEnemyDefeated
+        ) {
+        case .victory: return .victory
+        case .defeat: return .defeat
+        case .tickLimit, .none: return .ongoing
+        }
+    }
 
     func endBattle() {
         activeBattle = nil
@@ -49,30 +80,24 @@ final class BattleSession {
     ) -> StageMapMessage? {
         guard activeBattle == nil else { return nil }
 
-        guard let enemyID = stage.encounter.battleEnemyID,
-              let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
-        else {
+        guard let encounter = StageEncounterResolver.resolve(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
-
-        let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
-        let enemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
         preview = nil
         activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
-            rngSeed: BattleRNGSeed.fresh(),
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
-            enemy: enemy,
-            enemyEncounterLevel: encounterLevel,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            roster: roster,
+            inventory: inventory,
             stageReward: stage.rewards,
             rewardItemNames: stage.rewards.itemTemplateIDs.compactMap { templateID in
                 GameContent.itemTemplate(matching: templateID)?.displayName
-            },
-            roster: roster,
-            inventory: inventory
+            }
         )
         onBattleStateChange?(stage.id)
         return nil
@@ -88,15 +113,55 @@ final class BattleSession {
 
         self.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
-            rngSeed: BattleRNGSeed.fresh(),
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            rewardItemNames: activeBattle.rewardItemNames,
             roster: roster,
-            inventory: inventory
+            inventory: inventory,
+            stageReward: activeBattle.stageReward,
+            rewardItemNames: activeBattle.rewardItemNames
+        )
+    }
+
+    func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {
+        guard let configuration = activeBattle,
+              let state
+        else {
+            preconditionFailure("Victory summary requested without active battle")
+        }
+
+        let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
+        let heroXP = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: configuration.heroProgression.level,
+            enemyLevel: enemyLevel,
+            highestLevel: configuration.highestHeroLevel
+        )
+        let petXP = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: configuration.petProgression.level,
+            enemyLevel: enemyLevel,
+            highestLevel: configuration.highestPetLevel
+        )
+        let heroAfter = configuration.heroProgression.addingExperience(heroXP)
+        let petAfter = configuration.petProgression.addingExperience(petXP)
+        let materialRewards = homestead.adjustedMaterialRewards(
+            configuration.stageReward?.materialRewards ?? []
+        )
+
+        return BattleVictorySummary(
+            stageGold: configuration.stageReward?.gold ?? 0,
+            battleGold: state.earnedGold,
+            experience: heroXP,
+            petExperience: petXP,
+            heroName: state.hero.name,
+            petName: state.pet.name,
+            itemNames: configuration.rewardItemNames,
+            materialRewards: materialRewards,
+            heroProgressionBefore: configuration.heroProgression,
+            heroProgressionAfter: heroAfter,
+            petProgressionBefore: configuration.petProgression,
+            petProgressionAfter: petAfter
         )
     }
 
@@ -127,5 +192,54 @@ final class BattleSession {
             pauseForOverlay()
         }
         overlayCombatantDetail = CombatantCollectionDetailSelection(battleSnapshot: detail)
+    }
+
+    func removeFeedbackEvent(_ id: Int) {
+        activeFeedbackEvents.removeAll { $0.id == id }
+        feedbackDisplayedAt.removeValue(forKey: id)
+    }
+
+    func pruneExpiredFeedback(at date: Date = .now) {
+        let expiredIDs = feedbackDisplayedAt.compactMap { eventID, displayedAt in
+            date.timeIntervalSince(displayedAt) >= CombatFeedbackTiming.displayDuration ? eventID : nil
+        }
+        for eventID in expiredIDs {
+            removeFeedbackEvent(eventID)
+        }
+    }
+
+    @discardableResult
+    func advanceOneStep() -> BattleStep? {
+        guard var state else { return nil }
+        let step = state.advanceOneStep()
+        self.state = state
+        let displayedAt = Date.now
+        step.events
+            .filter { $0.kind != .milestone }
+            .forEach {
+                activeFeedbackEvents.append($0)
+                feedbackDisplayedAt[$0.id] = displayedAt
+            }
+        return step
+    }
+
+    private func resetRun(from configuration: ActiveBattleConfiguration) {
+        state = BattleState(
+            hero: configuration.hero,
+            pet: configuration.pet,
+            enemy: configuration.enemy,
+            heroModifiers: configuration.heroModifiers,
+            petModifiers: configuration.petModifiers,
+            enemyModifiers: configuration.enemyModifiers,
+            rngSeed: configuration.rngSeed
+        )
+        activeFeedbackEvents = []
+        feedbackDisplayedAt = [:]
+    }
+
+    private func clearRunState() {
+        state = nil
+        activeFeedbackEvents = []
+        feedbackDisplayedAt = [:]
     }
 }

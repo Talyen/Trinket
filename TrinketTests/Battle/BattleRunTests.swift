@@ -7,6 +7,12 @@ import XCTest
 
 @MainActor
 final class BattleRunTests: XCTestCase {
+    private func makeSession(configuration: ActiveBattleConfiguration) -> BattleSession {
+        let session = BattleSession()
+        session.activeBattle = configuration
+        return session
+    }
+
     func testAdvanceOneStepAppendsNonMilestoneEvents() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
@@ -29,12 +35,12 @@ final class BattleRunTests: XCTestCase {
             abilities: []
         )
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        _ = run.advanceOneStep()
+        _ = session.advanceOneStep()
 
-        XCTAssertFalse(run.activeFeedbackEvents.isEmpty)
-        XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        XCTAssertFalse(session.activeFeedbackEvents.isEmpty)
+        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
     func testAdvanceOneStepExcludesMilestonesWhenBattleEnds() {
@@ -48,14 +54,14 @@ final class BattleRunTests: XCTestCase {
             abilities: [.slash]
         )
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        while !run.state.isBattleOver {
-            _ = run.advanceOneStep()
+        while !(session.state?.isBattleOver ?? true) {
+            _ = session.advanceOneStep()
         }
 
-        XCTAssertTrue(run.state.isPartyDefeated)
-        XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        XCTAssertTrue(session.state?.isPartyDefeated == true)
+        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
     func testResetClearsFeedbackAndRebuildsState() {
@@ -79,18 +85,18 @@ final class BattleRunTests: XCTestCase {
             abilities: []
         )
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        _ = run.advanceOneStep()
-        _ = run.advanceOneStep()
-        XCTAssertFalse(run.activeFeedbackEvents.isEmpty)
-        XCTAssertLessThan(run.state.health(of: run.state.enemy), 100)
+        _ = session.advanceOneStep()
+        _ = session.advanceOneStep()
+        XCTAssertFalse(session.activeFeedbackEvents.isEmpty)
+        XCTAssertLessThan(session.state?.health(of: session.state?.enemy ?? enemy) ?? 0, 100)
 
-        run.reset(from: configuration)
+        session.activeBattle = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
 
-        XCTAssertTrue(run.activeFeedbackEvents.isEmpty)
-        XCTAssertEqual(run.state.health(of: run.state.enemy), 100)
-        XCTAssertEqual(run.state.health(of: run.state.hero), hero.maxHealth)
+        XCTAssertTrue(session.activeFeedbackEvents.isEmpty)
+        XCTAssertEqual(session.state?.health(of: session.state?.enemy ?? enemy), 100)
+        XCTAssertEqual(session.state?.health(of: session.state?.hero ?? hero), hero.maxHealth)
     }
 
     func testRemoveFeedbackEventRemovesByID() throws {
@@ -114,14 +120,14 @@ final class BattleRunTests: XCTestCase {
             abilities: []
         )
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        _ = run.advanceOneStep()
-        let eventID = try XCTUnwrap(run.activeFeedbackEvents.first?.id)
+        _ = session.advanceOneStep()
+        let eventID = try XCTUnwrap(session.activeFeedbackEvents.first?.id)
 
-        run.removeFeedbackEvent(eventID)
+        session.removeFeedbackEvent(eventID)
 
-        XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
     func testPruneExpiredFeedbackRemovesEventsPastDisplayDuration() throws {
@@ -145,19 +151,19 @@ final class BattleRunTests: XCTestCase {
             abilities: []
         )
         let configuration = ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        _ = run.advanceOneStep()
-        let eventID = try XCTUnwrap(run.activeFeedbackEvents.first?.id)
+        _ = session.advanceOneStep()
+        let eventID = try XCTUnwrap(session.activeFeedbackEvents.first?.id)
         let now = Date()
 
-        run.pruneExpiredFeedback(at: now)
-        XCTAssertTrue(run.activeFeedbackEvents.contains { $0.id == eventID })
+        session.pruneExpiredFeedback(at: now)
+        XCTAssertTrue(session.activeFeedbackEvents.contains { $0.id == eventID })
 
-        run.pruneExpiredFeedback(
+        session.pruneExpiredFeedback(
             at: now.addingTimeInterval(CombatFeedbackTiming.displayDuration + 0.1)
         )
-        XCTAssertTrue(run.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
     func testOutcomeReportsOngoingDuringBattle() {
@@ -169,11 +175,11 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        _ = run.advanceOneStep()
+        _ = session.advanceOneStep()
 
-        XCTAssertEqual(run.outcome, .ongoing)
+        XCTAssertEqual(session.outcome, .ongoing)
     }
 
     func testOutcomeReportsVictoryWhenEnemyDefeated() {
@@ -185,13 +191,13 @@ final class BattleRunTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(run.outcome, .victory)
+        XCTAssertEqual(session.outcome, .victory)
     }
 
     func testOutcomeReportsDefeatWhenPartyDefeated() {
@@ -204,13 +210,13 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(run.outcome, .defeat)
+        XCTAssertEqual(session.outcome, .defeat)
     }
 
     func testOutcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() {
@@ -238,26 +244,26 @@ final class BattleRunTests: XCTestCase {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(run.outcome, .victory)
-        XCTAssertFalse(run.state.isPartyDefeated)
-        XCTAssertTrue(run.state.isEnemyDefeated)
+        XCTAssertEqual(session.outcome, .victory)
+        XCTAssertFalse(session.state?.isPartyDefeated ?? true)
+        XCTAssertTrue(session.state?.isEnemyDefeated ?? false)
     }
 
     func testOutcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let run = BattleRun(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
+        let session = makeSession(configuration: ActiveBattleConfiguration.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy))
 
-        XCTAssertTrue(run.state.isPartyDefeated)
-        XCTAssertTrue(run.state.isEnemyDefeated)
-        XCTAssertEqual(run.outcome, .victory)
+        XCTAssertTrue(session.state?.isPartyDefeated ?? false)
+        XCTAssertTrue(session.state?.isEnemyDefeated ?? false)
+        XCTAssertEqual(session.outcome, .victory)
     }
 
     func testMakeVictorySummaryIncludesStageAndBattleRewards() {
@@ -281,13 +287,13 @@ final class BattleRunTests: XCTestCase {
             stageReward: StageReward(gold: 12, itemTemplateIDs: []),
             rewardItemNames: ["Shortsword"]
         )
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        let summary = run.makeVictorySummary(homestead: .freshStart)
+        let summary = session.makeVictorySummary(homestead: .freshStart)
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
@@ -320,13 +326,13 @@ final class BattleRunTests: XCTestCase {
             petProgression: CombatantProgression(level: 1, currentXP: 0, requiredXP: 100),
             stageReward: StageReward(gold: 0, itemTemplateIDs: [])
         )
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        let summary = run.makeVictorySummary(homestead: .freshStart)
+        let summary = session.makeVictorySummary(homestead: .freshStart)
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
         XCTAssertEqual(summary.experience, 0)
@@ -352,13 +358,13 @@ final class BattleRunTests: XCTestCase {
             enemy: enemy,
             stageReward: StageReward(gold: 12, itemTemplateIDs: [])
         )
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        let summary = run.makeVictorySummary(homestead: .freshStart)
+        let summary = session.makeVictorySummary(homestead: .freshStart)
 
         XCTAssertEqual(summary.stageGold, 12)
         XCTAssertGreaterThanOrEqual(summary.battleGold, 0)
@@ -385,14 +391,14 @@ final class BattleRunTests: XCTestCase {
                 materialRewards: [ResourceAmount(.wood, 8), ResourceAmount(.stone, 3)]
             )
         )
-        let run = BattleRun(configuration: configuration)
+        let session = makeSession(configuration: configuration)
         let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
 
-        while run.outcome == .ongoing {
-            _ = run.advanceOneStep()
+        while session.outcome == .ongoing {
+            _ = session.advanceOneStep()
         }
 
-        let summary = run.makeVictorySummary(homestead: homestead)
+        let summary = session.makeVictorySummary(homestead: homestead)
 
         XCTAssertEqual(summary.materialRewards.first { $0.resource == .wood }?.quantity, 9)
         XCTAssertEqual(summary.materialRewards.first { $0.resource == .stone }?.quantity, 4)

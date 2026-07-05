@@ -4,8 +4,8 @@ import TrinketPersistence
 import XCTest
 @testable import Trinket
 
+@MainActor
 final class BattleRunResetTests: XCTestCase {
-    @MainActor
     func testResetPreservesEnemyModifiers() throws {
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
         let configuration = ActiveBattleConfiguration.make(
@@ -14,10 +14,19 @@ final class BattleRunResetTests: XCTestCase {
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),
             enemy: enemy.combatant
         )
-        let run = BattleRun(configuration: configuration)
+        let session = BattleSession()
+        session.activeBattle = configuration
 
-        run.reset(from: configuration)
+        session.activeBattle = ActiveBattleConfiguration.make(
+            rngSeed: 1,
+            hero: CombatantFixtures.combatant(id: "hero", role: .hero),
+            pet: CombatantFixtures.combatant(id: "pet", role: .pet),
+            enemy: enemy.combatant
+        )
 
-        XCTAssertGreaterThan(run.state.modifiers(for: enemy.combatant.id).controlResistancePercent, 0)
+        XCTAssertGreaterThan(
+            session.state?.modifiers(for: enemy.combatant.id).controlResistancePercent ?? 0,
+            0
+        )
     }
 }

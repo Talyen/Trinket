@@ -6,7 +6,6 @@ import TrinketDesignSystem
 
 struct BattleView: View {
     @Environment(AppState.self) private var appState
-    @State private var battleRun: BattleRun
     @State private var isShowingBattleLog = false
     @State private var isShowingVictory = false
     @State private var isShowingDefeat = false
@@ -19,15 +18,18 @@ struct BattleView: View {
 
     init(configuration: ActiveBattleConfiguration) {
         self.configuration = configuration
-        _battleRun = State(initialValue: BattleRun(configuration: configuration))
         _isShowingVictory = State(initialValue: false)
         _timelineStartDate = State(initialValue: Date())
     }
 
     var body: some View {
         @Bindable var battleSession = appState.battle
-        let battleState = battleRun.state
+        if let battleState = battleSession.state {
+            bodyContent(battleSession: battleSession, battleState: battleState)
+        }
+    }
 
+    private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
         Group {
             if isShowingVictory, let victorySummary {
                 VictoryView(
@@ -50,7 +52,7 @@ struct BattleView: View {
                     }
                 )
             } else {
-                battlefieldWithTimeline
+                battlefieldWithTimeline(battleSession: battleSession, battleState: battleState)
             }
         }
         .trinketScreenBackground(.battle)
@@ -78,7 +80,7 @@ struct BattleView: View {
             appState.battle.restorePauseAfterOverlay()
         }, content: {
             BattleLogSheet(
-                entries: battleRun.state.log
+                entries: battleSession.state?.log ?? []
             )
             .presentationDetents([.medium])
         })
@@ -88,7 +90,6 @@ struct BattleView: View {
             }
         }
         .onChange(of: configuration.id) { _, _ in
-            battleRun.reset(from: configuration)
             isShowingVictory = false
             isShowingDefeat = false
             victorySummary = nil
@@ -111,12 +112,12 @@ struct BattleView: View {
         AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
     }
 
-    private var battlefieldWithTimeline: some View {
+    private func battlefieldWithTimeline(battleSession: BattleSession, battleState: BattleState) -> some View {
         TimelineView(.periodic(from: timelineStartDate, by: battleTickInterval)) { context in
-            battlefield
+            battlefield(battleSession: battleSession, battleState: battleState)
                 .onChange(of: context.date) { _, date in
-                    battleRun.pruneExpiredFeedback(at: date)
-                    advanceBattleTick()
+                    battleSession.pruneExpiredFeedback(at: date)
+                    advanceBattleTick(battleSession: battleSession)
                 }
         }
     }
@@ -153,10 +154,8 @@ struct BattleView: View {
         .accessibilityIdentifier("Battle Menu")
     }
 
-    private var battlefield: some View {
-        let battleState = battleRun.state
-
-        return GeometryReader { geometry in
+    private func battlefield(battleSession: BattleSession, battleState: BattleState) -> some View {
+        GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
             BattlefieldView(
@@ -165,19 +164,22 @@ struct BattleView: View {
                     for: battleState.enemy,
                     health: battleState.health(of: battleState.enemy),
                     healthBarPlacement: .bottom,
-                    battleState: battleState
+                    battleState: battleState,
+                    battleSession: battleSession
                 ),
                 heroPane: combatantPane(
                     for: battleState.hero,
                     health: battleState.health(of: battleState.hero),
                     healthBarPlacement: .top,
-                    battleState: battleState
+                    battleState: battleState,
+                    battleSession: battleSession
                 ),
                 petPane: combatantPane(
                     for: battleState.pet,
                     health: battleState.health(of: battleState.pet),
                     healthBarPlacement: .top,
-                    battleState: battleState
+                    battleState: battleState,
+                    battleSession: battleSession
                 )
             )
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
@@ -188,7 +190,8 @@ struct BattleView: View {
         for combatant: Combatant,
         health: Int,
         healthBarPlacement: BattleCombatantPane.HealthBarPlacement,
-        battleState: BattleState
+        battleState: BattleState,
+        battleSession: BattleSession
     ) -> BattleCombatantPane {
         let mana: Int
         let maxMana: Int
@@ -209,14 +212,13 @@ struct BattleView: View {
             mana: mana,
             maxMana: maxMana,
             healthBarPlacement: healthBarPlacement,
-            events: feedbackEvents(for: combatant),
+            events: feedbackEvents(for: combatant, battleSession: battleSession),
             reduceMotion: reduceMotion,
-            onCombatantTap: { showDetails(for: combatant) }
+            onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
         )
     }
 
-    private func showDetails(for combatant: Combatant) {
-        let battleState = battleRun.state
+    private func showDetails(for combatant: Combatant, battleState: BattleState) {
         appState.battle.presentCombatantDetail(details(
             for: combatant,
             health: battleState.health(of: combatant),
@@ -224,28 +226,29 @@ struct BattleView: View {
         ))
     }
 
-    private func feedbackEvents(for combatant: Combatant) -> [ActionEvent] {
-        battleRun.activeFeedbackEvents.filter { $0.targetID == combatant.id }
+    private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
+        battleSession.activeFeedbackEvents.filter { $0.targetID == combatant.id }
     }
 
-    private var canAutoAdvanceBattle: Bool {
-        !battleRun.state.isBattleOver &&
+    private func canAutoAdvanceBattle(battleSession: BattleSession, battleState: BattleState) -> Bool {
+        !battleState.isBattleOver &&
             !isShowingVictory &&
             !isShowingDefeat &&
-            !appState.battle.isPaused
+            !battleSession.isPaused
     }
 
-    private func advanceBattleTick() {
-        guard canAutoAdvanceBattle else { return }
+    private func advanceBattleTick(battleSession: BattleSession) {
+        guard let battleState = battleSession.state,
+              canAutoAdvanceBattle(battleSession: battleSession, battleState: battleState) else { return }
 
-        battleRun.advanceOneStep()
+        battleSession.advanceOneStep()
 
-        switch battleRun.outcome {
+        switch battleSession.outcome {
         case .victory:
             if stageRewardsAlreadyClaimed {
-                appState.completeActiveBattle(configuration, battleEarnedGold: battleRun.state.earnedGold)
+                appState.completeActiveBattle(configuration, battleEarnedGold: battleSession.state?.earnedGold ?? 0)
             } else {
-                victorySummary = battleRun.makeVictorySummary(homestead: appState.homestead.current)
+                victorySummary = battleSession.makeVictorySummary(homestead: appState.homestead.current)
                 isShowingVictory = true
             }
         case .defeat:
