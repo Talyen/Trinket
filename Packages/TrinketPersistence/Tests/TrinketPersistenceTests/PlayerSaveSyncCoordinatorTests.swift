@@ -125,6 +125,25 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(uploadCount, 0)
     }
 
+    func testReconcileIdenticalRemoteProducesNoUpload() async throws {
+        let syncedAt = Date(timeIntervalSince1970: 1700000000)
+        let save = SaveTestSupport.makeSave(modifiedAt: syncedAt, gold: 25)
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: save,
+            remoteSave: RemotePlayerSave(save: save, modifiedAt: syncedAt, recordChangeTag: "remote")
+        )
+
+        await fixture.coordinator.pullAndReconcile()
+        let uploadsAfterFirst = await fixture.mock.uploadedSaveCount()
+        await fixture.coordinator.reconcileForegroundIfSafe(hasActiveBattle: false)
+
+        let uploadCount = await fixture.mock.uploadedSaveCount()
+        XCTAssertEqual(uploadsAfterFirst, 0)
+        XCTAssertEqual(uploadCount, 0)
+        XCTAssertEqual(fixture.store.roster.gold, 25)
+    }
+
     func testPullAndReconcileIgnoredDuringActiveSession() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,
@@ -194,7 +213,10 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
 
         XCTAssertFalse(fixture.store.hasPendingPersist)
-        let reloaded = PlayerSaveStore(fileStore: SaveTestSupport.makeFileStore(directoryURL: directoryURL))
+        let reloaded = PlayerSaveStore(
+            fileStore: SaveTestSupport.makeFileStore(directoryURL: directoryURL),
+            persistDebounceNanoseconds: 0
+        )
         XCTAssertEqual(reloaded.roster.gold, 10)
     }
 

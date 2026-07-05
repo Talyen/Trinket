@@ -1,5 +1,6 @@
 import Foundation
 import TrinketContent
+import TrinketCore
 
 public enum PlayerSaveSanitizer {
     public static func sanitize(_ save: PlayerSave) -> PlayerSave {
@@ -16,11 +17,40 @@ public enum PlayerSaveSanitizer {
     }
 
     public static func validate(_ save: PlayerSave) throws {
+        guard save.schemaVersion > 0, save.schemaVersion <= PlayerSave.currentSchemaVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Save schema version is out of range.")
+        }
         guard save.roster.gold >= 0 else {
             throw PlayerSavePersistenceError.invalidSave("Roster gold cannot be negative.")
         }
         for (_, amount) in save.homestead.resources where amount < 0 {
             throw PlayerSavePersistenceError.invalidSave("Homestead resources cannot be negative.")
+        }
+        for (_, nodeTier) in save.homestead.nodeTiers where nodeTier < 0 {
+            throw PlayerSavePersistenceError.invalidSave("Homestead node tiers cannot be negative.")
+        }
+        try validateProgressions(in: save.roster.progressions)
+    }
+
+    private static func validateProgressions(
+        in progressions: [String: CombatantProgression]
+    ) throws {
+        for (combatantID, progression) in progressions {
+            guard progression.level >= 1 else {
+                throw PlayerSavePersistenceError.invalidSave(
+                    "Combatant \(combatantID) level must be at least 1."
+                )
+            }
+            guard progression.currentXP >= 0 else {
+                throw PlayerSavePersistenceError.invalidSave(
+                    "Combatant \(combatantID) current XP cannot be negative."
+                )
+            }
+            guard progression.requiredXP > 0 else {
+                throw PlayerSavePersistenceError.invalidSave(
+                    "Combatant \(combatantID) required XP must be positive."
+                )
+            }
         }
     }
 

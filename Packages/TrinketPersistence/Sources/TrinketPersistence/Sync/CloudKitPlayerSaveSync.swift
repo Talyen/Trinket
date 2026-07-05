@@ -49,6 +49,9 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
             return try remoteSave(from: record)
         } catch let error as CKError where error.code == .unknownItem {
             return nil
+        } catch {
+            logger.error("Fetch remote save failed: \(error.localizedDescription, privacy: .public)")
+            throw error
         }
     }
 
