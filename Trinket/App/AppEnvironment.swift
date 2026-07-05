@@ -11,6 +11,7 @@ struct AppEnvironment {
     let disableCloudSync: Bool
     let disableAudio: Bool
     let themeOverride: TrinketDesign.AppTheme?
+    let appearanceOverride: TrinketDesign.AppAppearance?
     let completedStageIDs: [String]
     /// Scroll target ID for the Play map (`ScrollViewReader` row id), used by UI tests.
     let mapScrollTarget: String?
@@ -28,6 +29,7 @@ struct AppEnvironment {
         disableCloudSync: Bool,
         disableAudio: Bool,
         themeOverride: TrinketDesign.AppTheme?,
+        appearanceOverride: TrinketDesign.AppAppearance?,
         completedStageIDs: [String],
         mapScrollTarget: String?,
         battleTickInterval: TimeInterval?
@@ -39,6 +41,7 @@ struct AppEnvironment {
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
         self.themeOverride = themeOverride
+        self.appearanceOverride = appearanceOverride
         self.completedStageIDs = completedStageIDs
         self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
@@ -62,6 +65,7 @@ struct AppEnvironment {
             disableCloudSync: arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests,
             disableAudio: arguments.contains("-disable-audio") || isRunningTests,
             themeOverride: themeOverride(from: arguments),
+            appearanceOverride: appearanceOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
             battleTickInterval: battleTickInterval(from: arguments, isRunningTests: isRunningTests)
@@ -102,6 +106,13 @@ struct AppEnvironment {
               arguments.indices.contains(idx + 1)
         else { return nil }
         return TrinketDesign.AppTheme(rawValue: arguments[idx + 1])
+    }
+
+    private static func appearanceOverride(from arguments: [String]) -> TrinketDesign.AppAppearance? {
+        guard let idx = arguments.firstIndex(of: "-appearance"),
+              arguments.indices.contains(idx + 1)
+        else { return nil }
+        return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {

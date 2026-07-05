@@ -31,6 +31,7 @@ final class OptionsStoreTests: XCTestCase {
         XCTAssertEqual(store.effectsVolume, 0.85, accuracy: 0.001)
         XCTAssertTrue(store.hapticsEnabled)
         XCTAssertEqual(store.theme, .darkTabletop)
+        XCTAssertEqual(store.appearance, .system)
     }
 
     func testLoadsPreviouslyStoredValues() {
@@ -38,6 +39,7 @@ final class OptionsStoreTests: XCTestCase {
         defaults.set(0.6, forKey: "options.effectsVolume")
         defaults.set(false, forKey: "options.hapticsEnabled")
         defaults.set(TrinketDesign.AppTheme.warmParchment.rawValue, forKey: "options.theme")
+        defaults.set(TrinketDesign.AppAppearance.dark.rawValue, forKey: "options.appearance")
 
         let store = OptionsStore(defaults: defaults)
 
@@ -45,6 +47,7 @@ final class OptionsStoreTests: XCTestCase {
         XCTAssertEqual(store.effectsVolume, 0.6, accuracy: 0.001)
         XCTAssertFalse(store.hapticsEnabled)
         XCTAssertEqual(store.theme, .warmParchment)
+        XCTAssertEqual(store.appearance, .dark)
     }
 
     func testLoadsLegacyThemeValues() {
@@ -55,7 +58,18 @@ final class OptionsStoreTests: XCTestCase {
         XCTAssertEqual(OptionsStore(defaults: defaults).theme, .darkTabletop)
 
         defaults.set("System", forKey: "options.theme")
-        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .systemNative)
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .darkTabletop)
+    }
+
+    func testLoadsLegacyAppearanceValuesFromThemeKey() {
+        defaults.set("Light", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).appearance, .light)
+
+        defaults.set("Dark", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).appearance, .dark)
+
+        defaults.set("System", forKey: "options.theme")
+        XCTAssertEqual(OptionsStore(defaults: defaults).appearance, .system)
     }
 
     func testMusicVolumePersistsOnChange() {
@@ -84,9 +98,17 @@ final class OptionsStoreTests: XCTestCase {
 
     func testThemePersistsOnChange() {
         let store = OptionsStore(defaults: defaults)
-        store.theme = .systemNative
+        store.theme = .forestAlchemy
 
-        XCTAssertEqual(defaults.string(forKey: "options.theme"), TrinketDesign.AppTheme.systemNative.rawValue)
-        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .systemNative)
+        XCTAssertEqual(defaults.string(forKey: "options.theme"), TrinketDesign.AppTheme.forestAlchemy.rawValue)
+        XCTAssertEqual(OptionsStore(defaults: defaults).theme, .forestAlchemy)
+    }
+
+    func testAppearancePersistsOnChange() {
+        let store = OptionsStore(defaults: defaults)
+        store.appearance = .dark
+
+        XCTAssertEqual(defaults.string(forKey: "options.appearance"), TrinketDesign.AppAppearance.dark.rawValue)
+        XCTAssertEqual(OptionsStore(defaults: defaults).appearance, .dark)
     }
 }

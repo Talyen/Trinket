@@ -59,6 +59,9 @@ final class AppState {
         if let themeOverride = env.themeOverride {
             resolvedOptions.theme = themeOverride
         }
+        if let appearanceOverride = env.appearanceOverride {
+            resolvedOptions.appearance = appearanceOverride
+        }
 
         let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
 

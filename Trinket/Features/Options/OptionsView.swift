@@ -11,18 +11,20 @@ struct OptionsView: View {
 
         Form {
             Section("Appearance") {
-                HStack {
-                    Picker(selection: $options.theme) {
-                        ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
-                            Text(themeOption.displayName).tag(themeOption)
-                        }
-                    } label: {
-                        EmptyView()
+                Picker("Style", selection: $options.theme) {
+                    ForEach(TrinketDesign.AppTheme.allCases) { themeOption in
+                        Text(themeOption.displayName).tag(themeOption)
                     }
-                    .pickerStyle(.segmented)
-                    .accessibilityLabel("Theme")
-                    .accessibilityIdentifier("Theme Picker")
                 }
+                .accessibilityIdentifier("Theme Picker")
+
+                Picker("Mode", selection: $options.appearance) {
+                    ForEach(TrinketDesign.AppAppearance.allCases) { appearance in
+                        Text(appearance.displayName).tag(appearance)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("Appearance Picker")
             }
 
             Section("Audio") {
@@ -53,16 +55,6 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
-
-            #if DEBUG
-            Section("Developer") {
-                NavigationLink {
-                    DebugVisualTuningView()
-                } label: {
-                    Label("Visual Tuning", systemImage: "paintpalette")
-                }
-            }
-            #endif
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground(.denseList)

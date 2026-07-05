@@ -111,19 +111,26 @@ final class AppStateTests: XCTestCase {
     func testThemeOverrideAppliesToOptionsStore() {
         let defaults = UserDefaults.standard
         let previousTheme = defaults.string(forKey: "options.theme")
+        let previousAppearance = defaults.string(forKey: "options.appearance")
         defer {
             if let previousTheme {
                 defaults.set(previousTheme, forKey: "options.theme")
             } else {
                 defaults.removeObject(forKey: "options.theme")
             }
+            if let previousAppearance {
+                defaults.set(previousAppearance, forKey: "options.appearance")
+            } else {
+                defaults.removeObject(forKey: "options.appearance")
+            }
         }
 
         let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-theme", "light"])
+            environment: makeEnvironment(arguments: ["-theme", "light", "-appearance", "dark"])
         )
 
         XCTAssertEqual(state.options.theme, .warmParchment)
+        XCTAssertEqual(state.options.appearance, .dark)
     }
 
     func testResetStateWipesPersistedSave() throws {

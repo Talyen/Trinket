@@ -21,6 +21,10 @@ final class OptionsStore {
         didSet { defaults.set(theme.rawValue, forKey: Self.themeKey) }
     }
 
+    var appearance: TrinketDesign.AppAppearance {
+        didSet { defaults.set(appearance.rawValue, forKey: Self.appearanceKey) }
+    }
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? Self.defaultMusicVolume
@@ -32,12 +36,23 @@ final class OptionsStore {
         } else {
             theme = .default
         }
+
+        if let raw = defaults.string(forKey: Self.appearanceKey),
+           let resolved = TrinketDesign.AppAppearance(rawValue: raw) {
+            appearance = resolved
+        } else if let raw = defaults.string(forKey: Self.themeKey),
+                  let legacyAppearance = TrinketDesign.AppAppearance(rawValue: raw) {
+            appearance = legacyAppearance
+        } else {
+            appearance = .default
+        }
     }
 
     private static let musicVolumeKey = "options.musicVolume"
     private static let effectsVolumeKey = "options.effectsVolume"
     private static let hapticsEnabledKey = "options.hapticsEnabled"
     private static let themeKey = "options.theme"
+    private static let appearanceKey = "options.appearance"
 
     private static var defaultMusicVolume: Double {
         #if targetEnvironment(simulator)

@@ -29,35 +29,34 @@ The visual foundation must preserve Trinket's current product structure:
 
 Implement app chrome as theme presets, not one-off screen colors.
 
-Default preset: `Dark Tabletop`.
+Default preset: `Graphite`.
 
 Required presets:
 
 | Preset | Intent |
 |---|---|
-| Dark Tabletop | Default. Charcoal-brown base, warm amber glow, faint grain, solid readable surfaces. |
-| Warm Parchment | Light fantasy mode. Cream/bone base, warm strokes, muted gold accent, high readability. |
-| Arcane Night | Cool dark mode. Blue-black base, violet/blue glow, restrained arcane accent. |
-| Forest Alchemy | Earthy dark mode. Green-brown base, moss/poison undertone, muted green accent. |
-| System Native | Debug/comparison mode. Apple semantic backgrounds, minimal game atmosphere. |
+| Graphite | Default. System canvas with quiet gray strokes, restrained neutral accent, and solid readable surfaces. |
+| Parchment | Warm-neutral mode. System canvas with beige/taupe strokes and a muted paper-like accent. |
+| Obsidian | High-contrast neutral mode. System canvas with charcoal/silver strokes and a cool-neutral accent, without blue or violet identity. |
+| Linen | Soft neutral mode. System canvas with stone/linen strokes and a low-saturation beige accent. |
 
 Each preset should define:
 
-- Base app background.
-- Secondary background.
-- Elevated background.
-- Panel/card surface.
+- Base app background from Apple semantic system colors.
+- Secondary background from Apple semantic system colors.
+- Elevated background from Apple semantic system colors.
+- Panel/card surface from Apple semantic system colors.
 - Overlay/scrim color.
 - Subtle stroke.
-- Ambient glow.
-- Accent color.
+- Ambient glow, if used, as a neutral value rather than a hue identity.
+- Neutral accent color.
 - Shadow behavior.
-- Texture/grain opacity.
+- Texture/grain opacity, defaulting to zero unless a future asset-backed treatment is approved.
 - Default material preference.
 - Particle default.
-- Preferred `ColorScheme?`.
+- Appearance support through the separate System / Light / Dark mode.
 
-Theme switching should reuse `OptionsStore.theme` and the existing `-theme` launch argument. Preserve compatibility for stored legacy values such as `System`, `Light`, and `Dark` by mapping them to the closest preset.
+Theme switching should reuse `OptionsStore.theme` and the existing `-theme` launch argument. Appearance switching should use `OptionsStore.appearance` and `-appearance`. Preserve compatibility for stored legacy values such as `System`, `Light`, `Dark`, `Dark Tabletop`, `Warm Parchment`, `Arcane Night`, and `Forest Alchemy` by mapping them to the closest neutral preset or appearance mode.
 
 ## Background Modes
 
@@ -74,12 +73,11 @@ Expose semantic background modes so screens request intent rather than colors:
 
 Default composition:
 
-1. Adaptive base color.
-2. Subtle ambient glow.
-3. Optional low-opacity grain/texture.
-4. Optional vignette/scrim for artwork or modal focus.
-5. Optional element tint overlay when semantically meaningful.
-6. Optional low-count atmosphere layer when appropriate.
+1. Apple semantic system background.
+2. Apple semantic system surfaces.
+3. Neutral theme strokes and accents.
+4. Optional scrim for artwork or modal focus.
+5. Keyword or gameplay tint only when semantically meaningful.
 
 Dense content should stay quiet and readable. Play, Battle, Victory, rewards, and Homestead can carry stronger atmosphere.
 

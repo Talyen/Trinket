@@ -75,8 +75,18 @@ final class AppEnvironmentTests: XCTestCase {
     func testThemeOverrideParsesKnownThemes() {
         XCTAssertEqual(parse(arguments: ["-theme", "dark"]).themeOverride, .darkTabletop)
         XCTAssertEqual(parse(arguments: ["-theme", "Light"]).themeOverride, .warmParchment)
-        XCTAssertEqual(parse(arguments: ["-theme", "system"]).themeOverride, .systemNative)
+        XCTAssertEqual(parse(arguments: ["-theme", "system"]).themeOverride, .darkTabletop)
         XCTAssertEqual(parse(arguments: ["-theme", "arcane-night"]).themeOverride, .arcaneNight)
+    }
+
+    func testAppearanceOverrideParsesKnownModes() {
+        XCTAssertEqual(parse(arguments: ["-appearance", "system"]).appearanceOverride, .system)
+        XCTAssertEqual(parse(arguments: ["-appearance", "Light"]).appearanceOverride, .light)
+        XCTAssertEqual(parse(arguments: ["-appearance", "dark"]).appearanceOverride, .dark)
+    }
+
+    func testInvalidAppearanceOverrideReturnsNil() {
+        XCTAssertNil(parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride)
     }
 
     func testInvalidThemeOverrideReturnsNil() {
@@ -162,6 +172,7 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertFalse(env.disableCloudSync)
         XCTAssertFalse(env.disableAudio)
         XCTAssertNil(env.themeOverride)
+        XCTAssertNil(env.appearanceOverride)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
         XCTAssertNil(env.mapScrollTarget)
         XCTAssertNil(env.battleTickInterval)

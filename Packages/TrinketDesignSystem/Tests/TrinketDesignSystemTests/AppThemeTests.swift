@@ -3,7 +3,7 @@ import XCTest
 
 final class AppThemeTests: XCTestCase {
     func testThemePresetsExposePalettes() {
-        XCTAssertEqual(TrinketDesign.AppTheme.allCases.count, 5)
+        XCTAssertEqual(TrinketDesign.AppTheme.allCases.count, 4)
 
         for theme in TrinketDesign.AppTheme.allCases {
             let palette = theme.palette
@@ -17,14 +17,25 @@ final class AppThemeTests: XCTestCase {
     func testThemeParsingSupportsLegacyValues() {
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "Dark"), .darkTabletop)
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "Light"), .warmParchment)
-        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "System"), .systemNative)
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "System"), .darkTabletop)
     }
 
     func testThemeParsingSupportsLaunchArgumentNames() {
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "graphite"), .darkTabletop)
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "parchment"), .warmParchment)
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "Obsidian"), .arcaneNight)
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "linen"), .forestAlchemy)
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "dark-tabletop"), .darkTabletop)
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "warm_parchment"), .warmParchment)
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "Arcane Night"), .arcaneNight)
         XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "forest"), .forestAlchemy)
-        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "System Native"), .systemNative)
+        XCTAssertEqual(TrinketDesign.AppTheme(rawValue: "System Native"), .darkTabletop)
+    }
+
+    func testAppearanceParsingSupportsDisplayNames() {
+        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "system"), .system)
+        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "Light"), .light)
+        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "dark"), .dark)
+        XCTAssertNil(TrinketDesign.AppAppearance(rawValue: "unknown"))
     }
 }

@@ -7,7 +7,7 @@ Durable implementation guidance lives in `Docs/StyleGuide/AppVisualFoundation.md
 ## Boards
 
 - `01-north-star-overview.png` — overall visual direction and design-system scope.
-- `02-theme-presets.png` — preset comparison for Dark Tabletop, Warm Parchment, Arcane Night, Forest Alchemy, and System Native.
+- `02-theme-presets.png` — exploratory preset comparison; the implemented presets now resolve to neutral Graphite, Parchment, Obsidian, and Linen styles over Apple system light/dark backgrounds.
 - `03-surfaces-materials.png` — surface roles, material usage, states, and Reduce Transparency fallback direction.
 - `04-elemental-atmosphere.png` — mechanic tinting, badges, glows, particles, and accessibility guardrails.
 - `05-screen-fragments.png` — representative adoption across Play, Collection, Inventory/Search, Homestead, Battle, Rewards, Options, and sheets.

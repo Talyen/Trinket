@@ -4,9 +4,6 @@ import TrinketDesignSystem
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
-    #if DEBUG
-    @State private var visualTuning = VisualTuningStore()
-    #endif
 
     var body: some View {
         @Bindable var state = appState
@@ -46,61 +43,57 @@ struct ContentView: View {
             }
         }
         .environment(\.trinketTheme, appState.options.theme)
-        #if DEBUG
-            .environment(visualTuning)
-            .environment(\.trinketBackgroundTuning, visualTuning.isEnabled ? visualTuning.values : nil)
-        #endif
-            .preferredColorScheme(appState.options.theme.colorScheme)
-            .tint(appState.options.theme.palette.accent)
-            .onAppear {
-                syncBattlePauseForCurrentTab()
-                refreshMusicRoute(scenePhase: scenePhase)
+        .preferredColorScheme(appState.options.appearance.colorScheme)
+        .tint(appState.options.theme.palette.accent)
+        .onAppear {
+            syncBattlePauseForCurrentTab()
+            refreshMusicRoute(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.selectedTab) { _, newTab in
+            appState.sessionState.selectedTab = newTab
+            if appState.battle.activeBattle != nil {
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                appState.battle.isPaused = true
             }
-            .onChange(of: appState.selectedTab) { _, newTab in
-                appState.sessionState.selectedTab = newTab
-                if appState.battle.activeBattle != nil {
-                    // Leaving Play pauses combat; returning stays paused until the player resumes.
-                    appState.battle.isPaused = true
-                }
+            refreshMusicRoute(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
+            guard newValue != nil else {
+                appState.battle.isPaused = false
                 refreshMusicRoute(scenePhase: scenePhase)
+                appState.musicPlayer.clearEncounterResumePositions()
+                return
             }
-            .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-                guard newValue != nil else {
-                    appState.battle.isPaused = false
-                    refreshMusicRoute(scenePhase: scenePhase)
-                    appState.musicPlayer.clearEncounterResumePositions()
-                    return
-                }
 
-                appState.battle.isPaused = appState.selectedTab != .play
-                refreshMusicRoute(scenePhase: scenePhase)
+            appState.battle.isPaused = appState.selectedTab != .play
+            refreshMusicRoute(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.battle.preview?.id) { _, _ in
+            refreshMusicRoute(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.options.musicVolume) { _, _ in
+            refreshMusicRoute(scenePhase: scenePhase)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase != .active, appState.battle.activeBattle != nil {
+                appState.battle.isPaused = true
             }
-            .onChange(of: appState.battle.preview?.id) { _, _ in
-                refreshMusicRoute(scenePhase: scenePhase)
+            refreshMusicRoute(scenePhase: newPhase)
+            if newPhase == .inactive || newPhase == .background {
+                appState.playerSave.flushPendingPersistIfNeeded()
             }
-            .onChange(of: appState.options.musicVolume) { _, _ in
-                refreshMusicRoute(scenePhase: scenePhase)
-            }
-            .onChange(of: scenePhase) { _, newPhase in
-                if newPhase != .active, appState.battle.activeBattle != nil {
-                    appState.battle.isPaused = true
+            if newPhase == .background {
+                Task {
+                    await appState.syncCoordinator.checkpointUploadIfNeeded()
                 }
-                refreshMusicRoute(scenePhase: newPhase)
-                if newPhase == .inactive || newPhase == .background {
-                    appState.playerSave.flushPendingPersistIfNeeded()
-                }
-                if newPhase == .background {
-                    Task {
-                        await appState.syncCoordinator.checkpointUploadIfNeeded()
-                    }
-                } else if newPhase == .active {
-                    Task {
-                        await appState.syncCoordinator.reconcileForegroundIfSafe(
-                            hasActiveBattle: appState.battle.activeBattle != nil
-                        )
-                    }
+            } else if newPhase == .active {
+                Task {
+                    await appState.syncCoordinator.reconcileForegroundIfSafe(
+                        hasActiveBattle: appState.battle.activeBattle != nil
+                    )
                 }
             }
+        }
     }
 
     private func syncBattlePauseForCurrentTab() {

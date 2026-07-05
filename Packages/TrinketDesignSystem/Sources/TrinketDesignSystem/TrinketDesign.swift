@@ -52,7 +52,6 @@ public enum TrinketDesign {
         case warmParchment
         case arcaneNight
         case forestAlchemy
-        case systemNative
 
         public static let `default` = AppTheme.darkTabletop
 
@@ -64,16 +63,14 @@ public enum TrinketDesign {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
             switch normalized {
-            case "dark tabletop", "dark":
+            case "graphite", "dark tabletop", "dark", "system native", "system":
                 self = .darkTabletop
-            case "warm parchment", "parchment", "light":
+            case "parchment", "warm parchment", "light":
                 self = .warmParchment
-            case "arcane night", "arcane":
+            case "obsidian", "arcane night", "arcane":
                 self = .arcaneNight
-            case "forest alchemy", "forest":
+            case "linen", "stone linen", "forest alchemy", "forest":
                 self = .forestAlchemy
-            case "system native", "system":
-                self = .systemNative
             default:
                 return nil
             }
@@ -81,11 +78,62 @@ public enum TrinketDesign {
 
         public var rawValue: String {
             switch self {
-            case .darkTabletop: return "Dark Tabletop"
-            case .warmParchment: return "Warm Parchment"
-            case .arcaneNight: return "Arcane Night"
-            case .forestAlchemy: return "Forest Alchemy"
-            case .systemNative: return "System Native"
+            case .darkTabletop: return "Graphite"
+            case .warmParchment: return "Parchment"
+            case .arcaneNight: return "Obsidian"
+            case .forestAlchemy: return "Linen"
+            }
+        }
+
+        public var id: String {
+            rawValue
+        }
+
+        public var displayName: String {
+            rawValue
+        }
+
+        public var palette: ThemePalette {
+            switch self {
+            case .darkTabletop: return ThemePalette.darkTabletop.systemCanvasPalette()
+            case .warmParchment: return ThemePalette.warmParchment.systemCanvasPalette()
+            case .arcaneNight: return ThemePalette.arcaneNight.systemCanvasPalette()
+            case .forestAlchemy: return ThemePalette.forestAlchemy.systemCanvasPalette()
+            }
+        }
+    }
+
+    public enum AppAppearance: CaseIterable, Identifiable, RawRepresentable, Sendable {
+        case system
+        case light
+        case dark
+
+        public static let `default` = AppAppearance.system
+
+        public init?(rawValue: String) {
+            let normalized = rawValue
+                .lowercased()
+                .replacingOccurrences(of: "-", with: " ")
+                .replacingOccurrences(of: "_", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            switch normalized {
+            case "system", "system default", "automatic":
+                self = .system
+            case "light":
+                self = .light
+            case "dark":
+                self = .dark
+            default:
+                return nil
+            }
+        }
+
+        public var rawValue: String {
+            switch self {
+            case .system: return "System"
+            case .light: return "Light"
+            case .dark: return "Dark"
             }
         }
 
@@ -99,19 +147,9 @@ public enum TrinketDesign {
 
         public var colorScheme: ColorScheme? {
             switch self {
-            case .darkTabletop, .arcaneNight, .forestAlchemy: return .dark
-            case .warmParchment: return .light
-            case .systemNative: return nil
-            }
-        }
-
-        public var palette: ThemePalette {
-            switch self {
-            case .darkTabletop: return .darkTabletop
-            case .warmParchment: return .warmParchment
-            case .arcaneNight: return .arcaneNight
-            case .forestAlchemy: return .forestAlchemy
-            case .systemNative: return .systemNative
+            case .system: return nil
+            case .light: return .light
+            case .dark: return .dark
             }
         }
     }

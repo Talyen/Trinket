@@ -37,69 +37,71 @@ public struct ThemePalette: Sendable {
     }
 
     public static let darkTabletop = ThemePalette(
-        appBackground: Color(red: 0.07, green: 0.06, blue: 0.045),
-        secondaryBackground: Color(red: 0.12, green: 0.10, blue: 0.075),
-        elevatedBackground: Color(red: 0.18, green: 0.14, blue: 0.10),
-        panelSurface: Color(red: 0.14, green: 0.115, blue: 0.085),
-        overlayScrim: Color.black.opacity(0.46),
-        subtleStroke: Color(red: 0.74, green: 0.56, blue: 0.30).opacity(0.28),
-        ambientGlow: Color(red: 0.95, green: 0.58, blue: 0.18),
-        accent: Color(red: 0.95, green: 0.68, blue: 0.27),
-        shadow: .elevated,
-        textureOpacity: 0.075
-    )
-
-    public static let warmParchment = ThemePalette(
-        appBackground: Color(red: 0.92, green: 0.86, blue: 0.74),
-        secondaryBackground: Color(red: 0.86, green: 0.78, blue: 0.63),
-        elevatedBackground: Color(red: 0.98, green: 0.93, blue: 0.82),
-        panelSurface: Color(red: 0.95, green: 0.88, blue: 0.73),
-        overlayScrim: Color(red: 0.23, green: 0.16, blue: 0.09).opacity(0.20),
-        subtleStroke: Color(red: 0.44, green: 0.27, blue: 0.13).opacity(0.30),
-        ambientGlow: Color(red: 0.98, green: 0.72, blue: 0.36),
-        accent: Color(red: 0.66, green: 0.40, blue: 0.17),
-        shadow: .subtle,
-        textureOpacity: 0.055
-    )
-
-    public static let arcaneNight = ThemePalette(
-        appBackground: Color(red: 0.035, green: 0.045, blue: 0.075),
-        secondaryBackground: Color(red: 0.07, green: 0.085, blue: 0.13),
-        elevatedBackground: Color(red: 0.105, green: 0.115, blue: 0.18),
-        panelSurface: Color(red: 0.075, green: 0.085, blue: 0.13),
-        overlayScrim: Color.black.opacity(0.52),
-        subtleStroke: Color(red: 0.58, green: 0.48, blue: 0.95).opacity(0.30),
-        ambientGlow: Color(red: 0.40, green: 0.31, blue: 0.96),
-        accent: Color(red: 0.58, green: 0.48, blue: 0.95),
-        shadow: .elevated,
-        textureOpacity: 0.06
-    )
-
-    public static let forestAlchemy = ThemePalette(
-        appBackground: Color(red: 0.04, green: 0.065, blue: 0.045),
-        secondaryBackground: Color(red: 0.075, green: 0.105, blue: 0.065),
-        elevatedBackground: Color(red: 0.12, green: 0.16, blue: 0.095),
-        panelSurface: Color(red: 0.075, green: 0.105, blue: 0.07),
-        overlayScrim: Color.black.opacity(0.46),
-        subtleStroke: Color(red: 0.45, green: 0.68, blue: 0.33).opacity(0.28),
-        ambientGlow: Color(red: 0.37, green: 0.72, blue: 0.28),
-        accent: Color(red: 0.50, green: 0.72, blue: 0.34),
-        shadow: .elevated,
-        textureOpacity: 0.065
-    )
-
-    public static let systemNative = ThemePalette(
         appBackground: Color(.systemBackground),
         secondaryBackground: Color(.secondarySystemBackground),
         elevatedBackground: Color(.tertiarySystemBackground),
         panelSurface: Color(.secondarySystemBackground),
-        overlayScrim: Color.black.opacity(0.24),
-        subtleStroke: Color(.separator).opacity(0.45),
-        ambientGlow: Color.accentColor,
-        accent: Color.accentColor,
+        overlayScrim: Color.black.opacity(0.46),
+        subtleStroke: Color(red: 0.62, green: 0.60, blue: 0.56).opacity(0.32),
+        ambientGlow: Color(red: 0.72, green: 0.70, blue: 0.66),
+        accent: Color(red: 0.58, green: 0.56, blue: 0.52),
+        shadow: .elevated,
+        textureOpacity: 0
+    )
+
+    public static let warmParchment = ThemePalette(
+        appBackground: Color(.systemBackground),
+        secondaryBackground: Color(.secondarySystemBackground),
+        elevatedBackground: Color(.tertiarySystemBackground),
+        panelSurface: Color(.secondarySystemBackground),
+        overlayScrim: Color(red: 0.20, green: 0.17, blue: 0.13).opacity(0.18),
+        subtleStroke: Color(red: 0.58, green: 0.53, blue: 0.45).opacity(0.30),
+        ambientGlow: Color(red: 0.78, green: 0.74, blue: 0.66),
+        accent: Color(red: 0.55, green: 0.49, blue: 0.40),
         shadow: .subtle,
         textureOpacity: 0
     )
+
+    public static let arcaneNight = ThemePalette(
+        appBackground: Color(.systemBackground),
+        secondaryBackground: Color(.secondarySystemBackground),
+        elevatedBackground: Color(.tertiarySystemBackground),
+        panelSurface: Color(.secondarySystemBackground),
+        overlayScrim: Color.black.opacity(0.52),
+        subtleStroke: Color(red: 0.66, green: 0.66, blue: 0.68).opacity(0.34),
+        ambientGlow: Color(red: 0.82, green: 0.82, blue: 0.80),
+        accent: Color(red: 0.68, green: 0.68, blue: 0.66),
+        shadow: .elevated,
+        textureOpacity: 0
+    )
+
+    public static let forestAlchemy = ThemePalette(
+        appBackground: Color(.systemBackground),
+        secondaryBackground: Color(.secondarySystemBackground),
+        elevatedBackground: Color(.tertiarySystemBackground),
+        panelSurface: Color(.secondarySystemBackground),
+        overlayScrim: Color(red: 0.16, green: 0.15, blue: 0.13).opacity(0.38),
+        subtleStroke: Color(red: 0.60, green: 0.57, blue: 0.50).opacity(0.30),
+        ambientGlow: Color(red: 0.76, green: 0.72, blue: 0.62),
+        accent: Color(red: 0.57, green: 0.53, blue: 0.45),
+        shadow: .elevated,
+        textureOpacity: 0
+    )
+
+    public func systemCanvasPalette() -> ThemePalette {
+        ThemePalette(
+            appBackground: Color(.systemBackground),
+            secondaryBackground: Color(.secondarySystemBackground),
+            elevatedBackground: Color(.tertiarySystemBackground),
+            panelSurface: Color(.secondarySystemBackground),
+            overlayScrim: overlayScrim,
+            subtleStroke: subtleStroke,
+            ambientGlow: ambientGlow,
+            accent: accent,
+            shadow: shadow,
+            textureOpacity: 0
+        )
+    }
 }
 
 public struct ShadowStyle: Sendable {
@@ -136,79 +138,6 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
         case .modal: return "Modal"
         }
     }
-
-    var glowOpacity: Double {
-        switch self {
-        case .standard: return 0.16
-        case .playJourney, .homestead: return 0.24
-        case .collection: return 0.18
-        case .denseList: return 0.08
-        case .battle: return 0.22
-        case .modal: return 0.12
-        }
-    }
-}
-
-public struct BackgroundTuningValues: Equatable, Sendable {
-    public var tintHue: Double
-    public var tintSaturation: Double
-    public var tintBrightness: Double
-    public var tintOpacity: Double
-    public var accentWashOpacity: Double
-    public var surfaceWashOpacity: Double
-    public var bandOpacity: Double
-    public var bandHeight: Double
-    public var bandSpacing: Double
-    public var lineOpacity: Double
-    public var lineSpacing: Double
-    public var lineAngleDegrees: Double
-    public var textureOpacity: Double
-
-    public init(
-        tintHue: Double,
-        tintSaturation: Double,
-        tintBrightness: Double,
-        tintOpacity: Double,
-        accentWashOpacity: Double,
-        surfaceWashOpacity: Double,
-        bandOpacity: Double,
-        bandHeight: Double,
-        bandSpacing: Double,
-        lineOpacity: Double,
-        lineSpacing: Double,
-        lineAngleDegrees: Double,
-        textureOpacity: Double
-    ) {
-        self.tintHue = tintHue
-        self.tintSaturation = tintSaturation
-        self.tintBrightness = tintBrightness
-        self.tintOpacity = tintOpacity
-        self.accentWashOpacity = accentWashOpacity
-        self.surfaceWashOpacity = surfaceWashOpacity
-        self.bandOpacity = bandOpacity
-        self.bandHeight = bandHeight
-        self.bandSpacing = bandSpacing
-        self.lineOpacity = lineOpacity
-        self.lineSpacing = lineSpacing
-        self.lineAngleDegrees = lineAngleDegrees
-        self.textureOpacity = textureOpacity
-    }
-
-    public static let defaultPreview = BackgroundTuningValues(
-        tintHue: 0.10,
-        tintSaturation: 0.42,
-        tintBrightness: 0.48,
-        tintOpacity: 0.12,
-        accentWashOpacity: 0.018,
-        surfaceWashOpacity: 0.10,
-        bandOpacity: 0.045,
-        bandHeight: 112,
-        bandSpacing: 252,
-        lineOpacity: 0.030,
-        lineSpacing: 18,
-        lineAngleDegrees: -12,
-        textureOpacity: 0.018
-    )
 }
 
 public enum SurfaceRole: Equatable, Sendable {
@@ -268,25 +197,15 @@ private struct TrinketThemeKey: EnvironmentKey {
     static let defaultValue = TrinketDesign.AppTheme.default
 }
 
-private struct TrinketBackgroundTuningKey: EnvironmentKey {
-    static let defaultValue: BackgroundTuningValues? = nil
-}
-
 public extension EnvironmentValues {
     var trinketTheme: TrinketDesign.AppTheme {
         get { self[TrinketThemeKey.self] }
         set { self[TrinketThemeKey.self] = newValue }
     }
-
-    var trinketBackgroundTuning: BackgroundTuningValues? {
-        get { self[TrinketBackgroundTuningKey.self] }
-        set { self[TrinketBackgroundTuningKey.self] = newValue }
-    }
 }
 
 public struct TrinketScreenBackground: View {
     @Environment(\.trinketTheme) private var theme
-    @Environment(\.trinketBackgroundTuning) private var tuning
 
     private let mode: BackgroundMode
     private let elementTint: Color?
@@ -298,138 +217,9 @@ public struct TrinketScreenBackground: View {
 
     public var body: some View {
         let palette = theme.palette
-        let accentColor = elementTint ?? palette.ambientGlow
 
-        ZStack {
-            palette.appBackground
-
-            if let tuning {
-                Rectangle()
-                    .fill(Color(
-                        hue: tuning.tintHue,
-                        saturation: tuning.tintSaturation,
-                        brightness: tuning.tintBrightness
-                    ).opacity(tuning.tintOpacity))
-                    .blendMode(.overlay)
-
-                Rectangle()
-                    .fill(accentColor.opacity(tuning.accentWashOpacity))
-                    .blendMode(.softLight)
-
-                Rectangle()
-                    .fill(palette.panelSurface.opacity(tuning.surfaceWashOpacity))
-                    .blendMode(.overlay)
-
-                if tuning.bandOpacity > 0 {
-                    TrinketTonalBandLayer(
-                        opacity: tuning.bandOpacity,
-                        height: tuning.bandHeight,
-                        spacing: tuning.bandSpacing
-                    )
-                }
-
-                if tuning.lineOpacity > 0 {
-                    TrinketLineworkLayer(
-                        opacity: tuning.lineOpacity,
-                        spacing: tuning.lineSpacing,
-                        angleDegrees: tuning.lineAngleDegrees
-                    )
-                }
-
-                if tuning.textureOpacity > 0 {
-                    TrinketTextureLayer(opacity: tuning.textureOpacity)
-                }
-            } else {
-                Rectangle()
-                    .fill(accentColor.opacity(mode.glowOpacity * 0.08))
-                    .blendMode(.softLight)
-
-                if palette.textureOpacity > 0 {
-                    TrinketTextureLayer(opacity: palette.textureOpacity * 0.28)
-                }
-            }
-        }
-        .ignoresSafeArea()
-    }
-}
-
-private struct TrinketTonalBandLayer: View {
-    let opacity: Double
-    let height: Double
-    let spacing: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            let step = max(height + spacing, 1)
-            let count = max(Int((proxy.size.height / step).rounded(.up)) + 2, 1)
-
-            VStack(spacing: CGFloat(spacing)) {
-                ForEach(0 ..< count, id: \.self) { index in
-                    Rectangle()
-                        .fill((index.isMultiple(of: 2) ? Color.white : Color.black).opacity(opacity))
-                        .blendMode(index.isMultiple(of: 2) ? .softLight : .overlay)
-                        .frame(height: CGFloat(height))
-                }
-            }
-            .offset(y: -CGFloat(height * 0.5))
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-private struct TrinketLineworkLayer: View {
-    let opacity: Double
-    let spacing: Double
-    let angleDegrees: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            let length = max(proxy.size.width, proxy.size.height) * 2
-            let count = max(Int((length / max(spacing, 1)).rounded(.up)), 1)
-
-            Canvas { context, _ in
-                let pathColor = Color.white.opacity(opacity)
-                let stroke = StrokeStyle(lineWidth: 0.6, lineCap: .round)
-
-                for index in 0 ..< count {
-                    let offset = CGFloat(index) * CGFloat(spacing)
-                    var path = Path()
-                    path.move(to: CGPoint(x: -length, y: offset))
-                    path.addLine(to: CGPoint(x: length, y: offset))
-                    context.stroke(path, with: .color(pathColor), style: stroke)
-                }
-            }
-            .frame(width: length, height: length)
-            .rotationEffect(.degrees(angleDegrees))
-            .offset(x: -(length - proxy.size.width) * 0.5, y: -(length - proxy.size.height) * 0.5)
-            .blendMode(.softLight)
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-private struct TrinketTextureLayer: View {
-    let opacity: Double
-
-    var body: some View {
-        ZStack {
-            TrinketLineworkLayer(
-                opacity: opacity * 0.75,
-                spacing: 11,
-                angleDegrees: 0
-            )
-
-            TrinketLineworkLayer(
-                opacity: opacity * 0.45,
-                spacing: 17,
-                angleDegrees: 90
-            )
-
-            Rectangle()
-                .fill(.black.opacity(opacity * 0.18))
-                .blendMode(.overlay)
-        }
-        .allowsHitTesting(false)
+        palette.appBackground
+            .ignoresSafeArea()
     }
 }
 

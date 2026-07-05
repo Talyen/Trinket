@@ -30,7 +30,7 @@ The **Collection** tab groups Heroes, Pets, and Inventory behind an in-tab categ
 
 Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/StyleGuide/AppVisualFoundation.md`, with v2 reference boards in `Docs/StyleGuide/VisualReferences/v2/`.
 
-The default preset is Dark Tabletop: charcoal-brown base, warm amber glow, faint grain, solid readable surfaces, and restrained material for overlays. Other presets exist for testing and accessibility comparison, but screens should request semantic backgrounds, surfaces, materials, typography, spacing, and Keyword styles rather than hardcoded colors.
+The default preset is Graphite: Apple semantic system backgrounds, quiet neutral strokes, restrained material for overlays, and solid readable surfaces. Other presets stay color-neutral so Keyword identities and card art carry the strong hues. Screens should request semantic backgrounds, surfaces, materials, typography, spacing, and Keyword styles rather than hardcoded colors.
 
 3:4 card art remains the central game motif. Use atmosphere, Keyword particles, and glow as accents around meaning and feedback, not as busy full-screen wallpaper behind utility screens.
 
