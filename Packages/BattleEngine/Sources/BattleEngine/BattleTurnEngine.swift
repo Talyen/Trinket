@@ -67,7 +67,7 @@ public enum BattleTurnEngine {
         matchup: BattleMatchup,
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        let turnNumber = (context.runtime(for: actor)?.actionCount ?? 0) + 1
+        let turnNumber = (context.roster.runtime(for: actor)?.actionCount ?? 0) + 1
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, context: context) else {
             recordAction(for: actor, context: &context)
@@ -254,10 +254,10 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) {
         context.actionCount += 1
-        guard var runtime = context.runtime(for: actor) else { return }
-        let activeEffects = context.activeEffects(for: actor)
+        guard var runtime = context.roster.runtime(for: actor) else { return }
+        let activeEffects = context.roster.activeEffects(for: actor)
         runtime.markActed(atTick: context.tickCount, activeEffects: activeEffects)
-        context.updateRuntime(runtime)
+        context.roster.update(runtime)
     }
 
     private static func resolveEffectTarget(
@@ -301,7 +301,7 @@ public enum BattleTurnEngine {
         guard let preferred else { return nil }
         guard preferred.manaCost > 0, actor.hasMana else { return preferred }
 
-        let currentMana = context.mana(of: actor)
+        let currentMana = (context.roster.runtime(for: actor)?.currentMana ?? 0)
         if currentMana >= preferred.manaCost {
             return preferred
         }

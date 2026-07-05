@@ -41,13 +41,13 @@ final class EffectTickEngineTests: XCTestCase {
         let enemy = context.roster.enemy.combatant
 
         let result = EffectTickEngine.tickEffects(
-            context.activeEffects(for: enemy),
+            context.roster.activeEffects(for: enemy),
             target: enemy,
             context: &context
         )
-        context.setActiveEffects(result.updated, for: enemy)
+        context.roster.setActiveEffects(result.updated, for: enemy)
 
-        let shields = context.activeEffects(for: enemy).compactMap { activeEffect -> Int? in
+        let shields = context.roster.activeEffects(for: enemy).compactMap { activeEffect -> Int? in
             guard case let .shield(_, buffer, _) = activeEffect.effect else { return nil }
             return buffer
         }
@@ -62,16 +62,16 @@ final class EffectTickEngineTests: XCTestCase {
         context.roster.setActiveEffects([burn], for: hero)
 
         let result = EffectTickEngine.tickEffects(
-            context.activeEffects(for: hero),
+            context.roster.activeEffects(for: hero),
             target: hero,
             context: &context
         )
-        context.setActiveEffects(result.updated, for: hero)
+        context.roster.setActiveEffects(result.updated, for: hero)
 
         XCTAssertEqual(context.roster.health(for: hero), 1)
         XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
         XCTAssertTrue(
-            context.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
+            context.roster.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
             "Death's Door inserted during DoT damage should survive effect-tick write-back"
         )
     }

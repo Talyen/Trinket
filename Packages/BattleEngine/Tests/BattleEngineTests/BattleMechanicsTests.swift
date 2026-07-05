@@ -53,7 +53,7 @@ final class BattleMechanicsTests: XCTestCase {
 
         XCTAssertEqual(outcome.healthLost, 5)
         XCTAssertFalse(
-            context.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
+            context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
         )
     }
 
@@ -89,9 +89,9 @@ final class BattleMechanicsTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, pet: panther, enemy: enemy)
-        var pantherRuntime = try XCTUnwrap(context.runtime(for: panther))
+        var pantherRuntime = try XCTUnwrap(context.roster.runtime(for: panther))
         pantherRuntime.actionCount = 2
-        context.updateRuntime(pantherRuntime)
+        context.roster.update(pantherRuntime)
         let matchup = BattleMatchup(hero: hero, pet: panther, enemy: enemy)
 
         _ = BattleTurnEngine.performAction(
@@ -102,7 +102,7 @@ final class BattleMechanicsTests: XCTestCase {
         )
 
         XCTAssertTrue(
-            context.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
+            context.roster.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
         )
     }
 }
@@ -125,7 +125,7 @@ private func selectedAbilityForTests(
         ?? actor.abilities.first
     guard let preferred else { return nil }
     guard preferred.manaCost > 0, actor.hasMana else { return preferred }
-    if context.mana(of: actor) >= preferred.manaCost {
+    if (context.roster.runtime(for: actor)?.currentMana ?? 0) >= preferred.manaCost {
         return preferred
     }
     return actor.abilityLoadout.basic ?? actor.abilities.first

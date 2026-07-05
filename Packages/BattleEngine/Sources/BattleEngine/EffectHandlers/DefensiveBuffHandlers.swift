@@ -128,9 +128,9 @@ public struct LeechHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
-        var effects = context.activeEffects(for: target)
+        var effects = context.roster.activeEffects(for: target)
         effects.removeAll { if case .leech = $0.effect { return true }; return false }
-        context.setActiveEffects(effects, for: target)
+        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
             to: target,

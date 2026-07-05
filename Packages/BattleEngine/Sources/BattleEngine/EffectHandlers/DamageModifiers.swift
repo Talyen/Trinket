@@ -14,7 +14,7 @@ public struct HalveMitigationHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .halveMitigation(keyword) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        var currentEffects = context.activeEffects(for: target)
+        var currentEffects = context.roster.activeEffects(for: target)
         var didHalve = false
         for index in currentEffects.indices {
             if case let .mitigation(mitigationKeyword, percent, duration) = currentEffects[index].effect,
@@ -27,7 +27,7 @@ public struct HalveMitigationHandler: BattleEffectHandler {
                 didHalve = true
             }
         }
-        context.setActiveEffects(currentEffects, for: target)
+        context.roster.setActiveEffects(currentEffects, for: target)
         guard didHalve else { return EffectApplyOutcome(events: [], didApply: false) }
         let event = context.nextEvent(
             kind: .effect,
@@ -82,6 +82,6 @@ public struct ControlMeterHandler: BattleEffectHandler {
             in: &context
         )
         _ = ability
-        return EffectApplyOutcome(events: events, didApply: amount > 0 && context.health(of: target) > 0)
+        return EffectApplyOutcome(events: events, didApply: amount > 0 && context.roster.health(for: target) > 0)
     }
 }

@@ -44,7 +44,7 @@ final class DeathsDoorEngineTests: XCTestCase {
         XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
         XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
         XCTAssertEqual(
-            context.activeEffects(for: hero).first?.remainingTicks,
+            context.roster.activeEffects(for: hero).first?.remainingTicks,
             BattleTiming.deathsDoorDurationTicks
         )
         XCTAssertTrue(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
@@ -80,7 +80,7 @@ final class DeathsDoorEngineTests: XCTestCase {
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        var effects = context.activeEffects(for: hero)
+        var effects = context.roster.activeEffects(for: hero)
         for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
             let result = EffectTickEngine.tickEffects(effects, target: hero, context: &context)
             effects = result.updated
@@ -117,7 +117,7 @@ final class DeathsDoorEngineTests: XCTestCase {
 
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        let effects = context.activeEffects(for: hero)
+        let effects = context.roster.activeEffects(for: hero)
         XCTAssertEqual(effects.count, 2)
         XCTAssertEqual(effects.first?.effect.kind, .deathsDoor)
     }

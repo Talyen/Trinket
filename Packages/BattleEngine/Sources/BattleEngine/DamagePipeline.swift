@@ -139,7 +139,7 @@ package enum DamagePipeline {
         var chance = actor.primaryStats.criticalChance(for: damageKeyword)
         chance += state.abilityCriticalChanceBonus
 
-        let sourceEffects = context.activeEffects(for: actor.combatant)
+        let sourceEffects = context.roster.activeEffects(for: actor.combatant)
         for active in sourceEffects {
             if case let .criticalChanceBonus(bonus, _) = active.effect {
                 chance += bonus
@@ -147,7 +147,7 @@ package enum DamagePipeline {
         }
 
         if state.guaranteedCriticalIfEnemyBuffed,
-           context.activeEffects(for: state.combatant).contains(where: { $0.effect.isRemovableBuff }) {
+           context.roster.activeEffects(for: state.combatant).contains(where: { $0.effect.isRemovableBuff }) {
             chance = 1.0
         }
 

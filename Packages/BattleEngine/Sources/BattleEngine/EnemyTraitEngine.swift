@@ -12,7 +12,7 @@ package enum EnemyTraitEngine {
         guard profile.regenerationAmount > 0,
               profile.regenerationIntervalTicks > 0,
               context.tickCount.isMultiple(of: profile.regenerationIntervalTicks),
-              context.health(of: combatant) > 0
+              context.roster.health(for: combatant) > 0
         else { return [] }
 
         let outcome = HealingEngine.resolveHeal(
@@ -42,7 +42,7 @@ package enum EnemyTraitEngine {
               profile.shieldErosionKeyword == keyword
         else { return }
 
-        var effects = context.activeEffects(for: combatant)
+        var effects = context.roster.activeEffects(for: combatant)
         var didErode = false
         for index in effects.indices {
             guard case let .shield(shieldKeyword, buffer, _) = effects[index].effect else { continue }
@@ -60,7 +60,7 @@ package enum EnemyTraitEngine {
             if case .shield = active.effect { return active.remainingTicks <= 0 }
             return false
         }
-        context.setActiveEffects(effects, for: combatant)
+        context.roster.setActiveEffects(effects, for: combatant)
     }
 
     package static func applyMitigationShred(
@@ -77,7 +77,7 @@ package enum EnemyTraitEngine {
 
         runtime.mitigationShredUntilTick = context.tickCount + profile.mitigationShredDurationTicks
         runtime.mitigationShredMultiplier = profile.mitigationShredMultiplier
-        context.updateRuntime(runtime)
+        context.roster.update(runtime)
     }
 
     package static func traitThornsDamage(

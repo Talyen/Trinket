@@ -58,11 +58,11 @@ final class BattleTurnEngineTests: XCTestCase {
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
         let enemy = context.roster.enemy.combatant
-        let before = try XCTUnwrap(context.runtime(for: enemy)?.actionCount)
+        let before = try XCTUnwrap(context.roster.runtime(for: enemy)?.actionCount)
 
         _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        XCTAssertEqual(try XCTUnwrap(context.runtime(for: enemy)?.actionCount), before + 1)
+        XCTAssertEqual(try XCTUnwrap(context.roster.runtime(for: enemy)?.actionCount), before + 1)
         XCTAssertEqual(context.actionCount, 1)
     }
 

@@ -114,7 +114,7 @@ final class TraitBattleTests: XCTestCase {
         )
 
         XCTAssertTrue(outcome.didApply)
-        XCTAssertEqual(context.health(of: hero), 11)
+        XCTAssertEqual(context.roster.health(for: hero), 11)
     }
 
     func testFaeFortuneHealsWhenGainingGold() throws {
@@ -145,7 +145,7 @@ final class TraitBattleTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            context.health(of: pixieBuild.combatant),
+            context.roster.health(for: pixieBuild.combatant),
             pixieBuild.effectiveMaxHealth
         )
     }
@@ -176,6 +176,6 @@ final class TraitBattleTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertEqual(context.health(of: hero), 13)
+        XCTAssertEqual(context.roster.health(for: hero), 13)
     }
 }

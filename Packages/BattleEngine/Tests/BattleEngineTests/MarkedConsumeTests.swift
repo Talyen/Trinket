@@ -33,7 +33,7 @@ final class MarkedConsumeTests: XCTestCase {
 
         XCTAssertEqual(outcome.healthLost, 0)
         XCTAssertTrue(
-            context.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
+            context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
         )
     }
 }

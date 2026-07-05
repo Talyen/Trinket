@@ -28,15 +28,15 @@ public enum BattleConditionEvaluator {
         case .enemyMarked:
             return hasMarked(on: enemy, in: context)
         case .enemyLowerHealthThanActor:
-            return context.health(of: enemy) < context.health(of: actor)
+            return context.roster.health(for: enemy) < context.roster.health(for: actor)
         case .allyBelowHalfHealth:
-            let heroHealth = context.health(of: hero)
-            let petHealth = context.health(of: pet)
+            let heroHealth = context.roster.health(for: hero)
+            let petHealth = context.roster.health(for: pet)
             let heroMax = context.roster.runtime(for: hero)?.maxHealth ?? hero.maxHealth
             let petMax = context.roster.runtime(for: pet)?.maxHealth ?? pet.maxHealth
             return heroHealth * 2 < heroMax || petHealth * 2 < petMax
         case .enemyHasBuff:
-            return context.activeEffects(for: enemy).contains { $0.effect.isRemovableBuff }
+            return context.roster.activeEffects(for: enemy).contains { $0.effect.isRemovableBuff }
         }
     }
 
@@ -45,8 +45,8 @@ public enum BattleConditionEvaluator {
         pet: Combatant,
         context: BattleEngineContext
     ) -> Combatant {
-        let heroHealth = context.health(of: hero)
-        let petHealth = context.health(of: pet)
+        let heroHealth = context.roster.health(for: hero)
+        let petHealth = context.roster.health(for: pet)
         let heroAlive = heroHealth > 0
         let petAlive = petHealth > 0
         switch (heroAlive, petAlive) {
@@ -66,7 +66,7 @@ public enum BattleConditionEvaluator {
         on combatant: Combatant,
         in context: BattleEngineContext
     ) -> Bool {
-        context.activeEffects(for: combatant).contains { active in
+        context.roster.activeEffects(for: combatant).contains { active in
             active.effect.keyword == keyword
         }
     }
@@ -76,14 +76,14 @@ public enum BattleConditionEvaluator {
         on combatant: Combatant,
         in context: BattleEngineContext
     ) -> Bool {
-        context.activeEffects(for: combatant).contains { active in
+        context.roster.activeEffects(for: combatant).contains { active in
             guard case let .controlMeter(meterKeyword, amount, threshold) = active.effect else { return false }
             return meterKeyword == keyword && threshold > 0 && amount >= threshold
         }
     }
 
     private static func hasMarked(on combatant: Combatant, in context: BattleEngineContext) -> Bool {
-        context.activeEffects(for: combatant).contains { active in
+        context.roster.activeEffects(for: combatant).contains { active in
             if case .marked = active.effect { return true }
             return false
         }

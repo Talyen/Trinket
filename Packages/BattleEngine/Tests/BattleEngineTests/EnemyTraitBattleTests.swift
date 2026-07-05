@@ -88,11 +88,11 @@ final class EnemyTraitBattleTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 100)
         var context = makeContext(hero: hero, pet: pet, enemyBuild: necromancer)
-        var enemyRuntime = try XCTUnwrap(context.runtime(for: necromancer.combatant))
+        var enemyRuntime = try XCTUnwrap(context.roster.runtime(for: necromancer.combatant))
         enemyRuntime.actionCount = 5
-        context.updateRuntime(enemyRuntime)
+        context.roster.update(enemyRuntime)
 
-        let heroHealthBefore = context.health(of: hero)
+        let heroHealthBefore = context.roster.health(for: hero)
         let matchup = BattleMatchup(hero: hero, pet: pet, enemy: necromancer.combatant)
 
         _ = BattleTurnEngine.performAction(
@@ -102,6 +102,6 @@ final class EnemyTraitBattleTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.health(of: hero), heroHealthBefore - 6)
+        XCTAssertEqual(context.roster.health(for: hero), heroHealthBefore - 6)
     }
 }

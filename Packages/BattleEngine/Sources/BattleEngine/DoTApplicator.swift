@@ -12,7 +12,7 @@ package enum DoTApplicator {
         dealImmediateDamage: Bool,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
+        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {
@@ -25,7 +25,7 @@ package enum DoTApplicator {
             ).events)
         }
 
-        var currentEffects = context.activeEffects(for: effectTarget)
+        var currentEffects = context.roster.activeEffects(for: effectTarget)
         if let index = currentEffects.firstIndex(where: { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }) {
             let existingPotency = currentEffects[index].effect.potency ?? 0
             currentEffects[index].effect = effectCase(for: keyword, potency: existingPotency + potency)
@@ -40,7 +40,7 @@ package enum DoTApplicator {
                 )
             )
         }
-        context.setActiveEffects(currentEffects, for: effectTarget)
+        context.roster.setActiveEffects(currentEffects, for: effectTarget)
         return collected
     }
 
@@ -51,7 +51,7 @@ package enum DoTApplicator {
         dealImmediateDamage: Bool,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
-        guard context.health(of: effectTarget) > 0, potency > 0 else { return [] }
+        guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
 
         var collected: [ActionEvent] = []
         if dealImmediateDamage {

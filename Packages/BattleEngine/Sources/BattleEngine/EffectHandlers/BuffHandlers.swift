@@ -105,9 +105,9 @@ public struct MarkedHandler: BattleEffectHandler {
         guard case let .marked(bonus, durationTicks) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
-        var effects = context.activeEffects(for: target)
+        var effects = context.roster.activeEffects(for: target)
         effects.removeAll { if case .marked = $0.effect { return true }; return false }
-        context.setActiveEffects(effects, for: target)
+        context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(.marked(bonus, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
         let event = context.nextEvent(
             kind: .effect,

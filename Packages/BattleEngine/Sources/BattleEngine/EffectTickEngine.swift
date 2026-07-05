@@ -13,11 +13,11 @@ public enum EffectTickEngine {
             }
 
             let result = tickEffects(
-                context.activeEffects(for: combatant),
+                context.roster.activeEffects(for: combatant),
                 target: combatant,
                 context: &context
             )
-            context.setActiveEffects(result.updated, for: combatant)
+            context.roster.setActiveEffects(result.updated, for: combatant)
             events.append(contentsOf: result.events)
             events.append(contentsOf: EnemyTraitEngine.tickRegeneration(for: combatant, context: &context))
         }
@@ -45,7 +45,7 @@ public enum EffectTickEngine {
             tickOutcomes[activeEffect.id] = (outcome.updatedStack, outcome.removeAfter)
         }
 
-        var merged = context.activeEffects(for: target)
+        var merged = context.roster.activeEffects(for: target)
         merged = merged.compactMap { activeEffect in
             guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
             if outcome.removeAfter { return nil }
