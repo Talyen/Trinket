@@ -23,25 +23,6 @@ final class MusicPlayer {
         self.fadeDuration = fadeDuration
     }
 
-    func refresh(
-        selectedTab: AppTab,
-        preview: BattleMusicPreview?,
-        activeBattle: ActiveBattleConfiguration?,
-        sceneIsActive: Bool,
-        volume: Double
-    ) {
-        update(
-            route: Self.route(
-                selectedTab: selectedTab,
-                preview: preview,
-                activeBattle: activeBattle,
-                sceneIsActive: sceneIsActive,
-                musicVolume: volume
-            ),
-            volume: volume
-        )
-    }
-
     func update(route: MusicRoute, volume: Double) {
         guard !isDisabled else { return }
 

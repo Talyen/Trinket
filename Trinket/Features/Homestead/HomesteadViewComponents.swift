@@ -4,18 +4,20 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-func performHomesteadBuildOrUpgrade(
+func runHomesteadBuildOrUpgrade(
     _ definition: HomesteadNodeDefinition,
     homestead: PlayerHomesteadStore,
-    roster: PlayerRosterStore
-) -> Result<Void, String> {
+    roster: PlayerRosterStore,
+    onSuccess: () -> Void,
+    onFailure: (String) -> Void
+) {
     switch homestead.buildOrUpgrade(definition, roster: roster) {
     case .success:
-        return .success(())
+        onSuccess()
     case .insufficientResources:
-        return .failure("Not enough resources to build or upgrade this project.")
+        onFailure("Not enough resources to build or upgrade this project.")
     case .persistFailed:
-        return .failure("Couldn't save homestead progress. Try again.")
+        onFailure("Couldn't save homestead progress. Try again.")
     }
 }
 
@@ -85,124 +87,132 @@ struct HomesteadProjectCard: View {
     var body: some View {
         switch style {
         case let .featured(onBuild):
-            featuredCard(onBuild: onBuild)
-        case let .compact(isRecentlyUpgraded):
-            compactCard(isRecentlyUpgraded: isRecentlyUpgraded)
-        }
-    }
-
-    private func featuredCard(onBuild: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            NavigationLink {
-                HomesteadNodeDetailView(definition: definition)
-            } label: {
-                VStack(alignment: .leading, spacing: 12) {
-                    HomesteadBuildingArtwork(definition: definition)
-                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                        .saturation(status.isUnlocked ? 1 : 0.16)
-                        .opacity(status.isUnlocked ? 1 : 0.62)
-                        .overlay(alignment: .topLeading) {
-                            HomesteadStatusBadge(status: status)
-                                .padding(12)
-                        }
-
-                    VStack(alignment: .leading, spacing: 7) {
-                        Text(featuredTitle)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(definition.title)
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(.primary)
-                                .lineLimit(2)
-
-                            Spacer(minLength: 0)
-
-                            Text("Tier \(status.currentTier)/\(definition.maxTier)")
-                                .font(.subheadline.monospacedDigit().weight(.semibold))
-                                .foregroundStyle(.secondary)
-                        }
-
-                        bonusText(font: .subheadline)
-
-                        HomesteadTierPips(
-                            currentTier: status.currentTier,
-                            maxTier: definition.maxTier,
-                            tint: definition.tint,
-                            isUnlocked: status.isUnlocked
-                        )
-                    }
-                }
-                .contentShape(Rectangle())
+            VStack(alignment: .leading, spacing: 14) {
+                projectNavigationLink(layout: .featured)
+                HomesteadProjectActionFooter(status: status, onBuild: onBuild)
             }
-            // UIStyleCheck: allow - Art-forward project cards should navigate without button chrome.
-            .buttonStyle(.plain)
-
-            HomesteadProjectActionFooter(status: status, onBuild: onBuild)
+            .padding(14)
+            .trinketCardSurface()
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
+        case let .compact(isRecentlyUpgraded):
+            projectNavigationLink(layout: .compact(isRecentlyUpgraded: isRecentlyUpgraded))
         }
-        .padding(14)
-        .trinketCardSurface()
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
     }
 
-    private func compactCard(isRecentlyUpgraded: Bool) -> some View {
+    private enum CardLayout {
+        case featured
+        case compact(isRecentlyUpgraded: Bool)
+    }
+
+    @ViewBuilder
+    private func projectNavigationLink(layout: CardLayout) -> some View {
         NavigationLink {
             HomesteadNodeDetailView(definition: definition)
         } label: {
-            HStack(spacing: 12) {
-                HomesteadBuildingArtwork(definition: definition)
-                    .frame(width: 78, height: 78)
-                    .saturation(status.isUnlocked ? 1 : 0.12)
-                    .opacity(status.isUnlocked ? 1 : 0.58)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(definition.title)
-                            .font(.headline)
-                            .foregroundStyle(status.isUnlocked ? .primary : .secondary)
-                            .lineLimit(2)
-
-                        Spacer(minLength: 0)
-
-                        Text("Tier \(status.currentTier)/\(definition.maxTier)")
-                            .font(.caption.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-
-                    bonusText(font: .caption)
-                        .lineLimit(2)
-
-                    HomesteadTierPips(
-                        currentTier: status.currentTier,
-                        maxTier: definition.maxTier,
-                        tint: definition.tint,
-                        isUnlocked: status.isUnlocked
-                    )
-
-                    HomesteadStatusBadge(status: status)
-                }
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+            switch layout {
+            case .featured:
+                featuredLinkContent
+            case let .compact(isRecentlyUpgraded):
+                compactLinkContent(isRecentlyUpgraded: isRecentlyUpgraded)
             }
-            .trinketSurface(.denseRow)
-            .overlay {
-                if isRecentlyUpgraded {
-                    TrinketDesign.cardShape
-                        .stroke(TrinketDesign.Colors.success.opacity(0.72), lineWidth: 2)
-                }
-            }
-            .contentShape(Rectangle())
         }
-        // UIStyleCheck: allow - Project rows use the whole row as the native navigation affordance.
+        // UIStyleCheck: allow - Art-forward project cards should navigate without button chrome.
         .buttonStyle(.plain)
+    }
+
+    private var featuredLinkContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HomesteadBuildingArtwork(definition: definition)
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .saturation(status.isUnlocked ? 1 : 0.16)
+                .opacity(status.isUnlocked ? 1 : 0.62)
+                .overlay(alignment: .topLeading) {
+                    HomesteadStatusBadge(status: status)
+                        .padding(12)
+                }
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text(featuredTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+
+                projectTitleRow(titleFont: .title2.weight(.bold), tierFont: .subheadline.monospacedDigit().weight(.semibold))
+
+                bonusText(font: .subheadline)
+
+                tierPips
+            }
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func compactLinkContent(isRecentlyUpgraded: Bool) -> some View {
+        HStack(spacing: 12) {
+            HomesteadBuildingArtwork(definition: definition)
+                .frame(width: 78, height: 78)
+                .saturation(status.isUnlocked ? 1 : 0.12)
+                .opacity(status.isUnlocked ? 1 : 0.58)
+
+            VStack(alignment: .leading, spacing: 6) {
+                projectTitleRow(
+                    titleFont: .headline,
+                    tierFont: .caption.monospacedDigit().weight(.semibold),
+                    titleForeground: status.isUnlocked ? .primary : .secondary
+                )
+
+                bonusText(font: .caption)
+                    .lineLimit(2)
+
+                tierPips
+
+                HomesteadStatusBadge(status: status)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .trinketSurface(.denseRow)
+        .overlay {
+            if isRecentlyUpgraded {
+                TrinketDesign.cardShape
+                    .stroke(TrinketDesign.Colors.success.opacity(0.72), lineWidth: 2)
+            }
+        }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
+    }
+
+    private func projectTitleRow(
+        titleFont: Font,
+        tierFont: Font,
+        titleForeground: Color = .primary
+    ) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(definition.title)
+                .font(titleFont)
+                .foregroundStyle(titleForeground)
+                .lineLimit(2)
+
+            Spacer(minLength: 0)
+
+            Text("Tier \(status.currentTier)/\(definition.maxTier)")
+                .font(tierFont)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var tierPips: some View {
+        HomesteadTierPips(
+            currentTier: status.currentTier,
+            maxTier: definition.maxTier,
+            tint: definition.tint,
+            isUnlocked: status.isUnlocked
+        )
     }
 
     @ViewBuilder

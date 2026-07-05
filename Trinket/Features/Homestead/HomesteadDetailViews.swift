@@ -91,14 +91,17 @@ struct HomesteadNodeDetailView: View {
         isBuilding = true
         defer { isBuilding = false }
 
-        switch performHomesteadBuildOrUpgrade(definition, homestead: appState.homestead, roster: appState.roster) {
-        case .success:
-            upgradeEventCount += 1
-            guard !reduceMotion else { return }
-            withAnimation(.snappy) {}
-        case let .failure(message):
-            homesteadBuildError = message
-        }
+        runHomesteadBuildOrUpgrade(
+            definition,
+            homestead: appState.homestead,
+            roster: appState.roster,
+            onSuccess: {
+                upgradeEventCount += 1
+                guard !reduceMotion else { return }
+                withAnimation(.snappy) {}
+            },
+            onFailure: { homesteadBuildError = $0 }
+        )
     }
 }
 

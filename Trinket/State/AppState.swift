@@ -6,13 +6,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-enum ShellRefreshTrigger {
-    case appear
-    case selectedTab(AppTab)
-    case activeBattleStarted
-    case activeBattleEnded
-}
-
 private let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "AppState"
@@ -364,24 +357,30 @@ final class AppState {
         }
     }
 
-    func applyShellRefresh(trigger: ShellRefreshTrigger, scenePhase: ScenePhase) {
-        switch trigger {
-        case .appear:
-            if battle.activeBattle != nil, selectedTab != .play {
-                battle.isPaused = true
-            }
-        case let .selectedTab(newTab):
-            sessionState.selectedTab = newTab
-            if battle.activeBattle != nil {
-                // Leaving Play pauses combat; returning stays paused until the player resumes.
-                battle.isPaused = true
-            }
-        case .activeBattleStarted:
-            battle.isPaused = selectedTab != .play
-        case .activeBattleEnded:
-            battle.isPaused = false
-            musicPlayer.clearEncounterResumePositions()
+    func handleShellAppear(scenePhase: ScenePhase) {
+        if battle.activeBattle != nil, selectedTab != .play {
+            battle.isPaused = true
         }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func handleSelectedTabChange(_ newTab: AppTab, scenePhase: ScenePhase) {
+        sessionState.selectedTab = newTab
+        if battle.activeBattle != nil {
+            // Leaving Play pauses combat; returning stays paused until the player resumes.
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func handleActiveBattleStarted(scenePhase: ScenePhase) {
+        battle.isPaused = selectedTab != .play
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func handleActiveBattleEnded(scenePhase: ScenePhase) {
+        battle.isPaused = false
+        musicPlayer.clearEncounterResumePositions()
         refreshMusic(scenePhase: scenePhase)
     }
 
@@ -404,12 +403,15 @@ final class AppState {
         }
     }
 
-    private func refreshMusic(scenePhase: ScenePhase) {
-        musicPlayer.refresh(
-            selectedTab: selectedTab,
-            preview: battle.preview,
-            activeBattle: battle.activeBattle,
-            sceneIsActive: scenePhase == .active,
+    func refreshMusic(scenePhase: ScenePhase) {
+        musicPlayer.update(
+            route: MusicPlayer.route(
+                selectedTab: selectedTab,
+                preview: battle.preview,
+                activeBattle: battle.activeBattle,
+                sceneIsActive: scenePhase == .active,
+                musicVolume: options.musicVolume
+            ),
             volume: options.musicVolume
         )
     }

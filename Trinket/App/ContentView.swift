@@ -44,36 +44,26 @@ struct ContentView: View {
         }
         .preferredColorScheme(appState.options.appearance.colorScheme)
         .onAppear {
-            appState.applyShellRefresh(trigger: .appear, scenePhase: scenePhase)
+            appState.handleShellAppear(scenePhase: scenePhase)
         }
         .onChange(of: appState.selectedTab) { _, newTab in
-            appState.applyShellRefresh(trigger: .selectedTab(newTab), scenePhase: scenePhase)
+            appState.handleSelectedTabChange(newTab, scenePhase: scenePhase)
         }
         .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
             if newValue == nil {
-                appState.applyShellRefresh(trigger: .activeBattleEnded, scenePhase: scenePhase)
+                appState.handleActiveBattleEnded(scenePhase: scenePhase)
             } else {
-                appState.applyShellRefresh(trigger: .activeBattleStarted, scenePhase: scenePhase)
+                appState.handleActiveBattleStarted(scenePhase: scenePhase)
             }
         }
         .onChange(of: appState.battle.preview?.id) { _, _ in
-            refreshMusicRoute()
+            appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: appState.options.musicVolume) { _, _ in
-            refreshMusicRoute()
+            appState.refreshMusic(scenePhase: scenePhase)
         }
         .onChange(of: scenePhase) { _, newPhase in
             appState.handleScenePhaseChange(newPhase)
         }
-    }
-
-    private func refreshMusicRoute() {
-        appState.musicPlayer.refresh(
-            selectedTab: appState.selectedTab,
-            preview: appState.battle.preview,
-            activeBattle: appState.battle.activeBattle,
-            sceneIsActive: scenePhase == .active,
-            volume: appState.options.musicVolume
-        )
     }
 }

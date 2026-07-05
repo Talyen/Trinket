@@ -76,17 +76,20 @@ struct HomesteadView: View {
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        switch performHomesteadBuildOrUpgrade(definition, homestead: appState.homestead, roster: appState.roster) {
-        case .success:
-            recentUpgradeID = definition.id
-            upgradeEventCount += 1
-            guard !reduceMotion else { return }
-            withAnimation(.snappy) {
+        runHomesteadBuildOrUpgrade(
+            definition,
+            homestead: appState.homestead,
+            roster: appState.roster,
+            onSuccess: {
                 recentUpgradeID = definition.id
-            }
-        case let .failure(message):
-            homesteadBuildError = message
-        }
+                upgradeEventCount += 1
+                guard !reduceMotion else { return }
+                withAnimation(.snappy) {
+                    recentUpgradeID = definition.id
+                }
+            },
+            onFailure: { homesteadBuildError = $0 }
+        )
     }
 
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {

@@ -75,8 +75,9 @@ final class BattleSession {
         }
 
         preview = nil
-        activeBattle = makeActiveBattle(
+        activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: encounter.combatant,
@@ -100,8 +101,9 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = makeActiveBattle(
+        self.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
@@ -169,31 +171,6 @@ final class BattleSession {
                 feedbackDisplayedAt[$0.id] = displayedAt
             }
         return step
-    }
-
-    private func makeActiveBattle(
-        stageID: String?,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
-        stageReward: StageReward?,
-        rewardItemNames: [String]
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            stageID: stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            roster: roster,
-            inventory: inventory,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames
-        )
     }
 
     private func resetRun(from configuration: ActiveBattleConfiguration) {
