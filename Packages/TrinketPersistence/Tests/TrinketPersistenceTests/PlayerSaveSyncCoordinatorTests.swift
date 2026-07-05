@@ -143,6 +143,21 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(fixture.store.roster.gold, 25)
     }
 
+    func testReconcileUsesLiveLocalMutationsDuringFetch() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
+        )
+        await fixture.mock.setFetchWillBegin { @MainActor in
+            fixture.store.setGoldForTests(100)
+        }
+
+        await fixture.coordinator.pullAndReconcile()
+
+        XCTAssertEqual(fixture.store.roster.gold, 100)
+    }
+
     func testPullAndReconcileIgnoredDuringActiveSession() async throws {
         let fixture = try await SyncCoordinatorTestFixture.make(
             directoryURL: directoryURL,

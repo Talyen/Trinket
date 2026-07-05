@@ -313,4 +313,26 @@ final class StageRewardTests: XCTestCase {
         let rewardItem = try XCTUnwrap(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(rewardItem.affixes, template.affixes)
     }
+
+    func testClaimRewardsUsesPrecomputedMaterialRewards() throws {
+        var context = makeContext(
+            homestead: PlayerHomesteadState(
+                resources: [:],
+                nodeTiers: [.wheatField: 2, .chickenCoop: 2]
+            )
+        )
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let snapshot = [ResourceAmount(.food, 4)]
+
+        StageCompletion.claimRewardsIfNeeded(
+            for: firstStage,
+            hero: hero,
+            pet: pet,
+            materialRewards: snapshot,
+            context: &context
+        )
+
+        XCTAssertEqual(context.homestead.resources[.food], 4)
+    }
 }

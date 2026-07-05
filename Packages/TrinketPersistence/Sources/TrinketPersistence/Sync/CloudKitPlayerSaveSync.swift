@@ -61,10 +61,7 @@ public struct CloudKitPlayerSaveSync: PlayerSaveSyncing {
         let record: CKRecord
         do {
             let existing = try await database.record(for: recordID)
-            if let expectedTag = replacingRecordChangeTag,
-               let actualTag = existing.recordChangeTag,
-               actualTag != expectedTag
-            {
+            if replacingRecordChangeTag == nil || existing.recordChangeTag != replacingRecordChangeTag {
                 throw PlayerSaveSyncError.recordConflict(try remoteSave(from: existing))
             }
             record = existing

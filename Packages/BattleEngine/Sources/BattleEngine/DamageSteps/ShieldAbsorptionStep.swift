@@ -36,7 +36,8 @@ package struct ShieldAbsorptionStep: DamageStep {
                     effects[index] = ActiveEffect(
                         id: ae.id,
                         effect: newEffect,
-                        remainingTicks: ae.remainingTicks
+                        remainingTicks: ae.remainingTicks,
+                        sourceActorID: ae.sourceActorID
                     )
                     if newBuffer <= 0 {
                         shieldIndexes.append(index)

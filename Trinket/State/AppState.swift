@@ -3,6 +3,7 @@ import Observation
 import os
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
 
 enum ShellRefreshTrigger {
@@ -114,7 +115,8 @@ final class AppState {
         _ stage: Stage,
         hero: Combatant,
         pet: Combatant,
-        battleEarnedGold: Int = 0
+        battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil
     ) -> String {
         var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
         do {
@@ -125,6 +127,7 @@ final class AppState {
                     hero: hero,
                     pet: pet,
                     battleEarnedGold: battleEarnedGold,
+                    materialRewards: materialRewards,
                     in: GameContent.chapters,
                     context: &context
                 )
@@ -143,7 +146,11 @@ final class AppState {
         return scrollTarget
     }
 
-    func completeActiveBattle(_ configuration: ActiveBattleConfiguration, battleEarnedGold: Int) {
+    func completeActiveBattle(
+        _ configuration: ActiveBattleConfiguration,
+        battleEarnedGold: Int,
+        materialRewards: [ResourceAmount]? = nil
+    ) {
         guard battle.activeBattle != nil else { return }
 
         if let stageID = configuration.stageID,
@@ -152,14 +159,26 @@ final class AppState {
                 stage,
                 hero: configuration.hero,
                 pet: configuration.pet,
-                battleEarnedGold: battleEarnedGold
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
             )
         } else if battleEarnedGold > 0 {
-            var updatedRoster = roster.current
-            updatedRoster.grantGold(battleEarnedGold)
-            roster.current = updatedRoster
+            grantBattleEarnedGold(battleEarnedGold)
         }
         battle.endBattle()
+    }
+
+    func grantBattleEarnedGold(_ amount: Int) {
+        guard amount > 0 else { return }
+        do {
+            try playerSave.performBatchMutation { save in
+                save.roster.gold += amount
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
     @discardableResult

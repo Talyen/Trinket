@@ -38,7 +38,11 @@ struct BattleView: View {
                     primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
                     onPrimaryAction: {
                         if hasStageProgression {
-                            appState.completeActiveBattle(configuration, battleEarnedGold: victorySummary.battleGold)
+                            appState.completeActiveBattle(
+                                configuration,
+                                battleEarnedGold: victorySummary.battleGold,
+                                materialRewards: victorySummary.materialRewards
+                            )
                         } else {
                             appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
                         }
@@ -249,7 +253,8 @@ struct BattleView: View {
         switch battleSession.outcome {
         case .victory:
             if stageRewardsAlreadyClaimed {
-                appState.completeActiveBattle(configuration, battleEarnedGold: battleSession.state?.earnedGold ?? 0)
+                appState.grantBattleEarnedGold(battleSession.state?.earnedGold ?? 0)
+                appState.completeActiveBattle(configuration, battleEarnedGold: 0)
             } else if let battleState = battleSession.state {
                 victorySummary = BattleVictorySummary.make(
                     configuration: configuration,

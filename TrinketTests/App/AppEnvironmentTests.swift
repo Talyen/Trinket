@@ -78,6 +78,11 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertEqual(parse(arguments: ["-appearance", "dark"]).appearanceOverride, .dark)
     }
 
+    func testThemeAliasParsesKnownModes() {
+        XCTAssertEqual(parse(arguments: ["-theme", "dark"]).appearanceOverride, .dark)
+        XCTAssertEqual(parse(arguments: ["-theme", "light"]).appearanceOverride, .light)
+    }
+
     func testInvalidAppearanceOverrideReturnsNil() {
         XCTAssertNil(parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride)
     }

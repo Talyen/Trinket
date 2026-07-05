@@ -51,6 +51,7 @@ public final class PlayerSaveSyncCoordinator {
 
     public func reconcileForegroundIfSafe() async {
         guard sessionPhase == .active, !hasActiveBattle() else { return }
+        playerSaveStore?.flushPendingPersistIfNeeded()
         _ = await reconcileOnce()
     }
 
@@ -128,8 +129,8 @@ public final class PlayerSaveSyncCoordinator {
             guard await guardAccountAvailable() else { return false }
 
             do {
-                let local = playerSaveStore.currentSave
                 let remote = try await sync.fetchRemoteSave()
+                let local = playerSaveStore.currentSave
                 if let remote {
                     lastKnownRemoteChangeTag = remote.recordChangeTag
                 }
@@ -165,7 +166,8 @@ public final class PlayerSaveSyncCoordinator {
         case let .applyRemote(remoteSave):
             return applyRemoteSaveIfSafe(remoteSave)
         case .uploadLocal:
-            await scheduleUpload(local)
+            guard let playerSaveStore else { return false }
+            await scheduleUpload(playerSaveStore.currentSave)
             return false
         case let .applyMerged(mergedSave):
             guard applyRemoteSaveIfSafe(mergedSave) else { return false }
@@ -211,6 +213,9 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     private func scheduleUpload(_ save: PlayerSave) async {
+        if let pending = pendingUploadSave, pending.modifiedAt > save.modifiedAt {
+            return
+        }
         pendingUploadSave = save
         await processUploadQueue()
     }

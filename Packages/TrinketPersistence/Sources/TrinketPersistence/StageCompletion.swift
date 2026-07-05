@@ -34,6 +34,7 @@ public enum StageCompletion {
         hero: Combatant,
         pet: Combatant,
         battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil,
         in chapters: [Chapter],
         context: inout StageCompletionContext,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
@@ -43,6 +44,7 @@ public enum StageCompletion {
             hero: hero,
             pet: pet,
             battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards,
             enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
             context: &context,
             resolveTemplate: resolveTemplate
@@ -57,6 +59,7 @@ public enum StageCompletion {
         hero: Combatant,
         pet: Combatant,
         battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil,
         enemyEncounterLevel: Int? = nil,
         context: inout StageCompletionContext,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
@@ -73,7 +76,9 @@ public enum StageCompletion {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &context.roster)
             grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &context.roster)
         }
-        context.homestead.grant(context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards))
+        let resolvedMaterialRewards = materialRewards
+            ?? context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards)
+        context.homestead.grant(resolvedMaterialRewards)
 
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = resolveTemplate(templateID) else { continue }

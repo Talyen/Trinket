@@ -31,32 +31,28 @@ public enum EffectTickEngine {
         context: inout BattleEngineContext
     ) -> (events: [ActionEvent], updated: [ActiveEffect]) {
         var events: [ActionEvent] = []
-        var remaining = effects
+        var tickOutcomes: [Int: (updatedStack: ActiveEffect?, removeAfter: Bool)] = [:]
 
         guard context.roster.health(for: target) > 0 else {
-            return (events, remaining)
+            return (events, effects)
         }
 
-        var toRemove: [Int] = []
-        for index in remaining.indices {
+        for activeEffect in effects {
             guard context.roster.health(for: target) > 0 else { break }
-            guard let handler = EffectHandlers.all[remaining[index].effect.kind] else { continue }
-            let outcome = handler.tick(remaining[index], on: target, in: &context)
+            guard let handler = EffectHandlers.all[activeEffect.effect.kind] else { continue }
+            let outcome = handler.tick(activeEffect, on: target, in: &context)
             events.append(contentsOf: outcome.events)
-            if let updated = outcome.updatedStack {
-                remaining[index] = updated
-            }
-            if outcome.removeAfter {
-                toRemove.append(index)
-            }
-        }
-        if !toRemove.isEmpty {
-            let removeSet = Set(toRemove)
-            remaining = remaining.enumerated().compactMap { index, ae in
-                removeSet.contains(index) ? nil : ae
-            }
+            tickOutcomes[activeEffect.id] = (outcome.updatedStack, outcome.removeAfter)
         }
 
-        return (events, remaining)
+        var merged = context.activeEffects(for: target)
+        merged = merged.compactMap { activeEffect in
+            guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
+            if outcome.removeAfter { return nil }
+            if let updated = outcome.updatedStack { return updated }
+            return activeEffect
+        }
+
+        return (events, merged)
     }
 }

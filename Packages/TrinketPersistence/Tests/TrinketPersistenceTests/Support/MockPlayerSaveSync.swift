@@ -16,6 +16,11 @@ actor MockPlayerSaveSync: PlayerSaveSyncing {
     private var subscribeInvocations = 0
     private var uploadWaiters: [CheckedContinuation<Void, Never>] = []
     private var storedChangeTag: String?
+    private var fetchWillBegin: (@Sendable () async -> Void)?
+
+    func setFetchWillBegin(_ handler: (@Sendable () async -> Void)?) {
+        fetchWillBegin = handler
+    }
 
     func setAccountStatus(_ status: PlayerSaveAccountStatus) {
         accountStatusResult = status
@@ -68,6 +73,9 @@ actor MockPlayerSaveSync: PlayerSaveSyncing {
 
     func fetchRemoteSave() async throws -> RemotePlayerSave? {
         await Task.yield()
+        if let fetchWillBegin {
+            await fetchWillBegin()
+        }
         fetchCount += 1
         if let fetchError {
             throw fetchError

@@ -105,11 +105,15 @@ struct ChapterStageSelectView: View {
     }
 
     private func scrollToInitialTarget(with proxy: ScrollViewProxy) {
-        guard let target = presentation.scrollTargetID else { return }
+        let target = appState.journey.mapScrollRequest?.targetID ?? presentation.scrollTargetID
+        guard let target else { return }
 
         DispatchQueue.main.async {
             withAnimation(scrollAnimation) {
                 proxy.scrollTo(target, anchor: .center)
+            }
+            if let request = appState.journey.mapScrollRequest, request.targetID == target {
+                appState.journey.clearMapScrollRequest(request)
             }
         }
     }

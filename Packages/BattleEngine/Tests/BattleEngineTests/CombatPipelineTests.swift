@@ -92,6 +92,25 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertLessThan(lost, 10)
     }
 
+    func testApplyDamageShieldAbsorptionPreservesSourceActorID() {
+        let shield = ActiveEffect(
+            id: 1,
+            effect: .shield(.block, 10, 3),
+            remainingTicks: 3,
+            sourceActorID: "caster"
+        )
+        var context = makeContext(targetEffects: [shield])
+        _ = context.applyTestDamage(4, to: context.roster.enemy.combatant)
+
+        let updatedShield = context.roster.enemy.activeEffects.first { $0.id == 1 }
+        XCTAssertEqual(updatedShield?.sourceActorID, "caster")
+        if case let .shield(_, buffer, _) = updatedShield?.effect {
+            XCTAssertEqual(buffer, 6)
+        } else {
+            XCTFail("Expected partial shield to remain")
+        }
+    }
+
     func testApplyDamageShieldRemovedWhenDepleted() {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 3), remainingTicks: 3)
         var context = makeContext(targetEffects: [shield])
