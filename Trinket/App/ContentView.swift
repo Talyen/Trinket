@@ -86,9 +86,7 @@ struct ContentView: View {
                 }
             } else if newPhase == .active {
                 Task {
-                    await appState.syncCoordinator.reconcileForegroundIfSafe(
-                        hasActiveBattle: appState.battle.activeBattle != nil
-                    )
+                    await appState.syncCoordinator.reconcileForegroundIfSafe()
                 }
             }
         }

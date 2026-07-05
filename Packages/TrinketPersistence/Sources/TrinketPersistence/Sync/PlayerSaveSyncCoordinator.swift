@@ -78,13 +78,9 @@ public final class PlayerSaveSyncCoordinator {
         sessionPhase = .active
     }
 
-    public func reconcileForegroundIfSafe(hasActiveBattle: Bool) async {
-        guard sessionPhase == .active, !hasActiveBattle else { return }
+    public func reconcileForegroundIfSafe() async {
+        guard sessionPhase == .active, !hasActiveBattle() else { return }
         _ = await reconcileOnce()
-    }
-
-    public func syncNow() async {
-        await checkpointUploadIfNeeded()
     }
 
     /// Fetches and reconciles remote changes after a CloudKit push notification.
@@ -131,14 +127,13 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     public func uploadImmediately(_ save: PlayerSave) async {
-        pendingUploadSave = save
-        await processUploadQueue()
+        await scheduleUpload(save)
     }
 
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
         playerSaveStore.flushPendingPersistIfNeeded()
-        await enqueueUpload(playerSaveStore.currentSave)
+        await scheduleUpload(playerSaveStore.currentSave)
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
@@ -165,14 +160,7 @@ public final class PlayerSaveSyncCoordinator {
         guard let playerSaveStore else { return false }
 
         status = .syncing
-
-        switch await sync.accountStatus() {
-        case .available:
-            break
-        case let .unavailable(message):
-            status = .iCloudUnavailable(message)
-            return false
-        }
+        guard await guardAccountAvailable() else { return false }
 
         do {
             let local = playerSaveStore.currentSave
@@ -182,44 +170,13 @@ public final class PlayerSaveSyncCoordinator {
             }
 
             if !playerSaveStore.loadedFromDisk, let remote {
-                if hasActiveBattle() {
-                    deferredRemoteReconcile = true
-                    status = .upToDate
-                    return false
-                }
-                applyRemoteSave(remote.save)
-                status = .upToDate
-                return true
+                return applyRemoteSaveIfSafe(remote.save)
             }
 
-            let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
-
-            switch outcome {
-            case .keepLocal:
-                status = .upToDate
-                return false
-            case let .applyRemote(remoteSave):
-                if hasActiveBattle() {
-                    deferredRemoteReconcile = true
-                    status = .upToDate
-                    return false
-                }
-                applyRemoteSave(remoteSave)
-                status = .upToDate
-                return true
-            case .uploadLocal:
-                await enqueueUpload(local)
-                return false
-            case let .applyMerged(mergedSave):
-                if hasActiveBattle() {
-                    deferredRemoteReconcile = true
-                    status = .upToDate
-                    return false
-                }
-                applyRemoteSave(mergedSave)
-                await enqueueUpload(mergedSave)
-                return true
-            }
+            return await applyReconcileOutcome(
+                PlayerSaveSessionAuthority.reconcile(local: local, remote: remote),
+                local: local
+            )
         } catch {
             logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
             status = .error("Playing offline on this device.")
@@ -227,14 +184,57 @@ public final class PlayerSaveSyncCoordinator {
         }
     }
 
-    private func registerSubscriptionIfNeeded() async {
+    @discardableResult
+    private func applyReconcileOutcome(
+        _ outcome: PlayerSaveReconcileOutcome,
+        local: PlayerSave
+    ) async -> Bool {
+        switch outcome {
+        case .keepLocal:
+            status = .upToDate
+            return false
+        case let .applyRemote(remoteSave):
+            return applyRemoteSaveIfSafe(remoteSave)
+        case .uploadLocal:
+            await scheduleUpload(local)
+            return false
+        case let .applyMerged(mergedSave):
+            guard applyRemoteSaveIfSafe(mergedSave) else { return false }
+            await scheduleUpload(mergedSave)
+            return true
+        }
+    }
+
+    @discardableResult
+    private func applyRemoteSaveIfSafe(_ remoteSave: PlayerSave) -> Bool {
+        if deferRemoteApplyIfBattleActive() {
+            return false
+        }
+        applyRemoteSave(remoteSave)
+        status = .upToDate
+        return true
+    }
+
+    @discardableResult
+    private func deferRemoteApplyIfBattleActive() -> Bool {
+        guard hasActiveBattle() else { return false }
+        deferredRemoteReconcile = true
+        status = .upToDate
+        return true
+    }
+
+    private func guardAccountAvailable() async -> Bool {
         switch await sync.accountStatus() {
         case .available:
-            break
+            return true
         case let .unavailable(message):
             status = .iCloudUnavailable(message)
-            return
+            return false
         }
+    }
+
+    private func registerSubscriptionIfNeeded() async {
+        guard await guardAccountAvailable() else { return }
 
         do {
             try await sync.subscribeToChanges()
@@ -243,7 +243,7 @@ public final class PlayerSaveSyncCoordinator {
         }
     }
 
-    private func enqueueUpload(_ save: PlayerSave) async {
+    private func scheduleUpload(_ save: PlayerSave) async {
         pendingUploadSave = save
         await processUploadQueue()
     }
@@ -257,22 +257,11 @@ public final class PlayerSaveSyncCoordinator {
             pendingUploadSave = nil
             await performUpload(save)
         }
-
-        if pendingUploadSave != nil {
-            await processUploadQueue()
-        }
     }
 
     private func performUpload(_ save: PlayerSave) async {
         status = .syncing
-
-        switch await sync.accountStatus() {
-        case .available:
-            break
-        case let .unavailable(message):
-            status = .iCloudUnavailable(message)
-            return
-        }
+        guard await guardAccountAvailable() else { return }
 
         do {
             let newTag = try await sync.upload(save, replacingRecordChangeTag: lastKnownRemoteChangeTag)
@@ -296,9 +285,7 @@ public final class PlayerSaveSyncCoordinator {
 
         let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: liveLocal, remote: remote.save)
 
-        if hasActiveBattle() {
-            deferredRemoteReconcile = true
-            status = .upToDate
+        if deferRemoteApplyIfBattleActive() {
             return
         }
 

@@ -136,7 +136,7 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
 
         await fixture.coordinator.pullAndReconcile()
         let uploadsAfterFirst = await fixture.mock.uploadedSaveCount()
-        await fixture.coordinator.reconcileForegroundIfSafe(hasActiveBattle: false)
+        await fixture.coordinator.reconcileForegroundIfSafe()
 
         let uploadCount = await fixture.mock.uploadedSaveCount()
         XCTAssertEqual(uploadsAfterFirst, 0)
@@ -367,6 +367,45 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         await fixture.mock.waitUntilUploadCount(atLeast: 1)
 
         XCTAssertEqual(fixture.store.roster.gold, 50)
+    }
+
+    func testDeferredReconcileAppliesAfterBattleEnds() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
+        )
+        fixture.coordinator.hasActiveBattle = { true }
+
+        await fixture.coordinator.pullAndReconcile()
+
+        XCTAssertEqual(fixture.store.roster.gold, 10)
+        XCTAssertEqual(fixture.coordinator.status, .upToDate)
+
+        fixture.coordinator.hasActiveBattle = { false }
+        await fixture.coordinator.onBattleEnded()
+
+        XCTAssertEqual(fixture.store.roster.gold, 99)
+    }
+
+    func testForegroundReconcileSkippedDuringActiveBattle() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 10),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 99)
+        )
+        await fixture.coordinator.start()
+        XCTAssertEqual(fixture.store.roster.gold, 99)
+
+        fixture.store.setGoldForTests(25)
+        await fixture.mock.setRemoteSave(
+            SaveTestSupport.makeRemote(modifiedAt: later, gold: 77)
+        )
+        fixture.coordinator.hasActiveBattle = { true }
+
+        await fixture.coordinator.reconcileForegroundIfSafe()
+
+        XCTAssertEqual(fixture.store.roster.gold, 25)
     }
 
     // MARK: - Fixtures
