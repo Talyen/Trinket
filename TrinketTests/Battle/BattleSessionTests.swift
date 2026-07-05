@@ -293,13 +293,13 @@ final class BattleSessionTests: XCTestCase {
             enemy: enemy
         )
 
-        var completion: BattleAutoTickAction?
+        var earnedGold: Int?
         while session.outcome == nil {
-            completion = session.advanceAutoTick(journey: journey, homestead: .freshStart)
-            if completion != nil { break }
+            earnedGold = session.advanceAutoTick(journey: journey, homestead: .freshStart)
+            if earnedGold != nil { break }
         }
 
-        XCTAssertEqual(completion, .completeWithEarnedGold(session.state?.earnedGold ?? 0))
+        XCTAssertEqual(earnedGold, session.state?.earnedGold ?? 0)
         XCTAssertFalse(session.isShowingVictory)
         XCTAssertNil(session.victorySummary)
     }

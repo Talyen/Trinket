@@ -184,12 +184,12 @@ final class AppState {
         configuration: ActiveBattleConfiguration,
         at date: Date
     ) {
-        if case let .completeWithEarnedGold(gold) = battle.handlePeriodicTick(
+        if let earnedGold = battle.advanceAutoTick(
             at: date,
             journey: journey.current,
             homestead: homestead.current
         ) {
-            grantBattleEarnedGold(gold)
+            grantBattleEarnedGold(earnedGold)
             completeActiveBattle(configuration, battleEarnedGold: 0)
         }
     }

@@ -5,10 +5,6 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-enum BattleAutoTickAction: Equatable {
-    case completeWithEarnedGold(Int)
-}
-
 @MainActor
 @Observable
 final class BattleSession {
@@ -31,8 +27,8 @@ final class BattleSession {
     private(set) var state: BattleState?
     var activeFeedbackEvents: [ActionEvent] = []
     private var feedbackDisplayedAt: [Int: Date] = [:]
-    private var overlayPauseDepth = 0
-    private var pauseStateBeforeFirstOverlay: Bool?
+    private var isOverlayPaused = false
+    private var pauseStateBeforeOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
 
@@ -50,8 +46,8 @@ final class BattleSession {
         clearOutcomePresentation()
         preview = nil
         overlayCombatantDetail = nil
-        overlayPauseDepth = 0
-        pauseStateBeforeFirstOverlay = nil
+        isOverlayPaused = false
+        pauseStateBeforeOverlay = nil
         onBattleStateChange?(nil)
         onBattleEnded?()
     }
@@ -67,21 +63,15 @@ final class BattleSession {
         return !isShowingVictory && !isShowingDefeat
     }
 
-    @discardableResult
-    func handlePeriodicTick(
-        at date: Date,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
-    ) -> BattleAutoTickAction? {
-        pruneExpiredFeedback(at: date)
-        return advanceAutoTick(journey: journey, homestead: homestead)
-    }
-
+    /// Advances one battle tick when unpaused. Returns earned gold when an already-claimed stage
+    /// victory should auto-complete without showing the victory screen.
     @discardableResult
     func advanceAutoTick(
+        at date: Date = .now,
         journey: JourneyProgressState,
         homestead: PlayerHomesteadState
-    ) -> BattleAutoTickAction? {
+    ) -> Int? {
+        pruneExpiredFeedback(at: date)
         guard canAutoAdvanceTick(),
               let configuration = activeBattle else { return nil }
 
@@ -90,7 +80,7 @@ final class BattleSession {
         switch outcome {
         case .victory:
             if Self.stageRewardsAlreadyClaimed(stageID: configuration.stageID, journey: journey) {
-                return .completeWithEarnedGold(state?.earnedGold ?? 0)
+                return state?.earnedGold ?? 0
             }
             guard let battleState = state else { return nil }
             victorySummary = BattleVictorySummary.make(
@@ -135,16 +125,17 @@ final class BattleSession {
         }
 
         preview = nil
-        activeBattle = makeActiveConfiguration(
+        activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
             roster: roster,
             inventory: inventory,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards,
-            rewardItemNames: rewardItemNames(for: stage.rewards)
+            rewardItemNames: Self.rewardItemNames(for: stage.rewards)
         )
         onBattleStateChange?(stage.id)
         return nil
@@ -158,12 +149,17 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = makeActiveConfiguration(
-            from: activeBattle,
+        self.activeBattle = ActiveBattleConfiguration.make(
+            stageID: activeBattle.stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             roster: roster,
-            inventory: inventory
+            inventory: inventory,
+            enemy: activeBattle.enemy,
+            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+            stageReward: activeBattle.stageReward,
+            rewardItemNames: activeBattle.rewardItemNames
         )
     }
 
@@ -177,25 +173,24 @@ final class BattleSession {
     }
 
     func pauseForOverlay() {
-        if overlayPauseDepth == 0 {
-            pauseStateBeforeFirstOverlay = isPaused
+        guard !isOverlayPaused else {
+            isPaused = true
+            return
         }
-        overlayPauseDepth += 1
+        pauseStateBeforeOverlay = isPaused
+        isOverlayPaused = true
         isPaused = true
     }
 
     func restorePauseAfterOverlay() {
-        guard overlayPauseDepth > 0 else { return }
-        overlayPauseDepth -= 1
+        guard isOverlayPaused else { return }
+        isOverlayPaused = false
         guard activeBattle != nil else {
-            overlayPauseDepth = 0
-            pauseStateBeforeFirstOverlay = nil
+            pauseStateBeforeOverlay = nil
             return
         }
-        if overlayPauseDepth == 0 {
-            isPaused = pauseStateBeforeFirstOverlay ?? false
-            pauseStateBeforeFirstOverlay = nil
-        }
+        isPaused = pauseStateBeforeOverlay ?? false
+        pauseStateBeforeOverlay = nil
     }
 
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
@@ -232,54 +227,6 @@ final class BattleSession {
                 feedbackDisplayedAt[$0.id] = displayedAt
             }
         return step
-    }
-
-    private func makeActiveConfiguration(
-        stageID: String?,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
-        stageReward: StageReward?,
-        rewardItemNames: [String],
-        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max)
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            stageID: stageID,
-            rngSeed: rngSeed,
-            hero: hero,
-            pet: pet,
-            roster: roster,
-            inventory: inventory,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames
-        )
-    }
-
-    private func makeActiveConfiguration(
-        from template: ActiveBattleConfiguration,
-        hero: Combatant,
-        pet: Combatant,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
-        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max)
-    ) -> ActiveBattleConfiguration {
-        makeActiveConfiguration(
-            stageID: template.stageID,
-            hero: hero,
-            pet: pet,
-            enemy: template.enemy,
-            enemyEncounterLevel: template.enemyEncounterLevel,
-            roster: roster,
-            inventory: inventory,
-            stageReward: template.stageReward,
-            rewardItemNames: template.rewardItemNames,
-            rngSeed: rngSeed
-        )
     }
 
     private static func rewardItemNames(for stageReward: StageReward) -> [String] {
