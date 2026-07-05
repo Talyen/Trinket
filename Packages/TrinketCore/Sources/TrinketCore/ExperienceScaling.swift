@@ -49,6 +49,18 @@ public enum ExperienceScaling {
         )
     }
 
+    /// Battle XP after level-delta scaling and catch-up multiplier; zero awards stay zero.
+    public static func battleAwardWithCatchUp(
+        playerLevel: Int,
+        enemyLevel: Int,
+        highestLevel: Int
+    ) -> Int {
+        let award = battleAward(playerLevel: playerLevel, enemyLevel: enemyLevel)
+        guard award > 0 else { return 0 }
+        let catchUp = catchUpMultiplier(for: playerLevel, highestLevel: highestLevel)
+        return max(1, Int((Double(award) * catchUp).rounded()))
+    }
+
     public static func adjustedAward(
         baseExperience: Int,
         playerLevel: Int,

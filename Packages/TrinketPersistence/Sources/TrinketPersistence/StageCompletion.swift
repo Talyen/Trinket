@@ -29,72 +29,6 @@ public struct StageCompletionContext: Sendable {
 }
 
 public enum StageCompletion {
-    public static func claimRewardsIfNeeded(
-        for stage: Stage,
-        hero: Combatant,
-        pet: Combatant,
-        battleEarnedGold: Int = 0,
-        enemyEncounterLevel: Int? = nil,
-        roster: inout PlayerRosterState,
-        inventory: inout PlayerInventoryState,
-        homestead: inout PlayerHomesteadState,
-        journey: inout JourneyProgressState,
-        resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
-    ) {
-        var ctx = StageCompletionContext(
-            roster: roster,
-            inventory: inventory,
-            homestead: homestead,
-            journey: journey
-        )
-        claimRewardsIfNeeded(
-            for: stage,
-            hero: hero,
-            pet: pet,
-            battleEarnedGold: battleEarnedGold,
-            enemyEncounterLevel: enemyEncounterLevel,
-            context: &ctx,
-            resolveTemplate: resolveTemplate
-        )
-        roster = ctx.roster
-        inventory = ctx.inventory
-        homestead = ctx.homestead
-        journey = ctx.journey
-    }
-
-    public static func complete(
-        _ stage: Stage,
-        hero: Combatant,
-        pet: Combatant,
-        battleEarnedGold: Int = 0,
-        in chapters: [Chapter],
-        roster: inout PlayerRosterState,
-        inventory: inout PlayerInventoryState,
-        homestead: inout PlayerHomesteadState,
-        journey: inout JourneyProgressState,
-        resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
-    ) {
-        var ctx = StageCompletionContext(
-            roster: roster,
-            inventory: inventory,
-            homestead: homestead,
-            journey: journey
-        )
-        complete(
-            stage,
-            hero: hero,
-            pet: pet,
-            battleEarnedGold: battleEarnedGold,
-            in: chapters,
-            context: &ctx,
-            resolveTemplate: resolveTemplate
-        )
-        roster = ctx.roster
-        inventory = ctx.inventory
-        homestead = ctx.homestead
-        journey = ctx.journey
-    }
-
     public static func complete(
         _ stage: Stage,
         hero: Combatant,
@@ -165,15 +99,11 @@ public enum StageCompletion {
         let highestLevel = combatant.role == .hero
             ? roster.highestHeroLevel
             : roster.highestPetLevel
-        let multiplier = ExperienceScaling.catchUpMultiplier(
-            for: playerLevel,
+        let award = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: playerLevel,
+            enemyLevel: enemyLevel,
             highestLevel: highestLevel
         )
-        let award = ExperienceScaling.battleAward(
-            playerLevel: playerLevel,
-            enemyLevel: enemyLevel
-        )
-        let adjustedAward = award > 0 ? max(1, Int((Double(award) * multiplier).rounded())) : 0
-        roster.grantExperience(adjustedAward, to: combatant)
+        roster.grantExperience(award, to: combatant)
     }
 }

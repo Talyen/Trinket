@@ -100,4 +100,22 @@ final class ExperienceScalingTests: XCTestCase {
         XCTAssertLessThan(gap50, 3.0)
         XCTAssertGreaterThan(gap50, 2.9)
     }
+
+    func testBattleAwardWithCatchUpReturnsZeroWhenBaseAwardIsZero() {
+        XCTAssertEqual(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25),
+            0
+        )
+    }
+
+    func testBattleAwardWithCatchUpAppliesCatchUpMultiplier() {
+        let baseAward = ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5)
+        let catchUp = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
+        let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
+
+        XCTAssertEqual(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10),
+            expected
+        )
+    }
 }

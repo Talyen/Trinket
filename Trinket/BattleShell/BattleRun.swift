@@ -36,24 +36,16 @@ final class BattleRun {
 
     func makeVictorySummary(homestead: PlayerHomesteadState) -> BattleVictorySummary {
         let enemyLevel = configuration.enemyEncounterLevel ?? configuration.heroProgression.level
-        let heroCatchUp = ExperienceScaling.catchUpMultiplier(
-            for: configuration.heroProgression.level,
+        let heroXP = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: configuration.heroProgression.level,
+            enemyLevel: enemyLevel,
             highestLevel: configuration.highestHeroLevel
         )
-        let petCatchUp = ExperienceScaling.catchUpMultiplier(
-            for: configuration.petProgression.level,
+        let petXP = ExperienceScaling.battleAwardWithCatchUp(
+            playerLevel: configuration.petProgression.level,
+            enemyLevel: enemyLevel,
             highestLevel: configuration.highestPetLevel
         )
-        let baseHeroXP = ExperienceScaling.battleAward(
-            playerLevel: configuration.heroProgression.level,
-            enemyLevel: enemyLevel
-        )
-        let basePetXP = ExperienceScaling.battleAward(
-            playerLevel: configuration.petProgression.level,
-            enemyLevel: enemyLevel
-        )
-        let heroXP = baseHeroXP > 0 ? max(1, Int((Double(baseHeroXP) * heroCatchUp).rounded())) : 0
-        let petXP = basePetXP > 0 ? max(1, Int((Double(basePetXP) * petCatchUp).rounded())) : 0
         let heroAfter = configuration.heroProgression.addingExperience(heroXP)
         let petAfter = configuration.petProgression.addingExperience(petXP)
         let materialRewards = homestead.adjustedMaterialRewards(
