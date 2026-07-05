@@ -3,29 +3,25 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-struct CombatantDetailContext: Identifiable, Hashable {
+enum CombatantDetailContext: Identifiable, Hashable {
     enum Kind: Hashable {
         case hero
         case pet
     }
 
-    enum Presentation: Hashable {
-        case roster(kind: Kind, combatantID: String)
-        case snapshot(CombatantCardDetail)
-    }
-
-    let presentation: Presentation
+    case roster(kind: Kind, combatantID: String)
+    case snapshot(CombatantCardDetail)
 
     init(kind: Kind, combatantID: String) {
-        presentation = .roster(kind: kind, combatantID: combatantID)
+        self = .roster(kind: kind, combatantID: combatantID)
     }
 
     init(snapshot: CombatantCardDetail) {
-        presentation = .snapshot(snapshot)
+        self = .snapshot(snapshot)
     }
 
     var id: String {
-        switch presentation {
+        switch self {
         case let .roster(kind, combatantID):
             "\(kind)-\(combatantID)"
         case let .snapshot(detail):

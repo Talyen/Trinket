@@ -8,7 +8,7 @@ struct CombatantDetailContextView: View {
     var hidesNavigationBar = true
 
     var body: some View {
-        switch context.presentation {
+        switch context {
         case let .roster(kind, combatantID):
             rosterDetail(kind: kind, combatantID: combatantID)
         case let .snapshot(detail):

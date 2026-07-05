@@ -88,7 +88,7 @@ struct HomesteadProjectCard: View {
         switch style {
         case let .featured(onBuild):
             VStack(alignment: .leading, spacing: 14) {
-                projectNavigationLink(layout: .featured)
+                projectNavigationLink(isFeatured: true, isRecentlyUpgraded: false)
                 HomesteadProjectActionFooter(status: status, onBuild: onBuild)
             }
             .padding(14)
@@ -97,24 +97,18 @@ struct HomesteadProjectCard: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
         case let .compact(isRecentlyUpgraded):
-            projectNavigationLink(layout: .compact(isRecentlyUpgraded: isRecentlyUpgraded))
+            projectNavigationLink(isFeatured: false, isRecentlyUpgraded: isRecentlyUpgraded)
         }
     }
 
-    private enum CardLayout {
-        case featured
-        case compact(isRecentlyUpgraded: Bool)
-    }
-
     @ViewBuilder
-    private func projectNavigationLink(layout: CardLayout) -> some View {
+    private func projectNavigationLink(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
         NavigationLink {
             HomesteadNodeDetailView(definition: definition)
         } label: {
-            switch layout {
-            case .featured:
+            if isFeatured {
                 featuredLinkContent
-            case let .compact(isRecentlyUpgraded):
+            } else {
                 compactLinkContent(isRecentlyUpgraded: isRecentlyUpgraded)
             }
         }

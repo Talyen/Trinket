@@ -229,7 +229,7 @@ final class AppStateTests: XCTestCase {
             return
         }
 
-        switch context.presentation {
+        switch context {
         case let .roster(actualKind, actualID):
             XCTAssertEqual(actualKind, kind, file: file, line: line)
             XCTAssertEqual(actualID, combatantID, file: file, line: line)

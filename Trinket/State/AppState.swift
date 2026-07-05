@@ -71,11 +71,6 @@ final class AppState {
         let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
         let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
 
-        let launchTargets = AppLaunchBootstrap.launchTargets(
-            environment: env,
-            sessionState: resolvedSessionState
-        )
-
         self.playerSave = resolvedPlayerSave
         syncCoordinator = PlayerSaveSyncCoordinator(
             sync: resolvedSync,
@@ -89,16 +84,16 @@ final class AppState {
         battle = BattleSession()
         journey = resolvedJourney
         sessionState = resolvedSessionState
-        initialCollectionCombatantDetail = launchTargets.initialCombatantDetail
-        initialCollectionItemID = launchTargets.initialItemID
-        selectedTab = launchTargets.selectedTab
+        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
+        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
+        selectedTab = Self.selectedTab(environment: env, sessionState: resolvedSessionState)
 
         seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
         restoreMapScroll(environment: env)
 
-        if launchTargets.shouldStartLaunchBattle {
+        if env.launchScreen == .battle {
             startLaunchBattle()
-        } else if let stageID = launchTargets.restoredBattleStageID {
+        } else if let stageID = resolvedSessionState.activeBattleStageID {
             startRestoredBattle(stageID: stageID)
         }
 
@@ -372,5 +367,49 @@ final class AppState {
             ),
             volume: options.musicVolume
         )
+    }
+
+    private static func selectedTab(
+        environment: AppEnvironment,
+        sessionState: SessionStateStore
+    ) -> AppTab {
+        if let envTab = environment.launchTab {
+            return envTab
+        }
+        if let launchScreen = environment.launchScreen {
+            return tab(for: launchScreen)
+        }
+        return sessionState.selectedTab ?? .play
+    }
+
+    private static func tab(for launchScreen: LaunchScreen) -> AppTab {
+        switch launchScreen {
+        case .heroDetail, .petDetail, .itemDetail:
+            return .collection
+        case .battle:
+            return .play
+        case .options:
+            return .options
+        }
+    }
+
+    private static func collectionCombatantDetail(for launchScreen: LaunchScreen?) -> CombatantDetailContext? {
+        switch launchScreen {
+        case let .heroDetail(id):
+            CombatantDetailContext(kind: .hero, combatantID: id)
+        case let .petDetail(id):
+            CombatantDetailContext(kind: .pet, combatantID: id)
+        case .itemDetail, .battle, .options, .none:
+            nil
+        }
+    }
+
+    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
+        switch launchScreen {
+        case let .itemDetail(id):
+            id
+        case .heroDetail, .petDetail, .battle, .options, .none:
+            nil
+        }
     }
 }
