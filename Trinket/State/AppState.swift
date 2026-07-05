@@ -183,7 +183,7 @@ final class AppState {
         selectedTab = .play
         journey.mapScrollRequest = nil
         Task {
-            await syncCoordinator.uploadImmediately(playerSave.currentSave)
+            await syncCoordinator.checkpointUploadIfNeeded()
         }
         return true
     }

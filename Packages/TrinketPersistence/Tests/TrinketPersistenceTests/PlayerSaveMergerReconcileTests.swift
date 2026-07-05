@@ -1,7 +1,7 @@
 import XCTest
 @testable import TrinketPersistence
 
-final class PlayerSaveSessionAuthorityTests: XCTestCase {
+final class PlayerSaveMergerReconcileTests: XCTestCase {
     private let earlier = Date(timeIntervalSince1970: 1600000000)
     private let later = Date(timeIntervalSince1970: 1800000000)
     private let syncedAt = Date(timeIntervalSince1970: 1700000000)
@@ -13,7 +13,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         remoteSave.sessionGeneration = 2
         let remote = RemotePlayerSave(save: remoteSave, modifiedAt: earlier, recordChangeTag: "remote")
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         XCTAssertEqual(outcome, .applyRemote(remoteSave))
     }
@@ -25,7 +25,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         remoteSave.sessionGeneration = 2
         let remote = RemotePlayerSave(save: remoteSave, modifiedAt: earlier, recordChangeTag: "remote")
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         XCTAssertEqual(outcome, .uploadLocal)
     }
@@ -37,7 +37,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         remoteSave.journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
         let remote = RemotePlayerSave(save: remoteSave, modifiedAt: syncedAt, recordChangeTag: "remote")
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         guard case let .applyMerged(merged) = outcome else {
             return XCTFail("Expected merged outcome, got \(outcome)")
@@ -54,7 +54,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         remoteSave.journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
         let remote = RemotePlayerSave(save: remoteSave, modifiedAt: earlier, recordChangeTag: "remote")
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         guard case let .applyMerged(merged) = outcome else {
             return XCTFail("Expected merged outcome, got \(outcome)")
@@ -70,7 +70,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
         var remote = SaveTestSupport.makeSave(modifiedAt: earlier, gold: 99)
         remote.sessionGeneration = 2
 
-        let picked = PlayerSaveSessionAuthority.pickAuthoritative(local: local, remote: remote)
+        let picked = PlayerSaveMerger.pickAuthoritative(local: local, remote: remote)
 
         XCTAssertEqual(picked.roster.gold, 99)
         XCTAssertEqual(picked.sessionGeneration, 2)
@@ -78,18 +78,18 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
 
     func testRemoteMissingUploadsLocal() {
         let local = SaveTestSupport.makeSave(modifiedAt: syncedAt)
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: nil)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: nil)
         XCTAssertEqual(outcome, .uploadLocal)
     }
 
     func testLocalMissingAppliesRemote() {
         let remote = SaveTestSupport.makeRemote(modifiedAt: syncedAt)
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: nil, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: nil, remote: remote)
         XCTAssertEqual(outcome, .applyRemote(remote.save))
     }
 
     func testBothMissingKeepsLocal() {
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: nil, remote: nil)
+        let outcome = PlayerSaveMerger.reconcile(local: nil, remote: nil)
         XCTAssertEqual(outcome, .keepLocal)
     }
 
@@ -102,7 +102,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
             recordChangeTag: "remote"
         )
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         XCTAssertEqual(outcome, .keepLocal)
     }
@@ -119,7 +119,7 @@ final class PlayerSaveSessionAuthorityTests: XCTestCase {
             recordChangeTag: "remote"
         )
 
-        let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
+        let outcome = PlayerSaveMerger.reconcile(local: local, remote: remote)
 
         XCTAssertEqual(outcome, .keepLocal)
     }

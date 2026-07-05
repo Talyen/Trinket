@@ -20,16 +20,10 @@ extension AppState {
         pet: Combatant,
         battleEarnedGold: Int = 0
     ) -> String {
-        var scrollTarget = mapScrollFocusID(for: journey.current)
+        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
         do {
             try playerSave.performBatchMutation { save in
-                let inventory = save.inventory.inventory()
-                var context = StageCompletionContext(
-                    roster: save.playerRoster(inventoryItemIDs: Set(inventory.items.map(\.id))),
-                    inventory: inventory,
-                    homestead: save.homestead.homestead(),
-                    journey: save.journey
-                )
+                var context = save.stageCompletionContext()
                 StageCompletion.complete(
                     stage,
                     hero: hero,
@@ -39,7 +33,7 @@ extension AppState {
                     context: &context
                 )
                 context.apply(to: &save)
-                scrollTarget = mapScrollFocusID(for: context.journey)
+                scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
             }
             lastPlayFlowError = nil
             sessionState.mapScrollStageID = scrollTarget
@@ -63,9 +57,5 @@ extension AppState {
             roster.grantGold(battleEarnedGold)
         }
         battle.endBattle()
-    }
-
-    func mapScrollFocusID(for progress: JourneyProgressState) -> String {
-        JourneyMapPresentation.scrollFocusID(for: progress)
     }
 }

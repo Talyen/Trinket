@@ -148,7 +148,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testMapScrollFocusIDReturnsActiveStageWhenInProgress() {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
 
-        XCTAssertEqual(state.mapScrollFocusID(for: .initial), "chapter-1-stage-1")
+        XCTAssertEqual(JourneyMapPresentation.scrollFocusID(for: .initial), "chapter-1-stage-1")
     }
 
     func testMapScrollFocusIDReturnsChapterGateWhenChapterComplete() {
@@ -160,7 +160,7 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         XCTAssertNil(progress.activeStageID)
         XCTAssertEqual(
-            state.mapScrollFocusID(for: progress),
+            JourneyMapPresentation.scrollFocusID(for: progress),
             StageMapID.chapterGate(
                 for: Chapter(
                     id: StageMapID.placeholderGate(afterChapterNumber: 2),

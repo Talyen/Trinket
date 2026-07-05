@@ -59,12 +59,7 @@ public final class PlayerSaveSyncCoordinator {
             }
         }
 
-        if sessionPhase != .bootstrapping {
-            sessionPhase = .bootstrapping
-            _ = await reconcileOnce()
-        }
-
-        sessionPhase = .active
+        await bootstrapAndActivate()
         await registerSubscriptionIfNeeded()
         if pendingUploadSave != nil {
             await processUploadQueue()
@@ -73,9 +68,7 @@ public final class PlayerSaveSyncCoordinator {
 
     public func pullAndReconcile() async {
         guard sessionPhase != .active else { return }
-        sessionPhase = .bootstrapping
-        _ = await reconcileOnce()
-        sessionPhase = .active
+        await bootstrapAndActivate()
     }
 
     public func reconcileForegroundIfSafe() async {
@@ -126,14 +119,18 @@ public final class PlayerSaveSyncCoordinator {
         sessionPhase = .closed
     }
 
-    public func uploadImmediately(_ save: PlayerSave) async {
-        await scheduleUpload(save)
-    }
-
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
         playerSaveStore.flushPendingPersistIfNeeded()
         await scheduleUpload(playerSaveStore.currentSave)
+    }
+
+    private func bootstrapAndActivate() async {
+        if sessionPhase != .bootstrapping {
+            sessionPhase = .bootstrapping
+            _ = await reconcileOnce()
+        }
+        sessionPhase = .active
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
@@ -174,7 +171,7 @@ public final class PlayerSaveSyncCoordinator {
             }
 
             return await applyReconcileOutcome(
-                PlayerSaveSessionAuthority.reconcile(local: local, remote: remote),
+                PlayerSaveMerger.reconcile(local: local, remote: remote),
                 local: local
             )
         } catch {
@@ -207,18 +204,12 @@ public final class PlayerSaveSyncCoordinator {
 
     @discardableResult
     private func applyRemoteSaveIfSafe(_ remoteSave: PlayerSave) -> Bool {
-        if deferRemoteApplyIfBattleActive() {
+        if hasActiveBattle() {
+            deferredRemoteReconcile = true
+            status = .upToDate
             return false
         }
         applyRemoteSave(remoteSave)
-        status = .upToDate
-        return true
-    }
-
-    @discardableResult
-    private func deferRemoteApplyIfBattleActive() -> Bool {
-        guard hasActiveBattle() else { return false }
-        deferredRemoteReconcile = true
         status = .upToDate
         return true
     }
@@ -283,9 +274,11 @@ public final class PlayerSaveSyncCoordinator {
         playerSaveStore.flushPendingPersistIfNeeded()
         let liveLocal = playerSaveStore.currentSave
 
-        let authoritative = PlayerSaveSessionAuthority.pickAuthoritative(local: liveLocal, remote: remote.save)
+        let authoritative = PlayerSaveMerger.pickAuthoritative(local: liveLocal, remote: remote.save)
 
-        if deferRemoteApplyIfBattleActive() {
+        if hasActiveBattle() {
+            deferredRemoteReconcile = true
+            status = .upToDate
             return
         }
 

@@ -69,6 +69,15 @@ public struct PlayerSave: Codable, Equatable, Sendable {
         roster.roster(inventoryItemIDs: inventoryItemIDs)
     }
 
+    public func stageCompletionContext() -> StageCompletionContext {
+        StageCompletionContext(
+            roster: playerRoster(inventoryItemIDs: Set(inventory.items.map(\.id))),
+            inventory: inventory.inventory(),
+            homestead: homestead.homestead(),
+            journey: journey
+        )
+    }
+
     public func markedLocalMutation(at date: Date = Date()) -> PlayerSave {
         var updated = self
         updated.modifiedAt = date

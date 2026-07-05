@@ -2,8 +2,35 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Field-wise merge for divergent local and remote saves.
+public enum PlayerSaveReconcileOutcome: Equatable {
+    case keepLocal
+    case applyRemote(PlayerSave)
+    case uploadLocal
+    case applyMerged(PlayerSave)
+}
+
+/// Field-wise merge and session-start reconcile for divergent local and remote saves.
 public enum PlayerSaveMerger {
+    public static func reconcile(local: PlayerSave?, remote: RemotePlayerSave?) -> PlayerSaveReconcileOutcome {
+        switch (local, remote) {
+        case let (local?, nil):
+            return .uploadLocal
+        case let (nil, remote?):
+            return .applyRemote(remote.save)
+        case let (local?, remote?):
+            return reconcileBoth(local: local, remote: remote)
+        case (nil, nil):
+            return .keepLocal
+        }
+    }
+
+    public static func pickAuthoritative(local: PlayerSave, remote: PlayerSave) -> PlayerSave {
+        if local.sessionGeneration != remote.sessionGeneration {
+            return local.sessionGeneration < remote.sessionGeneration ? remote : local
+        }
+        return merge(local, remote)
+    }
+
     public static func merge(_ local: PlayerSave, _ remote: PlayerSave) -> PlayerSave {
         let preferRemote = remote.modifiedAt > local.modifiedAt
         var merged = local.modifiedAt >= remote.modifiedAt ? local : remote
@@ -11,16 +38,81 @@ public enum PlayerSaveMerger {
         merged.roster = mergeRoster(local.roster, remote.roster, preferRemote: preferRemote)
         merged.inventory = mergeInventory(local.inventory, remote.inventory, preferRemote: preferRemote)
         merged.homestead = mergeHomestead(local.homestead, remote.homestead)
-        merged = StageRewardReconciler.reconcileMissingStageRewards(
-            local: local,
-            remote: remote,
-            merged: merged
-        )
+        merged = reconcileMissingStageRewards(local: local, remote: remote, merged: merged)
         merged.journey.claimedRewardStageIDs = local.journey.claimedRewardStageIDs
             .union(remote.journey.claimedRewardStageIDs)
         merged.modifiedAt = max(local.modifiedAt, remote.modifiedAt)
         merged.schemaVersion = PlayerSave.currentSchemaVersion
         return PlayerSaveSanitizer.sanitize(merged)
+    }
+
+    private static func reconcileBoth(local: PlayerSave, remote: RemotePlayerSave) -> PlayerSaveReconcileOutcome {
+        if local.sessionGeneration != remote.save.sessionGeneration {
+            return local.sessionGeneration < remote.save.sessionGeneration
+                ? .applyRemote(remote.save)
+                : .uploadLocal
+        }
+
+        if local == remote.save {
+            return .keepLocal
+        }
+
+        let merged = merge(local, remote.save)
+        if merged == local {
+            return merged == remote.save ? .keepLocal : .uploadLocal
+        }
+        if merged == remote.save {
+            return .applyRemote(remote.save)
+        }
+        return .applyMerged(merged)
+    }
+
+    private static func reconcileMissingStageRewards(
+        local: PlayerSave,
+        remote: PlayerSave,
+        merged: PlayerSave
+    ) -> PlayerSave {
+        let remoteOnlyClaimed = remote.journey.claimedRewardStageIDs
+            .subtracting(local.journey.claimedRewardStageIDs)
+        guard !remoteOnlyClaimed.isEmpty else { return merged }
+
+        let baseline = local.stageCompletionContext()
+        var context = merged.stageCompletionContext()
+        let hero = activeCombatant(for: context.roster.activeHeroID, in: GameContent.heroes, fallback: GameContent.heroes[0])
+        let pet = activeCombatant(for: context.roster.activePetID, in: GameContent.pets, fallback: GameContent.pets[0])
+
+        for stageID in remoteOnlyClaimed.sorted() {
+            guard let stage = GameContent.stage(id: stageID) else { continue }
+            if StageCompletion.rewardsReflected(
+                for: stage,
+                baseline: baseline,
+                in: context,
+                hero: hero,
+                pet: pet
+            ) {
+                context.journey.markRewardsClaimed(for: stage)
+                continue
+            }
+
+            StageCompletion.claimRewardsIfNeeded(
+                for: stage,
+                hero: hero,
+                pet: pet,
+                context: &context
+            )
+        }
+
+        var updated = merged
+        context.apply(to: &updated)
+        return updated
+    }
+
+    private static func activeCombatant(
+        for id: String,
+        in catalog: [Combatant],
+        fallback: Combatant
+    ) -> Combatant {
+        catalog.first { $0.id == id } ?? fallback
     }
 
     private static func mergeJourney(

@@ -43,12 +43,7 @@ final class PlayerSaveMergerTests: XCTestCase {
         remoteSave.journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
 
         let firstStage = GameContent.chapters[0].stages[0]
-        var context = StageCompletionContext(
-            roster: remoteSave.playerRoster(inventoryItemIDs: []),
-            inventory: remoteSave.inventory.inventory(),
-            homestead: remoteSave.homestead.homestead(),
-            journey: remoteSave.journey
-        )
+        var context = remoteSave.stageCompletionContext()
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "bear" })
         StageCompletion.claimRewardsIfNeeded(
