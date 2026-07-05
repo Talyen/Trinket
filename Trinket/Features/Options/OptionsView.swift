@@ -53,6 +53,16 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
+
+            #if DEBUG
+            Section("Developer") {
+                NavigationLink {
+                    DebugVisualTuningView()
+                } label: {
+                    Label("Visual Tuning", systemImage: "paintpalette")
+                }
+            }
+            #endif
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground(.denseList)

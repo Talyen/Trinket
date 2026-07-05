@@ -112,7 +112,7 @@ public struct ShadowStyle: Sendable {
     public static let elevated = ShadowStyle(color: .black.opacity(0.18), radius: 12, y: 5)
 }
 
-public enum BackgroundMode: Equatable, Sendable {
+public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
     case standard
     case playJourney
     case collection
@@ -120,6 +120,22 @@ public enum BackgroundMode: Equatable, Sendable {
     case homestead
     case battle
     case modal
+
+    public var id: Self {
+        self
+    }
+
+    public var displayName: String {
+        switch self {
+        case .standard: return "Standard"
+        case .playJourney: return "Play"
+        case .collection: return "Collection"
+        case .denseList: return "Dense List"
+        case .homestead: return "Homestead"
+        case .battle: return "Battle"
+        case .modal: return "Modal"
+        }
+    }
 
     var glowOpacity: Double {
         switch self {
@@ -131,6 +147,96 @@ public enum BackgroundMode: Equatable, Sendable {
         case .modal: return 0.12
         }
     }
+}
+
+public enum BackgroundGradientAnchor: String, CaseIterable, Identifiable, Sendable {
+    case topLeading
+    case top
+    case topTrailing
+    case leading
+    case center
+    case trailing
+    case bottomLeading
+    case bottom
+    case bottomTrailing
+
+    public var id: String {
+        rawValue
+    }
+
+    public var displayName: String {
+        switch self {
+        case .topLeading: return "Top Leading"
+        case .top: return "Top"
+        case .topTrailing: return "Top Trailing"
+        case .leading: return "Leading"
+        case .center: return "Center"
+        case .trailing: return "Trailing"
+        case .bottomLeading: return "Bottom Leading"
+        case .bottom: return "Bottom"
+        case .bottomTrailing: return "Bottom Trailing"
+        }
+    }
+
+    var unitPoint: UnitPoint {
+        switch self {
+        case .topLeading: return .topLeading
+        case .top: return .top
+        case .topTrailing: return .topTrailing
+        case .leading: return .leading
+        case .center: return .center
+        case .trailing: return .trailing
+        case .bottomLeading: return .bottomLeading
+        case .bottom: return .bottom
+        case .bottomTrailing: return .bottomTrailing
+        }
+    }
+}
+
+public struct BackgroundTuningValues: Equatable, Sendable {
+    public var mainGlowOpacity: Double
+    public var mainGlowStartRadius: Double
+    public var mainGlowEndRadius: Double
+    public var mainGlowAnchor: BackgroundGradientAnchor
+    public var elementGlowOpacity: Double
+    public var elementGlowStartRadius: Double
+    public var elementGlowEndRadius: Double
+    public var elementGlowAnchor: BackgroundGradientAnchor
+    public var textureOpacity: Double
+
+    public init(
+        mainGlowOpacity: Double,
+        mainGlowStartRadius: Double,
+        mainGlowEndRadius: Double,
+        mainGlowAnchor: BackgroundGradientAnchor,
+        elementGlowOpacity: Double,
+        elementGlowStartRadius: Double,
+        elementGlowEndRadius: Double,
+        elementGlowAnchor: BackgroundGradientAnchor,
+        textureOpacity: Double
+    ) {
+        self.mainGlowOpacity = mainGlowOpacity
+        self.mainGlowStartRadius = mainGlowStartRadius
+        self.mainGlowEndRadius = mainGlowEndRadius
+        self.mainGlowAnchor = mainGlowAnchor
+        self.elementGlowOpacity = elementGlowOpacity
+        self.elementGlowStartRadius = elementGlowStartRadius
+        self.elementGlowEndRadius = elementGlowEndRadius
+        self.elementGlowAnchor = elementGlowAnchor
+        self.textureOpacity = textureOpacity
+    }
+
+    public static let defaultPreview = BackgroundTuningValues(
+        mainGlowOpacity: 0.18,
+        mainGlowStartRadius: 12,
+        mainGlowEndRadius: 520,
+        mainGlowAnchor: .topTrailing,
+        elementGlowOpacity: 0.12,
+        elementGlowStartRadius: 24,
+        elementGlowEndRadius: 460,
+        elementGlowAnchor: .bottomLeading,
+        textureOpacity: 0.065
+    )
 }
 
 public enum SurfaceRole: Equatable, Sendable {
@@ -190,15 +296,25 @@ private struct TrinketThemeKey: EnvironmentKey {
     static let defaultValue = TrinketDesign.AppTheme.default
 }
 
+private struct TrinketBackgroundTuningKey: EnvironmentKey {
+    static let defaultValue: BackgroundTuningValues? = nil
+}
+
 public extension EnvironmentValues {
     var trinketTheme: TrinketDesign.AppTheme {
         get { self[TrinketThemeKey.self] }
         set { self[TrinketThemeKey.self] = newValue }
     }
+
+    var trinketBackgroundTuning: BackgroundTuningValues? {
+        get { self[TrinketBackgroundTuningKey.self] }
+        set { self[TrinketBackgroundTuningKey.self] = newValue }
+    }
 }
 
 public struct TrinketScreenBackground: View {
     @Environment(\.trinketTheme) private var theme
+    @Environment(\.trinketBackgroundTuning) private var tuning
 
     private let mode: BackgroundMode
     private let elementTint: Color?
@@ -216,28 +332,29 @@ public struct TrinketScreenBackground: View {
 
             RadialGradient(
                 colors: [
-                    palette.ambientGlow.opacity(mode.glowOpacity),
+                    palette.ambientGlow.opacity(tuning?.mainGlowOpacity ?? mode.glowOpacity),
                     palette.ambientGlow.opacity(0)
                 ],
-                center: .topTrailing,
-                startRadius: 12,
-                endRadius: 520
+                center: tuning?.mainGlowAnchor.unitPoint ?? .topTrailing,
+                startRadius: CGFloat(tuning?.mainGlowStartRadius ?? 12),
+                endRadius: CGFloat(tuning?.mainGlowEndRadius ?? 520)
             )
 
             if let elementTint {
                 RadialGradient(
                     colors: [
-                        elementTint.opacity(0.12),
+                        elementTint.opacity(tuning?.elementGlowOpacity ?? 0.12),
                         elementTint.opacity(0)
                     ],
-                    center: .bottomLeading,
-                    startRadius: 24,
-                    endRadius: 460
+                    center: tuning?.elementGlowAnchor.unitPoint ?? .bottomLeading,
+                    startRadius: CGFloat(tuning?.elementGlowStartRadius ?? 24),
+                    endRadius: CGFloat(tuning?.elementGlowEndRadius ?? 460)
                 )
             }
 
-            if palette.textureOpacity > 0 {
-                TrinketTextureLayer(opacity: palette.textureOpacity)
+            let textureOpacity = tuning?.textureOpacity ?? palette.textureOpacity
+            if textureOpacity > 0 {
+                TrinketTextureLayer(opacity: textureOpacity)
             }
         }
         .ignoresSafeArea()
