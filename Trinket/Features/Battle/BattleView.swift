@@ -98,13 +98,6 @@ struct BattleView: View {
         configuration.stageID != nil
     }
 
-    private var stageRewardsAlreadyClaimed: Bool {
-        guard let stageID = configuration.stageID,
-              let stage = GameContent.stage(id: stageID)
-        else { return false }
-        return appState.journey.current.hasClaimedRewards(for: stage)
-    }
-
     private var battleTickInterval: TimeInterval {
         AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
     }
@@ -113,8 +106,7 @@ struct BattleView: View {
         TimelineView(.periodic(from: timelineStartDate, by: battleTickInterval)) { context in
             battlefield(battleSession: battleSession, battleState: battleState)
                 .onChange(of: context.date) { _, date in
-                    battleSession.pruneExpiredFeedback(at: date)
-                    advanceBattleTick(battleSession: battleSession)
+                    appState.handleBattlePeriodicTick(configuration: configuration, at: date)
                 }
         }
     }
@@ -228,16 +220,6 @@ struct BattleView: View {
 
     private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
         battleSession.activeFeedbackEvents.filter { $0.targetID == combatant.id }
-    }
-
-    private func advanceBattleTick(battleSession: BattleSession) {
-        if case let .completeWithEarnedGold(gold) = battleSession.advanceAutoTick(
-            stageRewardsAlreadyClaimed: stageRewardsAlreadyClaimed,
-            homestead: appState.homestead.current
-        ) {
-            appState.grantBattleEarnedGold(gold)
-            appState.completeActiveBattle(configuration, battleEarnedGold: 0)
-        }
     }
 
 }

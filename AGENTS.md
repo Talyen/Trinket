@@ -34,7 +34,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## Battle Module
 
-Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/BattleShell/BattleRun.swift`, `ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
+Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
 
 Key patterns:
 - Effects are value-type structs conforming to `BattleEffectHandler`; lookup by `EffectKind` dictionary in `BattleState`.
@@ -150,7 +150,7 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders un
 - **Golden paths:** pin outcome counters (ticks, health, victory/defeat); assert event *semantics* (status kinds, milestones) rather than full log fingerprints.
 - **Ability descriptions:** `AbilityDescriptionFormatterTests` guards catalog prose; prefer focused examples over duplicating full catalog loops elsewhere.
 - **Homestead rewards:** test `PlayerHomesteadState.adjustedMaterialRewards` directly, then stage-completion integration for end-to-end grants.
-- **Battle UI flow:** use `BattleRun.outcome` and `BattleRun.makeVictorySummary()` — keep outcome logic out of SwiftUI views.
+- **Battle UI flow:** use `BattleSession.outcome` and `BattleVictorySummary.make` — keep outcome logic out of SwiftUI views.
 - **Launch screens:** collection deep links live on `AppState.initialCollectionCombatantDetail` / `initialCollectionItemID`, not `AppEnvironment.shared` in views.
 - **Content invariants:** loop `GameContent` for catalog tests (unique IDs, art refs, stage→enemy links).
 - **Do not unit-test:** log prose formatting details (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O. Prefer semantic battle event assertions over full log fingerprints (`Packages/BattleEngine/Tests/README.md`).

@@ -97,7 +97,7 @@ Combat rules live in `Packages/BattleEngine/`. `BattleState.advanceOneStep()` is
 3. Otherwise pick the next ready actor (at most one acts per step) using roster scheduling rules.
 4. Execute that actor's turn (or consume a pending control effect), append defeat milestones if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
 
-Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleEngineContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleRun` (`@Observable`) in `Trinket/BattleShell/` as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets `BattleRun`.
+Effect application is handler-driven (`EffectHandlers.all`); handlers mutate through `BattleEngineContext`, not `BattleState` directly. The combat log is derived from the append-only `events` stream via `BattleLogReducer` — handlers do not write log lines. UI uses `BattleSession` (`@Observable`) in `Trinket/State/` as the presentation shell over `BattleState`; restarting a battle replaces `ActiveBattleConfiguration` (new `id`), which recreates `BattleView` and resets session run state.
 
 Regression coverage: `BattleGoldenPathTests` in `BattleEngineTests` pins deterministic outcomes for fixed matchups with RNG seed `0` via `BattleStateTestFactory`.
 

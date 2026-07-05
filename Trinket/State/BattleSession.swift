@@ -68,8 +68,18 @@ final class BattleSession {
     }
 
     @discardableResult
+    func handlePeriodicTick(
+        at date: Date,
+        journey: JourneyProgressState,
+        homestead: PlayerHomesteadState
+    ) -> BattleAutoTickAction? {
+        pruneExpiredFeedback(at: date)
+        return advanceAutoTick(journey: journey, homestead: homestead)
+    }
+
+    @discardableResult
     func advanceAutoTick(
-        stageRewardsAlreadyClaimed: Bool,
+        journey: JourneyProgressState,
         homestead: PlayerHomesteadState
     ) -> BattleAutoTickAction? {
         guard canAutoAdvanceTick(),
@@ -79,7 +89,7 @@ final class BattleSession {
 
         switch outcome {
         case .victory:
-            if stageRewardsAlreadyClaimed {
+            if Self.stageRewardsAlreadyClaimed(stageID: configuration.stageID, journey: journey) {
                 return .completeWithEarnedGold(state?.earnedGold ?? 0)
             }
             guard let battleState = state else { return nil }
@@ -125,9 +135,8 @@ final class BattleSession {
         }
 
         preview = nil
-        activeBattle = ActiveBattleConfiguration.make(
+        activeBattle = makeActiveConfiguration(
             stageID: stage.id,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
             enemy: encounter.combatant,
@@ -135,9 +144,7 @@ final class BattleSession {
             roster: roster,
             inventory: inventory,
             stageReward: stage.rewards,
-            rewardItemNames: stage.rewards.itemTemplateIDs.compactMap { templateID in
-                GameContent.itemTemplate(matching: templateID)?.displayName
-            }
+            rewardItemNames: rewardItemNames(for: stage.rewards)
         )
         onBattleStateChange?(stage.id)
         return nil
@@ -151,18 +158,22 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = ActiveBattleConfiguration.make(
-            stageID: activeBattle.stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+        self.activeBattle = makeActiveConfiguration(
+            from: activeBattle,
             hero: hero,
             pet: pet,
-            enemy: activeBattle.enemy,
-            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             roster: roster,
-            inventory: inventory,
-            stageReward: activeBattle.stageReward,
-            rewardItemNames: activeBattle.rewardItemNames
+            inventory: inventory
         )
+    }
+
+    static func stageRewardsAlreadyClaimed(
+        stageID: String?,
+        journey: JourneyProgressState
+    ) -> Bool {
+        guard let stageID,
+              let stage = GameContent.stage(id: stageID) else { return false }
+        return journey.hasClaimedRewards(for: stage)
     }
 
     func pauseForOverlay() {
@@ -221,6 +232,60 @@ final class BattleSession {
                 feedbackDisplayedAt[$0.id] = displayedAt
             }
         return step
+    }
+
+    private func makeActiveConfiguration(
+        stageID: String?,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore,
+        stageReward: StageReward?,
+        rewardItemNames: [String],
+        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max)
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
+            stageID: stageID,
+            rngSeed: rngSeed,
+            hero: hero,
+            pet: pet,
+            roster: roster,
+            inventory: inventory,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward,
+            rewardItemNames: rewardItemNames
+        )
+    }
+
+    private func makeActiveConfiguration(
+        from template: ActiveBattleConfiguration,
+        hero: Combatant,
+        pet: Combatant,
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore,
+        rngSeed: UInt64 = UInt64.random(in: UInt64.min ... UInt64.max)
+    ) -> ActiveBattleConfiguration {
+        makeActiveConfiguration(
+            stageID: template.stageID,
+            hero: hero,
+            pet: pet,
+            enemy: template.enemy,
+            enemyEncounterLevel: template.enemyEncounterLevel,
+            roster: roster,
+            inventory: inventory,
+            stageReward: template.stageReward,
+            rewardItemNames: template.rewardItemNames,
+            rngSeed: rngSeed
+        )
+    }
+
+    private static func rewardItemNames(for stageReward: StageReward) -> [String] {
+        stageReward.itemTemplateIDs.compactMap { templateID in
+            GameContent.itemTemplate(matching: templateID)?.displayName
+        }
     }
 
     private func resetRun(from configuration: ActiveBattleConfiguration) {

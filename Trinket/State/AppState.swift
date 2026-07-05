@@ -174,6 +174,20 @@ final class AppState {
         }
     }
 
+    func handleBattlePeriodicTick(
+        configuration: ActiveBattleConfiguration,
+        at date: Date
+    ) {
+        if case let .completeWithEarnedGold(gold) = battle.handlePeriodicTick(
+            at: date,
+            journey: journey.current,
+            homestead: homestead.current
+        ) {
+            grantBattleEarnedGold(gold)
+            completeActiveBattle(configuration, battleEarnedGold: 0)
+        }
+    }
+
     @discardableResult
     func resetGameplayProgress() -> Bool {
         do {
@@ -242,14 +256,7 @@ final class AppState {
 
     private func startLaunchBattle() {
         guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
-
-        _ = battle.startBattle(
-            stage: stage,
-            hero: roster.activeHero,
-            pet: roster.activePet,
-            roster: roster,
-            inventory: inventory
-        )
+        _ = startBattleForStage(stage)
     }
 
     private func startRestoredBattle(stageID: String) {
@@ -265,14 +272,19 @@ final class AppState {
             return
         }
 
-        _ = battle.startBattle(
+        _ = startBattleForStage(stage)
+        selectedTab = .play
+    }
+
+    @discardableResult
+    private func startBattleForStage(_ stage: Stage) -> StageMapMessage? {
+        battle.startBattle(
             stage: stage,
             hero: roster.activeHero,
             pet: roster.activePet,
             roster: roster,
             inventory: inventory
         )
-        selectedTab = .play
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
