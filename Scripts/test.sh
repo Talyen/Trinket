@@ -301,27 +301,16 @@ run_package_tests() {
     local destination
     destination="$(destination_for_udid "$udid")"
     local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
-    local result_bundle="$RESULTS_DIR/${package}.xcresult"
-    local scheme="$package"
-    if [[ "$package" == "BattleEngine" ]]; then
-      scheme="BattleEngine-Package"
-    fi
-    rm -rf "$result_bundle"
 
     (
       echo "Running $package package tests on $udid..."
       SECONDS=0
-      cd "Packages/$package"
       local package_status=0
-      xcodebuild "$xcodebuild_action" \
-        -scheme "$scheme" \
-        -sdk iphonesimulator \
-        -destination "$destination" \
-        -derivedDataPath "$DERIVED_DATA_PATH/${package}Package" \
-        -resultBundlePath "$result_bundle" || package_status=$?
-      if xcresult_failed "$result_bundle"; then
-        package_status=1
+      local package_args=("$package" --destination "$destination")
+      if [[ "$xcodebuild_action" == "test-without-building" ]]; then
+        package_args=(--no-build "${package_args[@]}")
       fi
+      ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
       echo "$SECONDS" >"$wall_file"
       exit "$package_status"
     ) &

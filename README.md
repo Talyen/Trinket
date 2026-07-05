@@ -45,6 +45,7 @@ For manifest, art, music, or SFX edits:
 ./Scripts/generate.sh              # validate manifests, codegen, XcodeGen
 ./Scripts/build.sh
 ./Scripts/test.sh unit             # TrinketTests + all package test schemes
+./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
 ./Scripts/test.sh smoke            # UI smoke (~2 min)
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check

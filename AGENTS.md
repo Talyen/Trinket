@@ -86,7 +86,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 |-------|---------|
 | Codegen | `generate.sh`, `validate-manifests.sh`, `assert-generated-output.sh`, `prepare-art-assets.sh`, `prepare-music-assets.sh`, `prepare-sfx-assets.sh`, `generate-content-catalogs.sh`, `generate-ability-shorthand.sh` |
 | Quality | `format.sh`, `lint.sh`, `check-ui-style.sh` (`test.sh style`), `check-module-boundaries.sh` |
-| Build/test | `build.sh`, `build-for-testing.sh`, `test.sh`, `test-iterate.sh`, `test-deploy.sh`, `ci-locally.sh`, `test-timing.sh`, `run-simulator.sh`, `capture-screenshot.sh`, `balance-sweep.sh` |
+| Build/test | `build.sh`, `build-for-testing.sh`, `test.sh`, `test-package.sh`, `test-iterate.sh`, `test-deploy.sh`, `ci-locally.sh`, `test-timing.sh`, `run-simulator.sh`, `capture-screenshot.sh`, `balance-sweep.sh` |
 | Release | `release.sh`, `release-notes.sh`, `release-notes-user.sh`, `validate-commit-msg.sh` |
 
 **Gate scripts:**
@@ -113,6 +113,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 |------|---------|-----------|------|
 | Unit | `test.sh unit` | `TrinketTests` + all five package schemes (parallel) | Every logic change |
 | Unit (filtered) | `test.sh unit <Class>` | App tests only (`TrinketTests/<Class>`) | Focused app logic |
+| Package unit | `test-package.sh <Package>` | One package scheme from inside `Packages/<Package>` | Focused package logic |
 | UI smoke | `test.sh smoke` | `Smoke.xctestplan` — 9 `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
 | Targeted UI | `test.sh ui <Class>` | One UI class | Focused UI iteration |
 | Full UI | `test.sh ui` | All `TrinketUITests` including exhaustive flows | Pre-merge |
@@ -120,7 +121,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use package schemes directly for package-local classes. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes instead of root-level `xcodebuild` package schemes. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
 
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
