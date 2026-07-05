@@ -27,6 +27,7 @@ final class AppState {
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantCollectionDetailSelection?
     let initialCollectionItemID: String?
+    private static let launchBattleStageID = "chapter-1-stage-1"
 
     init(
         environment: AppEnvironment = .shared,
@@ -36,28 +37,58 @@ final class AppState {
         userDefaults: UserDefaults? = nil
     ) {
         let env = environment
-        let dependencies = AppStateBootstrap.makeDependencies(
-            environment: env,
-            playerSave: playerSave,
-            sync: sync,
-            fileStore: fileStore,
-            userDefaults: userDefaults
-        )
+        let resolvedDefaults = userDefaults ?? .standard
+        let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
+        if env.resetState {
+            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            resolvedFileStore.deleteSave()
+        }
 
-        playerSave = dependencies.playerSave
-        syncCoordinator = dependencies.syncCoordinator
-        musicDirector = dependencies.musicDirector
-        musicPlayer = dependencies.musicPlayer
-        roster = dependencies.roster
-        inventory = dependencies.inventory
-        homestead = dependencies.homestead
-        options = dependencies.options
-        battle = dependencies.battle
-        journey = dependencies.journey
-        sessionState = dependencies.sessionState
-        initialCollectionCombatantDetail = dependencies.initialCollectionCombatantDetail
-        initialCollectionItemID = dependencies.initialCollectionItemID
-        selectedTab = dependencies.selectedTab
+        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
+        if env.seedTestProgress {
+            do {
+                try resolvedPlayerSave.applyTestSeed()
+            } catch {
+                appStateLogger.error(
+                    "Failed to apply test seed: \(error.localizedDescription, privacy: .public)"
+                )
+            }
+        }
+
+        let resolvedSync = sync ?? PlayerSaveSyncFactory.makeSyncService(
+            configuration: PlayerSaveSyncConfiguration(
+                disableCloudSync: env.disableCloudSync,
+                resetState: env.resetState
+            )
+        )
+        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
+        if let appearanceOverride = env.appearanceOverride {
+            resolvedOptions.appearance = appearanceOverride
+        }
+
+        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
+        let resolvedRoster = PlayerRosterStore(saveStore: resolvedPlayerSave)
+        let resolvedInventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
+        let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
+        let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
+
+        self.playerSave = resolvedPlayerSave
+        syncCoordinator = PlayerSaveSyncCoordinator(
+            sync: resolvedSync,
+            playerSaveStore: resolvedPlayerSave
+        )
+        musicDirector = MusicDirector()
+        musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
+        roster = resolvedRoster
+        inventory = resolvedInventory
+        homestead = resolvedHomestead
+        options = resolvedOptions
+        battle = BattleSession()
+        journey = resolvedJourney
+        sessionState = resolvedSessionState
+        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
+        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
+        selectedTab = Self.selectedTab(environment: env, sessionState: resolvedSessionState)
 
         seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
         restoreMapScroll(environment: env)
@@ -68,6 +99,96 @@ final class AppState {
         }
 
         wireSyncAndBattleCallbacks()
+    }
+
+    var playChapter: Chapter {
+        GameContent.chapter(id: journey.current.activeChapterID) ?? GameContent.chapters[0]
+    }
+
+    @discardableResult
+    func completeStage(
+        _ stage: Stage,
+        hero: Combatant,
+        pet: Combatant,
+        battleEarnedGold: Int = 0
+    ) -> String {
+        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
+        do {
+            try playerSave.performBatchMutation { save in
+                var context = save.stageCompletionContext()
+                StageCompletion.complete(
+                    stage,
+                    hero: hero,
+                    pet: pet,
+                    battleEarnedGold: battleEarnedGold,
+                    in: GameContent.chapters,
+                    context: &context
+                )
+                context.apply(to: &save)
+                scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
+            }
+            lastPlayFlowError = nil
+            sessionState.mapScrollStageID = scrollTarget
+            journey.requestMapScroll(to: scrollTarget)
+        } catch {
+            appStateLogger.error(
+                "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
+            )
+            lastPlayFlowError = "Progress couldn't be saved. Try again."
+        }
+        return scrollTarget
+    }
+
+    func completeActiveBattle(_ configuration: ActiveBattleConfiguration, battleEarnedGold: Int) {
+        guard battle.activeBattle != nil else { return }
+
+        if let stageID = configuration.stageID,
+           let stage = GameContent.stage(id: stageID) {
+            completeStage(
+                stage,
+                hero: configuration.hero,
+                pet: configuration.pet,
+                battleEarnedGold: battleEarnedGold
+            )
+        } else if battleEarnedGold > 0 {
+            roster.grantGold(battleEarnedGold)
+        }
+        battle.endBattle()
+    }
+
+    @discardableResult
+    func resetGameplayProgress() -> Bool {
+        do {
+            try playerSave.resetGameplayProgress()
+        } catch {
+            appStateLogger.error(
+                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+        battle.endBattle()
+        sessionState.clearBattleState()
+        sessionState.selectedTab = nil
+        selectedTab = .play
+        journey.mapScrollRequest = nil
+        Task {
+            await syncCoordinator.checkpointUploadIfNeeded()
+        }
+        return true
+    }
+
+    static func shouldRestoreMapScroll(
+        _ targetID: String,
+        journey: JourneyProgressState,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> Bool {
+        if targetID.hasPrefix("chapter-gate-") {
+            return true
+        }
+        guard let stage = chapters.flatMap(\.stages).first(where: { $0.id == targetID }) else {
+            return false
+        }
+        return journey.isActive(stage)
     }
 
     private func restoreMapScroll(environment: AppEnvironment) {
@@ -104,10 +225,14 @@ final class AppState {
     private func startLaunchBattle() {
         guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
 
-        startBattle(on: stage)
+        _ = battle.startBattle(
+            stage: stage,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            roster: roster,
+            inventory: inventory
+        )
     }
-
-    private static let launchBattleStageID = "chapter-1-stage-1"
 
     private func startRestoredBattle(stageID: String) {
         guard let stage = GameContent.stage(id: stageID),
@@ -122,11 +247,6 @@ final class AppState {
             return
         }
 
-        startBattle(on: stage)
-        selectedTab = .play
-    }
-
-    private func startBattle(on stage: Stage) {
         _ = battle.startBattle(
             stage: stage,
             hero: roster.activeHero,
@@ -134,27 +254,7 @@ final class AppState {
             roster: roster,
             inventory: inventory
         )
-    }
-
-    @discardableResult
-    func resetGameplayProgress() -> Bool {
-        do {
-            try playerSave.resetGameplayProgress()
-        } catch {
-            appStateLogger.error(
-                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)"
-            )
-            return false
-        }
-        battle.endBattle()
-        sessionState.clearBattleState()
-        sessionState.selectedTab = nil
         selectedTab = .play
-        journey.mapScrollRequest = nil
-        Task {
-            await syncCoordinator.checkpointUploadIfNeeded()
-        }
-        return true
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
@@ -166,27 +266,24 @@ final class AppState {
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }
 
-        var context = StageCompletionContext(
-            roster: roster.current,
-            inventory: inventory.current,
-            homestead: homestead.current,
-            journey: resetState ? .initial : journey.current
-        )
-
-        for stage in stages {
-            StageCompletion.claimRewardsIfNeeded(
-                for: stage,
-                hero: roster.activeHero,
-                pet: roster.activePet,
-                context: &context
-            )
-            if !context.journey.isCompleted(stage) {
-                context.journey.complete(stage, in: GameContent.chapters)
-            }
-        }
+        let hero = roster.activeHero
+        let pet = roster.activePet
 
         do {
             try playerSave.performBatchMutation { save in
+                var context = save.stageCompletionContext()
+                if resetState {
+                    context.journey = .initial
+                }
+                for stage in stages {
+                    StageCompletion.complete(
+                        stage,
+                        hero: hero,
+                        pet: pet,
+                        in: GameContent.chapters,
+                        context: &context
+                    )
+                }
                 context.apply(to: &save)
             }
         } catch {
@@ -196,17 +293,66 @@ final class AppState {
         }
     }
 
-    static func shouldRestoreMapScroll(
-        _ targetID: String,
-        journey: JourneyProgressState,
-        chapters: [Chapter] = GameContent.chapters
-    ) -> Bool {
-        if targetID.hasPrefix("chapter-gate-") {
-            return true
+    private static func selectedTab(
+        environment: AppEnvironment,
+        sessionState: SessionStateStore
+    ) -> AppTab {
+        if isCollectionDetailLaunch(environment.launchScreen) {
+            return .collection
         }
-        guard let stage = chapters.flatMap(\.stages).first(where: { $0.id == targetID }) else {
-            return false
+        if let envTab = environment.launchTab {
+            return envTab
         }
-        return journey.isActive(stage)
+        if environment.launchScreen != nil {
+            return defaultTab(for: environment.launchScreen)
+        }
+        if let savedTab = sessionState.selectedTab {
+            return savedTab
+        }
+        return .play
+    }
+
+    private static func isCollectionDetailLaunch(_ launchScreen: LaunchScreen?) -> Bool {
+        switch launchScreen {
+        case .heroDetail, .petDetail, .itemDetail:
+            true
+        case .battle, .options, .none:
+            false
+        }
+    }
+
+    private static func defaultTab(for launchScreen: LaunchScreen?) -> AppTab {
+        switch launchScreen {
+        case .heroDetail, .petDetail, .itemDetail:
+            return .collection
+        case .battle:
+            return .play
+        case .options:
+            return .options
+        case .none:
+            return .play
+        }
+    }
+
+    private static func collectionCombatantDetail(
+        for launchScreen: LaunchScreen?
+    ) -> CombatantCollectionDetailSelection? {
+        switch launchScreen {
+        case let .heroDetail(id):
+            CombatantCollectionDetailSelection(kind: .hero, combatantID: id)
+        case let .petDetail(id):
+            CombatantCollectionDetailSelection(kind: .pet, combatantID: id)
+        case .itemDetail, .battle, .options, .none:
+            nil
+        }
+    }
+
+    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
+        switch launchScreen {
+        case let .itemDetail(id):
+            id
+        case .heroDetail, .petDetail, .battle, .options, .none:
+            nil
+        }
     }
 }

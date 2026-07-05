@@ -9,7 +9,7 @@ Trinket/                    App target — shell, features, presentation glue
   App/                      Entry, environment, tab routing
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
   BattleShell/              BattleRun, ActiveBattleConfiguration, victory orchestration
-  State/                    AppState, BattleSession, PlayFlowCoordinator, OptionsStore
+  State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
   Audio/                    Music director and AVFoundation glue
@@ -47,7 +47,7 @@ Manifests and pipelines live outside the app folder:
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
 | Shared UI chrome | `TrinketDesignSystem` | Theme presets, backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
-| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, `PlayFlowCoordinator`, launch args |
+| Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, launch args |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
 | Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Resources/` | Binary art/music committed after `--assets` codegen |
