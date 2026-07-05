@@ -3,29 +3,29 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-DEVICE_NAME="iPhone 17 Pro"
 BUNDLE_ID="com.ryanmcintire.Trinket"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
+
+# shellcheck source=ensure-simulator.sh
+source ./Scripts/ensure-simulator.sh
+ensure_test_simulator
 
 xcodegen generate
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "platform=iOS Simulator,name=$DEVICE_NAME" \
+  -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
-xcrun simctl boot "$DEVICE_NAME" 2>/dev/null || true
-xcrun simctl bootstatus "$DEVICE_NAME" -b
 # Default to dark mode
-xcrun simctl spawn "$DEVICE_NAME" defaults write com.apple.UIKit UIUserInterfaceStyle -int 2 2>/dev/null || true
-xcrun simctl spawn "$DEVICE_NAME" killall SpringBoard 2>/dev/null || true
+xcrun simctl spawn "$SIMULATOR_UDID" defaults write com.apple.UIKit UIUserInterfaceStyle -int 2 2>/dev/null || true
+xcrun simctl spawn "$SIMULATOR_UDID" killall SpringBoard 2>/dev/null || true
 sleep 1
-DEVICE_UDID="$(xcrun simctl getenv "$DEVICE_NAME" SIMULATOR_UDID)"
-open -a Simulator --args -CurrentDeviceUDID "$DEVICE_UDID"
-xcrun simctl uninstall "$DEVICE_NAME" "$BUNDLE_ID" 2>/dev/null || true
-xcrun simctl install "$DEVICE_NAME" "$APP_PATH"
+open -a Simulator --args -CurrentDeviceUDID "$SIMULATOR_UDID"
+xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" 2>/dev/null || true
+xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # Installing a normal app bundle replaces the XCTest-installed app container, so
 # invalidate test-without-building stamps that depend on that simulator state.
 rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp(N) 2>/dev/null || true
-xcrun simctl launch "$DEVICE_NAME" "$BUNDLE_ID" -- -theme dark
+xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID" -- -theme dark
