@@ -17,4 +17,12 @@ public extension GameContent {
         else { return nil }
         return chapters[chapterIndex + 1]
     }
+
+    static var stages: [Stage] {
+        chapters.flatMap(\.stages)
+    }
+
+    static func stage(id: String) -> Stage? {
+        stages.first { $0.id == id }
+    }
 }

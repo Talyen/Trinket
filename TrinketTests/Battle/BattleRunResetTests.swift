@@ -8,18 +8,16 @@ final class BattleRunResetTests: XCTestCase {
     @MainActor
     func testResetPreservesEnemyModifiers() throws {
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
-        let enemyBuild = CombatBuildResolver.build(enemy: enemy)
-        let configuration = ActiveBattleConfiguration(
+        let configuration = ActiveBattleConfiguration.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),
-            enemy: enemyBuild.combatant,
-            enemyModifiers: enemyBuild.modifiers
+            enemy: enemy.combatant
         )
         let run = BattleRun(configuration: configuration)
 
         run.reset(from: configuration)
 
-        XCTAssertGreaterThan(run.state.modifiers(for: enemyBuild.combatant.id).controlResistancePercent, 0)
+        XCTAssertGreaterThan(run.state.modifiers(for: enemy.combatant.id).controlResistancePercent, 0)
     }
 }

@@ -60,8 +60,9 @@ final class BattleSession {
         let enemy = CombatantLevelScaler.scale(enemy: catalogEnemy, level: encounterLevel)
 
         preview = nil
-        activeBattle = makeConfiguration(
+        activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: enemy,
@@ -85,8 +86,9 @@ final class BattleSession {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
             ?? roster.activePet
 
-        self.activeBattle = makeConfiguration(
+        self.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
+            rngSeed: BattleRNGSeed.fresh(),
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
@@ -95,36 +97,6 @@ final class BattleSession {
             rewardItemNames: activeBattle.rewardItemNames,
             roster: roster,
             inventory: inventory
-        )
-    }
-
-    private func makeConfiguration(
-        stageID: String?,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        rewardItemNames: [String],
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            stageID: stageID,
-            rngSeed: BattleRNGSeed.fresh(),
-            hero: hero,
-            pet: pet,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            heroProgression: roster.current.progression(for: hero),
-            petProgression: roster.current.progression(for: pet),
-            highestHeroLevel: roster.current.highestHeroLevel,
-            highestPetLevel: roster.current.highestPetLevel,
-            heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
-            petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
-            inventoryState: inventory.current,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames
         )
     }
 

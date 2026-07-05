@@ -102,7 +102,7 @@ struct BattleView: View {
 
     private var stageRewardsAlreadyClaimed: Bool {
         guard let stageID = configuration.stageID,
-              let stage = GameContent.chapters.flatMap(\.stages).first(where: { $0.id == stageID })
+              let stage = GameContent.stage(id: stageID)
         else { return false }
         return appState.journey.current.hasClaimedRewards(for: stage)
     }
@@ -264,23 +264,11 @@ struct BattleView: View {
     ) -> CombatantCardDetail {
         CombatantCardDetail(
             combatant: combatant,
-            progression: progression(for: combatant),
-            equipmentLoadout: equipmentLoadout(for: combatant),
+            progression: configuration.progression(for: combatant),
+            equipmentLoadout: configuration.equipmentLoadout(for: combatant),
             inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries
         )
-    }
-
-    private func progression(for combatant: Combatant) -> CombatantProgression {
-        if combatant.id == battleRun.state.hero.id { return configuration.heroProgression }
-        if combatant.id == battleRun.state.pet.id { return configuration.petProgression }
-        return .initial
-    }
-
-    private func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
-        if combatant.id == battleRun.state.hero.id { return configuration.heroEquipmentLoadout }
-        if combatant.id == battleRun.state.pet.id { return configuration.petEquipmentLoadout }
-        return EquipmentLoadout()
     }
 }

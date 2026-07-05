@@ -116,7 +116,7 @@ struct ChapterStageSelectView: View {
 
     private var activeStage: Stage? {
         guard let stageID = appState.journey.current.activeStageID else { return nil }
-        return GameContent.chapters.flatMap(\.stages).first { $0.id == stageID }
+        return GameContent.stage(id: stageID)
     }
 
     private func updateMusicPreview() {

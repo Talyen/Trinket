@@ -133,10 +133,7 @@ final class AppState {
     }
 
     private func startLaunchBattle() {
-        guard let stage = GameContent.chapters
-            .flatMap(\.stages)
-            .first(where: { $0.id == Self.launchBattleStageID })
-        else { return }
+        guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
 
         startBattle(on: stage)
     }
@@ -144,10 +141,8 @@ final class AppState {
     private static let launchBattleStageID = "chapter-1-stage-1"
 
     private func startRestoredBattle(stageID: String) {
-        guard let stage = GameContent.chapters
-            .flatMap(\.stages)
-            .first(where: { $0.id == stageID }),
-            case .battle = stage.encounter
+        guard let stage = GameContent.stage(id: stageID),
+              case .battle = stage.encounter
         else {
             sessionState.activeBattleStageID = nil
             return
@@ -206,7 +201,7 @@ final class AppState {
         guard !completedStageIDs.isEmpty else { return }
 
         let stagesByID = Dictionary(
-            uniqueKeysWithValues: GameContent.chapters.flatMap(\.stages).map { ($0.id, $0) }
+            uniqueKeysWithValues: GameContent.stages.map { ($0.id, $0) }
         )
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }

@@ -57,7 +57,7 @@ extension AppState {
         guard battle.activeBattle != nil else { return }
 
         if let stageID = configuration.stageID,
-           let stage = GameContent.chapters.flatMap(\.stages).first(where: { $0.id == stageID }) {
+           let stage = GameContent.stage(id: stageID) {
             completeStage(stage, hero: configuration.hero, pet: configuration.pet, battleEarnedGold: battleEarnedGold)
         } else if battleEarnedGold > 0 {
             roster.grantGold(battleEarnedGold)

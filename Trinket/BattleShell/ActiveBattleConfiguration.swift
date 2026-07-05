@@ -24,44 +24,47 @@ struct ActiveBattleConfiguration: Identifiable {
     let stageReward: StageReward?
     let rewardItemNames: [String]
 
-    init(
+    func progression(for combatant: Combatant) -> CombatantProgression {
+        if combatant.id == hero.id { return heroProgression }
+        if combatant.id == pet.id { return petProgression }
+        return .initial
+    }
+
+    func equipmentLoadout(for combatant: Combatant) -> EquipmentLoadout {
+        if combatant.id == hero.id { return heroEquipmentLoadout }
+        if combatant.id == pet.id { return petEquipmentLoadout }
+        return EquipmentLoadout()
+    }
+
+    static func make(
         stageID: String? = nil,
         rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
-        heroProgression: CombatantProgression = .initial,
-        petProgression: CombatantProgression = .initial,
-        highestHeroLevel: Int? = nil,
-        highestPetLevel: Int? = nil,
-        heroEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
-        petEquipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
-        heroModifiers: CombatModifierProfile = .zero,
-        petModifiers: CombatModifierProfile = .zero,
-        enemyModifiers: CombatModifierProfile = .zero,
-        inventoryState: PlayerInventoryState = .initial,
         stageReward: StageReward? = nil,
-        rewardItemNames: [String] = []
-    ) {
-        self.stageID = stageID
-        self.rngSeed = rngSeed
-        self.hero = hero
-        self.pet = pet
-        self.enemy = enemy
-        self.enemyEncounterLevel = enemyEncounterLevel
-        self.heroProgression = heroProgression
-        self.petProgression = petProgression
-        self.highestHeroLevel = highestHeroLevel ?? heroProgression.level
-        self.highestPetLevel = highestPetLevel ?? petProgression.level
-        self.heroEquipmentLoadout = heroEquipmentLoadout
-        self.petEquipmentLoadout = petEquipmentLoadout
-        self.heroModifiers = heroModifiers
-        self.petModifiers = petModifiers
-        self.enemyModifiers = enemyModifiers
-        self.inventoryState = inventoryState
-        self.stageReward = stageReward
-        self.rewardItemNames = rewardItemNames
+        rewardItemNames: [String] = [],
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore
+    ) -> ActiveBattleConfiguration {
+        make(
+            stageID: stageID,
+            rngSeed: rngSeed,
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            heroProgression: roster.current.progression(for: hero),
+            petProgression: roster.current.progression(for: pet),
+            highestHeroLevel: roster.current.highestHeroLevel,
+            highestPetLevel: roster.current.highestPetLevel,
+            heroEquipmentLoadout: roster.current.equipmentLoadout(for: hero),
+            petEquipmentLoadout: roster.current.equipmentLoadout(for: pet),
+            inventoryState: inventory.current,
+            stageReward: stageReward,
+            rewardItemNames: rewardItemNames
+        )
     }
 
     static func make(
@@ -109,8 +112,8 @@ struct ActiveBattleConfiguration: Identifiable {
             enemyEncounterLevel: enemyEncounterLevel,
             heroProgression: heroProgression,
             petProgression: petProgression,
-            highestHeroLevel: highestHeroLevel,
-            highestPetLevel: highestPetLevel,
+            highestHeroLevel: highestHeroLevel ?? heroProgression.level,
+            highestPetLevel: highestPetLevel ?? petProgression.level,
             heroEquipmentLoadout: heroEquipmentLoadout,
             petEquipmentLoadout: petEquipmentLoadout,
             heroModifiers: heroBuild.modifiers,
@@ -120,5 +123,45 @@ struct ActiveBattleConfiguration: Identifiable {
             stageReward: stageReward,
             rewardItemNames: rewardItemNames
         )
+    }
+
+    private init(
+        stageID: String?,
+        rngSeed: UInt64,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        heroProgression: CombatantProgression,
+        petProgression: CombatantProgression,
+        highestHeroLevel: Int,
+        highestPetLevel: Int,
+        heroEquipmentLoadout: EquipmentLoadout,
+        petEquipmentLoadout: EquipmentLoadout,
+        heroModifiers: CombatModifierProfile,
+        petModifiers: CombatModifierProfile,
+        enemyModifiers: CombatModifierProfile,
+        inventoryState: PlayerInventoryState,
+        stageReward: StageReward?,
+        rewardItemNames: [String]
+    ) {
+        self.stageID = stageID
+        self.rngSeed = rngSeed
+        self.hero = hero
+        self.pet = pet
+        self.enemy = enemy
+        self.enemyEncounterLevel = enemyEncounterLevel
+        self.heroProgression = heroProgression
+        self.petProgression = petProgression
+        self.highestHeroLevel = highestHeroLevel
+        self.highestPetLevel = highestPetLevel
+        self.heroEquipmentLoadout = heroEquipmentLoadout
+        self.petEquipmentLoadout = petEquipmentLoadout
+        self.heroModifiers = heroModifiers
+        self.petModifiers = petModifiers
+        self.enemyModifiers = enemyModifiers
+        self.inventoryState = inventoryState
+        self.stageReward = stageReward
+        self.rewardItemNames = rewardItemNames
     }
 }
