@@ -71,9 +71,6 @@ public final class PlayerSaveStore {
 
         var lastWriteFailure = false
         for attempt in 0 ..< immediatePersistRetryCount {
-            if attempt > 0 {
-                briefRetryPause(attempt: attempt)
-            }
             do {
                 try commitSave(candidate, optimisticOnFailure: false)
                 return
@@ -184,12 +181,6 @@ public final class PlayerSaveStore {
                 throw PlayerSavePersistenceError.writeFailed
             }
         }
-    }
-
-    private func briefRetryPause(attempt: Int) {
-        guard immediatePersistRetryDelayNanoseconds > 0 else { return }
-        let delay = Double(immediatePersistRetryDelayNanoseconds * UInt64(attempt)) / 1_000_000_000
-        Thread.sleep(forTimeInterval: delay)
     }
 
     private func resolvedRoster() -> PlayerRosterState {

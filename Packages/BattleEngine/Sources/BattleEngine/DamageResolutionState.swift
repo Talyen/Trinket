@@ -16,6 +16,7 @@ package struct DamageResolutionState {
     public let applyDodge: Bool
     public let abilityCriticalChanceBonus: Double
     public let guaranteedCriticalIfEnemyBuffed: Bool
+    public let isRetaliation: Bool
 
     /// Damage remaining after each step. `BonusStep` initializes this to
     /// `amount + statBonus + itemBonus`; each subsequent step decrements it.
@@ -59,7 +60,8 @@ package struct DamageResolutionState {
         applyItemBonus: Bool,
         applyDodge: Bool,
         abilityCriticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false
+        guaranteedCriticalIfEnemyBuffed: Bool = false,
+        isRetaliation: Bool = false
     ) {
         self.amount = amount
         self.combatant = combatant
@@ -70,6 +72,7 @@ package struct DamageResolutionState {
         self.applyDodge = applyDodge
         self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+        self.isRetaliation = isRetaliation
     }
 }
 

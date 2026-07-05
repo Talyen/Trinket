@@ -48,6 +48,7 @@ extension AppState {
         }
 
         let scrollTarget = mapScrollFocusID(for: context.journey)
+        sessionState.mapScrollStageID = scrollTarget
         journey.requestMapScroll(to: scrollTarget)
         return scrollTarget
     }

@@ -43,7 +43,8 @@ package struct ReactiveOnHitStep: DamageStep {
                     to: attacker.combatant,
                     damageKeyword: keyword,
                     sourceActorID: state.combatant.id,
-                    applyDodge: true
+                    applyDodge: true,
+                    isRetaliation: true
                 )
                 var thornsEvents = events
                 if let lastIndex = thornsEvents.indices.last {

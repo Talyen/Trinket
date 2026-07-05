@@ -162,8 +162,8 @@ public enum BattleTurnEngine {
                 ability: ability
             )
             events.append(contentsOf: damageEvents)
-            if component.amount > 0 {
-                pairedDirectDamage.append((component.keyword, component.amount))
+            if amount > 0 {
+                pairedDirectDamage.append((component.keyword, amount))
             }
             if component.target == .abilityTarget {
                 totalDealtToAbilityTarget += dealt

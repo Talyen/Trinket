@@ -298,6 +298,35 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(uploads.count, 1)
     }
 
+    func testReconcileFromRemoteNotificationAppliesRemoteSave() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 5),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 40)
+        )
+
+        let applied = await fixture.coordinator.reconcileFromRemoteNotification()
+
+        XCTAssertTrue(applied)
+        XCTAssertEqual(fixture.store.roster.gold, 40)
+        XCTAssertEqual(fixture.coordinator.sessionPhase, .active)
+    }
+
+    func testLocalMutationBeforeStartUploadsAfterSessionBecomesActive() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 0),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0)
+        )
+        fixture.store.setGoldForTests(17)
+
+        await fixture.coordinator.start()
+        await fixture.mock.waitUntilUploadCount(atLeast: 1)
+
+        let uploads = await fixture.mock.uploadedSavesSnapshot()
+        XCTAssertEqual(uploads.last?.roster.gold, 17)
+    }
+
     // MARK: - Fixtures
 
     private func makeSyncedFixture() async throws -> SyncCoordinatorTestFixture {

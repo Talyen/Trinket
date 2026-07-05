@@ -257,6 +257,40 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
+    func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+
+        let state = AppTestSupport.makeAppState(
+            arguments: ["-completed-stages", "chapter-1-stage-1"],
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
+    }
+
+    func testCompleteStageUpdatesSessionMapScrollTarget() throws {
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        defaults.set(stage.id, forKey: "session.mapScrollStageID")
+
+        _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
+
+        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
+    }
+
+    func testShouldRestoreMapScrollIgnoresCompletedStage() {
+        var journey = JourneyProgressState.initial
+        journey.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
+
+        XCTAssertFalse(AppState.shouldRestoreMapScroll("chapter-1-stage-1", journey: journey))
+        XCTAssertTrue(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
+    }
+
     func testSessionBattleNotRestoredWhenLaunchScreenBattle() throws {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 

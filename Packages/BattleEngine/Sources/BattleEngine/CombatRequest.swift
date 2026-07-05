@@ -9,19 +9,23 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var applyDodge: Bool
     public var abilityCriticalChanceBonus: Double
     public var guaranteedCriticalIfEnemyBuffed: Bool
+    /// When true, retaliation damage skips reactive on-hit effects (thorns ping-pong).
+    public var isRetaliation: Bool
 
     public init(
         applyStatBonus: Bool = true,
         applyItemBonus: Bool = true,
         applyDodge: Bool = true,
         abilityCriticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false
+        guaranteedCriticalIfEnemyBuffed: Bool = false,
+        isRetaliation: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
         self.applyDodge = applyDodge
         self.abilityCriticalChanceBonus = abilityCriticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+        self.isRetaliation = isRetaliation
     }
 
     /// Direct ability hit: full bonuses and dodge checks.

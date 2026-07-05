@@ -99,6 +99,13 @@ struct BattleView: View {
         configuration.stageID != nil
     }
 
+    private var stageRewardsAlreadyClaimed: Bool {
+        guard let stageID = configuration.stageID,
+              let stage = GameContent.chapters.flatMap(\.stages).first(where: { $0.id == stageID })
+        else { return false }
+        return appState.journey.current.hasClaimedRewards(for: stage)
+    }
+
     private var battleTickInterval: TimeInterval {
         AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
     }
@@ -228,8 +235,12 @@ struct BattleView: View {
 
         switch battleRun.outcome {
         case .victory:
-            victorySummary = battleRun.makeVictorySummary(homestead: appState.homestead.current)
-            isShowingVictory = true
+            if stageRewardsAlreadyClaimed {
+                appState.completeActiveBattle(configuration, battleEarnedGold: battleRun.earnedGold)
+            } else {
+                victorySummary = battleRun.makeVictorySummary(homestead: appState.homestead.current)
+                isShowingVictory = true
+            }
         case .defeat:
             isShowingDefeat = true
         case .ongoing:

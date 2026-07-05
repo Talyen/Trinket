@@ -89,7 +89,9 @@ final class AppState {
         seedJourneyProgress(completedStageIDs: env.completedStageIDs)
         if let mapScrollTarget = env.mapScrollTarget {
             journey.requestMapScroll(to: mapScrollTarget)
-        } else if let savedScrollTarget = sessionState.mapScrollStageID {
+        } else if let savedScrollTarget = sessionState.mapScrollStageID,
+                  Self.shouldRestoreMapScroll(savedScrollTarget, journey: journey.current)
+        {
             journey.requestMapScroll(to: savedScrollTarget)
         }
 
@@ -138,6 +140,11 @@ final class AppState {
             .first(where: { $0.id == stageID }),
               case .battle = stage.encounter
         else {
+            sessionState.activeBattleStageID = nil
+            return
+        }
+
+        guard !journey.current.hasClaimedRewards(for: stage) else {
             sessionState.activeBattleStageID = nil
             return
         }
@@ -214,5 +221,19 @@ final class AppState {
         case .heroDetail, .petDetail, .battle, .options, .none:
             nil
         }
+    }
+
+    static func shouldRestoreMapScroll(
+        _ targetID: String,
+        journey: JourneyProgressState,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> Bool {
+        if targetID.hasPrefix("chapter-gate-") {
+            return true
+        }
+        guard let stage = chapters.flatMap(\.stages).first(where: { $0.id == targetID }) else {
+            return false
+        }
+        return journey.isActive(stage)
     }
 }

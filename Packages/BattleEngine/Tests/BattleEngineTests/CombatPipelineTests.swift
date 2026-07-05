@@ -369,4 +369,25 @@ final class CombatPipelineTests: XCTestCase {
             "ReactiveOnHit"
         ])
     }
+
+    func testThornsRetaliationDoesNotRecurse() {
+        let thorns = ActiveEffect(id: 1, effect: .thorns(.physical, 5, 6), remainingTicks: 6)
+        var context = makeContext(
+            targetMaxHealth: 200,
+            targetEffects: [thorns],
+            seed: 42
+        )
+        context.roster.setActiveEffects([thorns], for: context.roster.hero.combatant)
+
+        let (_, events) = context.applyDamage(
+            10,
+            to: context.roster.enemy.combatant,
+            damageKeyword: .physical,
+            sourceActorID: context.roster.hero.combatant.id,
+            applyDodge: false
+        )
+
+        let thornsTriggers = events.filter { $0.effectKind == .thornsTriggered }
+        XCTAssertEqual(thornsTriggers.count, 1)
+    }
 }

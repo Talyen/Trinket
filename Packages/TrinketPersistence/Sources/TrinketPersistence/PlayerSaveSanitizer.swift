@@ -65,6 +65,12 @@ public enum PlayerSaveSanitizer {
                 .id
         }
 
+        if let activeStageID = sanitized.activeStageID,
+           let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID })
+        {
+            sanitized.activeChapterID = stage.chapterID
+        }
+
         return sanitized
     }
 

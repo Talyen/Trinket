@@ -26,8 +26,8 @@ final class CloudSyncAppDelegate: NSObject, UIApplicationDelegate {
         }
 
         Task { @MainActor in
-            await syncCoordinator.checkpointUploadIfNeeded()
-            completionHandler(.noData)
+            let hadRemoteChanges = await syncCoordinator.reconcileFromRemoteNotification()
+            completionHandler(hadRemoteChanges ? .newData : .noData)
         }
     }
 }

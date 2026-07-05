@@ -194,6 +194,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertGreaterThan(state.roster.current.gold, initialGold)
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
         XCTAssertEqual(state.journey.mapScrollRequest?.targetID, "chapter-1-stage-2")
+        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
     }
 
     private func makeFileStore() -> PlayerSaveFileStore {

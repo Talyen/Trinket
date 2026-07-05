@@ -61,6 +61,9 @@ public final class PlayerSaveSyncCoordinator {
 
         sessionPhase = .active
         await registerSubscriptionIfNeeded()
+        if pendingUploadSave != nil {
+            await processUploadQueue()
+        }
     }
 
     public func pullAndReconcile() async {
@@ -77,6 +80,24 @@ public final class PlayerSaveSyncCoordinator {
 
     public func syncNow() async {
         await checkpointUploadIfNeeded()
+    }
+
+    /// Fetches and reconciles remote changes after a CloudKit push notification.
+    public func reconcileFromRemoteNotification() async -> Bool {
+        guard let playerSaveStore else { return false }
+        playerSaveStore.flushPendingPersistIfNeeded()
+
+        if sessionPhase != .active {
+            await start()
+        }
+        guard sessionPhase == .active else { return false }
+
+        let saveBefore = playerSaveStore.currentSave
+        let appliedRemote = await reconcileAtSessionStart()
+        if appliedRemote {
+            return true
+        }
+        return playerSaveStore.currentSave != saveBefore
     }
 
     /// Ends the active session, checkpoints cloud state, and releases the lease.
@@ -106,12 +127,13 @@ public final class PlayerSaveSyncCoordinator {
     }
 
     private func noteLocalCheckpoint(_ save: PlayerSave) {
-        guard sessionPhase == .active, !isApplyingRemoteSave else { return }
+        guard !isApplyingRemoteSave else { return }
         pendingUploadSave = save
     }
 
-    private func reconcileAtSessionStart() async {
-        guard let playerSaveStore else { return }
+    @discardableResult
+    private func reconcileAtSessionStart() async -> Bool {
+        guard let playerSaveStore else { return false }
 
         status = .syncing
 
@@ -120,7 +142,7 @@ public final class PlayerSaveSyncCoordinator {
             break
         case let .unavailable(message):
             status = .iCloudUnavailable(message)
-            return
+            return false
         }
 
         do {
@@ -133,7 +155,7 @@ public final class PlayerSaveSyncCoordinator {
             if !playerSaveStore.loadedFromDisk, let remote {
                 applyRemoteSave(remote.save)
                 status = .upToDate
-                return
+                return true
             }
 
             let outcome = PlayerSaveSessionAuthority.reconcile(local: local, remote: remote)
@@ -141,18 +163,23 @@ public final class PlayerSaveSyncCoordinator {
             switch outcome {
             case .keepLocal:
                 status = .upToDate
+                return false
             case let .applyRemote(remoteSave):
                 applyRemoteSave(remoteSave)
                 status = .upToDate
+                return true
             case .uploadLocal:
                 await enqueueUpload(local)
+                return false
             case let .applyMerged(mergedSave):
                 applyRemoteSave(mergedSave)
                 await enqueueUpload(mergedSave)
+                return true
             }
         } catch {
             logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
             status = .error("Playing offline on this device.")
+            return false
         }
     }
 

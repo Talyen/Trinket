@@ -63,6 +63,9 @@ package enum DamagePipeline {
         onStep: ((String) -> Void)? = nil
     ) {
         for step in steps {
+            if state.isRetaliation, step.name == ReactiveOnHitStep.stepName {
+                continue
+            }
             onStep?(step.name)
             step.apply(to: &state, in: &context)
             if step.phase == .stochastic, state.isDodged {
@@ -87,7 +90,8 @@ package enum DamagePipeline {
             applyItemBonus: request.options.applyItemBonus,
             applyDodge: request.options.applyDodge,
             abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed
+            guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
+            isRetaliation: request.options.isRetaliation
         )
 
         var executed: [String] = []

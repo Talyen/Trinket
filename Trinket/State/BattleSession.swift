@@ -80,10 +80,10 @@ final class BattleSession {
     func restartBattle(using roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
         guard let activeBattle else { return }
 
-        guard
-            let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.id }),
-            let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
-        else { return }
+        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.id })
+            ?? roster.activeHero
+        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.id })
+            ?? roster.activePet
 
         self.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,

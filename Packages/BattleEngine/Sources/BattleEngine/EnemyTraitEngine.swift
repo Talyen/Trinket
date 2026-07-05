@@ -97,7 +97,8 @@ package enum EnemyTraitEngine {
             to: attacker,
             damageKeyword: .physical,
             sourceActorID: defender.id,
-            applyDodge: true
+            applyDodge: true,
+            isRetaliation: true
         )
         return events.map { event in
             ActionEvent(
