@@ -21,6 +21,36 @@ func runHomesteadBuildOrUpgrade(
     }
 }
 
+@Observable
+@MainActor
+final class HomesteadBuildActions {
+    var isBuilding = false
+    var error: String?
+    var upgradeEventCount = 0
+
+    func perform(
+        _ definition: HomesteadNodeDefinition,
+        homestead: PlayerHomesteadStore,
+        roster: PlayerRosterStore,
+        onSuccess: (HomesteadNodeID) -> Void = { _ in }
+    ) {
+        guard !isBuilding else { return }
+        isBuilding = true
+        defer { isBuilding = false }
+
+        runHomesteadBuildOrUpgrade(
+            definition,
+            homestead: homestead,
+            roster: roster,
+            onSuccess: {
+                upgradeEventCount += 1
+                onSuccess(definition.id)
+            },
+            onFailure: { error = $0 }
+        )
+    }
+}
+
 struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
@@ -120,8 +150,11 @@ struct HomesteadProjectCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .saturation(status.isUnlocked ? 1 : 0.16)
-                .opacity(status.isUnlocked ? 1 : 0.62)
+                .homesteadLockedArtworkStyle(
+                    isUnlocked: status.isUnlocked,
+                    lockedSaturation: 0.16,
+                    lockedOpacity: 0.62
+                )
                 .overlay(alignment: .topLeading) {
                     HomesteadStatusBadge(status: status)
                         .padding(12)
@@ -147,8 +180,11 @@ struct HomesteadProjectCard: View {
         HStack(spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .frame(width: 78, height: 78)
-                .saturation(status.isUnlocked ? 1 : 0.12)
-                .opacity(status.isUnlocked ? 1 : 0.58)
+                .homesteadLockedArtworkStyle(
+                    isUnlocked: status.isUnlocked,
+                    lockedSaturation: 0.12,
+                    lockedOpacity: 0.58
+                )
 
             VStack(alignment: .leading, spacing: 6) {
                 projectTitleRow(
@@ -446,6 +482,15 @@ struct HomesteadRequirementCountText: View {
 }
 
 extension View {
+    func homesteadLockedArtworkStyle(
+        isUnlocked: Bool,
+        lockedSaturation: Double,
+        lockedOpacity: Double
+    ) -> some View {
+        saturation(isUnlocked ? 1 : lockedSaturation)
+            .opacity(isUnlocked ? 1 : lockedOpacity)
+    }
+
     func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
         alert(
             "Build Failed",

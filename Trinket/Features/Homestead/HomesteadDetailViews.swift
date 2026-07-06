@@ -6,10 +6,7 @@ import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var upgradeEventCount = 0
-    @State private var isBuilding = false
-    @State private var homesteadBuildError: String?
+    @State private var buildActions = HomesteadBuildActions()
 
     let definition: HomesteadNodeDefinition
 
@@ -21,6 +18,8 @@ struct HomesteadNodeDetailView: View {
     }
 
     var body: some View {
+        @Bindable var buildActions = buildActions
+
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadDetailHeader(definition: definition, status: status)
@@ -61,7 +60,7 @@ struct HomesteadNodeDetailView: View {
             VStack(spacing: 10) {
                 HomesteadProjectActionFooter(
                     status: status,
-                    isBuilding: isBuilding,
+                    isBuilding: buildActions.isBuilding,
                     buildButtonAccessibilityID: status.detailBuildButtonAccessibilityID,
                     onBuild: buildOrUpgrade
                 )
@@ -72,8 +71,8 @@ struct HomesteadNodeDetailView: View {
             .trinketMaterial(.bottomBar, cornerRadius: 0)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
-        .sensoryFeedback(.success, trigger: upgradeEventCount)
-        .homesteadBuildErrorAlert(error: $homesteadBuildError)
+        .sensoryFeedback(.success, trigger: buildActions.upgradeEventCount)
+        .homesteadBuildErrorAlert(error: $buildActions.error)
     }
 
     private var currentBonus: HomesteadBonus {
@@ -87,20 +86,10 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
-        guard !isBuilding else { return }
-        isBuilding = true
-        defer { isBuilding = false }
-
-        runHomesteadBuildOrUpgrade(
+        buildActions.perform(
             definition,
             homestead: appState.homestead,
-            roster: appState.roster,
-            onSuccess: {
-                upgradeEventCount += 1
-                guard !reduceMotion else { return }
-                withAnimation(.snappy) {}
-            },
-            onFailure: { homesteadBuildError = $0 }
+            roster: appState.roster
         )
     }
 }
@@ -113,8 +102,11 @@ struct HomesteadDetailHeader: View {
         ZStack(alignment: .bottomLeading) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                .saturation(status.isUnlocked ? 1 : 0.14)
-                .opacity(status.isUnlocked ? 1 : 0.62)
+                .homesteadLockedArtworkStyle(
+                    isUnlocked: status.isUnlocked,
+                    lockedSaturation: 0.14,
+                    lockedOpacity: 0.62
+                )
                 .overlay {
                     LinearGradient(
                         colors: [.clear, .black.opacity(0.58)],

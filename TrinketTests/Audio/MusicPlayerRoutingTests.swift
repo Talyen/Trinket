@@ -4,7 +4,7 @@ import XCTest
 
 final class MusicPlayerRoutingTests: XCTestCase {
     func testMenuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: nil,
             activeBattle: nil,
@@ -18,7 +18,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testNormalBattlePreviewPlaysBattleTrack() throws {
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
@@ -34,7 +34,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testBossBattlePreviewPlaysBossTrack() throws {
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
             activeBattle: nil,
@@ -57,7 +57,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
             enemy: GameContent.enemy(matching: "skeleton")?.combatant
         )
 
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
             activeBattle: battle,
@@ -79,7 +79,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
             enemy: GameContent.enemy(matching: "the_blight_treant")?.combatant
         )
 
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .collection,
             preview: nil,
             activeBattle: battle,
@@ -93,7 +93,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testInactiveSceneSilencesAndPreservesPosition() {
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,
@@ -105,7 +105,7 @@ final class MusicPlayerRoutingTests: XCTestCase {
     }
 
     func testMutedMusicSilencesAndPreservesPosition() {
-        let route = MusicPlayer.route(
+        let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
             activeBattle: nil,

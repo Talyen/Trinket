@@ -35,7 +35,7 @@ extension AppState {
 
     func refreshMusic(scenePhase: ScenePhase) {
         musicPlayer.update(
-            route: MusicPlayer.route(
+            route: MusicRoute.resolve(
                 selectedTab: selectedTab,
                 preview: battle.preview,
                 activeBattle: battle.activeBattle,

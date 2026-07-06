@@ -7,9 +7,8 @@ import TrinketPersistence
 struct HomesteadView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var upgradeEventCount = 0
+    @State private var buildActions = HomesteadBuildActions()
     @State private var recentUpgradeID: HomesteadNodeID?
-    @State private var homesteadBuildError: String?
 
     private var homestead: PlayerHomesteadState { appState.homestead.current }
     private var roster: PlayerRosterState { appState.roster.current }
@@ -27,6 +26,8 @@ struct HomesteadView: View {
     }
 
     var body: some View {
+        @Bindable var buildActions = buildActions
+
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadResourceWallet(
@@ -71,24 +72,22 @@ struct HomesteadView: View {
         .navigationTitle("Homestead")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
-        .sensoryFeedback(.success, trigger: upgradeEventCount)
-        .homesteadBuildErrorAlert(error: $homesteadBuildError)
+        .sensoryFeedback(.success, trigger: buildActions.upgradeEventCount)
+        .homesteadBuildErrorAlert(error: $buildActions.error)
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        runHomesteadBuildOrUpgrade(
+        buildActions.perform(
             definition,
             homestead: appState.homestead,
             roster: appState.roster,
-            onSuccess: {
-                recentUpgradeID = definition.id
-                upgradeEventCount += 1
+            onSuccess: { nodeID in
+                recentUpgradeID = nodeID
                 guard !reduceMotion else { return }
                 withAnimation(.snappy) {
-                    recentUpgradeID = definition.id
+                    recentUpgradeID = nodeID
                 }
-            },
-            onFailure: { homesteadBuildError = $0 }
+            }
         )
     }
 
