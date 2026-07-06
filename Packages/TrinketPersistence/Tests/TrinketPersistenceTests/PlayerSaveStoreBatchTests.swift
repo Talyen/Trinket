@@ -96,4 +96,29 @@ final class PlayerSaveStoreBatchTests: XCTestCase {
         XCTAssertEqual(persistCount, 1)
         XCTAssertEqual(store.roster.gold, 3)
     }
+
+    func testReenteringFlushWhilePersistingWritesLatestState() throws {
+        let fileStore = SaveTestSupport.makeFileStore(directoryURL: directoryURL)
+        let store = PlayerSaveStore(
+            fileStore: fileStore,
+            persistDebounceNanoseconds: 1_000_000_000
+        )
+        var reenteredDuringPersist = false
+        store.testSaveBarrier = {
+            guard !reenteredDuringPersist else { return }
+            reenteredDuringPersist = true
+            store.grantGoldForTests(10)
+            store.flushPendingPersistIfNeeded()
+        }
+
+        store.grantGoldForTests(5)
+        store.flushPendingPersistIfNeeded()
+
+        XCTAssertTrue(reenteredDuringPersist)
+        let reloaded = PlayerSaveStore(
+            fileStore: fileStore,
+            persistDebounceNanoseconds: 0
+        )
+        XCTAssertEqual(reloaded.roster.gold, 15)
+    }
 }

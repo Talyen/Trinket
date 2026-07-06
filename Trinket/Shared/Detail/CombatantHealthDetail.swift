@@ -5,16 +5,18 @@ struct CombatHealthBar: View {
     let health: Int
     let maxHealth: Int
     let fillColor: Color
+    var reduceMotion: Bool = false
 
     @State private var displayedHealth: Double
     @State private var trailingHealth: Double
     @State private var restoreHealth: Double
     @State private var restoreOpacity = 0.0
 
-    init(health: Int, maxHealth: Int, fillColor: Color) {
+    init(health: Int, maxHealth: Int, fillColor: Color, reduceMotion: Bool = false) {
         self.health = health
         self.maxHealth = maxHealth
         self.fillColor = fillColor
+        self.reduceMotion = reduceMotion
         let initialHealth = Double(health)
         _displayedHealth = State(initialValue: initialHealth)
         _trailingHealth = State(initialValue: initialHealth)
@@ -69,6 +71,14 @@ struct CombatHealthBar: View {
 
     private func animateHealthChange(from oldValue: Int, to newValue: Int) {
         let newHealth = Double(newValue)
+
+        if reduceMotion {
+            displayedHealth = newHealth
+            trailingHealth = newHealth
+            restoreHealth = newHealth
+            restoreOpacity = 0
+            return
+        }
 
         if newValue < oldValue {
             withAnimation(.easeOut(duration: 0.22)) {

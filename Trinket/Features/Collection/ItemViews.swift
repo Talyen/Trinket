@@ -40,22 +40,28 @@ struct InventoryGridView: View {
 
     var body: some View {
         let inventoryState = appState.inventory.current
+        let items = filteredItems(from: inventoryState)
 
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(filteredItems(from: inventoryState)) { item in
-                        Button {
-                            selectedItem = item
-                        } label: {
-                            ItemCard(item: item, showsAffixCount: true)
+            if items.isEmpty {
+                inventoryEmptyState(inventoryState: inventoryState)
+                    .padding(TrinketDesign.Metrics.contentMargin)
+            } else {
+                VStack(alignment: .leading, spacing: 24) {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(items) { item in
+                            Button {
+                                selectedItem = item
+                            } label: {
+                                ItemCard(item: item, showsAffixCount: true)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(item.displayName) item card")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("\(item.displayName) item card")
                     }
                 }
+                .padding(TrinketDesign.Metrics.contentMargin)
             }
-            .padding(TrinketDesign.Metrics.contentMargin)
         }
         .scrollDismissesKeyboard(.interactively)
         .trinketScreenBackground(.collection)
@@ -104,6 +110,27 @@ struct InventoryGridView: View {
                 }
 
             return matchesSlot && matchesSearch
+        }
+    }
+
+    @ViewBuilder
+    private func inventoryEmptyState(inventoryState: PlayerInventoryState) -> some View {
+        let isFilteredEmpty = !inventoryState.items.isEmpty
+
+        if isFilteredEmpty {
+            ContentUnavailableView(
+                "No Matching Items",
+                systemImage: "magnifyingglass",
+                description: Text("Try a different search or filter.")
+            )
+            .accessibilityIdentifier(AccessibilityID.Collection.inventoryNoResults)
+        } else {
+            ContentUnavailableView(
+                "No Items Yet",
+                systemImage: "shippingbox",
+                description: Text("Complete stages to earn gear for your heroes.")
+            )
+            .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
         }
     }
 }

@@ -27,23 +27,33 @@ struct CollectionCombatantGridView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(combatants) { combatant in
-                        CollectionCombatantButton(
-                            combatant: combatant,
-                            isLocked: !appState.roster.current.isUnlocked(combatant),
-                            cardWidth: nil
-                        ) {
-                            selectedCombatant = CombatantDetailContext(
-                                kind: kind,
-                                combatantID: combatant.id
-                            )
+            if combatants.isEmpty {
+                ContentUnavailableView(
+                    "Nothing to Collect",
+                    systemImage: "person.3",
+                    description: Text("Unlock heroes and pets by progressing through the journey.")
+                )
+                .padding(TrinketDesign.Metrics.contentMargin)
+                .accessibilityIdentifier("Collection combatants empty state")
+            } else {
+                VStack(alignment: .leading, spacing: 24) {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(combatants) { combatant in
+                            CollectionCombatantButton(
+                                combatant: combatant,
+                                isLocked: !appState.roster.current.isUnlocked(combatant),
+                                cardWidth: nil
+                            ) {
+                                selectedCombatant = CombatantDetailContext(
+                                    kind: kind,
+                                    combatantID: combatant.id
+                                )
+                            }
                         }
                     }
                 }
+                .padding(TrinketDesign.Metrics.contentMargin)
             }
-            .padding(TrinketDesign.Metrics.contentMargin)
         }
         .trinketScreenBackground(.collection)
         .navigationTitle(title)
@@ -55,7 +65,7 @@ struct CollectionCombatantGridView: View {
             )
             .presentationDetents([.large])
             .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.hidden)
+            .presentationDragIndicator(.visible)
         }
     }
 }

@@ -232,8 +232,8 @@ final class AppStatePlayFlowTests: XCTestCase {
             userDefaults: defaults
         )
 
-        XCTAssertNotNil(state.battle.activeBattle)
-        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
+        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
         XCTAssertEqual(state.selectedTab, .play)
     }
 
@@ -281,8 +281,8 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
 
         // launch-screen battle uses the hardcoded stage, not the session one
-        XCTAssertNotNil(state.battle.activeBattle)
-        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
+        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
     }
 
     func testSessionStaleStageIDIgnored() throws {
@@ -304,7 +304,7 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL,
             userDefaults: defaults
         )
-        XCTAssertNotNil(state.battle.activeBattle)
+        _ = try XCTUnwrap(state.battle.activeBattle)
 
         state.battle.endBattle()
 

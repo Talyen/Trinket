@@ -66,7 +66,8 @@ struct BattleCombatantPane: View {
                     CombatHealthBar(
                         health: health,
                         maxHealth: maxHealth,
-                        fillColor: combatant.healthBarColor
+                        fillColor: combatant.healthBarColor,
+                        reduceMotion: reduceMotion
                     )
 
                     CombatManaBar(
@@ -81,7 +82,8 @@ struct BattleCombatantPane: View {
                 CombatHealthBar(
                     health: health,
                     maxHealth: maxHealth,
-                    fillColor: combatant.healthBarColor
+                    fillColor: combatant.healthBarColor,
+                    reduceMotion: reduceMotion
                 )
                 .accessibilityHidden(true)
                 .padding(.horizontal, 14)

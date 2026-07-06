@@ -61,5 +61,18 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             appState.shellDidChangeScenePhase(newPhase)
         }
+        .alert(
+            "Progress Was Reset",
+            isPresented: Binding(
+                get: { appState.showCorruptSaveRecoveryAlert },
+                set: { if !$0 { appState.acknowledgeCorruptSaveRecovery() } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                appState.acknowledgeCorruptSaveRecovery()
+            }
+        } message: {
+            Text("Your save file was damaged and could not be loaded. A fresh journey has been started on this device.")
+        }
     }
 }

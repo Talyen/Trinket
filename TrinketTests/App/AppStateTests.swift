@@ -81,13 +81,13 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
-    func testBattleLaunchScreenStartsStageOneOne() {
+    func testBattleLaunchScreenStartsStageOneOne() throws {
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-launch-screen", "battle"])
         )
 
-        XCTAssertNotNil(state.battle.activeBattle)
-        XCTAssertEqual(state.battle.activeBattle?.stageID, "chapter-1-stage-1")
+        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
+        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
     }
 
     func testSeedTestProgressPopulatesInventory() {
@@ -106,6 +106,24 @@ final class AppStateTests: XCTestCase {
         )
 
         XCTAssertEqual(state.selectedTab, .options)
+    }
+
+    func testCorruptSaveSetsRecoveryAlertFlag() throws {
+        let corruptDirectory = try SaveTestSupport.makeTempDirectory(prefix: "AppStateCorruptSaveTests")
+        defer { SaveTestSupport.removeTempDirectory(corruptDirectory) }
+
+        let fileStore = SaveTestSupport.makeFileStore(directoryURL: corruptDirectory)
+        try "corrupt".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
+        try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
+
+        let state = makeAppState(
+            directoryURL: corruptDirectory,
+            fileStore: fileStore
+        )
+
+        XCTAssertTrue(state.showCorruptSaveRecoveryAlert)
+        state.acknowledgeCorruptSaveRecovery()
+        XCTAssertFalse(state.showCorruptSaveRecoveryAlert)
     }
 
     func testAppearanceOverrideAppliesToOptionsStore() {

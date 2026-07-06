@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketDesignSystem
+import TrinketPersistence
 
 struct OptionsView: View {
     @Environment(AppState.self) private var appState
@@ -10,6 +11,15 @@ struct OptionsView: View {
         @Bindable var options = appState.options
 
         Form {
+            if let statusMessage = appState.shellDataStatusMessage {
+                Section("Progress Status") {
+                    Label(statusMessage, systemImage: statusSymbolName)
+                        .font(.subheadline)
+                        .foregroundStyle(statusForegroundStyle)
+                        .accessibilityIdentifier("Progress Status Message")
+                }
+            }
+
             Section("Appearance") {
                 Picker("Mode", selection: $options.appearance) {
                     ForEach(TrinketDesign.AppAppearance.allCases) { appearance in
@@ -54,6 +64,9 @@ struct OptionsView: View {
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
+        .onAppear {
+            appState.refreshShellDataStatusMessage()
+        }
         .alert(
             "Reset Game Progress?",
             isPresented: $isResetConfirmationPresented
@@ -61,6 +74,8 @@ struct OptionsView: View {
             Button("Reset Game Progress", role: .destructive) {
                 if !appState.resetGameplayProgress() {
                     resetErrorMessage = "Couldn't reset progress. Try again."
+                } else {
+                    appState.refreshShellDataStatusMessage()
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -77,6 +92,40 @@ struct OptionsView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(resetErrorMessage ?? "")
+        }
+    }
+
+    private var statusSymbolName: String {
+        if appState.playerSave.lastPersistenceError != nil {
+            return "externaldrive.badge.exclamationmark"
+        }
+
+        switch appState.syncCoordinator.status {
+        case .error, .iCloudUnavailable:
+            return "icloud.slash"
+        case .offline:
+            return "icloud.slash"
+        case .syncing:
+            return "arrow.triangle.2.circlepath.icloud"
+        case .upToDate:
+            return "checkmark.icloud"
+        case .idle:
+            return "icloud"
+        }
+    }
+
+    private var statusForegroundStyle: AnyShapeStyle {
+        if appState.playerSave.lastPersistenceError != nil {
+            return AnyShapeStyle(TrinketDesign.Colors.destructive)
+        }
+
+        switch appState.syncCoordinator.status {
+        case .error, .iCloudUnavailable:
+            return AnyShapeStyle(TrinketDesign.Colors.destructive)
+        case .offline, .idle, .syncing:
+            return AnyShapeStyle(.secondary)
+        case .upToDate:
+            return AnyShapeStyle(TrinketDesign.Colors.success)
         }
     }
 }

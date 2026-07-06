@@ -46,7 +46,7 @@ struct CollectionView: View {
                 if !inventoryState.items.isEmpty {
                     collectionCategorySection(
                         title: "Inventory",
-                        accessibilityIdentifier: "Inventory collection category",
+                        accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
                         destination: InventoryGridView()
                     ) {
                         ForEach(Array(inventoryState.items.prefix(12))) { item in
@@ -59,6 +59,20 @@ struct CollectionView: View {
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
+                    }
+                } else {
+                    collectionCategorySection(
+                        title: "Inventory",
+                        accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
+                        destination: InventoryGridView()
+                    ) {
+                        ContentUnavailableView(
+                            "No Items Yet",
+                            systemImage: "shippingbox",
+                            description: Text("Complete stages to earn gear for your heroes.")
+                        )
+                        .collectionShelfCardWidth()
+                        .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
                     }
                 }
             }
@@ -89,7 +103,7 @@ struct CollectionView: View {
                 ItemDetailView(item: item)
             }
             .presentationDetents([.large])
-            .presentationDragIndicator(.hidden)
+            .presentationDragIndicator(.visible)
         }
         .sheet(item: $selectedCombatant) { context in
             appState.rosterCombatantDetail(
@@ -98,7 +112,7 @@ struct CollectionView: View {
             )
             .presentationDetents([.large])
             .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.hidden)
+            .presentationDragIndicator(.visible)
         }
     }
 

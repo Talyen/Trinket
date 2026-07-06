@@ -4,106 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-func runHomesteadBuildOrUpgrade(
-    _ definition: HomesteadNodeDefinition,
-    homestead: PlayerHomesteadStore,
-    roster: PlayerRosterStore,
-    onSuccess: () -> Void,
-    onFailure: (String) -> Void
-) {
-    switch homestead.buildOrUpgrade(definition, roster: roster) {
-    case .success:
-        onSuccess()
-    case .insufficientResources:
-        onFailure("Not enough resources to build or upgrade this project.")
-    case .persistFailed:
-        onFailure("Couldn't save homestead progress. Try again.")
-    }
-}
-
-@Observable
-@MainActor
-final class HomesteadBuildActions {
-    var isBuilding = false
-    var error: String?
-    var upgradeEventCount = 0
-
-    func perform(
-        _ definition: HomesteadNodeDefinition,
-        homestead: PlayerHomesteadStore,
-        roster: PlayerRosterStore,
-        onSuccess: (HomesteadNodeID) -> Void = { _ in }
-    ) {
-        guard !isBuilding else { return }
-        isBuilding = true
-        defer { isBuilding = false }
-
-        runHomesteadBuildOrUpgrade(
-            definition,
-            homestead: homestead,
-            roster: roster,
-            onSuccess: {
-                upgradeEventCount += 1
-                onSuccess(definition.id)
-            },
-            onFailure: { error = $0 }
-        )
-    }
-}
-
-struct HomesteadResourceWallet: View {
-    let homestead: PlayerHomesteadState
-    let roster: PlayerRosterState
-    let resources: [HomesteadResource]
-
-    var body: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                ForEach(resources) { resource in
-                    HomesteadResourcePill(
-                        resource: resource,
-                        balance: homestead.balance(for: resource, roster: roster)
-                    )
-                }
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .scrollTargetLayout()
-        }
-        .scrollTargetBehavior(.viewAligned)
-        .scrollIndicators(.hidden)
-    }
-}
-
-struct HomesteadResourcePill: View {
-    let resource: HomesteadResource
-    let balance: Int
-
-    var body: some View {
-        HStack(spacing: 7) {
-            Image(systemName: resource.symbolName)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(resource.tint)
-                .frame(width: 18)
-
-            Text(resource.displayName)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.78)
-
-            Text("\(balance)")
-                .font(.subheadline.monospacedDigit().weight(.semibold))
-                .contentTransition(.numericText())
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        // UIStyleCheck: allow - Resource wallet is compact glass chrome, not a content card.
-        .background(.thinMaterial, in: Capsule(style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(resource.displayName), \(balance)")
-    }
-}
-
 struct HomesteadProjectCard: View {
     enum Style {
         case featured(onBuild: () -> Void)
@@ -507,31 +407,6 @@ struct HomesteadRequirementCountText: View {
             }
             .font(font)
             .contentTransition(.numericText())
-        }
-    }
-}
-
-extension View {
-    func homesteadLockedArtworkStyle(
-        isUnlocked: Bool,
-        lockedSaturation: Double,
-        lockedOpacity: Double
-    ) -> some View {
-        saturation(isUnlocked ? 1 : lockedSaturation)
-            .opacity(isUnlocked ? 1 : lockedOpacity)
-    }
-
-    func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
-        alert(
-            "Build Failed",
-            isPresented: Binding(
-                get: { error.wrappedValue != nil },
-                set: { if !$0 { error.wrappedValue = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(error.wrappedValue ?? "")
         }
     }
 }

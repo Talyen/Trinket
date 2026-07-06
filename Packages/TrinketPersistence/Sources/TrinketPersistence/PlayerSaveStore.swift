@@ -26,6 +26,7 @@ public final class PlayerSaveStore {
     public private(set) var hadCorruptSaveOnLoad = false
     public private(set) var hadUnsupportedNewerSaveOnLoad = false
     public var onLocalSave: ((PlayerSave) -> Void)?
+    package var testSaveBarrier: (() -> Void)?
 
     public var hasPendingPersist: Bool {
         pendingPersistSave != nil || debouncedPersistSave != nil
@@ -225,6 +226,7 @@ public final class PlayerSaveStore {
         }
 
         do {
+            testSaveBarrier?()
             try fileStore.save(candidate)
             save = candidate
             loadedFromDisk = true

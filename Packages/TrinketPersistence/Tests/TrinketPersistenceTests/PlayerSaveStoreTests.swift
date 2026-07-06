@@ -249,6 +249,20 @@ final class PlayerSaveStoreTests: XCTestCase {
         }
     }
 
+    func testCorruptSaveFallsBackToFreshStartAndSetsFlag() throws {
+        let fileStore = makeFileStore()
+        try "corrupt".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
+        try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
+
+        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+
+        XCTAssertTrue(store.hadCorruptSaveOnLoad)
+        XCTAssertEqual(store.roster, .freshStart)
+        XCTAssertEqual(store.journey, .initial)
+        XCTAssertEqual(store.inventory, .freshStart)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileStore.saveFileURL.path))
+    }
+
     private func makeFileStore() -> PlayerSaveFileStore {
         SaveTestSupport.makeFileStore(directoryURL: directoryURL)
     }

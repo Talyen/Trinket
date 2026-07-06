@@ -27,6 +27,8 @@ final class AppState {
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
+    var showCorruptSaveRecoveryAlert = false
+    var shellDataStatusMessage: String?
 
     init(
         environment: AppEnvironment = .shared,
@@ -57,7 +59,40 @@ final class AppState {
         selectedTab = dependencies.selectedTab
         battle = BattleSession()
 
+        showCorruptSaveRecoveryAlert = playerSave.hadCorruptSaveOnLoad
+        refreshShellDataStatusMessage()
         finishBootstrap(environment: environment)
+    }
+
+    func acknowledgeCorruptSaveRecovery() {
+        showCorruptSaveRecoveryAlert = false
+    }
+
+    func refreshShellDataStatusMessage() {
+        if let persistenceMessage = persistenceStatusMessage {
+            shellDataStatusMessage = persistenceMessage
+            return
+        }
+
+        switch syncCoordinator.status {
+        case let .error(message), let .iCloudUnavailable(message):
+            shellDataStatusMessage = message
+        case .offline:
+            shellDataStatusMessage = syncCoordinator.status.displayText
+        default:
+            shellDataStatusMessage = nil
+        }
+    }
+
+    private var persistenceStatusMessage: String? {
+        switch playerSave.lastPersistenceError {
+        case .writeFailed:
+            return "Couldn't save progress to this device. Your latest changes may be lost if the app closes."
+        case let .invalidSave(message):
+            return message
+        case .none:
+            return nil
+        }
     }
 
     var playChapter: Chapter {
@@ -93,6 +128,7 @@ final class AppState {
             appStateLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
             )
+            refreshShellDataStatusMessage()
         }
         return scrollTarget
     }
@@ -129,6 +165,7 @@ final class AppState {
             appStateLogger.error(
                 "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
             )
+            refreshShellDataStatusMessage()
         }
     }
 

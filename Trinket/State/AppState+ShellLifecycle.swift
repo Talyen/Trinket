@@ -54,12 +54,14 @@ extension AppState {
             playerSave.flushPendingPersistIfNeeded()
         }
         if phase == .background {
-            Task {
+            Task { @MainActor in
                 await syncCoordinator.checkpointUploadIfNeeded()
+                refreshShellDataStatusMessage()
             }
         } else if phase == .active {
-            Task {
+            Task { @MainActor in
                 await syncCoordinator.reconcileForegroundIfSafe()
+                refreshShellDataStatusMessage()
             }
         }
     }

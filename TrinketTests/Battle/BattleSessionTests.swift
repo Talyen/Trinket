@@ -28,8 +28,8 @@ final class BattleSessionTests: XCTestCase {
         let message = appState.startBattle(for: stage)
 
         XCTAssertNil(message)
-        XCTAssertNotNil(appState.battle.activeBattle)
-        XCTAssertEqual(appState.battle.activeBattle?.stageID, stage.id)
+        let activeBattle = try XCTUnwrap(appState.battle.activeBattle)
+        XCTAssertEqual(activeBattle.stageID, stage.id)
         XCTAssertNil(appState.battle.preview)
     }
 

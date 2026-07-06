@@ -22,6 +22,12 @@ enum AccessibilityID {
         static let enemyTraitDescription = "Combatant Enemy Trait Description"
     }
 
+    enum Collection {
+        static let inventoryEmptyState = "Inventory Empty State"
+        static let inventoryNoResults = "Inventory No Results"
+        static let inventoryCategory = "Inventory collection category"
+    }
+
     enum Search {
         static let emptyState = "Search Empty State"
         static let noResults = "Search No Results"

@@ -201,16 +201,16 @@ public enum PlayerSaveMerger {
         merged.unlockedHeroIDs = Array(Set(local.unlockedHeroIDs).union(remote.unlockedHeroIDs)).sorted()
         merged.unlockedPetIDs = Array(Set(local.unlockedPetIDs).union(remote.unlockedPetIDs)).sorted()
         merged.progressions = mergeProgressions(local.progressions, remote.progressions)
-        merged.abilityLoadouts = mergeAbilityLoadouts(
-            local.abilityLoadouts,
-            remote.abilityLoadouts,
+        merged.abilityLoadouts = mergeStringKeyed(
+            local: local.abilityLoadouts,
+            remote: remote.abilityLoadouts,
             preferRemote: preferRemote
-        )
-        merged.equipmentLoadouts = mergeEquipmentLoadouts(
-            local.equipmentLoadouts,
-            remote.equipmentLoadouts,
+        ) { $0.merged(with: $1, preferOther: preferRemote) }
+        merged.equipmentLoadouts = mergeStringKeyed(
+            local: local.equipmentLoadouts,
+            remote: remote.equipmentLoadouts,
             preferRemote: preferRemote
-        )
+        ) { $0.merged(with: $1, preferOther: preferRemote) }
         if !merged.unlockedHeroIDs.contains(merged.activeHeroID) {
             merged.activeHeroID = merged.unlockedHeroIDs.first ?? PlayerRosterState.starterHeroID
         }
@@ -220,43 +220,22 @@ public enum PlayerSaveMerger {
         return merged
     }
 
-    private static func mergeAbilityLoadouts(
-        _ local: [String: SavedAbilityLoadout],
-        _ remote: [String: SavedAbilityLoadout],
-        preferRemote: Bool
-    ) -> [String: SavedAbilityLoadout] {
+    private static func mergeStringKeyed<T>(
+        local: [String: T],
+        remote: [String: T],
+        preferRemote: Bool,
+        mergePair: (T, T) -> T
+    ) -> [String: T] {
         let ids = Set(local.keys).union(remote.keys)
-        var merged: [String: SavedAbilityLoadout] = [:]
+        var merged: [String: T] = [:]
         for id in ids {
             switch (local[id], remote[id]) {
-            case let (localLoadout?, remoteLoadout?):
-                merged[id] = localLoadout.merged(with: remoteLoadout, preferOther: preferRemote)
-            case let (localLoadout?, nil):
-                merged[id] = localLoadout
-            case let (nil, remoteLoadout?):
-                merged[id] = remoteLoadout
-            case (nil, nil):
-                break
-            }
-        }
-        return merged
-    }
-
-    private static func mergeEquipmentLoadouts(
-        _ local: [String: SavedEquipmentLoadout],
-        _ remote: [String: SavedEquipmentLoadout],
-        preferRemote: Bool
-    ) -> [String: SavedEquipmentLoadout] {
-        let ids = Set(local.keys).union(remote.keys)
-        var merged: [String: SavedEquipmentLoadout] = [:]
-        for id in ids {
-            switch (local[id], remote[id]) {
-            case let (localLoadout?, remoteLoadout?):
-                merged[id] = localLoadout.merged(with: remoteLoadout, preferOther: preferRemote)
-            case let (localLoadout?, nil):
-                merged[id] = localLoadout
-            case let (nil, remoteLoadout?):
-                merged[id] = remoteLoadout
+            case let (localValue?, remoteValue?):
+                merged[id] = mergePair(localValue, remoteValue)
+            case let (localValue?, nil):
+                merged[id] = localValue
+            case let (nil, remoteValue?):
+                merged[id] = remoteValue
             case (nil, nil):
                 break
             }

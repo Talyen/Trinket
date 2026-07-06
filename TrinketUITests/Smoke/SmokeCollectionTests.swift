@@ -5,10 +5,10 @@ final class SmokeCollectionTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
-        assertExists("Inventory collection category")
+        assertExists(AccessibilityID.Collection.inventoryCategory)
     }
 
-    func testFreshStartCollectionHidesInventoryCategoryWhenEmpty() {
+    func testFreshStartCollectionShowsInventoryEmptyState() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -17,7 +17,8 @@ final class SmokeCollectionTests: TrinketUITestCase {
         ])
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
-        XCTAssertFalse(app.descendants(matching: .any)["Inventory collection category"].waitForExistence(timeout: 1))
+        assertExists(AccessibilityID.Collection.inventoryCategory)
+        assertExists(AccessibilityID.Collection.inventoryEmptyState)
     }
 
     func testHeroesGridRenders() {
