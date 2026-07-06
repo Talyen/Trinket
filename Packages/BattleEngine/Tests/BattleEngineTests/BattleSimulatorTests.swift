@@ -128,4 +128,31 @@ final class BattleSimulatorTests: XCTestCase {
         XCTAssertEqual(deferred.log.map(\.text), eager.log.map(\.text))
         XCTAssertEqual(deferred.events.map(\.id), eager.events.map(\.id))
     }
+
+    func testLazyLogSyncMatchesTrackedLog() {
+        var battle = BattleState(
+            hero: GameContent.heroes[2],
+            pet: wolfPet,
+            enemy: defaultEnemy,
+            rngSeed: 42,
+            tracksLog: false
+        )
+
+        while !battle.isBattleOver {
+            _ = battle.advanceOneStep(rebuildLog: false)
+        }
+
+        XCTAssertTrue(battle.log.isEmpty)
+
+        battle.syncLog()
+
+        let tracked = BattleSimulator.run(
+            hero: GameContent.heroes[2],
+            pet: wolfPet,
+            enemy: defaultEnemy,
+            options: BattleSimulationOptions(seed: 42, recordsLog: true, rebuildLogEachStep: true)
+        )
+
+        XCTAssertEqual(battle.log.map(\.text), tracked.log.map(\.text))
+    }
 }

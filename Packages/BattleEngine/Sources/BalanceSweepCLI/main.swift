@@ -10,7 +10,7 @@ struct CLIOptions {
     var tiers: [SimulationPowerTier] = SimulationPowerTier.allCases
     var smoke: Bool = false
     var ciGate: Bool = false
-    var includeAbilityAnalysis: Bool = true
+    var includeAbilityAnalysis: Bool = false
     var baseSeed: UInt64 = BalanceSweepDefaults.baseSeed
     var stageWeighted: Bool = false
     var loadoutMode: LoadoutSamplingMode = .realistic

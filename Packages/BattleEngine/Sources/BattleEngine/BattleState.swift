@@ -51,6 +51,7 @@ public struct BattleState {
     /// All mutable battle state. Rule engines mutate this in place each step.
     var store: BattleMutableStore
 
+    private let cachedMatchup: BattleMatchup
     private var logProjection: BattleLogProjection?
 
     public static let defaultRNGSeed: UInt64 = 0
@@ -74,6 +75,7 @@ public struct BattleState {
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.enemy = resolvedEnemy
         self.tracksLog = tracksLog
+        cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy)
 
         let seed = rngSeed ?? Self.defaultRNGSeed
         self.rngSeed = seed
@@ -92,11 +94,11 @@ public struct BattleState {
             rngSeed: seed
         )
 
-        _ = store.appendMilestone(.battleStarted, matchup: matchup)
+        _ = store.appendMilestone(.battleStarted, matchup: cachedMatchup)
 
         if tracksLog {
             var projection = BattleLogProjection()
-            projection.sync(events: store.events, matchup: matchup)
+            projection.sync(events: store.events, matchup: cachedMatchup)
             logProjection = projection
         }
     }
@@ -155,7 +157,7 @@ public struct BattleState {
     }
 
     public var matchup: BattleMatchup {
-        BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+        cachedMatchup
     }
 
     public func health(of combatant: Combatant) -> Int {
@@ -213,20 +215,25 @@ public struct BattleState {
     public mutating func advanceOneStep(rebuildLog: Bool = true) -> BattleStep {
         guard !isBattleOver else { return .ended(events: []) }
 
-        let step = BattleLoopEngine.advanceOneStep(matchup: matchup, context: &store)
+        let step = BattleLoopEngine.advanceOneStep(matchup: cachedMatchup, context: &store)
         finishMutation(rebuildLog: rebuildLog)
         return step
     }
 
-    /// Brings `log` in sync with `events` when `tracksLog` is enabled.
+    /// Brings `log` in sync with `events`. Creates the projection on demand when
+    /// `tracksLog` was disabled during auto-ticks.
     public mutating func syncLog() {
-        let currentMatchup = matchup
-        logProjection?.sync(events: store.events, matchup: currentMatchup)
+        if logProjection == nil {
+            var projection = BattleLogProjection()
+            projection.rebuildFromScratch(events: store.events, matchup: cachedMatchup)
+            logProjection = projection
+        } else {
+            logProjection?.sync(events: store.events, matchup: cachedMatchup)
+        }
     }
 
     private mutating func finishMutation(rebuildLog: Bool) {
         guard rebuildLog, tracksLog else { return }
-        let currentMatchup = matchup
-        logProjection?.sync(events: store.events, matchup: currentMatchup)
+        logProjection?.sync(events: store.events, matchup: cachedMatchup)
     }
 }

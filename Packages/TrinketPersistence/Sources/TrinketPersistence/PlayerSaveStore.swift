@@ -14,6 +14,9 @@ public final class PlayerSaveStore {
     private var debouncedPersistSave: PlayerSave?
     private var debouncedPersistTask: Task<Void, Never>?
     private var isPersisting = false
+    private var cachedRoster: PlayerRosterState?
+    private var cachedRosterSnapshot: SavedRosterState?
+    private var cachedRosterInventoryIDs: Set<String>?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -72,6 +75,7 @@ public final class PlayerSaveStore {
         case .missing:
             save = PlayerSaveSanitizer.sanitize(.fresh)
         }
+        invalidateRosterCache()
     }
 
     public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
@@ -110,6 +114,7 @@ public final class PlayerSaveStore {
         do {
             try fileStore.save(pending)
             save = pending
+            invalidateRosterCache()
             pendingPersistSave = nil
             lastPersistenceError = nil
             onLocalSave?(save)
@@ -166,6 +171,7 @@ public final class PlayerSaveStore {
         save = persisted
         loadedFromDisk = true
         lastPersistenceError = nil
+        invalidateRosterCache()
         onLocalSave?(save)
         scheduleDebouncedPersist(persisted)
     }
@@ -247,6 +253,7 @@ public final class PlayerSaveStore {
             pendingPersistSave = nil
             debouncedPersistSave = nil
             lastPersistenceError = nil
+            invalidateRosterCache()
             if notifyLocalSave {
                 onLocalSave?(save)
             }
@@ -256,6 +263,7 @@ public final class PlayerSaveStore {
             if optimisticOnFailure {
                 save = persisted
                 pendingPersistSave = persisted
+                invalidateRosterCache()
                 if notifyLocalSave {
                     onLocalSave?(save)
                 }
@@ -266,6 +274,23 @@ public final class PlayerSaveStore {
     }
 
     private func resolvedRoster() -> PlayerRosterState {
-        save.playerRoster(inventoryItemIDs: Set(save.inventory.items.map(\.id)))
+        let inventoryIDs = Set(save.inventory.items.map(\.id))
+        if let cachedRoster,
+           cachedRosterSnapshot == save.roster,
+           cachedRosterInventoryIDs == inventoryIDs {
+            return cachedRoster
+        }
+
+        let hydrated = save.playerRoster(inventoryItemIDs: inventoryIDs)
+        cachedRoster = hydrated
+        cachedRosterSnapshot = save.roster
+        cachedRosterInventoryIDs = inventoryIDs
+        return hydrated
+    }
+
+    private func invalidateRosterCache() {
+        cachedRoster = nil
+        cachedRosterSnapshot = nil
+        cachedRosterInventoryIDs = nil
     }
 }

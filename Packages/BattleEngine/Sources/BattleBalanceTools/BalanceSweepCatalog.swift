@@ -45,6 +45,10 @@ public enum BalanceSweepCatalog {
     ]
 
     public static func journeyBattleEnemyIDs() -> Set<String> {
+        journeyBattleEnemyIDsCache
+    }
+
+    private static let journeyBattleEnemyIDsCache: Set<String> = {
         var ids = Set<String>()
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
@@ -54,7 +58,7 @@ public enum BalanceSweepCatalog {
             }
         }
         return ids
-    }
+    }()
 
     public static func enemies(
         for tier: SimulationPowerTier,

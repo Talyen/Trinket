@@ -62,7 +62,10 @@ public struct BattleRoster {
     }
 
     public func participant(for combatant: Combatant) -> BattleParticipant? {
-        BattleParticipant.allCases.first { self[$0].id == combatant.id }
+        if hero.id == combatant.id { return .hero }
+        if pet.id == combatant.id { return .pet }
+        if enemy.id == combatant.id { return .enemy }
+        return nil
     }
 
     // MARK: - Dispatch by Combatant identity
@@ -90,8 +93,9 @@ public struct BattleRoster {
     }
 
     public mutating func setActiveEffects(_ effects: [ActiveEffect], for combatant: Combatant) {
-        guard let participant = participant(for: combatant) else { return }
-        self[participant].activeEffects = effects
+        mutateRuntime(for: combatant) { runtime in
+            runtime.activeEffects = effects
+        }
     }
 
     // MARK: - Health accessors
@@ -105,6 +109,34 @@ public struct BattleRoster {
     }
 
     // MARK: - Ready-actor picker
+
+    /// Returns the highest-priority runtime eligible to act on `tick`, if any.
+    public func nextReadyRuntime(atTick tick: Int) -> CombatantRuntime? {
+        var best: (runtime: CombatantRuntime, turnPriority: Int)?
+
+        for participant in BattleParticipant.allCases {
+            let runtime = self[participant]
+            guard runtime.isReady(atTick: tick) else { continue }
+
+            guard let current = best else {
+                best = (runtime, participant.turnPriority)
+                continue
+            }
+
+            if runtime.nextReadyAtTick < current.runtime.nextReadyAtTick {
+                best = (runtime, participant.turnPriority)
+            } else if runtime.nextReadyAtTick == current.runtime.nextReadyAtTick {
+                if runtime.actionSpeed.effectiveInterval > current.runtime.actionSpeed.effectiveInterval {
+                    best = (runtime, participant.turnPriority)
+                } else if runtime.actionSpeed.effectiveInterval == current.runtime.actionSpeed.effectiveInterval,
+                          participant.turnPriority < current.turnPriority {
+                    best = (runtime, participant.turnPriority)
+                }
+            }
+        }
+
+        return best?.runtime
+    }
 
     /// Returns the runtimes that are eligible to act on `tick`, sorted by
     /// `(nextReadyAtTick ascending, effectiveInterval descending, turnPriority

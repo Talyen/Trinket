@@ -188,6 +188,20 @@ final class BattleRosterTests: XCTestCase {
         XCTAssertFalse(roster.readyCombatants(atTick: 100).contains { $0.role == .enemy })
     }
 
+    func testNextReadyRuntimeMatchesFirstReadyCombatant() {
+        let hero = runtime(id: "hero", role: .hero, actionIntervalTicks: 2, initialNextReadyAtTick: 2)
+        let pet = runtime(id: "pet", role: .pet, actionIntervalTicks: 2, initialNextReadyAtTick: 2)
+        let enemy = runtime(id: "enemy", role: .enemy, actionIntervalTicks: 2, initialNextReadyAtTick: 2)
+        let roster = BattleRoster(hero: hero, pet: pet, enemy: enemy)
+
+        for tick in 0 ... 6 {
+            XCTAssertEqual(
+                roster.nextReadyRuntime(atTick: tick)?.id,
+                roster.readyCombatants(atTick: tick).first?.id
+            )
+        }
+    }
+
     // MARK: - Targeting
 
     func testEnemyAttackTargetPrefersHeroWhenBothAlive() {

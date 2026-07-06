@@ -26,7 +26,7 @@ public struct BalanceSweepRequest: Equatable, Sendable {
         runsPerMatchup: Int = BalanceSweepDefaults.runsPerMatchup,
         loadoutSamplesPerMatchup: Int = BalanceSweepDefaults.loadoutSamplesPerMatchup,
         baseSeed: UInt64 = BalanceSweepDefaults.baseSeed,
-        includeAbilityAnalysis: Bool = true,
+        includeAbilityAnalysis: Bool = false,
         representativeHeroID: String = BalanceSweepDefaults.representativeHeroID,
         representativePetID: String = BalanceSweepDefaults.representativePetID,
         maxTicks: Int = BalanceSweepDefaults.maxTicks,

@@ -1288,6 +1288,28 @@ def generate_chapters_catalog(rows: list[StageRow]) -> None:
     write_generated_file(GENERATED_DIR / "GameContentChapters.generated.swift", body)
 
 
+def generate_stages_index() -> None:
+    body = (
+        "enum GameContentStagesIndexGenerated {\n"
+        "    static let stagesByID: [String: Stage] = Dictionary(\n"
+        "        uniqueKeysWithValues: GameContentChaptersGenerated.chapters.flatMap(\\.stages).map { ($0.id, $0) }\n"
+        "    )\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "GameContentStagesIndex.generated.swift", body)
+
+
+def generate_ability_index() -> None:
+    body = (
+        "enum AbilityCatalogIndexGenerated {\n"
+        "    static let abilitiesByID: [String: Ability] = Dictionary(\n"
+        "        uniqueKeysWithValues: AbilityCatalog.all.map { ($0.id, $0) }\n"
+        "    )\n"
+        "}\n"
+    )
+    write_generated_file(GENERATED_DIR / "AbilityCatalogIndex.generated.swift", body)
+
+
 def parse_homestead_prerequisites(raw: str) -> str:
     if not raw.strip():
         return "[]"
@@ -1623,12 +1645,14 @@ def main() -> int:
     for tier in ("basic", "skill", "ultimate"):
         generate_ability_tier_catalog(tier, ability_rows)
     generate_chapters_catalog(stage_rows)
+    generate_stages_index()
     generate_roster_catalog(combatant_rows)
     generate_enemies_catalog(enemy_rows)
     generate_homestead_catalog(homestead_rows)
     generate_item_bases_catalog(item_base_rows)
     generate_encounter_art_catalog(stage_rows)
     generate_ability_shorthand()
+    generate_ability_index()
     print(
         f"Generated {len(affix_rows)} affixes, "
         f"{len(trait_rows)} traits, "

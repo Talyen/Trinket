@@ -26,6 +26,7 @@ final class BattleSession {
     var overlayCombatantDetail: CombatantDetailContext?
     private(set) var state: BattleState?
     var activeFeedbackEvents: [ActionEvent] = []
+    private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]
     private var isOverlayPaused = false
     private var pauseStateBeforeOverlay: Bool?
@@ -201,8 +202,21 @@ final class BattleSession {
     }
 
     func removeFeedbackEvent(_ id: Int) {
+        if let event = activeFeedbackEvents.first(where: { $0.id == id }) {
+            feedbackEventsByTargetID[event.targetID]?.removeAll { $0.id == id }
+        }
         activeFeedbackEvents.removeAll { $0.id == id }
         feedbackDisplayedAt.removeValue(forKey: id)
+    }
+
+    func feedbackEvents(for targetID: String) -> [ActionEvent] {
+        feedbackEventsByTargetID[targetID] ?? []
+    }
+
+    func syncLogForDisplay() {
+        guard var state else { return }
+        state.syncLog()
+        self.state = state
     }
 
     func pruneExpiredFeedback(at date: Date = .now) {
@@ -217,14 +231,15 @@ final class BattleSession {
     @discardableResult
     func advanceOneStep() -> BattleStep? {
         guard var state else { return nil }
-        let step = state.advanceOneStep()
+        let step = state.advanceOneStep(rebuildLog: false)
         self.state = state
         let displayedAt = Date.now
         step.events
             .filter { $0.kind != .milestone }
-            .forEach {
-                activeFeedbackEvents.append($0)
-                feedbackDisplayedAt[$0.id] = displayedAt
+            .forEach { event in
+                activeFeedbackEvents.append(event)
+                feedbackDisplayedAt[event.id] = displayedAt
+                feedbackEventsByTargetID[event.targetID, default: []].append(event)
             }
         return step
     }
@@ -243,9 +258,11 @@ final class BattleSession {
             heroModifiers: configuration.hero.modifiers,
             petModifiers: configuration.pet.modifiers,
             enemyModifiers: configuration.enemyModifiers,
-            rngSeed: configuration.rngSeed
+            rngSeed: configuration.rngSeed,
+            tracksLog: false
         )
         activeFeedbackEvents = []
+        feedbackEventsByTargetID = [:]
         feedbackDisplayedAt = [:]
         clearOutcomePresentation()
     }
@@ -253,6 +270,7 @@ final class BattleSession {
     private func clearRunState() {
         state = nil
         activeFeedbackEvents = []
+        feedbackEventsByTargetID = [:]
         feedbackDisplayedAt = [:]
         clearOutcomePresentation()
     }

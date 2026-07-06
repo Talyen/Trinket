@@ -23,6 +23,6 @@ public extension GameContent {
     }
 
     static func stage(id: String) -> Stage? {
-        stages.first { $0.id == id }
+        GameContentStagesIndexGenerated.stagesByID[id]
     }
 }

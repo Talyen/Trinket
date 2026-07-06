@@ -28,7 +28,7 @@ public enum BattleLoopEngine {
             return .ended(events: events)
         }
 
-        guard let actor = BattleTurnEngine.readyCombatants(in: context).first else {
+        guard let actor = context.roster.nextReadyRuntime(atTick: context.tickCount)?.combatant else {
             return .effectsOnly(events: events)
         }
 

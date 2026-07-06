@@ -174,16 +174,17 @@ public extension BattleMutableStore {
         sourceID: String,
         remainingTicks: Int
     ) {
-        var effects = roster.activeEffects(for: target)
-        effects.append(
-            ActiveEffect(
-                id: consumeNextEffectID(),
-                effect: effect,
-                remainingTicks: remainingTicks,
-                sourceActorID: sourceID
+        let effectID = consumeNextEffectID()
+        roster.mutateRuntime(for: target) { runtime in
+            runtime.activeEffects.append(
+                ActiveEffect(
+                    id: effectID,
+                    effect: effect,
+                    remainingTicks: remainingTicks,
+                    sourceActorID: sourceID
+                )
             )
-        )
-        roster.setActiveEffects(effects, for: target)
+        }
     }
 
     mutating func prependEffect(
@@ -192,17 +193,18 @@ public extension BattleMutableStore {
         sourceID: String? = nil,
         remainingTicks: Int
     ) {
-        var effects = roster.activeEffects(for: target)
-        effects.insert(
-            ActiveEffect(
-                id: consumeNextEffectID(),
-                effect: effect,
-                remainingTicks: remainingTicks,
-                sourceActorID: sourceID
-            ),
-            at: 0
-        )
-        roster.setActiveEffects(effects, for: target)
+        let effectID = consumeNextEffectID()
+        roster.mutateRuntime(for: target) { runtime in
+            runtime.activeEffects.insert(
+                ActiveEffect(
+                    id: effectID,
+                    effect: effect,
+                    remainingTicks: remainingTicks,
+                    sourceActorID: sourceID
+                ),
+                at: 0
+            )
+        }
     }
 
     mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {

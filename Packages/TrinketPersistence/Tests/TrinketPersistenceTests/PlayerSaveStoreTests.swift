@@ -76,6 +76,28 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
     }
 
+    func testRosterCacheReturnsConsistentHydratedState() throws {
+        let store = makeStore()
+        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let item = template.rewardInstance(for: "chapter-1-stage-1")
+        store.appendInventoryItem(item)
+        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+
+        var roster = store.roster
+        var loadout = roster.equipmentLoadout(for: knight)
+        loadout.equip(item)
+        roster.setEquipmentLoadout(loadout, for: knight)
+        store.roster = roster
+
+        let firstRead = store.roster
+        let secondRead = store.roster
+        XCTAssertEqual(firstRead, secondRead)
+        XCTAssertEqual(
+            firstRead.equipmentLoadout(for: knight).itemID(for: .weapon),
+            "chapter-1-stage-1-shortsword-basic"
+        )
+    }
+
     func testPersistFailureUpdatesMemoryAndQueuesPendingFlush() throws {
         let fileStore = makeFileStore()
         let store = PlayerSaveStore(

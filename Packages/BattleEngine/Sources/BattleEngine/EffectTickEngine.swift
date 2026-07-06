@@ -46,11 +46,13 @@ public enum EffectTickEngine {
         }
 
         var merged = context.roster.activeEffects(for: target)
-        merged = merged.compactMap { activeEffect in
-            guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
-            if outcome.removeAfter { return nil }
-            if let updated = outcome.updatedStack { return updated }
-            return activeEffect
+        if !tickOutcomes.isEmpty {
+            merged = merged.compactMap { activeEffect in
+                guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
+                if outcome.removeAfter { return nil }
+                if let updated = outcome.updatedStack { return updated }
+                return activeEffect
+            }
         }
 
         return (events, merged)

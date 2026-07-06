@@ -86,6 +86,7 @@ struct BattleView: View {
         .onChange(of: isShowingBattleLog) { _, isShowing in
             if isShowing {
                 appState.battle.pauseForOverlay()
+                appState.battle.syncLogForDisplay()
             }
         }
         .onChange(of: configuration.id) { _, _ in
@@ -219,7 +220,7 @@ struct BattleView: View {
     }
 
     private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
-        battleSession.activeFeedbackEvents.filter { $0.targetID == combatant.id }
+        battleSession.feedbackEvents(for: combatant.id)
     }
 
 }

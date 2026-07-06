@@ -8,6 +8,6 @@ public enum AbilityCatalog {
             + AbilityCatalogUltimate.all
 
     public static func ability(id: String) -> Ability? {
-        all.first { $0.id == id }
+        AbilityCatalogIndexGenerated.abilitiesByID[id]
     }
 }
