@@ -48,6 +48,15 @@ public final class PlayerSaveStore {
         resetState: Bool = false,
         inMemoryOnly: Bool = false
     ) {
+        if resetState && !inMemoryOnly {
+            let targetURL = storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
+            let shmURL = targetURL.deletingPathExtension().appendingPathExtension("store-shm")
+            let walURL = targetURL.deletingPathExtension().appendingPathExtension("store-wal")
+            try? FileManager.default.removeItem(at: targetURL)
+            try? FileManager.default.removeItem(at: shmURL)
+            try? FileManager.default.removeItem(at: walURL)
+        }
+
         let schema = PlayerSaveGraph.schema
         let config: ModelConfiguration
         if inMemoryOnly {
