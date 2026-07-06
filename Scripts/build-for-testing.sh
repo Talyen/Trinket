@@ -25,11 +25,13 @@ xcodebuild build-for-testing \
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
 
-# Build packages in parallel. The main app build already compiled all
-# package modules into the shared DerivedData, so each package build
-# only needs to compile its test target.
+# Build packages in parallel (up to 2 at a time to avoid starving the
+# runner). Each package gets its own DerivedData dir since parallel
+# xcodebuild invocations cannot safely share one.
+max_jobs=2
 pids=()
 failed=0
+index=0
 for package in "${PACKAGES[@]}"; do
   (
     cd "Packages/$package"
@@ -37,9 +39,16 @@ for package in "${PACKAGES[@]}"; do
       -scheme "$package" \
       -sdk iphonesimulator \
       -destination "$SIMULATOR_DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH"
+      -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
   ) &
   pids+=($!)
+  ((index++))
+  if (( index % max_jobs == 0 )); then
+    for pid in "${pids[@]}"; do
+      wait "$pid" || failed=1
+    done
+    pids=()
+  fi
 done
 
 for pid in "${pids[@]}"; do
