@@ -11,7 +11,7 @@ struct PlayView: View {
 
         content
             .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
-                appState.battle.restorePauseAfterOverlay()
+                appState.restoreBattlePauseAfterOverlay()
             }, content: { context in
                 CombatantDetailContextView(context: context)
                     .presentationDetents([.large])
@@ -41,32 +41,17 @@ struct PlayView: View {
     }
 
     private func handleStageTap(_ stage: Stage) {
-        if appState.journey.current.isActive(stage) {
-            appState.sessionState.mapScrollStageID = stage.id
-            handlePrimaryAction(for: stage)
-        }
-    }
-
-    private func handlePrimaryAction(for stage: Stage) {
-        switch stage.encounter {
-        case .battle:
-            if let message = appState.battle.startBattle(
-                stage: stage,
-                hero: appState.roster.activeHero,
-                pet: appState.roster.activePet,
-                roster: appState.roster,
-                inventory: appState.inventory
-            ) {
+        if appState.journeyProgress.isActive(stage) {
+            appState.noteMapScrollFocus(stage.id)
+            if let message = appState.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
             }
-        case .event, .shop, .rest, .mysteryEvent:
-            appState.completeStage(stage, hero: appState.roster.activeHero, pet: appState.roster.activePet)
         }
     }
 
     private func showEnemyDetails(for stage: Stage) {
         guard let detail = enemyDetail(for: stage) else { return }
-        appState.battle.presentCombatantDetail(detail)
+        appState.presentBattleCombatantDetail(detail)
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {

@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 /// Passive enemy trait hooks that run during battle ticks and damage resolution.
 package enum EnemyTraitEngine {
@@ -22,7 +21,7 @@ package enum EnemyTraitEngine {
                 sourceActorID: combatant.id,
                 logAs: .instantHeal(
                     actorName: combatant.name,
-                    abilityName: traitName(for: combatant),
+                    abilityName: traitName(for: combatant, in: context),
                     keyword: .health,
                     displayAmount: profile.regenerationAmount
                 )
@@ -107,7 +106,7 @@ package enum EnemyTraitEngine {
                 kind: event.kind,
                 effectKind: .thornsTriggered,
                 actorName: defender.name,
-                abilityName: traitName(for: defender),
+                abilityName: traitName(for: defender, in: context),
                 targetID: event.targetID,
                 targetName: event.targetName,
                 amount: event.amount,
@@ -136,16 +135,7 @@ package enum EnemyTraitEngine {
         return context.modifiers(for: sourceID).hemorrhageBleedBonus
     }
 
-    private static func traitName(for combatant: Combatant) -> String {
-        GameContent.positiveTrait(forCombatantID: combatant.id)?.name
-            ?? GameContent.trait(forCombatantID: combatant.id)?.name
-            ?? "Trait"
-    }
-}
-
-private extension GameContent {
-    static func positiveTrait(forCombatantID combatantID: String) -> CombatantTraitDefinition? {
-        guard let enemy = enemies.first(where: { $0.id == combatantID }) else { return nil }
-        return positiveTrait(for: enemy)
+    private static func traitName(for combatant: Combatant, in context: BattleEngineContext) -> String {
+        context.modifiers(for: combatant.id).traitDisplayName ?? "Trait"
     }
 }

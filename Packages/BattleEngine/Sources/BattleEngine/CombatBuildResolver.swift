@@ -6,7 +6,8 @@ public enum CombatBuildResolver {
     public static func build(
         combatant: Combatant,
         equipmentLoadout: EquipmentLoadout,
-        inventory: [InventoryItem]
+        inventory: [InventoryItem],
+        catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> CombatBuild {
         let itemsByID = Dictionary(uniqueKeysWithValues: inventory.map { ($0.id, $0) })
         let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
@@ -16,10 +17,11 @@ public enum CombatBuildResolver {
 
         var profile = CombatModifierProfile.zero
         for item in equippedItems {
-            profile.merge(affixProfile(for: item))
+            profile.merge(affixProfile(for: item, catalog: catalog))
         }
-        if let trait = GameContent.trait(forCombatantID: combatant.id) {
+        if let trait = catalog.trait(forCombatantID: combatant.id) {
             trait.apply(to: &profile)
+            profile.traitDisplayName = trait.name
         }
 
         let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
@@ -38,21 +40,28 @@ public enum CombatBuildResolver {
         return CombatBuild(combatant: builtCombatant, modifiers: profile)
     }
 
-    public static func build(enemy: Enemy) -> CombatBuild {
+    public static func build(
+        enemy: Enemy,
+        catalog: CombatCatalog = GameContentCombatCatalog()
+    ) -> CombatBuild {
         var profile = CombatModifierProfile.zero
-        if let positiveTrait = GameContent.positiveTrait(for: enemy) {
+        if let positiveTrait = catalog.positiveTrait(for: enemy) {
             positiveTrait.apply(to: &profile)
+            profile.traitDisplayName = positiveTrait.name
         }
-        if let negativeTrait = GameContent.negativeTrait(for: enemy) {
+        if let negativeTrait = catalog.negativeTrait(for: enemy) {
             negativeTrait.apply(to: &profile)
         }
 
         return CombatBuild(combatant: enemy.combatant, modifiers: profile)
     }
 
-    private static func affixProfile(for item: InventoryItem) -> CombatModifierProfile {
+    private static func affixProfile(
+        for item: InventoryItem,
+        catalog: CombatCatalog
+    ) -> CombatModifierProfile {
         item.affixes.reduce(into: CombatModifierProfile.zero) { partial, affix in
-            guard let definition = GameContent.itemAffixDefinitions.first(where: { $0.id == affix.id }) else {
+            guard let definition = catalog.itemAffixDefinition(id: affix.id) else {
                 return
             }
             let power = definition.power(for: item.rarity)

@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 public struct ActionSpeed: Hashable {
     public var baseIntervalTicks: Int
@@ -9,4 +8,11 @@ public struct ActionSpeed: Hashable {
     public var effectiveInterval: Int {
         max(1, baseIntervalTicks + intervalModifier)
     }
+}
+
+public enum BattleTiming {
+    public static let heroActionIntervalTicks = 2
+    public static let petActionIntervalTicks = 2
+    public static let enemyActionIntervalTicks = 6
+    public static let deathsDoorDurationTicks = 8
 }

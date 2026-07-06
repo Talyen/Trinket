@@ -1,6 +1,5 @@
 import Foundation
 import TrinketCore
-import TrinketContent
 
 /// Applies combatant trait reactions that fire alongside heals, cleanses, and gold gains.
 package enum TraitReactionEngine {
@@ -18,7 +17,7 @@ package enum TraitReactionEngine {
                 sourceActorID: source.id,
                 logAs: .instantHeal(
                     actorName: source.name,
-                    abilityName: source.traitDisplayName,
+                    abilityName: source.traitDisplayName(in: context),
                     keyword: .health,
                     displayAmount: amount
                 )
@@ -40,7 +39,7 @@ package enum TraitReactionEngine {
                 sourceActorID: source.id,
                 logAs: .instantHeal(
                     actorName: source.name,
-                    abilityName: source.traitDisplayName,
+                    abilityName: source.traitDisplayName(in: context),
                     keyword: .health,
                     displayAmount: amount
                 )
@@ -63,7 +62,7 @@ package enum TraitReactionEngine {
                 sourceActorID: source.id,
                 logAs: .instantHeal(
                     actorName: source.name,
-                    abilityName: source.traitDisplayName,
+                    abilityName: source.traitDisplayName(in: context),
                     keyword: .health,
                     displayAmount: amount
                 ),
@@ -75,7 +74,7 @@ package enum TraitReactionEngine {
 }
 
 private extension Combatant {
-    var traitDisplayName: String {
-        GameContent.trait(forCombatantID: id)?.name ?? "Trait"
+    func traitDisplayName(in context: BattleEngineContext) -> String {
+        context.modifiers(for: id).traitDisplayName ?? "Trait"
     }
 }

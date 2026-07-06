@@ -265,13 +265,7 @@ final class AppState {
 
     @discardableResult
     private func startBattleForStage(_ stage: Stage) -> StageMapMessage? {
-        battle.startBattle(
-            stage: stage,
-            hero: roster.activeHero,
-            pet: roster.activePet,
-            roster: roster,
-            inventory: inventory
-        )
+        startBattle(for: stage)
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {

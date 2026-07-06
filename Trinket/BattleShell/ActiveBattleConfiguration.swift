@@ -41,7 +41,8 @@ struct ActiveBattleConfiguration: Identifiable {
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
-        rewardItemNames: [String] = []
+        rewardItemNames: [String] = [],
+        catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> ActiveBattleConfiguration {
         let rosterState = roster.current
         let resolvedHeroProgression = rosterState.progression(for: hero)
@@ -57,17 +58,19 @@ struct ActiveBattleConfiguration: Identifiable {
         let heroBuild = CombatBuildResolver.build(
             combatant: scaledHero,
             equipmentLoadout: resolvedHeroEquipmentLoadout,
-            inventory: resolvedInventoryState.items
+            inventory: resolvedInventoryState.items,
+            catalog: catalog
         )
         let petBuild = CombatBuildResolver.build(
             combatant: scaledPet,
             equipmentLoadout: resolvedPetEquipmentLoadout,
-            inventory: resolvedInventoryState.items
+            inventory: resolvedInventoryState.items,
+            catalog: catalog
         )
         let enemyBuild: CombatBuild
         if let enemy,
-           let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            enemyBuild = CombatBuildResolver.build(enemy: catalogEnemy)
+           let catalogEnemy = catalog.enemy(matching: enemy.id) {
+            enemyBuild = CombatBuildResolver.build(enemy: catalogEnemy, catalog: catalog)
         } else {
             enemyBuild = CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
         }

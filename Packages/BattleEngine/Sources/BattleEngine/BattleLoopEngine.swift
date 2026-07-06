@@ -2,18 +2,8 @@ import Foundation
 import TrinketCore
 import TrinketContent
 
-/// Orchestrates one global battle tick: effect ticks, ready-actor selection,
-/// turn execution, and defeat milestones.
-///
-/// **Tick contract**
-/// 1. `context.tickCount` is incremented at the start of each step.
-/// 2. Effect ticks run for living combatants in `BattleParticipant.effectTickOrder`
-///    (enemy, then hero, then pet; party members skip when defeated).
-/// 3. If the battle ended during effect ticks, emit defeat milestones and return `.ended`.
-/// 4. Otherwise pick the next ready actor (at most one acts per step) using roster
-///    scheduling rules.
-/// 5. Execute that actor's turn (or consume a control effect), append defeat milestones
-///    if needed, and return `.acted`, `.effectsOnly`, or `.ended`.
+/// Orchestrates one global battle tick. `BattleState.advanceOneStep()` is the
+/// public facade; this engine owns the tick contract shared with focused unit tests.
 public enum BattleLoopEngine {
     public static func advanceOneStep(
         matchup: BattleMatchup,

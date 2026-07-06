@@ -103,6 +103,6 @@ final class CombatBuildResolverTests: XCTestCase {
         )
 
         XCTAssertEqual(build.modifiers.blockGainedBonus, 1)
-        XCTAssertEqual(GameContent.trait(forCombatantID: knight.id)?.name, "Oathbound")
+        XCTAssertEqual(build.modifiers.traitDisplayName, "Oathbound")
     }
 }

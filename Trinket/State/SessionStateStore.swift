@@ -1,5 +1,7 @@
 import Foundation
 
+/// Ephemeral UI session state stored in `UserDefaults` (tab selection, map scroll,
+/// in-flight battle restoration). Cloud-synced gameplay progress lives in `PlayerSave`.
 @Observable
 final class SessionStateStore {
     private let defaults: UserDefaults

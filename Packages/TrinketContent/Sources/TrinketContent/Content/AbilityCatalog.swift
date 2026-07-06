@@ -1,6 +1,10 @@
 import Foundation
 import TrinketCore
 
+/// Aggregates every ability tier. Manifest-generated abilities live in
+/// `Generated/AbilityCatalog*.generated.swift`; complex hand-authored abilities
+/// live in `Content/AbilityCatalog*.swift`. Add simple abilities via
+/// `ContentManifest/abilities.tsv` and run `./Scripts/generate.sh`.
 public enum AbilityCatalog {
     public static let all: [Ability] =
         AbilityCatalogBasic.all

@@ -39,7 +39,7 @@ struct BattleView: View {
                                 materialRewards: victorySummary.materialRewards
                             )
                         } else {
-                            appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
+                            appState.restartActiveBattle()
                         }
                     }
                 )
@@ -47,7 +47,7 @@ struct BattleView: View {
                 DefeatView(
                     enemyName: battleState.enemy.name,
                     onBattleAgain: {
-                        appState.battle.restartBattle(using: appState.roster, inventory: appState.inventory)
+                        appState.restartActiveBattle()
                     }
                 )
             } else {
@@ -76,7 +76,7 @@ struct BattleView: View {
             }
         }
         .sheet(isPresented: $isShowingBattleLog, onDismiss: {
-            appState.battle.restorePauseAfterOverlay()
+            appState.restoreBattlePauseAfterOverlay()
         }, content: {
             BattleLogSheet(
                 entries: battleSession.state?.log ?? []
@@ -125,7 +125,7 @@ struct BattleView: View {
                 Divider()
 
                 Button(role: .destructive) {
-                    appState.battle.endBattle()
+                    appState.retreatFromBattle()
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }
@@ -209,7 +209,7 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant, battleState: BattleState) {
-        appState.battle.presentCombatantDetail(
+        appState.presentBattleCombatantDetail(
             CombatantCardDetail.battleSnapshot(
                 configuration: configuration,
                 combatant: combatant,

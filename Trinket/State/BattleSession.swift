@@ -8,6 +8,8 @@ import TrinketPersistence
 @MainActor
 @Observable
 final class BattleSession {
+    let presentation = BattlePresentationState()
+
     var activeBattle: ActiveBattleConfiguration? {
         didSet {
             if let activeBattle {
@@ -18,18 +20,7 @@ final class BattleSession {
         }
     }
 
-    var isPaused = false
-    var isShowingVictory = false
-    var isShowingDefeat = false
-    var victorySummary: BattleVictorySummary?
-    var preview: BattleMusicPreview?
-    var overlayCombatantDetail: CombatantDetailContext?
     private(set) var state: BattleState?
-    var activeFeedbackEvents: [ActionEvent] = []
-    private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
-    private var feedbackDisplayedAt: [Int: Date] = [:]
-    private var isOverlayPaused = false
-    private var pauseStateBeforeOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
 
@@ -43,174 +34,72 @@ final class BattleSession {
 
     func endBattle() {
         activeBattle = nil
-        isPaused = false
-        clearOutcomePresentation()
-        preview = nil
-        overlayCombatantDetail = nil
-        isOverlayPaused = false
-        pauseStateBeforeOverlay = nil
+        presentation.clearAll()
         onBattleStateChange?(nil)
         onBattleEnded?()
     }
 
-    func clearOutcomePresentation() {
-        isShowingVictory = false
-        isShowingDefeat = false
-        victorySummary = nil
+    func notifyBattleStarted(stageID: String) {
+        onBattleStateChange?(stageID)
     }
 
-    func canAutoAdvanceTick() -> Bool {
-        guard let state, !state.isBattleOver, !isPaused else { return false }
-        return !isShowingVictory && !isShowingDefeat
+    var isPaused: Bool {
+        get { presentation.isPaused }
+        set { presentation.isPaused = newValue }
     }
 
-    /// Advances one battle tick when unpaused. Returns earned gold when an already-claimed stage
-    /// victory should auto-complete without showing the victory screen.
-    @discardableResult
-    func advanceAutoTick(
-        at date: Date = .now,
-        journey: JourneyProgressState,
-        homestead: PlayerHomesteadState
-    ) -> Int? {
-        pruneExpiredFeedback(at: date)
-        guard canAutoAdvanceTick(),
-              let configuration = activeBattle else { return nil }
+    var isShowingVictory: Bool {
+        get { presentation.isShowingVictory }
+        set { presentation.isShowingVictory = newValue }
+    }
 
-        advanceOneStep()
+    var isShowingDefeat: Bool {
+        get { presentation.isShowingDefeat }
+        set { presentation.isShowingDefeat = newValue }
+    }
 
-        switch outcome {
-        case .victory:
-            if Self.stageRewardsAlreadyClaimed(stageID: configuration.stageID, journey: journey) {
-                return state?.earnedGold ?? 0
-            }
-            guard let battleState = state else { return nil }
-            victorySummary = BattleVictorySummary.make(
-                configuration: configuration,
-                state: battleState,
-                homestead: homestead
-            )
-            isShowingVictory = true
-            return nil
-        case .defeat:
-            isShowingDefeat = true
-            return nil
-        case .none, .tickLimit:
-            return nil
-        }
+    var victorySummary: BattleVictorySummary? {
+        get { presentation.victorySummary }
+        set { presentation.victorySummary = newValue }
+    }
+
+    var preview: BattleMusicPreview? {
+        get { presentation.preview }
+        set { presentation.preview = newValue }
+    }
+
+    var overlayCombatantDetail: CombatantDetailContext? {
+        get { presentation.overlayCombatantDetail }
+        set { presentation.overlayCombatantDetail = newValue }
+    }
+
+    var activeFeedbackEvents: [ActionEvent] {
+        get { presentation.activeFeedbackEvents }
+        set { presentation.activeFeedbackEvents = newValue }
     }
 
     func setMusicPreview(for stage: Stage?) {
-        guard activeBattle == nil,
-              let stage,
-              let enemyID = stage.encounter.battleEnemyID
-        else {
-            preview = nil
-            return
-        }
-
-        preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
-    }
-
-    @discardableResult
-    func startBattle(
-        stage: Stage,
-        hero: Combatant,
-        pet: Combatant,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore
-    ) -> StageMapMessage? {
-        guard activeBattle == nil else { return nil }
-
-        guard let encounter = StageEncounterResolver.resolve(for: stage) else {
-            return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
-        }
-
-        preview = nil
-        activeBattle = ActiveBattleConfiguration.make(
-            stageID: stage.id,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
-            hero: hero,
-            pet: pet,
-            roster: roster,
-            inventory: inventory,
-            enemy: encounter.combatant,
-            enemyEncounterLevel: encounter.level,
-            stageReward: stage.rewards,
-            rewardItemNames: Self.rewardItemNames(for: stage.rewards)
-        )
-        onBattleStateChange?(stage.id)
-        return nil
-    }
-
-    func restartBattle(using roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
-        guard let activeBattle else { return }
-
-        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
-            ?? roster.activeHero
-        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
-            ?? roster.activePet
-
-        self.activeBattle = ActiveBattleConfiguration.make(
-            stageID: activeBattle.stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
-            hero: hero,
-            pet: pet,
-            roster: roster,
-            inventory: inventory,
-            enemy: activeBattle.enemy,
-            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            rewardItemNames: activeBattle.rewardItemNames
-        )
-    }
-
-    static func stageRewardsAlreadyClaimed(
-        stageID: String?,
-        journey: JourneyProgressState
-    ) -> Bool {
-        guard let stageID,
-              let stage = GameContent.stage(id: stageID) else { return false }
-        return journey.hasClaimedRewards(for: stage)
+        presentation.setMusicPreview(for: stage, battleIsActive: activeBattle != nil)
     }
 
     func pauseForOverlay() {
-        guard !isOverlayPaused else {
-            isPaused = true
-            return
-        }
-        pauseStateBeforeOverlay = isPaused
-        isOverlayPaused = true
-        isPaused = true
+        presentation.pauseForOverlay(battleIsActive: activeBattle != nil)
     }
 
     func restorePauseAfterOverlay() {
-        guard isOverlayPaused else { return }
-        isOverlayPaused = false
-        guard activeBattle != nil else {
-            pauseStateBeforeOverlay = nil
-            return
-        }
-        isPaused = pauseStateBeforeOverlay ?? false
-        pauseStateBeforeOverlay = nil
+        presentation.restorePauseAfterOverlay(battleIsActive: activeBattle != nil)
     }
 
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
-        if activeBattle != nil {
-            pauseForOverlay()
-        }
-        overlayCombatantDetail = CombatantDetailContext(snapshot: detail)
+        presentation.presentCombatantDetail(detail, battleIsActive: activeBattle != nil)
     }
 
-    func removeFeedbackEvent(_ id: Int) {
-        if let event = activeFeedbackEvents.first(where: { $0.id == id }) {
-            feedbackEventsByTargetID[event.targetID]?.removeAll { $0.id == id }
-        }
-        activeFeedbackEvents.removeAll { $0.id == id }
-        feedbackDisplayedAt.removeValue(forKey: id)
+    func clearOutcomePresentation() {
+        presentation.clearOutcomePresentation()
     }
 
     func feedbackEvents(for targetID: String) -> [ActionEvent] {
-        feedbackEventsByTargetID[targetID] ?? []
+        presentation.feedbackEvents(for: targetID)
     }
 
     func syncLogForDisplay() {
@@ -219,13 +108,59 @@ final class BattleSession {
         self.state = state
     }
 
-    func pruneExpiredFeedback(at date: Date = .now) {
-        let expiredIDs = feedbackDisplayedAt.compactMap { eventID, displayedAt in
-            date.timeIntervalSince(displayedAt) >= CombatFeedbackTiming.displayDuration ? eventID : nil
+    func canAutoAdvanceTick() -> Bool {
+        guard let state, !state.isBattleOver, !presentation.isPaused else { return false }
+        return !presentation.isShowingVictory && !presentation.isShowingDefeat
+    }
+
+    /// Advances one battle tick when unpaused. Returns earned gold when an already-claimed stage
+    /// victory should auto-complete without showing the victory screen.
+    @discardableResult
+    func advanceAutoTick(
+        at date: Date = .now,
+        journey: JourneyProgressState,
+        homestead: PlayerHomesteadState,
+        contentCatalog: PlayerContentCatalog = GameContentPlayerCatalog()
+    ) -> Int? {
+        presentation.pruneExpiredFeedback(at: date)
+        guard canAutoAdvanceTick(),
+              let configuration = activeBattle else { return nil }
+
+        advanceOneStep()
+
+        switch outcome {
+        case .victory:
+            if Self.stageRewardsAlreadyClaimed(
+                stageID: configuration.stageID,
+                journey: journey,
+                catalog: contentCatalog
+            ) {
+                return state?.earnedGold ?? 0
+            }
+            guard let battleState = state else { return nil }
+            presentation.victorySummary = BattleVictorySummary.make(
+                configuration: configuration,
+                state: battleState,
+                homestead: homestead
+            )
+            presentation.isShowingVictory = true
+            return nil
+        case .defeat:
+            presentation.isShowingDefeat = true
+            return nil
+        case .none, .tickLimit:
+            return nil
         }
-        for eventID in expiredIDs {
-            removeFeedbackEvent(eventID)
-        }
+    }
+
+    static func stageRewardsAlreadyClaimed(
+        stageID: String?,
+        journey: JourneyProgressState,
+        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
+    ) -> Bool {
+        guard let stageID,
+              let stage = catalog.stage(id: stageID) else { return false }
+        return journey.hasClaimedRewards(for: stage)
     }
 
     @discardableResult
@@ -233,21 +168,11 @@ final class BattleSession {
         guard var state else { return nil }
         let step = state.advanceOneStep(rebuildLog: false)
         self.state = state
-        let displayedAt = Date.now
-        step.events
-            .filter { $0.kind != .milestone }
-            .forEach { event in
-                activeFeedbackEvents.append(event)
-                feedbackDisplayedAt[event.id] = displayedAt
-                feedbackEventsByTargetID[event.targetID, default: []].append(event)
-            }
+        presentation.recordFeedbackEvents(
+            step.events.filter { $0.kind != .milestone },
+            at: .now
+        )
         return step
-    }
-
-    private static func rewardItemNames(for stageReward: StageReward) -> [String] {
-        stageReward.itemTemplateIDs.compactMap { templateID in
-            GameContent.itemTemplate(matching: templateID)?.displayName
-        }
     }
 
     private func resetRun(from configuration: ActiveBattleConfiguration) {
@@ -261,17 +186,13 @@ final class BattleSession {
             rngSeed: configuration.rngSeed,
             tracksLog: false
         )
-        activeFeedbackEvents = []
-        feedbackEventsByTargetID = [:]
-        feedbackDisplayedAt = [:]
-        clearOutcomePresentation()
+        presentation.clearFeedback()
+        presentation.clearOutcomePresentation()
     }
 
     private func clearRunState() {
         state = nil
-        activeFeedbackEvents = []
-        feedbackEventsByTargetID = [:]
-        feedbackDisplayedAt = [:]
-        clearOutcomePresentation()
+        presentation.clearFeedback()
+        presentation.clearOutcomePresentation()
     }
 }

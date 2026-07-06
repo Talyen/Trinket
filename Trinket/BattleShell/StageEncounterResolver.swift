@@ -8,10 +8,13 @@ struct StageEncounterEnemy {
 }
 
 enum StageEncounterResolver {
-    static func resolve(for stage: Stage) -> StageEncounterEnemy? {
+    static func resolve(
+        for stage: Stage,
+        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
+    ) -> StageEncounterEnemy? {
         guard let enemyID = stage.encounter.battleEnemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = GameContent.chapter(id: stage.chapterID)
+              let chapter = catalog.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
 
         let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)

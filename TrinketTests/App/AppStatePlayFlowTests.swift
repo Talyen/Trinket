@@ -28,13 +28,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testCompleteActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
         let initialGold = state.roster.current.gold
 
@@ -49,13 +43,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testCompleteActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
         let initialGold = state.roster.current.gold
 
@@ -118,13 +106,7 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL
         )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
 
         try FileManager.default.setAttributes(
@@ -176,13 +158,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     func testResetGameplayProgressClearsBattleAndMapScroll() throws {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
         state.sessionState.noteMapScrollFocus("chapter-1-stage-2")
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
@@ -342,13 +318,7 @@ final class AppStatePlayFlowTests: XCTestCase {
             userDefaults: defaults
         )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
         state.sessionState.mapScrollStageID = "chapter-1-stage-2"
 
         state.resetGameplayProgress()
@@ -366,13 +336,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         XCTAssertNil(state.sessionState.activeBattleStageID)
 
-        _ = state.battle.startBattle(
-            stage: stage,
-            hero: state.roster.activeHero,
-            pet: state.roster.activePet,
-            roster: state.roster,
-            inventory: state.inventory
-        )
+        _ = state.startBattle(for: stage)
 
         XCTAssertEqual(state.sessionState.activeBattleStageID, "chapter-1-stage-1")
     }

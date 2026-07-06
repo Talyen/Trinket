@@ -70,7 +70,8 @@ public enum PlayerSaveMerger {
     private static func reconcileMissingStageRewards(
         local: PlayerSave,
         remote: PlayerSave,
-        merged: PlayerSave
+        merged: PlayerSave,
+        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
     ) -> PlayerSave {
         let remoteOnlyClaimed = remote.journey.claimedRewardStageIDs
             .subtracting(local.journey.claimedRewardStageIDs)
@@ -78,11 +79,19 @@ public enum PlayerSaveMerger {
 
         let baseline = local.stageCompletionContext()
         var context = merged.stageCompletionContext()
-        let hero = activeCombatant(for: context.roster.activeHeroID, in: GameContent.heroes, fallback: GameContent.heroes[0])
-        let pet = activeCombatant(for: context.roster.activePetID, in: GameContent.pets, fallback: GameContent.pets[0])
+        let hero = activeCombatant(
+            for: context.roster.activeHeroID,
+            in: GameContent.heroes,
+            fallback: GameContent.heroes[0]
+        )
+        let pet = activeCombatant(
+            for: context.roster.activePetID,
+            in: GameContent.pets,
+            fallback: GameContent.pets[0]
+        )
 
         for stageID in remoteOnlyClaimed.sorted() {
-            guard let stage = GameContent.stage(id: stageID) else { continue }
+            guard let stage = catalog.stage(id: stageID) else { continue }
             if StageCompletion.rewardsReflected(
                 for: stage,
                 baseline: baseline,
@@ -146,7 +155,7 @@ public enum PlayerSaveMerger {
         completed: Set<String>
     ) -> String? {
         let candidates = [local, remote].compactMap { $0 }.filter { completed.contains($0) }
-        return PlayerSaveSanitizer.latestStageID(in: Set(candidates), chapters: GameContent.chapters)
+        return PlayerSaveSanitizer.latestStageID(in: Set(candidates))
     }
 
     private static func mergeRoster(

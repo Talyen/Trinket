@@ -43,6 +43,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var graspingVinesHealBonus: Int
     public var leechHealingMultiplier: Double
     public var hemorrhageBleedBonus: Int
+    public var traitDisplayName: String?
 
     public static let zero = CombatModifierProfile()
 
@@ -86,7 +87,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         armorEffectivenessPenaltyPercent: Double = 0,
         graspingVinesHealBonus: Int = 0,
         leechHealingMultiplier: Double = 1,
-        hemorrhageBleedBonus: Int = 0
+        hemorrhageBleedBonus: Int = 0,
+        traitDisplayName: String? = nil
     ) {
         self.statBonuses = statBonuses
         self.maximumHealthBonus = maximumHealthBonus
@@ -128,6 +130,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.graspingVinesHealBonus = graspingVinesHealBonus
         self.leechHealingMultiplier = leechHealingMultiplier
         self.hemorrhageBleedBonus = hemorrhageBleedBonus
+        self.traitDisplayName = traitDisplayName
     }
 
     public init(modifiers: [AffixModifier]) {
@@ -188,6 +191,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         graspingVinesHealBonus += other.graspingVinesHealBonus
         leechHealingMultiplier *= other.leechHealingMultiplier
         hemorrhageBleedBonus += other.hemorrhageBleedBonus
+        if traitDisplayName == nil {
+            traitDisplayName = other.traitDisplayName
+        }
     }
 
     public mutating func merge(_ modifier: AffixModifier) {
