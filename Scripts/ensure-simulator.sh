@@ -27,29 +27,81 @@ sys.exit(1)
     return 0
   fi
 
-  echo "Creating new simulator: $SIMULATOR_NAME ($SIMULATOR_PREFERRED_DEVICE)"
+  echo "Creating new simulator named '$SIMULATOR_NAME'..."
 
-  local runtime
-  runtime="$(xcrun simctl list runtimes available 2>/dev/null \
-    | grep -E "^iOS " \
-    | head -1 \
-    | awk '{print $NF}')"
+  local resolved
+  resolved="$(python3 - "$SIMULATOR_NAME" <<'PY'
+import json, subprocess, sys
 
-  local device_type
-  device_type="$(xcrun simctl list devicetypes 2>/dev/null \
-    | grep -F "$SIMULATOR_PREFERRED_DEVICE" \
-    | head -1 \
-    | sed -n 's/.*(\(.*\)).*/\1/p')"
+def simctl_json(*args):
+    return json.loads(subprocess.check_output(["xcrun", "simctl", *args], text=True))
 
-  if [[ -z "${device_type:-}" ]]; then
-    device_type="$(xcrun simctl list devicetypes 2>/dev/null \
-      | grep -F "iPhone" \
-      | head -1 \
-      | sed -n 's/.*(\(.*\)).*/\1/p')"
+devices_payload = simctl_json("list", "devices", "available", "-j")
+runtimes_payload = simctl_json("list", "runtimes", "available", "-j")
+
+ios_runtimes = [
+    r for r in runtimes_payload.get("runtimes", [])
+    if r.get("platform") == "iOS" and r.get("isAvailable", True)
+]
+if not ios_runtimes:
+    sys.exit(1)
+ios_runtimes.sort(key=lambda r: r.get("version", ""), reverse=True)
+runtime_id = ios_runtimes[0]["identifier"]
+
+compatible_devices = devices_payload.get("devices", {}).get(runtime_id, [])
+compatible_types = {}
+for d in compatible_devices:
+    type_id = d.get("deviceTypeIdentifier")
+    name = d.get("name")
+    if type_id and name:
+        compatible_types[type_id] = name
+
+preferred = ["iPhone 17 Pro", "iPhone 16 Pro", "iPhone 15 Pro"]
+chosen_type_id = None
+
+for name in preferred:
+    for type_id, comp_name in compatible_types.items():
+        if name in comp_name:
+            chosen_type_id = type_id
+            break
+    if chosen_type_id:
+        break
+
+if not chosen_type_id:
+    for type_id, comp_name in compatible_types.items():
+        if "iPhone" in comp_name and "Pro" in comp_name:
+            chosen_type_id = type_id
+            break
+
+if not chosen_type_id:
+    for type_id, comp_name in compatible_types.items():
+        if "iPhone" in comp_name:
+            chosen_type_id = type_id
+            break
+
+if not chosen_type_id and compatible_types:
+    chosen_type_id = list(compatible_types.keys())[0]
+
+if not chosen_type_id:
+    sys.exit(1)
+
+sim_name = sys.argv[1]
+udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True).strip()
+print(f"{udid}\t{chosen_type_id}\t{runtime_id}")
+PY
+)"
+
+  if [[ -z "${resolved:-}" || "$resolved" != *$'\t'* ]]; then
+    echo "Error: Failed to resolve and create compatible simulator." >&2
+    exit 1
   fi
 
-  SIMULATOR_UDID="$(xcrun simctl create "$SIMULATOR_NAME" "$device_type" "$runtime")"
-  echo "Created simulator: $SIMULATOR_NAME ($SIMULATOR_UDID)"
+  SIMULATOR_UDID="${resolved%%$'\t'*}"
+  local dev_type_id="${resolved#*$'\t'}"
+  dev_type_id="${dev_type_id%%$'\t'*}"
+  local rt_id="${resolved##*$'\t'}"
+
+  echo "Created simulator: $SIMULATOR_NAME ($SIMULATOR_UDID) using type $dev_type_id and runtime $rt_id"
 }
 
 boot_simulator() {
