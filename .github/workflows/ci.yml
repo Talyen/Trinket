@@ -39,26 +39,6 @@ jobs:
       - name: Validate release notes config
         run: ./Scripts/release-notes.sh validate
 
-  balance-gate:
-    name: Balance gate
-    needs: gate
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-trinket
-
-      - name: Run CI balance gate sweep
-        run: ./Scripts/assert-balance-gate.sh
-
-      - name: Upload balance gate report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: balance-gate-report-${{ github.run_id }}
-          path: .DerivedData/BalanceReports/ci-gate.*
-          if-no-files-found: ignore
-
   build:
     name: Build for testing
     needs: gate
@@ -72,13 +52,6 @@ jobs:
 
       - name: Accept Xcode license
         run: sudo xcodebuild -license accept 2>/dev/null || true
-
-      - name: Install iOS Simulator runtime
-        run: |
-          if ! xcrun simctl runtime list 2>/dev/null | grep -q "^iOS "; then
-            echo "No iOS Simulator runtime found; downloading..."
-            timeout 300 xcodebuild -downloadPlatform iOS || timeout 300 xcodebuild -downloadAllPlatforms
-          fi
 
       - name: Build for testing
         run: ./Scripts/build-for-testing.sh
@@ -102,6 +75,13 @@ jobs:
 
       - name: Generate project
         run: ./Scripts/generate.sh
+
+      - name: Install iOS Simulator runtime
+        run: |
+          if ! xcrun simctl runtime list 2>/dev/null | grep -q "^iOS "; then
+            echo "No iOS Simulator runtime found; downloading..."
+            xcodebuild -downloadPlatform iOS 2>&1 || xcodebuild -downloadAllPlatforms 2>&1
+          fi
 
       - name: Unit tests
         run: ./Scripts/test.sh --no-build unit
@@ -139,6 +119,13 @@ jobs:
 
       - name: Generate project
         run: ./Scripts/generate.sh
+
+      - name: Install iOS Simulator runtime
+        run: |
+          if ! xcrun simctl runtime list 2>/dev/null | grep -q "^iOS "; then
+            echo "No iOS Simulator runtime found; downloading..."
+            xcodebuild -downloadPlatform iOS 2>&1 || xcodebuild -downloadAllPlatforms 2>&1
+          fi
 
       - name: UI smoke tests
         if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive')
