@@ -87,7 +87,7 @@ final class BattleSessionTests: XCTestCase {
         let appState = makeAppState()
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton")?.combatant)
 
-        appState.battle.presentCombatantDetail(.base(enemy))
+        appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
 
         XCTAssertFalse(appState.battle.isPaused)
         XCTAssertNotNil(appState.battle.overlayCombatantDetail)
@@ -145,7 +145,7 @@ final class BattleSessionTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = false
-        let detail = CombatantCardDetail.base(appState.roster.activeHero)
+        let detail = CombatantCardDetail(combatant: appState.roster.activeHero)
 
         appState.battle.presentCombatantDetail(detail)
 
@@ -158,7 +158,7 @@ final class BattleSessionTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = true
-        appState.battle.presentCombatantDetail(.base(appState.roster.activeHero))
+        appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: appState.roster.activeHero))
 
         appState.battle.restorePauseAfterOverlay()
 

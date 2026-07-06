@@ -96,7 +96,7 @@ struct SearchView: View {
         kind: CombatantDetailContext.Kind
     ) -> some View {
         NavigationLink {
-            CombatantDetailPane.Roster(
+            appState.rosterCombatantDetail(
                 kind: kind,
                 combatantID: combatant.id,
                 hidesNavigationBar: false

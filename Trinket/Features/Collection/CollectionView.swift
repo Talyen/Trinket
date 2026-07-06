@@ -165,10 +165,13 @@ struct CollectionView: View {
             .presentationDragIndicator(.hidden)
         }
         .sheet(item: $selectedCombatant) { context in
-            CombatantDetailPane.Roster(context: context)
-                .presentationDetents([.large])
-                .presentationContentInteraction(.resizes)
-                .presentationDragIndicator(.hidden)
+            appState.rosterCombatantDetail(
+                kind: context.kind,
+                combatantID: context.combatantID
+            )
+            .presentationDetents([.large])
+            .presentationContentInteraction(.resizes)
+            .presentationDragIndicator(.hidden)
         }
     }
 

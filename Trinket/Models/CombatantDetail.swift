@@ -29,15 +29,20 @@ struct CombatantCardDetail: Hashable, Identifiable {
         combatant.id
     }
 
-    static func base(_ combatant: Combatant) -> CombatantCardDetail {
-        CombatantCardDetail(
-            combatant: combatant,
-            progression: .initial,
-            equipmentLoadout: EquipmentLoadout(),
-            inventoryState: .initial,
-            health: combatant.maxHealth,
-            activeEffectSummaries: []
-        )
+    init(
+        combatant: Combatant,
+        progression: CombatantProgression = .initial,
+        equipmentLoadout: EquipmentLoadout = EquipmentLoadout(),
+        inventoryState: PlayerInventoryState = .initial,
+        health: Int? = nil,
+        activeEffectSummaries: [EffectSummary] = []
+    ) {
+        self.combatant = combatant
+        self.progression = progression
+        self.equipmentLoadout = equipmentLoadout
+        self.inventoryState = inventoryState
+        self.health = health ?? combatant.maxHealth
+        self.activeEffectSummaries = activeEffectSummaries
     }
 
     static func battleSnapshot(
@@ -54,20 +59,6 @@ struct CombatantCardDetail: Hashable, Identifiable {
             inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries
-        )
-    }
-
-    static func stageEnemyPreview(
-        encounter: StageEncounterEnemy,
-        inventoryState: PlayerInventoryState
-    ) -> CombatantCardDetail {
-        CombatantCardDetail(
-            combatant: encounter.combatant,
-            progression: .initial,
-            equipmentLoadout: EquipmentLoadout(),
-            inventoryState: inventoryState,
-            health: encounter.combatant.maxHealth,
-            activeEffectSummaries: []
         )
     }
 }

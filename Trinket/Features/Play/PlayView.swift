@@ -57,8 +57,8 @@ struct PlayView: View {
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
         guard let encounter = StageEncounterResolver.resolve(for: stage) else { return nil }
 
-        return CombatantCardDetail.stageEnemyPreview(
-            encounter: encounter,
+        return CombatantCardDetail(
+            combatant: encounter.combatant,
             inventoryState: appState.inventory.current
         )
     }
