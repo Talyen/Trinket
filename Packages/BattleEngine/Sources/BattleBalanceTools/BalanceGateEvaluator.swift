@@ -1,4 +1,5 @@
 import Foundation
+import BattleEngine
 
 public struct BalanceGateThresholds: Equatable, Sendable, Codable {
     /// Maximum share of matchup rows with a 100% win rate (middle-tier fodder).

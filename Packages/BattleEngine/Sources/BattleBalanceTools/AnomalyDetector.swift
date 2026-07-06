@@ -1,4 +1,5 @@
 import Foundation
+import BattleEngine
 
 public enum EnemyDifficultyRole: String, Sendable, Codable, CaseIterable {
     case fodder
@@ -19,7 +20,7 @@ public enum AnomalyDetector {
             hardCounterWinRate: Double = 0.25,
             timeoutRate: Double = 0.10,
             minFightTicks: Int = BalanceSweepDefaults.minFightTicks,
-            maxFightTicks: Int = BalanceSweepDefaults.maxFightTicks,
+            maxFightTicks: Int = BalanceSweepDefaults.maxTicks,
             underpoweredAbilityWinRate: Double = 0.45,
             overpoweredAbilityWinRate: Double = 0.55
         ) {

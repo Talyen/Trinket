@@ -27,7 +27,8 @@ final class DoTDamageTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 

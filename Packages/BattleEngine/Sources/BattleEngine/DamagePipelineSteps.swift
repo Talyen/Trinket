@@ -363,18 +363,18 @@ extension DamagePipeline {
             switch active.effect {
             case let .thorns(keyword, amount, _):
                 guard amount > 0 else { continue }
-                let events = context.resolveDamage(
+                let outcome = context.resolveDamage(
                     DamageRequest(
                         amount: amount,
                         target: attacker.combatant,
                         keyword: keyword,
                         sourceActorID: state.combatant.id,
-                        options: DamageOptions(isRetaliation: true)
+                        options: DamageOptions(applyDodge: false, isRetaliation: true)
                     )
-                ).events
-                var thornsEvents = events
+                )
+                var thornsEvents = outcome.events
                 if let lastIndex = thornsEvents.indices.last {
-                    var event = thornsEvents[lastIndex]
+                    let event = thornsEvents[lastIndex]
                     thornsEvents[lastIndex] = ActionEvent(
                         id: event.id,
                         kind: event.kind,
@@ -388,6 +388,16 @@ extension DamagePipeline {
                         appliedEffectSummaries: event.appliedEffectSummaries,
                         milestone: event.milestone
                     )
+                } else if outcome.healthLost > 0 {
+                    thornsEvents.append(context.nextEvent(
+                        kind: .effect,
+                        effectKind: .thornsTriggered,
+                        actorName: state.combatant.name,
+                        abilityName: "Thorns",
+                        target: attacker.combatant,
+                        amount: outcome.healthLost,
+                        keyword: keyword
+                    ))
                 }
                 state.damageEvents.append(contentsOf: thornsEvents)
             case let .restoreManaOnHit(amount, _):

@@ -50,7 +50,16 @@ public enum EffectTickEngine {
             merged = merged.compactMap { activeEffect in
                 guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
                 if outcome.removeAfter { return nil }
-                if let updated = outcome.updatedStack { return updated }
+                if let updated = outcome.updatedStack {
+                    var preserved = activeEffect
+                    preserved.remainingTicks = updated.remainingTicks
+                    preserved.sourceActorID = updated.sourceActorID
+                    if activeEffect.effect.kind == updated.effect.kind,
+                       activeEffect.effect == effects.first(where: { $0.id == activeEffect.id })?.effect {
+                        preserved.effect = updated.effect
+                    }
+                    return preserved
+                }
                 return activeEffect
             }
         }

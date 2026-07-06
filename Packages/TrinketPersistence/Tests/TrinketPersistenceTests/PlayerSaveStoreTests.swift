@@ -1,6 +1,7 @@
+import SwiftData
 import XCTest
-import TrinketCore
 import TrinketContent
+import TrinketCore
 @testable import TrinketPersistence
 
 @MainActor
@@ -18,8 +19,8 @@ final class PlayerSaveStoreTests: XCTestCase {
     }
 
     func testPlayerSavePersistsJourneyRosterInventoryAndHomestead() throws {
-        let fileStore = makeFileStore()
-        let firstStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        let storeURL = makeStoreURL()
+        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
@@ -27,7 +28,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         firstStore.advanceJourneyToStage("chapter-1-stage-2")
 
-        let secondStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        let secondStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
         XCTAssertEqual(secondStore.roster.gold, 42)
         XCTAssertEqual(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP, 20)
@@ -35,6 +36,33 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(secondStore.homestead.resources[.crystal], 2)
         XCTAssertNotNil(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(secondStore.journey.activeStageID, "chapter-1-stage-2")
+    }
+
+    func testSwiftDataGraphStoresIndependentRecords() throws {
+        let storeURL = makeStoreURL()
+        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        store.grantGold(5)
+        store.advanceJourneyToStage("chapter-1-stage-2")
+        store.grantHomestead([ResourceAmount(.wood, 3)])
+        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
+
+        let container = try ModelContainer(
+            for: PlayerSaveGraph.schema,
+            configurations: ModelConfiguration(schema: PlayerSaveGraph.schema, url: storeURL, cloudKitDatabase: .none)
+        )
+        let context = ModelContext(container)
+
+        XCTAssertEqual(try context.fetch(FetchDescriptor<RosterModel>()).first?.gold, 5)
+        XCTAssertTrue(try context.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
+            $0.stageID == "chapter-1-stage-1" && $0.isCompleted
+        })
+        XCTAssertTrue(try context.fetch(FetchDescriptor<InventoryItemModel>()).contains {
+            $0.id == "chapter-1-stage-1-shortsword-basic"
+        })
+        XCTAssertTrue(try context.fetch(FetchDescriptor<HomesteadResourceBalanceModel>()).contains {
+            $0.resourceID == HomesteadResource.wood.rawValue && $0.quantity == 3
+        })
     }
 
     func testResetGameplayProgressRestoresFreshStart() throws {
@@ -63,14 +91,15 @@ final class PlayerSaveStoreTests: XCTestCase {
     }
 
     func testEquipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
-        let fileStore = makeFileStore()
+        let storeURL = makeStoreURL()
+        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var save = PlayerSave.testSeed
         save.roster.equipmentLoadouts["knight"] = SavedEquipmentLoadout(
             EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
         )
-        try fileStore.save(save)
+        try firstStore.performBatchMutation { $0 = save }
 
-        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
 
         XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
@@ -98,81 +127,12 @@ final class PlayerSaveStoreTests: XCTestCase {
         )
     }
 
-    func testPersistFailureUpdatesMemoryAndQueuesPendingFlush() throws {
-        let fileStore = makeFileStore()
-        let store = PlayerSaveStore(
-            fileStore: fileStore,
-            immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0,
-            persistDebounceNanoseconds: 0
-        )
-        store.grantGold(10)
+    func testLocalMutationUpdatesModifiedAt() {
+        let store = makeStore()
+        let beforeLocalEdit = store.currentSave.modifiedAt
+        store.grantGold(1)
 
-        try FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: Int16(0o555))],
-            ofItemAtPath: directoryURL.path
-        )
-        defer {
-            try? FileManager.default.setAttributes(
-                [.posixPermissions: NSNumber(value: Int16(0o755))],
-                ofItemAtPath: directoryURL.path
-            )
-        }
-
-        store.grantGold(5)
-
-        XCTAssertEqual(store.roster.gold, 15)
-        XCTAssertTrue(store.hasPendingPersist)
-        XCTAssertEqual(store.lastPersistenceError, .writeFailed)
-
-        let reloadedBeforeFlush = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
-        XCTAssertEqual(reloadedBeforeFlush.roster.gold, 10)
-
-        try FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: Int16(0o755))],
-            ofItemAtPath: directoryURL.path
-        )
-        store.flushPendingPersistIfNeeded()
-
-        XCTAssertFalse(store.hasPendingPersist)
-        XCTAssertNil(store.lastPersistenceError)
-
-        let reloadedAfterFlush = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
-        XCTAssertEqual(reloadedAfterFlush.roster.gold, 15)
-    }
-
-    func testPerformBatchMutationAppliesOptimisticallyWhenPersistFails() throws {
-        let fileStore = makeFileStore()
-        let store = PlayerSaveStore(
-            fileStore: fileStore,
-            immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0,
-            persistDebounceNanoseconds: 0
-        )
-
-        try FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: Int16(0o555))],
-            ofItemAtPath: directoryURL.path
-        )
-        defer {
-            try? FileManager.default.setAttributes(
-                [.posixPermissions: NSNumber(value: Int16(0o755))],
-                ofItemAtPath: directoryURL.path
-            )
-        }
-
-        var journey = store.journey
-        journey.completedStageIDs.insert("chapter-1-stage-1")
-        journey.activeStageID = "chapter-1-stage-2"
-
-        try store.performBatchMutation { save in
-            save.journey = journey
-            save.roster.gold = 42
-        }
-
-        XCTAssertEqual(store.journey.activeStageID, "chapter-1-stage-2")
-        XCTAssertEqual(store.roster.gold, 42)
-        XCTAssertTrue(store.hasPendingPersist)
+        XCTAssertGreaterThan(store.currentSave.modifiedAt, beforeLocalEdit)
     }
 
     func testSanitizerUsesCatalogOrderForLastCompletedStage() {
@@ -183,47 +143,6 @@ final class PlayerSaveStoreTests: XCTestCase {
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
         XCTAssertEqual(sanitized.lastCompletedStageID, "chapter-1-stage-10")
-    }
-
-    func testApplyRemoteSavePreservesModifiedAt() throws {
-        let fileStore = makeFileStore()
-        let store = makeStore()
-        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
-        var remoteSave = PlayerSave.fresh
-        remoteSave.modifiedAt = remoteTimestamp
-        remoteSave.roster.gold = 99
-
-        try store.applyRemoteSave(remoteSave)
-
-        XCTAssertEqual(store.currentSave.modifiedAt, remoteTimestamp)
-        XCTAssertEqual(store.roster.gold, 99)
-        XCTAssertTrue(store.loadedFromDisk)
-    }
-
-    func testLocalMutationUpdatesModifiedAt() throws {
-        let fileStore = makeFileStore()
-        let store = makeStore()
-        let remoteTimestamp = Date(timeIntervalSince1970: 1_700_000_000)
-        var remoteSave = PlayerSave.fresh
-        remoteSave.modifiedAt = remoteTimestamp
-        try store.applyRemoteSave(remoteSave)
-
-        let beforeLocalEdit = store.currentSave.modifiedAt
-        store.grantGold(1)
-
-        XCTAssertGreaterThan(store.currentSave.modifiedAt, beforeLocalEdit)
-    }
-
-    func testLoadedFromDiskWhenSaveFileExists() throws {
-        let fileStore = makeFileStore()
-        var save = PlayerSave.fresh
-        save.roster.gold = 7
-        try fileStore.save(save)
-
-        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
-
-        XCTAssertTrue(store.loadedFromDisk)
-        XCTAssertEqual(store.roster.gold, 7)
     }
 
     func testValidateRejectsNegativeProgressionXP() {
@@ -244,34 +163,17 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         XCTAssertThrowsError(try PlayerSaveSanitizer.validate(save)) { error in
             guard case PlayerSavePersistenceError.invalidSave = error else {
-                XCTFail("Expected invalidSave, got \(error)")
+                return XCTFail("Expected invalidSave, got \(error)")
             }
         }
     }
 
-    func testCorruptSaveFallsBackToFreshStartAndSetsFlag() throws {
-        let fileStore = makeFileStore()
-        try "corrupt".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
-        try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
-
-        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
-
-        XCTAssertTrue(store.hadCorruptSaveOnLoad)
-        XCTAssertEqual(store.roster, .freshStart)
-        XCTAssertEqual(store.journey, .initial)
-        XCTAssertEqual(store.inventory, .freshStart)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: fileStore.saveFileURL.path))
-    }
-
-    private func makeFileStore() -> PlayerSaveFileStore {
-        SaveTestSupport.makeFileStore(directoryURL: directoryURL)
+    private func makeStoreURL() -> URL {
+        SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
     }
 
     private func makeStore() -> PlayerSaveStore {
-        PlayerSaveStore(
-            fileStore: makeFileStore(),
-            persistDebounceNanoseconds: 0
-        )
+        PlayerSaveStore(storeURL: makeStoreURL(), disableCloudSync: true)
     }
 }
 

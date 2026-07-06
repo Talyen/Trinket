@@ -1,4 +1,5 @@
 import Foundation
+import TrinketPersistence
 
 /// Ephemeral UI session state stored in `UserDefaults` (tab selection, map scroll,
 /// in-flight battle restoration). Cloud-synced gameplay progress lives in `PlayerSave`.

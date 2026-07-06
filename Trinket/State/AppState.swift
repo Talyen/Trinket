@@ -1,10 +1,10 @@
 import Foundation
 import Observation
-import os
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import os
 
 let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -15,7 +15,6 @@ let appStateLogger = Logger(
 @Observable
 final class AppState {
     let playerSave: PlayerSaveStore
-    let syncCoordinator: PlayerSaveSyncCoordinator
     let musicPlayer: MusicPlayer
     var selectedTab: AppTab
     var roster: PlayerRosterStore
@@ -27,25 +26,19 @@ final class AppState {
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
-    var showCorruptSaveRecoveryAlert = false
 
     init(
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
-        sync: (any PlayerSaveSyncing)? = nil,
-        fileStore: PlayerSaveFileStore? = nil,
         userDefaults: UserDefaults? = nil
     ) {
         let dependencies = Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
-            sync: sync,
-            fileStore: fileStore,
             userDefaults: userDefaults
         )
 
-        playerSave = dependencies.playerSave
-        syncCoordinator = dependencies.syncCoordinator
+        self.playerSave = dependencies.playerSave
         musicPlayer = dependencies.musicPlayer
         roster = dependencies.roster
         inventory = dependencies.inventory
@@ -57,13 +50,7 @@ final class AppState {
         initialCollectionItemID = dependencies.initialCollectionItemID
         selectedTab = dependencies.selectedTab
         battle = BattleSession()
-
-        showCorruptSaveRecoveryAlert = playerSave.hadCorruptSaveOnLoad
         finishBootstrap(environment: environment)
-    }
-
-    func acknowledgeCorruptSaveRecovery() {
-        showCorruptSaveRecoveryAlert = false
     }
 
     var shellDataStatusPresentation: ShellDataStatusPresentation? {
@@ -75,22 +62,7 @@ final class AppState {
             )
         }
 
-        switch syncCoordinator.status {
-        case let .error(message), let .iCloudUnavailable(message):
-            return ShellDataStatusPresentation(
-                message: message,
-                symbolName: "icloud.slash",
-                style: .destructive
-            )
-        case .offline:
-            return ShellDataStatusPresentation(
-                message: syncCoordinator.status.displayText,
-                symbolName: "icloud.slash",
-                style: .secondary
-            )
-        case .idle, .syncing, .upToDate:
-            return nil
-        }
+        return nil
     }
 
     private var persistenceStatusMessage: String? {
@@ -204,9 +176,6 @@ final class AppState {
         sessionState.clearBattleState()
         sessionState.selectedTab = nil
         selectedTab = .play
-        Task {
-            await syncCoordinator.checkpointUploadIfNeeded()
-        }
         return true
     }
 

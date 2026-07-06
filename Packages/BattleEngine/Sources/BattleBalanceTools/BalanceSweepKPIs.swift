@@ -1,4 +1,5 @@
 import Foundation
+import BattleEngine
 
 public struct BalanceRoleKPI: Equatable, Sendable, Codable {
     public let rowCount: Int

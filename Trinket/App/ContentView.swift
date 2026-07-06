@@ -8,7 +8,31 @@ struct ContentView: View {
     var body: some View {
         @Bindable var state = appState
 
-        TabView(selection: $state.selectedTab) {
+        tabRoot(selection: $state.selectedTab)
+        .preferredColorScheme(appState.options.appearance.colorScheme)
+        .onAppear {
+            appState.shellDidAppear(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.selectedTab) { _, newTab in
+            appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
+        }
+        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
+            appState.shellDidChangeActiveBattle(started: newValue != nil, scenePhase: scenePhase)
+        }
+        .onChange(of: appState.battle.preview?.id) { _, _ in
+            appState.refreshMusic(scenePhase: scenePhase)
+        }
+        .onChange(of: appState.options.musicVolume) { _, _ in
+            appState.refreshMusic(scenePhase: scenePhase)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            appState.shellDidChangeScenePhase(newPhase)
+        }
+    }
+
+    @ViewBuilder
+    private func tabRoot(selection: Binding<AppTab>) -> some View {
+        TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 NavigationStack {
                     PlayView()
@@ -41,38 +65,6 @@ struct ContentView: View {
                     OptionsView()
                 }
             }
-        }
-        .preferredColorScheme(appState.options.appearance.colorScheme)
-        .onAppear {
-            appState.shellDidAppear(scenePhase: scenePhase)
-        }
-        .onChange(of: appState.selectedTab) { _, newTab in
-            appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
-        }
-        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-            appState.shellDidChangeActiveBattle(started: newValue != nil, scenePhase: scenePhase)
-        }
-        .onChange(of: appState.battle.preview?.id) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
-        }
-        .onChange(of: appState.options.musicVolume) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            appState.shellDidChangeScenePhase(newPhase)
-        }
-        .alert(
-            "Progress Was Reset",
-            isPresented: Binding(
-                get: { appState.showCorruptSaveRecoveryAlert },
-                set: { if !$0 { appState.acknowledgeCorruptSaveRecovery() } }
-            )
-        ) {
-            Button("OK", role: .cancel) {
-                appState.acknowledgeCorruptSaveRecovery()
-            }
-        } message: {
-            Text("Your save file was damaged and could not be loaded. A fresh journey has been started on this device.")
         }
     }
 }

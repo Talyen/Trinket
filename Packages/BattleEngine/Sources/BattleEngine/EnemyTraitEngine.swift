@@ -1,5 +1,6 @@
 import Foundation
 import TrinketCore
+import TrinketContent
 
 /// Passive enemy trait hooks that run during battle ticks and damage resolution.
 package enum EnemyTraitEngine {
@@ -91,16 +92,16 @@ package enum EnemyTraitEngine {
         else { return [] }
 
         let thornsAmount = max(1, Int(ceil(Double(damageTaken) * profile.thornsPercent)))
-        let events = context.resolveDamage(
+        let outcome = context.resolveDamage(
             DamageRequest(
                 amount: thornsAmount,
                 target: attacker,
                 keyword: .physical,
                 sourceActorID: defender.id,
-                options: DamageOptions(isRetaliation: true)
+                options: DamageOptions(applyDodge: false, isRetaliation: true)
             )
-        ).events
-        return events.map { event in
+        )
+        let events = outcome.events.map { event in
             ActionEvent(
                 id: event.id,
                 kind: event.kind,
@@ -115,6 +116,18 @@ package enum EnemyTraitEngine {
                 milestone: event.milestone
             )
         }
+        if events.isEmpty, outcome.healthLost > 0 {
+            return [context.nextEvent(
+                kind: .effect,
+                effectKind: .thornsTriggered,
+                actorName: defender.name,
+                abilityName: traitName(for: defender, in: context),
+                target: attacker,
+                amount: outcome.healthLost,
+                keyword: .physical
+            )]
+        }
+        return events
     }
 
     package static func bonusHealAmount(

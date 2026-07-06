@@ -2,6 +2,7 @@ import TrinketContent
 import XCTest
 @testable import Trinket
 
+@MainActor
 final class MusicPlayerRoutingTests: XCTestCase {
     func testMenuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
         let route = MusicRoute.resolve(

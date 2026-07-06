@@ -69,7 +69,7 @@ final class EnemyTraitBattleTests: XCTestCase {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        XCTAssertEqual(first.healthLost, 6)
+        XCTAssertEqual(first.healthLost, 5)
         XCTAssertEqual(second.healthLost, 3)
     }
 
@@ -97,6 +97,6 @@ final class EnemyTraitBattleTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.health(for: hero), heroHealthBefore - 6)
+        XCTAssertEqual(context.roster.health(for: hero), heroHealthBefore - 7)
     }
 }

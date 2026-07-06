@@ -38,7 +38,8 @@ final class DamagePipelineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 
@@ -80,7 +81,8 @@ final class DamagePipelineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
 
         let executed = DamagePipeline.executedStepNames(
@@ -99,7 +101,7 @@ final class DamagePipelineTests: XCTestCase {
     func testStepPhasesGroupStochasticResolutionAndPost() {
         let phases = DamagePipeline.steps.map(\.phase)
         XCTAssertEqual(phases.filter { $0 == .stochastic }.count, 2)
-        XCTAssertEqual(phases.filter { $0 == .resolution }.count, 8)
+        XCTAssertEqual(phases.filter { $0 == .resolution }.count, 9)
         XCTAssertEqual(phases.filter { $0 == .post }.count, 3)
         XCTAssertEqual(DamagePipeline.steps.first?.phase, .stochastic)
         XCTAssertEqual(DamagePipeline.steps.last?.phase, .post)

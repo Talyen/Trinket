@@ -1,5 +1,6 @@
 import Foundation
 import TrinketContent
+import BattleEngine
 
 public struct BalanceSweepTriple: Equatable, Hashable, Sendable {
     public let hero: Combatant
@@ -89,7 +90,7 @@ public enum BalanceSweepCatalog {
         pets: [Combatant] = GameContent.pets,
         enemies: [Enemy] = GameContent.enemies
     ) -> [BalanceSweepTriple] {
-        let tierEnemies = enemies(
+        let tierEnemies = Self.enemies(
             for: tier,
             stageWeighted: stageWeighted,
             allEnemies: enemies

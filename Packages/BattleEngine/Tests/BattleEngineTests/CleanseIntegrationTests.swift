@@ -87,7 +87,7 @@ final class CleanseIntegrationTests: XCTestCase {
             activeHeroEffects: [
                 ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0),
                 ActiveEffect(id: 2, effect: .burn(4), remainingTicks: 0),
-                ActiveEffect(id: 3, effect: .shield(.block, 5, 6), remainingTicks: 6)
+                ActiveEffect(id: 3, effect: .shield(.block, 10, 6), remainingTicks: 6)
             ]
         )
 

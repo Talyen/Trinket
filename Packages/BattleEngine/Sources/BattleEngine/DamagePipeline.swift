@@ -15,15 +15,15 @@ package enum DamagePhase: Sendable {
 
 /// Ordered registry and runner for damage resolution steps.
 package enum DamagePipeline {
-    private struct Step {
-        let name: String
-        let phase: DamagePhase
-        let apply: (inout DamageResolutionState, inout BattleEngineContext) -> Void
+    package struct Step: Sendable {
+        package let name: String
+        package let phase: DamagePhase
+        let apply: @Sendable (inout DamageResolutionState, inout BattleEngineContext) -> Void
     }
 
     /// Canonical damage resolution order. Critical multiplication intentionally runs
     /// after mitigation and shield absorption so crits apply to post-mitigation damage.
-    private static let steps: [Step] = [
+    package static let steps: [Step] = [
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),
         Step(name: "DamageBonus", phase: .resolution, apply: applyDamageBonus),
@@ -81,6 +81,7 @@ package enum DamagePipeline {
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush
         )
+        state.activeEffects = context.roster.activeEffects(for: request.target)
 
         var executed: [String] = []
         run(state: &state, in: &context) { executed.append($0) }

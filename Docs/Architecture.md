@@ -133,10 +133,11 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 
 ## Persistence overview
 
-- **Canonical save:** `PlayerSave` encoded by `TrinketPersistence`; `PlayerSaveStore` is the write-through hub.
-- **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore` observe/mutate slices of the save.
+- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph. `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
+- **Save hub:** `PlayerSaveStore` owns a `ModelContainer` / `ModelContext`, creates the singleton root idempotently, and mutates model objects directly. Value types such as `PlayerSave`, `PlayerRosterState`, and `StageCompletionContext` are calculation snapshots, not the canonical persisted form.
+- **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, and homestead APIs observe/mutate slices through `PlayerSaveStore`.
 - **Options/preferences:** `OptionsStore` (theme, volumes) and `SessionStateStore` (tab/battle restoration) use `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
-- **Sync:** `PlayerSaveSyncCoordinator` debounces local writes and reconciles by `modifiedAt`; `PlayerSaveSyncFactory` (in `TrinketPersistence`) picks CloudKit vs local-only at launch; disabled in tests via `-disable-cloud-sync`.
+- **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
 - **Pre-ship:** `Docs/CloudKitPreShipChecklist.md`
 
 ## Tech stack

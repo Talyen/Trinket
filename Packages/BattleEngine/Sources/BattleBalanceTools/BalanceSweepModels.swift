@@ -49,7 +49,7 @@ public struct BalanceSweepRequest: Equatable, Sendable {
 
     public static let `default` = BalanceSweepRequest()
 
-    var encodedTripleCount: Int {
+    public var encodedTripleCount: Int {
         if let triples {
             return triples.count
         }

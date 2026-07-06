@@ -21,7 +21,8 @@ final class BattleConditionEvaluatorTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         context.roster.mutateRuntime(for: pet) { $0.currentHealth = 8 }
@@ -53,7 +54,8 @@ final class BattleConditionEvaluatorTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
 
         XCTAssertFalse(

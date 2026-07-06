@@ -1,4 +1,5 @@
 import BattleEngine
+import Foundation
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
@@ -47,6 +48,7 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
+    @MainActor
     static func make(
         stageID: String? = nil,
         rngSeed: UInt64,

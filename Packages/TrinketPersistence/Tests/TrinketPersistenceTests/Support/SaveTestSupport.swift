@@ -14,14 +14,14 @@ enum SaveTestSupport {
         try? FileManager.default.removeItem(at: url)
     }
 
-    static func makeFileStore(directoryURL: URL) -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
+    static func makeStoreURL(directoryURL: URL) -> URL {
+        directoryURL.appendingPathComponent("PlayerSave.sqlite")
     }
 
     static func makeSaveStore(directoryURL: URL) -> PlayerSaveStore {
         PlayerSaveStore(
-            fileStore: makeFileStore(directoryURL: directoryURL),
-            persistDebounceNanoseconds: 0
+            storeURL: makeStoreURL(directoryURL: directoryURL),
+            disableCloudSync: true
         )
     }
 
@@ -35,22 +35,6 @@ enum SaveTestSupport {
         )
         save.roster.gold = gold
         return save
-    }
-
-    nonisolated static func makeRemote(
-        modifiedAt: Date,
-        gold: Int = 0,
-        recordChangeTag: String = "remote"
-    ) -> RemotePlayerSave {
-        RemotePlayerSave(
-            save: makeSave(modifiedAt: modifiedAt, gold: gold),
-            modifiedAt: modifiedAt,
-            recordChangeTag: recordChangeTag
-        )
-    }
-
-    static func writeSave(_ save: PlayerSave, to fileStore: PlayerSaveFileStore) throws {
-        try fileStore.save(save)
     }
 }
 

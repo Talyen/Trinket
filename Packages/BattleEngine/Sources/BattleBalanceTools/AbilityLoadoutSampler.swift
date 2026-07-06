@@ -1,6 +1,7 @@
 import Foundation
 import TrinketCore
 import TrinketContent
+import BattleEngine
 
 enum LoadoutDamageClassifier {
     static func dealsEnemyDamage(_ ability: Ability) -> Bool {

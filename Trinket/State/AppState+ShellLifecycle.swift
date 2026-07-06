@@ -50,17 +50,6 @@ extension AppState {
     }
 
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
-        if phase == .inactive || phase == .background {
-            playerSave.flushPendingPersistIfNeeded()
-        }
-        if phase == .background {
-            Task { @MainActor in
-                await syncCoordinator.checkpointUploadIfNeeded()
-            }
-        } else if phase == .active {
-            Task { @MainActor in
-                await syncCoordinator.reconcileForegroundIfSafe()
-            }
-        }
+        _ = phase
     }
 }

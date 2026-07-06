@@ -32,8 +32,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.qualifiesForAmbush = qualifiesForAmbush
     }
 
-    /// Direct ability hit: full bonuses and dodge checks.
-    public static let directAbilityHit = DamageOptions()
+    /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.
+    public static let directAbilityHit = DamageOptions(qualifiesForAmbush: true)
 
     /// DoT tick: stat and item bonuses at resolution time; no dodge.
     public static let doTTick = DamageOptions(

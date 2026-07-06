@@ -134,7 +134,9 @@ configure_ui_parallelism() {
 
   if (( worker_count > 1 )); then
     ensure_test_simulator
-    delete_xcode_parallel_clones "$SIMULATOR_NAME"
+    if declare -F delete_xcode_parallel_clones >/dev/null; then
+      delete_xcode_parallel_clones "$SIMULATOR_NAME"
+    fi
     ensure_simulator_pool "$worker_count"
     PARALLEL_FLAGS=(
       -parallel-testing-enabled YES
@@ -299,23 +301,32 @@ fi
 run_package_tests() {
   local xcodebuild_action="$1"
   local packages=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
-  local pool_size=${#packages[@]}
-  local package
-  local index=0
-  local pids=()
-  local failed=0
-  local max_seconds=0
+  
+  local pool_size
+  if [[ -n "${TEST_PARALLEL_WORKERS:-}" ]]; then
+    pool_size="$TEST_PARALLEL_WORKERS"
+  elif [[ -n "${CI:-}" ]]; then
+    pool_size=${#packages[@]}
+  else
+    pool_size=1
+  fi
+
+  if (( pool_size > ${#packages[@]} )); then
+    pool_size=${#packages[@]}
+  fi
 
   ensure_simulator_pool "$pool_size"
 
-  for package in "${packages[@]}"; do
-    local udid="${SIMULATOR_POOL_UDIDS[$index]}"
+  local failed=0
+  local max_seconds=0
+
+  if (( pool_size == 1 )); then
+    local udid="${SIMULATOR_POOL_UDIDS[0]}"
     local destination
     destination="$(destination_for_udid "$udid")"
-    local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
 
-    (
-      echo "Running $package package tests on $udid..."
+    for package in "${packages[@]}"; do
+      echo "Running $package package tests sequentially on $udid..."
       SECONDS=0
       local package_status=0
       local package_args=("$package" --destination "$destination")
@@ -323,28 +334,54 @@ run_package_tests() {
         package_args=(--no-build "${package_args[@]}")
       fi
       ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
-      echo "$SECONDS" >"$wall_file"
-      exit "$package_status"
-    ) &
-    pids+=($!)
-    ((index++))
-  done
+      if [[ "$package_status" -ne 0 ]]; then
+        failed=1
+      fi
+      local elapsed=$SECONDS
+      (( elapsed > max_seconds )) && max_seconds=$elapsed
+    done
+  else
+    local pids=()
+    local index=0
+    for package in "${packages[@]}"; do
+      local sim_index=$((index % pool_size))
+      local udid="${SIMULATOR_POOL_UDIDS[$sim_index]}"
+      local destination
+      destination="$(destination_for_udid "$udid")"
+      local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
 
-  for pid in "${pids[@]}"; do
-    if ! wait "$pid"; then
-      failed=1
-    fi
-  done
+      (
+        echo "Running $package package tests on $udid..."
+        SECONDS=0
+        local package_status=0
+        local package_args=("$package" --destination "$destination")
+        if [[ "$xcodebuild_action" == "test-without-building" ]]; then
+          package_args=(--no-build "${package_args[@]}")
+        fi
+        ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
+        echo "$SECONDS" >"$wall_file"
+        exit "$package_status"
+      ) &
+      pids+=($!)
+      ((index++))
+    done
 
-  for package in "${packages[@]}"; do
-    local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
-    if [[ -f "$wall_file" ]]; then
-      local seconds
-      seconds="$(<"$wall_file")"
-      (( seconds > max_seconds )) && max_seconds=$seconds
-      rm -f "$wall_file"
-    fi
-  done
+    for pid in "${pids[@]}"; do
+      if ! wait "$pid"; then
+        failed=1
+      fi
+    done
+
+    for package in "${packages[@]}"; do
+      local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
+      if [[ -f "$wall_file" ]]; then
+        local seconds
+        seconds="$(<"$wall_file")"
+        (( seconds > max_seconds )) && max_seconds=$seconds
+        rm -f "$wall_file"
+      fi
+    done
+  fi
 
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + max_seconds))
   return "$failed"

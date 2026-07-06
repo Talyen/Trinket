@@ -93,38 +93,19 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testCompleteActiveBattleAdvancesJourneyWhenPersistFails() throws {
-        let fileStore = PlayerSaveFileStore(directoryURL: directoryURL)
-        let playerSave = PlayerSaveStore(
-            fileStore: fileStore,
-            immediatePersistRetryCount: 1,
-            immediatePersistRetryDelayNanoseconds: 0,
-            persistDebounceNanoseconds: 0
-        )
+        let playerSave = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
         let state = AppTestSupport.makeAppState(
             playerSave: playerSave,
-            fileStore: fileStore,
             directoryURL: directoryURL
         )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
 
-        try FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: Int16(0o555))],
-            ofItemAtPath: directoryURL.path
-        )
-        defer {
-            try? FileManager.default.setAttributes(
-                [.posixPermissions: NSNumber(value: Int16(0o755))],
-                ofItemAtPath: directoryURL.path
-            )
-        }
-
         state.completeActiveBattle(configuration, battleEarnedGold: 0)
 
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(state.playerSave.hasPendingPersist)
     }
 
     func testMapScrollFocusIDReturnsActiveStageWhenInProgress() {
@@ -177,16 +158,10 @@ final class AppStatePlayFlowTests: XCTestCase {
         let hero = state.roster.activeHero
         let pet = state.roster.activePet
 
-        try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: directoryURL.path)
-        defer {
-            try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directoryURL.path)
-        }
-
         let scrollTarget = state.completeStage(stage, hero: hero, pet: pet)
 
         XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
         XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
-        XCTAssertTrue(state.playerSave.hasPendingPersist)
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
     }
 

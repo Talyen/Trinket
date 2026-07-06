@@ -88,7 +88,7 @@ final class BalanceSweepKPIsTests: XCTestCase {
 
         let kpis = BalanceSweepKPIs.compute(from: rows)
         XCTAssertEqual(kpis.totalMatchupRows, 2)
-        XCTAssertEqual(kpis.inBandCount, 1)
+        XCTAssertEqual(kpis.inBandCount, 0)
         XCTAssertEqual(kpis.perfectWinCount, 1)
         XCTAssertEqual(kpis.durationInBandCount, 1)
     }

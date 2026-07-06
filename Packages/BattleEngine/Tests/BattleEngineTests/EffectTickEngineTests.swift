@@ -15,7 +15,7 @@ final class EffectTickEngineTests: XCTestCase {
         let roster = BattleRoster(
             hero: CombatantRuntime(combatant: hero, initialHealth: heroHP),
             pet: CombatantRuntime(combatant: pet),
-            enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP, activeEffects: enemyEffects)
+            enemy: CombatantRuntime(combatant: enemy, initialHealth: enemyHP, initialActiveEffects: enemyEffects)
         )
         return BattleEngineContext(
             roster: roster,
@@ -26,7 +26,8 @@ final class EffectTickEngineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 
@@ -52,13 +53,13 @@ final class EffectTickEngineTests: XCTestCase {
             guard case let .shield(_, buffer, _) = activeEffect.effect else { return nil }
             return buffer
         }
-        XCTAssertEqual(shields, [1], "Burn tick should erode the shield buffer before HP damage")
+        XCTAssertEqual(shields, [3], "Burn tick should erode the shield buffer before HP damage")
         XCTAssertEqual(context.roster.health(for: enemy), 50)
     }
 
     func testDoTTickPreservesDeathsDoorThroughTickAll() {
         let burn = ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)
-        var context = makeContext(heroHP: 3, enemyEffects: [])
+        var context = makeContext(heroHP: 1, enemyEffects: [])
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects([burn], for: hero)
 

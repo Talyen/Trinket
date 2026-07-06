@@ -1,18 +1,15 @@
 import Foundation
-import os
 import TrinketContent
 import TrinketPersistence
+import os
 
 extension AppState {
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
-        sync: (any PlayerSaveSyncing)?,
-        fileStore: PlayerSaveFileStore?,
         userDefaults: UserDefaults?
     ) -> (
         playerSave: PlayerSaveStore,
-        syncCoordinator: PlayerSaveSyncCoordinator,
         musicPlayer: MusicPlayer,
         roster: PlayerRosterStore,
         inventory: PlayerInventoryStore,
@@ -25,13 +22,14 @@ extension AppState {
         initialCollectionItemID: String?
     ) {
         let resolvedDefaults = userDefaults ?? .standard
-        let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
         if environment.resetState {
             resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-            resolvedFileStore.deleteSave()
         }
 
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
+        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(
+            disableCloudSync: environment.disableCloudSync,
+            resetState: environment.resetState
+        )
         if environment.seedTestProgress {
             do {
                 try resolvedPlayerSave.applyTestSeed()
@@ -42,10 +40,6 @@ extension AppState {
             }
         }
 
-        let resolvedSync = sync ?? PlayerSaveSyncConfiguration(
-            disableCloudSync: environment.disableCloudSync,
-            resetState: environment.resetState
-        ).makeSyncService()
         let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
         if let appearanceOverride = environment.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride
@@ -60,10 +54,6 @@ extension AppState {
 
         return (
             playerSave: resolvedPlayerSave,
-            syncCoordinator: PlayerSaveSyncCoordinator(
-                sync: resolvedSync,
-                playerSaveStore: resolvedPlayerSave
-            ),
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             roster: resolvedRoster,
             inventory: resolvedInventory,
@@ -92,16 +82,7 @@ extension AppState {
             self?.sessionState.activeBattleStageID = stageID
         }
         battle.onBattleEnded = { [weak self] in
-            Task { await self?.syncCoordinator.onBattleEnded() }
-        }
-        syncCoordinator.hasActiveBattle = { [weak self] in
-            guard let self else { return false }
-            return self.battle.activeBattle != nil
-        }
-        syncCoordinator.onSessionSuperseded = { [weak self] in
-            guard let self else { return }
-            battle.endBattle()
-            sessionState.activeBattleStageID = nil
+            self?.sessionState.activeBattleStageID = nil
         }
     }
 

@@ -13,11 +13,19 @@ public struct SavedAbilityLoadout: Codable, Equatable, Sendable {
         ultimateID = loadout.ultimate?.id
     }
 
+    init(basicID: String?, skillID: String?, ultimateID: String?) {
+        self.basicID = basicID
+        self.skillID = skillID
+        self.ultimateID = ultimateID
+    }
+
     func merged(with other: SavedAbilityLoadout, preferOther: Bool) -> SavedAbilityLoadout {
         func mergedSlot(_ local: String?, _ remote: String?) -> String? {
             switch (local, remote) {
             case let (local?, remote?) where local != remote:
                 return preferOther ? remote : local
+            case let (local?, remote?) where local == remote:
+                return local
             case let (local?, nil):
                 return local
             case let (nil, remote?):
@@ -55,6 +63,10 @@ public struct SavedEquipmentLoadout: Codable, Equatable, Sendable {
         itemIDsBySlot = Dictionary(uniqueKeysWithValues: loadout.itemIDsBySlot.map { ($0.key.rawValue, $0.value) })
     }
 
+    init(itemIDsBySlot: [String: String]) {
+        self.itemIDsBySlot = itemIDsBySlot
+    }
+
     func merged(with other: SavedEquipmentLoadout, preferOther: Bool) -> SavedEquipmentLoadout {
         var mergedSlots = itemIDsBySlot
         for (slot, remoteItemID) in other.itemIDsBySlot {
@@ -90,6 +102,13 @@ public struct SavedItemAffix: Codable, Equatable, Sendable {
         title = affix.title
         description = affix.description
         keywordRawValues = affix.keywords.map(\.rawValue).sorted()
+    }
+
+    init(id: String, title: String, description: String, keywordRawValues: [String]) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.keywordRawValues = keywordRawValues
     }
 
     public init(from decoder: Decoder) throws {
@@ -133,6 +152,22 @@ public struct SavedInventoryItem: Codable, Equatable, Sendable {
         rarity = item.rarity
         displayName = item.displayName
         affixes = item.affixes.map(SavedItemAffix.init)
+    }
+
+    init(
+        id: String,
+        templateID: String,
+        baseTypeID: String,
+        rarity: Rarity,
+        displayName: String,
+        affixes: [SavedItemAffix]
+    ) {
+        self.id = id
+        self.templateID = templateID
+        self.baseTypeID = baseTypeID
+        self.rarity = rarity
+        self.displayName = displayName
+        self.affixes = affixes
     }
 
     public func item() -> InventoryItem? {
@@ -253,6 +288,10 @@ public struct SavedInventoryState: Codable, Equatable, Sendable {
         items = inventory.items.map(SavedInventoryItem.init)
     }
 
+    init(items: [SavedInventoryItem]) {
+        self.items = items
+    }
+
     public func inventory() -> PlayerInventoryState {
         PlayerInventoryState(items: items.compactMap { $0.item() })
     }
@@ -269,6 +308,11 @@ public struct SavedHomesteadState: Codable, Equatable, Sendable {
         nodeTiers = Dictionary(
             uniqueKeysWithValues: homestead.nodeTiers.map { ($0.key.rawValue, max($0.value, 0)) }
         )
+    }
+
+    init(resources: [String: Int], nodeTiers: [String: Int]) {
+        self.resources = resources
+        self.nodeTiers = nodeTiers
     }
 
     public func homestead() -> PlayerHomesteadState {

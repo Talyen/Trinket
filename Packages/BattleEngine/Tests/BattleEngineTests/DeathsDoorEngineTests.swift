@@ -26,7 +26,8 @@ final class DeathsDoorEngineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 

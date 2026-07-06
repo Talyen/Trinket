@@ -1,4 +1,5 @@
 import BattleEngine
+import TrinketContent
 import TrinketCore
 
 extension BattleEngineContext {

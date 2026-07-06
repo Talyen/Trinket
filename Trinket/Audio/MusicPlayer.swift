@@ -1,5 +1,6 @@
-import AVFoundation
 import Foundation
+import TrinketContent
+import AVFoundation
 import os
 
 private enum AudioLogging {
@@ -148,7 +149,7 @@ final class MusicPlayer {
         }
     }
 
-    private func resourceURL(for track: MusicTrack) -> URL? {
+    private func resourceURL(for track: TrinketContent.MusicTrack) -> URL? {
         Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension) ??
             Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension, subdirectory: "Music") ??
             Bundle.main.url(forResource: track.resourceName, withExtension: track.fileExtension, subdirectory: "Resources/Music")

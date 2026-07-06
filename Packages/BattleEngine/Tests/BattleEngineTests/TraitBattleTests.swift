@@ -25,7 +25,8 @@ final class TraitBattleTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: heroModifiers,
-            petModifiers: petModifiers
+            petModifiers: petModifiers,
+            enemyModifiers: .zero
         )
     }
 

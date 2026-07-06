@@ -15,14 +15,14 @@ enum SaveTestSupport {
         try? FileManager.default.removeItem(at: url)
     }
 
-    static func makeFileStore(directoryURL: URL) -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
+    static func makeStoreURL(directoryURL: URL) -> URL {
+        directoryURL.appendingPathComponent("PlayerSave.sqlite")
     }
 
     static func makeSaveStore(directoryURL: URL) -> PlayerSaveStore {
         PlayerSaveStore(
-            fileStore: makeFileStore(directoryURL: directoryURL),
-            persistDebounceNanoseconds: 0
+            storeURL: makeStoreURL(directoryURL: directoryURL),
+            disableCloudSync: true
         )
     }
 }

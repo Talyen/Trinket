@@ -3,6 +3,7 @@ import TrinketPersistence
 import XCTest
 @testable import Trinket
 
+@MainActor
 final class ActiveBattleConfigurationTests: XCTestCase {
     func testMakeWithoutEquipmentUsesTraitOnlyModifiers() throws {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })

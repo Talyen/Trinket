@@ -36,7 +36,8 @@ final class CombatPipelineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 
@@ -318,7 +319,8 @@ final class CombatPipelineTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
 
         context.applyControlMeter(1, keyword: .stun, to: target, sourceActorID: "source")

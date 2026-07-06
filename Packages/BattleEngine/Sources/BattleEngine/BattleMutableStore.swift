@@ -223,6 +223,7 @@ public extension BattleMutableStore {
             isRetaliation: request.options.isRetaliation,
             qualifiesForAmbush: request.options.qualifiesForAmbush
         )
+        state.activeEffects = roster.activeEffects(for: request.target)
 
         DamagePipeline.run(state: &state, in: &self)
 

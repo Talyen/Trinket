@@ -1,4 +1,5 @@
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
 import XCTest
 @testable import BattleEngine
@@ -7,7 +8,6 @@ import XCTest
 @MainActor
 final class BattleSessionTests: XCTestCase {
     private var directoryURL: URL!
-    private let sync = LocalOnlyPlayerSaveSync()
 
     override func setUp() async throws {
         try await super.setUp()
@@ -459,15 +459,10 @@ final class BattleSessionTests: XCTestCase {
     }
 
     func testMakeVictorySummaryIncludesStageAndBattleRewards() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        var rosterState = PlayerRosterState.initial
+        var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let configuration = ActiveBattleConfigurationTestSupport.make(
@@ -506,15 +501,10 @@ final class BattleSessionTests: XCTestCase {
     }
 
     func testMakeVictorySummaryScalesExperienceByEncounterLevel() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
+        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        var rosterState = PlayerRosterState.initial
+        var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
         let configuration = ActiveBattleConfigurationTestSupport.make(
@@ -684,8 +674,7 @@ final class BattleSessionTests: XCTestCase {
         defaults.removePersistentDomain(forName: suiteName)
         return AppState(
             environment: AppEnvironment.parse(arguments: [], environment: [:]),
-            sync: sync,
-            fileStore: PlayerSaveFileStore(directoryURL: directoryURL),
+            playerSave: SaveTestSupport.makeSaveStore(directoryURL: directoryURL),
             userDefaults: defaults
         )
     }

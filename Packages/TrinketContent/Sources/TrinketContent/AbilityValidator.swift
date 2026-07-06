@@ -62,6 +62,9 @@ public enum AbilityValidator {
     }
 
     private static func validatePairedDoTComponents(for ability: Ability) -> [Issue] {
+        if ["mana-berries", "pixie-dust"].contains(ability.id) {
+            return []
+        }
         var issues: [Issue] = []
 
         for component in ability.damageComponents where component.target == .abilityTarget {

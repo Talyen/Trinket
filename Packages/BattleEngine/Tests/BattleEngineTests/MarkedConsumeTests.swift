@@ -25,11 +25,12 @@ final class MarkedConsumeTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
 
         let outcome = context.resolveDamage(
-            .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
+            DamageRequest.directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
         )
 
         XCTAssertEqual(outcome.healthLost, 0)

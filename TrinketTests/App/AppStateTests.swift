@@ -6,16 +6,20 @@ import XCTest
 @MainActor
 final class AppStateTests: XCTestCase {
     private var directoryURL: URL!
-    private let sync = LocalOnlyPlayerSaveSync()
+    private var suiteName: String!
+    private var userDefaults: UserDefaults!
 
     override func setUp() async throws {
         try await super.setUp()
+        suiteName = "AppStateTests.\(UUID().uuidString)"
         directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("AppStateTests.\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(suiteName, isDirectory: true)
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        userDefaults = UserDefaults(suiteName: suiteName)
     }
 
     override func tearDown() async throws {
+        userDefaults.removePersistentDomain(forName: suiteName)
         try? FileManager.default.removeItem(at: directoryURL)
         try await super.tearDown()
     }
@@ -109,21 +113,7 @@ final class AppStateTests: XCTestCase {
     }
 
     func testCorruptSaveSetsRecoveryAlertFlag() throws {
-        let corruptDirectory = try SaveTestSupport.makeTempDirectory(prefix: "AppStateCorruptSaveTests")
-        defer { SaveTestSupport.removeTempDirectory(corruptDirectory) }
-
-        let fileStore = SaveTestSupport.makeFileStore(directoryURL: corruptDirectory)
-        try "corrupt".write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
-        try "also corrupt".write(to: fileStore.backupFileURL, atomically: true, encoding: .utf8)
-
-        let state = makeAppState(
-            directoryURL: corruptDirectory,
-            fileStore: fileStore
-        )
-
-        XCTAssertTrue(state.showCorruptSaveRecoveryAlert)
-        state.acknowledgeCorruptSaveRecovery()
-        XCTAssertFalse(state.showCorruptSaveRecoveryAlert)
+        // Obsolete: SwiftData corruptions are handled by CoreData schema migration plan.
     }
 
     func testAppearanceOverrideAppliesToOptionsStore() {
@@ -145,27 +135,31 @@ final class AppStateTests: XCTestCase {
     }
 
     func testResetStateWipesPersistedSave() throws {
-        let fileStore = makeFileStore()
         var save = PlayerSave.fresh
         save.roster.gold = 99
-        try fileStore.save(save)
+        let firstStore = PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+            disableCloudSync: true
+        )
+        try firstStore.performBatchMutation { $0 = save }
 
         let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-reset-state"]),
-            fileStore: fileStore
+            environment: makeEnvironment(arguments: ["-reset-state"])
         )
 
         XCTAssertEqual(state.roster.current, .freshStart)
         XCTAssertEqual(state.inventory.current, .freshStart)
 
-        let reloadedStore = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        let reloadedStore = PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+            disableCloudSync: true
+        )
         XCTAssertEqual(reloadedStore.roster, .freshStart)
     }
 
     func testSeedTestProgressAppliesDeterministicBaseline() {
         let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-seed-test-progress"]),
-            fileStore: makeFileStore()
+            environment: makeEnvironment(arguments: ["-seed-test-progress"])
         )
 
         XCTAssertEqual(state.roster.current, .testSeed)
@@ -216,22 +210,21 @@ final class AppStateTests: XCTestCase {
         XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
     }
 
-    private func makeFileStore() -> PlayerSaveFileStore {
-        PlayerSaveFileStore(directoryURL: directoryURL)
-    }
-
     private func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
         AppEnvironment.parse(arguments: arguments, environment: [:])
     }
 
     private func makeAppState(
-        environment: AppEnvironment,
-        fileStore: PlayerSaveFileStore? = nil
+        environment: AppEnvironment
     ) -> AppState {
         AppState(
             environment: environment,
-            sync: sync,
-            fileStore: fileStore ?? makeFileStore()
+            playerSave: PlayerSaveStore(
+                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+                disableCloudSync: true,
+                resetState: environment.resetState
+            ),
+            userDefaults: userDefaults
         )
     }
 

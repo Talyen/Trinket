@@ -9,9 +9,9 @@ enum ActiveBattleConfigurationTestSupport {
         roster: PlayerRosterState = .initial,
         inventory: PlayerInventoryState = .initial
     ) -> (roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
-        let saveStore = PlayerSaveStore(persistDebounceNanoseconds: 0)
-        saveStore.roster = roster
+        let saveStore = PlayerSaveStore(inMemoryOnly: true)
         saveStore.inventory = inventory
+        saveStore.roster = roster
         return (
             PlayerRosterStore(saveStore: saveStore),
             PlayerInventoryStore(saveStore: saveStore)

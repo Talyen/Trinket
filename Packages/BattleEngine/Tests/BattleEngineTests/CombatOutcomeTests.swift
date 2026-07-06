@@ -21,7 +21,8 @@ final class CombatOutcomeTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
     }
 
@@ -60,7 +61,8 @@ final class CombatOutcomeTests: XCTestCase {
             gold: 0,
             initialGold: 0,
             heroModifiers: .zero,
-            petModifiers: .zero
+            petModifiers: .zero,
+            enemyModifiers: .zero
         )
         let outcome = context.resolveDamage(
             .directAbilityHit(
