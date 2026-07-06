@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .DerivedData
-          key: deriveddata-${{ runner.os }}-xcode-26-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+          key: deriveddata-${{ runner.os }}-xcode-26.5-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
 
   unit:
     name: Unit tests
