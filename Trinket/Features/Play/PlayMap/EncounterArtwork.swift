@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketDesignSystem
 
 struct EncounterArtwork: View {
     let stage: Stage
@@ -27,5 +28,34 @@ struct EncounterArtwork: View {
         }
         .frame(maxWidth: .infinity)
         .clipped()
+    }
+}
+
+struct EncounterArtworkButton: View {
+    let stage: Stage
+    let isLocked: Bool
+    let onEnemyTap: () -> Void
+
+    var body: some View {
+        Group {
+            if stage.encounter.battleEnemyID != nil {
+                Button(action: onEnemyTap) {
+                    artwork
+                }
+                // UIStyleCheck: allow - Artwork opens enemy details without button chrome.
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
+                .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
+            } else {
+                artwork
+            }
+        }
+    }
+
+    private var artwork: some View {
+        EncounterArtwork(stage: stage)
+            .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
+            .clipShape(TrinketDesign.cardShape)
+            .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
     }
 }

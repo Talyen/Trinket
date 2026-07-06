@@ -16,7 +16,6 @@ final class StageMapPresentationTests: XCTestCase {
 
     func testChapterJourneyRowIDMatchesStageOrGate() throws {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        let node = VisibleStageNode(stage: stage, state: .active)
         let gateChapter = Chapter(
             id: StageMapID.placeholderGate(afterChapterNumber: 2),
             number: 2,
@@ -25,7 +24,7 @@ final class StageMapPresentationTests: XCTestCase {
             stages: []
         )
 
-        XCTAssertEqual(ChapterJourneyRow.stage(node).id, stage.id)
+        XCTAssertEqual(ChapterJourneyRow.stage(stage, .active).id, stage.id)
         XCTAssertEqual(ChapterJourneyRow.chapterGate(gateChapter).id, StageMapID.chapterGate(for: gateChapter))
     }
 

@@ -21,7 +21,7 @@ struct ChapterStageSelectView: View {
                     )
 
                     LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(presentation.rows) { row in
+                        ForEach(journeyRows) { row in
                             rowView(row)
                                 .id(row.id)
                                 .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
@@ -77,8 +77,8 @@ struct ChapterStageSelectView: View {
         .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
 
-    private var presentation: ChapterJourneyPresentation {
-        ChapterJourneyPresentation(
+    private var journeyRows: [ChapterJourneyRow] {
+        JourneyMapPresentation.chapterRows(
             chapters: GameContent.chapters,
             chapter: appState.playChapter,
             progress: appState.journey.current
@@ -88,15 +88,16 @@ struct ChapterStageSelectView: View {
     @ViewBuilder
     private func rowView(_ row: ChapterJourneyRow) -> some View {
         switch row {
-        case let .stage(node):
+        case let .stage(stage, state):
             JourneyStageRow(
-                node: node,
+                stage: stage,
+                state: state,
                 activeHero: appState.roster.activeHero,
                 activePet: appState.roster.activePet,
                 onHeroPicker: { partyPicker = .hero },
                 onPetPicker: { partyPicker = .pet },
-                onEnemyTap: { onEnemyTap(node.stage) },
-                onPrimaryAction: { onStageTap(node.stage) }
+                onEnemyTap: { onEnemyTap(stage) },
+                onPrimaryAction: { onStageTap(stage) }
             )
         case let .chapterGate(chapter):
             JourneyChapterGate(chapter: chapter)
@@ -118,7 +119,11 @@ struct ChapterStageSelectView: View {
            AppState.shouldRestoreMapScroll(saved, journey: appState.journey.current) {
             return saved
         }
-        return presentation.scrollTargetID
+        return JourneyMapPresentation.scrollFocusID(
+            for: appState.journey.current,
+            chapter: appState.playChapter,
+            chapters: GameContent.chapters
+        )
     }
 
     private var activeStage: Stage? {

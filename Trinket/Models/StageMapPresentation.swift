@@ -25,66 +25,6 @@ enum StageNodeState: Equatable {
     case justCompleted
     case active
     case future
-
-    var baseTint: Color {
-        switch self {
-        case .active:
-            return .primary
-        case .completed, .justCompleted:
-            return TrinketDesign.Colors.success
-        case .future:
-            return .secondary
-        }
-    }
-
-    var statusLabel: String {
-        switch self {
-        case .active:
-            return "Active"
-        case .completed, .justCompleted:
-            return "Cleared"
-        case .future:
-            return "Locked"
-        }
-    }
-}
-
-struct StageNodeStyle {
-    let tint: Color
-    let symbolName: String
-    let label: String
-
-    static func style(for state: StageNodeState, encounter: StageEncounter) -> Self {
-        switch state {
-        case .active:
-            StageNodeStyle(
-                tint: encounter.mapTint,
-                symbolName: encounter.symbolName,
-                label: encounter.title
-            )
-        case .completed, .justCompleted:
-            StageNodeStyle(
-                tint: TrinketDesign.Colors.success,
-                symbolName: "checkmark.circle.fill",
-                label: "Cleared"
-            )
-        case .future:
-            StageNodeStyle(
-                tint: .secondary,
-                symbolName: "lock.fill",
-                label: "Locked"
-            )
-        }
-    }
-}
-
-struct VisibleStageNode: Identifiable {
-    let stage: Stage
-    let state: StageNodeState
-
-    var id: String {
-        stage.id
-    }
 }
 
 struct StageMapMessage: Identifiable {
@@ -96,6 +36,36 @@ struct StageMapMessage: Identifiable {
 extension Stage {
     var mapLabel: String {
         "Stage \(chapterNumber)-\(stageNumber)"
+    }
+
+    var encounterCombatantArtReference: CombatantArtReference? {
+        guard case let .battle(enemyID) = encounter else { return nil }
+        return GameContent.enemy(matching: enemyID)?.combatant.artReference
+    }
+
+    var encounterArtReference: EncounterArtReference? {
+        if case .battle = encounter { return nil }
+        if case let .mysteryEvent(eventID) = encounter {
+            guard let artID = GameContent.mysteryEvent(matching: eventID)?.artID else { return nil }
+            return ArtCatalog.encounterArtByID[artID]
+        }
+        guard let artID = GameContent.encounterArtID(for: self) else { return nil }
+        return ArtCatalog.encounterArtByID[artID]
+    }
+
+    var encounterSubjectName: String {
+        switch encounter {
+        case let .battle(enemyID):
+            return GameContent.enemy(matching: enemyID)?.name ?? "Unknown Enemy"
+        case .event:
+            return GameContent.encounterArtTitle(for: self) ?? "Mystery"
+        case .shop:
+            return GameContent.encounterArtTitle(for: self) ?? "Merchant"
+        case .rest:
+            return GameContent.encounterArtTitle(for: self) ?? "Moonwell"
+        case let .mysteryEvent(eventID):
+            return GameContent.mysteryEvent(matching: eventID)?.title ?? "Mystery"
+        }
     }
 }
 

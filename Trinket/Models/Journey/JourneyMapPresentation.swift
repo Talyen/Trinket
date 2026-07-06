@@ -28,6 +28,18 @@ enum JourneyMapPresentation {
         return .future
     }
 
+    static func chapterRows(
+        chapters: [Chapter],
+        chapter: Chapter,
+        progress: JourneyProgressState
+    ) -> [ChapterJourneyRow] {
+        chapter.stages.compactMap { stage -> ChapterJourneyRow? in
+            let state = stageNodeState(for: stage, progress: progress)
+            guard state != .completed, state != .justCompleted else { return nil }
+            return .stage(stage, state)
+        } + [.chapterGate(gateChapter(after: chapter, in: chapters))]
+    }
+
     static func scrollFocusID(
         for progress: JourneyProgressState,
         chapters: [Chapter] = GameContent.chapters
@@ -45,5 +57,19 @@ enum JourneyMapPresentation {
             return activeStageID
         }
         return StageMapID.chapterGate(for: gateChapter(after: chapter, in: chapters))
+    }
+}
+
+enum ChapterJourneyRow: Identifiable {
+    case stage(Stage, StageNodeState)
+    case chapterGate(Chapter)
+
+    var id: String {
+        switch self {
+        case let .stage(stage, _):
+            return stage.id
+        case let .chapterGate(chapter):
+            return StageMapID.chapterGate(for: chapter)
+        }
     }
 }

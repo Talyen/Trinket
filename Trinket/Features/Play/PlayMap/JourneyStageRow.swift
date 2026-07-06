@@ -2,7 +2,8 @@ import SwiftUI
 import TrinketContent
 
 struct JourneyStageRow: View {
-    let node: VisibleStageNode
+    let stage: Stage
+    let state: StageNodeState
     let activeHero: Combatant
     let activePet: Combatant
     let onHeroPicker: () -> Void
@@ -11,12 +12,12 @@ struct JourneyStageRow: View {
     let onPrimaryAction: () -> Void
 
     var body: some View {
-        switch node.state {
+        switch state {
         case .completed, .justCompleted:
-            CompletedStageRow(stage: node.stage)
+            CompletedStageRow(stage: stage)
         case .active:
             ActiveStageCard(
-                stage: node.stage,
+                stage: stage,
                 activeHero: activeHero,
                 activePet: activePet,
                 onHeroPicker: onHeroPicker,
@@ -25,7 +26,7 @@ struct JourneyStageRow: View {
                 onPrimaryAction: onPrimaryAction
             )
         case .future:
-            LockedStageCard(stage: node.stage, onEnemyTap: onEnemyTap)
+            LockedStageCard(stage: stage, onEnemyTap: onEnemyTap)
         }
     }
 }
