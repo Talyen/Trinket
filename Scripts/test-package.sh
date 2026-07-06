@@ -104,7 +104,7 @@ for package in "${PACKAGES[@]}"; do
       -scheme "$scheme" \
       -sdk iphonesimulator \
       -destination "$DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH/${package}Package" \
+      -derivedDataPath "$DERIVED_DATA_PATH" \
       -resultBundlePath "$result_bundle"
   ) || package_status=$?
 

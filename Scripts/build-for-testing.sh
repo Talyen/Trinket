@@ -24,17 +24,32 @@ xcodebuild build-for-testing \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
+
+# Build packages in parallel. The main app build already compiled all
+# package modules into the shared DerivedData, so each package build
+# only needs to compile its test target.
+pids=()
+failed=0
 for package in "${PACKAGES[@]}"; do
-  echo "=== build-for-testing: $package ==="
   (
     cd "Packages/$package"
     xcodebuild build-for-testing \
       -scheme "$package" \
       -sdk iphonesimulator \
       -destination "$SIMULATOR_DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
-  )
+      -derivedDataPath "$DERIVED_DATA_PATH"
+  ) &
+  pids+=($!)
 done
+
+for pid in "${pids[@]}"; do
+  wait "$pid" || failed=1
+done
+
+if [[ "$failed" -ne 0 ]]; then
+  echo "ERROR: One or more package builds failed." >&2
+  exit 1
+fi
 
 for mode in unit smoke ui; do
   touch_build_stamp "$RESULTS_DIR" "$mode"
