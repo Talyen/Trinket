@@ -49,13 +49,13 @@ struct SearchView: View {
                 List {
                     combatantResultsSection(
                         title: "Heroes",
-                        combatants: results.heroes,
-                        rosterState: rosterState
+                        kind: .hero,
+                        combatants: results.heroes
                     )
                     combatantResultsSection(
                         title: "Pets",
-                        combatants: results.pets,
-                        rosterState: rosterState
+                        kind: .pet,
+                        combatants: results.pets
                     )
 
                     if !results.items.isEmpty {
@@ -81,25 +81,24 @@ struct SearchView: View {
     @ViewBuilder
     private func combatantResultsSection(
         title: String,
-        combatants: [Combatant],
-        rosterState: PlayerRosterState
+        kind: CombatantDetailContext.Kind,
+        combatants: [Combatant]
     ) -> some View {
         if !combatants.isEmpty {
             SearchResultSection(title: title, items: combatants) { combatant in
-                combatantDetailLink(for: combatant, rosterState: rosterState)
+                combatantDetailLink(for: combatant, kind: kind)
             }
         }
     }
 
     private func combatantDetailLink(
         for combatant: Combatant,
-        rosterState: PlayerRosterState
+        kind: CombatantDetailContext.Kind
     ) -> some View {
         NavigationLink {
-            CombatantDetailPane(
-                appState: appState,
-                combatant: combatant,
-                rosterState: rosterState
+            CombatantDetailContextView(
+                context: CombatantDetailContext(kind: kind, combatantID: combatant.id),
+                hidesNavigationBar: false
             )
         } label: {
             CombatantCard(combatant: combatant)

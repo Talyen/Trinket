@@ -135,7 +135,7 @@ struct HomesteadProjectCard: View {
 
                 projectTitleRow(titleFont: .title2.weight(.bold), tierFont: .subheadline.monospacedDigit().weight(.semibold))
 
-                bonusText(font: .subheadline)
+                bonusDescription(font: .subheadline)
 
                 tierPips
             }
@@ -157,7 +157,7 @@ struct HomesteadProjectCard: View {
                     titleForeground: status.isUnlocked ? .primary : .secondary
                 )
 
-                bonusText(font: .caption)
+                bonusDescription(font: .caption)
                     .lineLimit(2)
 
                 tierPips
@@ -210,12 +210,9 @@ struct HomesteadProjectCard: View {
     }
 
     @ViewBuilder
-    private func bonusText(font: Font) -> some View {
+    private func bonusDescription(font: Font) -> some View {
         if let bonus = status.nextBonus ?? definition.tier(status.currentTier)?.bonus {
-            Text(bonus.description)
-                .font(font)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            HomesteadBonusCopy(bonus: bonus, descriptionFont: font, showsTitle: false)
         }
     }
 
@@ -223,6 +220,50 @@ struct HomesteadProjectCard: View {
         if !status.isUnlocked { return "Next Unlock" }
         if status.canBuildOrUpgrade || status.isComplete { return status.statusTitle }
         return "Gather Materials"
+    }
+}
+
+struct HomesteadBonusCopy: View {
+    let bonus: HomesteadBonus
+    var titleFont: Font = .subheadline.weight(.semibold)
+    var descriptionFont: Font = .subheadline
+    var showsTitle: Bool = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if showsTitle {
+                Text(bonus.title)
+                    .font(titleFont)
+            }
+            Text(bonus.description)
+                .font(descriptionFont)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+struct HomesteadTierSummary: View {
+    let currentTier: Int
+    let maxTier: Int
+    let tint: Color
+    let isUnlocked: Bool
+    var labelFont: Font = .subheadline.monospacedDigit().weight(.semibold)
+    var labelColor: Color = .secondary
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            HomesteadTierPips(
+                currentTier: currentTier,
+                maxTier: maxTier,
+                tint: tint,
+                isUnlocked: isUnlocked
+            )
+
+            Text("Tier \(currentTier)/\(maxTier)")
+                .font(labelFont)
+                .foregroundStyle(labelColor)
+        }
     }
 }
 

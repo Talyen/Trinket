@@ -75,14 +75,14 @@ struct CombatantDetailPane: View {
                             statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
                         }
 
-                        if let heroOrPetTrait {
-                            traitSection(
-                                title: "Trait",
-                                trait: heroOrPetTrait,
-                                sectionID: AccessibilityID.CombatantDetail.traitSection,
-                                descriptionID: AccessibilityID.CombatantDetail.traitDescription
-                            )
-                        }
+                if let heroOrPetTrait {
+                    traitSection(
+                        title: "Trait",
+                        traits: [heroOrPetTrait],
+                        sectionID: AccessibilityID.CombatantDetail.traitSection,
+                        descriptionID: AccessibilityID.CombatantDetail.traitDescription
+                    )
+                }
 
                         if !enemyTraits.isEmpty {
                             traitSection(
@@ -127,7 +127,6 @@ struct CombatantDetailPane: View {
                 }
             }
             .ignoresSafeArea(edges: .top)
-            .trinketScreenBackground(.collection)
             .combatantDetailNavigationBar(hidden: hidesNavigationBar, title: combatant.name, titleOpacity: titleOpacity)
             .onAppear {
                 headerHeight = baseHeaderHeight
@@ -161,15 +160,6 @@ struct CombatantDetailPane: View {
                 .presentationDragIndicator(.visible)
             }
         }
-    }
-
-    private func traitSection(
-        title: String,
-        trait: CombatantTraitDefinition,
-        sectionID: String,
-        descriptionID: String
-    ) -> some View {
-        traitSection(title: title, traits: [trait], sectionID: sectionID, descriptionID: descriptionID)
     }
 
     private func traitSection(
@@ -244,45 +234,6 @@ extension CombatantDetailPane {
             allowsEditing: false,
             battleHealth: snapshot.health,
             activeEffectSummaries: snapshot.activeEffectSummaries,
-            hidesNavigationBar: hidesNavigationBar
-        )
-    }
-
-    init(
-        appState: AppState,
-        combatant: Combatant,
-        rosterState: PlayerRosterState,
-        allowsEditing: Bool? = nil,
-        battleHealth: Int? = nil,
-        activeEffectSummaries: [EffectSummary] = [],
-        hidesNavigationBar: Bool = false
-    ) {
-        self.init(
-            combatant: combatant,
-            progression: rosterState.progression(for: combatant),
-            loadout: Binding(
-                get: { appState.roster.current.loadout(for: combatant) },
-                set: { newValue in
-                    var updated = appState.roster.current
-                    updated.setLoadout(newValue, for: combatant)
-                    appState.roster.current = updated
-                }
-            ),
-            equipmentLoadout: Binding(
-                get: { appState.roster.current.equipmentLoadout(for: combatant) },
-                set: { newValue in
-                    var updated = appState.roster.current
-                    updated.setEquipmentLoadout(newValue, for: combatant)
-                    appState.roster.current = updated
-                }
-            ),
-            inventoryState: Binding(
-                get: { appState.inventory.current },
-                set: { appState.inventory.current = $0 }
-            ),
-            allowsEditing: allowsEditing ?? rosterState.isUnlocked(combatant),
-            battleHealth: battleHealth,
-            activeEffectSummaries: activeEffectSummaries,
             hidesNavigationBar: hidesNavigationBar
         )
     }

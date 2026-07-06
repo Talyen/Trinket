@@ -6,7 +6,7 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-private let appStateLogger = Logger(
+let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
     category: "AppState"
 )
@@ -24,11 +24,9 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
-    var lastPlayFlowError: String?
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
-    private static let launchBattleStageID = "chapter-1-stage-1"
 
     init(
         environment: AppEnvironment = .shared,
@@ -37,67 +35,29 @@ final class AppState {
         fileStore: PlayerSaveFileStore? = nil,
         userDefaults: UserDefaults? = nil
     ) {
-        let env = environment
-        let resolvedDefaults = userDefaults ?? .standard
-        let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
-        if env.resetState {
-            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
-            resolvedFileStore.deleteSave()
-        }
-
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(fileStore: resolvedFileStore)
-        if env.seedTestProgress {
-            do {
-                try resolvedPlayerSave.applyTestSeed()
-            } catch {
-                appStateLogger.error(
-                    "Failed to apply test seed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-
-        let resolvedSync = sync ?? PlayerSaveSyncConfiguration(
-            disableCloudSync: env.disableCloudSync,
-            resetState: env.resetState
-        ).makeSyncService()
-        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
-        if let appearanceOverride = env.appearanceOverride {
-            resolvedOptions.appearance = appearanceOverride
-        }
-
-        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
-        let resolvedRoster = PlayerRosterStore(saveStore: resolvedPlayerSave)
-        let resolvedInventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
-        let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
-        let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
-
-        self.playerSave = resolvedPlayerSave
-        syncCoordinator = PlayerSaveSyncCoordinator(
-            sync: resolvedSync,
-            playerSaveStore: resolvedPlayerSave
+        let dependencies = Self.makeBootstrapDependencies(
+            environment: environment,
+            playerSave: playerSave,
+            sync: sync,
+            fileStore: fileStore,
+            userDefaults: userDefaults
         )
-        musicPlayer = MusicPlayer(isDisabled: env.disableAudio)
-        roster = resolvedRoster
-        inventory = resolvedInventory
-        homestead = resolvedHomestead
-        options = resolvedOptions
+
+        playerSave = dependencies.playerSave
+        syncCoordinator = dependencies.syncCoordinator
+        musicPlayer = dependencies.musicPlayer
+        roster = dependencies.roster
+        inventory = dependencies.inventory
+        homestead = dependencies.homestead
+        options = dependencies.options
+        journey = dependencies.journey
+        sessionState = dependencies.sessionState
+        initialCollectionCombatantDetail = dependencies.initialCollectionCombatantDetail
+        initialCollectionItemID = dependencies.initialCollectionItemID
+        selectedTab = dependencies.selectedTab
         battle = BattleSession()
-        journey = resolvedJourney
-        sessionState = resolvedSessionState
-        initialCollectionCombatantDetail = Self.collectionCombatantDetail(for: env.launchScreen)
-        initialCollectionItemID = Self.collectionItemID(for: env.launchScreen)
-        selectedTab = Self.selectedTab(environment: env, sessionState: resolvedSessionState)
 
-        seedJourneyProgress(completedStageIDs: env.completedStageIDs, resetState: env.resetState)
-        restoreMapScroll(environment: env)
-
-        if env.launchScreen == .battle {
-            startLaunchBattle()
-        } else if let stageID = resolvedSessionState.activeBattleStageID {
-            startRestoredBattle(stageID: stageID)
-        }
-
-        wireSyncAndBattleCallbacks()
+        finishBootstrap(environment: environment)
     }
 
     var playChapter: Chapter {
@@ -218,195 +178,5 @@ final class AppState {
             return false
         }
         return journey.isActive(stage)
-    }
-
-    private func restoreMapScroll(environment: AppEnvironment) {
-        if let mapScrollTarget = environment.mapScrollTarget {
-            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
-        }
-    }
-
-    private func wireSyncAndBattleCallbacks() {
-        battle.onBattleStateChange = { [weak self] stageID in
-            self?.sessionState.activeBattleStageID = stageID
-        }
-        battle.onBattleEnded = { [weak self] in
-            Task { await self?.syncCoordinator.onBattleEnded() }
-        }
-        syncCoordinator.hasActiveBattle = { [weak self] in
-            guard let self else { return false }
-            return self.battle.activeBattle != nil
-        }
-        syncCoordinator.onSessionSuperseded = { [weak self] in
-            guard let self else { return }
-            battle.endBattle()
-            sessionState.activeBattleStageID = nil
-        }
-    }
-
-    private func startLaunchBattle() {
-        guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
-        _ = startBattleForStage(stage)
-    }
-
-    private func startRestoredBattle(stageID: String) {
-        guard let stage = GameContent.stage(id: stageID),
-              case .battle = stage.encounter
-        else {
-            sessionState.activeBattleStageID = nil
-            return
-        }
-
-        guard !journey.current.hasClaimedRewards(for: stage) else {
-            sessionState.activeBattleStageID = nil
-            return
-        }
-
-        _ = startBattleForStage(stage)
-        selectedTab = .play
-    }
-
-    @discardableResult
-    private func startBattleForStage(_ stage: Stage) -> StageMapMessage? {
-        startBattle(for: stage)
-    }
-
-    private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
-        guard !completedStageIDs.isEmpty else { return }
-
-        let stagesByID = Dictionary(
-            uniqueKeysWithValues: GameContent.stages.map { ($0.id, $0) }
-        )
-        let stages = completedStageIDs.compactMap { stagesByID[$0] }
-        guard !stages.isEmpty else { return }
-
-        let hero = roster.activeHero
-        let pet = roster.activePet
-
-        do {
-            try playerSave.performBatchMutation { save in
-                var context = save.stageCompletionContext()
-                if resetState {
-                    context.journey = .initial
-                }
-                for stage in stages {
-                    StageCompletion.complete(
-                        stage,
-                        hero: hero,
-                        pet: pet,
-                        in: GameContent.chapters,
-                        context: &context
-                    )
-                }
-                context.apply(to: &save)
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-    }
-
-    func updateShell(event: AppShellEvent, scenePhase: ScenePhase) {
-        switch event {
-        case .appeared:
-            if battle.activeBattle != nil, selectedTab != .play {
-                battle.isPaused = true
-            }
-        case let .selectedTabChanged(newTab):
-            sessionState.selectedTab = newTab
-            if battle.activeBattle != nil {
-                // Leaving Play pauses combat; returning stays paused until the player resumes.
-                battle.isPaused = true
-            }
-        case .activeBattleStarted:
-            battle.isPaused = selectedTab != .play
-        case .activeBattleEnded:
-            battle.isPaused = false
-            musicPlayer.clearEncounterResumePositions()
-        case let .scenePhaseChanged(newPhase):
-            if newPhase != .active, battle.activeBattle != nil {
-                battle.isPaused = true
-            }
-            handleScenePhaseSideEffects(newPhase)
-            refreshMusic(scenePhase: newPhase)
-            return
-        case .musicInputsChanged:
-            break
-        }
-
-        refreshMusic(scenePhase: scenePhase)
-    }
-
-    private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
-        if phase == .inactive || phase == .background {
-            playerSave.flushPendingPersistIfNeeded()
-        }
-        if phase == .background {
-            Task {
-                await syncCoordinator.checkpointUploadIfNeeded()
-            }
-        } else if phase == .active {
-            Task {
-                await syncCoordinator.reconcileForegroundIfSafe()
-            }
-        }
-    }
-
-    func refreshMusic(scenePhase: ScenePhase) {
-        musicPlayer.update(
-            route: MusicPlayer.route(
-                selectedTab: selectedTab,
-                preview: battle.preview,
-                activeBattle: battle.activeBattle,
-                sceneIsActive: scenePhase == .active,
-                musicVolume: options.musicVolume
-            ),
-            volume: options.musicVolume
-        )
-    }
-
-    private static func selectedTab(
-        environment: AppEnvironment,
-        sessionState: SessionStateStore
-    ) -> AppTab {
-        if let envTab = environment.launchTab {
-            return envTab
-        }
-        if let launchScreen = environment.launchScreen {
-            return tab(for: launchScreen)
-        }
-        return sessionState.selectedTab ?? .play
-    }
-
-    private static func tab(for launchScreen: LaunchScreen) -> AppTab {
-        switch launchScreen {
-        case .heroDetail, .petDetail, .itemDetail:
-            return .collection
-        case .battle:
-            return .play
-        case .options:
-            return .options
-        }
-    }
-
-    private static func collectionCombatantDetail(for launchScreen: LaunchScreen?) -> CombatantDetailContext? {
-        switch launchScreen {
-        case let .heroDetail(id):
-            CombatantDetailContext(kind: .hero, combatantID: id)
-        case let .petDetail(id):
-            CombatantDetailContext(kind: .pet, combatantID: id)
-        case .itemDetail, .battle, .options, .none:
-            nil
-        }
-    }
-
-    private static func collectionItemID(for launchScreen: LaunchScreen?) -> String? {
-        switch launchScreen {
-        case let .itemDetail(id):
-            id
-        case .heroDetail, .petDetail, .battle, .options, .none:
-            nil
-        }
     }
 }

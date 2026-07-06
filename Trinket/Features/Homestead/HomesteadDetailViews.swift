@@ -131,18 +131,13 @@ struct HomesteadDetailHeader: View {
                     .foregroundStyle(.white)
                     .lineLimit(2)
 
-                HStack(alignment: .center, spacing: 10) {
-                    HomesteadTierPips(
-                        currentTier: status.currentTier,
-                        maxTier: definition.maxTier,
-                        tint: definition.tint,
-                        isUnlocked: status.isUnlocked
-                    )
-
-                    Text("Tier \(status.currentTier)/\(definition.maxTier)")
-                        .font(.subheadline.monospacedDigit().weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.82))
-                }
+                HomesteadTierSummary(
+                    currentTier: status.currentTier,
+                    maxTier: definition.maxTier,
+                    tint: definition.tint,
+                    isUnlocked: status.isUnlocked,
+                    labelColor: .white.opacity(0.82)
+                )
             }
             .padding(16)
         }
@@ -199,16 +194,9 @@ struct HomesteadBonusSection: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.headline)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(bonus.title)
-                    .font(.subheadline.weight(.semibold))
-                Text(bonus.description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .trinketSurface(.secondary)
+            HomesteadBonusCopy(bonus: bonus)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .trinketSurface(.secondary)
         }
     }
 }
