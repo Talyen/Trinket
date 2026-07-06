@@ -7,7 +7,6 @@ struct ChapterStageSelectView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var partyPicker: PartyPickerKind?
     @State private var heroOverscroll: CGFloat = 0
-    @State private var journeyPresentation: ChapterJourneyPresentation?
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
@@ -46,16 +45,11 @@ struct ChapterStageSelectView: View {
                 heroOverscroll = overscroll
             }
             .onAppear {
-                refreshJourneyPresentation()
                 scrollToInitialTarget(with: proxy)
                 updateMusicPreview()
             }
             .onChange(of: appState.journey.current) { _, _ in
-                refreshJourneyPresentation()
                 updateMusicPreview()
-            }
-            .onChange(of: appState.playChapter.id) { _, _ in
-                refreshJourneyPresentation()
             }
             .onDisappear {
                 appState.battle.setMusicPreview(for: nil)
@@ -84,15 +78,7 @@ struct ChapterStageSelectView: View {
     }
 
     private var presentation: ChapterJourneyPresentation {
-        journeyPresentation ?? ChapterJourneyPresentation(
-            chapters: GameContent.chapters,
-            chapter: appState.playChapter,
-            progress: appState.journey.current
-        )
-    }
-
-    private func refreshJourneyPresentation() {
-        journeyPresentation = ChapterJourneyPresentation(
+        ChapterJourneyPresentation(
             chapters: GameContent.chapters,
             chapter: appState.playChapter,
             progress: appState.journey.current

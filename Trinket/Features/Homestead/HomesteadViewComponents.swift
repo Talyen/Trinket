@@ -160,18 +160,13 @@ struct HomesteadProjectCard: View {
                         .padding(12)
                 }
 
-            VStack(alignment: .leading, spacing: 7) {
-                Text(featuredTitle)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-
-                projectTitleRow(titleFont: .title2.weight(.bold), tierFont: .subheadline.monospacedDigit().weight(.semibold))
-
-                bonusDescription(font: .subheadline)
-
-                tierPips
-            }
+            projectSummary(
+                spacing: 7,
+                titleFont: .title2.weight(.bold),
+                tierFont: .subheadline.monospacedDigit().weight(.semibold),
+                bonusFont: .subheadline,
+                showsFeaturedLabel: true
+            )
         }
         .contentShape(Rectangle())
     }
@@ -186,20 +181,15 @@ struct HomesteadProjectCard: View {
                     lockedOpacity: 0.58
                 )
 
-            VStack(alignment: .leading, spacing: 6) {
-                projectTitleRow(
-                    titleFont: .headline,
-                    tierFont: .caption.monospacedDigit().weight(.semibold),
-                    titleForeground: status.isUnlocked ? .primary : .secondary
-                )
-
-                bonusDescription(font: .caption)
-                    .lineLimit(2)
-
-                tierPips
-
-                HomesteadStatusBadge(status: status)
-            }
+            projectSummary(
+                spacing: 6,
+                titleFont: .headline,
+                tierFont: .caption.monospacedDigit().weight(.semibold),
+                bonusFont: .caption,
+                titleForeground: status.isUnlocked ? .primary : .secondary,
+                bonusLineLimit: 2,
+                showsInlineStatusBadge: true
+            )
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
@@ -215,6 +205,46 @@ struct HomesteadProjectCard: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
+    }
+
+    @ViewBuilder
+    private func projectSummary(
+        spacing: CGFloat,
+        titleFont: Font,
+        tierFont: Font,
+        bonusFont: Font,
+        titleForeground: Color = .primary,
+        bonusLineLimit: Int? = nil,
+        showsFeaturedLabel: Bool = false,
+        showsInlineStatusBadge: Bool = false
+    ) -> some View {
+        VStack(alignment: .leading, spacing: spacing) {
+            if showsFeaturedLabel {
+                Text(featuredTitle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+            }
+
+            projectTitleRow(
+                titleFont: titleFont,
+                tierFont: tierFont,
+                titleForeground: titleForeground
+            )
+
+            if let bonusLineLimit {
+                bonusDescription(font: bonusFont)
+                    .lineLimit(bonusLineLimit)
+            } else {
+                bonusDescription(font: bonusFont)
+            }
+
+            tierPips
+
+            if showsInlineStatusBadge {
+                HomesteadStatusBadge(status: status)
+            }
+        }
     }
 
     private func projectTitleRow(

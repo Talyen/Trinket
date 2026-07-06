@@ -29,108 +29,35 @@ struct CollectionView: View {
 
         ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    NavigationLink {
-                        CollectionCombatantGridView(kind: .hero)
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text("Heroes")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(.primary)
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("Heroes collection category")
+                combatantCategorySection(
+                    title: "Heroes",
+                    accessibilityIdentifier: "Heroes collection category",
+                    kind: .hero,
+                    combatants: appState.roster.collectionHeroes
+                )
 
-                    horizontalShelf {
-                        ForEach(appState.roster.collectionHeroes) { combatant in
-                            CollectionCombatantButton(
-                                combatant: combatant,
-                                isLocked: !appState.roster.current.isUnlocked(combatant),
-                                cardWidth: nil,
-                                showsName: false
-                            ) {
-                                selectedCombatant = CombatantDetailContext(kind: .hero, combatantID: combatant.id)
-                            }
-                            .collectionShelfCardWidth()
-                        }
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                    NavigationLink {
-                        CollectionCombatantGridView(kind: .pet)
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text("Pets")
-                                .font(.title2.weight(.bold))
-                                .foregroundStyle(.primary)
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                        }
-                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("Pets collection category")
-
-                    horizontalShelf {
-                        ForEach(appState.roster.collectionPets) { combatant in
-                            CollectionCombatantButton(
-                                combatant: combatant,
-                                isLocked: !appState.roster.current.isUnlocked(combatant),
-                                cardWidth: nil,
-                                showsName: false
-                            ) {
-                                selectedCombatant = CombatantDetailContext(kind: .pet, combatantID: combatant.id)
-                            }
-                            .collectionShelfCardWidth()
-                        }
-                    }
-                }
+                combatantCategorySection(
+                    title: "Pets",
+                    accessibilityIdentifier: "Pets collection category",
+                    kind: .pet,
+                    combatants: appState.roster.collectionPets
+                )
 
                 if !inventoryState.items.isEmpty {
-                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                        NavigationLink {
-                            InventoryGridView()
-                        } label: {
-                            HStack(spacing: 6) {
-                                Text("Inventory")
-                                    .font(.title2.weight(.bold))
-                                    .foregroundStyle(.primary)
-                                Image(systemName: "chevron.right")
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                Spacer()
+                    collectionCategorySection(
+                        title: "Inventory",
+                        accessibilityIdentifier: "Inventory collection category",
+                        destination: InventoryGridView()
+                    ) {
+                        ForEach(Array(inventoryState.items.prefix(12))) { item in
+                            Button {
+                                selectedItem = item
+                            } label: {
+                                ItemCard(item: item, showsAffixCount: false, showsName: false)
+                                    .collectionShelfCardWidth()
                             }
-                            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityIdentifier("Inventory collection category")
-
-                        horizontalShelf {
-                            ForEach(Array(inventoryState.items.prefix(12))) { item in
-                                Button {
-                                    selectedItem = item
-                                } label: {
-                                    ItemCard(item: item, showsAffixCount: false, showsName: false)
-                                        .collectionShelfCardWidth()
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier("\(item.displayName) item card")
-                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
                 }
@@ -173,6 +100,65 @@ struct CollectionView: View {
             .presentationContentInteraction(.resizes)
             .presentationDragIndicator(.hidden)
         }
+    }
+
+    private func combatantCategorySection(
+        title: String,
+        accessibilityIdentifier: String,
+        kind: CombatantDetailContext.Kind,
+        combatants: [Combatant]
+    ) -> some View {
+        collectionCategorySection(
+            title: title,
+            accessibilityIdentifier: accessibilityIdentifier,
+            destination: CollectionCombatantGridView(kind: kind)
+        ) {
+            ForEach(combatants) { combatant in
+                CollectionCombatantButton(
+                    combatant: combatant,
+                    isLocked: !appState.roster.current.isUnlocked(combatant),
+                    cardWidth: nil,
+                    showsName: false
+                ) {
+                    selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
+                }
+                .collectionShelfCardWidth()
+            }
+        }
+    }
+
+    private func collectionCategorySection<Destination: View, ShelfContent: View>(
+        title: String,
+        accessibilityIdentifier: String,
+        destination: Destination,
+        @ViewBuilder shelf: () -> ShelfContent
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+            NavigationLink {
+                destination
+            } label: {
+                collectionCategoryHeader(title: title)
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier(accessibilityIdentifier)
+
+            horizontalShelf(content: shelf)
+        }
+    }
+
+    private func collectionCategoryHeader(title: String) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.primary)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .contentShape(Rectangle())
     }
 
     private func horizontalShelf<Content: View>(@ViewBuilder content: () -> Content) -> some View {
