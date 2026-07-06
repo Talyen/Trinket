@@ -13,7 +13,7 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 ### Navigation & modal hygiene
 
-- `NavigationStack` within each tab; `TabView` is top-level only (`Docs/AppleNativeGuidelines.md`)
+- `NavigationStack` within each tab; `TabView` is top-level only (`Docs/Design/AppleNativeGuidelines.md`)
 - Every sheet, popover, and full-screen cover must have a clear dismiss path:
   - `toolbar` dismiss button or swipe-down for sheets
   - `Environment(\.dismiss)` for programmatic dismissal

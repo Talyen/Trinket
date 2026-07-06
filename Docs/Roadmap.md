@@ -2,7 +2,7 @@
 
 Loose product and polish ideas for iteration. **Not committed scope.**
 
-Agents: read this for context and brainstorming. Do not implement items here unless the user explicitly asks to explore or build a specific entry (cite the `R-###` id). When an idea graduates into a durable decision, move the prose to `Docs/CoreDesignConcepts.md` or `Docs/Architecture.md` and mark the item `shipped` or `parked` here.
+Agents: read this for context and brainstorming. Do not implement items here unless the user explicitly asks to explore or build a specific entry (cite the `R-###` id). When an idea graduates into a durable decision, move the prose to `Docs/Design/CoreDesignConcepts.md` or `Docs/Architecture.md` and mark the item `shipped` or `parked` here.
 
 **Status key:** `scratch` (unrefined) · `exploring` (active discussion) · `planned` (direction agreed) · `shipped` · `parked`
 

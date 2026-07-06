@@ -68,19 +68,7 @@ fi
 mkdir -p "$RESULTS_DIR"
 
 scheme_for_package() {
-  case "$1" in
-    TrinketCore|TrinketContent|TrinketPersistence|TrinketDesignSystem)
-      echo "$1"
-      ;;
-    BattleEngine)
-      echo "BattleEngine-Package"
-      ;;
-    *)
-      echo "Unknown package '$1'." >&2
-      usage >&2
-      return 1
-      ;;
-  esac
+  echo "$1"
 }
 
 xcresult_failed() {
@@ -99,12 +87,12 @@ for package in "${PACKAGES[@]}"; do
 
   package_status=0
   (
-    cd "Packages/$package"
     xcodebuild "$ACTION" \
       -scheme "$scheme" \
+      -project Trinket.xcodeproj \
       -sdk iphonesimulator \
       -destination "$DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH/${package}Package" \
+      -derivedDataPath "$DERIVED_DATA_PATH" \
       -resultBundlePath "$result_bundle"
   ) || package_status=$?
 

@@ -4,9 +4,9 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/AppleNativeGuidelines.md` · art: `Docs/ArtPipeline.md` · content: `Docs/ContentPipeline.md` · releases: `Docs/ReleasePipeline.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
 - Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
-- `Docs/*Audit.md` files are point-in-time audit snapshots — not workflow docs. Do not treat them as active requirements unless the user cites one.
+- `Docs/Audits/*Audit.md` files are point-in-time audit snapshots — not workflow docs. Do not treat them as active requirements unless the user cites one.
 
 ## Product & Architecture
 
@@ -23,8 +23,8 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
   | Search | `.search` | Inventory search utility (`Tab` role `.search`); not a primary product tab |
   | Options | `.options` | |
 
-  Product vocabulary in `Docs/CoreDesignConcepts.md` uses Heroes and Inventory as collection surfaces inside the Collection tab. UI tests tap tab labels like `"Homestead"` and `"Collection"`, not enum raw values.
-- **Generated output** — edit manifests, then `./Scripts/generate.sh` (`Docs/ContentPipeline.md`, `Docs/Architecture.md`):
+  Product vocabulary in `Docs/Design/CoreDesignConcepts.md` uses Heroes and Inventory as collection surfaces inside the Collection tab. UI tests tap tab labels like `"Homestead"` and `"Collection"`, not enum raw values.
+- **Generated output** — edit manifests, then `./Scripts/generate.sh` (`ContentManifest/README.md`, `Docs/Architecture.md`):
   - Catalogs: `Packages/TrinketContent/Sources/TrinketContent/Generated/*`
   - Art: `Trinket/Assets.xcassets` (via `prepare-art-assets.sh`, requires `--assets`)
   - Music: `Trinket/Resources/Music` (via `prepare-music-assets.sh`, requires `--assets`)
@@ -42,7 +42,7 @@ Key patterns:
 
 ## Apple-Native Product Rules
 
-- System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
+- System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/Design/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
 - Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass unless justified with `UIStyleCheck`. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
 - Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Packages/TrinketDesignSystem/`.
@@ -73,7 +73,7 @@ Breaking: <description if only applicable>
 - Imperative subjects without a type prefix are acceptable (`Add session state restoration…`).
 - Set **`User-Facing: yes`** when players would notice; **`User-Facing: no`** for CI/style/refactor/tooling.
 - Do **not** edit `CHANGELOG.md` per commit — `./Scripts/release.sh` generates it at release time.
-- See `Docs/ReleasePipeline.md` for the full release workflow.
+- See `Scripts/README.md` for the full release workflow.
 - Optional local hook: `git config core.hooksPath .githooks` (advisory warnings via `./Scripts/validate-commit-msg.sh`).
 
 ## Commands & Verification
@@ -105,7 +105,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 | Multi-step UI | `test-iterate.sh <SmokeClass> [ExhaustiveClass]` |
 | Pre-push | `ci-locally.sh` |
 | Pre-merge | `test-deploy.sh` |
-| Release | `release.sh` (see `Docs/ReleasePipeline.md`) |
+| Release | `release.sh` (see `Scripts/README.md`) |
 
 **Test tiers** (fast → thorough):
 

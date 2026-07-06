@@ -28,7 +28,7 @@ The **Collection** tab groups Heroes, Pets, and Inventory behind an in-tab categ
 
 ## Visual Foundation
 
-Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/StyleGuide/AppVisualFoundation.md`, with v2 reference boards in `Docs/StyleGuide/VisualReferences/v2/`.
+Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/Design/StyleGuide/AppVisualFoundation.md`, with v2 reference boards in `Docs/Design/StyleGuide/VisualReferences/v2/`.
 
 The default preset is Graphite: Apple semantic system backgrounds, quiet neutral strokes, restrained material for overlays, and solid readable surfaces. Other presets stay color-neutral so Keyword identities and card art carry the strong hues. Screens should request semantic backgrounds, surfaces, materials, typography, spacing, and Keyword styles rather than hardcoded colors.
 

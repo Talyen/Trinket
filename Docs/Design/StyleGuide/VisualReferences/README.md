@@ -2,7 +2,7 @@
 
 These images are visual direction references for the app-wide chrome and design-system work. They are not implementation specs by themselves; token names, accessibility behavior, and SwiftUI component APIs should remain defined in code and docs.
 
-Durable implementation guidance lives in `Docs/StyleGuide/AppVisualFoundation.md`.
+Durable implementation guidance lives in `Docs/Design/StyleGuide/AppVisualFoundation.md`.
 
 ## Boards
 

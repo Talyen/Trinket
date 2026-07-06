@@ -25,40 +25,18 @@ xcodebuild build-for-testing \
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
 
-# Build packages in parallel (up to 2 at a time to avoid starving the
-# runner). Each package gets its own DerivedData dir since parallel
-# xcodebuild invocations cannot safely share one.
-max_jobs=2
-pids=()
-failed=0
-index=0
+# Build each package's test bundle from the workspace root with the same
+# DerivedData as the main app. The app build already compiled all package
+# modules, so each package build only compiles its test targets.
 for package in "${PACKAGES[@]}"; do
-  (
-    cd "Packages/$package"
-    xcodebuild build-for-testing \
-      -scheme "$package" \
-      -sdk iphonesimulator \
-      -destination "$SIMULATOR_DESTINATION" \
-      -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
-  ) &
-  pids+=($!)
-  ((index++))
-  if (( index % max_jobs == 0 )); then
-    for pid in "${pids[@]}"; do
-      wait "$pid" || failed=1
-    done
-    pids=()
-  fi
+  echo "=== build-for-testing: $package (test bundles) ==="
+  xcodebuild build-for-testing \
+    -scheme "$package" \
+    -project Trinket.xcodeproj \
+    -sdk iphonesimulator \
+    -destination "$SIMULATOR_DESTINATION" \
+    -derivedDataPath "$DERIVED_DATA_PATH"
 done
-
-for pid in "${pids[@]}"; do
-  wait "$pid" || failed=1
-done
-
-if [[ "$failed" -ne 0 ]]; then
-  echo "ERROR: One or more package builds failed." >&2
-  exit 1
-fi
 
 for mode in unit smoke ui; do
   touch_build_stamp "$RESULTS_DIR" "$mode"

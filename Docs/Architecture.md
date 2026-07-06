@@ -54,7 +54,7 @@ Manifests and pipelines live outside the app folder:
 
 ## Product tabs vs code
 
-Persistent player-facing tabs (`Docs/CoreDesignConcepts.md`):
+Persistent player-facing tabs (`Docs/Design/CoreDesignConcepts.md`):
 
 ```text
 Play → Collection → Homestead → Search → Options
@@ -138,7 +138,7 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, and homestead APIs observe/mutate slices through `PlayerSaveStore`.
 - **Options/preferences:** `OptionsStore` (theme, volumes) and `SessionStateStore` (tab/battle restoration) use `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
 - **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
-- **Pre-ship:** `Docs/CloudKitPreShipChecklist.md`
+- **Pre-ship:** `Docs/Audits/CloudKitPreShipChecklist.md`
 
 ## Tech stack
 

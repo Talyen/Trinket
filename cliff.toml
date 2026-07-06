@@ -1,5 +1,5 @@
 # git-cliff configuration for Trinket CHANGELOG.md (Keep a Changelog format).
-# See Docs/ReleasePipeline.md for usage.
+# See Scripts/README.md for usage.
 
 [changelog]
 header = """

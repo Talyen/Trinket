@@ -17,7 +17,7 @@ You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swif
 
 **Workflow**
 
-1. **Survey** — Score candidate areas using the signals in `Docs/ComplexityReductionAudit.md` § Targets and § Checks. Exclude generated output, build artifacts, and roadmap-only ideas.
+1. **Survey** — Score candidate areas using the signals in this audit (§ Targets and § Checks). Exclude generated output, build artifacts, and roadmap-only ideas.
 2. **Select one target** — Choose exactly one cohesive module, type cluster, coordinator, or feature slice. In your summary, name 1–2 runner-ups and explain in 3–5 bullets why the winner is worse (LOC, indirection, duplication, test pain, or boundary smell).
 3. **Plan briefly** — Before large deletes, list what you will remove, collapse, or inline and which tests prove the behavior still holds. Prefer deletion and inlining over new abstractions.
 4. **Simplify** — Execute the smallest correct diff: delete dead paths, collapse pass-through layers, merge duplicate logic, replace factories used once, narrow `public` APIs. Do not add third-party dependencies or new packages.
@@ -35,11 +35,11 @@ You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swif
 
 **Reference audits** (consult when your target touches these concerns; do not run full-repo sweeps unless the target demands it):
 
-- `Docs/DeadCodeRatioAudit.md` — unused exports and orphaned files
-- `Docs/ImportCouplingBoundaryAudit.md` — package graph and layer imports
-- `Docs/SideEffectSurfaceAudit.md` — I/O and RNG seams
-- `Docs/BehaviorHardeningAudit.md` — persistence, async, idempotency
-- `Docs/TestQualityAudit.md` — assertion style and fixture reuse
+- `Docs/Audits/DeadCodeRatioAudit.md` — unused exports and orphaned files
+- `Docs/Audits/ImportCouplingBoundaryAudit.md` — package graph and layer imports
+- `Docs/Audits/SideEffectSurfaceAudit.md` — I/O and RNG seams
+- `Docs/Audits/BehaviorHardeningAudit.md` — persistence, async, idempotency
+- `Docs/Audits/TestQualityAudit.md` — assertion style and fixture reuse
 
 --- END COMPLEXITY REDUCTION TASK ---
 ```

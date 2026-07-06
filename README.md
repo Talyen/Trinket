@@ -63,11 +63,11 @@ Agent workflow and test conventions: `AGENTS.md`.
 Start with **`Docs/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
 
 - Agent workflow: `AGENTS.md`
-- Core design concepts: `Docs/CoreDesignConcepts.md`
+- Core design concepts: `Docs/Design/CoreDesignConcepts.md`
 - Product roadmap (scratch ideas): `Docs/Roadmap.md`
-- Content pipeline: `Docs/ContentPipeline.md`
-- Art pipeline: `Docs/ArtPipeline.md`
-- Music pipeline: `Docs/MusicPipeline.md`
-- Apple-native guidance: `Docs/AppleNativeGuidelines.md`
-- CloudKit pre-ship checklist: `Docs/CloudKitPreShipChecklist.md`
-- Release pipeline: `Docs/ReleasePipeline.md`
+- Content pipeline: `ContentManifest/README.md`
+- Art pipeline: `ArtManifest/README.md`
+- Music pipeline: `MusicManifest/README.md`
+- Apple-native guidance: `Docs/Design/AppleNativeGuidelines.md`
+- CloudKit pre-ship checklist: `Docs/Audits/CloudKitPreShipChecklist.md`
+- Release pipeline: `Scripts/README.md`

@@ -4,7 +4,7 @@ This document turns the v2 visual reference boards into implementation guidance 
 
 ## Source References
 
-Use the v2 boards in `Docs/StyleGuide/VisualReferences/v2/` as the current visual north star:
+Use the v2 boards in `Docs/Design/StyleGuide/VisualReferences/v2/` as the current visual north star:
 
 - `01-north-star-overview-v2.png` — overall style direction and scope.
 - `02-theme-presets-v2.png` — theme preset comparison using Trinket's Play journey skeleton.
@@ -12,7 +12,7 @@ Use the v2 boards in `Docs/StyleGuide/VisualReferences/v2/` as the current visua
 - `04-elemental-feedback-v2.png` — Keyword tinting, combat feedback, particles, and motion guidance.
 - `05-screen-fragments-v2.png` — representative app-screen adoption across current product flows.
 
-The first-pass boards in `Docs/StyleGuide/VisualReferences/` are exploratory. Prefer v2 for implementation unless a newer pass supersedes it.
+The first-pass boards in `Docs/Design/StyleGuide/VisualReferences/` are exploratory. Prefer v2 for implementation unless a newer pass supersedes it.
 
 ## Product Fit
 
@@ -261,9 +261,9 @@ This phase should have focused unit or presentation tests where feasible and smo
 Update docs as implementation names settle:
 
 - `Docs/Architecture.md` for expanded `TrinketDesignSystem` ownership.
-- `Docs/CoreDesignConcepts.md` for durable visual and battle-presentation principles.
-- `Docs/AppleNativeGuidelines.md` for Trinket-specific native chrome rules if the design-system APIs need review guidance.
-- `Docs/StyleGuide/VisualReferences/README.md` when a newer visual pass supersedes v2.
+- `Docs/Design/CoreDesignConcepts.md` for durable visual and battle-presentation principles.
+- `Docs/Design/AppleNativeGuidelines.md` for Trinket-specific native chrome rules if the design-system APIs need review guidance.
+- `Docs/Design/StyleGuide/VisualReferences/README.md` when a newer visual pass supersedes v2.
 
 Recommended verification for Phase 1-3:
 
