@@ -183,24 +183,13 @@ struct BattleView: View {
         battleState: BattleState,
         battleSession: BattleSession
     ) -> BattleCombatantPane {
-        let mana: Int
-        let maxMana: Int
-        if combatant.id == battleState.hero.id {
-            mana = battleState.mana(of: battleState.hero)
-            maxMana = battleState.maxMana(of: battleState.hero)
-        } else if combatant.id == battleState.pet.id {
-            mana = battleState.mana(of: battleState.pet)
-            maxMana = battleState.maxMana(of: battleState.pet)
-        } else {
-            mana = 0
-            maxMana = 0
-        }
+        let manaValues = battleState.manaBarValues(for: combatant)
         return BattleCombatantPane(
             combatant: combatant,
             health: health,
             maxHealth: battleState.maxHealth(of: combatant),
-            mana: mana,
-            maxMana: maxMana,
+            mana: manaValues.mana,
+            maxMana: manaValues.maxMana,
             healthBarPlacement: healthBarPlacement,
             events: feedbackEvents(for: combatant, battleSession: battleSession),
             reduceMotion: reduceMotion,
@@ -223,4 +212,13 @@ struct BattleView: View {
         battleSession.feedbackEvents(for: combatant.id)
     }
 
+}
+
+private extension BattleState {
+    func manaBarValues(for combatant: Combatant) -> (mana: Int, maxMana: Int) {
+        guard combatant.id == hero.id || combatant.id == pet.id else {
+            return (0, 0)
+        }
+        return (mana(of: combatant), maxMana(of: combatant))
+    }
 }

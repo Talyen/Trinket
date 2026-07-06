@@ -56,12 +56,10 @@ extension AppState {
         if phase == .background {
             Task { @MainActor in
                 await syncCoordinator.checkpointUploadIfNeeded()
-                refreshShellDataStatusMessage()
             }
         } else if phase == .active {
             Task { @MainActor in
                 await syncCoordinator.reconcileForegroundIfSafe()
-                refreshShellDataStatusMessage()
             }
         }
     }

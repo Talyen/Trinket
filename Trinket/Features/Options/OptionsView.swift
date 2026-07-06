@@ -11,11 +11,11 @@ struct OptionsView: View {
         @Bindable var options = appState.options
 
         Form {
-            if let statusMessage = appState.shellDataStatusMessage {
+            if let status = appState.shellDataStatusPresentation {
                 Section("Progress Status") {
-                    Label(statusMessage, systemImage: statusSymbolName)
+                    Label(status.message, systemImage: status.symbolName)
                         .font(.subheadline)
-                        .foregroundStyle(statusForegroundStyle)
+                        .foregroundStyle(foregroundStyle(for: status.style))
                         .accessibilityIdentifier("Progress Status Message")
                 }
             }
@@ -64,9 +64,6 @@ struct OptionsView: View {
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
-        .onAppear {
-            appState.refreshShellDataStatusMessage()
-        }
         .alert(
             "Reset Game Progress?",
             isPresented: $isResetConfirmationPresented
@@ -74,8 +71,6 @@ struct OptionsView: View {
             Button("Reset Game Progress", role: .destructive) {
                 if !appState.resetGameplayProgress() {
                     resetErrorMessage = "Couldn't reset progress. Try again."
-                } else {
-                    appState.refreshShellDataStatusMessage()
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -95,37 +90,12 @@ struct OptionsView: View {
         }
     }
 
-    private var statusSymbolName: String {
-        if appState.playerSave.lastPersistenceError != nil {
-            return "externaldrive.badge.exclamationmark"
-        }
-
-        switch appState.syncCoordinator.status {
-        case .error, .iCloudUnavailable:
-            return "icloud.slash"
-        case .offline:
-            return "icloud.slash"
-        case .syncing:
-            return "arrow.triangle.2.circlepath.icloud"
-        case .upToDate:
-            return "checkmark.icloud"
-        case .idle:
-            return "icloud"
-        }
-    }
-
-    private var statusForegroundStyle: AnyShapeStyle {
-        if appState.playerSave.lastPersistenceError != nil {
-            return AnyShapeStyle(TrinketDesign.Colors.destructive)
-        }
-
-        switch appState.syncCoordinator.status {
-        case .error, .iCloudUnavailable:
-            return AnyShapeStyle(TrinketDesign.Colors.destructive)
-        case .offline, .idle, .syncing:
-            return AnyShapeStyle(.secondary)
-        case .upToDate:
-            return AnyShapeStyle(TrinketDesign.Colors.success)
+    private func foregroundStyle(for style: ShellDataStatusPresentation.Style) -> AnyShapeStyle {
+        switch style {
+        case .destructive:
+            AnyShapeStyle(TrinketDesign.Colors.destructive)
+        case .secondary:
+            AnyShapeStyle(.secondary)
         }
     }
 }

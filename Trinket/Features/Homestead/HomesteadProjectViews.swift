@@ -10,6 +10,37 @@ struct HomesteadProjectCard: View {
         case compact(isRecentlyUpgraded: Bool)
     }
 
+    private struct ProjectSummaryMetrics {
+        let spacing: CGFloat
+        let titleFont: Font
+        let tierFont: Font
+        let bonusFont: Font
+        var titleForeground: Color = .primary
+        var bonusLineLimit: Int?
+        var showsFeaturedLabel = false
+        var showsInlineStatusBadge = false
+
+        static let featured = ProjectSummaryMetrics(
+            spacing: 7,
+            titleFont: .title2.weight(.bold),
+            tierFont: .subheadline.monospacedDigit().weight(.semibold),
+            bonusFont: .subheadline,
+            showsFeaturedLabel: true
+        )
+
+        static func compact(isUnlocked: Bool) -> ProjectSummaryMetrics {
+            ProjectSummaryMetrics(
+                spacing: 6,
+                titleFont: .headline,
+                tierFont: .caption.monospacedDigit().weight(.semibold),
+                bonusFont: .caption,
+                titleForeground: isUnlocked ? .primary : .secondary,
+                bonusLineLimit: 2,
+                showsInlineStatusBadge: true
+            )
+        }
+    }
+
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let style: Style
@@ -60,13 +91,7 @@ struct HomesteadProjectCard: View {
                         .padding(12)
                 }
 
-            projectSummary(
-                spacing: 7,
-                titleFont: .title2.weight(.bold),
-                tierFont: .subheadline.monospacedDigit().weight(.semibold),
-                bonusFont: .subheadline,
-                showsFeaturedLabel: true
-            )
+            projectSummary(.featured)
         }
         .contentShape(Rectangle())
     }
@@ -81,15 +106,7 @@ struct HomesteadProjectCard: View {
                     lockedOpacity: 0.58
                 )
 
-            projectSummary(
-                spacing: 6,
-                titleFont: .headline,
-                tierFont: .caption.monospacedDigit().weight(.semibold),
-                bonusFont: .caption,
-                titleForeground: status.isUnlocked ? .primary : .secondary,
-                bonusLineLimit: 2,
-                showsInlineStatusBadge: true
-            )
+            projectSummary(.compact(isUnlocked: status.isUnlocked))
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
@@ -108,18 +125,9 @@ struct HomesteadProjectCard: View {
     }
 
     @ViewBuilder
-    private func projectSummary(
-        spacing: CGFloat,
-        titleFont: Font,
-        tierFont: Font,
-        bonusFont: Font,
-        titleForeground: Color = .primary,
-        bonusLineLimit: Int? = nil,
-        showsFeaturedLabel: Bool = false,
-        showsInlineStatusBadge: Bool = false
-    ) -> some View {
-        VStack(alignment: .leading, spacing: spacing) {
-            if showsFeaturedLabel {
+    private func projectSummary(_ metrics: ProjectSummaryMetrics) -> some View {
+        VStack(alignment: .leading, spacing: metrics.spacing) {
+            if metrics.showsFeaturedLabel {
                 Text(featuredTitle)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -127,21 +135,21 @@ struct HomesteadProjectCard: View {
             }
 
             projectTitleRow(
-                titleFont: titleFont,
-                tierFont: tierFont,
-                titleForeground: titleForeground
+                titleFont: metrics.titleFont,
+                tierFont: metrics.tierFont,
+                titleForeground: metrics.titleForeground
             )
 
-            if let bonusLineLimit {
-                bonusDescription(font: bonusFont)
+            if let bonusLineLimit = metrics.bonusLineLimit {
+                bonusDescription(font: metrics.bonusFont)
                     .lineLimit(bonusLineLimit)
             } else {
-                bonusDescription(font: bonusFont)
+                bonusDescription(font: metrics.bonusFont)
             }
 
             tierPips
 
-            if showsInlineStatusBadge {
+            if metrics.showsInlineStatusBadge {
                 HomesteadStatusBadge(status: status)
             }
         }

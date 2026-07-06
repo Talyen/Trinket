@@ -28,7 +28,6 @@ final class AppState {
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
     var showCorruptSaveRecoveryAlert = false
-    var shellDataStatusMessage: String?
 
     init(
         environment: AppEnvironment = .shared,
@@ -60,7 +59,6 @@ final class AppState {
         battle = BattleSession()
 
         showCorruptSaveRecoveryAlert = playerSave.hadCorruptSaveOnLoad
-        refreshShellDataStatusMessage()
         finishBootstrap(environment: environment)
     }
 
@@ -68,19 +66,30 @@ final class AppState {
         showCorruptSaveRecoveryAlert = false
     }
 
-    func refreshShellDataStatusMessage() {
+    var shellDataStatusPresentation: ShellDataStatusPresentation? {
         if let persistenceMessage = persistenceStatusMessage {
-            shellDataStatusMessage = persistenceMessage
-            return
+            return ShellDataStatusPresentation(
+                message: persistenceMessage,
+                symbolName: "externaldrive.badge.exclamationmark",
+                style: .destructive
+            )
         }
 
         switch syncCoordinator.status {
         case let .error(message), let .iCloudUnavailable(message):
-            shellDataStatusMessage = message
+            return ShellDataStatusPresentation(
+                message: message,
+                symbolName: "icloud.slash",
+                style: .destructive
+            )
         case .offline:
-            shellDataStatusMessage = syncCoordinator.status.displayText
-        default:
-            shellDataStatusMessage = nil
+            return ShellDataStatusPresentation(
+                message: syncCoordinator.status.displayText,
+                symbolName: "icloud.slash",
+                style: .secondary
+            )
+        case .idle, .syncing, .upToDate:
+            return nil
         }
     }
 
@@ -128,7 +137,6 @@ final class AppState {
             appStateLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
             )
-            refreshShellDataStatusMessage()
         }
         return scrollTarget
     }
@@ -165,7 +173,6 @@ final class AppState {
             appStateLogger.error(
                 "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
             )
-            refreshShellDataStatusMessage()
         }
     }
 
@@ -216,4 +223,15 @@ final class AppState {
         }
         return journey.isActive(stage)
     }
+}
+
+struct ShellDataStatusPresentation: Equatable {
+    enum Style: Equatable {
+        case destructive
+        case secondary
+    }
+
+    let message: String
+    let symbolName: String
+    let style: Style
 }
