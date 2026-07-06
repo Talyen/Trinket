@@ -68,7 +68,10 @@ fi
 mkdir -p "$RESULTS_DIR"
 
 scheme_for_package() {
-  echo "$1"
+  case "$1" in
+    BattleEngine) echo "BattleEngine-Package" ;;
+    *) echo "$1" ;;
+  esac
 }
 
 xcresult_failed() {
@@ -87,9 +90,9 @@ for package in "${PACKAGES[@]}"; do
 
   package_status=0
   (
+    cd "Packages/$package"
     xcodebuild "$ACTION" \
       -scheme "$scheme" \
-      -project Trinket.xcodeproj \
       -sdk iphonesimulator \
       -destination "$DESTINATION" \
       -derivedDataPath "$DERIVED_DATA_PATH" \

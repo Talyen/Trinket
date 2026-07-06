@@ -121,7 +121,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes instead of root-level `xcodebuild` package schemes. `BattleSimulator` in `Packages/BattleEngine/`. Focused diffs; `ci-locally.sh` before push.
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes instead of root-level `xcodebuild` package schemes. `BattleSimulator` in `Packages/BattleEngine/`. Keep diffs focused and run `ci-locally.sh` before push.
 
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 

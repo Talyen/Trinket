@@ -41,7 +41,7 @@ The script validates manifest rows, converts source files with macOS `afconvert`
 MUSIC_AAC_BITRATE=128000 ./Scripts/prepare-music-assets.sh
 ```
 
-`./Scripts/prepare-art-assets.sh` also invokes the music pipeline so generated app assets can be refreshed together.
+`./Scripts/generate.sh --assets` runs both the art and music pipelines so all app assets can be refreshed together.
 
 ## Runtime Routing
 

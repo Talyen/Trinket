@@ -23,19 +23,32 @@ xcodebuild build-for-testing \
   -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
+# Bash-level map: package name → scheme that includes its test target.
+# Inside each package directory, the test scheme may differ from the
+# library-only scheme visible from the workspace root.
+scheme_for_package() {
+  case "$1" in
+    BattleEngine) echo "BattleEngine-Package" ;;
+    *) echo "$1" ;;
+  esac
+}
+
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
 
-# Build each package's test bundle from the workspace root with the same
-# DerivedData as the main app. The app build already compiled all package
-# modules, so each package build only compiles its test targets.
+# Build each package's test bundle from inside its own directory so the
+# correct test-including scheme is resolved, but use the ROOT DerivedData
+# path so modules already compiled by the main app build are reused.
 for package in "${PACKAGES[@]}"; do
-  echo "=== build-for-testing: $package (test bundles) ==="
-  xcodebuild build-for-testing \
-    -scheme "$package" \
-    -project Trinket.xcodeproj \
-    -sdk iphonesimulator \
-    -destination "$SIMULATOR_DESTINATION" \
-    -derivedDataPath "$DERIVED_DATA_PATH"
+  scheme="$(scheme_for_package "$package")"
+  echo "=== build-for-testing: $package ($scheme) ==="
+  (
+    cd "Packages/$package"
+    xcodebuild build-for-testing \
+      -scheme "$scheme" \
+      -sdk iphonesimulator \
+      -destination "$SIMULATOR_DESTINATION" \
+      -derivedDataPath "$DERIVED_DATA_PATH"
+  )
 done
 
 for mode in unit smoke ui; do

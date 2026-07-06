@@ -138,7 +138,7 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 | `Freeze` | light blue | `snowflake` | Freeze damage type. Also builds toward `Frozen` (one skipped action). |
 | `Stun` | yellow | `bolt.fill` | Stun damage type. Also builds toward `Stunned` (one skipped action). |
 
-Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun), `Burning` (Burn), `Poisoned` (Poison), `Bleeding` (Bleed).
+Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun), `Burning` (Burn), `Poisoned` (Poison), `Bleeding` (Bleed), `Death's Door` (Death's Door).
 
 ### Mitigation (Keyword.category = .mitigation)
 
@@ -146,6 +146,8 @@ Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun)
 |---|---|---|---|
 | `Block` | blue | `shield.fill` | Damage absorption shield layered on top of health via `.shield`. Absorbs incoming damage until buffer expires. |
 | `Armor` | gray | `shield.lefthalf.filled` | Damage mitigation via `.mitigation`. Reduces incoming damage by a percentage. |
+| `Dodge` | cyan | `arrowshape.turn.up.left.circle.fill` | Evasion chance derived from agility (`0.05 + agility × 0.005`, capped at 75%). Rolled in the stochastic damage phase; may avoid incoming damage entirely. Not an active effect — always active per combatant. |
+| `Purge` | violet | `sparkles` | Removes active buffs from the target. Opposite of Cleanse: targets enemy buffs instead of ally debuffs. Via `.purge(Keyword?)` (all or matching) or `.purgeRandom` (one random buff). |
 
 ### Restoration (Keyword.category = .restoration)
 
@@ -153,6 +155,7 @@ Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun)
 |---|---|---|---|
 | `Health` | red | `heart.fill` | Instant health restoration via `.instantHeal`. Clamped to max health. |
 | `Leech` | magenta | `drop.fill` | Ongoing buff via `.leech`: restores 10% of damage dealt (any source, including DoTs) for 6 ticks. Standard value: `Effect.standardLeechBuff`. |
+| `Death's Door` | dark red | `heart.slash.fill` | Survival buff via `.deathsDoor`. While active, prevents lethal damage once. Expires after its duration if not triggered. |
 
 ### Resource (Keyword.category = .resource)
 
@@ -178,6 +181,9 @@ All keyword effects are represented by the `Effect` tagged union and applied thr
 - `.halveMitigation(keyword)` — halves existing mitigation % on the target
 - `.resourceGain(keyword, amount)` — immediately adds `amount` of the resource identified by `keyword` (`.gold` → gold, `.mana` → mana)
 - `.cleanse(keyword?, durationTicks)` — removes active effects matching `keyword` (or all if nil) for `durationTicks`
+- `.purge(Keyword?)` — removes active buffs from the target matching `keyword` (or all if nil)
+- `.purgeRandom` — removes one random buff from the target
+- `.deathsDoor` — grants Death's Door protection on the actor; prevents lethal damage once
 
 Abilities declare `targetedEffects: [TargetedEffect]` (or bare `effects` with default targeting). The `BattleState` applies instant effects immediately and tracks duration-based effects as `ActiveEffect` instances on the resolved target combatant.
 

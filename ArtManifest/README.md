@@ -37,7 +37,7 @@ The pipeline outputs two **HEIC** (HEVC-based) images per manifest row:
 
 HEIC is Apple's native image format, ~30–50% smaller than JPEG at the same perceptual quality, with hardware-accelerated decode on iOS. Each output is stripped of EXIF/XMP/ICC metadata.
 
-The generated Swift struct `CombatantArtReference` includes both `imageName` (full) and `thumbnailImageName` (card-safe). Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `ContentView.swift`).
+The generated Swift struct `CombatantArtReference` includes both `imageName` (full) and `thumbnailImageName` (card-safe). Callers select the right variant at the call site (see `CombatantArtwork.Variant` in `Trinket/Shared/Cards/CombatantArtwork.swift`).
 
 ## Generate Curated Assets
 

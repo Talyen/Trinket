@@ -100,6 +100,8 @@ After editing art, music, or SFX manifests:
 
 ### Package graph
 
+Arrows point upward to the dependency: `A ↑ B` means B depends on A.
+
 ```text
 TrinketCore
   ↑
@@ -116,7 +118,7 @@ TrinketDesignSystem
 Trinket app
 ```
 
-`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent`. `TrinketDesignSystem` depends on `TrinketCore` only so shared chrome can use domain primitives such as `Keyword` and `ItemSlot` without importing feature or content catalogs. Homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
+`BattleEngine` and `TrinketPersistence` are siblings under `TrinketContent` (both depend on `TrinketContent` and transitively on `TrinketCore`, but not on each other). `Trinket app` also directly imports `BattleEngine`, `TrinketPersistence`, and `TrinketContent` as needed — the diagram highlights the two main dependency chains. `TrinketDesignSystem` depends on `TrinketCore` only so shared chrome can use domain primitives such as `Keyword` and `ItemSlot` without importing feature or content catalogs. Homestead node tint mapping for feature views lives in `Trinket/Models/Homestead.swift`.
 
 Packages must not import `Trinket` app code or SwiftUI feature views.
 
