@@ -17,7 +17,7 @@ struct CombatantDetailPane: View {
     var hidesNavigationBar = false
 
     @State private var selectedItemSlot: ItemSlot?
-    @State private var headerHeight: CGFloat = 300
+    @State private var headerBaseHeight: CGFloat = 300
     @State private var heroOverscroll: CGFloat = 0
     @State private var titleOpacity: CGFloat = 0
 
@@ -45,15 +45,13 @@ struct CombatantDetailPane: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let baseHeaderHeight = HeroHeaderLayout.headerHeight(forWidth: geometry.size.width)
-
+        navigationBarConfigured {
             ScrollView {
                 VStack(spacing: 0) {
                     CombatantHeroHeader(
                         combatant: combatant,
                         progression: progression,
-                        baseHeight: baseHeaderHeight,
+                        baseHeight: headerBaseHeight,
                         overscroll: heroOverscroll
                     )
                     .accessibilityIdentifier("\(combatant.name) detail hero header")
@@ -75,14 +73,14 @@ struct CombatantDetailPane: View {
                             statRow("Wisdom", value: "\(effectiveCombatant.primaryStats.wisdom)")
                         }
 
-                if let heroOrPetTrait {
-                    traitSection(
-                        title: "Trait",
-                        traits: [heroOrPetTrait],
-                        sectionID: AccessibilityID.CombatantDetail.traitSection,
-                        descriptionID: AccessibilityID.CombatantDetail.traitDescription
-                    )
-                }
+                        if let heroOrPetTrait {
+                            traitSection(
+                                title: "Trait",
+                                traits: [heroOrPetTrait],
+                                sectionID: AccessibilityID.CombatantDetail.traitSection,
+                                descriptionID: AccessibilityID.CombatantDetail.traitDescription
+                            )
+                        }
 
                         if !enemyTraits.isEmpty {
                             traitSection(
@@ -127,26 +125,22 @@ struct CombatantDetailPane: View {
                 }
             }
             .ignoresSafeArea(edges: .top)
-            .combatantDetailNavigationBar(hidden: hidesNavigationBar, title: combatant.name, titleOpacity: titleOpacity)
-            .onAppear {
-                headerHeight = baseHeaderHeight
-            }
-            .onChange(of: baseHeaderHeight) { _, newHeight in
-                headerHeight = newHeight
-            }
-            .onScrollGeometryChange(for: ScrollState.self) { geometry in
-                ScrollState(
-                    offsetY: geometry.contentOffset.y + geometry.contentInsets.top,
-                    topInset: geometry.contentInsets.top,
+            .onScrollGeometryChange(for: ScrollMetrics.self) { geometry in
+                let topInset = geometry.contentInsets.top
+                return ScrollMetrics(
+                    containerWidth: geometry.containerSize.width,
+                    offsetY: geometry.contentOffset.y + topInset,
+                    topInset: topInset,
                     overscroll: HeroHeaderLayout.overscroll(
                         contentOffsetY: geometry.contentOffset.y,
-                        topInset: geometry.contentInsets.top
+                        topInset: topInset
                     )
                 )
-            } action: { _, state in
-                let threshold = headerHeight - state.topInset - 44
-                heroOverscroll = state.overscroll
-                titleOpacity = min(max((state.offsetY - threshold) / 20, 0), 1)
+            } action: { _, metrics in
+                headerBaseHeight = HeroHeaderLayout.headerHeight(forWidth: metrics.containerWidth)
+                heroOverscroll = metrics.overscroll
+                let threshold = headerBaseHeight - metrics.topInset - 44
+                titleOpacity = min(max((metrics.offsetY - threshold) / 20, 0), 1)
             }
             .sheet(item: $selectedItemSlot) { slot in
                 NavigationStack {
@@ -159,6 +153,28 @@ struct CombatantDetailPane: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func navigationBarConfigured<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if hidesNavigationBar {
+            content()
+                .toolbar(.hidden, for: .navigationBar)
+        } else {
+            content()
+                .navigationTitle(combatant.name)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(combatant.name)
+                            .font(.headline)
+                            .opacity(titleOpacity)
+                    }
+                    .sharedBackgroundVisibility(.hidden)
+                }
         }
     }
 
@@ -213,7 +229,8 @@ struct CombatantDetailPane: View {
         .accessibilityIdentifier(accessibilityIdentifier ?? title)
     }
 
-    private struct ScrollState: Equatable {
+    private struct ScrollMetrics: Equatable {
+        var containerWidth: CGFloat
         var offsetY: CGFloat
         var topInset: CGFloat
         var overscroll: CGFloat
@@ -236,31 +253,5 @@ extension CombatantDetailPane {
             activeEffectSummaries: snapshot.activeEffectSummaries,
             hidesNavigationBar: hidesNavigationBar
         )
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func combatantDetailNavigationBar(
-        hidden: Bool,
-        title: String,
-        titleOpacity: CGFloat
-    ) -> some View {
-        if hidden {
-            toolbar(.hidden, for: .navigationBar)
-        } else {
-            navigationTitle(title)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Text(title)
-                            .font(.headline)
-                            .opacity(titleOpacity)
-                    }
-                    .sharedBackgroundVisibility(.hidden)
-                }
-        }
     }
 }

@@ -10,10 +10,6 @@ enum HeroHeaderLayout {
         max(width * 4.0 / 3.0, 300)
     }
 
-    static func overscrollScale(baseHeight: CGFloat, pullDistance: CGFloat) -> CGFloat {
-        (baseHeight + pullDistance) / baseHeight
-    }
-
     static func overscroll(contentOffsetY: CGFloat, topInset: CGFloat) -> CGFloat {
         max(-(contentOffsetY + topInset), 0)
     }

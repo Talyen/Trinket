@@ -4,23 +4,6 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-func runHomesteadBuildOrUpgrade(
-    _ definition: HomesteadNodeDefinition,
-    homestead: PlayerHomesteadStore,
-    roster: PlayerRosterStore,
-    onSuccess: () -> Void,
-    onFailure: (String) -> Void
-) {
-    switch homestead.buildOrUpgrade(definition, roster: roster) {
-    case .success:
-        onSuccess()
-    case .insufficientResources:
-        onFailure("Not enough resources to build or upgrade this project.")
-    case .persistFailed:
-        onFailure("Couldn't save homestead progress. Try again.")
-    }
-}
-
 @Observable
 @MainActor
 final class HomesteadBuildActions {
@@ -38,16 +21,15 @@ final class HomesteadBuildActions {
         isBuilding = true
         defer { isBuilding = false }
 
-        runHomesteadBuildOrUpgrade(
-            definition,
-            homestead: homestead,
-            roster: roster,
-            onSuccess: {
-                upgradeEventCount += 1
-                onSuccess(definition.id)
-            },
-            onFailure: { error = $0 }
-        )
+        switch homestead.buildOrUpgrade(definition, roster: roster) {
+        case .success:
+            upgradeEventCount += 1
+            onSuccess(definition.id)
+        case .insufficientResources:
+            error = "Not enough resources to build or upgrade this project."
+        case .persistFailed:
+            error = "Couldn't save homestead progress. Try again."
+        }
     }
 }
 
