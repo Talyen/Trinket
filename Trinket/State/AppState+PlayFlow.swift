@@ -18,19 +18,21 @@ extension AppState {
     func startBattle(for stage: Stage) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
 
-        guard let encounter = StageEncounterResolver.resolve(for: stage) else {
+        guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
         battle.preview = nil
-        battle.activeBattle = makeActiveBattleConfiguration(
+        battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: roster.activeHero,
             pet: roster.activePet,
+            roster: roster,
+            inventory: inventory,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: stage.rewards,
-            rewardItemNames: rewardItemNames(for: stage.rewards)
+            stageReward: stage.rewards
         )
         return nil
     }
@@ -43,14 +45,16 @@ extension AppState {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
             ?? roster.activePet
 
-        battle.activeBattle = makeActiveBattleConfiguration(
+        battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
+            roster: roster,
+            inventory: inventory,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            rewardItemNames: activeBattle.rewardItemNames
+            stageReward: activeBattle.stageReward
         )
     }
 
@@ -62,37 +66,6 @@ extension AppState {
         case .event, .shop, .rest, .mysteryEvent:
             completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
             return nil
-        }
-    }
-
-    private func makeActiveBattleConfiguration(
-        stageID: String?,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        rewardItemNames: [String]
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            stageID: stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
-            hero: hero,
-            pet: pet,
-            roster: roster,
-            inventory: inventory,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames,
-            catalog: GameContentCombatCatalog()
-        )
-    }
-
-    private func rewardItemNames(for stageReward: StageReward) -> [String] {
-        let catalog = GameContentPlayerCatalog()
-        return stageReward.itemTemplateIDs.compactMap { templateID in
-            catalog.itemTemplate(matching: templateID)?.displayName
         }
     }
 }

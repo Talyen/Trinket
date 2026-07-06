@@ -31,6 +31,22 @@ struct ActiveBattleConfiguration: Identifiable {
         return nil
     }
 
+    static func resolvedEncounter(
+        for stage: Stage,
+        contentCatalog: PlayerContentCatalog = GameContentPlayerCatalog()
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let enemyID = stage.encounter.battleEnemyID,
+              let catalogEnemy = GameContent.enemy(matching: enemyID),
+              let chapter = contentCatalog.chapters.first(where: { $0.id == stage.chapterID })
+        else { return nil }
+
+        let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+        return (
+            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
+            level
+        )
+    }
+
     static func make(
         stageID: String? = nil,
         rngSeed: UInt64,
@@ -41,7 +57,6 @@ struct ActiveBattleConfiguration: Identifiable {
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
-        rewardItemNames: [String] = [],
         catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> ActiveBattleConfiguration {
         let rosterState = roster.current
@@ -96,7 +111,14 @@ struct ActiveBattleConfiguration: Identifiable {
             enemyModifiers: enemyBuild.modifiers,
             inventoryState: resolvedInventoryState,
             stageReward: stageReward,
-            rewardItemNames: rewardItemNames
+            rewardItemNames: rewardItemNames(for: stageReward)
         )
+    }
+
+    private static func rewardItemNames(for stageReward: StageReward?) -> [String] {
+        guard let stageReward else { return [] }
+        return stageReward.itemTemplateIDs.compactMap { templateID in
+            GameContent.itemTemplate(matching: templateID)?.displayName
+        }
     }
 }

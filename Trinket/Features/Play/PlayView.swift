@@ -55,7 +55,7 @@ struct PlayView: View {
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {
-        guard let encounter = StageEncounterResolver.resolve(for: stage) else { return nil }
+        guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else { return nil }
 
         return CombatantCardDetail(
             combatant: encounter.combatant,

@@ -76,6 +76,9 @@ final class ActiveBattleConfigurationTests: XCTestCase {
         let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         let enemy = try XCTUnwrap(try GameContent.enemy(matching: XCTUnwrap(stage.encounter.battleEnemyID))?.combatant)
+        let expectedItemName = try XCTUnwrap(
+            GameContent.itemTemplate(matching: XCTUnwrap(stage.rewards.itemTemplateIDs.first))?.displayName
+        )
 
         let configuration = ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
@@ -83,12 +86,21 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             hero: knight,
             pet: wolf,
             enemy: enemy,
-            stageReward: stage.rewards,
-            rewardItemNames: ["Shortsword"]
+            stageReward: stage.rewards
         )
 
         XCTAssertEqual(configuration.stageID, stage.id)
         XCTAssertEqual(configuration.stageReward, stage.rewards)
-        XCTAssertEqual(configuration.rewardItemNames, ["Shortsword"])
+        XCTAssertEqual(configuration.rewardItemNames, [expectedItemName])
+    }
+
+    func testResolvedEncounterScalesEnemyToJourneyLevel() throws {
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        let encounter = try XCTUnwrap(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        let chapter = try XCTUnwrap(GameContent.chapters.first { $0.id == stage.chapterID })
+        let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
+
+        XCTAssertEqual(encounter.level, expectedLevel)
+        XCTAssertEqual(encounter.combatant.id, stage.encounter.battleEnemyID)
     }
 }

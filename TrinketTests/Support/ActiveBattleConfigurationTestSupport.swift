@@ -27,8 +27,7 @@ enum ActiveBattleConfigurationTestSupport {
         enemyEncounterLevel: Int? = nil,
         roster: PlayerRosterState = .initial,
         inventory: PlayerInventoryState = .initial,
-        stageReward: StageReward? = nil,
-        rewardItemNames: [String] = []
+        stageReward: StageReward? = nil
     ) -> ActiveBattleConfiguration {
         let stores = makeStores(roster: roster, inventory: inventory)
         return ActiveBattleConfiguration.make(
@@ -40,8 +39,7 @@ enum ActiveBattleConfigurationTestSupport {
             inventory: stores.inventory,
             enemy: enemy,
             enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward,
-            rewardItemNames: rewardItemNames
+            stageReward: stageReward
         )
     }
 }

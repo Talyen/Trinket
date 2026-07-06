@@ -478,8 +478,7 @@ final class BattleSessionTests: XCTestCase {
             enemy: enemy,
             enemyEncounterLevel: 2,
             roster: rosterState,
-            stageReward: StageReward(gold: 12, itemTemplateIDs: []),
-            rewardItemNames: ["Shortsword"]
+            stageReward: StageReward(gold: 12, itemTemplateIDs: ["shortsword-basic"])
         )
         let session = BattleSession()
         session.activeBattle = configuration
