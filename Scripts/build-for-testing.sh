@@ -8,10 +8,11 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # shellcheck source=build-stamp.sh
 source "$SCRIPT_DIR/build-stamp.sh"
-
-GENERIC_DESTINATION="generic/platform=iOS Simulator"
+# shellcheck source=ensure-simulator.sh
+source "$SCRIPT_DIR/ensure-simulator.sh"
 
 ./Scripts/generate.sh
+ensure_test_simulator
 mkdir -p "$RESULTS_DIR"
 
 echo "=== build-for-testing: Trinket app and test bundles ==="
@@ -19,7 +20,7 @@ xcodebuild build-for-testing \
   -project Trinket.xcodeproj \
   -scheme Trinket \
   -sdk iphonesimulator \
-  -destination "$GENERIC_DESTINATION" \
+  -destination "$SIMULATOR_DESTINATION" \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
@@ -30,7 +31,7 @@ for package in "${PACKAGES[@]}"; do
     xcodebuild build-for-testing \
       -scheme "$package" \
       -sdk iphonesimulator \
-      -destination "$GENERIC_DESTINATION" \
+      -destination "$SIMULATOR_DESTINATION" \
       -derivedDataPath "$DERIVED_DATA_PATH/${package}Package"
   )
 done

@@ -217,7 +217,9 @@ ensure_ios_simulator_platform() {
   xcodebuild -runFirstLaunch 2>/dev/null || true
 
   # Try downloading the platform (may fail on restricted runners)
-  if xcodebuild -downloadPlatform iOS 2>/dev/null; then
+  echo "Downloading iOS platform (this may take a few minutes)..." >&2
+  if xcodebuild -downloadPlatform iOS; then
+    echo "iOS platform downloaded successfully." >&2
     return 0
   fi
 
