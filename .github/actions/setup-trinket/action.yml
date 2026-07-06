@@ -4,6 +4,26 @@ description: Homebrew tooling for Trinket CI (swiftformat 0.61.1 pre-installed o
 runs:
   using: composite
   steps:
+    - name: Select Xcode Version
+      shell: bash
+      run: |
+        xcode_path=""
+        for version in 26.5.0 26.5 26.4.0 26.4 26.2.0 26.2 26; do
+          for path in "/Applications/Xcode_${version}.app" "/Applications/Xcode_${version}"*.app; do
+            if [ -d "$path" ]; then
+              xcode_path="$path"
+              break 2
+            fi
+          done
+        done
+        if [ -n "$xcode_path" ]; then
+          echo "Selecting Xcode: $xcode_path"
+          sudo xcode-select -s "$xcode_path/Contents/Developer"
+        else
+          echo "Xcode 26.x not found; using runner default."
+          xcode-select -p
+        fi
+
     - name: Cache Homebrew
       uses: actions/cache@v4
       with:
