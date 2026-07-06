@@ -17,6 +17,9 @@ public final class PlayerSaveSyncCoordinator {
     /// Returns whether a battle is currently in progress on the active session.
     public var hasActiveBattle: () -> Bool = { false }
 
+    /// Called when a remote save with a higher session generation replaces local progress.
+    public var onSessionSuperseded: (() -> Void)?
+
     private let sync: any PlayerSaveSyncing
     private weak var playerSaveStore: PlayerSaveStore?
     private var pendingUploadSave: PlayerSave?
@@ -48,6 +51,7 @@ public final class PlayerSaveSyncCoordinator {
         sessionPhase = .bootstrapping
         flushStoreIfNeeded()
         _ = await reconcileOnce()
+        await claimSessionLease()
         sessionPhase = .active
 
         guard subscribeToChanges else { return }
@@ -110,6 +114,24 @@ public final class PlayerSaveSyncCoordinator {
         playerSaveStore?.flushPendingPersistIfNeeded()
     }
 
+    private func claimSessionLease() async {
+        guard let playerSaveStore else { return }
+
+        flushStoreIfNeeded()
+        do {
+            try playerSaveStore.performBatchMutation { save in
+                save.sessionGeneration &+= 1
+            }
+        } catch {
+            logger.error(
+                "Failed to claim session lease: \(error.localizedDescription, privacy: .public)"
+            )
+            return
+        }
+
+        await scheduleUpload(playerSaveStore.currentSave)
+    }
+
     private func reconcileOnce() async -> Bool {
         if let reconcileInFlight {
             return await reconcileInFlight.value
@@ -138,7 +160,7 @@ public final class PlayerSaveSyncCoordinator {
                 )
             } catch {
                 logger.error("Reconcile failed: \(error.localizedDescription, privacy: .public)")
-                status = .error("Playing offline on this device.")
+                status = .upToDate
                 return false
             }
         }
@@ -171,12 +193,14 @@ public final class PlayerSaveSyncCoordinator {
 
     @discardableResult
     private func applyRemoteSaveIfSafe(_ remoteSave: PlayerSave) -> Bool {
-        if hasActiveBattle() {
+        guard let playerSaveStore else { return false }
+        let superseded = remoteSave.sessionGeneration > playerSaveStore.currentSave.sessionGeneration
+        if hasActiveBattle(), !superseded {
             deferredRemoteReconcile = true
             status = .upToDate
             return false
         }
-        applyRemoteSave(remoteSave)
+        applyRemoteSave(remoteSave, superseded: superseded)
         status = .upToDate
         return true
     }
@@ -186,7 +210,8 @@ public final class PlayerSaveSyncCoordinator {
         case .available:
             return true
         case let .unavailable(message):
-            status = .iCloudUnavailable(message)
+            logger.info("iCloud unavailable: \(message, privacy: .public)")
+            status = .upToDate
             return false
         }
     }
@@ -239,7 +264,7 @@ public final class PlayerSaveSyncCoordinator {
             }
         } catch {
             logger.error("Upload failed: \(error.localizedDescription, privacy: .public)")
-            status = .offline
+            status = .upToDate
             return false
         }
     }
@@ -250,14 +275,15 @@ public final class PlayerSaveSyncCoordinator {
         let liveLocal = playerSaveStore.currentSave
 
         let authoritative = PlayerSaveMerger.pickAuthoritative(local: liveLocal, remote: remote.save)
+        let superseded = authoritative.sessionGeneration > liveLocal.sessionGeneration
 
-        if hasActiveBattle() {
+        if hasActiveBattle(), !superseded {
             deferredRemoteReconcile = true
             status = .upToDate
             return
         }
 
-        applyRemoteSave(authoritative)
+        applyRemoteSave(authoritative, superseded: superseded)
         lastKnownRemoteChangeTag = remote.recordChangeTag
 
         do {
@@ -266,12 +292,12 @@ public final class PlayerSaveSyncCoordinator {
             status = .upToDate
         } catch {
             logger.error("Upload failed after authority resolution: \(error.localizedDescription, privacy: .public)")
-            status = .offline
+            status = .upToDate
             pendingUploadSave = playerSaveStore.currentSave
         }
     }
 
-    private func applyRemoteSave(_ remoteSave: PlayerSave) {
+    private func applyRemoteSave(_ remoteSave: PlayerSave, superseded: Bool = false) {
         guard let playerSaveStore else { return }
         let saveBeforeApply = playerSaveStore.currentSave
         isApplyingRemoteSave = true
@@ -279,9 +305,13 @@ public final class PlayerSaveSyncCoordinator {
             try playerSaveStore.applyRemoteSave(remoteSave)
         } catch {
             logger.error("Failed to apply remote save locally: \(error.localizedDescription, privacy: .public)")
-            status = .error("Could not apply cloud save on this device.")
+            status = .upToDate
         }
         isApplyingRemoteSave = false
+
+        if superseded {
+            onSessionSuperseded?()
+        }
 
         if playerSaveStore.currentSave.modifiedAt > saveBeforeApply.modifiedAt {
             pendingUploadSave = playerSaveStore.currentSave
