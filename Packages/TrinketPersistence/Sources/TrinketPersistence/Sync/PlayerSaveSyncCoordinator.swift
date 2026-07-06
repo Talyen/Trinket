@@ -46,14 +46,13 @@ public final class PlayerSaveSyncCoordinator {
         guard sessionPhase != .active else { return }
 
         sessionPhase = .bootstrapping
+        flushStoreIfNeeded()
         _ = await reconcileOnce()
         sessionPhase = .active
 
         guard subscribeToChanges else { return }
         await registerSubscriptionIfNeeded()
-        if let pendingUploadSave {
-            await scheduleUpload(pendingUploadSave)
-        }
+        await retryPendingUploadIfNeeded()
     }
 
     public func reconcileForegroundIfSafe() async {
@@ -98,7 +97,13 @@ public final class PlayerSaveSyncCoordinator {
     public func checkpointUploadIfNeeded() async {
         guard sessionPhase == .active, let playerSaveStore else { return }
         flushStoreIfNeeded()
+        await retryPendingUploadIfNeeded()
         await scheduleUpload(playerSaveStore.currentSave)
+    }
+
+    private func retryPendingUploadIfNeeded() async {
+        guard let pendingUploadSave else { return }
+        await scheduleUpload(pendingUploadSave)
     }
 
     private func flushStoreIfNeeded() {
@@ -208,26 +213,34 @@ public final class PlayerSaveSyncCoordinator {
 
         while let save = pendingUploadSave {
             pendingUploadSave = nil
-            await performUpload(save)
+            let succeeded = await performUpload(save)
+            if !succeeded {
+                pendingUploadSave = save
+                break
+            }
         }
     }
 
-    private func performUpload(_ save: PlayerSave) async {
+    @discardableResult
+    private func performUpload(_ save: PlayerSave) async -> Bool {
         status = .syncing
-        guard await guardAccountAvailable() else { return }
+        guard await guardAccountAvailable() else { return false }
 
         do {
             let newTag = try await sync.upload(save, replacingRecordChangeTag: lastKnownRemoteChangeTag)
             lastKnownRemoteChangeTag = newTag
             status = .upToDate
+            return true
         } catch let error as PlayerSaveSyncError {
             switch error {
             case let .recordConflict(remote):
                 await resolveUploadConflict(remote: remote)
+                return status == .upToDate
             }
         } catch {
             logger.error("Upload failed: \(error.localizedDescription, privacy: .public)")
             status = .offline
+            return false
         }
     }
 
@@ -254,6 +267,7 @@ public final class PlayerSaveSyncCoordinator {
         } catch {
             logger.error("Upload failed after authority resolution: \(error.localizedDescription, privacy: .public)")
             status = .offline
+            pendingUploadSave = playerSaveStore.currentSave
         }
     }
 

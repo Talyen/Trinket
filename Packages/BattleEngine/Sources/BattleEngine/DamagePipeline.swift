@@ -21,6 +21,8 @@ package enum DamagePipeline {
         let apply: (inout DamageResolutionState, inout BattleEngineContext) -> Void
     }
 
+    /// Canonical damage resolution order. Critical multiplication intentionally runs
+    /// after mitigation and shield absorption so crits apply to post-mitigation damage.
     private static let steps: [Step] = [
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),

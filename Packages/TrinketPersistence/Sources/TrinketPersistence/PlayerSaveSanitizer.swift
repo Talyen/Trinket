@@ -75,6 +75,9 @@ public enum PlayerSaveSanitizer {
         var sanitized = journey
         sanitized.completedStageIDs = journey.completedStageIDs.filter { validStageIDs.contains($0) }
         sanitized.claimedRewardStageIDs = journey.claimedRewardStageIDs.filter { validStageIDs.contains($0) }
+        for stageID in sanitized.claimedRewardStageIDs {
+            sanitized.completedStageIDs.insert(stageID)
+        }
         sanitized.lastCompletedStageID = latestStageID(in: sanitized.completedStageIDs, chapters: chapters)
 
         if validChapterIDs.contains(sanitized.activeChapterID) {

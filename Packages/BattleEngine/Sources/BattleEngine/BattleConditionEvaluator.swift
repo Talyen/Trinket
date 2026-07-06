@@ -67,7 +67,15 @@ public enum BattleConditionEvaluator {
         in context: BattleEngineContext
     ) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
-            active.effect.keyword == keyword
+            guard active.effect.keyword == keyword else { return false }
+            switch active.effect {
+            case let .bleed(potency):
+                return potency > 0 && active.remainingTicks > 0
+            case let .burn(potency), let .poison(potency):
+                return potency > 0
+            default:
+                return true
+            }
         }
     }
 

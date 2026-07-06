@@ -301,6 +301,28 @@ final class PlayerSaveSyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(fixture.store.roster.gold, 12)
     }
 
+    func testUploadFailureRequeuesPendingSaveForRetry() async throws {
+        let fixture = try await SyncCoordinatorTestFixture.make(
+            directoryURL: directoryURL,
+            localSave: SaveTestSupport.makeSave(modifiedAt: earlier, gold: 0),
+            remoteSave: SaveTestSupport.makeRemote(modifiedAt: later, gold: 0),
+            uploadError: MockSyncError.uploadFailed
+        )
+        await fixture.coordinator.activateSession(subscribeToChanges: true)
+        fixture.store.setGoldForTests(12)
+
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await AsyncTestSupport.waitUntil("offline status after upload failure") {
+            fixture.coordinator.status == .offline
+        }
+
+        await fixture.mock.setUploadError(nil)
+        await fixture.coordinator.checkpointUploadIfNeeded()
+        await fixture.mock.waitUntilUploadCount(atLeast: 2)
+
+        XCTAssertEqual(fixture.coordinator.status, .upToDate)
+    }
+
     func testCloseSessionReleasesLeaseAndReturnsToClosed() async throws {
         let fixture = try await makeSyncedFixture()
         await fixture.coordinator.activateSession(subscribeToChanges: true)

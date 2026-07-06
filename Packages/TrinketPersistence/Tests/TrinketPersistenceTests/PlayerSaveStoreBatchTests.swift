@@ -34,6 +34,26 @@ final class PlayerSaveStoreBatchTests: XCTestCase {
         XCTAssertTrue(store.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
 
+    func testPerformBatchMutationFlushesDebouncedPersistImmediately() throws {
+        let fileStore = SaveTestSupport.makeFileStore(directoryURL: directoryURL)
+        let store = PlayerSaveStore(
+            fileStore: fileStore,
+            persistDebounceNanoseconds: 1_000_000_000
+        )
+        store.grantGoldForTests(4)
+
+        try store.performBatchMutation { save in
+            save.roster.gold = 12
+        }
+
+        XCTAssertFalse(store.hasPendingPersist)
+        let reloaded = PlayerSaveStore(
+            fileStore: fileStore,
+            persistDebounceNanoseconds: 0
+        )
+        XCTAssertEqual(reloaded.roster.gold, 12)
+    }
+
     func testRapidMutationsCoalesceBeforeFlush() throws {
         let fileStore = SaveTestSupport.makeFileStore(directoryURL: directoryURL)
         let store = PlayerSaveStore(
@@ -62,23 +82,18 @@ final class PlayerSaveStoreBatchTests: XCTestCase {
         XCTAssertEqual(reloadedAfterFlush.roster.gold, 10)
     }
 
-    func testPerformBatchMutationFlushesDebouncedPersistImmediately() throws {
+    func testDebouncedMutationNotifiesLocalSaveAfterFlush() throws {
         let fileStore = SaveTestSupport.makeFileStore(directoryURL: directoryURL)
         let store = PlayerSaveStore(
             fileStore: fileStore,
-            persistDebounceNanoseconds: 1_000_000_000
-        )
-        store.grantGoldForTests(4)
-
-        try store.performBatchMutation { save in
-            save.roster.gold = 12
-        }
-
-        XCTAssertFalse(store.hasPendingPersist)
-        let reloaded = PlayerSaveStore(
-            fileStore: fileStore,
             persistDebounceNanoseconds: 0
         )
-        XCTAssertEqual(reloaded.roster.gold, 12)
+        var persistCount = 0
+        store.onLocalSave = { _ in persistCount += 1 }
+
+        store.grantGoldForTests(3)
+
+        XCTAssertEqual(persistCount, 1)
+        XCTAssertEqual(store.roster.gold, 3)
     }
 }

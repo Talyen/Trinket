@@ -45,6 +45,30 @@ public struct HalveMitigationHandler: BattleEffectHandler {
 public struct ControlMeterHandler: BattleEffectHandler {
     public let kind: EffectKind = .controlMeter
 
+    public func tick(
+        _ active: ActiveEffect,
+        on target: Combatant,
+        in context: inout BattleEngineContext
+    ) -> EffectTickOutcome {
+        _ = target
+        _ = context
+        guard case let .controlMeter(keyword, amount, threshold) = active.effect else {
+            return EffectTickOutcome()
+        }
+        guard amount > 0, amount < threshold else {
+            return EffectTickOutcome()
+        }
+
+        let nextAmount = amount - 1
+        if nextAmount <= 0 {
+            return EffectTickOutcome(removeAfter: true)
+        }
+
+        var updated = active
+        updated.effect = .controlMeter(keyword, nextAmount, threshold)
+        return EffectTickOutcome(updatedStack: updated)
+    }
+
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let meterStacks = stacks.filter { activeEffect in
             guard case let .controlMeter(meterKeyword, _, _) = activeEffect.effect else { return false }

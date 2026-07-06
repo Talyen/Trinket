@@ -27,7 +27,7 @@ final class BattleSession {
     private(set) var state: BattleState?
     var activeFeedbackEvents: [ActionEvent] = []
     private var feedbackDisplayedAt: [Int: Date] = [:]
-    private var isOverlayPaused = false
+    private var overlayPauseDepth = 0
     private var pauseStateBeforeOverlay: Bool?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
@@ -46,7 +46,7 @@ final class BattleSession {
         clearOutcomePresentation()
         preview = nil
         overlayCombatantDetail = nil
-        isOverlayPaused = false
+        overlayPauseDepth = 0
         pauseStateBeforeOverlay = nil
         onBattleStateChange?(nil)
         onBattleEnded?()
@@ -173,18 +173,17 @@ final class BattleSession {
     }
 
     func pauseForOverlay() {
-        guard !isOverlayPaused else {
-            isPaused = true
-            return
+        if overlayPauseDepth == 0 {
+            pauseStateBeforeOverlay = isPaused
         }
-        pauseStateBeforeOverlay = isPaused
-        isOverlayPaused = true
+        overlayPauseDepth += 1
         isPaused = true
     }
 
     func restorePauseAfterOverlay() {
-        guard isOverlayPaused else { return }
-        isOverlayPaused = false
+        guard overlayPauseDepth > 0 else { return }
+        overlayPauseDepth -= 1
+        guard overlayPauseDepth == 0 else { return }
         guard activeBattle != nil else {
             pauseStateBeforeOverlay = nil
             return
@@ -247,6 +246,10 @@ final class BattleSession {
         )
         activeFeedbackEvents = []
         feedbackDisplayedAt = [:]
+        isPaused = false
+        overlayPauseDepth = 0
+        pauseStateBeforeOverlay = nil
+        overlayCombatantDetail = nil
         clearOutcomePresentation()
     }
 

@@ -86,6 +86,24 @@ final class EffectHandlersTickTests: XCTestCase {
         XCTAssertFalse(outcome.removeAfter)
     }
 
+    func testControlMeterBuildupDecaysEachTick() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let buildup = ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = EffectHandlersTestSupport.dispatchTick(buildup, target: battle.enemy, battle: &battle)
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertEqual(outcome.updatedStack?.effect.controlMeterValues?.amount, 2)
+        XCTAssertFalse(outcome.removeAfter)
+    }
+
+    func testControlMeterBuildupRemovedAtZero() {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let buildup = ActiveEffect(id: 1, effect: .controlMeter(.stun, 1, 10), remainingTicks: 0, sourceActorID: "hero")
+        let outcome = EffectHandlersTestSupport.dispatchTick(buildup, target: battle.enemy, battle: &battle)
+        XCTAssertTrue(outcome.events.isEmpty)
+        XCTAssertNil(outcome.updatedStack)
+        XCTAssertTrue(outcome.removeAfter)
+    }
+
     func testMitigationTickExpiresAtZeroRemainingTicks() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let mitigation = ActiveEffect(

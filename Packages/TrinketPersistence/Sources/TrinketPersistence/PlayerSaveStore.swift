@@ -21,7 +21,9 @@ public final class PlayerSaveStore {
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
     public private(set) var loadedFromDisk = false
     public private(set) var hadCorruptSaveOnLoad = false
+    public private(set) var hadUnsupportedNewerSaveOnLoad = false
     public var onLocalSave: ((PlayerSave) -> Void)?
+    public var onPersistenceError: ((PlayerSavePersistenceError) -> Void)?
 
     public var hasPendingPersist: Bool {
         pendingPersistSave != nil || debouncedPersistSave != nil
@@ -69,6 +71,9 @@ public final class PlayerSaveStore {
             hadCorruptSaveOnLoad = true
             fileStore.quarantineCorruptSaves()
             save = PlayerSaveSanitizer.sanitize(.fresh)
+        case .unsupportedNewerSchema:
+            hadUnsupportedNewerSaveOnLoad = true
+            save = PlayerSaveSanitizer.sanitize(.fresh)
         case .missing:
             save = PlayerSaveSanitizer.sanitize(.fresh)
         }
@@ -115,6 +120,7 @@ public final class PlayerSaveStore {
             onLocalSave?(save)
         } catch {
             lastPersistenceError = .writeFailed
+            onPersistenceError?(.writeFailed)
             logger.error(
                 "Failed to flush pending player save: \(error.localizedDescription, privacy: .public)"
             )
@@ -134,6 +140,9 @@ public final class PlayerSaveStore {
     }
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
+        guard remoteSave.schemaVersion <= PlayerSave.currentSchemaVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Remote save uses an unsupported schema version.")
+        }
         cancelDebouncedPersist()
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
         try commitSave(migrated, stampLocalMutation: false, notifyLocalSave: false)
@@ -144,8 +153,9 @@ public final class PlayerSaveStore {
         do {
             try mutateThrowing(update)
         } catch let error as PlayerSavePersistenceError {
+            lastPersistenceError = error
+            onPersistenceError?(error)
             if case .invalidSave = error {
-                lastPersistenceError = error
                 logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
             }
         } catch {
@@ -166,7 +176,6 @@ public final class PlayerSaveStore {
         save = persisted
         loadedFromDisk = true
         lastPersistenceError = nil
-        onLocalSave?(save)
         scheduleDebouncedPersist(persisted)
     }
 
@@ -218,8 +227,10 @@ public final class PlayerSaveStore {
             loadedFromDisk = true
             pendingPersistSave = nil
             lastPersistenceError = nil
+            onLocalSave?(save)
         } catch {
             lastPersistenceError = .writeFailed
+            onPersistenceError?(.writeFailed)
             pendingPersistSave = candidate
             logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
         }
@@ -252,6 +263,7 @@ public final class PlayerSaveStore {
             }
         } catch {
             lastPersistenceError = .writeFailed
+            onPersistenceError?(.writeFailed)
             logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
             if optimisticOnFailure {
                 save = persisted

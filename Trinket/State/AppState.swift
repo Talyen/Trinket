@@ -98,6 +98,23 @@ final class AppState {
         }
 
         wireSyncAndBattleCallbacks()
+        wirePersistenceCallbacks(for: resolvedPlayerSave)
+    }
+
+    private func wirePersistenceCallbacks(for playerSave: PlayerSaveStore) {
+        if playerSave.hadUnsupportedNewerSaveOnLoad {
+            lastPlayFlowError = "This save needs a newer version of Trinket. Progress was not loaded."
+        }
+
+        playerSave.onPersistenceError = { [weak self] error in
+            guard let self else { return }
+            switch error {
+            case .writeFailed:
+                lastPlayFlowError = "Progress couldn't be saved. Try again."
+            case .invalidSave:
+                lastPlayFlowError = "Progress couldn't be saved. Try again."
+            }
+        }
     }
 
     var playChapter: Chapter {
