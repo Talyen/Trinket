@@ -60,6 +60,7 @@ if [[ "$MODE" == "style" ]]; then
   exit 0
 fi
 
+mkdir -p "$RESULTS_DIR"
 GENERATE_STAMP="$RESULTS_DIR/.last-generate.stamp"
 if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
   if [[ -f "$GENERATE_STAMP" ]]; then
