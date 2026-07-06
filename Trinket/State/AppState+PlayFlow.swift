@@ -1,6 +1,9 @@
+import BattleEngine
 import Foundation
 import Observation
 import TrinketContent
+import TrinketCore
+import TrinketPersistence
 
 extension AppState {
     var journeyProgress: JourneyProgressState {
@@ -13,19 +16,50 @@ extension AppState {
 
     @discardableResult
     func startBattle(for stage: Stage) -> StageMapMessage? {
-        PlayFlowCoordinator.startBattle(
-            session: battle,
-            stage: stage,
+        guard battle.activeBattle == nil else { return nil }
+
+        guard let encounter = StageEncounterResolver.resolve(for: stage) else {
+            return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
+        }
+
+        battle.preview = nil
+        battle.activeBattle = ActiveBattleConfiguration.make(
+            stageID: stage.id,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            hero: roster.activeHero,
+            pet: roster.activePet,
             roster: roster,
-            inventory: inventory
+            inventory: inventory,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: stage.rewards,
+            rewardItemNames: rewardItemNames(for: stage.rewards),
+            catalog: GameContentCombatCatalog()
         )
+        battle.notifyBattleStarted(stageID: stage.id)
+        return nil
     }
 
     func restartActiveBattle() {
-        PlayFlowCoordinator.restartBattle(
-            session: battle,
+        guard let activeBattle = battle.activeBattle else { return }
+
+        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
+            ?? roster.activeHero
+        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
+            ?? roster.activePet
+
+        battle.activeBattle = ActiveBattleConfiguration.make(
+            stageID: activeBattle.stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            hero: hero,
+            pet: pet,
             roster: roster,
-            inventory: inventory
+            inventory: inventory,
+            enemy: activeBattle.enemy,
+            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+            stageReward: activeBattle.stageReward,
+            rewardItemNames: activeBattle.rewardItemNames,
+            catalog: GameContentCombatCatalog()
         )
     }
 
@@ -34,21 +68,18 @@ extension AppState {
     }
 
     func setBattleMusicPreview(for stage: Stage?) {
-        battle.presentation.setMusicPreview(for: stage, battleIsActive: battle.activeBattle != nil)
+        battle.setMusicPreview(for: stage)
     }
 
     func presentBattleCombatantDetail(_ detail: CombatantCardDetail) {
-        battle.presentation.presentCombatantDetail(
-            detail,
-            battleIsActive: battle.activeBattle != nil
-        )
+        battle.presentCombatantDetail(detail)
     }
 
     func restoreBattlePauseAfterOverlay() {
-        battle.presentation.restorePauseAfterOverlay(battleIsActive: battle.activeBattle != nil)
+        battle.restorePauseAfterOverlay()
     }
 
-  @discardableResult
+    @discardableResult
     func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
         switch stage.encounter {
         case .battle:
@@ -56,6 +87,13 @@ extension AppState {
         case .event, .shop, .rest, .mysteryEvent:
             completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
             return nil
+        }
+    }
+
+    private func rewardItemNames(for stageReward: StageReward) -> [String] {
+        let catalog = GameContentPlayerCatalog()
+        return stageReward.itemTemplateIDs.compactMap { templateID in
+            catalog.itemTemplate(matching: templateID)?.displayName
         }
     }
 }
