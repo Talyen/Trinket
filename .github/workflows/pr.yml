@@ -1,17 +1,10 @@
-name: Trinket CI
+name: Trinket PR
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      scope:
-        description: 'Test scope (standard, exhaustive)'
-        required: true
-        default: 'standard'
+  pull_request:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: pr-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -40,30 +33,22 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unit-test-results-${{ github.run_id }}
+          name: pr-unit-results-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
 
-  ui:
-    name: UI tests
+  smoke:
+    name: Smoke UI tests
     needs: gate
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Full UI tests
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-        run: ./Scripts/test.sh ui
-
-      - name: UI smoke tests
-        if: github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive'
-        run: ./Scripts/test.sh smoke
-
+      - run: ./Scripts/test.sh smoke
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ui-test-results-${{ github.run_id }}
+          name: pr-smoke-results-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore

@@ -1,43 +1,19 @@
 name: Setup Trinket CI
-description: Checkout, Xcode, Homebrew tooling, and optional DerivedData cache restore
-
-inputs:
-  restore-derived-data:
-    description: Restore the DerivedData cache produced by the build job
-    required: false
-    default: 'false'
+description: Homebrew tooling for Trinket CI (swiftformat 0.61.1 pre-installed on macos-26)
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-
     - name: Cache Homebrew
       uses: actions/cache@v4
       with:
-        path: |
-          ~/Library/Caches/Homebrew
-          /opt/homebrew/Cellar/xcodegen
-          /opt/homebrew/Cellar/swiftlint
-          /opt/homebrew/Cellar/swiftformat
-          /opt/homebrew/Cellar/ripgrep
-        key: brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-3
-        restore-keys: |
-          brew-${{ runner.os }}-xcodegen-swiftlint-swiftformat-ripgrep-
+        path: ~/Library/Caches/Homebrew
+        key: brew-${{ runner.os }}-tools-1
 
     - name: Install tooling
       shell: bash
       run: |
-        brew install xcodegen swiftlint swiftformat ripgrep
-        for formula in xcodegen swiftlint swiftformat ripgrep; do
+        brew install xcodegen swiftlint ripgrep
+        for formula in xcodegen swiftlint ripgrep; do
           brew link --overwrite "$formula" 2>/dev/null || true
         done
-
-    - name: Restore DerivedData
-      if: inputs.restore-derived-data == 'true'
-      uses: actions/cache/restore@v4
-      with:
-        path: .DerivedData
-        key: deriveddata-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
-        restore-keys: |
-          deriveddata-${{ runner.os }}-

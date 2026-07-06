@@ -78,7 +78,7 @@ Breaking: <description if only applicable>
 
 ## Commands & Verification
 
-Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. Tooling: XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` unless `--no-build`; `--no-build` is only for rerunning an unchanged, already-built test binary and refuses stale sources. After `project.yml` changes, run `generate.sh` before build/test.
+Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedData/TestResults/timing-log.jsonl`; `./Scripts/test-timing.sh` reports recent runs and slow-test hotspots without re-running tests. Tooling: XcodeGen, `xcodebuild`, XCTest, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` then builds then tests. Pass `--no-build` to rerun an already-built test binary (skips the fresh build, but refuses stale sources). After `project.yml` changes, run `generate.sh` before build/test.
 
 **Script groups:**
 
@@ -94,8 +94,9 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 | Script | Runs |
 |--------|------|
 | `ci-locally.sh` | generate → module boundaries → style → unit → smoke |
-| `test-deploy.sh` | generate → style → unit → full UI |
-| GitHub CI (gate job) | generate → assert-generated-output → style → module boundaries → release-notes validate |
+| `test-deploy.sh` | generate → module boundaries → style → unit → full UI |
+| GitHub CI (`pr.yml`, PRs) | gate → unit + smoke (parallel) |
+| GitHub CI (`ci.yml`, main) | gate → unit + full UI (parallel) |
 
 | Change | Check |
 |--------|-------|
@@ -111,7 +112,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 | Tier | Command | What runs | When |
 |------|---------|-----------|------|
-| Unit | `test.sh unit` | `TrinketTests` + all five package schemes (parallel) | Every logic change |
+| Unit | `test.sh unit` | `TrinketTests` + all five package schemes (sequential) | Every logic change |
 | Unit (filtered) | `test.sh unit <Class>` | App tests only (`TrinketTests/<Class>`) | Focused app logic |
 | Package unit | `test-package.sh <Package>` | One package scheme from inside `Packages/<Package>` | Focused package logic |
 | UI smoke | `test.sh smoke` | `Smoke.xctestplan` — 9 `Smoke*` UI classes only (~2 min) | Tab/screen edits, pre-push |
@@ -121,7 +122,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes instead of root-level `xcodebuild` package schemes. `BattleSimulator` in `Packages/BattleEngine/`. Keep diffs focused and run `ci-locally.sh` before push.
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes. `BattleSimulator` in `Packages/BattleEngine/`. Keep diffs focused and run `ci-locally.sh` before push.
 
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
@@ -189,4 +190,4 @@ Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` lik
 - Avoid `assertExistsAfterScroll` for far-off Play map nodes; use `-completed-stages` or `-map-scroll-target` instead.
 - Use inventory/search field filtering (`replaceText`) instead of long grid scroll loops.
 - Mid-battle exhaustive tests should enter via Play map, not `-launch-screen battle` with very fast tick intervals.
-- Smoke defaults to `UI_PARALLEL_WORKERS=3`; override locally with `UI_PARALLEL_WORKERS=1` if simulator cloning fails.
+- UI tests run serially on a single simulator by default.

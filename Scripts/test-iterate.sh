@@ -19,11 +19,6 @@ while [[ $# -gt 0 ]]; do
       NO_BUILD_FLAG+=("$1")
       shift
       ;;
-    --fast|-f)
-      echo "Warning: --fast is deprecated; use --no-build." >&2
-      NO_BUILD_FLAG+=("--no-build")
-      shift
-      ;;
     *)
       TARGETS+=("$1")
       shift

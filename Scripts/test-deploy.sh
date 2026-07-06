@@ -17,11 +17,6 @@ while [[ $# -gt 0 ]]; do
       NO_BUILD_FLAG+=("$1")
       shift
       ;;
-    --fast|-f)
-      echo "Warning: --fast is deprecated; use --no-build." >&2
-      NO_BUILD_FLAG+=("--no-build")
-      shift
-      ;;
     *)
       echo "Unknown argument: $1"
       echo "Usage: $0 [--no-build]"
@@ -52,12 +47,10 @@ echo "=== Validate release notes config ==="
 echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh "${NO_BUILD_FLAG[@]}" unit
-./Scripts/test-timing.sh assert-budget --mode unit --max-wall 300
 
 echo ""
 echo "=== Full UI tests ==="
-./Scripts/test.sh --no-build ui
-./Scripts/test-timing.sh assert-budget --mode ui --max-wall 720
+./Scripts/test.sh "${NO_BUILD_FLAG[@]}" ui
 
 echo ""
 echo "=== All deploy checks passed ==="

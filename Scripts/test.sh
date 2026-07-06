@@ -12,7 +12,6 @@ source "$SCRIPT_DIR/build-stamp.sh"
 # Parse arguments
 MODE="unit"
 NO_BUILD=false
-USED_FAST_ALIAS=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -37,17 +36,8 @@ while [[ $# -gt 0 ]]; do
       MODE="smoke"
       shift
       ;;
-    include-sync|--include-sync)
-      echo "Warning: --include-sync is deprecated; sync coordinator tests now run in default unit mode." >&2
-      shift
-      ;;
     no-build|--no-build)
       NO_BUILD=true
-      shift
-      ;;
-    fast|--fast|-f)
-      NO_BUILD=true
-      USED_FAST_ALIAS=true
       shift
       ;;
     *)
@@ -129,36 +119,7 @@ xcresult_failed() {
     | grep -Eq '"result" : "(Failed|unknown)"'
 }
 
-ui_parallel_workers() {
-  local default_workers="$1"
-
-  if [[ -n "${UI_PARALLEL_WORKERS:-}" ]]; then
-    echo "$UI_PARALLEL_WORKERS"
-  else
-    echo "$default_workers"
-  fi
-}
-
-configure_ui_parallelism() {
-  local worker_count="$1"
-
-  if (( worker_count > 1 )); then
-    ensure_test_simulator
-    if declare -F delete_xcode_parallel_clones >/dev/null; then
-      delete_xcode_parallel_clones "$SIMULATOR_NAME"
-    fi
-    ensure_simulator_pool "$worker_count"
-    PARALLEL_FLAGS=(
-      -parallel-testing-enabled YES
-      -maximum-parallel-testing-workers "$worker_count"
-    )
-  else
-    ensure_test_simulator
-    PARALLEL_FLAGS=(-parallel-testing-enabled NO)
-  fi
-}
-
-# Determine xcodebuild test target constraints and parallel testing flags using arrays to prevent zsh argument splitting issues
+# Determine xcodebuild test target constraints using arrays to prevent zsh argument splitting issues
 TEST_TARGET_FLAG=()
 PARALLEL_FLAGS=()
 if [[ "$MODE" == "unit" ]]; then
@@ -176,6 +137,8 @@ if [[ "$MODE" == "unit" ]]; then
     echo "Running only unit tests (TrinketTests)..."
     TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
   fi
+  ensure_test_simulator
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "smoke" ]]; then
   TEST_TARGET_FLAG=(-testPlan Smoke)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -190,9 +153,8 @@ elif [[ "$MODE" == "smoke" ]]; then
   else
     echo "Running UI smoke tests via Smoke test plan..."
   fi
-  default_workers=$([[ ${#TARGETS[@]} -gt 0 ]] && echo 1 || echo 3)
-  UI_PARALLEL_WORKERS="$(ui_parallel_workers "$default_workers")"
-  configure_ui_parallelism "$UI_PARALLEL_WORKERS"
+  ensure_test_simulator
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -208,9 +170,8 @@ elif [[ "$MODE" == "ui" ]]; then
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  default_workers=$([[ ${#TARGETS[@]} -gt 0 ]] && echo 1 || echo 3)
-  UI_PARALLEL_WORKERS="$(ui_parallel_workers "$default_workers")"
-  configure_ui_parallelism "$UI_PARALLEL_WORKERS"
+  ensure_test_simulator
+  PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
     echo "Target filters are only supported for unit, ui, or smoke mode."
@@ -254,10 +215,6 @@ record_timing() {
 }
 
 assert_no_build_is_fresh() {
-  if [[ "$USED_FAST_ALIAS" == "true" ]]; then
-    echo "Warning: --fast is deprecated; use --no-build for test-without-building reruns." >&2
-  fi
-
   echo "Running without building. This only reruns the previously built '$RUN_FINGERPRINT' test binary."
 
   if [[ ! -f "$BUILD_STAMP" ]]; then
@@ -323,87 +280,24 @@ fi
 run_package_tests() {
   local xcodebuild_action="$1"
   local packages=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
-  
-  local pool_size
-  if [[ -n "${TEST_PARALLEL_WORKERS:-}" ]]; then
-    pool_size="$TEST_PARALLEL_WORKERS"
-  elif [[ -n "${CI:-}" ]]; then
-    pool_size=${#packages[@]}
-  else
-    pool_size=2
-  fi
-
-  if (( pool_size > ${#packages[@]} )); then
-    pool_size=${#packages[@]}
-  fi
-
-  ensure_simulator_pool "$pool_size"
-
   local failed=0
   local max_seconds=0
 
-  if (( pool_size == 1 )); then
-    local udid="${SIMULATOR_POOL_UDIDS[0]}"
-    local destination
-    destination="$(destination_for_udid "$udid")"
-
-    for package in "${packages[@]}"; do
-      echo "Running $package package tests sequentially on $udid..."
-      SECONDS=0
-      local package_status=0
-      local package_args=("$package" --destination "$destination")
-      if [[ "$xcodebuild_action" == "test-without-building" ]]; then
-        package_args=(--no-build "${package_args[@]}")
-      fi
-      ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
-      if [[ "$package_status" -ne 0 ]]; then
-        failed=1
-      fi
-      local elapsed=$SECONDS
-      (( elapsed > max_seconds )) && max_seconds=$elapsed
-    done
-  else
-    local pids=()
-    local index=0
-    for package in "${packages[@]}"; do
-      local sim_index=$((index % pool_size))
-      local udid="${SIMULATOR_POOL_UDIDS[$sim_index]}"
-      local destination
-      destination="$(destination_for_udid "$udid")"
-      local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
-
-      (
-        echo "Running $package package tests on $udid..."
-        SECONDS=0
-        local package_status=0
-        local package_args=("$package" --destination "$destination")
-        if [[ "$xcodebuild_action" == "test-without-building" ]]; then
-          package_args=(--no-build "${package_args[@]}")
-        fi
-        ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
-        echo "$SECONDS" >"$wall_file"
-        exit "$package_status"
-      ) &
-      pids+=($!)
-      ((index++))
-    done
-
-    for pid in "${pids[@]}"; do
-      if ! wait "$pid"; then
-        failed=1
-      fi
-    done
-
-    for package in "${packages[@]}"; do
-      local wall_file="$RESULTS_DIR/.${package}-wall.seconds"
-      if [[ -f "$wall_file" ]]; then
-        local seconds
-        seconds="$(<"$wall_file")"
-        (( seconds > max_seconds )) && max_seconds=$seconds
-        rm -f "$wall_file"
-      fi
-    done
-  fi
+  for package in "${packages[@]}"; do
+    echo "Running $package package tests..."
+    SECONDS=0
+    local package_status=0
+    local package_args=("$package" --destination "$SIMULATOR_DESTINATION")
+    if [[ "$xcodebuild_action" == "test-without-building" ]]; then
+      package_args=(--no-build "${package_args[@]}")
+    fi
+    ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
+    if [[ "$package_status" -ne 0 ]]; then
+      failed=1
+    fi
+    local elapsed=$SECONDS
+    (( elapsed > max_seconds )) && max_seconds=$elapsed
+  done
 
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + max_seconds))
   return "$failed"
@@ -411,10 +305,6 @@ run_package_tests() {
 
 TEST_WALL_SECONDS=0
 SECONDS=0
-
-if [[ "$MODE" == "unit" ]]; then
-  ensure_test_simulator
-fi
 
 XCODEBUILD_EXIT_CODE=0
 XCODEBUILD_ARGS=(
@@ -451,7 +341,7 @@ if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
 fi
 
 if [[ "$MODE" == "unit" && ${#TARGETS[@]} -eq 0 ]]; then
-  echo "Running package tests in parallel (setting up simulator pool)..."
+  echo "Running package tests..."
   run_package_tests "$ACTION" || exit 1
 fi
 
