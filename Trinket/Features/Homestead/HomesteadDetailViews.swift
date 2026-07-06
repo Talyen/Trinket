@@ -10,8 +10,13 @@ struct HomesteadNodeDetailView: View {
 
     let definition: HomesteadNodeDefinition
 
-    private var homestead: PlayerHomesteadState { appState.homestead.current }
-    private var roster: PlayerRosterState { appState.roster.current }
+    private var homestead: PlayerHomesteadState {
+        appState.homestead.current
+    }
+
+    private var roster: PlayerRosterState {
+        appState.roster.current
+    }
 
     private var status: HomesteadProjectStatus {
         HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster)

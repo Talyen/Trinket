@@ -1,7 +1,7 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketPersistence
-import os
 
 extension AppState {
     static func makeBootstrapDependencies(

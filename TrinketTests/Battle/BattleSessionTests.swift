@@ -5,6 +5,7 @@ import XCTest
 @testable import BattleEngine
 @testable import Trinket
 
+// swiftlint:disable file_length type_body_length
 @MainActor
 final class BattleSessionTests: XCTestCase {
     private var directoryURL: URL!
@@ -482,9 +483,9 @@ final class BattleSessionTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        let summary = BattleVictorySummary.make(
+        let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: try XCTUnwrap(session.state),
+            state: XCTUnwrap(session.state),
             homestead: .freshStart
         )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
@@ -523,9 +524,9 @@ final class BattleSessionTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        let summary = BattleVictorySummary.make(
+        let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: try XCTUnwrap(session.state),
+            state: XCTUnwrap(session.state),
             homestead: .freshStart
         )
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
@@ -560,9 +561,9 @@ final class BattleSessionTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        let summary = BattleVictorySummary.make(
+        let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: try XCTUnwrap(session.state),
+            state: XCTUnwrap(session.state),
             homestead: .freshStart
         )
 
@@ -599,9 +600,9 @@ final class BattleSessionTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        let summary = BattleVictorySummary.make(
+        let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: try XCTUnwrap(session.state),
+            state: XCTUnwrap(session.state),
             homestead: homestead
         )
 
@@ -679,3 +680,5 @@ final class BattleSessionTests: XCTestCase {
         )
     }
 }
+
+// swiftlint:enable file_length type_body_length

@@ -62,7 +62,6 @@ struct HomesteadProjectCard: View {
         }
     }
 
-    @ViewBuilder
     private func projectNavigationLink(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
         NavigationLink {
             HomesteadNodeDetailView(definition: definition)
@@ -124,7 +123,6 @@ struct HomesteadProjectCard: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
-    @ViewBuilder
     private func projectSummary(_ metrics: ProjectSummaryMetrics) -> some View {
         VStack(alignment: .leading, spacing: metrics.spacing) {
             if metrics.showsFeaturedLabel {

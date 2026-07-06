@@ -167,7 +167,7 @@ final class AppStatePlayFlowTests: XCTestCase {
 
     // MARK: - Session state restoration
 
-    func testSessionTabRestored() throws {
+    func testSessionTabRestored() {
         defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
 
         let state = AppTestSupport.makeAppState(
@@ -178,7 +178,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .homestead)
     }
 
-    func testSessionTabOverriddenByEnv() throws {
+    func testSessionTabOverriddenByEnv() {
         defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
 
         let state = AppTestSupport.makeAppState(
@@ -190,7 +190,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .options)
     }
 
-    func testSessionTabDefaultWhenNoSavedState() throws {
+    func testSessionTabDefaultWhenNoSavedState() {
         let state = AppTestSupport.makeAppState(
             directoryURL: directoryURL,
             userDefaults: defaults
@@ -212,7 +212,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
-    func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() throws {
+    func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 
         let state = AppTestSupport.makeAppState(
@@ -260,7 +260,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
     }
 
-    func testSessionStaleStageIDIgnored() throws {
+    func testSessionStaleStageIDIgnored() {
         defaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
 
         let state = AppTestSupport.makeAppState(

@@ -1,10 +1,10 @@
 import Foundation
 import Observation
+import os
 import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-import os
 
 let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,

@@ -10,8 +10,13 @@ struct HomesteadView: View {
     @State private var buildActions = HomesteadBuildActions()
     @State private var recentUpgradeID: HomesteadNodeID?
 
-    private var homestead: PlayerHomesteadState { appState.homestead.current }
-    private var roster: PlayerRosterState { appState.roster.current }
+    private var homestead: PlayerHomesteadState {
+        appState.homestead.current
+    }
+
+    private var roster: PlayerRosterState {
+        appState.roster.current
+    }
 
     private var allDefinitions: [HomesteadNodeDefinition] {
         GameContent.homesteadNodes

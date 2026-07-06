@@ -112,7 +112,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .options)
     }
 
-    func testCorruptSaveSetsRecoveryAlertFlag() throws {
+    func testCorruptSaveSetsRecoveryAlertFlag() {
         // Obsolete: SwiftData corruptions are handled by CoreData schema migration plan.
     }
 

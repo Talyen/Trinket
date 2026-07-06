@@ -9,28 +9,27 @@ struct ContentView: View {
         @Bindable var state = appState
 
         tabRoot(selection: $state.selectedTab)
-        .preferredColorScheme(appState.options.appearance.colorScheme)
-        .onAppear {
-            appState.shellDidAppear(scenePhase: scenePhase)
-        }
-        .onChange(of: appState.selectedTab) { _, newTab in
-            appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
-        }
-        .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-            appState.shellDidChangeActiveBattle(started: newValue != nil, scenePhase: scenePhase)
-        }
-        .onChange(of: appState.battle.preview?.id) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
-        }
-        .onChange(of: appState.options.musicVolume) { _, _ in
-            appState.refreshMusic(scenePhase: scenePhase)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            appState.shellDidChangeScenePhase(newPhase)
-        }
+            .preferredColorScheme(appState.options.appearance.colorScheme)
+            .onAppear {
+                appState.shellDidAppear(scenePhase: scenePhase)
+            }
+            .onChange(of: appState.selectedTab) { _, newTab in
+                appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
+            }
+            .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
+                appState.shellDidChangeActiveBattle(started: newValue != nil, scenePhase: scenePhase)
+            }
+            .onChange(of: appState.battle.preview?.id) { _, _ in
+                appState.refreshMusic(scenePhase: scenePhase)
+            }
+            .onChange(of: appState.options.musicVolume) { _, _ in
+                appState.refreshMusic(scenePhase: scenePhase)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                appState.shellDidChangeScenePhase(newPhase)
+            }
     }
 
-    @ViewBuilder
     private func tabRoot(selection: Binding<AppTab>) -> some View {
         TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {

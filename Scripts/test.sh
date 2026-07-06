@@ -73,12 +73,22 @@ fi
 GENERATE_STAMP="$RESULTS_DIR/.last-generate.stamp"
 if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
   if [[ -f "$GENERATE_STAMP" ]]; then
-    newer_sources="$(find ContentManifest project.yml Scripts/content_codegen.py -newer "$GENERATE_STAMP" -print -quit 2>/dev/null)"
-    if [[ -z "$newer_sources" ]]; then
+    content_changed="$(find ContentManifest Scripts/content_codegen.py -newer "$GENERATE_STAMP" -print -quit 2>/dev/null)"
+    project_changed=""
+    if [[ -f project.yml && project.yml -nt "$GENERATE_STAMP" ]]; then
+      project_changed="project.yml"
+    fi
+    if [[ -z "$content_changed" && -z "$project_changed" ]]; then
       echo "Content sources unchanged; skipping generate."
     else
-      echo "=== Content sources changed; running generate ==="
-      ./Scripts/generate.sh
+      GENERATE_ARGS=()
+      if [[ -z "$project_changed" ]]; then
+        echo "=== Content manifests changed; running generate (skipping xcodegen) ==="
+        GENERATE_ARGS+=(--skip-xcodegen)
+      else
+        echo "=== Content or project sources changed; running generate ==="
+      fi
+      ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
     fi
   else
     echo "=== Running generate ==="
@@ -262,18 +272,30 @@ assert_no_build_is_fresh() {
   fi
 
   local newer_files=()
+
+  # Fast-path: if stamp is < 30s old, skip the scan — nothing changed at human speed
+  local stamp_age=999
+  if [[ -f "$BUILD_STAMP" ]]; then
+    stamp_age=$(($(date +%s) - $(stat -f %m "$BUILD_STAMP" 2>/dev/null || echo 0)))
+  fi
+  if [[ "$stamp_age" -lt 30 ]]; then
+    echo "Build stamp is < 30s old; sources unchanged."
+    return 0
+  fi
+
   local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent Packages/BattleEngine Packages/TrinketPersistence Packages/TrinketDesignSystem)
-  local root
+  local existing_roots=()
   for root in "${source_roots[@]}"; do
-    if [[ -d "$root" ]]; then
-      while IFS= read -r file; do
-        newer_files+=("$file")
-        if [[ ${#newer_files[@]} -ge 10 ]]; then
-          break 2
-        fi
-      done < <(find "$root" -type f \( -name "*.swift" -o -name "*.plist" -o -name "*.xctestplan" \) -newer "$BUILD_STAMP" -print)
-    fi
+    [[ -d "$root" ]] && existing_roots+=("$root")
   done
+  if [[ ${#existing_roots[@]} -gt 0 ]]; then
+    while IFS= read -r file; do
+      newer_files+=("$file")
+      if [[ ${#newer_files[@]} -ge 10 ]]; then
+        break
+      fi
+    done < <(find "${existing_roots[@]}" -type f \( -name "*.swift" -o -name "*.plist" -o -name "*.xctestplan" \) -newer "$BUILD_STAMP" -print)
+  fi
 
   local project_files=(project.yml Package.resolved)
   local file
@@ -308,7 +330,7 @@ run_package_tests() {
   elif [[ -n "${CI:-}" ]]; then
     pool_size=${#packages[@]}
   else
-    pool_size=1
+    pool_size=2
   fi
 
   if (( pool_size > ${#packages[@]} )); then

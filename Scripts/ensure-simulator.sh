@@ -10,6 +10,34 @@ set -euo pipefail
 
 SIMULATOR_POOL_UDIDS=()
 
+SIMULATOR_CACHE_DIR="${DERIVED_DATA_PATH:-$PWD/.DerivedData}/TestResults"
+SIMULATOR_CACHE_FILE="$SIMULATOR_CACHE_DIR/.last-destination"
+
+load_destination_cache() {
+  [[ -f "$SIMULATOR_CACHE_FILE" ]] || return 1
+
+  local cached_name cached_udid
+  cached_name="$(sed -n '1p' "$SIMULATOR_CACHE_FILE")"
+  cached_udid="$(sed -n '2p' "$SIMULATOR_CACHE_FILE")"
+
+  [[ -z "$cached_name" || -z "$cached_udid" ]] && return 1
+
+  local state
+  state="$(xcrun simctl list devices "$cached_udid" 2>/dev/null | awk -F '[()]' '/\('"${cached_udid}"'\)/ {print $2}')"
+  [[ "$state" != "Booted" ]] && return 1
+
+  SIMULATOR_NAME="$cached_name"
+  SIMULATOR_UDID="$cached_udid"
+  SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+  echo "Using cached simulator destination: $SIMULATOR_NAME ($SIMULATOR_UDID)"
+  return 0
+}
+
+save_destination_cache() {
+  mkdir -p "$SIMULATOR_CACHE_DIR"
+  printf '%s\n%s\n' "$SIMULATOR_NAME" "$SIMULATOR_UDID" > "$SIMULATOR_CACHE_FILE"
+}
+
 PREFERRED_SIMULATOR_NAMES=(
   "iPhone 17 Pro"
   "iPhone 16 Pro"
@@ -109,6 +137,7 @@ PY
   SIMULATOR_NAME="${resolved%%$'\t'*}"
   SIMULATOR_UDID="${resolved#*$'\t'}"
   SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+  save_destination_cache
 }
 
 boot_simulator_udid() {
@@ -278,6 +307,7 @@ PY
   SIMULATOR_NAME="${resolved%%$'\t'*}"
   SIMULATOR_UDID="${resolved#*$'\t'}"
   SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+  save_destination_cache
 }
 
 verify_simulator_destination() {
@@ -295,15 +325,22 @@ raise SystemExit(1)
     return 1
   fi
 
+  # Fast path: one-shot check — xcodebuild should list the destination immediately
+  if destination_listed_by_xcodebuild "$SIMULATOR_UDID"; then
+    echo "Verified xcodebuild destination: $SIMULATOR_DESTINATION"
+    return 0
+  fi
+
+  # Slow path: poll with short intervals (xcodebuild may need a moment)
   local attempt=1
-  local max_attempts=6
+  local max_attempts=5
   while (( attempt <= max_attempts )); do
+    echo "Waiting for xcodebuild to list simulator $SIMULATOR_UDID (attempt $attempt/$max_attempts)..." >&2
+    sleep 1
     if destination_listed_by_xcodebuild "$SIMULATOR_UDID"; then
       echo "Verified xcodebuild destination: $SIMULATOR_DESTINATION"
       return 0
     fi
-    echo "Waiting for xcodebuild to list simulator $SIMULATOR_UDID (attempt $attempt/$max_attempts)..." >&2
-    sleep 10
     ((attempt++))
   done
 
@@ -323,6 +360,12 @@ raise SystemExit(1)
 
 ensure_test_simulator() {
   local force="${1:-}"
+
+  if [[ -z "$force" ]] && load_destination_cache; then
+    boot_simulator
+    return 0
+  fi
+
   ensure_ios_simulator_platform
 
   if [[ -n "$force" ]]; then

@@ -25,73 +25,81 @@ struct BattleView: View {
     }
 
     private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
-        Group {
-            if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
-                VictoryView(
-                    enemyName: battleState.enemy.name,
-                    summary: victorySummary,
-                    primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
-                    onPrimaryAction: {
-                        if hasStageProgression {
-                            appState.completeActiveBattle(
-                                configuration,
-                                battleEarnedGold: victorySummary.battleGold,
-                                materialRewards: victorySummary.materialRewards
-                            )
-                        } else {
-                            appState.restartActiveBattle()
-                        }
-                    }
-                )
-            } else if battleSession.isShowingDefeat {
-                DefeatView(
-                    enemyName: battleState.enemy.name,
-                    onBattleAgain: {
-                        appState.restartActiveBattle()
-                    }
-                )
-            } else {
-                battlefieldWithTimeline(battleSession: battleSession, battleState: battleState)
+        outcomeContent(battleSession: battleSession, battleState: battleState)
+            .trinketScreenBackground(.battle)
+            .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackgroundVisibility(battleSession.isShowingVictory || battleSession.isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
+            .toolbar {
+                battleViewToolbar(battleSession: battleSession)
             }
-        }
-        .trinketScreenBackground(.battle)
-        .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackgroundVisibility(battleSession.isShowingVictory || battleSession.isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 4) {
-                    if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
-                        Button {
-                            battleSession.isPaused.toggle()
-                        } label: {
-                            Image(systemName: battleSession.isPaused ? "play.fill" : "pause.fill")
-                                .contentTransition(.symbolEffect(.replace))
-                        }
-                        .accessibilityIdentifier("Battle Pause Button")
-                    }
-
-                    battleActionsMenu(battleSession: battleSession)
+            .sheet(isPresented: $isShowingBattleLog, onDismiss: {
+                appState.battle.restorePauseAfterOverlay()
+            }, content: {
+                BattleLogSheet(
+                    entries: battleSession.state?.log ?? []
+                )
+                .presentationDetents([.medium])
+            })
+            .onChange(of: isShowingBattleLog) { _, isShowing in
+                if isShowing {
+                    appState.battle.pauseForOverlay()
+                    appState.battle.syncLogForDisplay()
                 }
             }
-        }
-        .sheet(isPresented: $isShowingBattleLog, onDismiss: {
-            appState.battle.restorePauseAfterOverlay()
-        }, content: {
-            BattleLogSheet(
-                entries: battleSession.state?.log ?? []
-            )
-            .presentationDetents([.medium])
-        })
-        .onChange(of: isShowingBattleLog) { _, isShowing in
-            if isShowing {
-                appState.battle.pauseForOverlay()
-                appState.battle.syncLogForDisplay()
+            .onChange(of: configuration.id) { _, _ in
+                battleSession.clearOutcomePresentation()
+                timelineStartDate = Date()
             }
+    }
+
+    @ViewBuilder
+    private func outcomeContent(battleSession: BattleSession, battleState: BattleState) -> some View {
+        if battleSession.isShowingVictory, let victorySummary = battleSession.victorySummary {
+            VictoryView(
+                enemyName: battleState.enemy.name,
+                summary: victorySummary,
+                primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
+                onPrimaryAction: {
+                    if hasStageProgression {
+                        appState.completeActiveBattle(
+                            configuration,
+                            battleEarnedGold: victorySummary.battleGold,
+                            materialRewards: victorySummary.materialRewards
+                        )
+                    } else {
+                        appState.restartActiveBattle()
+                    }
+                }
+            )
+        } else if battleSession.isShowingDefeat {
+            DefeatView(
+                enemyName: battleState.enemy.name,
+                onBattleAgain: {
+                    appState.restartActiveBattle()
+                }
+            )
+        } else {
+            battlefieldWithTimeline(battleSession: battleSession, battleState: battleState)
         }
-        .onChange(of: configuration.id) { _, _ in
-            battleSession.clearOutcomePresentation()
-            timelineStartDate = Date()
+    }
+
+    @ToolbarContentBuilder
+    private func battleViewToolbar(battleSession: BattleSession) -> some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            HStack(spacing: 4) {
+                if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
+                    Button {
+                        battleSession.isPaused.toggle()
+                    } label: {
+                        Image(systemName: battleSession.isPaused ? "play.fill" : "pause.fill")
+                            .contentTransition(.symbolEffect(.replace))
+                    }
+                    .accessibilityIdentifier("Battle Pause Button")
+                }
+
+                battleActionsMenu(battleSession: battleSession)
+            }
         }
     }
 
@@ -211,7 +219,6 @@ struct BattleView: View {
     private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
         battleSession.feedbackEvents(for: combatant.id)
     }
-
 }
 
 private extension BattleState {

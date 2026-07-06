@@ -1,7 +1,7 @@
-import Foundation
-import TrinketContent
 import AVFoundation
+import Foundation
 import os
+import TrinketContent
 
 private enum AudioLogging {
     static let subsystem = Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket"
