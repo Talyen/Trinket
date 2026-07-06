@@ -237,6 +237,92 @@ extension CombatantDetailPane {
             hidesNavigationBar: hidesNavigationBar
         )
     }
+
+    struct Roster: View {
+        @Environment(AppState.self) private var appState
+        let kind: CombatantDetailContext.Kind
+        let combatantID: String
+        var hidesNavigationBar = true
+
+        init(context: CombatantDetailContext, hidesNavigationBar: Bool = true) {
+            kind = context.kind
+            combatantID = context.combatantID
+            self.hidesNavigationBar = hidesNavigationBar
+        }
+
+        init(kind: CombatantDetailContext.Kind, combatantID: String, hidesNavigationBar: Bool = true) {
+            self.kind = kind
+            self.combatantID = combatantID
+            self.hidesNavigationBar = hidesNavigationBar
+        }
+
+        var body: some View {
+            let rosterState = appState.roster.current
+            let combatants = rosterState.configuredCombatants(sourceCombatants)
+
+            if let combatant = combatants.first(where: { $0.id == combatantID }) {
+                CombatantDetailPane(
+                    combatant: combatant,
+                    progression: rosterState.progression(for: combatant),
+                    loadout: rosterBinding(for: combatant),
+                    equipmentLoadout: equipmentBinding(for: combatant),
+                    inventoryState: inventoryBinding,
+                    allowsEditing: rosterState.isUnlocked(combatant),
+                    hidesNavigationBar: hidesNavigationBar
+                )
+            } else {
+                ContentUnavailableView(missingTitle, systemImage: "questionmark.circle")
+                    .accessibilityIdentifier("Combatant Not Found")
+            }
+        }
+
+        private var inventoryBinding: Binding<PlayerInventoryState> {
+            Binding(
+                get: { appState.inventory.current },
+                set: { appState.inventory.current = $0 }
+            )
+        }
+
+        private func rosterBinding(for combatant: Combatant) -> Binding<AbilityLoadout> {
+            Binding(
+                get: { appState.roster.current.loadout(for: combatant) },
+                set: { newValue in
+                    var updated = appState.roster.current
+                    updated.setLoadout(newValue, for: combatant)
+                    appState.roster.current = updated
+                }
+            )
+        }
+
+        private func equipmentBinding(for combatant: Combatant) -> Binding<EquipmentLoadout> {
+            Binding(
+                get: { appState.roster.current.equipmentLoadout(for: combatant) },
+                set: { newValue in
+                    var updated = appState.roster.current
+                    updated.setEquipmentLoadout(newValue, for: combatant)
+                    appState.roster.current = updated
+                }
+            )
+        }
+
+        private var sourceCombatants: [Combatant] {
+            switch kind {
+            case .hero:
+                GameContent.heroes
+            case .pet:
+                GameContent.pets
+            }
+        }
+
+        private var missingTitle: String {
+            switch kind {
+            case .hero:
+                "Hero Not Found"
+            case .pet:
+                "Pet Not Found"
+            }
+        }
+    }
 }
 
 private extension View {

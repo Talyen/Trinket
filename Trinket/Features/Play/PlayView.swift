@@ -11,9 +11,9 @@ struct PlayView: View {
 
         content
             .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
-                appState.restoreBattlePauseAfterOverlay()
-            }, content: { context in
-                CombatantDetailContextView(context: context)
+                appState.battle.restorePauseAfterOverlay()
+            }, content: { detail in
+                CombatantDetailPane(snapshot: detail)
                     .presentationDetents([.large])
                     .presentationContentInteraction(.resizes)
                     .presentationDragIndicator(.hidden)
@@ -51,7 +51,7 @@ struct PlayView: View {
 
     private func showEnemyDetails(for stage: Stage) {
         guard let detail = enemyDetail(for: stage) else { return }
-        appState.presentBattleCombatantDetail(detail)
+        appState.battle.presentCombatantDetail(detail)
     }
 
     private func enemyDetail(for stage: Stage) -> CombatantCardDetail? {

@@ -15,7 +15,7 @@ final class BattleSession {
     var isShowingDefeat = false
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
-    var overlayCombatantDetail: CombatantDetailContext?
+    var overlayCombatantDetail: CombatantCardDetail?
     var activeFeedbackEvents: [ActionEvent] = []
 
     var activeBattle: ActiveBattleConfiguration? {
@@ -93,7 +93,7 @@ final class BattleSession {
         if activeBattle != nil {
             pauseForOverlay()
         }
-        overlayCombatantDetail = CombatantDetailContext(snapshot: detail)
+        overlayCombatantDetail = detail
     }
 
     func clearOutcomePresentation() {

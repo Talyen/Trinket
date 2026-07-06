@@ -63,22 +63,6 @@ extension AppState {
         )
     }
 
-    func retreatFromBattle() {
-        battle.endBattle()
-    }
-
-    func setBattleMusicPreview(for stage: Stage?) {
-        battle.setMusicPreview(for: stage)
-    }
-
-    func presentBattleCombatantDetail(_ detail: CombatantCardDetail) {
-        battle.presentCombatantDetail(detail)
-    }
-
-    func restoreBattlePauseAfterOverlay() {
-        battle.restorePauseAfterOverlay()
-    }
-
     @discardableResult
     func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
         switch stage.encounter {

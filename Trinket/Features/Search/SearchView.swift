@@ -96,8 +96,9 @@ struct SearchView: View {
         kind: CombatantDetailContext.Kind
     ) -> some View {
         NavigationLink {
-            CombatantDetailContextView(
-                context: CombatantDetailContext(kind: kind, combatantID: combatant.id),
+            CombatantDetailPane.Roster(
+                kind: kind,
+                combatantID: combatant.id,
                 hidesNavigationBar: false
             )
         } label: {

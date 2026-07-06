@@ -229,12 +229,7 @@ final class AppStateTests: XCTestCase {
             return
         }
 
-        switch context {
-        case let .roster(actualKind, actualID):
-            XCTAssertEqual(actualKind, kind, file: file, line: line)
-            XCTAssertEqual(actualID, combatantID, file: file, line: line)
-        case .snapshot:
-            XCTFail("Expected collection detail, got snapshot", file: file, line: line)
-        }
+        XCTAssertEqual(context.kind, kind, file: file, line: line)
+        XCTAssertEqual(context.combatantID, combatantID, file: file, line: line)
     }
 }

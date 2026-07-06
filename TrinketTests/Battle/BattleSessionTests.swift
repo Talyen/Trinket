@@ -49,7 +49,7 @@ final class BattleSessionTests: XCTestCase {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
 
-        appState.setBattleMusicPreview(for: stage)
+        appState.battle.setMusicPreview(for: stage)
 
         XCTAssertEqual(appState.battle.preview?.stageID, stage.id)
         XCTAssertEqual(appState.battle.preview?.enemyID, "skeleton")
@@ -87,7 +87,7 @@ final class BattleSessionTests: XCTestCase {
         let appState = makeAppState()
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton")?.combatant)
 
-        appState.presentBattleCombatantDetail(.base(enemy))
+        appState.battle.presentCombatantDetail(.base(enemy))
 
         XCTAssertFalse(appState.battle.isPaused)
         XCTAssertNotNil(appState.battle.overlayCombatantDetail)
@@ -147,7 +147,7 @@ final class BattleSessionTests: XCTestCase {
         appState.battle.isPaused = false
         let detail = CombatantCardDetail.base(appState.roster.activeHero)
 
-        appState.presentBattleCombatantDetail(detail)
+        appState.battle.presentCombatantDetail(detail)
 
         XCTAssertTrue(appState.battle.isPaused)
         XCTAssertNotNil(appState.battle.overlayCombatantDetail)
@@ -158,7 +158,7 @@ final class BattleSessionTests: XCTestCase {
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = true
-        appState.presentBattleCombatantDetail(.base(appState.roster.activeHero))
+        appState.battle.presentCombatantDetail(.base(appState.roster.activeHero))
 
         appState.battle.restorePauseAfterOverlay()
 
@@ -168,10 +168,10 @@ final class BattleSessionTests: XCTestCase {
     func testSetMusicPreviewClearsWhenBattleActive() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        appState.setBattleMusicPreview(for: stage)
+        appState.battle.setMusicPreview(for: stage)
         _ = appState.startBattle(for: stage)
 
-        appState.setBattleMusicPreview(for: stage)
+        appState.battle.setMusicPreview(for: stage)
 
         XCTAssertNil(appState.battle.preview)
     }
@@ -180,7 +180,7 @@ final class BattleSessionTests: XCTestCase {
         let appState = makeAppState()
         let shopStage = try XCTUnwrap(GameContent.chapters[0].stages.first { $0.encounter == .shop })
 
-        appState.setBattleMusicPreview(for: shopStage)
+        appState.battle.setMusicPreview(for: shopStage)
 
         XCTAssertNil(appState.battle.preview)
     }

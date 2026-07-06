@@ -58,7 +58,7 @@ struct ChapterStageSelectView: View {
                 refreshJourneyPresentation()
             }
             .onDisappear {
-                appState.setBattleMusicPreview(for: nil)
+                appState.battle.setMusicPreview(for: nil)
             }
             .onChange(of: appState.sessionState.mapScrollNonce) { _, _ in
                 guard let targetID = appState.sessionState.mapScrollStageID else { return }
@@ -141,7 +141,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func updateMusicPreview() {
-        appState.setBattleMusicPreview(for: activeStage)
+        appState.battle.setMusicPreview(for: activeStage)
     }
 
     private var scrollAnimation: Animation? {

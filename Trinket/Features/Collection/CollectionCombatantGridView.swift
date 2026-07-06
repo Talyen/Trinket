@@ -49,7 +49,7 @@ struct CollectionCombatantGridView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
         .sheet(item: $selectedCombatant) { context in
-            CombatantDetailContextView(context: context)
+            CombatantDetailPane.Roster(context: context)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)

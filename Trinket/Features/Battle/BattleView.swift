@@ -76,7 +76,7 @@ struct BattleView: View {
             }
         }
         .sheet(isPresented: $isShowingBattleLog, onDismiss: {
-            appState.restoreBattlePauseAfterOverlay()
+            appState.battle.restorePauseAfterOverlay()
         }, content: {
             BattleLogSheet(
                 entries: battleSession.state?.log ?? []
@@ -125,7 +125,7 @@ struct BattleView: View {
                 Divider()
 
                 Button(role: .destructive) {
-                    appState.retreatFromBattle()
+                    appState.battle.endBattle()
                 } label: {
                     Label("Retreat", systemImage: "figure.run")
                 }
@@ -209,7 +209,7 @@ struct BattleView: View {
     }
 
     private func showDetails(for combatant: Combatant, battleState: BattleState) {
-        appState.presentBattleCombatantDetail(
+        appState.battle.presentCombatantDetail(
             CombatantCardDetail.battleSnapshot(
                 configuration: configuration,
                 combatant: combatant,
