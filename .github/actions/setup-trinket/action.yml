@@ -2,10 +2,6 @@ name: Setup Trinket CI
 description: Checkout, Xcode, Homebrew tooling, and optional DerivedData cache restore
 
 inputs:
-  xcode-version:
-    description: Xcode version to select
-    required: false
-    default: '26.5.0'
   restore-derived-data:
     description: Restore the DerivedData cache produced by the build job
     required: false
@@ -15,11 +11,6 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@v4
-
-    - name: Select Xcode
-      uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: ${{ inputs.xcode-version }}
 
     - name: Cache Homebrew
       uses: actions/cache@v4
@@ -47,6 +38,6 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: .DerivedData
-        key: deriveddata-${{ runner.os }}-xcode-26.5-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
+        key: deriveddata-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Unit.xctestplan', 'Smoke.xctestplan', 'FullUI.xctestplan', 'Integration.xctestplan') }}
         restore-keys: |
-          deriveddata-${{ runner.os }}-xcode-26.5-
+          deriveddata-${{ runner.os }}-
