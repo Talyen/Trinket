@@ -188,6 +188,8 @@ final class BattleSession {
         )
         presentation.clearFeedback()
         presentation.clearOutcomePresentation()
+        presentation.isPaused = false
+        presentation.overlayCombatantDetail = nil
     }
 
     private func clearRunState() {

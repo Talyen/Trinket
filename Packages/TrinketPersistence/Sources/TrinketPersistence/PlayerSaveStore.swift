@@ -24,6 +24,7 @@ public final class PlayerSaveStore {
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
     public private(set) var loadedFromDisk = false
     public private(set) var hadCorruptSaveOnLoad = false
+    public private(set) var hadUnsupportedNewerSaveOnLoad = false
     public var onLocalSave: ((PlayerSave) -> Void)?
 
     public var hasPendingPersist: Bool {
@@ -71,6 +72,9 @@ public final class PlayerSaveStore {
         case .corrupt:
             hadCorruptSaveOnLoad = true
             fileStore.quarantineCorruptSaves()
+            save = PlayerSaveSanitizer.sanitize(.fresh)
+        case .unsupportedNewerSchema:
+            hadUnsupportedNewerSaveOnLoad = true
             save = PlayerSaveSanitizer.sanitize(.fresh)
         case .missing:
             save = PlayerSaveSanitizer.sanitize(.fresh)
@@ -139,6 +143,9 @@ public final class PlayerSaveStore {
     }
 
     public func applyRemoteSave(_ remoteSave: PlayerSave) throws {
+        guard remoteSave.schemaVersion <= PlayerSave.currentSchemaVersion else {
+            throw PlayerSavePersistenceError.invalidSave("Remote save uses an unsupported schema version.")
+        }
         cancelDebouncedPersist()
         let migrated = PlayerSaveSanitizer.sanitize(PlayerSaveMigration.migrate(remoteSave))
         try commitSave(migrated, stampLocalMutation: false, notifyLocalSave: false)
@@ -149,8 +156,8 @@ public final class PlayerSaveStore {
         do {
             try mutateThrowing(update)
         } catch let error as PlayerSavePersistenceError {
+            lastPersistenceError = error
             if case .invalidSave = error {
-                lastPersistenceError = error
                 logger.error("Failed to persist player save: \(error.localizedDescription, privacy: .public)")
             }
         } catch {
@@ -172,7 +179,6 @@ public final class PlayerSaveStore {
         loadedFromDisk = true
         lastPersistenceError = nil
         invalidateRosterCache()
-        onLocalSave?(save)
         scheduleDebouncedPersist(persisted)
     }
 
@@ -224,6 +230,8 @@ public final class PlayerSaveStore {
             loadedFromDisk = true
             pendingPersistSave = nil
             lastPersistenceError = nil
+            invalidateRosterCache()
+            onLocalSave?(save)
         } catch {
             lastPersistenceError = .writeFailed
             pendingPersistSave = candidate

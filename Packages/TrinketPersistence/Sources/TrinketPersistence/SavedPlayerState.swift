@@ -13,6 +13,27 @@ public struct SavedAbilityLoadout: Codable, Equatable, Sendable {
         ultimateID = loadout.ultimate?.id
     }
 
+    func merged(with other: SavedAbilityLoadout, preferOther: Bool) -> SavedAbilityLoadout {
+        func mergedSlot(_ local: String?, _ remote: String?) -> String? {
+            switch (local, remote) {
+            case let (local?, remote?) where local != remote:
+                return preferOther ? remote : local
+            case let (local?, nil):
+                return local
+            case let (nil, remote?):
+                return remote
+            default:
+                return nil
+            }
+        }
+
+        var merged = self
+        merged.basicID = mergedSlot(basicID, other.basicID)
+        merged.skillID = mergedSlot(skillID, other.skillID)
+        merged.ultimateID = mergedSlot(ultimateID, other.ultimateID)
+        return merged
+    }
+
     public func loadout(defaults: AbilityLoadout, choices: AbilityChoices) -> AbilityLoadout {
         func resolved(_ id: String?, tier: AbilityTier, fallback: Ability?) -> Ability? {
             guard let id else { return fallback }
@@ -32,6 +53,20 @@ public struct SavedEquipmentLoadout: Codable, Equatable, Sendable {
 
     public init(_ loadout: EquipmentLoadout) {
         itemIDsBySlot = Dictionary(uniqueKeysWithValues: loadout.itemIDsBySlot.map { ($0.key.rawValue, $0.value) })
+    }
+
+    func merged(with other: SavedEquipmentLoadout, preferOther: Bool) -> SavedEquipmentLoadout {
+        var mergedSlots = itemIDsBySlot
+        for (slot, remoteItemID) in other.itemIDsBySlot {
+            if let localItemID = mergedSlots[slot], localItemID != remoteItemID {
+                mergedSlots[slot] = preferOther ? remoteItemID : localItemID
+            } else {
+                mergedSlots[slot] = mergedSlots[slot] ?? remoteItemID
+            }
+        }
+        var merged = self
+        merged.itemIDsBySlot = mergedSlots
+        return merged
     }
 
     public func loadout(inventoryItemIDs: Set<String>) -> EquipmentLoadout {

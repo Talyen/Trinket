@@ -128,13 +128,11 @@ final class AppState {
                 context.apply(to: &save)
                 scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
             }
-            lastPlayFlowError = nil
             sessionState.noteMapScrollFocus(scrollTarget)
         } catch {
             appStateLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
             )
-            lastPlayFlowError = "Progress couldn't be saved. Try again."
         }
         return scrollTarget
     }
@@ -238,6 +236,11 @@ final class AppState {
         syncCoordinator.hasActiveBattle = { [weak self] in
             guard let self else { return false }
             return self.battle.activeBattle != nil
+        }
+        syncCoordinator.onSessionSuperseded = { [weak self] in
+            guard let self else { return }
+            battle.endBattle()
+            sessionState.activeBattleStageID = nil
         }
     }
 

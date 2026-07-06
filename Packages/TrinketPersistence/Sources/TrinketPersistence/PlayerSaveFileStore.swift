@@ -46,7 +46,7 @@ public struct PlayerSaveFileStore {
         switch loadOutcome() {
         case let .loaded(save):
             save
-        case .missing, .corrupt:
+        case .missing, .corrupt, .unsupportedNewerSchema:
             nil
         }
     }
@@ -57,13 +57,27 @@ public struct PlayerSaveFileStore {
         let primaryExists = fileManager.fileExists(atPath: saveFileURL.path)
         let backupExists = fileManager.fileExists(atPath: backupFileURL.path)
 
-        if let save = loadSave(from: saveFileURL) {
+        switch loadSaveOutcome(from: saveFileURL) {
+        case let .loaded(save):
             return .loaded(save)
+        case .unsupportedNewerSchema:
+            quarantineUnsupportedNewerSchemaSave(at: saveFileURL)
+            return .unsupportedNewerSchema
+        case .corrupt:
+            break
+        case .missing:
+            break
         }
 
-        if let save = loadSave(from: backupFileURL) {
+        switch loadSaveOutcome(from: backupFileURL) {
+        case let .loaded(save):
             logger.warning("Recovered player save from backup file.")
             return .loaded(save)
+        case .unsupportedNewerSchema:
+            quarantineUnsupportedNewerSchemaSave(at: backupFileURL)
+            return .unsupportedNewerSchema
+        case .corrupt, .missing:
+            break
         }
 
         if let save = migrateLegacyUserDefaultsJourney() {
@@ -79,24 +93,36 @@ public struct PlayerSaveFileStore {
     }
 
     public func quarantineCorruptSaves() {
+        quarantineSaveFiles(suffix: "corrupt")
+    }
+
+    public func quarantineUnsupportedNewerSchemaSave(at url: URL) {
+        quarantineSaveFile(at: url, suffix: "newer-schema")
+    }
+
+    private func quarantineSaveFiles(suffix: String) {
         for url in [saveFileURL, backupFileURL] where fileManager.fileExists(atPath: url.path) {
-            let quarantineURL = url.appendingPathExtension("corrupt")
-            if fileManager.fileExists(atPath: quarantineURL.path) {
-                do {
-                    try fileManager.removeItem(at: quarantineURL)
-                } catch {
-                    logger.warning(
-                        "Failed to remove existing quarantine file at \(quarantineURL.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
-                    )
-                }
-            }
+            quarantineSaveFile(at: url, suffix: suffix)
+        }
+    }
+
+    private func quarantineSaveFile(at url: URL, suffix: String) {
+        let quarantineURL = url.appendingPathExtension(suffix)
+        if fileManager.fileExists(atPath: quarantineURL.path) {
             do {
-                try fileManager.moveItem(at: url, to: quarantineURL)
+                try fileManager.removeItem(at: quarantineURL)
             } catch {
-                logger.error(
-                    "Failed to quarantine corrupt save at \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
+                logger.warning(
+                    "Failed to remove existing quarantine file at \(quarantineURL.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
                 )
             }
+        }
+        do {
+            try fileManager.moveItem(at: url, to: quarantineURL)
+        } catch {
+            logger.error(
+                "Failed to quarantine save at \(url.path, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 
@@ -136,16 +162,29 @@ public struct PlayerSaveFileStore {
         }
     }
 
-    private func loadSave(from url: URL) -> PlayerSave? {
-        guard fileManager.fileExists(atPath: url.path) else { return nil }
+    private enum SaveDecodeOutcome {
+        case missing
+        case loaded(PlayerSave)
+        case corrupt
+        case unsupportedNewerSchema
+    }
+
+    private func loadSaveOutcome(from url: URL) -> SaveDecodeOutcome {
+        guard fileManager.fileExists(atPath: url.path) else { return .missing }
 
         do {
             let data = try Data(contentsOf: url)
             let save = try decoder.decode(PlayerSave.self, from: data)
-            return migrated(save)
+            if save.schemaVersion > PlayerSave.currentSchemaVersion {
+                logger.error(
+                    "Save schema v\(save.schemaVersion, privacy: .public) is newer than supported v\(PlayerSave.currentSchemaVersion, privacy: .public)."
+                )
+                return .unsupportedNewerSchema
+            }
+            return .loaded(migrated(save))
         } catch {
             logger.error("Failed to load player save: \(error.localizedDescription, privacy: .public)")
-            return nil
+            return .corrupt
         }
     }
 

@@ -47,6 +47,46 @@ final class PlayerSaveFileStoreTests: XCTestCase {
         XCTAssertEqual(loaded.roster.gold, 55)
     }
 
+    func testLoadQuarantinesUnsupportedNewerSchemaSave() throws {
+        let fileStore = makeFileStore()
+        let newerSchemaJSON = """
+        {
+          "schemaVersion": \(PlayerSave.currentSchemaVersion + 1),
+          "modifiedAt": "2026-01-01T00:00:00.000Z",
+          "sessionGeneration": 0,
+          "journey": {
+            "activeChapterID": "chapter-1",
+            "activeStageID": "chapter-1-stage-1",
+            "completedStageIDs": [],
+            "claimedRewardStageIDs": [],
+            "lastCompletedStageID": null
+          },
+          "roster": {
+            "activeHeroID": "knight",
+            "activePetID": "bear",
+            "abilityLoadouts": {},
+            "progressions": {},
+            "equipmentLoadouts": {},
+            "gold": 99
+          },
+          "inventory": { "items": [] },
+          "homestead": { "resources": {}, "nodeTiers": {} }
+        }
+        """
+        try newerSchemaJSON.write(to: fileStore.saveFileURL, atomically: true, encoding: .utf8)
+
+        XCTAssertEqual(fileStore.loadOutcome(), .unsupportedNewerSchema)
+        XCTAssertNil(fileStore.load())
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fileStore.saveFileURL.path))
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: fileStore.saveFileURL.appendingPathExtension("newer-schema").path)
+        )
+
+        let store = PlayerSaveStore(fileStore: fileStore, persistDebounceNanoseconds: 0)
+        XCTAssertTrue(store.hadUnsupportedNewerSaveOnLoad)
+        XCTAssertEqual(store.roster.gold, PlayerSave.fresh.roster.gold)
+    }
+
     func testLoadReturnsNilWhenBothFilesCorrupt() throws {
         let fileStore = makeFileStore()
         var save = PlayerSave.fresh

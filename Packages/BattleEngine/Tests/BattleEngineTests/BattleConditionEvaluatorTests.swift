@@ -34,4 +34,37 @@ final class BattleConditionEvaluatorTests: XCTestCase {
 
         XCTAssertEqual(target.id, pet.id)
     }
+
+    func testEnemyBleedingRequiresActiveBleedStack() {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        let expiredBleed = ActiveEffect(id: 1, effect: .bleed(2), remainingTicks: 0, sourceActorID: hero.id)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                pet: CombatantRuntime(combatant: pet),
+                enemy: CombatantRuntime(combatant: enemy, initialActiveEffects: [expiredBleed])
+            ),
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 1,
+            nextEventID: 1,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero
+        )
+
+        XCTAssertFalse(
+            BattleConditionEvaluator.isMet(
+                .enemyBleeding,
+                actor: hero,
+                enemy: enemy,
+                hero: hero,
+                pet: pet,
+                context: context
+            )
+        )
+    }
 }

@@ -123,13 +123,13 @@ final class PlayerSaveMergerTests: XCTestCase {
     }
 
     func testMergeTakesMaxHomesteadResources() {
-        var local = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100))
+        var local = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100), gold: 0)
         local.homestead.resources = [
             HomesteadResource.wood.rawValue: 10,
             HomesteadResource.stone.rawValue: 4
         ]
 
-        var remote = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100))
+        var remote = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100), gold: 0)
         remote.homestead.resources = [
             HomesteadResource.wood.rawValue: 6,
             HomesteadResource.stone.rawValue: 9
@@ -139,5 +139,47 @@ final class PlayerSaveMergerTests: XCTestCase {
 
         XCTAssertEqual(merged.homestead.resources[HomesteadResource.wood.rawValue], 10)
         XCTAssertEqual(merged.homestead.resources[HomesteadResource.stone.rawValue], 9)
+    }
+
+    func testMergePrefersRecentGoldWhenTimestampsDiffer() {
+        let earlier = Date(timeIntervalSince1970: 100)
+        let later = Date(timeIntervalSince1970: 200)
+        var local = SaveTestSupport.makeSave(modifiedAt: later, gold: 30)
+        var remote = SaveTestSupport.makeSave(modifiedAt: earlier, gold: 50)
+
+        let merged = PlayerSaveMerger.merge(local, remote)
+
+        XCTAssertEqual(merged.roster.gold, 30)
+    }
+
+    func testMergePrefersRecentHomesteadResourcesWhenTimestampsDiffer() {
+        let earlier = Date(timeIntervalSince1970: 100)
+        let later = Date(timeIntervalSince1970: 200)
+        var local = SaveTestSupport.makeSave(modifiedAt: later, gold: 0)
+        local.homestead.resources = [HomesteadResource.wood.rawValue: 4]
+        var remote = SaveTestSupport.makeSave(modifiedAt: earlier, gold: 0)
+        remote.homestead.resources = [HomesteadResource.wood.rawValue: 12]
+
+        let merged = PlayerSaveMerger.merge(local, remote)
+
+        XCTAssertEqual(merged.homestead.resources[HomesteadResource.wood.rawValue], 4)
+    }
+
+    func testMergeUnionsAbilityLoadoutSlotsAcrossDevices() throws {
+        var local = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 100), gold: 0)
+        local.roster.abilityLoadouts["knight"] = SavedAbilityLoadout(
+            AbilityLoadout(basic: .slash, skill: nil, ultimate: nil)
+        )
+
+        var remote = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 200), gold: 0)
+        remote.roster.abilityLoadouts["knight"] = SavedAbilityLoadout(
+            AbilityLoadout(basic: nil, skill: .shieldBash, ultimate: nil)
+        )
+
+        let merged = PlayerSaveMerger.merge(local, remote)
+        let loadout = try XCTUnwrap(merged.roster.abilityLoadouts["knight"])
+
+        XCTAssertEqual(loadout.basicID, Ability.slash.id)
+        XCTAssertEqual(loadout.skillID, Ability.shieldBash.id)
     }
 }
