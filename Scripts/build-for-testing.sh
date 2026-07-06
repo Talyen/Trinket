@@ -9,7 +9,7 @@ SCRIPT_DIR="$(dirname "$0")"
 # shellcheck source=build-stamp.sh
 source "$SCRIPT_DIR/build-stamp.sh"
 
-GENERIC_DESTINATION="platform=iOS Simulator,name=Any iOS Simulator Device"
+GENERIC_DESTINATION="generic/platform=iOS Simulator"
 
 ./Scripts/generate.sh
 mkdir -p "$RESULTS_DIR"
