@@ -22,6 +22,7 @@ final class BattleSession {
         didSet {
             if let activeBattle {
                 resetRun(from: activeBattle)
+                onBattleStateChange?(activeBattle.stageID)
             } else {
                 clearRunState()
             }
@@ -50,10 +51,6 @@ final class BattleSession {
         clearAllPresentation()
         onBattleStateChange?(nil)
         onBattleEnded?()
-    }
-
-    func notifyBattleStarted(stageID: String) {
-        onBattleStateChange?(stageID)
     }
 
     func setMusicPreview(for stage: Stage?) {

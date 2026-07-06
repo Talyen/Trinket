@@ -4,28 +4,26 @@ import TrinketContent
 import TrinketPersistence
 
 extension AppState {
-    struct BootstrapDependencies {
-        let playerSave: PlayerSaveStore
-        let syncCoordinator: PlayerSaveSyncCoordinator
-        let musicPlayer: MusicPlayer
-        let roster: PlayerRosterStore
-        let inventory: PlayerInventoryStore
-        let homestead: PlayerHomesteadStore
-        let options: OptionsStore
-        let journey: PlayerJourneyStore
-        let sessionState: SessionStateStore
-        let selectedTab: AppTab
-        let initialCollectionCombatantDetail: CombatantDetailContext?
-        let initialCollectionItemID: String?
-    }
-
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
         sync: (any PlayerSaveSyncing)?,
         fileStore: PlayerSaveFileStore?,
         userDefaults: UserDefaults?
-    ) -> BootstrapDependencies {
+    ) -> (
+        playerSave: PlayerSaveStore,
+        syncCoordinator: PlayerSaveSyncCoordinator,
+        musicPlayer: MusicPlayer,
+        roster: PlayerRosterStore,
+        inventory: PlayerInventoryStore,
+        homestead: PlayerHomesteadStore,
+        options: OptionsStore,
+        journey: PlayerJourneyStore,
+        sessionState: SessionStateStore,
+        selectedTab: AppTab,
+        initialCollectionCombatantDetail: CombatantDetailContext?,
+        initialCollectionItemID: String?
+    ) {
         let resolvedDefaults = userDefaults ?? .standard
         let resolvedFileStore = fileStore ?? PlayerSaveFileStore()
         if environment.resetState {
@@ -60,7 +58,7 @@ extension AppState {
         let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         let launchCollection = launchCollectionTargets(for: environment.launchScreen)
 
-        return BootstrapDependencies(
+        return (
             playerSave: resolvedPlayerSave,
             syncCoordinator: PlayerSaveSyncCoordinator(
                 sync: resolvedSync,
@@ -79,7 +77,17 @@ extension AppState {
         )
     }
 
-    func wireSyncAndBattleCallbacks() {
+    func finishBootstrap(environment: AppEnvironment) {
+        seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
+        if let mapScrollTarget = environment.mapScrollTarget {
+            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
+        }
+        if environment.launchScreen == .battle {
+            startLaunchBattle()
+        } else if let stageID = sessionState.activeBattleStageID {
+            startRestoredBattle(stageID: stageID)
+        }
+
         battle.onBattleStateChange = { [weak self] stageID in
             self?.sessionState.activeBattleStageID = stageID
         }
@@ -97,15 +105,7 @@ extension AppState {
         }
     }
 
-    func restoreLaunchBattle(environment: AppEnvironment) {
-        if environment.launchScreen == .battle {
-            startLaunchBattle()
-        } else if let stageID = sessionState.activeBattleStageID {
-            startRestoredBattle(stageID: stageID)
-        }
-    }
-
-    func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
+    private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
         guard !completedStageIDs.isEmpty else { return }
 
         let stagesByID = Dictionary(
@@ -138,12 +138,6 @@ extension AppState {
             appStateLogger.error(
                 "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
             )
-        }
-    }
-
-    private func restoreMapScroll(environment: AppEnvironment) {
-        if let mapScrollTarget = environment.mapScrollTarget {
-            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
         }
     }
 
@@ -208,12 +202,5 @@ extension AppState {
         case .battle, .options, .none:
             (nil, nil)
         }
-    }
-
-    func finishBootstrap(environment: AppEnvironment) {
-        seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
-        restoreMapScroll(environment: environment)
-        restoreLaunchBattle(environment: environment)
-        wireSyncAndBattleCallbacks()
     }
 }

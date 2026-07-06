@@ -2,35 +2,38 @@ import Foundation
 import SwiftUI
 
 extension AppState {
-    func updateShell(event: AppShellEvent, scenePhase: ScenePhase) {
-        switch event {
-        case .appeared:
-            if battle.activeBattle != nil, selectedTab != .play {
-                battle.isPaused = true
-            }
-        case let .selectedTabChanged(newTab):
-            sessionState.selectedTab = newTab
-            if battle.activeBattle != nil {
-                // Leaving Play pauses combat; returning stays paused until the player resumes.
-                battle.isPaused = true
-            }
-        case .activeBattleStarted:
+    func shellDidAppear(scenePhase: ScenePhase) {
+        if battle.activeBattle != nil, selectedTab != .play {
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeTab(to newTab: AppTab, scenePhase: ScenePhase) {
+        sessionState.selectedTab = newTab
+        if battle.activeBattle != nil {
+            // Leaving Play pauses combat; returning stays paused until the player resumes.
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeActiveBattle(started: Bool, scenePhase: ScenePhase) {
+        if started {
             battle.isPaused = selectedTab != .play
-        case .activeBattleEnded:
+        } else {
             battle.isPaused = false
             musicPlayer.clearEncounterResumePositions()
-        case let .scenePhaseChanged(newPhase):
-            if newPhase != .active, battle.activeBattle != nil {
-                battle.isPaused = true
-            }
-            handleScenePhaseSideEffects(newPhase)
-            refreshMusic(scenePhase: newPhase)
-            return
-        case .musicInputsChanged:
-            break
         }
-
         refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeScenePhase(_ newPhase: ScenePhase) {
+        if newPhase != .active, battle.activeBattle != nil {
+            battle.isPaused = true
+        }
+        handleScenePhaseSideEffects(newPhase)
+        refreshMusic(scenePhase: newPhase)
     }
 
     func refreshMusic(scenePhase: ScenePhase) {
