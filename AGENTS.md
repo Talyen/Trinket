@@ -4,7 +4,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
 - Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
 - `Docs/Audits/*Audit.md` files are point-in-time audit snapshots — not workflow docs. Do not treat them as active requirements unless the user cites one.
 
@@ -44,8 +44,12 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/Design/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass unless justified with `UIStyleCheck`. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
-- Bypass: `// UIStyleCheck: allow - <reason>` (same/preceding line); prefer `TrinketDesign`. Raw styling lives in `Packages/TrinketDesignSystem/`.
+- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
+- **Style Guardrail Triggers**: `./Scripts/check-ui-style.sh` flags:
+  - Raw materials: `.background` or `.fill` with `.regularMaterial`, `.thinMaterial`, or `.ultraThinMaterial`.
+  - Raw button/toggle styles: `.buttonStyle(.glass)`, `.buttonStyle(.glassProminent)`, `.buttonStyle(.bordered)`, `.buttonStyle(.borderedProminent)`, and `.toggleStyle(.button)`.
+  - Fixed interactive dimensions inside buttons: `.frame(width: ...)` or `.frame(height: ...)` when paired with text/fonts.
+- **Bypass**: Use `// UIStyleCheck: allow - <reason>` (on the same or preceding line) for deliberate one-offs. Otherwise, route all reusable components and styling rules through `Packages/TrinketDesignSystem/`.
 
 ## Git Workflow
 
@@ -93,8 +97,8 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 | Script | Runs |
 |--------|------|
-| `ci-locally.sh` | generate → module boundaries → style → unit → smoke |
-| `test-deploy.sh` | generate → module boundaries → style → unit → full UI |
+| `ci-locally.sh` | generate → assert-generated-output → module boundaries → style → unit → smoke |
+| `test-deploy.sh` | generate → assert-generated-output → module boundaries → style → validate release notes → unit → full UI |
 | GitHub CI (`pr.yml`, PRs) | gate → unit + smoke (parallel) |
 | GitHub CI (`ci.yml`, main) | gate → unit + full UI (parallel) |
 
@@ -122,8 +126,14 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 
 `Smoke.xctestplan` is **UI smoke only** (not unit tests). `Unit.xctestplan` and `FullUI.xctestplan` back `test.sh unit` and `test.sh ui`. `test-deploy.sh` runs style → unit → full UI once (smoke is a subset, not rerun).
 
-Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Example: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`. Exact rerun without rebuild: `./Scripts/test.sh ui SmokeCollectionTests --no-build`. Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. Filtered `./Scripts/test.sh unit BattleStateTests[/testMethod]` runs **app tests only** — use `./Scripts/test-package.sh <Package>` for package-local classes. `BattleSimulator` in `Packages/BattleEngine/`. Keep diffs focused and run `ci-locally.sh` before push.
-
+Iteration: **unit** → **smoke class** → **exhaustive class** before merge. Keep diffs focused and run `ci-locally.sh` before push.
+- **Fast iteration tips**:
+  - Test a single local package scheme (skip full app build): `./Scripts/test-package.sh BattleEngine`
+  - Filter unit tests (runs app target tests only): `./Scripts/test.sh unit BattleStateTests`
+  - Run a single UI test smoke class: `./Scripts/test.sh ui SmokeCollectionTests`
+  - Re-run built binaries without rebuilding (massive speedup): Add `--no-build` (e.g., `./Scripts/test.sh ui SmokeCollectionTests --no-build` or `./Scripts/test.sh unit BattleStateTests --no-build`).
+  - Interactive iteration flow: `./Scripts/test-iterate.sh SmokeCollectionTests TabNavigationUITests`
+- **Test ownership**: Battle rule tests live in `BattleEngineTests`; persistence tests in `TrinketPersistenceTests`. `BattleSimulator` lives in `Packages/BattleEngine/`.
 - **Speed Tip**: Avoid `ci-locally.sh` or `test-deploy.sh` during active development. Compile with `build.sh` or run simulator previews.
 
 ## Unit Tests
