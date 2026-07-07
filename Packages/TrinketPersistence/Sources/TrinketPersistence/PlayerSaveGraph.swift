@@ -328,7 +328,7 @@ public extension PlayerSaveRoot {
 
     private func syncChild<Model: AnyObject>(
         _ keyPath: ReferenceWritableKeyPath<PlayerSaveRoot, Model?>,
-        make: () -> Model,
+        make: @autoclosure @escaping () -> Model,
         update: (Model) -> Void,
         setRoot: (Model) -> Void
     ) {
