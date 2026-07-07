@@ -4,14 +4,12 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
-@Observable
-@MainActor
-final class HomesteadBuildActions {
+struct HomesteadBuildControl {
     var isBuilding = false
     var error: String?
     var upgradeEventCount = 0
 
-    func perform(
+    mutating func perform(
         _ definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadStore,
         roster: PlayerRosterStore,
@@ -43,7 +41,14 @@ extension View {
             .opacity(isUnlocked ? 1 : lockedOpacity)
     }
 
-    func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
+    func homesteadBuildErrorAlert(build: Binding<HomesteadBuildControl>) -> some View {
+        homesteadBuildErrorAlert(error: Binding(
+            get: { build.wrappedValue.error },
+            set: { build.wrappedValue.error = $0 }
+        ))
+    }
+
+    private func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
         alert(
             "Build Failed",
             isPresented: Binding(

@@ -7,7 +7,7 @@ import TrinketPersistence
 struct HomesteadView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var buildActions = HomesteadBuildActions()
+    @State private var build = HomesteadBuildControl()
     @State private var recentUpgradeID: HomesteadNodeID?
 
     private var homestead: PlayerHomesteadState {
@@ -31,8 +31,6 @@ struct HomesteadView: View {
     }
 
     var body: some View {
-        @Bindable var buildActions = buildActions
-
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadResourceWallet(
@@ -77,12 +75,12 @@ struct HomesteadView: View {
         .navigationTitle("Homestead")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
-        .sensoryFeedback(.success, trigger: buildActions.upgradeEventCount)
-        .homesteadBuildErrorAlert(error: $buildActions.error)
+        .sensoryFeedback(.success, trigger: build.upgradeEventCount)
+        .homesteadBuildErrorAlert(build: $build)
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        buildActions.perform(
+        build.perform(
             definition,
             homestead: appState.homestead,
             roster: appState.roster,
