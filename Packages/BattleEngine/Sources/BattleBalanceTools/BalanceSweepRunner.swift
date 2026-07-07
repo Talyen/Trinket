@@ -92,6 +92,7 @@ enum BalanceSweepRunner {
 
         let collector = MatchupRowCollector(capacity: workItems.count)
 
+        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism; rows are stored via Mutex-backed collector.
         DispatchQueue.concurrentPerform(iterations: workItems.count) { index in
             let row = evaluate(workItems[index], request: request)
             collector.store(row, at: index)
