@@ -1,7 +1,8 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
+import Synchronization
 import TrinketContent
+import TrinketCore
 
 public enum AbilityComparisonAnalyzer {
     private struct WorkItem: Sendable {
@@ -239,23 +240,22 @@ public enum AbilityComparisonAnalyzer {
     }
 }
 
-private final class AbilityComparisonRowCollector: @unchecked Sendable {
-    private let lock = NSLock()
-    private var storage: [[AbilityComparisonRow]?]
+private final class AbilityComparisonRowCollector: Sendable {
+    private let storage: Mutex<[[AbilityComparisonRow]?]>
 
     init(capacity: Int) {
-        storage = Array(repeating: nil, count: capacity)
+        storage = Mutex(Array(repeating: nil, count: capacity))
     }
 
     func store(_ rows: [AbilityComparisonRow], at index: Int) {
-        lock.lock()
-        storage[index] = rows
-        lock.unlock()
+        storage.withLock { array in
+            array[index] = rows
+        }
     }
 
     var rows: [AbilityComparisonRow] {
-        lock.lock()
-        defer { lock.unlock() }
-        return storage.compactMap { $0 }.flatMap { $0 }
+        storage.withLock { array in
+            array.compactMap { $0 }.flatMap { $0 }
+        }
     }
 }

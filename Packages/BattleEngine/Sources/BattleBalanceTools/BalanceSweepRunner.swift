@@ -1,7 +1,8 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
+import Synchronization
 import TrinketContent
+import TrinketCore
 
 public enum BalanceSweepRunner {
     private struct MatchupWorkItem: Sendable {
@@ -100,24 +101,23 @@ public enum BalanceSweepRunner {
     }
 }
 
-private final class MatchupRowCollector: @unchecked Sendable {
-    private let lock = NSLock()
-    private var storage: [MatchupSweepRow?]
+private final class MatchupRowCollector: Sendable {
+    private let storage: Mutex<[MatchupSweepRow?]>
 
     init(capacity: Int) {
-        storage = Array(repeating: nil, count: capacity)
+        storage = Mutex(Array(repeating: nil, count: capacity))
     }
 
     func store(_ row: MatchupSweepRow, at index: Int) {
-        lock.lock()
-        storage[index] = row
-        lock.unlock()
+        storage.withLock { array in
+            array[index] = row
+        }
     }
 
     var rows: [MatchupSweepRow] {
-        lock.lock()
-        defer { lock.unlock() }
-        return storage.compactMap { $0 }
+        storage.withLock { array in
+            array.compactMap { $0 }
+        }
     }
 }
 
