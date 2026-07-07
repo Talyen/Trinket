@@ -107,7 +107,7 @@ struct ChapterStageSelectView: View {
     private func scrollToInitialTarget(with proxy: ScrollViewProxy) {
         guard let target = resolvedScrollTargetID() else { return }
 
-        DispatchQueue.main.async {
+        Task { @MainActor in
             withAnimation(scrollAnimation) {
                 proxy.scrollTo(target, anchor: .center)
             }
