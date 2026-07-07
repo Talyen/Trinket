@@ -111,6 +111,67 @@ def export_attachment(xcresult_path, payload_id, output_path):
     res = subprocess.run(cmd, capture_output=True, text=True)
     return res.returncode == 0
 
+def get_relative_path(resolved_path):
+    if not resolved_path:
+        return ""
+    try:
+        rel = os.path.relpath(resolved_path, os.getcwd())
+        if not rel.startswith(".."):
+            return rel
+    except Exception:
+        pass
+    return resolved_path
+
+def write_github_step_summary_file(summary_failures):
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_path or not summary_failures:
+        return
+    
+    markdown = []
+    markdown.append("### ❌ Test Failures\n")
+    markdown.append("| Test Case | Location | Error Message |")
+    markdown.append("| :--- | :--- | :--- |")
+    
+    for f in summary_failures:
+        loc = f"{f['file']}:{f['line']}" if f['file'] and f['line'] else (f['file'] if f['file'] else "Unknown")
+        # clean message for markdown table (replace pipes and newlines)
+        clean_err = f['error'].replace("|", "\\|").replace("\n", " ")
+        markdown.append(f"| `{f['test']}` | {loc} | {clean_err} |")
+    
+    markdown.append("\n---\n")
+    markdown.append("### 🔍 Failure Details & Activity Steps\n")
+    
+    for f in summary_failures:
+        markdown.append(f"<details>")
+        markdown.append(f"<summary><b>{f['test']}</b></summary>\n")
+        
+        if f['file']:
+            markdown.append(f"**Location:** `{f['file']}:{f['line']}`\n")
+            
+        markdown.append(f"**Error:**\n```\n{f['error']}\n```\n")
+        
+        if f['steps']:
+            markdown.append("**Activity Logs:**")
+            markdown.append("```")
+            for step in f['steps']:
+                clean_step = step.replace("\033[33m", "").replace("\033[90m", "").replace("\033[0m", "")
+                markdown.append(clean_step)
+            markdown.append("```\n")
+            
+        if f['attachments']:
+            markdown.append("**Exported Assets:**")
+            for att in f['attachments']:
+                markdown.append(f"- {att}")
+            markdown.append("\n*(These assets are exported inside the test results zip artifact)*\n")
+            
+        markdown.append("</details>\n")
+        
+    try:
+        with open(summary_path, "a") as f_summary:
+            f_summary.write("\n".join(markdown) + "\n")
+    except Exception as e:
+        print(f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}")
+
 def fallback_summary(xcresult_path):
     try:
         raw = subprocess.check_output(
@@ -124,11 +185,28 @@ def fallback_summary(xcresult_path):
             sys.exit(0)
 
         print("\n\033[1;31m=== TEST FAILURES SUMMARY ===\033[0m")
+        fallback_markdown = []
         for f in failures:
             name = f.get("testIdentifierString", f.get("testName", "unknown"))
             text = f.get("failureText", "No failure details").strip()
             print(f"\033[1m  • {name}\033[0m")
             print(f"    \033[31m{text}\033[0m\n")
+
+            if os.environ.get("GITHUB_ACTIONS") == "true":
+                escaped_text = text.replace("\n", "%0A").replace("\r", "%0D")
+                print(f"::error title={name}::{escaped_text}")
+
+            clean_text = text.replace('|', '\\|').replace('\n', ' ')
+            fallback_markdown.append(f"| `{name}` | N/A | {clean_text} |")
+        
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path and fallback_markdown:
+            with open(summary_path, "a") as f_summary:
+                f_summary.write("### ❌ Test Failures\n\n")
+                f_summary.write("| Test Case | Location | Error Message |\n")
+                f_summary.write("| :--- | :--- | :--- |\n")
+                f_summary.write("\n".join(fallback_markdown) + "\n\n")
+
     except Exception as e:
         print(f"Warning: Failed to parse test failure summary: {e}")
 
@@ -172,6 +250,8 @@ def main():
                 if test_summary:
                     failed_details.append((name, test_summary))
 
+    summary_failures = []
+
     if failed_details:
         print("\n\033[1;31m=== TEST FAILURES DETAILS ===\033[0m")
         for name, detail in failed_details:
@@ -179,23 +259,35 @@ def main():
             
             fail_summaries = detail.get("failureSummaries", {}).get("_values", [])
             for fs in fail_summaries:
-                msg = fs.get("message", {}).get("_value", "No failure details")
+                msg = fs.get("message", {}).get("_value", "No failure details").strip()
                 file_path = fs.get("fileName", {}).get("_value")
                 line_number = fs.get("lineNumber", {}).get("_value")
                 
+                rel_path = ""
+                resolved = ""
                 if file_path:
                     resolved = resolve_file_path(file_path)
+                    rel_path = get_relative_path(resolved)
                     if line_number is not None:
-                        print(f"  \033[36mFile:\033[0m {resolved}:{line_number}")
+                        print(f"  \033[36mFile:\033[0m {rel_path}:{line_number}")
                     else:
-                        print(f"  \033[36mFile:\033[0m {resolved}")
+                        print(f"  \033[36mFile:\033[0m {rel_path}")
                 
-                print(f"  \033[31mError:\033[0m {msg.strip()}")
+                print(f"  \033[31mError:\033[0m {msg}")
+
+                if os.environ.get("GITHUB_ACTIONS") == "true":
+                    escaped_msg = msg.replace("\n", "%0A").replace("\r", "%0D")
+                    ann_file = rel_path if rel_path else (file_path if file_path else "")
+                    ann_line = line_number if line_number is not None else 1
+                    print(f"::error file={ann_file},line={ann_line},title={name}::{escaped_msg}")
 
             act_values = detail.get("activitySummaries", {}).get("_values", [])
+            test_steps = []
+            test_attachments = []
             if act_values:
                 print("\n  \033[1mSteps:\033[0m")
                 act_lines, attachments = process_activities(act_values, "    ")
+                test_steps = [line.strip() for line in act_lines]
                 for line in act_lines:
                     if "triage" in line.lower() or "screenshot of target" in line.lower():
                         print(f"\033[33m{line}\033[0m")
@@ -224,6 +316,28 @@ def main():
                             elif "recording" in clean_name:
                                 emoji = "🎥"
                             print(f"    {emoji} {att['name']}: \033[4mfile://{out_file.absolute()}\033[0m")
+                            test_attachments.append(f"{emoji} {clean_name} ({att['name']})")
+            
+            primary_msg = "No failure details"
+            primary_file = ""
+            primary_line = ""
+            if fail_summaries:
+                primary_msg = fail_summaries[0].get("message", {}).get("_value", "No failure details").strip()
+                f_path = fail_summaries[0].get("fileName", {}).get("_value")
+                if f_path:
+                    primary_file = get_relative_path(resolve_file_path(f_path))
+                p_line = fail_summaries[0].get("lineNumber", {}).get("_value")
+                if p_line is not None:
+                    primary_line = str(p_line)
+
+            summary_failures.append({
+                "test": name,
+                "file": primary_file,
+                "line": primary_line,
+                "error": primary_msg,
+                "steps": test_steps,
+                "attachments": test_attachments
+            })
             print()
     else:
         issue_failures = root.get("issues", {}).get("testFailureSummaries", {}).get("_values", [])
@@ -246,16 +360,31 @@ def main():
                         if line_idx is not None:
                             line_number = str(int(line_idx) + 1)
                 
-                print(f"\033[1m  • {name}\033[0m")
+                rel_path = ""
                 if file_path:
-                    resolved = resolve_file_path(file_path)
+                    rel_path = get_relative_path(resolve_file_path(file_path))
                     if line_number:
-                        print(f"    \033[36mFile:\033[0m {resolved}:{line_number}")
+                        print(f"    \033[36mFile:\033[0m {rel_path}:{line_number}")
                     else:
-                        print(f"    \033[36mFile:\033[0m {resolved}")
+                        print(f"    \033[36mFile:\033[0m {rel_path}")
                 print(f"    \033[31m{text}\033[0m\n")
+
+                if os.environ.get("GITHUB_ACTIONS") == "true":
+                    escaped_text = text.replace("\n", "%0A").replace("\r", "%0D")
+                    ann_file = rel_path if rel_path else (file_path if file_path else "")
+                    ann_line = line_number if line_number else "1"
+                    print(f"::error file={ann_file},line={ann_line},title={name}::{escaped_text}")
+
+                summary_failures.append({
+                    "test": name,
+                    "file": rel_path,
+                    "line": line_number,
+                    "error": text,
+                    "steps": [],
+                    "attachments": []
+                })
         else:
             fallback_summary(xcresult_path)
 
-if __name__ == "__main__":
-    main()
+    if summary_failures:
+        write_github_step_summary_file(summary_failures)

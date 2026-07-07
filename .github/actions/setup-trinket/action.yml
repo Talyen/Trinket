@@ -36,7 +36,22 @@ runs:
         HOMEBREW_NO_AUTO_UPDATE: 1
         HOMEBREW_NO_INSTALL_CLEANUP: 1
       run: |
-        brew install xcodegen swiftlint ripgrep xcbeautify
-        for formula in xcodegen swiftlint ripgrep xcbeautify; do
-          brew link --overwrite "$formula" 2>/dev/null || true
+        missing_tools=()
+        for tool in xcodegen swiftlint rg xcbeautify; do
+          if ! command -v "$tool" &>/dev/null; then
+            if [ "$tool" = "rg" ]; then
+              missing_tools+=("ripgrep")
+            else
+              missing_tools+=("$tool")
+            fi
+          fi
         done
+        if [ ${#missing_tools[@]} -gt 0 ]; then
+          echo "Installing missing tools: ${missing_tools[*]}"
+          brew install "${missing_tools[@]}"
+          for formula in "${missing_tools[@]}"; do
+            brew link --overwrite "$formula" 2>/dev/null || true
+          done
+        else
+          echo "All required tools are already installed."
+        fi

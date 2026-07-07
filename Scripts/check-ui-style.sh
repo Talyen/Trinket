@@ -130,6 +130,16 @@ done < <(rg --files -g '*.swift' Trinket TrinketTests TrinketUITests)
 if [[ ${#violations[@]} -gt 0 ]]; then
   echo "UI style guardrail found ad hoc native styling:"
   printf '  %s\n' "${violations[@]}"
+
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    for violation in "${violations[@]}"; do
+      file=$(echo "$violation" | cut -d: -f1)
+      line=$(echo "$violation" | cut -d: -f2)
+      message=$(echo "$violation" | cut -d: -f3- | xargs)
+      echo "::error file=$file,line=$line,title=UI Style Violation::$message"
+    done
+  fi
+
   echo
   echo "Use shared TrinketDesign helpers for recurring chrome, or add a short UIStyleCheck: allow comment for intentional one-offs."
   exit 1

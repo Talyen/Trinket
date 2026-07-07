@@ -18,4 +18,13 @@ if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
-swiftlint lint --strict "${SOURCE_DIRS[@]}" "$@"
+extra_args=()
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  extra_args+=(--reporter github-actions-logging)
+fi
+
+if [ ${#extra_args[@]} -gt 0 ]; then
+  swiftlint lint --strict "${SOURCE_DIRS[@]}" "${extra_args[@]}" "$@"
+else
+  swiftlint lint --strict "${SOURCE_DIRS[@]}" "$@"
+fi

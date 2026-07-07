@@ -26,6 +26,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 30
+    env:
+      SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
@@ -57,6 +59,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 30
+    env:
+      SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket

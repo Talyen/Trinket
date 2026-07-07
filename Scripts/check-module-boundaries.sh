@@ -57,6 +57,11 @@ if (( ${#violations[@]} > 0 )); then
   echo "Module boundary violations:" >&2
   for violation in "${violations[@]}"; do
     echo "  - $violation" >&2
+    if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+      file=$(echo "$violation" | cut -d: -f1 | xargs)
+      reason=$(echo "$violation" | cut -d: -f2- | xargs)
+      echo "::error file=$file,line=1,title=Module Boundary Violation::$reason"
+    fi
   done
   exit 1
 fi

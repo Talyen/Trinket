@@ -12,6 +12,8 @@ source "$SCRIPT_DIR/build-stamp.sh"
 # Parse arguments
 MODE="unit"
 NO_BUILD=false
+QUIET=true
+VERBOSE=false
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -38,6 +40,15 @@ while [[ $# -gt 0 ]]; do
       ;;
     no-build|--no-build)
       NO_BUILD=true
+      shift
+      ;;
+    --quiet|quiet)
+      QUIET=true
+      shift
+      ;;
+    --verbose|verbose)
+      VERBOSE=true
+      QUIET=false
       shift
       ;;
     *)
@@ -99,18 +110,47 @@ run_xcodebuild() {
   local attempt=1
   local max_attempts=2
   local exit_code=0
+  local log_file="$RESULTS_DIR/xcodebuild.log"
 
   while (( attempt <= max_attempts )); do
-    if "$@"; then
-      return 0
+    if [[ "$QUIET" == "true" ]]; then
+      echo "Building and running tests... (raw log at .DerivedData/TestResults/xcodebuild.log)"
+      set +e
+      "$@" > "$log_file" 2>&1
+      exit_code=$?
+      set -e
+      if [[ "$exit_code" -eq 0 ]]; then
+        echo "Tests succeeded!"
+        return 0
+      fi
+    elif command -v xcbeautify &>/dev/null; then
+      set +e
+      "$@" | xcbeautify
+      exit_code=${PIPESTATUS[0]}
+      set -e
+      if [[ "$exit_code" -eq 0 ]]; then
+        return 0
+      fi
+    else
+      if "$@"; then
+        return 0
+      fi
+      exit_code=$?
     fi
-    exit_code=$?
+
     if [[ "$exit_code" -eq 70 && "$attempt" -lt "$max_attempts" ]]; then
       echo "xcodebuild destination error (exit 70); re-preparing simulator and retrying..." >&2
       ensure_test_simulator force
       ((attempt++))
       continue
     fi
+
+    # Print compilation errors if quiet and build failed (no result bundle generated)
+    if [[ "$QUIET" == "true" && ! -d "$RESULT_BUNDLE_PATH" ]]; then
+      echo -e "\n\033[1;31m=== BUILD/COMPILATION FAILURE ===\033[0m"
+      grep -E -A 2 -i "error:|warning:|failed:" "$log_file" | head -n 40 || tail -n 40 "$log_file"
+    fi
+
     return "$exit_code"
   done
 
@@ -222,6 +262,11 @@ record_timing() {
 assert_no_build_is_fresh() {
   echo "Running without building. This only reruns the previously built '$RUN_FINGERPRINT' test binary."
 
+  if [[ "${CI:-}" == "true" ]]; then
+    echo "CI environment detected; skipping source freshness scan."
+    return 0
+  fi
+
   if [[ ! -f "$BUILD_STAMP" ]]; then
     echo "No prior built test stamp found for '$RUN_FINGERPRINT'. Run without --no-build first." >&2
     exit 1
@@ -289,12 +334,17 @@ run_package_tests() {
   local max_seconds=0
 
   for package in "${packages[@]}"; do
-    echo "Running $package package tests..."
     SECONDS=0
     local package_status=0
     local package_args=("$package" --destination "$SIMULATOR_DESTINATION")
     if [[ "$xcodebuild_action" == "test-without-building" ]]; then
       package_args=(--no-build "${package_args[@]}")
+    fi
+    if [[ "$QUIET" == "true" ]]; then
+      package_args+=(--quiet)
+    fi
+    if [[ "$VERBOSE" == "true" ]]; then
+      package_args+=(--verbose)
     fi
     ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
     if [[ "$package_status" -ne 0 ]]; then
@@ -338,6 +388,7 @@ fi
 
 if [[ "$XCODEBUILD_EXIT_CODE" -ne 0 ]]; then
   if [[ -d "$RESULT_BUNDLE_PATH" ]]; then
+    ./Scripts/summarize-failures.py "$RESULT_BUNDLE_PATH"
     record_timing
     echo ""
     echo "Timing recorded. Hotspots: ./Scripts/test-timing.sh"

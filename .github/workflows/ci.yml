@@ -33,6 +33,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 15
+    env:
+      SKIP_GENERATE: 1
     strategy:
       fail-fast: false
       matrix:
@@ -73,6 +75,8 @@ jobs:
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 25
+    env:
+      SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
@@ -105,6 +109,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
+    env:
+      SKIP_GENERATE: 1
     strategy:
       fail-fast: false
       matrix:
