@@ -18,43 +18,43 @@ jobs:
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 25
-    env:
-      CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-      SKIP_GENERATE: 1
+    outputs:
+      build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
 
       - name: Restore warm build cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: .DerivedData
-          key: build-${{ env.CACHE_HASH }}
+          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
           restore-keys: |
             build-
 
-      - run: ./Scripts/build-for-testing.sh
+      - name: Build for testing
+        run: ./Scripts/build-for-testing.sh
+        env:
+          SKIP_GENERATE: 1
 
       - name: Save build cache for test jobs
+        id: save-build-cache
         uses: actions/cache/save@v4
         with:
           path: .DerivedData
-          key: ${{ env.BUILD_CACHE_KEY }}
+          key: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
 
   integration:
     name: Integration tests
     needs: build
     runs-on: macos-latest
     timeout-minutes: 45
-    env:
-      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
-          cache-key: ${{ env.BUILD_CACHE_KEY }}
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
           artifact-name: nightly-integration
           command: ./Scripts/test.sh all --no-build --verbose
           timing-mode: all
