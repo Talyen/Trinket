@@ -1,15 +1,18 @@
-import XCTest
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-final class EffectHandlersTests: XCTestCase {
-    func testRegistryContainsEveryEffectKind() throws {
-        XCTAssertEqual(Set(EffectHandlers.all.keys), Set(EffectKind.allCases))
-        for kind in EffectKind.allCases {
-            let handler = try XCTUnwrap(EffectHandlers.all[kind], "Missing handler for \(kind)")
-            XCTAssertEqual(handler.kind, kind)
-            XCTAssertEqual(EffectHandlers.handler(for: kind)?.kind, kind)
-        }
+@Suite struct EffectHandlersTests {
+    @Test func registryKeysMatchAllEffectKinds() {
+        #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
+    }
+
+    @Test(arguments: EffectKind.allCases)
+    func registryContainsHandler(for kind: EffectKind) {
+        let handler = EffectHandlers.all[kind]
+        #require(handler != nil, "Missing handler for \(kind)")
+        #expect(handler?.kind == kind)
+        #expect(EffectHandlers.handler(for: kind)?.kind == kind)
     }
 }
