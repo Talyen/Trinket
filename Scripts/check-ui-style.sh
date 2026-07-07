@@ -77,6 +77,9 @@ check_line() {
     *".fill(.regularMaterial"*|*".fill(.thinMaterial"*|*".fill(.ultraThinMaterial"*)
       pattern="raw material fill"
       ;;
+    *"AnyView("*)
+      pattern="AnyView usage (use @ViewBuilder instead)"
+      ;;
     *".frame(width:"*|*".frame(height:"*|*".frame(minWidth:"*|*".frame(minHeight:"*)
       if [[ "$in_recent_button" == "1" && "$previous_context" == *".font("* ]]; then
         pattern="fixed-size interactive control"
