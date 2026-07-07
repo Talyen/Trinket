@@ -4,19 +4,19 @@ import TrinketContent
 import TrinketCore
 import TrinketPersistence
 
-struct PartyMemberBattleSnapshot: Equatable {
-    let combatant: Combatant
-    let progression: CombatantProgression
-    let equipmentLoadout: EquipmentLoadout
-    let modifiers: CombatModifierProfile
-}
-
 struct ActiveBattleConfiguration: Identifiable {
+    struct PartyMember: Equatable {
+        let combatant: Combatant
+        let progression: CombatantProgression
+        let equipmentLoadout: EquipmentLoadout
+        let modifiers: CombatModifierProfile
+    }
+
     let id = UUID()
     let stageID: String?
     let rngSeed: UInt64
-    let hero: PartyMemberBattleSnapshot
-    let pet: PartyMemberBattleSnapshot
+    let hero: PartyMember
+    let pet: PartyMember
     let enemy: Combatant?
     let enemyEncounterLevel: Int?
     let highestHeroLevel: Int
@@ -26,7 +26,7 @@ struct ActiveBattleConfiguration: Identifiable {
     let stageReward: StageReward?
     let rewardItemNames: [String]
 
-    func rosterContext(for combatantID: String) -> PartyMemberBattleSnapshot? {
+    func partyMember(for combatantID: String) -> PartyMember? {
         if combatantID == hero.combatant.id { return hero }
         if combatantID == pet.combatant.id { return pet }
         return nil
@@ -62,58 +62,52 @@ struct ActiveBattleConfiguration: Identifiable {
         catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> ActiveBattleConfiguration {
         let rosterState = roster.current
-        let resolvedHighestHeroLevel = rosterState.highestHeroLevel
-        let resolvedHighestPetLevel = rosterState.highestPetLevel
-        let resolvedInventoryState = inventory.current
-
-        let heroSnapshot = partyMemberSnapshot(
-            combatant: hero,
-            rosterState: rosterState,
-            inventoryState: resolvedInventoryState,
-            catalog: catalog
-        )
-        let petSnapshot = partyMemberSnapshot(
-            combatant: pet,
-            rosterState: rosterState,
-            inventoryState: resolvedInventoryState,
-            catalog: catalog
-        )
+        let inventoryState = inventory.current
         let enemyBuild = resolvedEnemyBuild(enemy: enemy, catalog: catalog)
         return ActiveBattleConfiguration(
             stageID: stageID,
             rngSeed: rngSeed,
-            hero: heroSnapshot,
-            pet: petSnapshot,
+            hero: partyMember(
+                combatant: hero,
+                rosterState: rosterState,
+                inventoryState: inventoryState,
+                catalog: catalog
+            ),
+            pet: partyMember(
+                combatant: pet,
+                rosterState: rosterState,
+                inventoryState: inventoryState,
+                catalog: catalog
+            ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
-            highestHeroLevel: resolvedHighestHeroLevel,
-            highestPetLevel: resolvedHighestPetLevel,
+            highestHeroLevel: rosterState.highestHeroLevel,
+            highestPetLevel: rosterState.highestPetLevel,
             enemyModifiers: enemyBuild.modifiers,
-            inventoryState: resolvedInventoryState,
+            inventoryState: inventoryState,
             stageReward: stageReward,
             rewardItemNames: rewardItemNames(for: stageReward)
         )
     }
 
-    private static func partyMemberSnapshot(
+    private static func partyMember(
         combatant: Combatant,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
         catalog: CombatCatalog
-    ) -> PartyMemberBattleSnapshot {
+    ) -> PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
-        let scaledCombatant = CombatantLevelScaler.scale(
-            combatant: combatant,
-            level: progression.level
-        )
         let build = CombatBuildResolver.build(
-            combatant: scaledCombatant,
+            combatant: CombatantLevelScaler.scale(
+                combatant: combatant,
+                level: progression.level
+            ),
             equipmentLoadout: equipmentLoadout,
             inventory: inventoryState.items,
             catalog: catalog
         )
-        return PartyMemberBattleSnapshot(
+        return PartyMember(
             combatant: build.combatant,
             progression: progression,
             equipmentLoadout: equipmentLoadout,

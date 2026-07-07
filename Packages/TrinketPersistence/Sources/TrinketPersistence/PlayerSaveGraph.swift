@@ -300,25 +300,41 @@ public extension PlayerSaveRoot {
         modifiedAt = save.modifiedAt
         sessionGeneration = save.sessionGeneration
 
-        let journeyModel = journey ?? JourneyProgressModel()
-        journeyModel.update(from: save.journey)
-        journey = journeyModel
-        journeyModel.root = self
+        syncChild(\.journey, make: JourneyProgressModel()) {
+            $0.update(from: save.journey)
+        } setRoot: {
+            $0.root = self
+        }
 
-        let rosterModel = roster ?? RosterModel()
-        rosterModel.update(from: save.roster)
-        roster = rosterModel
-        rosterModel.root = self
+        syncChild(\.roster, make: RosterModel()) {
+            $0.update(from: save.roster)
+        } setRoot: {
+            $0.root = self
+        }
 
-        let inventoryModel = inventory ?? InventoryModel()
-        inventoryModel.update(from: save.inventory)
-        inventory = inventoryModel
-        inventoryModel.root = self
+        syncChild(\.inventory, make: InventoryModel()) {
+            $0.update(from: save.inventory)
+        } setRoot: {
+            $0.root = self
+        }
 
-        let homesteadModel = homestead ?? HomesteadModel()
-        homesteadModel.update(from: save.homestead)
-        homestead = homesteadModel
-        homesteadModel.root = self
+        syncChild(\.homestead, make: HomesteadModel()) {
+            $0.update(from: save.homestead)
+        } setRoot: {
+            $0.root = self
+        }
+    }
+
+    private func syncChild<Model>(
+        _ keyPath: ReferenceWritableKeyPath<PlayerSaveRoot, Model?>,
+        make: () -> Model,
+        update: (Model) -> Void,
+        setRoot: (Model) -> Void
+    ) where Model: AnyObject {
+        let model = self[keyPath: keyPath] ?? make()
+        update(model)
+        self[keyPath: keyPath] = model
+        setRoot(model)
     }
 }
 
@@ -346,7 +362,7 @@ private extension JourneyProgressModel {
                 rewardsClaimed: state.claimedRewardStageIDs.contains($0)
             )
         }
-        stages?.forEach { $0.journey = self }
+        stages?.linkEach(to: self, parent: \.journey)
     }
 }
 
@@ -416,17 +432,17 @@ private extension RosterModel {
 
         unlockedCombatants = roster.unlockedHeroIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "hero") }
             + roster.unlockedPetIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "pet") }
-        unlockedCombatants?.forEach { $0.roster = self }
+        unlockedCombatants?.linkEach(to: self, parent: \.roster)
 
         progressions = roster.progressions
             .sorted { $0.key < $1.key }
             .map { CombatantProgressionModel(combatantID: $0.key, progression: $0.value) }
-        progressions?.forEach { $0.roster = self }
+        progressions?.linkEach(to: self, parent: \.roster)
 
         abilityLoadouts = roster.abilityLoadouts
             .sorted { $0.key < $1.key }
             .map { AbilityLoadoutModel(combatantID: $0.key, loadout: $0.value) }
-        abilityLoadouts?.forEach { $0.roster = self }
+        abilityLoadouts?.linkEach(to: self, parent: \.roster)
 
         equipmentLoadouts = roster.equipmentLoadouts
             .sorted { $0.key < $1.key }
@@ -435,15 +451,15 @@ private extension RosterModel {
                 model.slots = loadout.itemIDsBySlot
                     .map { EquipmentSlotModel(slotID: $0.key.rawValue, itemID: $0.value) }
                     .sorted { $0.slotID < $1.slotID }
-                model.slots?.forEach { $0.loadout = model }
+                model.slots?.linkEach(to: model, parent: \.loadout)
                 return model
             }
-        equipmentLoadouts?.forEach { $0.roster = self }
+        equipmentLoadouts?.linkEach(to: self, parent: \.roster)
 
         primaryStats = roster.primaryStatOverrides
             .sorted { $0.key < $1.key }
             .map { PrimaryStatsModel(combatantID: $0.key, stats: $0.value) }
-        primaryStats?.forEach { $0.roster = self }
+        primaryStats?.linkEach(to: self, parent: \.roster)
     }
 }
 
@@ -491,7 +507,7 @@ private extension InventoryModel {
         }
         items?.forEach { item in
             item.inventory = self
-            item.affixes?.forEach { $0.item = item }
+            item.affixes?.linkEach(to: item, parent: \.item)
         }
     }
 }
@@ -517,10 +533,19 @@ private extension HomesteadModel {
         resources = homestead.resources
             .map { HomesteadResourceBalanceModel(resourceID: $0.key.rawValue, quantity: $0.value) }
             .sorted { $0.resourceID < $1.resourceID }
-        resources?.forEach { $0.homestead = self }
+        resources?.linkEach(to: self, parent: \.homestead)
         nodeTiers = homestead.nodeTiers
             .map { HomesteadNodeTierModel(nodeID: $0.key.rawValue, tier: $0.value) }
             .sorted { $0.nodeID < $1.nodeID }
-        nodeTiers?.forEach { $0.homestead = self }
+        nodeTiers?.linkEach(to: self, parent: \.homestead)
+    }
+}
+
+private extension Array {
+    func linkEach<Parent, Model>(
+        to parent: Parent,
+        parent keyPath: ReferenceWritableKeyPath<Model, Parent?>
+    ) where Element == Model {
+        forEach { $0[keyPath: keyPath] = parent }
     }
 }

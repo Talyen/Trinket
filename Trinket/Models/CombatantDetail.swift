@@ -51,11 +51,11 @@ struct CombatantCardDetail: Hashable, Identifiable {
         health: Int,
         activeEffectSummaries: [EffectSummary]
     ) -> CombatantCardDetail {
-        let rosterContext = configuration.rosterContext(for: combatant.id)
+        let partyMember = configuration.partyMember(for: combatant.id)
         return CombatantCardDetail(
             combatant: combatant,
-            progression: rosterContext?.progression ?? .initial,
-            equipmentLoadout: rosterContext?.equipmentLoadout ?? EquipmentLoadout(),
+            progression: partyMember?.progression ?? .initial,
+            equipmentLoadout: partyMember?.equipmentLoadout ?? EquipmentLoadout(),
             inventoryState: configuration.inventoryState,
             health: health,
             activeEffectSummaries: activeEffectSummaries

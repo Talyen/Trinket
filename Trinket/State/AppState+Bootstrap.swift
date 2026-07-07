@@ -4,24 +4,26 @@ import TrinketContent
 import TrinketPersistence
 
 extension AppState {
+    struct BootstrapDependencies {
+        let playerSave: PlayerSaveStore
+        let musicPlayer: MusicPlayer
+        let roster: PlayerRosterStore
+        let inventory: PlayerInventoryStore
+        let homestead: PlayerHomesteadStore
+        let options: OptionsStore
+        let journey: PlayerJourneyStore
+        let selectedTab: AppTab
+        let activeBattleStageID: String?
+        let mapScrollStageID: String?
+        let initialCollectionCombatantDetail: CombatantDetailContext?
+        let initialCollectionItemID: String?
+    }
+
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
         userDefaults: UserDefaults
-    ) -> (
-        playerSave: PlayerSaveStore,
-        musicPlayer: MusicPlayer,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
-        homestead: PlayerHomesteadStore,
-        options: OptionsStore,
-        journey: PlayerJourneyStore,
-        selectedTab: AppTab,
-        activeBattleStageID: String?,
-        mapScrollStageID: String?,
-        initialCollectionCombatantDetail: CombatantDetailContext?,
-        initialCollectionItemID: String?
-    ) {
+    ) -> BootstrapDependencies {
         if environment.resetState {
             userDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
         }
@@ -54,7 +56,7 @@ extension AppState {
         let launchCollection = launchCollectionTargets(for: environment.launchScreen)
         let session = restoredSessionState(from: userDefaults)
 
-        return (
+        return BootstrapDependencies(
             playerSave: resolvedPlayerSave,
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             roster: resolvedRoster,
