@@ -10,17 +10,8 @@ final class TabNavigationUITests: TrinketUITestCase {
         XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 155 experience")
         assertCombatantDetailSections()
 
-        scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
-        assertButtonExists("Weapon item slot")
-        assertButtonExists("Armor item slot")
-        assertButtonExists("Trinket item slot")
-
-        button("Weapon item slot").tap()
-        assertExists("Equip Weapon")
-        XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 5))
-        dismissSheet()
-
-        scrollUntilVisible(button("Basic ability slot"), swipingUp: false)
+        // 1. Abilities section (higher on screen)
+        scrollUntilVisible(button("Basic ability slot"), swipingUp: true)
         assertButtonExists("Basic ability slot")
         button("Basic ability slot").tap()
         assertExists("Basic")
@@ -32,7 +23,15 @@ final class TabNavigationUITests: TrinketUITestCase {
         button("Basic Bash ability card").tap()
         assertExists("Bash")
 
-        dismissSheet()
+        // 2. Items section (lower on screen)
+        scrollUntilVisible(button("Weapon item slot"), swipingUp: true)
+        assertButtonExists("Weapon item slot")
+        assertButtonExists("Armor item slot")
+        assertButtonExists("Trinket item slot")
+
+        button("Weapon item slot").tap()
+        assertExists("Equip Weapon")
+        XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 5))
         dismissSheet()
 
         assertButtonExists("Knight collection card")

@@ -1,16 +1,18 @@
 import XCTest
 
 final class SmokePlayTests: TrinketUITestCase {
-    func testPlayMapRendersChapterOne() {
+    func testPlayMapFlowAndStageInspection() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
         assertButtonExists("Stage 1-1 Node")
-    }
 
-    func testActiveStageLaunchesBattleInline() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        button("Stage 1-1 Enemy Art").tap()
+        assertExists("Skeleton detail hero header")
+        assertExists("Combatant Stats Section")
+        dismissSheet()
+        XCTAssertTrue(app.descendants(matching: .any)["Skeleton detail hero header"].waitForNonExistence(timeout: 5))
 
         play.openStage("Stage 1-1 Node")
 
@@ -18,15 +20,6 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists("Knight card")
         assertExists("Wolf card")
         XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
-    }
-
-    func testBattleStageEnemyArtOpensDetails() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-
-        button("Stage 1-1 Enemy Art").tap()
-
-        assertExists("Skeleton detail hero header")
-        assertExists("Combatant Stats Section")
     }
 
     func testNonBattleStubStageCanComplete() {

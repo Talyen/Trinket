@@ -1,11 +1,16 @@
 import XCTest
 
 final class SmokeCollectionTests: TrinketUITestCase {
-    func testCollectionScreenRenders() {
+    func testCollectionScreenAndHeroesGrid() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
         assertExists(AccessibilityID.Collection.inventoryCategory)
+
+        app.buttons["Heroes collection category"].tap()
+        assertExists("Knight collection card")
+        assertExists("Wizard collection card")
+        assertExists("Rogue collection card")
     }
 
     func testFreshStartCollectionShowsInventoryEmptyState() {
@@ -19,14 +24,6 @@ final class SmokeCollectionTests: TrinketUITestCase {
         assertExists("Pets collection category")
         assertExists(AccessibilityID.Collection.inventoryCategory)
         assertExists(AccessibilityID.Collection.inventoryEmptyState)
-    }
-
-    func testHeroesGridRenders() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        app.buttons["Heroes collection category"].tap()
-        assertExists("Knight collection card")
-        assertExists("Wizard collection card")
-        assertExists("Rogue collection card")
     }
 
     func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {

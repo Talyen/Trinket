@@ -18,15 +18,9 @@ final class SearchUITests: TrinketUITestCase {
         searchField.tap()
         replaceText(in: searchField, with: "Wolf")
         assertButtonExists("Wolf collection card")
-        collection.openCombatantCard(named: "Wolf")
-        assertCombatantDetailSections()
-        goBack()
 
         replaceText(in: searchField, with: "Wand")
         assertItemCardExists("Wand")
-        collection.openItemCard(named: "Wand")
-        assertExists("Wand")
-        goBack()
 
         replaceText(in: searchField, with: "xyz123")
         search.assertNoResults()

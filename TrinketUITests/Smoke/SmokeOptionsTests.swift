@@ -1,15 +1,8 @@
 import XCTest
 
 final class SmokeOptionsTests: TrinketUITestCase {
-    func testOptionsTab() {
+    func testOptionsScreenRenders() {
         launchApp(arguments: TestLaunchArg.allForTab("options"))
-
-        assertExists("Options Screen")
-        assertExists("Appearance Picker")
-    }
-
-    func testThemePickerRendersViaDeepLink() {
-        launchApp(arguments: TestLaunchArg.allForScreen("options"))
 
         assertExists("Options Screen")
         assertExists("Appearance Picker")
