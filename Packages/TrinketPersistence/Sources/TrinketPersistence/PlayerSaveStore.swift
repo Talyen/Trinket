@@ -18,6 +18,10 @@ public final class PlayerSaveStore {
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
 
+    #if DEBUG
+    var forcesNextSaveFailure = false
+    #endif
+
     public var journey: JourneyProgressState {
         get { currentSave.journey }
         set { mutate { $0.journey = PlayerSaveSanitizer.sanitizeJourney(newValue) } }
@@ -112,7 +116,8 @@ public final class PlayerSaveStore {
     }
 
     public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
-        var candidate = currentSave
+        let snapshot = currentSave
+        var candidate = snapshot
         update(&candidate)
         candidate.modifiedAt = Date()
         candidate = PlayerSaveSanitizer.sanitize(candidate)
@@ -120,9 +125,16 @@ public final class PlayerSaveStore {
         root.update(from: candidate)
 
         do {
+            #if DEBUG
+            if forcesNextSaveFailure {
+                forcesNextSaveFailure = false
+                throw NSError(domain: "PlayerSaveStoreTests", code: 1)
+            }
+            #endif
             try context.save()
             lastPersistenceError = nil
         } catch {
+            root.update(from: snapshot)
             lastPersistenceError = .writeFailed
             logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
             throw PlayerSavePersistenceError.writeFailed

@@ -168,6 +168,43 @@ final class PlayerSaveStoreTests: XCTestCase {
         }
     }
 
+    func testPerformBatchMutationPreservesStateWhenValidationFails() throws {
+        let store = makeStore()
+        store.grantGold(25)
+        let snapshot = store.currentSave
+
+        XCTAssertThrowsError(
+            try store.performBatchMutation { save in
+                save.schemaVersion = 0
+            }
+        )
+
+        XCTAssertEqual(store.currentSave, snapshot)
+        XCTAssertEqual(store.roster.gold, 25)
+        XCTAssertNil(store.lastPersistenceError)
+    }
+
+    #if DEBUG
+    func testPerformBatchMutationRollsBackInMemoryStateWhenSaveFails() throws {
+        let store = makeStore()
+        store.grantGold(10)
+        store.forcesNextSaveFailure = true
+
+        XCTAssertThrowsError(
+            try store.performBatchMutation { save in
+                save.roster.gold += 50
+            }
+        ) { error in
+            guard case PlayerSavePersistenceError.writeFailed = error else {
+                return XCTFail("Expected writeFailed, got \(error)")
+            }
+        }
+
+        XCTAssertEqual(store.roster.gold, 10)
+        XCTAssertEqual(store.lastPersistenceError, .writeFailed)
+    }
+    #endif
+
     private func makeStoreURL() -> URL {
         SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
     }
