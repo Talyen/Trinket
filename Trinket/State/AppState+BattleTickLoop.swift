@@ -27,11 +27,8 @@ extension AppState {
     }
 
     var canAdvanceBattleTicks: Bool {
-        guard battle.activeBattle != nil else { return false }
-        guard !battle.isPaused else { return false }
-        guard shellScenePhase == .active else { return false }
-        guard selectedTab == .play else { return false }
-        guard !battle.isShowingVictory, !battle.isShowingDefeat else { return false }
+        guard battle.canAutoAdvanceTick() else { return false }
+        guard shellScenePhase == .active, selectedTab == .play else { return false }
         return true
     }
 

@@ -62,50 +62,28 @@ struct ActiveBattleConfiguration: Identifiable {
         catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> ActiveBattleConfiguration {
         let rosterState = roster.current
-        let resolvedHeroProgression = rosterState.progression(for: hero)
-        let resolvedPetProgression = rosterState.progression(for: pet)
         let resolvedHighestHeroLevel = rosterState.highestHeroLevel
         let resolvedHighestPetLevel = rosterState.highestPetLevel
-        let resolvedHeroEquipmentLoadout = rosterState.equipmentLoadout(for: hero)
-        let resolvedPetEquipmentLoadout = rosterState.equipmentLoadout(for: pet)
         let resolvedInventoryState = inventory.current
 
-        let scaledHero = CombatantLevelScaler.scale(combatant: hero, level: resolvedHeroProgression.level)
-        let scaledPet = CombatantLevelScaler.scale(combatant: pet, level: resolvedPetProgression.level)
-        let heroBuild = CombatBuildResolver.build(
-            combatant: scaledHero,
-            equipmentLoadout: resolvedHeroEquipmentLoadout,
-            inventory: resolvedInventoryState.items,
+        let heroSnapshot = partyMemberSnapshot(
+            combatant: hero,
+            rosterState: rosterState,
+            inventoryState: resolvedInventoryState,
             catalog: catalog
         )
-        let petBuild = CombatBuildResolver.build(
-            combatant: scaledPet,
-            equipmentLoadout: resolvedPetEquipmentLoadout,
-            inventory: resolvedInventoryState.items,
+        let petSnapshot = partyMemberSnapshot(
+            combatant: pet,
+            rosterState: rosterState,
+            inventoryState: resolvedInventoryState,
             catalog: catalog
         )
-        let enemyBuild: CombatBuild
-        if let enemy,
-           let catalogEnemy = catalog.enemy(matching: enemy.id) {
-            enemyBuild = CombatBuildResolver.build(enemy: catalogEnemy, catalog: catalog)
-        } else {
-            enemyBuild = CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
-        }
+        let enemyBuild = resolvedEnemyBuild(enemy: enemy, catalog: catalog)
         return ActiveBattleConfiguration(
             stageID: stageID,
             rngSeed: rngSeed,
-            hero: PartyMemberBattleSnapshot(
-                combatant: heroBuild.combatant,
-                progression: resolvedHeroProgression,
-                equipmentLoadout: resolvedHeroEquipmentLoadout,
-                modifiers: heroBuild.modifiers
-            ),
-            pet: PartyMemberBattleSnapshot(
-                combatant: petBuild.combatant,
-                progression: resolvedPetProgression,
-                equipmentLoadout: resolvedPetEquipmentLoadout,
-                modifiers: petBuild.modifiers
-            ),
+            hero: heroSnapshot,
+            pet: petSnapshot,
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
             highestHeroLevel: resolvedHighestHeroLevel,
@@ -115,6 +93,43 @@ struct ActiveBattleConfiguration: Identifiable {
             stageReward: stageReward,
             rewardItemNames: rewardItemNames(for: stageReward)
         )
+    }
+
+    private static func partyMemberSnapshot(
+        combatant: Combatant,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
+        catalog: CombatCatalog
+    ) -> PartyMemberBattleSnapshot {
+        let progression = rosterState.progression(for: combatant)
+        let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
+        let scaledCombatant = CombatantLevelScaler.scale(
+            combatant: combatant,
+            level: progression.level
+        )
+        let build = CombatBuildResolver.build(
+            combatant: scaledCombatant,
+            equipmentLoadout: equipmentLoadout,
+            inventory: inventoryState.items,
+            catalog: catalog
+        )
+        return PartyMemberBattleSnapshot(
+            combatant: build.combatant,
+            progression: progression,
+            equipmentLoadout: equipmentLoadout,
+            modifiers: build.modifiers
+        )
+    }
+
+    private static func resolvedEnemyBuild(
+        enemy: Combatant?,
+        catalog: CombatCatalog
+    ) -> CombatBuild {
+        if let enemy,
+           let catalogEnemy = catalog.enemy(matching: enemy.id) {
+            return CombatBuildResolver.build(enemy: catalogEnemy, catalog: catalog)
+        }
+        return CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
     }
 
     private static func rewardItemNames(for stageReward: StageReward?) -> [String] {

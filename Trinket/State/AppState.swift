@@ -231,10 +231,13 @@ final class AppState {
         }
 
         battle.preview = nil
-        battle.activeBattle = makeActiveBattleConfiguration(
+        battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: stage.id,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: roster.activeHero,
             pet: roster.activePet,
+            roster: roster,
+            inventory: inventory,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards
@@ -252,10 +255,13 @@ final class AppState {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
             ?? roster.activePet
 
-        battle.activeBattle = makeActiveBattleConfiguration(
+        battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: activeBattle.stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
+            roster: roster,
+            inventory: inventory,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward
@@ -274,44 +280,36 @@ final class AppState {
         }
     }
 
-    func shellDidAppear(scenePhase: ScenePhase) {
+    func reconcileShellState(_ trigger: ShellReconcileTrigger, scenePhase: ScenePhase) {
         shellScenePhase = scenePhase
-        if battle.activeBattle != nil, selectedTab != .play {
-            battle.isPaused = true
-        }
-        refreshMusic(scenePhase: scenePhase)
-        syncBattleTickLoop()
-    }
 
-    func shellDidChangeTab(to _: AppTab, scenePhase: ScenePhase) {
-        shellScenePhase = scenePhase
-        if battle.activeBattle != nil {
-            // Leaving Play pauses combat; returning stays paused until the player resumes.
-            battle.isPaused = true
+        switch trigger {
+        case .appeared:
+            if battle.activeBattle != nil, selectedTab != .play {
+                battle.isPaused = true
+            }
+        case .tabChanged:
+            if battle.activeBattle != nil {
+                // Leaving Play pauses combat; returning stays paused until the player resumes.
+                battle.isPaused = true
+            }
+        case let .activeBattleChanged(started):
+            if started {
+                battle.isPaused = selectedTab != .play
+            } else {
+                battle.isPaused = false
+                musicPlayer.clearEncounterResumePositions()
+            }
+        case .scenePhaseChanged:
+            if scenePhase != .active, battle.activeBattle != nil {
+                battle.isPaused = true
+            }
+            handleScenePhaseSideEffects(scenePhase)
+        case .musicInputChanged:
+            break
         }
-        refreshMusic(scenePhase: scenePhase)
-        syncBattleTickLoop()
-    }
 
-    func shellDidChangeActiveBattle(started: Bool, scenePhase: ScenePhase) {
-        shellScenePhase = scenePhase
-        if started {
-            battle.isPaused = selectedTab != .play
-        } else {
-            battle.isPaused = false
-            musicPlayer.clearEncounterResumePositions()
-        }
         refreshMusic(scenePhase: scenePhase)
-        syncBattleTickLoop()
-    }
-
-    func shellDidChangeScenePhase(_ newPhase: ScenePhase) {
-        shellScenePhase = newPhase
-        if newPhase != .active, battle.activeBattle != nil {
-            battle.isPaused = true
-        }
-        handleScenePhaseSideEffects(newPhase)
-        refreshMusic(scenePhase: newPhase)
         syncBattleTickLoop()
     }
 
@@ -332,7 +330,7 @@ final class AppState {
         switch phase {
         case .background:
             musicPlayer.cancelActiveFades()
-            trimMemoryFootprintForBackground()
+            trimMemoryFootprint()
             Task { await playerSave.flushPendingSave() }
         case .inactive:
             musicPlayer.cancelActiveFades()
@@ -385,30 +383,17 @@ final class AppState {
         return resultingJourney
     }
 
-    private func makeActiveBattleConfiguration(
-        stageID: String?,
-        hero: Combatant,
-        pet: Combatant,
-        enemy: Combatant?,
-        enemyEncounterLevel: Int?,
-        stageReward: StageReward?
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
-            stageID: stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
-            hero: hero,
-            pet: pet,
-            roster: roster,
-            inventory: inventory,
-            enemy: enemy,
-            enemyEncounterLevel: enemyEncounterLevel,
-            stageReward: stageReward
-        )
-    }
-
     static let sessionTabKey = "session.selectedTab"
     static let activeBattleStageIDKey = "session.activeBattleStageID"
     static let mapScrollStageIDKey = "session.mapScrollStageID"
+}
+
+enum ShellReconcileTrigger {
+    case appeared
+    case tabChanged
+    case activeBattleChanged(started: Bool)
+    case scenePhaseChanged
+    case musicInputChanged
 }
 
 struct ShellDataStatusPresentation: Equatable {

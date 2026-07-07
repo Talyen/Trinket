@@ -12,18 +12,13 @@ extension AppState {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.handleMemoryPressure()
+                self?.trimMemoryFootprint()
             }
         }
         #endif
     }
 
-    func handleMemoryPressure() {
-        battle.trimMemoryFootprint(releaseBattleLog: true)
-        musicPlayer.trimMemoryFootprint()
-    }
-
-    func trimMemoryFootprintForBackground() {
+    func trimMemoryFootprint() {
         battle.trimMemoryFootprint(releaseBattleLog: true)
         musicPlayer.trimMemoryFootprint()
     }
