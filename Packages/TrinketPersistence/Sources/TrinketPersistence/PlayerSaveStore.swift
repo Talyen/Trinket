@@ -77,7 +77,11 @@ public final class PlayerSaveStore {
         } catch {
             logger.error("Failed to open SwiftData player store: \(error.localizedDescription, privacy: .public)")
             let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            container = try! ModelContainer(for: schema, configurations: fallbackConfig)
+            do {
+                container = try ModelContainer(for: schema, configurations: fallbackConfig)
+            } catch {
+                fatalError("Failed to open fallback in-memory SwiftData store: \(error.localizedDescription)")
+            }
         }
         context = ModelContext(container)
         context.autosaveEnabled = false

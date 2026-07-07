@@ -4,11 +4,11 @@ Goal: Drive unsafe typing escapes toward zero in non-test source.
 
 ## Targets
 
-- `rg -n '\bAny\b' --type swift -g '!*Tests*' -g '!*UITests*'` — target trending to 0 in model/rule code; existential `any` protocol is fine
-- `rg -n 'as!' --type swift -g '!*Tests*' -g '!*UITests*'` — target 0
-- `rg -n 'try!' --type swift -g '!*Tests*'` — target 0 in non-test, non-generated source
-- `rg -n 'Force Unwrap|IUO|implicitly unwrapped' --type swift -g '!*Tests*'` — target 0
-- `rg -n 'swiftlint:disable' --type swift -g '!*Tests*'` — target trending to 0
+- `rg -n '\bAny\b' --type swift -g '!*Tests*' -g '!*UITests*' .` — target trending to 0 in model/rule code; existential `any` protocol is fine
+- `rg -n 'as!' --type swift -g '!*Tests*' -g '!*UITests*' .` — target 0
+- `rg -n 'try!' --type swift -g '!*Tests*' .` — target 0 in non-test, non-generated source
+- `rg -n 'Force Unwrap|IUO|implicitly unwrapped' --type swift -g '!*Tests*' .` — target 0
+- `rg -n 'swiftlint:disable' --type swift -g '!*Tests*' .` — target trending to 0
 
 ## Checks
 

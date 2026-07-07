@@ -79,7 +79,11 @@ if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
       else
         echo "=== Content or project sources changed; running generate ==="
       fi
-      ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
+      if [[ ${#GENERATE_ARGS[@]} -gt 0 ]]; then
+        ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
+      else
+        ./Scripts/generate.sh
+      fi
     fi
   else
     echo "=== Running generate ==="
