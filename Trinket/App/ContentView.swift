@@ -23,10 +23,10 @@ struct ContentView: View {
                 )
             }
             .onChange(of: appState.battle.preview?.id) { _, _ in
-                appState.reconcileShellState(.musicInputChanged, scenePhase: scenePhase)
+                appState.refreshMusic(scenePhase: scenePhase)
             }
             .onChange(of: appState.options.musicVolume) { _, _ in
-                appState.reconcileShellState(.musicInputChanged, scenePhase: scenePhase)
+                appState.refreshMusic(scenePhase: scenePhase)
             }
             .onChange(of: scenePhase) { _, newPhase in
                 appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)

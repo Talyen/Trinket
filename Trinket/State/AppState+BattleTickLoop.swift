@@ -42,7 +42,14 @@ extension AppState {
             while let self, !Task.isCancelled, self.shouldRunBattleTickLoop {
                 if self.canAdvanceBattleTicks,
                    let configuration = self.battle.activeBattle {
-                    self.handleBattlePeriodicTick(configuration: configuration, at: .now)
+                    if let earnedGold = self.battle.advanceAutoTick(
+                        at: .now,
+                        journey: self.journey.current,
+                        homestead: self.homestead.current
+                    ) {
+                        self.grantBattleEarnedGold(earnedGold)
+                        self.completeActiveBattle(configuration, battleEarnedGold: 0)
+                    }
                     try? await clock.sleep(
                         for: self.battleTickInterval,
                         tolerance: self.battleTickTolerance

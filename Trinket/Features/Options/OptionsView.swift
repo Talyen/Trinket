@@ -11,11 +11,11 @@ struct OptionsView: View {
         @Bindable var options = appState.options
 
         Form {
-            if let status = appState.shellDataStatusPresentation {
+            if let message = appState.persistenceStatusMessage {
                 Section("Progress Status") {
-                    Label(status.message, systemImage: status.symbolName)
+                    Label(message, systemImage: "externaldrive.badge.exclamationmark")
                         .font(.subheadline)
-                        .foregroundStyle(foregroundStyle(for: status.style))
+                        .foregroundStyle(TrinketDesign.Colors.destructive)
                         .accessibilityIdentifier("Progress Status Message")
                 }
             }
@@ -87,15 +87,6 @@ struct OptionsView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(resetErrorMessage ?? "")
-        }
-    }
-
-    private func foregroundStyle(for style: ShellDataStatusPresentation.Style) -> AnyShapeStyle {
-        switch style {
-        case .destructive:
-            AnyShapeStyle(TrinketDesign.Colors.destructive)
-        case .secondary:
-            AnyShapeStyle(.secondary)
         }
     }
 }

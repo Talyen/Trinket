@@ -6,6 +6,9 @@ import SwiftUI
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+#if canImport(UIKit)
+import UIKit
+#endif
 
 let appStateLogger = Logger(
     subsystem: PlayerSaveDefaults.loggingSubsystem,
@@ -75,19 +78,7 @@ final class AppState {
         finishBootstrap(environment: environment)
     }
 
-    var shellDataStatusPresentation: ShellDataStatusPresentation? {
-        if let persistenceMessage = persistenceStatusMessage {
-            return ShellDataStatusPresentation(
-                message: persistenceMessage,
-                symbolName: "externaldrive.badge.exclamationmark",
-                style: .destructive
-            )
-        }
-
-        return nil
-    }
-
-    private var persistenceStatusMessage: String? {
+    var persistenceStatusMessage: String? {
         switch playerSave.lastPersistenceError {
         case .writeFailed:
             return "Couldn't save progress to this device. Your latest changes may be lost if the app closes."
@@ -159,20 +150,6 @@ final class AppState {
         }
     }
 
-    func handleBattlePeriodicTick(
-        configuration: ActiveBattleConfiguration,
-        at date: Date
-    ) {
-        if let earnedGold = battle.advanceAutoTick(
-            at: date,
-            journey: journey.current,
-            homestead: homestead.current
-        ) {
-            grantBattleEarnedGold(earnedGold)
-            completeActiveBattle(configuration, battleEarnedGold: 0)
-        }
-    }
-
     @discardableResult
     func resetGameplayProgress() -> Bool {
         do {
@@ -231,13 +208,10 @@ final class AppState {
         }
 
         battle.preview = nil
-        battle.activeBattle = ActiveBattleConfiguration.make(
+        battle.activeBattle = makeActiveBattleConfiguration(
             stageID: stage.id,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: roster.activeHero,
             pet: roster.activePet,
-            roster: roster,
-            inventory: inventory,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards
@@ -255,18 +229,36 @@ final class AppState {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
             ?? roster.activePet
 
-        battle.activeBattle = ActiveBattleConfiguration.make(
+        battle.activeBattle = makeActiveBattleConfiguration(
             stageID: activeBattle.stageID,
-            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
-            roster: roster,
-            inventory: inventory,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward
         )
         syncBattleTickLoop()
+    }
+
+    private func makeActiveBattleConfiguration(
+        stageID: String?,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        stageReward: StageReward?
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
+            stageID: stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            hero: hero,
+            pet: pet,
+            roster: roster,
+            inventory: inventory,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward
+        )
     }
 
     @discardableResult
@@ -305,12 +297,29 @@ final class AppState {
                 battle.isPaused = true
             }
             handleScenePhaseSideEffects(scenePhase)
-        case .musicInputChanged:
-            break
         }
 
         refreshMusic(scenePhase: scenePhase)
         syncBattleTickLoop()
+    }
+
+    func installMemoryPressureHandling() {
+        #if canImport(UIKit)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.trimMemoryFootprint()
+            }
+        }
+        #endif
+    }
+
+    func trimMemoryFootprint() {
+        battle.trimMemoryFootprint(releaseBattleLog: true)
+        musicPlayer.trimMemoryFootprint()
     }
 
     func refreshMusic(scenePhase: ScenePhase) {
@@ -393,16 +402,4 @@ enum ShellReconcileTrigger {
     case tabChanged
     case activeBattleChanged(started: Bool)
     case scenePhaseChanged
-    case musicInputChanged
-}
-
-struct ShellDataStatusPresentation: Equatable {
-    enum Style: Equatable {
-        case destructive
-        case secondary
-    }
-
-    let message: String
-    let symbolName: String
-    let style: Style
 }

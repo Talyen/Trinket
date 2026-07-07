@@ -83,12 +83,6 @@ extension AppState {
 
         battle.onBattleStateChange = { [weak self] stageID in
             self?.activeBattleStageID = stageID
-        }
-        battle.onBattleEnded = { [weak self] in
-            self?.activeBattleStageID = nil
-            self?.syncBattleTickLoop()
-        }
-        battle.onTickEligibilityChange = { [weak self] in
             self?.syncBattleTickLoop()
         }
         installMemoryPressureHandling()

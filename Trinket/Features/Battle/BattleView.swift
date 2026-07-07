@@ -48,9 +48,6 @@ struct BattleView: View {
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
             }
-            .onChange(of: battleSession.isPaused) { _, _ in
-                appState.syncBattleTickLoop()
-            }
     }
 
     @ViewBuilder

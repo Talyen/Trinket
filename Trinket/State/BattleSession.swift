@@ -10,25 +10,9 @@ import TrinketPersistence
 @MainActor
 @Observable
 final class BattleSession {
-    var isPaused = false {
-        didSet {
-            guard isPaused != oldValue else { return }
-            onTickEligibilityChange?()
-        }
-    }
-    var isShowingVictory = false {
-        didSet {
-            guard isShowingVictory != oldValue else { return }
-            onTickEligibilityChange?()
-        }
-    }
-
-    var isShowingDefeat = false {
-        didSet {
-            guard isShowingDefeat != oldValue else { return }
-            onTickEligibilityChange?()
-        }
-    }
+    var isPaused = false
+    var isShowingVictory = false
+    var isShowingDefeat = false
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
@@ -47,8 +31,6 @@ final class BattleSession {
 
     private(set) var state: BattleState?
     var onBattleStateChange: ((String?) -> Void)?
-    var onBattleEnded: (() -> Void)?
-    var onTickEligibilityChange: (() -> Void)?
 
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]
@@ -67,7 +49,6 @@ final class BattleSession {
         activeBattle = nil
         clearAllPresentation()
         onBattleStateChange?(nil)
-        onBattleEnded?()
     }
 
     func setMusicPreview(for stage: Stage?) {
