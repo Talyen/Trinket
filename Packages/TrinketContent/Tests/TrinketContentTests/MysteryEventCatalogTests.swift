@@ -54,7 +54,7 @@ struct MysteryEventCatalogTests {
     }
 
     @Test func unknownMysteryEventReturnsNil() {
-        #expect(GameContent.mysteryEvent(matching: "nonexistent-event" == nil))
+        #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
     @Test func pickMysteryEventReturnsValidEvent() {

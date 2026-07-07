@@ -44,7 +44,7 @@ struct JourneyContentTests {
     @Test func nextStageReturnsNilAfterFinalStage() throws {
         let finalStage = try #require(chapter.stages.last)
 
-        #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters == nil))
+        #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
     }
 
     @Test func isLastCompletedReflectsLastCompletedStageID() {

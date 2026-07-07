@@ -15,7 +15,7 @@ struct GameContentEncounterArtTests {
     @Test func unmappedBattleStageUsesEnemyArt() throws {
         let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
 
-        #expect(GameContent.encounterArtID(for: stage == nil))
+        #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference == nil)
         _ = try #require(stage.encounterCombatantArtReference)
         #expect(stage.encounterSubjectName == "Skeleton")
@@ -32,7 +32,7 @@ struct GameContentEncounterArtTests {
             rewards: .empty
         )
 
-        #expect(GameContent.encounterArtID(for: stage == nil))
+        #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterSubjectName == "Merchant")
     }
 }

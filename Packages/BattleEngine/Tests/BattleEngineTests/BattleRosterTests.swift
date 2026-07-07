@@ -84,7 +84,7 @@ struct BattleRosterTests {
     @Test func runtimeForReturnsNilForUnknownID() {
         let roster = makeRoster()
         let unknown = combatant(id: "stranger", role: .hero)
-        #expect(roster.runtime(for: unknown == nil))
+        #expect(roster.runtime(for: unknown) == nil)
     }
 
     @Test func combatantForReturnsRuntimeByID() {
@@ -92,7 +92,7 @@ struct BattleRosterTests {
         #expect(roster.combatant(for: "hero")?.role == .hero)
         #expect(roster.combatant(for: "pet")?.role == .pet)
         #expect(roster.combatant(for: "enemy")?.role == .enemy)
-        #expect(roster.combatant(for: "missing" == nil))
+        #expect(roster.combatant(for: "missing") == nil)
     }
 
     @Test func updateReplacesMatchingRuntime() {

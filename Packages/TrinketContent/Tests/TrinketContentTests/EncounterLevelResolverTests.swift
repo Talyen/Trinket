@@ -21,6 +21,6 @@ struct EncounterLevelResolverTests {
         let chapter = try #require(GameContent.chapters.first)
         let eventStage = try #require(chapter.stages.first { if case .event = $0.encounter { return true } else { return false } })
 
-        #expect(EncounterLevelResolver.journeyEnemyLevel(for: eventStage == in: chapter), 1)
+        #expect(EncounterLevelResolver.journeyEnemyLevel(for: eventStage, in: chapter) == 1)
     }
 }

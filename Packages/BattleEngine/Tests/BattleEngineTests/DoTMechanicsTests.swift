@@ -59,20 +59,20 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
         let applyStep = battle.advanceOneStep()
-        #expect(statusAmounts(from: applyStep.events == keyword: .burn), [4])
+        #expect(statusAmounts(from: applyStep.events, keyword: .burn) == [4])
         #expect(burnPotency(on: battle) == 4)
 
         let tickOne = battle.advanceOneStep()
-        #expect(statusAmounts(from: tickOne.events == keyword: .burn), [2])
+        #expect(statusAmounts(from: tickOne.events, keyword: .burn) == [2])
         #expect(burnPotency(on: battle) == 2)
 
         let tickTwo = battle.advanceOneStep()
-        #expect(statusAmounts(from: tickTwo.events == keyword: .burn), [1])
+        #expect(statusAmounts(from: tickTwo.events, keyword: .burn) == [1])
         #expect(burnPotency(on: battle) == 1)
 
         let tickThree = battle.advanceOneStep()
         #expect(statusAmounts(from: tickThree.events, keyword: .burn).isEmpty)
-        #expect(burnPotency(on: battle == nil))
+        #expect(burnPotency(on: battle) == nil)
     }
 
     @Test func burnStacksMergeAndDecayTogether() {
@@ -118,7 +118,7 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         let applyStep = battle.advanceOneStep()
 
-        #expect(statusAmounts(from: applyStep.events == keyword: .poison), [8])
+        #expect(statusAmounts(from: applyStep.events, keyword: .poison) == [8])
         #expect(
             battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8
         )

@@ -10,7 +10,7 @@ struct AbilityCatalogTests {
     }
 
     @Test func unknownAbilityLookupReturnsNil() {
-        #expect(AbilityCatalog.ability(id: "missing-ability" == nil))
+        #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
     @Test func staticReexportsMatchCatalog() {

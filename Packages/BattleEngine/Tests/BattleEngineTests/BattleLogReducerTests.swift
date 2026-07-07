@@ -219,7 +219,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        #expect(BattleLogReducer.line(for: event == matchup: sampleMatchup()), "Hero is on Death's Door.")
+        #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero is on Death's Door.")
     }
 
     @Test func deathsDoorExpiredLogLine() {
@@ -234,7 +234,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        #expect(BattleLogReducer.line(for: event == matchup: sampleMatchup()), "Hero's Death's Door fades.")
+        #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero's Death's Door fades.")
     }
 
     private func sampleMatchup() -> BattleMatchup {

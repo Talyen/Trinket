@@ -184,7 +184,7 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
 
-        #expect(sanitized.roster.equipmentLoadout(for: knight == nil).itemID(for: .weapon))
+        #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
         #expect(sanitized.inventory.items.map(\.id) == ["weapon-id"])
     }
 
@@ -230,7 +230,7 @@ final class PlayerSaveSanitizerTests {
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         let loadout = sanitized.roster.equipmentLoadout(for: bear)
 
-        #expect(loadout.itemID(for: .weapon == nil))
+        #expect(loadout.itemID(for: .weapon) == nil)
         #expect(loadout.itemID(for: .trinket) == trinket.id)
     }
 

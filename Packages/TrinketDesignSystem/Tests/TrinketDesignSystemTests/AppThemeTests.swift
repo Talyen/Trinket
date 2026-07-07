@@ -25,6 +25,6 @@ struct AppThemeTests {
         #expect(TrinketDesign.AppAppearance(rawValue: "system") == .system)
         #expect(TrinketDesign.AppAppearance(rawValue: "Light") == .light)
         #expect(TrinketDesign.AppAppearance(rawValue: "dark") == .dark)
-        #expect(TrinketDesign.AppAppearance(rawValue: "unknown" == nil))
+        #expect(TrinketDesign.AppAppearance(rawValue: "unknown") == nil)
     }
 }

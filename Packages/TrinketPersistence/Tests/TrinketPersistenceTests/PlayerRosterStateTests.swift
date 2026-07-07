@@ -127,7 +127,7 @@ struct PlayerRosterStateTests {
         #expect(loadout.itemID(for: .weapon) == "wand-basic")
 
         loadout.unequip(.weapon)
-        #expect(loadout.itemID(for: .weapon == nil))
+        #expect(loadout.itemID(for: .weapon) == nil)
     }
 
     @Test func itemMatchingResolvesTemplateIDForRewardInstances() throws {
@@ -153,7 +153,7 @@ struct PlayerRosterStateTests {
         roster.setEquipmentLoadout(knightLoadout, for: knight)
 
         #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
-        #expect(roster.equipmentLoadout(for: wizard == nil).itemID(for: .weapon))
+        #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }
 
     @Test func inventorySlotUnlocksWhenSlotItemExists() throws {

@@ -60,15 +60,15 @@ struct ExperienceScalingTests {
     }
 
     @Test func battleAwardAppliesLevelDeltaMultiplier() {
-        #expect(ExperienceScaling.battleAward(playerLevel: 20 == enemyLevel: 5), 0)
-        #expect(ExperienceScaling.battleAward(playerLevel: 5 > enemyLevel: 5), 0)
+        #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
+        #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) > 0)
     }
 
     // MARK: - Catch-up multiplier
 
     @Test func catchUpMultiplierIsOneAtNoGap() {
-        #expect(ExperienceScaling.catchUpMultiplier(for: 10 == highestLevel: 10), 1.0, accuracy: 0.001)
-        #expect(ExperienceScaling.catchUpMultiplier(for: 20 == highestLevel: 15), 1.0, accuracy: 0.001)
+        #expect(abs(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10) - 1.0) < 0.001)
+        #expect(abs(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15) - 1.0) < 0.001)
     }
 
     @Test func catchUpMultiplierIncreasesWithGap() {

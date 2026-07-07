@@ -35,6 +35,6 @@ struct CombatantEquipmentTests {
 
         #expect(sanitized.itemID(for: .trinket) == "ring-a")
         #expect(sanitized.itemID(for: .secondaryTrinket) == "ring-a")
-        #expect(sanitized.itemID(for: .weapon == nil))
+        #expect(sanitized.itemID(for: .weapon) == nil)
     }
 }

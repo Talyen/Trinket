@@ -24,7 +24,7 @@ struct StageMapPresentationTests {
             stages: []
         )
 
-        #expect(ChapterJourneyRow.stage(stage == .active).id, stage.id)
+        #expect(ChapterJourneyRow.stage(stage, .active).id == stage.id)
         #expect(ChapterJourneyRow.chapterGate(gateChapter).id == StageMapID.chapterGate(for: gateChapter))
     }
 

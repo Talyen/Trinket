@@ -1,6 +1,6 @@
 import Foundation
 
-enum MusicTrackKind: String, Hashable {
+public enum MusicTrackKind: String, Hashable, Sendable {
     case menu
     case battle
     case boss
@@ -8,7 +8,7 @@ enum MusicTrackKind: String, Hashable {
 
 public struct MusicTrack: Identifiable, Hashable, Sendable {
     public let id: String
-    let kind: MusicTrackKind
+    public let kind: MusicTrackKind
     public let resourceName: String
     public let fileExtension: String
     public let bossEnemyID: String
