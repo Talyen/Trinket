@@ -44,4 +44,4 @@ Goal: Drive unsafe typing escapes toward zero in non-test source.
 - Prefer defining modern `@Environment` keys with a safe default value, or wrap in a fallback structure to prevent runtime crashes.
 - Avoid using `// swiftlint:disable` wherever possible; if a disable is required, scope it strictly to a single line with an explicit reason comment.
 - Use `Any` only at serialization/JSON boundaries; prefer existentials (`any MyProtocol`) for dynamic interface variables.
-- Validate incoming decoded save payload structures using `init(from:)` checks in [PlayerSaveSanitizer.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift) rather than relying on structural runtime casts.
+- Validate incoming decoded save payload structures using `init(from:)` checks in [PlayerSaveSanitizer.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift) rather than relying on structural runtime casts.

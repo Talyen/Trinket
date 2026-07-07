@@ -21,7 +21,7 @@ Switch via `OptionsStore.theme` or `-theme` launch argument.
 
 ## Surface roles
 
-Use semantic modifiers (`.surfaceRole(.base)`, `.backgroundMode(.playJourney)`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`, `modal`, `popover`.
+Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground(.playJourney)`) instead of hardcoded colors. Roles include `base`, `secondary`, `elevated`, `card`, `denseRow`, `selected`, `disabled`, `warning`, `reward`, `modal`, `popover`.
 
 ## Keyword styling
 

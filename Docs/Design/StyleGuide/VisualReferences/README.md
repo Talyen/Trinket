@@ -2,6 +2,8 @@
 
 These images are visual direction references for the app-wide chrome and design-system work. They are not implementation specs by themselves; token names, accessibility behavior, and SwiftUI component APIs should remain defined in code and docs.
 
+**Note:** Reference PNG boards listed below are not committed to this repository. Store them alongside this README locally or in your design archive; `AppVisualFoundation.md` and `TrinketDesignSystem` source are authoritative for shipped behavior.
+
 Durable implementation guidance lives in `Docs/Design/StyleGuide/AppVisualFoundation.md`.
 
 ## Boards

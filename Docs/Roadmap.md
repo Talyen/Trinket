@@ -32,7 +32,7 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Cross-cutting
 - **Status:** scratch
 - **Idea:** Apply lightweight Metal/SwiftUI shader treatments to portrait art — shimmer on rare items, elemental tint pulses on keywords, subtle idle breathing — without replacing the underlying HEIC assets.
-- **Touches:** `Trinket/Shared` card views, `ArtPipeline`
+- **Touches:** `Trinket/Shared` card views, `ArtManifest/` + `Scripts/prepare-art-assets.sh`
 
 ### R-005 — Parallax and device motion
 - **Area:** Play, Battle
@@ -72,13 +72,13 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Battle, Art
 - **Status:** scratch
 - **Idea:** Replace static battle portraits with short looping idle clips per Hero, Pet, and Enemy. Pipeline: generate with Veo (or similar), crop to combatant aspect ratio, loop on an end-frame hold. One loop per catalog entry.
-- **Touches:** `ArtPipeline`, `Raw Assets/`, battle card views
+- **Touches:** `ArtManifest/`, `Raw Assets/`, battle card views
 
 ### R-011 — Skill and Ultimate cinematics
 - **Area:** Battle, Art
 - **Status:** scratch
 - **Idea:** Full-screen or flash-frame cinematics for Skills and Ultimates on Heroes and Pets (Omni Flash–style), plus shorter Skill animations for Enemies. Distinct from idle loops (R-010) — these play once per cast.
-- **Touches:** `ArtPipeline`, battle presentation, ability event timing
+- **Touches:** `ArtManifest/`, battle presentation, ability event timing
 
 ---
 
@@ -94,13 +94,13 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Play, Battle
 - **Status:** scratch
 - **Idea:** Design and polish the victory moment: gold grant, item drop reveal, and return-to-map transition. Today rewards are stubbed; this item covers UX and persistence wiring for the full loop.
-- **Touches:** `BattleVictorySummary`, `PlayFlowCoordinator`, inventory grants
+- **Touches:** `BattleVictorySummary`, `AppState` / `BattleSession`, inventory grants
 
 ### R-014 — Hero and Pet unlock flow
 - **Area:** Heroes, Play
 - **Status:** scratch
 - **Idea:** Define how new Heroes and Pets enter the roster — stage milestones, shop purchases, event choices — including collection reveal UI and "new" badges.
-- **Touches:** `PlayerCollectionState`, collection UI, stage rewards
+- **Touches:** `PlayerRosterState`, collection UI, stage rewards
 
 ### R-015 — Shop encounters
 - **Area:** Play
@@ -136,7 +136,7 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Play
 - **Status:** scratch
 - **Idea:** An encounter centered on risk/reward item crafting. Players offer gear or materials at an altar to receive corrupted or upgraded versions — higher stats, random affixes, or tradeoffs (e.g. huge power with a curse). Mechanics TBD around pool, rarity shifts, and curse/boon balance.
-- **Touches:** Play encounter routing, `ContentManifest`, item model, `PlayerCollectionState`
+- **Touches:** Play encounter routing, `ContentManifest`, item model, `PlayerInventoryState`
 
 ### R-021 — Alchemist's Shop & Potion Crafting
 - **Area:** Play
@@ -148,7 +148,7 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Play, Cross-cutting
 - **Status:** scratch
 - **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. Candidates: a dungeon-crawl gauntlet (multi-stage run with persistent damage), a boss-rush mode, or a roguelite mode (procedural picks, permadeath, stacking buffs). Goal: give players a way to level or gear alternate heroes/pets without replaying the same chapters.
-- **Touches:** `PlayFlowCoordinator`, `BattleSession`, mode selection UI, `TrinketCore` progression
+- **Touches:** `AppState`, `BattleSession`, mode selection UI, `TrinketCore` progression
 
 ---
 
@@ -158,7 +158,7 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Area:** Platform
 - **Status:** shipped
 - **Idea:** Design and ship a production app icon, exploring Icon Composer and/or external image tools (e.g. Nano Banana Pro). Must read at small sizes on the Home Screen.
-- **Touches:** `Trinket/Assets.xcassets/AppIcon`, `Scripts/prepare-app-icon.sh`
+- **Touches:** `Trinket/Assets.xcassets/AppIcon.appiconset`, `Scripts/prepare-app-icon.sh`
 
 ### R-024 — Chapter art aspect ratio
 - **Area:** Play, Art
