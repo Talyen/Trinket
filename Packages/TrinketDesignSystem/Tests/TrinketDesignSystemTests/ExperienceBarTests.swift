@@ -1,9 +1,8 @@
 import TrinketCore
 import TrinketDesignSystem
 import XCTest
-@testable import Trinket
 
-final class ExperienceBarSegmentsTests: XCTestCase {
+final class ExperienceBarTests: XCTestCase {
     func testNoChangeReturnsEmptySegments() {
         let progression = CombatantProgression(level: 2, currentXP: 35, requiredXP: 155)
         let segments = ExperienceBar.segments(from: progression, to: progression)

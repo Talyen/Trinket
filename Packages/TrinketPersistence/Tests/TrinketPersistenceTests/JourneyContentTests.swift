@@ -7,10 +7,10 @@ final class JourneyContentTests: XCTestCase {
         GameContent.chapters[0]
     }
 
-    func testEachRewardItemTemplateExists() {
+    func testEachRewardItemTemplateExists() throws {
         for stage in chapter.stages {
             for templateID in stage.rewards.itemTemplateIDs {
-                XCTAssertNotNil(
+                _ = try XCTUnwrap(
                     GameContent.itemTemplate(matching: templateID),
                     "Stage \(stage.id) references missing item template \(templateID)"
                 )

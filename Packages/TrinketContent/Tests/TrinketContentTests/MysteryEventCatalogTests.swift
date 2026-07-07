@@ -38,21 +38,20 @@ final class MysteryEventCatalogTests: XCTestCase {
         }
     }
 
-    func testArtReferencesAreValid() {
+    func testArtReferencesAreValid() throws {
         for event in GameContent.mysteryEvents {
             guard let artID = event.artID else { continue }
-            XCTAssertNotNil(
+            _ = try XCTUnwrap(
                 ArtCatalog.encounterArtByID[artID],
                 "Mystery event \(event.id) references unknown art ID \(artID)"
             )
         }
     }
 
-    func testMysteryEventLookup() {
+    func testMysteryEventLookup() throws {
         for event in GameContent.mysteryEvents {
-            let lookedUp = GameContent.mysteryEvent(matching: event.id)
-            XCTAssertNotNil(lookedUp)
-            XCTAssertEqual(lookedUp?.id, event.id)
+            let lookedUp = try XCTUnwrap(GameContent.mysteryEvent(matching: event.id))
+            XCTAssertEqual(lookedUp.id, event.id)
         }
     }
 

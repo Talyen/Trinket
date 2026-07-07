@@ -4,25 +4,7 @@ import XCTest
 @testable import Trinket
 
 @MainActor
-final class AppStateTests: XCTestCase {
-    private var directoryURL: URL!
-    private var suiteName: String!
-    private var userDefaults: UserDefaults!
-
-    override func setUp() async throws {
-        try await super.setUp()
-        suiteName = "AppStateTests.\(UUID().uuidString)"
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(suiteName, isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        userDefaults = UserDefaults(suiteName: suiteName)
-    }
-
-    override func tearDown() async throws {
-        userDefaults.removePersistentDomain(forName: suiteName)
-        try? FileManager.default.removeItem(at: directoryURL)
-        try await super.tearDown()
-    }
+final class AppStateTests: AppTestCase {
 
     func testDefaultInitSelectsPlayTabWithFreshSave() {
         let state = makeAppState(environment: makeEnvironment())
@@ -208,24 +190,6 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
         XCTAssertEqual(state.mapScrollStageID, "chapter-1-stage-2")
         XCTAssertGreaterThan(state.mapScrollNonce, 0)
-    }
-
-    private func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
-        AppEnvironment.parse(arguments: arguments, environment: [:])
-    }
-
-    private func makeAppState(
-        environment: AppEnvironment
-    ) -> AppState {
-        AppState(
-            environment: environment,
-            playerSave: PlayerSaveStore(
-                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-                disableCloudSync: true,
-                resetState: environment.resetState
-            ),
-            userDefaults: userDefaults
-        )
     }
 
     private func assertCollectionDetail(

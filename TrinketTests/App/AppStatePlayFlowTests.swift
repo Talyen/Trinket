@@ -4,29 +4,10 @@ import XCTest
 @testable import Trinket
 
 @MainActor
-final class AppStatePlayFlowTests: XCTestCase {
-    private var directoryURL: URL!
-    private var defaults: UserDefaults!
-    private var suiteName: String!
-
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "AppStatePlayFlowTests")
-        suiteName = "AppStatePlayFlowTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suiteName)
-        defaults.removePersistentDomain(forName: suiteName)
-    }
-
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        defaults.removePersistentDomain(forName: suiteName)
-        defaults = nil
-        suiteName = nil
-        try await super.tearDown()
-    }
+final class AppStatePlayFlowTests: AppTestCase {
 
     func testCompleteActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
@@ -41,7 +22,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testCompleteActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
@@ -56,7 +37,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testCompleteActiveBattleWithoutStageGrantsGoldOnly() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
@@ -76,7 +57,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testCompleteActiveBattleWithoutStageIgnoresZeroGold() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
@@ -94,10 +75,7 @@ final class AppStatePlayFlowTests: XCTestCase {
 
     func testCompleteActiveBattleAdvancesJourneyWhenPersistFails() throws {
         let playerSave = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        let state = AppTestSupport.makeAppState(
-            playerSave: playerSave,
-            directoryURL: directoryURL
-        )
+        let state = makeAppState(playerSave: playerSave)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try XCTUnwrap(state.battle.activeBattle)
@@ -109,13 +87,13 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testMapScrollFocusIDReturnsActiveStageWhenInProgress() {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
 
         XCTAssertEqual(JourneyMapPresentation.scrollFocusID(for: .initial), "chapter-1-stage-1")
     }
 
     func testMapScrollFocusIDReturnsChapterGateWhenChapterComplete() {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         var progress = JourneyProgressState.initial
         for stage in GameContent.chapters[0].stages {
             progress.complete(stage, in: GameContent.chapters)
@@ -137,7 +115,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testResetGameplayProgressClearsBattleAndMapScroll() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         state.noteMapScrollFocus("chapter-1-stage-2")
@@ -153,7 +131,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testCompleteStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         let hero = state.roster.activeHero
         let pet = state.roster.activePet
@@ -168,44 +146,31 @@ final class AppStatePlayFlowTests: XCTestCase {
     // MARK: - Session state restoration
 
     func testSessionTabRestored() {
-        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+        userDefaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
 
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
 
         XCTAssertEqual(state.selectedTab, .homestead)
     }
 
     func testSessionTabOverriddenByEnv() {
-        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+        userDefaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
 
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-selectedTab", "options"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState(arguments: ["-selectedTab", "options"])
 
         XCTAssertEqual(state.selectedTab, .options)
     }
 
     func testSessionTabDefaultWhenNoSavedState() {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
 
         XCTAssertEqual(state.selectedTab, .play)
     }
 
     func testSessionBattleRestored() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
 
         let activeBattle = try XCTUnwrap(state.battle.activeBattle)
         XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
@@ -213,25 +178,18 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-completed-stages", "chapter-1-stage-1"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
 
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertNil(state.activeBattleStageID)
     }
 
     func testCompleteStageUpdatesSessionMapScrollTarget() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        defaults.set(stage.id, forKey: "session.mapScrollStageID")
+        userDefaults.set(stage.id, forKey: "session.mapScrollStageID")
 
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
@@ -247,13 +205,9 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testSessionBattleNotRestoredWhenLaunchScreenBattle() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-launch-screen", "battle"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState(arguments: ["-launch-screen", "battle"])
 
         // launch-screen battle uses the hardcoded stage, not the session one
         let activeBattle = try XCTUnwrap(state.battle.activeBattle)
@@ -261,24 +215,18 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testSessionStaleStageIDIgnored() {
-        defaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
+        userDefaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
 
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
 
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertNil(state.activeBattleStageID)
     }
 
     func testSessionBattleClearedOnEndBattle() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
 
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
         _ = try XCTUnwrap(state.battle.activeBattle)
 
         state.battle.endBattle()
@@ -288,10 +236,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testResetGameplayProgressClearsSessionBattleState() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         state.mapScrollStageID = "chapter-1-stage-2"
@@ -304,10 +249,7 @@ final class AppStatePlayFlowTests: XCTestCase {
     }
 
     func testSessionBattleStageIDSetOnStartBattle() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+        let state = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         XCTAssertNil(state.activeBattleStageID)
 

@@ -57,4 +57,19 @@ final class PrimaryStatsRulesTests: XCTestCase {
             )
         }
     }
+
+    func testZeroStatsProduceBaselineBonuses() {
+        let stats = PrimaryStats()
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .physical), 0)
+        XCTAssertEqual(stats.dodgeChance, 0.05, accuracy: 0.0001)
+        XCTAssertEqual(stats.toughnessMitigationPct, 0.0, accuracy: 0.0001)
+    }
+
+    func testNegativeStatInputsTruncateTowardZeroForDamageBonus() {
+        let stats = PrimaryStats(strength: -4, agility: -4, intellect: -4, wisdom: -4)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .physical), 0)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .bleed), 0)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .burn), 0)
+        XCTAssertEqual(stats.statBonusForDamage(keyword: .poison), 0)
+    }
 }

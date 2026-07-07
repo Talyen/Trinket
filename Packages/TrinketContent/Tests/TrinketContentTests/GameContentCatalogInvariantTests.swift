@@ -19,11 +19,11 @@ final class GameContentCatalogInvariantTests: XCTestCase {
         }
     }
 
-    func testEncounterArtManifestReferencesCatalogEntries() {
+    func testEncounterArtManifestReferencesCatalogEntries() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 guard let artID = GameContent.encounterArtID(for: stage) else { continue }
-                XCTAssertNotNil(
+                _ = try XCTUnwrap(
                     ArtCatalog.encounterArtByID[artID],
                     "Encounter art \(artID) for stage \(stage.id) is missing from ArtCatalog"
                 )

@@ -5,25 +5,7 @@ import XCTest
 @testable import Trinket
 
 @MainActor
-final class AppStateBattleTickLoopTests: XCTestCase {
-    private var directoryURL: URL!
-    private var suiteName: String!
-    private var userDefaults: UserDefaults!
-
-    override func setUp() async throws {
-        try await super.setUp()
-        suiteName = "AppStateBattleTickLoopTests.\(UUID().uuidString)"
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(suiteName, isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        userDefaults = UserDefaults(suiteName: suiteName)
-    }
-
-    override func tearDown() async throws {
-        userDefaults.removePersistentDomain(forName: suiteName)
-        try? FileManager.default.removeItem(at: directoryURL)
-        try await super.tearDown()
-    }
+final class AppStateBattleTickLoopTests: AppTestCase {
 
     func testCanAdvanceBattleTicksRequiresActivePlayTabAndUnpausedBattle() throws {
         let appState = makeAppState()
@@ -87,8 +69,7 @@ final class AppStateBattleTickLoopTests: XCTestCase {
         XCTAssertNil(appState.battleTickTask)
 
         let tickCountAfterBackground = try XCTUnwrap(appState.battle.state?.tickCount)
-        try await Task.sleep(for: .milliseconds(80))
-        XCTAssertEqual(appState.battle.state?.tickCount, tickCountAfterBackground)
+        try await assertTickCountRemainsStable(tickCountAfterBackground, for: appState)
     }
 
     func testBattleTickLoopDoesNotAdvanceWhilePaused() async throws {
@@ -102,8 +83,7 @@ final class AppStateBattleTickLoopTests: XCTestCase {
         appState.syncBattleTickLoop()
 
         let tickCount = try XCTUnwrap(appState.battle.state?.tickCount)
-        try await Task.sleep(for: .milliseconds(80))
-        XCTAssertEqual(appState.battle.state?.tickCount, tickCount)
+        try await assertTickCountRemainsStable(tickCount, for: appState)
     }
 
     func testTrimMemoryFootprintReleasesBattleLogProjection() throws {
@@ -124,18 +104,18 @@ final class AppStateBattleTickLoopTests: XCTestCase {
         XCTAssertFalse(session.state?.events.isEmpty ?? true)
     }
 
-    private func makeAppState(arguments: [String] = []) -> AppState {
-        AppState(
-            environment: AppEnvironment.parse(
-                arguments: arguments,
-                environment: ["XCTestConfigurationFilePath": "/tmp/xctest"]
-            ),
-            playerSave: PlayerSaveStore(
-                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-                disableCloudSync: true
-            ),
-            userDefaults: userDefaults
-        )
+    private func assertTickCountRemainsStable(
+        _ expected: Int,
+        for appState: AppState,
+        duration: Duration = .milliseconds(200),
+        pollInterval: Duration = .milliseconds(10)
+    ) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: duration)
+        while clock.now < deadline {
+            XCTAssertEqual(appState.battle.state?.tickCount, expected)
+            try await clock.sleep(for: pollInterval)
+        }
     }
 
     private func waitUntil(

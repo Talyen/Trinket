@@ -9,6 +9,44 @@ import TrinketContent
 /// Presentation strings live in `ActionEventFormatterTests` / `EffectSummaryBuilderTests`.
 /// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
+    /// Matches `BattleStateTestFactory` seed for reproducible dodge/crit rolls.
+    static let deterministicNonCriticalSeed: UInt64 = 1772
+
+    static func makePipelineContext(
+        targetMaxHealth: Int = 50,
+        targetPrimaryStats: PrimaryStats = PrimaryStats(),
+        targetEffects: [ActiveEffect] = [],
+        sourcePrimaryStats: PrimaryStats = PrimaryStats(),
+        seed: UInt64 = deterministicNonCriticalSeed
+    ) -> BattleEngineContext {
+        let target = CombatantFixtures.combatant(
+            id: "target", role: .enemy, maxHealth: targetMaxHealth,
+            primaryStats: targetPrimaryStats
+        )
+        let source = CombatantFixtures.combatant(
+            id: "source", role: .hero, maxHealth: 50,
+            primaryStats: sourcePrimaryStats
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            pet: CombatantRuntime(combatant: pet),
+            enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
+        )
+        return BattleEngineContext(
+            roster: roster,
+            rng: SeededRandomNumberGenerator(seed: seed),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+    }
+
     static func passiveCombatant(
         id: String,
         name: String,

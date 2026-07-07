@@ -54,4 +54,15 @@ final class CombatantProgressionTests: XCTestCase {
         let late = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
         XCTAssertTrue(late.unlocks(.ultimate))
     }
+
+    func testInitialProgressionUsesLevelOneRequiredXP() {
+        XCTAssertEqual(CombatantProgression.initial.level, 1)
+        XCTAssertEqual(CombatantProgression.initial.currentXP, 0)
+        XCTAssertEqual(CombatantProgression.initial.requiredXP, 100)
+    }
+
+    func testRequiredXPForLevelZeroMatchesLevelOne() {
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 0), 100)
+        XCTAssertEqual(CombatantProgression.requiredXP(forLevel: 1), 100)
+    }
 }

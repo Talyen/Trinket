@@ -27,6 +27,10 @@ echo "=== Unit tests ==="
 ./Scripts/test.sh unit
 
 echo ""
+echo "=== Unit timing budget ==="
+./Scripts/test-timing.sh assert-budget --mode unit --max-wall 60 --skip-if-missing
+
+echo ""
 echo "=== Smoke UI tests ==="
 ./Scripts/test.sh smoke
 

@@ -70,6 +70,8 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        ENABLE_CODE_COVERAGE: YES
+        CLANG_ENABLE_CODE_COVERAGE: YES
     dependencies:
       - target: Trinket
       - package: TrinketCore

@@ -2,6 +2,7 @@ import TrinketDesignSystem
 import XCTest
 @testable import Trinket
 
+@MainActor
 final class OptionsStoreTests: XCTestCase {
     private var defaults: UserDefaults!
     private var suiteName: String!

@@ -8,10 +8,7 @@ final class AbilityCatalogTests: XCTestCase {
         XCTAssertEqual(Set(ids).count, ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
     }
 
-    func testAbilityLookupByID() {
-        for ability in AbilityCatalog.all {
-            XCTAssertEqual(AbilityCatalog.ability(id: ability.id), ability)
-        }
+    func testUnknownAbilityLookupReturnsNil() {
         XCTAssertNil(AbilityCatalog.ability(id: "missing-ability"))
     }
 

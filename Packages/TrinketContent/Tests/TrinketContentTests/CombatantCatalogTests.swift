@@ -17,11 +17,11 @@ final class CombatantCatalogTests: XCTestCase {
         XCTAssertEqual(Set(ids).count, ids.count)
     }
 
-    func testBattleStagesReferenceKnownEnemies() {
+    func testBattleStagesReferenceKnownEnemies() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 if let enemyID = stage.encounter.battleEnemyID {
-                    XCTAssertNotNil(
+                    _ = try XCTUnwrap(
                         GameContent.enemy(matching: enemyID),
                         "Stage \(stage.id) references unknown enemy \(enemyID)"
                     )
@@ -53,25 +53,25 @@ final class CombatantCatalogTests: XCTestCase {
         }
     }
 
-    func testEachHeroHasBasicSkillUltimateChoices() {
+    func testEachHeroHasBasicSkillUltimateChoices() throws {
         for hero in GameContent.heroes {
             XCTAssertFalse(hero.abilityChoices.basics.isEmpty, "\(hero.name) should have basic choices")
             XCTAssertFalse(hero.abilityChoices.skills.isEmpty, "\(hero.name) should have skill choices")
             XCTAssertFalse(hero.abilityChoices.ultimates.isEmpty, "\(hero.name) should have ultimate choices")
-            XCTAssertNotNil(hero.abilityLoadout.basic, "\(hero.name) should have a selected basic")
-            XCTAssertNotNil(hero.abilityLoadout.skill, "\(hero.name) should have a selected skill")
-            XCTAssertNotNil(hero.abilityLoadout.ultimate, "\(hero.name) should have a selected ultimate")
+            _ = try XCTUnwrap(hero.abilityLoadout.basic, "\(hero.name) should have a selected basic")
+            _ = try XCTUnwrap(hero.abilityLoadout.skill, "\(hero.name) should have a selected skill")
+            _ = try XCTUnwrap(hero.abilityLoadout.ultimate, "\(hero.name) should have a selected ultimate")
         }
     }
 
-    func testEachPetHasBasicSkillUltimateChoices() {
+    func testEachPetHasBasicSkillUltimateChoices() throws {
         for pet in GameContent.pets {
             XCTAssertFalse(pet.abilityChoices.basics.isEmpty, "\(pet.name) should have basic choices")
             XCTAssertFalse(pet.abilityChoices.skills.isEmpty, "\(pet.name) should have skill choices")
             XCTAssertFalse(pet.abilityChoices.ultimates.isEmpty, "\(pet.name) should have ultimate choices")
-            XCTAssertNotNil(pet.abilityLoadout.basic, "\(pet.name) should have a selected basic")
-            XCTAssertNotNil(pet.abilityLoadout.skill, "\(pet.name) should have a selected skill")
-            XCTAssertNotNil(pet.abilityLoadout.ultimate, "\(pet.name) should have a selected ultimate")
+            _ = try XCTUnwrap(pet.abilityLoadout.basic, "\(pet.name) should have a selected basic")
+            _ = try XCTUnwrap(pet.abilityLoadout.skill, "\(pet.name) should have a selected skill")
+            _ = try XCTUnwrap(pet.abilityLoadout.ultimate, "\(pet.name) should have a selected ultimate")
         }
     }
 }

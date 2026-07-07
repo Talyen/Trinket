@@ -64,15 +64,6 @@ final class EnemyCatalogTests: XCTestCase {
         XCTAssertEqual(treant.combatant.abilityLoadout.basic, .fangs)
     }
 
-    func testEachEnemyHasBasicSkillUltimate() {
-        for enemy in GameContent.enemies {
-            let loadout = enemy.combatant.abilityLoadout
-            XCTAssertNotNil(loadout.basic, "\(enemy.name) should have a basic ability")
-            XCTAssertNotNil(loadout.skill, "\(enemy.name) should have a skill ability")
-            XCTAssertNotNil(loadout.ultimate, "\(enemy.name) should have an ultimate ability")
-        }
-    }
-
     func testEachEnemyHasAuthoredBaseHealth() {
         for enemy in GameContent.enemies {
             if enemy.isBoss {

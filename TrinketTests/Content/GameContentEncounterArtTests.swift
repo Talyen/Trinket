@@ -8,7 +8,7 @@ final class GameContentEncounterArtTests: XCTestCase {
 
         XCTAssertEqual(GameContent.encounterArtID(for: stage), "mystery-sunlight-breaks-canopy")
         XCTAssertEqual(GameContent.encounterArtTitle(for: stage), "Sunlit Trail")
-        XCTAssertNotNil(stage.encounterArtReference)
+        _ = try XCTUnwrap(stage.encounterArtReference)
         XCTAssertEqual(stage.encounterSubjectName, "Sunlit Trail")
     }
 
@@ -17,7 +17,7 @@ final class GameContentEncounterArtTests: XCTestCase {
 
         XCTAssertNil(GameContent.encounterArtID(for: stage))
         XCTAssertNil(stage.encounterArtReference)
-        XCTAssertNotNil(stage.encounterCombatantArtReference)
+        _ = try XCTUnwrap(stage.encounterCombatantArtReference)
         XCTAssertEqual(stage.encounterSubjectName, "Skeleton")
     }
 
