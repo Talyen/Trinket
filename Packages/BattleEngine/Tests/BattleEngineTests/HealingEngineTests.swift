@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class HealingEngineTests: XCTestCase {
+@Suite
+struct HealingEngineTests {
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
@@ -26,18 +27,18 @@ final class HealingEngineTests: XCTestCase {
         )
     }
 
-    func testResolveHealSilentEmitsNoEvents() {
+    @Test func resolveHealSilentEmitsNoEvents() {
         var context = makeContext(seed: 1772)
         _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
             in: &context
         )
-        XCTAssertGreaterThan(outcome.healthRestored, 0)
-        XCTAssertTrue(outcome.events.isEmpty)
+        #expect(outcome.healthRestored > 0)
+        #expect(outcome.events.isEmpty)
     }
 
-    func testResolveHealInstantHealPolicyEmitsEvent() {
+    @Test func resolveHealInstantHealPolicyEmitsEvent() {
         var context = makeContext(seed: 1772)
         let target = context.roster.enemy.combatant
         let outcome = HealingEngine.resolveHeal(
@@ -54,46 +55,46 @@ final class HealingEngineTests: XCTestCase {
             ),
             in: &context
         )
-        XCTAssertEqual(outcome.events.count, 1)
-        XCTAssertEqual(outcome.events.first?.effectKind, .instantHeal)
-        XCTAssertEqual(outcome.events.first?.amount, outcome.healthRestored)
+        #expect(outcome.events.count == 1)
+        #expect(outcome.events.first?.effectKind == .instantHeal)
+        #expect(outcome.events.first?.amount == outcome.healthRestored)
     }
 
-    func testLeechFromDamageHealsAndSetsLeechedFlag() {
+    @Test func leechFromDamageHealsAndSetsLeechedFlag() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let before = context.roster.hero.currentHealth
         let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
-        XCTAssertTrue(outcome.flags.contains(.leeched))
-        XCTAssertGreaterThan(context.roster.hero.currentHealth, before)
-        XCTAssertEqual(outcome.healthRestored, context.roster.hero.currentHealth - before)
-        XCTAssertEqual(outcome.events.first?.amount, outcome.healthRestored)
+        #expect(outcome.flags.contains(.leeched))
+        #expect(context.roster.hero.currentHealth > before)
+        #expect(outcome.healthRestored == context.roster.hero.currentHealth - before)
+        #expect(outcome.events.first?.amount == outcome.healthRestored)
     }
 
-    func testLeechFromDamageDoesNotReviveDefeatedSource() {
+    @Test func leechFromDamageDoesNotReviveDefeatedSource() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 0 }
         context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
         let outcome = HealingEngine.leechFromDamage(10, sourceActorID: "source", in: &context)
-        XCTAssertEqual(outcome.healthRestored, 0)
-        XCTAssertEqual(context.roster.hero.currentHealth, 0)
+        #expect(outcome.healthRestored == 0)
+        #expect(context.roster.hero.currentHealth == 0)
     }
 
-    func testResolveHealIgnoresDefeatedTarget() {
+    @Test func resolveHealIgnoresDefeatedTarget() {
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.enemy.combatant) { $0.currentHealth = 0 }
         let outcome = HealingEngine.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant, logAs: .silent),
             in: &context
         )
-        XCTAssertEqual(outcome.healthRestored, 0)
-        XCTAssertEqual(context.roster.enemy.currentHealth, 0)
+        #expect(outcome.healthRestored == 0)
+        #expect(context.roster.enemy.currentHealth == 0)
     }
 
-    func testHealFromOneHPWhileDeathsDoorActive() {
+    @Test func healFromOneHPWhileDeathsDoorActive() {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 1 }
@@ -104,12 +105,12 @@ final class HealingEngineTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertGreaterThan(outcome.healthRestored, 0)
-        XCTAssertGreaterThan(context.roster.health(for: hero), 1)
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
+        #expect(outcome.healthRestored > 0)
+        #expect(context.roster.health(for: hero) > 1)
+        #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    func testHealDoesNotRemoveDeathsDoorEffect() {
+    @Test func healDoesNotRemoveDeathsDoorEffect() {
         var context = makeContext(seed: 1772)
         let hero = context.roster.hero.combatant
         context.roster.mutateRuntime(for: hero) {
@@ -123,11 +124,11 @@ final class HealingEngineTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
-        XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
+        #expect(context.roster.isDeathsDoorActive(for: hero))
+        #expect(context.roster.hasConsumedDeathsDoor(for: hero))
     }
 
-    func testContextResolveHealDelegatesToHealingEngine() {
+    @Test func contextResolveHealDelegatesToHealingEngine() {
         var context = makeContext(seed: 1772)
         let contextOutcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
@@ -137,6 +138,6 @@ final class HealingEngineTests: XCTestCase {
             HealRequest(amount: 5, target: fresh.roster.enemy.combatant),
             in: &fresh
         )
-        XCTAssertEqual(contextOutcome.healthRestored, engineOutcome.healthRestored)
+        #expect(contextOutcome.healthRestored == engineOutcome.healthRestored)
     }
 }

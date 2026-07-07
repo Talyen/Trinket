@@ -1,67 +1,68 @@
 import TrinketCore
-import XCTest
+import Testing
 @testable import TrinketContent
 
-final class MysteryEventCatalogTests: XCTestCase {
-    func testAllMysteryEventsHaveUniqueIDs() {
+@Suite
+struct MysteryEventCatalogTests {
+    @Test func allMysteryEventsHaveUniqueIDs() {
         let ids = GameContent.mysteryEvents.map(\.id)
-        XCTAssertEqual(ids.count, Set(ids).count)
+        #expect(ids.count == Set(ids).count)
     }
 
-    func testAllMysteryEventsHaveTwoChoices() {
+    @Test func allMysteryEventsHaveTwoChoices() {
         for event in GameContent.mysteryEvents {
-            XCTAssertEqual(
-                event.choices.count, 2,
+            #expect(
+                event.choices.count == 2,
                 "Mystery event \(event.id) should have exactly 2 choices"
             )
         }
     }
 
-    func testAllMysteryEventsHaveUniqueChoiceIDs() {
+    @Test func allMysteryEventsHaveUniqueChoiceIDs() {
         for event in GameContent.mysteryEvents {
             let choiceIDs = event.choices.map(\.id)
-            XCTAssertEqual(
-                choiceIDs.count, Set(choiceIDs).count,
+            #expect(
+                choiceIDs.count == Set(choiceIDs).count,
                 "Mystery event \(event.id) has duplicate choice IDs"
             )
         }
     }
 
-    func testAllMysteryEventsHaveAtLeastOneEffectPerChoice() {
+    @Test func allMysteryEventsHaveAtLeastOneEffectPerChoice() {
         for event in GameContent.mysteryEvents {
             for choice in event.choices {
-                XCTAssertFalse(
+                #expect(!(
                     choice.effects.isEmpty,
-                    "Choice \(choice.id) in event \(event.id) has no effects"
+                    "Choice \(choice.id)) in event \(event.id) has no effects"
                 )
             }
         }
     }
 
-    func testArtReferencesAreValid() throws {
+    @Test func artReferencesAreValid() throws {
         for event in GameContent.mysteryEvents {
             guard let artID = event.artID else { continue }
-            _ = try XCTUnwrap(
+            _ = try #require(
                 ArtCatalog.encounterArtByID[artID],
                 "Mystery event \(event.id) references unknown art ID \(artID)"
             )
         }
     }
 
-    func testMysteryEventLookup() throws {
+    @Test func mysteryEventLookup() throws {
         for event in GameContent.mysteryEvents {
-            let lookedUp = try XCTUnwrap(GameContent.mysteryEvent(matching: event.id))
-            XCTAssertEqual(lookedUp.id, event.id)
+            let lookedUp = try #require(GameContent.mysteryEvent(matching: event.id))
+            #expect(lookedUp.id == event.id)
         }
     }
 
-    func testUnknownMysteryEventReturnsNil() {
-        XCTAssertNil(GameContent.mysteryEvent(matching: "nonexistent-event"))
+    @Test func unknownMysteryEventReturnsNil() {
+        #expect(GameContent.mysteryEvent(matching: "nonexistent-event" == nil))
     }
 
-    func testPickMysteryEventReturnsValidEvent() {
+    @Test func pickMysteryEventReturnsValidEvent() {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
-        XCTAssertTrue(GameContent.mysteryEvents.contains(picked))
+        #expect(GameContent.mysteryEvents.contains(picked))
     }
 }

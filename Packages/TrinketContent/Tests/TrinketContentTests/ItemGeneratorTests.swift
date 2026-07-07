@@ -1,28 +1,29 @@
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 
-final class ItemGeneratorTests: XCTestCase {
-    func testBasicItemsRollOneOrTwoAffixes() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+@Suite
+struct ItemGeneratorTests {
+    @Test func basicItemsRollOneOrTwoAffixes() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1 ... 120)
 
-        XCTAssertTrue(counts.allSatisfy { (1 ... 2).contains($0) })
-        XCTAssertTrue(counts.contains(1))
-        XCTAssertTrue(counts.contains(2))
+        #expect(counts.allSatisfy { (1 ... 2).contains($0) })
+        #expect(counts.contains(1))
+        #expect(counts.contains(2))
     }
 
-    func testAstralItemsRollThreeOrFourAffixes() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
+    @Test func astralItemsRollThreeOrFourAffixes() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
         let counts = generatedAffixCounts(baseType: baseType, rarity: .astral, seedRange: 1 ... 120)
 
-        XCTAssertTrue(counts.allSatisfy { (3 ... 4).contains($0) })
-        XCTAssertTrue(counts.contains(3))
-        XCTAssertTrue(counts.contains(4))
+        #expect(counts.allSatisfy { (3 ... 4).contains($0) })
+        #expect(counts.contains(3))
+        #expect(counts.contains(4))
     }
 
-    func testGeneratedItemsDoNotDuplicateAffixes() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
+    @Test func generatedItemsDoNotDuplicateAffixes() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
 
         let item = ItemGenerator().generate(
@@ -32,11 +33,11 @@ final class ItemGeneratorTests: XCTestCase {
             using: &randomNumberGenerator
         )
 
-        XCTAssertEqual(Set(item.affixes.map(\.id)).count, item.affixes.count)
+        #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
     }
 
-    func testGeneratedAffixesMatchSlotAndAnyKeywordAffinity() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
+    @Test func generatedAffixesMatchSlotAndAnyKeywordAffinity() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "plate_armor" })
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 99)
 
         let item = ItemGenerator().generate(
@@ -47,25 +48,25 @@ final class ItemGeneratorTests: XCTestCase {
         )
 
         for affix in item.affixes {
-            let definition = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == affix.id })
-            XCTAssertEqual(definition.slot, baseType.slot)
-            XCTAssertFalse(definition.keywords.isDisjoint(with: baseType.keywordAffinities))
+            let definition = try #require(GameContent.itemAffixDefinitions.first { $0.id == affix.id })
+            #expect(definition.slot == baseType.slot)
+            #expect(!(definition.keywords.isDisjoint(with: baseType.keywordAffinities)))
         }
     }
 
-    func testEveryBaseTypeHasEnoughEligibleAffixesForAstralMaximum() {
+    @Test func everyBaseTypeHasEnoughEligibleAffixesForAstralMaximum() {
         for baseType in GameContent.itemBaseTypes {
             let eligibleAffixes = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
                     !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
             }
 
-            XCTAssertGreaterThanOrEqual(eligibleAffixes.count, 4, baseType.id)
+            #expect(eligibleAffixes.count >= 4, baseType.id)
         }
     }
 
-    func testSeededGenerationIsReproducible() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "emerald_ring" })
+    @Test func seededGenerationIsReproducible() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "emerald_ring" })
         var firstRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
         var secondRandomNumberGenerator = SeededRandomNumberGenerator(seed: 123)
 
@@ -82,12 +83,12 @@ final class ItemGeneratorTests: XCTestCase {
             using: &secondRandomNumberGenerator
         )
 
-        XCTAssertEqual(firstItem, secondItem)
+        #expect(firstItem == secondItem)
     }
 
-    func testAstralAffixesResolveStrongerThanBasicAffixes() {
+    @Test func astralAffixesResolveStrongerThanBasicAffixes() {
         for definition in GameContent.itemAffixDefinitions {
-            XCTAssertNotEqual(definition.basic, definition.astral, definition.id)
+            #expect(definition.basic != definition.astral, definition.id)
         }
     }
 

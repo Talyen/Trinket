@@ -138,25 +138,33 @@ Iteration: **unit** → **smoke class** → **exhaustive class** before merge. K
 
 ## Unit Tests
 
-Framework: **XCTest** + `@testable import Trinket`. Mirror production folders under `TrinketTests/` (`Battle/`, `Persistence/`, `State/`, etc.). SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
+Framework: **Swift Testing** (`import Testing`, `@Suite`, `@Test`, `#expect` / `#require`) for all unit and integration tests in `TrinketTests/` and package test targets. **XCTest** remains only for `TrinketUITests/` (`XCUIApplication`, performance metrics). XCTest and Swift Testing coexist in the same target during migration; unit targets must not import XCTest when migration is complete (`./Scripts/check-swift-testing-migration.sh`).
+
+Mirror production folders under `TrinketTests/` (`Battle/`, `Persistence/`, `State/`, etc.). SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
 
 ### Shared helpers
 
 | Helper | Location | Use for |
 |--------|----------|---------|
-| `SaveTestSupport` | `TrinketTests/Support/` | Temp save directories and `PlayerSaveStore` factories |
-| `AppTestSupport` | `TrinketTests/Support/` | `makeAppState` with injectable `playerSave`, `userDefaults` |
+| `AppTestContext` | `TrinketTests/Support/` | Per-suite temp save dir + `UserDefaults` + `makeAppState` |
+| `PersistenceTestContext` | `TrinketPersistenceTests/Support/` | Temp directory lifecycle for store roundtrip tests |
+| `SaveTestSupport` | `TrinketTests/Support/` · `TrinketPersistenceTests/Support/` | Temp save directories and `PlayerSaveStore` factories |
+| `AppTestSupport` | `TrinketTests/Support/` | Stateless `makeAppState` when caller owns `directoryURL` |
 | `CombatantFixtures` | `TrinketTests/Support/` (app) · `Packages/BattleEngine/Tests/.../Support/` (battle) | Minimal combatants and abilities |
 | `BattleStateTestFactory` | `Packages/BattleEngine/Tests/BattleEngineTests/` | **Always** use for RNG-sensitive battle tests (`rngSeed: 0`) |
 | `BattleTestFixtures` | `Packages/BattleEngine/Tests/BattleEngineTests/Support/` | Integration tick helpers, `standardParty`, effect predicates |
 
 ### Conventions
 
-- **Naming:** `test<Behavior>When<Condition>` — e.g. `testLocalMutationSchedulesDebouncedUpload`.
+- **Naming:** `@Test func behaviorWhenCondition()` — e.g. `localMutationSchedulesDebouncedUpload`; no `test` prefix required.
+- **Assertions:** `#expect` for behavioral checks; `try #require` / `#require` to unwrap and halt; `Issue.record` for unconditional failures.
+- **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants (per-item failure isolation).
+- **Lifecycle:** prefer `@Suite struct` for stateless tests; `@Suite @MainActor final class` with `init() throws` + `AppTestContext` / `PersistenceTestContext` when teardown is needed.
+- **Main actor:** Swift Testing does not run sync tests on `@MainActor` by default — annotate suite or test when UI/layout/store isolation requires it.
 - **Battle rules:** `BattleStateTestFactory.makeBattle(...)` instead of raw `BattleState(...)`.
 - **BattleEngine ownership:** see `Packages/BattleEngine/Tests/README.md` — each mechanic has one primary test owner; integration files stay thin (3–6 tests) and only exercise full tick wiring.
 - **Handler tests:** dispatch through `EffectHandlers.all`; use BattleEngine `CombatantFixtures` for setup.
-- **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
+- **Store tests:** `@Suite @MainActor final class` with `PersistenceTestContext`, mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Golden paths:** pin outcome counters (ticks, health, victory/defeat); assert event *semantics* (status kinds, milestones) rather than full log fingerprints.
 - **Ability descriptions:** `AbilityDescriptionFormatterTests` guards catalog prose; prefer focused examples over duplicating full catalog loops elsewhere.

@@ -1,4 +1,3 @@
-import XCTest
 import BattleEngine
 import TrinketCore
 import TrinketContent

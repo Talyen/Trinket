@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class DoTDamageTests: XCTestCase {
+@Suite
+struct DoTDamageTests {
     private func makeContext(
         sourceStats: PrimaryStats = PrimaryStats(),
         heroModifiers: CombatModifierProfile = .zero,
@@ -32,7 +33,7 @@ final class DoTDamageTests: XCTestCase {
         )
     }
 
-    func testResolveTickStoresBasePotencyOnStack() {
+    @Test func resolveTickStoresBasePotencyOnStack() {
         var context = makeContext()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -43,10 +44,10 @@ final class DoTDamageTests: XCTestCase {
             in: &context
         )
         let potency = context.roster.enemy.activeEffects.first { $0.keyword == .burn }?.effect.potency
-        XCTAssertEqual(potency, 4)
+        #expect(potency == 4)
     }
 
-    func testResolveTickAppliesStatBonusAtDamageTime() {
+    @Test func resolveTickAppliesStatBonusAtDamageTime() {
         let stats = PrimaryStats(intellect: 20) // +4 burn
         var context = makeContext(sourceStats: stats)
         let outcome = DoTDamage.resolveTick(
@@ -56,11 +57,11 @@ final class DoTDamageTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertEqual(outcome.healthLost, 8)
-        XCTAssertTrue(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
+        #expect(outcome.healthLost == 8)
+        #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
     }
 
-    func testResolveTickAppliesItemDamageDealtBonus() {
+    @Test func resolveTickAppliesItemDamageDealtBonus() {
         var modifiers = CombatModifierProfile.zero
         modifiers.damageDealtBonus[.burn] = 3
         var context = makeContext(heroModifiers: modifiers)
@@ -71,10 +72,10 @@ final class DoTDamageTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertEqual(outcome.healthLost, 7)
+        #expect(outcome.healthLost == 7)
     }
 
-    func testResolveTickIncludesStatusEventWhenDamageDealt() {
+    @Test func resolveTickIncludesStatusEventWhenDamageDealt() {
         var context = makeContext()
         let outcome = DoTDamage.resolveTick(
             basePotency: 5,
@@ -83,6 +84,6 @@ final class DoTDamageTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertTrue(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
+        #expect(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
     }
 }

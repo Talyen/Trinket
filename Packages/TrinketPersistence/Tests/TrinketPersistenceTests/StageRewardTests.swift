@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 import TrinketCore
 import TrinketContent
 @testable import TrinketPersistence
 
-final class StageRewardTests: XCTestCase {
+@Suite
+struct StageRewardTests {
     private var chapter: Chapter {
         GameContent.chapters[0]
     }
@@ -26,10 +27,10 @@ final class StageRewardTests: XCTestCase {
         )
     }
 
-    func testCompletingStageGrantsBattleGoldWithStageRewards() throws {
+    @Test func completingStageGrantsBattleGoldWithStageRewards() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
@@ -40,12 +41,12 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.gold, firstStage.rewards.gold + 4)
+        #expect(context.roster.gold == firstStage.rewards.gold + 4)
     }
 
-    func testCompletingStageGrantsGoldXPAndItems() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+    @Test func completingStageGrantsGoldXPAndItems() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         var context = makeContext()
 
         StageCompletion.complete(
@@ -56,7 +57,7 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.gold, firstStage.rewards.gold)
+        #expect(context.roster.gold == firstStage.rewards.gold)
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let petLevel = PlayerRosterState.initial.progression(for: pet).level
@@ -74,25 +75,25 @@ final class StageRewardTests: XCTestCase {
                 highestLevel: PlayerRosterState.initial.highestPetLevel
             )
         )
-        XCTAssertEqual(context.roster.progression(for: hero), expectedHeroProgression)
-        XCTAssertEqual(context.roster.progression(for: pet), expectedPetProgression)
-        _ = try XCTUnwrap(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        XCTAssertEqual(context.homestead.resources[.wood], 8)
-        XCTAssertEqual(context.homestead.resources[.stone], 3)
-        XCTAssertTrue(context.journey.hasClaimedRewards(for: firstStage))
-        XCTAssertTrue(context.journey.isCompleted(firstStage))
-        XCTAssertEqual(context.journey.activeStageID, "chapter-1-stage-2")
+        #expect(context.roster.progression(for: hero) == expectedHeroProgression)
+        #expect(context.roster.progression(for: pet) == expectedPetProgression)
+        _ = try #require(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        #expect(context.homestead.resources[.wood] == 8)
+        #expect(context.homestead.resources[.stone] == 3)
+        #expect(context.journey.hasClaimedRewards(for: firstStage))
+        #expect(context.journey.isCompleted(firstStage))
+        #expect(context.journey.activeStageID == "chapter-1-stage-2")
     }
 
-    func testHomesteadBonusesAdjustMaterialRewards() throws {
+    @Test func homesteadBonusesAdjustMaterialRewards() throws {
         var context = makeContext(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 3]
             )
         )
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
@@ -101,19 +102,19 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.homestead.resources[.wood], 9)
-        XCTAssertEqual(context.homestead.resources[.stone], 4)
+        #expect(context.homestead.resources[.wood] == 9)
+        #expect(context.homestead.resources[.stone] == 4)
     }
 
-    func testHomesteadFoodBonusesStackFromMultipleBuildings() throws {
+    @Test func homesteadFoodBonusesStackFromMultipleBuildings() throws {
         var context = makeContext(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 2, .chickenCoop: 2]
             )
         )
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let foodStage = Stage(
             id: "food-test-stage",
             chapterID: "chapter-1",
@@ -135,13 +136,13 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.homestead.resources[.food], 6)
+        #expect(context.homestead.resources[.food] == 6)
     }
 
-    func testCompletingStageTwiceDoesNotDoubleRewards() throws {
+    @Test func completingStageTwiceDoesNotDoubleRewards() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
@@ -161,15 +162,15 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.gold, goldAfterFirst)
-        XCTAssertEqual(context.roster.progression(for: hero).currentXP, heroXPAfterFirst)
-        XCTAssertEqual(context.inventory.items.count, itemCountAfterFirst)
+        #expect(context.roster.gold == goldAfterFirst)
+        #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirst)
+        #expect(context.inventory.items.count == itemCountAfterFirst)
     }
 
-    func testCompletingStageTwiceDoesNotAdvanceJourney() throws {
+    @Test func completingStageTwiceDoesNotAdvanceJourney() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
@@ -188,13 +189,13 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.journey.activeStageID, activeStageAfterFirst)
+        #expect(context.journey.activeStageID == activeStageAfterFirst)
     }
 
-    func testCompletingStageAdvancesJourney() throws {
+    @Test func completingStageAdvancesJourney() throws {
         var context = makeContext(inventory: .initial)
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.complete(
             firstStage,
@@ -204,14 +205,14 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertTrue(context.journey.isActive(chapter.stages[1]))
-        XCTAssertFalse(context.journey.isActive(firstStage))
+        #expect(context.journey.isActive(chapter.stages[1]))
+        #expect(!(context.journey.isActive(firstStage)))
     }
 
-    func testMissingItemTemplateSkipsGracefully() throws {
+    @Test func missingItemTemplateSkipsGracefully() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let heroXPBefore = context.roster.progression(for: hero).currentXP
         let stageWithBadTemplate = Stage(
             id: "test-stage",
@@ -231,16 +232,16 @@ final class StageRewardTests: XCTestCase {
             resolveTemplate: { _ in nil }
         )
 
-        XCTAssertEqual(context.roster.gold, 10)
-        XCTAssertEqual(context.roster.progression(for: hero).currentXP, heroXPBefore)
-        XCTAssertTrue(context.inventory.items.isEmpty)
-        XCTAssertTrue(context.journey.hasClaimedRewards(for: stageWithBadTemplate))
+        #expect(context.roster.gold == 10)
+        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        #expect(context.inventory.items.isEmpty)
+        #expect(context.journey.hasClaimedRewards(for: stageWithBadTemplate))
     }
 
-    func testNonBattleStagesGrantNoExperience() throws {
+    @Test func nonBattleStagesGrantNoExperience() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let heroXPBefore = context.roster.progression(for: hero).currentXP
         let eventStage = chapter.stages[1]
 
@@ -251,13 +252,13 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.progression(for: hero).currentXP, heroXPBefore)
+        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
     }
 
-    func testScaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
+    @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         context.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
         let heroXPBefore = context.roster.progression(for: hero).currentXP
 
@@ -269,14 +270,14 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.progression(for: hero).currentXP, heroXPBefore)
-        XCTAssertGreaterThan(context.roster.progression(for: pet).currentXP, 0)
+        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        #expect(context.roster.progression(for: pet).currentXP > 0)
     }
 
-    func testClaimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
+    @Test func claimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
         var context = makeContext()
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
@@ -297,32 +298,32 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.gold, goldAfterFirstClaim)
-        XCTAssertEqual(context.roster.progression(for: hero).currentXP, heroXPAfterFirstClaim)
-        XCTAssertEqual(context.inventory.items.count, itemCountAfterFirstClaim)
-        XCTAssertTrue(context.journey.hasClaimedRewards(for: firstStage))
+        #expect(context.roster.gold == goldAfterFirstClaim)
+        #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
+        #expect(context.inventory.items.count == itemCountAfterFirstClaim)
+        #expect(context.journey.hasClaimedRewards(for: firstStage))
     }
 
-    func testRewardItemPreservesCatalogAffixes() throws {
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+    @Test func rewardItemPreservesCatalogAffixes() throws {
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         var inventory = PlayerInventoryState(items: [])
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 999)
 
         inventory.addRewardItem(from: template, for: firstStage, using: &randomNumberGenerator)
 
-        let rewardItem = try XCTUnwrap(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        XCTAssertEqual(rewardItem.affixes, template.affixes)
+        let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        #expect(rewardItem.affixes == template.affixes)
     }
 
-    func testClaimRewardsUsesPrecomputedMaterialRewards() throws {
+    @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
         var context = makeContext(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 2, .chickenCoop: 2]
             )
         )
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let snapshot = [ResourceAmount(.food, 4)]
 
         StageCompletion.claimRewardsIfNeeded(
@@ -333,6 +334,6 @@ final class StageRewardTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.homestead.resources[.food], 4)
+        #expect(context.homestead.resources[.food] == 4)
     }
 }

@@ -1,49 +1,50 @@
-import XCTest
+import Testing
 @testable import Trinket
 
-final class BattleCardGridLayoutTests: XCTestCase {
-    func testTallScreensUseSquareEnemyAndAlignedThinGutters() {
+@Suite
+struct BattleCardGridLayoutTests {
+    @Test func tallScreensUseSquareEnemyAndAlignedThinGutters() {
         let containerSize = CGSize(width: 390, height: 760)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
-        XCTAssertEqual(metrics.outerPadding, 8, accuracy: 0.001)
-        XCTAssertEqual(metrics.cardSpacing, 8, accuracy: 0.001)
-        XCTAssertEqual(metrics.partySize.width, 183, accuracy: 0.001)
-        XCTAssertEqual(metrics.partySize.height, 244, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.width, 374, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.height, 374, accuracy: 0.001)
+        #expect(abs((metrics.outerPadding) - (8)) < 0.001)
+        #expect(abs((metrics.cardSpacing) - (8)) < 0.001)
+        #expect(abs((metrics.partySize.width) - (183)) < 0.001)
+        #expect(abs((metrics.partySize.height) - (244)) < 0.001)
+        #expect(abs((metrics.enemySize.width) - (374)) < 0.001)
+        #expect(abs((metrics.enemySize.height) - (374)) < 0.001)
         assertAlignedRowRelationships(metrics, in: containerSize, fillsWidth: true)
     }
 
-    func testHeightConstrainedScreensStillLetPartyCardsReachSideGutters() {
+    @Test func heightConstrainedScreensStillLetPartyCardsReachSideGutters() {
         let containerSize = CGSize(width: 390, height: 700)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
-        XCTAssertEqual(metrics.partySize.width, 183, accuracy: 0.001)
-        XCTAssertEqual(metrics.partySize.height, 244, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.width, 374, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.height, 374, accuracy: 0.001)
+        #expect(abs((metrics.partySize.width) - (183)) < 0.001)
+        #expect(abs((metrics.partySize.height) - (244)) < 0.001)
+        #expect(abs((metrics.enemySize.width) - (374)) < 0.001)
+        #expect(abs((metrics.enemySize.height) - (374)) < 0.001)
         assertAlignedRowRelationships(metrics, in: containerSize, fillsWidth: true)
     }
 
-    func testCompactScreensScaleAlignedRowsToFitHeight() {
+    @Test func compactScreensScaleAlignedRowsToFitHeight() {
         let containerSize = CGSize(width: 320, height: 410)
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
-        XCTAssertEqual(metrics.partySize.width, 113.4, accuracy: 0.001)
-        XCTAssertEqual(metrics.partySize.height, 151.2, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.width, 234.8, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.height, 234.8, accuracy: 0.001)
+        #expect(abs((metrics.partySize.width) - (113.4)) < 0.001)
+        #expect(abs((metrics.partySize.height) - (151.2)) < 0.001)
+        #expect(abs((metrics.enemySize.width) - (234.8)) < 0.001)
+        #expect(abs((metrics.enemySize.height) - (234.8)) < 0.001)
         assertAlignedRowRelationships(metrics, in: containerSize, fillsHeight: true)
     }
 
-    func testVeryShortScreensKeepNonNegativeCardSizes() {
+    @Test func veryShortScreensKeepNonNegativeCardSizes() {
         let metrics = BattleCardGridLayout.metrics(in: CGSize(width: 320, height: 40))
 
-        XCTAssertEqual(metrics.partySize.width, 2.4, accuracy: 0.001)
-        XCTAssertEqual(metrics.partySize.height, 3.2, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.width, 12.8, accuracy: 0.001)
-        XCTAssertEqual(metrics.enemySize.height, 12.8, accuracy: 0.001)
+        #expect(abs((metrics.partySize.width) - (2.4)) < 0.001)
+        #expect(abs((metrics.partySize.height) - (3.2)) < 0.001)
+        #expect(abs((metrics.enemySize.width) - (12.8)) < 0.001)
+        #expect(abs((metrics.enemySize.height) - (12.8)) < 0.001)
     }
 
     private func assertAlignedRowRelationships(
@@ -59,30 +60,26 @@ final class BattleCardGridLayoutTests: XCTestCase {
         let innerWidth = containerSize.width - 2 * metrics.outerPadding
         let innerHeight = containerSize.height - 2 * metrics.outerPadding
 
-        XCTAssertEqual(metrics.enemySize.width, partyRowWidth, accuracy: 0.001, file: file, line: line)
-        XCTAssertEqual(
-            metrics.enemySize.width,
-            metrics.enemySize.height,
-            accuracy: 0.001,
+        #expect(abs((metrics.enemySize.width) - (partyRowWidth)) < 0.001, file: file, line: line)
+        #expect(abs((
+            metrics.enemySize.width) - (metrics.enemySize.height)) < 0.001,
             file: file,
             line: line
         )
-        XCTAssertEqual(
-            metrics.partySize.width / metrics.partySize.height,
-            3.0 / 4.0,
-            accuracy: 0.001,
+        #expect(abs((
+            metrics.partySize.width / metrics.partySize.height) - (3.0 / 4.0)) < 0.001,
             file: file,
             line: line
         )
-        XCTAssertLessThanOrEqual(partyRowWidth, innerWidth + 0.001, file: file, line: line)
-        XCTAssertLessThanOrEqual(gridHeight, innerHeight + 0.001, file: file, line: line)
+        #expect(partyRowWidth <= innerWidth + 0.001, file: file, line: line)
+        #expect(gridHeight <= innerHeight + 0.001, file: file, line: line)
 
         if fillsWidth {
-            XCTAssertEqual(partyRowWidth, innerWidth, accuracy: 0.001, file: file, line: line)
+            #expect(abs((partyRowWidth) - (innerWidth)) < 0.001, file: file, line: line)
         }
 
         if fillsHeight {
-            XCTAssertEqual(gridHeight, innerHeight, accuracy: 0.001, file: file, line: line)
+            #expect(abs((gridHeight) - (innerHeight)) < 0.001, file: file, line: line)
         }
     }
 }

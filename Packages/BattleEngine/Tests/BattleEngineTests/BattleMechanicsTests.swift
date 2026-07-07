@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleMechanicsTests: XCTestCase {
+@Suite
+struct BattleMechanicsTests {
     private func makeContext(
         hero: Combatant,
         pet: Combatant,
@@ -38,7 +39,7 @@ final class BattleMechanicsTests: XCTestCase {
         )
     }
 
-    func testMarkedBonusAddsDamageAndConsumesMark() {
+    @Test func markedBonusAddsDamageAndConsumesMark() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -53,13 +54,13 @@ final class BattleMechanicsTests: XCTestCase {
             .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
         )
 
-        XCTAssertEqual(outcome.healthLost, 5)
-        XCTAssertFalse(
-            context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
+        #expect(outcome.healthLost == 5)
+        #expect(!(
+            context.roster.activeEffects(for: enemy)).contains { if case .marked = $0.effect { return true }; return false }
         )
     }
 
-    func testInsufficientManaFallsBackToBasic() {
+    @Test func insufficientManaFallsBackToBasic() {
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "mana-skill", name: "Mana Skill", tier: .skill, directDamage: 5, description: "Skill", manaCost: 3)
         let wizard = Combatant(
@@ -76,11 +77,11 @@ final class BattleMechanicsTests: XCTestCase {
 
         let ability = selectedAbilityForTests(actor: wizard, turnNumber: 3, context: context)
 
-        XCTAssertEqual(ability?.id, wizard.abilityLoadout.basic?.id)
+        #expect(ability?.id == wizard.abilityLoadout.basic?.id)
     }
 
-    func testPredatorsHasteAppliesHasteBuff() throws {
-        let basePanther = try XCTUnwrap(GameContent.pets.first { $0.id == "panther" })
+    @Test func predatorsHasteAppliesHasteBuff() throws {
+        let basePanther = try #require(GameContent.pets.first { $0.id == "panther" })
         let panther = basePanther.withAbilityLoadout(
             AbilityLoadout(
                 basic: basePanther.abilityLoadout.basic,
@@ -91,7 +92,7 @@ final class BattleMechanicsTests: XCTestCase {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, pet: panther, enemy: enemy)
-        var pantherRuntime = try XCTUnwrap(context.roster.runtime(for: panther))
+        var pantherRuntime = try #require(context.roster.runtime(for: panther))
         pantherRuntime.actionCount = 2
         context.roster.update(pantherRuntime)
         let matchup = BattleMatchup(hero: hero, pet: panther, enemy: enemy)
@@ -103,7 +104,7 @@ final class BattleMechanicsTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertTrue(
+        #expect(
             context.roster.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
         )
     }

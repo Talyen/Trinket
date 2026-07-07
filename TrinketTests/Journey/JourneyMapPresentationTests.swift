@@ -1,14 +1,15 @@
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import Trinket
 
-final class JourneyMapPresentationTests: XCTestCase {
+@Suite
+struct JourneyMapPresentationTests {
     private var chapter: Chapter {
         GameContent.chapters[0]
     }
 
-    func testActiveJourneyScrollsToActiveStage() {
+    @Test func activeJourneyScrollsToActiveStage() {
         var progress = JourneyProgressState.initial
         let activeStage = chapter.stages[2]
         progress.activeStageID = activeStage.id
@@ -24,8 +25,8 @@ final class JourneyMapPresentationTests: XCTestCase {
             chapters: GameContent.chapters
         )
 
-        XCTAssertEqual(scrollTargetID, activeStage.id)
-        XCTAssertTrue(rows.contains { row in
+        #expect(scrollTargetID == activeStage.id)
+        #expect(rows.contains { row in
             if case let .stage(stage, state) = row {
                 return stage.id == activeStage.id && state == .active
             }
@@ -33,7 +34,7 @@ final class JourneyMapPresentationTests: XCTestCase {
         })
     }
 
-    func testActiveStageAppearsInRows() {
+    @Test func activeStageAppearsInRows() {
         var progress = JourneyProgressState.initial
         let activeStage = chapter.stages[2]
         progress.activeStageID = activeStage.id
@@ -53,11 +54,11 @@ final class JourneyMapPresentationTests: XCTestCase {
             guard case let .stage(stage, _) = row else { return nil }
             return stage.id
         }
-        XCTAssertTrue(stageIDs.contains(activeStage.id))
-        XCTAssertEqual(scrollTargetID, activeStage.id)
+        #expect(stageIDs.contains(activeStage.id))
+        #expect(scrollTargetID == activeStage.id)
     }
 
-    func testCompletedStagesAreExcludedFromRows() {
+    @Test func completedStagesAreExcludedFromRows() {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         progress.complete(firstStage, in: GameContent.chapters)
@@ -72,10 +73,10 @@ final class JourneyMapPresentationTests: XCTestCase {
             guard case let .stage(stage, _) = row else { return nil }
             return stage.id
         }
-        XCTAssertFalse(stageIDs.contains(firstStage.id))
+        #expect(!(stageIDs.contains(firstStage.id)))
     }
 
-    func testJustCompletedStageIsExcludedFromRows() {
+    @Test func justCompletedStageIsExcludedFromRows() {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         progress.complete(firstStage, in: GameContent.chapters)
@@ -86,15 +87,15 @@ final class JourneyMapPresentationTests: XCTestCase {
             progress: progress
         )
 
-        XCTAssertFalse(
+        #expect(!(
             rows.contains {
-                guard case let .stage(_, state) = $0 else { return false }
+                guard case let .stage(_, state)) = $0 else { return false }
                 return state == .justCompleted
             }
         )
     }
 
-    func testRowsEndWithChapterGate() {
+    @Test func rowsEndWithChapterGate() {
         var progress = JourneyProgressState.initial
         progress.activeStageID = chapter.stages[0].id
 
@@ -105,12 +106,12 @@ final class JourneyMapPresentationTests: XCTestCase {
         )
 
         guard case let .chapterGate(gateChapter) = rows.last else {
-            return XCTFail("Expected chapter gate row")
+            return Issue.record("Expected chapter gate row")
         }
-        XCTAssertEqual(gateChapter.number, 2)
+        #expect(gateChapter.number == 2)
     }
 
-    func testCompletedChapterScrollsToGate() {
+    @Test func completedChapterScrollsToGate() {
         var progress = JourneyProgressState.initial
         progress.completedStageIDs = Set(chapter.stages.map(\.id))
         progress.activeStageID = nil
@@ -128,8 +129,8 @@ final class JourneyMapPresentationTests: XCTestCase {
         )
 
         let gateChapter = JourneyMapPresentation.gateChapter(after: chapter, in: GameContent.chapters)
-        XCTAssertEqual(scrollTargetID, StageMapID.chapterGate(for: gateChapter))
-        XCTAssertTrue(rows.contains { row in
+        #expect(scrollTargetID == StageMapID.chapterGate(for: gateChapter))
+        #expect(rows.contains { row in
             if case let .chapterGate(chapter) = row {
                 return chapter.number == gateChapter.number
             }
@@ -137,7 +138,7 @@ final class JourneyMapPresentationTests: XCTestCase {
         })
     }
 
-    func testScrollTargetFallsBackToChapterGateWhenChapterComplete() {
+    @Test func scrollTargetFallsBackToChapterGateWhenChapterComplete() {
         var progress = JourneyProgressState.initial
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
@@ -149,9 +150,8 @@ final class JourneyMapPresentationTests: XCTestCase {
             chapters: GameContent.chapters
         )
 
-        XCTAssertEqual(
-            scrollTargetID,
-            StageMapID.chapterGate(
+        #expect(
+            scrollTargetID == StageMapID.chapterGate(
                 for: Chapter(
                     id: StageMapID.placeholderGate(afterChapterNumber: 2),
                     number: 2,
@@ -163,10 +163,10 @@ final class JourneyMapPresentationTests: XCTestCase {
         )
     }
 
-    func testGateChapterUsesPlaceholderWhenNextChapterMissing() throws {
-        let lastChapter = try XCTUnwrap(GameContent.chapters.last)
+    @Test func gateChapterUsesPlaceholderWhenNextChapterMissing() throws {
+        let lastChapter = try #require(GameContent.chapters.last)
         let gateChapter = JourneyMapPresentation.gateChapter(after: lastChapter, in: GameContent.chapters)
 
-        XCTAssertEqual(gateChapter.id, StageMapID.placeholderGate(afterChapterNumber: gateChapter.number))
+        #expect(gateChapter.id == StageMapID.placeholderGate(afterChapterNumber: gateChapter.number))
     }
 }

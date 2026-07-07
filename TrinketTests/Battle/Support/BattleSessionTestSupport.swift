@@ -1,7 +1,6 @@
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-import XCTest
 @testable import BattleEngine
 @testable import Trinket
 

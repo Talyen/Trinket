@@ -1,15 +1,15 @@
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class BattleVictorySummaryTests: XCTestCase {
-    func testMakeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+@Suite @MainActor
+final class BattleVictorySummaryTests {
+    @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
@@ -33,25 +33,25 @@ final class BattleVictorySummaryTests: XCTestCase {
 
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: XCTUnwrap(session.state),
+            state: #require(session.state),
             homestead: .freshStart
         )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 2)
 
-        XCTAssertEqual(summary.stageGold, 12)
-        XCTAssertEqual(summary.experience, expectedHeroXP)
-        XCTAssertEqual(summary.heroName, hero.name)
-        XCTAssertEqual(summary.petName, pet.name)
-        XCTAssertEqual(summary.itemNames, ["Shortsword"])
-        XCTAssertEqual(summary.heroProgressionBefore.level, 2)
-        XCTAssertEqual(summary.heroProgressionAfter.currentXP, 10 + expectedHeroXP)
-        XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
+        #expect(summary.stageGold == 12)
+        #expect(summary.experience == expectedHeroXP)
+        #expect(summary.heroName == hero.name)
+        #expect(summary.petName == pet.name)
+        #expect(summary.itemNames == ["Shortsword"])
+        #expect(summary.heroProgressionBefore.level == 2)
+        #expect(summary.heroProgressionAfter.currentXP == 10 + expectedHeroXP)
+        #expect(summary.petProgressionAfter.currentXP == expectedPetXP)
     }
 
-    func testMakeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+    @Test func makeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
@@ -74,18 +74,18 @@ final class BattleVictorySummaryTests: XCTestCase {
 
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: XCTUnwrap(session.state),
+            state: #require(session.state),
             homestead: .freshStart
         )
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
 
-        XCTAssertEqual(summary.experience, 0)
-        XCTAssertEqual(summary.petExperience, expectedPetXP)
-        XCTAssertEqual(summary.hasExperienceAwards, true)
-        XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
+        #expect(summary.experience == 0)
+        #expect(summary.petExperience == expectedPetXP)
+        #expect(summary.hasExperienceAwards == true)
+        #expect(summary.petProgressionAfter.currentXP == expectedPetXP)
     }
 
-    func testMakeVictorySummaryIncludesBattleGoldWhenRewardsGranted() throws {
+    @Test func makeVictorySummaryIncludesBattleGoldWhenRewardsGranted() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -111,16 +111,16 @@ final class BattleVictorySummaryTests: XCTestCase {
 
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: XCTUnwrap(session.state),
+            state: #require(session.state),
             homestead: .freshStart
         )
 
-        XCTAssertEqual(summary.stageGold, 12)
-        XCTAssertGreaterThanOrEqual(summary.battleGold, 0)
-        XCTAssertEqual(summary.totalGold, summary.stageGold + summary.battleGold)
+        #expect(summary.stageGold == 12)
+        #expect(summary.battleGold >= 0)
+        #expect(summary.totalGold == summary.stageGold + summary.battleGold)
     }
 
-    func testMakeVictorySummaryAppliesHomesteadBonusesWhenBonusesActive() throws {
+    @Test func makeVictorySummaryAppliesHomesteadBonusesWhenBonusesActive() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -150,11 +150,11 @@ final class BattleVictorySummaryTests: XCTestCase {
 
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: XCTUnwrap(session.state),
+            state: #require(session.state),
             homestead: homestead
         )
 
-        XCTAssertEqual(summary.materialRewards.first { $0.resource == .wood }?.quantity, 9)
-        XCTAssertEqual(summary.materialRewards.first { $0.resource == .stone }?.quantity, 4)
+        #expect(summary.materialRewards.first { $0.resource == .wood }?.quantity == 9)
+        #expect(summary.materialRewards.first { $0.resource == .stone }?.quantity == 4)
     }
 }

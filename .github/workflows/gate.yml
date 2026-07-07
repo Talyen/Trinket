@@ -15,4 +15,5 @@ jobs:
       - run: ./Scripts/assert-generated-output.sh
       - run: ./Scripts/test.sh style
       - run: ./Scripts/check-module-boundaries.sh
+      - run: ./Scripts/check-swift-testing-migration.sh
       - run: ./Scripts/release-notes.sh validate

@@ -91,6 +91,14 @@ import TrinketContent
         #expect(allIDs.count == combinedCount, "Hero, pet, and enemy IDs must be globally unique")
     }
 
+    @Test(arguments: GameContent.enemies)
+    func eachEnemyHasBasicSkillUltimate(enemy: Enemy) {
+        let loadout = enemy.combatant.abilityLoadout
+        #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
+        #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")
+        #require(loadout.ultimate != nil, "\(enemy.name) should have an ultimate ability")
+    }
+
     @Test func averagePlayerBaseHealthExceedsFodderEnemyBaseHealth() {
         let heroAverage = Double(GameContent.heroes.map(\.maxHealth).reduce(0, +)) / Double(GameContent.heroes.count)
         let petAverage = Double(GameContent.pets.map(\.maxHealth).reduce(0, +)) / Double(GameContent.pets.count)

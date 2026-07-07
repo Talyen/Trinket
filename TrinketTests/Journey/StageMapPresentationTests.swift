@@ -1,21 +1,22 @@
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import Trinket
 
-final class StageMapPresentationTests: XCTestCase {
-    func testChapterGateIDUsesChapterIdentifier() {
+@Suite
+struct StageMapPresentationTests {
+    @Test func chapterGateIDUsesChapterIdentifier() {
         let chapter = GameContent.chapters[0]
 
-        XCTAssertEqual(StageMapID.chapterGate(for: chapter), "chapter-gate-\(chapter.id)")
+        #expect(StageMapID.chapterGate(for: chapter) == "chapter-gate-\(chapter.id)")
     }
 
-    func testPlaceholderGateIDUsesChapterNumber() {
-        XCTAssertEqual(StageMapID.placeholderGate(afterChapterNumber: 2), "chapter-gate-placeholder-2")
+    @Test func placeholderGateIDUsesChapterNumber() {
+        #expect(StageMapID.placeholderGate(afterChapterNumber: 2) == "chapter-gate-placeholder-2")
     }
 
-    func testChapterJourneyRowIDMatchesStageOrGate() throws {
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func chapterJourneyRowIDMatchesStageOrGate() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first)
         let gateChapter = Chapter(
             id: StageMapID.placeholderGate(afterChapterNumber: 2),
             number: 2,
@@ -24,13 +25,13 @@ final class StageMapPresentationTests: XCTestCase {
             stages: []
         )
 
-        XCTAssertEqual(ChapterJourneyRow.stage(stage, .active).id, stage.id)
-        XCTAssertEqual(ChapterJourneyRow.chapterGate(gateChapter).id, StageMapID.chapterGate(for: gateChapter))
+        #expect(ChapterJourneyRow.stage(stage == .active).id, stage.id)
+        #expect(ChapterJourneyRow.chapterGate(gateChapter).id == StageMapID.chapterGate(for: gateChapter))
     }
 
-    func testStageMapLabelFormatsChapterAndStageNumber() throws {
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func stageMapLabelFormatsChapterAndStageNumber() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first)
 
-        XCTAssertEqual(stage.mapLabel, "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
+        #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
     }
 }

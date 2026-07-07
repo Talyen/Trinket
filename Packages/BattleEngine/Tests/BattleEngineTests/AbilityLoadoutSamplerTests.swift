@@ -1,12 +1,13 @@
-import XCTest
+import Testing
 @testable import BalanceSweepCLI
 import TrinketCore
 import TrinketContent
 
-final class AbilityLoadoutSamplerTests: XCTestCase {
-    func testRandomLoadoutPairLimitsNonDamageAbilitiesAcrossHeroAndPet() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "alchemist" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "golden_retriever" })
+@Suite
+struct AbilityLoadoutSamplerTests {
+    @Test func randomLoadoutPairLimitsNonDamageAbilitiesAcrossHeroAndPet() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "alchemist" })
+        let pet = try #require(GameContent.pets.first { $0.id == "golden_retriever" })
         let progression = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         for seed in 0 ..< 32 {
@@ -18,7 +19,7 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
                 using: &rng
             )
 
-            XCTAssertTrue(
+            #expect(
                 AbilityLoadoutSampler.satisfiesDamageBudget(
                     hero: heroLoadout,
                     pet: petLoadout,
@@ -30,9 +31,9 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
         }
     }
 
-    func testDefaultLoadoutPairPrefersDamageForSupportCombatants() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "alchemist" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "golden_retriever" })
+    @Test func defaultLoadoutPairPrefersDamageForSupportCombatants() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "alchemist" })
+        let pet = try #require(GameContent.pets.first { $0.id == "golden_retriever" })
         let progression = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         let (heroLoadout, petLoadout) = AbilityLoadoutSampler.defaultLoadoutPair(
@@ -41,7 +42,7 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
             progression: progression
         )
 
-        XCTAssertTrue(
+        #expect(
             AbilityLoadoutSampler.satisfiesDamageBudget(
                 hero: heroLoadout,
                 pet: petLoadout,
@@ -50,9 +51,8 @@ final class AbilityLoadoutSamplerTests: XCTestCase {
                 progression: progression
             )
         )
-        XCTAssertGreaterThanOrEqual(
-            (heroLoadout.abilities + petLoadout.abilities).filter { $0.directDamage > 0 }.count,
-            2
+        #expect(
+            (heroLoadout.abilities + petLoadout.abilities).filter { $0.directDamage > 0 }.count >= 2
         )
     }
 }

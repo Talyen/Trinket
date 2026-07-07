@@ -1,29 +1,30 @@
 import TrinketDesignSystem
-import XCTest
+import Testing
 
-final class AppThemeTests: XCTestCase {
-    func testStandardThemeUsesApplePalette() {
+@Suite
+struct AppThemeTests {
+    @Test func standardThemeUsesApplePalette() {
         let palette = TrinketDesign.AppTheme.default.palette
-        XCTAssertNotEqual(palette.appBackground, .clear)
-        XCTAssertNotEqual(palette.panelSurface, .clear)
-        XCTAssertNotEqual(palette.subtleStroke, .clear)
-        XCTAssertNotEqual(palette.accent, .clear)
+        #expect(palette.appBackground != .clear)
+        #expect(palette.panelSurface != .clear)
+        #expect(palette.subtleStroke != .clear)
+        #expect(palette.accent != .clear)
     }
 
-    func testApplePaletteHasValidColors() {
+    @Test func applePaletteHasValidColors() {
         let palette = ThemePalette.apple
-        XCTAssertNotEqual(palette.appBackground, .clear)
-        XCTAssertNotEqual(palette.secondaryBackground, .clear)
-        XCTAssertNotEqual(palette.elevatedBackground, .clear)
-        XCTAssertNotEqual(palette.panelSurface, .clear)
-        XCTAssertNotEqual(palette.subtleStroke, .clear)
-        XCTAssertNotEqual(palette.accent, .clear)
+        #expect(palette.appBackground != .clear)
+        #expect(palette.secondaryBackground != .clear)
+        #expect(palette.elevatedBackground != .clear)
+        #expect(palette.panelSurface != .clear)
+        #expect(palette.subtleStroke != .clear)
+        #expect(palette.accent != .clear)
     }
 
-    func testAppearanceParsingSupportsDisplayNames() {
-        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "system"), .system)
-        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "Light"), .light)
-        XCTAssertEqual(TrinketDesign.AppAppearance(rawValue: "dark"), .dark)
-        XCTAssertNil(TrinketDesign.AppAppearance(rawValue: "unknown"))
+    @Test func appearanceParsingSupportsDisplayNames() {
+        #expect(TrinketDesign.AppAppearance(rawValue: "system") == .system)
+        #expect(TrinketDesign.AppAppearance(rawValue: "Light") == .light)
+        #expect(TrinketDesign.AppAppearance(rawValue: "dark") == .dark)
+        #expect(TrinketDesign.AppAppearance(rawValue: "unknown" == nil))
     }
 }

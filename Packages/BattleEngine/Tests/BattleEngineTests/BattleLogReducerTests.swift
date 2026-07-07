@@ -1,10 +1,11 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleLogReducerTests: XCTestCase {
-    func testNoDamageNoEffectsFallsBackToShortForm() {
+@Suite
+struct BattleLogReducerTests {
+    @Test func noDamageNoEffectsFallsBackToShortForm() {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Block",
@@ -13,10 +14,10 @@ final class BattleLogReducerTests: XCTestCase {
             targetName: "Enemy",
             appliedEffectSummaries: []
         )
-        XCTAssertEqual(line, "Hero uses Block.")
+        #expect(line == "Hero uses Block.")
     }
 
-    func testDamageOnlyShowsDamageForm() {
+    @Test func damageOnlyShowsDamageForm() {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Slash",
@@ -25,10 +26,10 @@ final class BattleLogReducerTests: XCTestCase {
             targetName: "Enemy",
             appliedEffectSummaries: []
         )
-        XCTAssertEqual(line, "Hero uses Slash for 3 Physical damage to Enemy.")
+        #expect(line == "Hero uses Slash for 3 Physical damage to Enemy.")
     }
 
-    func testEffectsOnlyShowsOnForm() {
+    @Test func effectsOnlyShowsOnForm() {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Smite",
@@ -37,10 +38,10 @@ final class BattleLogReducerTests: XCTestCase {
             targetName: "Hero",
             appliedEffectSummaries: ["restore 3 Health"]
         )
-        XCTAssertEqual(line, "Hero uses Smite on Hero and restore 3 Health.")
+        #expect(line == "Hero uses Smite on Hero and restore 3 Health.")
     }
 
-    func testDamageAndEffectsCombines() {
+    @Test func damageAndEffectsCombines() {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Fireball",
@@ -49,10 +50,10 @@ final class BattleLogReducerTests: XCTestCase {
             targetName: "Enemy",
             appliedEffectSummaries: ["applies Burning"]
         )
-        XCTAssertEqual(line, "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.")
+        #expect(line == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.")
     }
 
-    func testMultipleEffectsJoinedByComma() {
+    @Test func multipleEffectsJoinedByComma() {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Heat Wave",
@@ -61,10 +62,10 @@ final class BattleLogReducerTests: XCTestCase {
             targetName: "Enemy",
             appliedEffectSummaries: ["applies Burning", "gain Block"]
         )
-        XCTAssertEqual(line, "Hero uses Heat Wave on Enemy and applies Burning, gain Block.")
+        #expect(line == "Hero uses Heat Wave on Enemy and applies Burning, gain Block.")
     }
 
-    func testEntriesReduceMilestonesStatusAndAbilityEvents() {
+    @Test func entriesReduceMilestonesStatusAndAbilityEvents() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
@@ -116,7 +117,7 @@ final class BattleLogReducerTests: XCTestCase {
         ]
 
         let entries = BattleLogReducer.entries(from: events, matchup: matchup)
-        XCTAssertEqual(entries.map(\.text), [
+        #expect(entries.map(\.text) == [
             "Hero and Pet face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
             "Enemy takes 2 Burn damage.",
@@ -124,7 +125,7 @@ final class BattleLogReducerTests: XCTestCase {
         ])
     }
 
-    func testIncrementalEntriesMatchFullRebuild() {
+    @Test func incrementalEntriesMatchFullRebuild() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
@@ -167,10 +168,10 @@ final class BattleLogReducerTests: XCTestCase {
         let full = BattleLogReducer.entries(from: events, matchup: matchup)
         let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0, matchup: matchup)
         let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
-        XCTAssertEqual(firstBatch + secondBatch, full)
+        #expect(firstBatch + secondBatch == full)
     }
 
-    func testLogProjectionIncrementalSyncMatchesFullReduce() {
+    @Test func logProjectionIncrementalSyncMatchesFullReduce() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20, abilities: [])
@@ -203,10 +204,10 @@ final class BattleLogReducerTests: XCTestCase {
         projection.sync(events: [events[0]], matchup: matchup)
         projection.sync(events: events, matchup: matchup)
 
-        XCTAssertEqual(projection.entries, BattleLogProjection.entries(from: events, matchup: matchup))
+        #expect(projection.entries == BattleLogProjection.entries(from: events, matchup: matchup))
     }
 
-    func testDeathsDoorTriggeredLogLine() {
+    @Test func deathsDoorTriggeredLogLine() {
         let event = ActionEvent(
             id: 1,
             kind: .effect,
@@ -218,10 +219,10 @@ final class BattleLogReducerTests: XCTestCase {
             amount: 0,
             keyword: .deathsDoor
         )
-        XCTAssertEqual(BattleLogReducer.line(for: event, matchup: sampleMatchup()), "Hero is on Death's Door.")
+        #expect(BattleLogReducer.line(for: event == matchup: sampleMatchup()), "Hero is on Death's Door.")
     }
 
-    func testDeathsDoorExpiredLogLine() {
+    @Test func deathsDoorExpiredLogLine() {
         let event = ActionEvent(
             id: 1,
             kind: .effect,
@@ -233,7 +234,7 @@ final class BattleLogReducerTests: XCTestCase {
             amount: 0,
             keyword: .deathsDoor
         )
-        XCTAssertEqual(BattleLogReducer.line(for: event, matchup: sampleMatchup()), "Hero's Death's Door fades.")
+        #expect(BattleLogReducer.line(for: event == matchup: sampleMatchup()), "Hero's Death's Door fades.")
     }
 
     private func sampleMatchup() -> BattleMatchup {

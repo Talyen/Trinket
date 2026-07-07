@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
@@ -172,19 +172,17 @@ enum BattleTestFixtures {
     static func assertActionSkipConsumed(
         step: BattleStep,
         actorID: String,
-        keyword: Keyword,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        keyword: Keyword
     ) {
-        if case let .acted(actor, events) = step {
-            XCTAssertEqual(actor.id, actorID, file: file, line: line)
-            XCTAssertTrue(
-                events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword },
-                file: file,
-                line: line
-            )
-        } else {
-            XCTFail("Expected action skip on turn for \(actorID)", file: file, line: line)
+        guard case let .acted(actor, events) = step else {
+            Issue.record("Expected action skip on turn for \(actorID)")
+            return
+        }
+        if actor.id != actorID {
+            Issue.record("Expected actor \(actorID), got \(actor.id)")
+        }
+        if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
+            Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
         }
     }
 

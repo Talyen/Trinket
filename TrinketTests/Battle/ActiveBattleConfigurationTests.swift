@@ -1,14 +1,14 @@
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import Trinket
 
-@MainActor
-final class ActiveBattleConfigurationTests: XCTestCase {
-    func testMakeWithoutEquipmentUsesTraitOnlyModifiers() throws {
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
+@Suite @MainActor
+final class ActiveBattleConfigurationTests {
+    @Test func makeWithoutEquipmentUsesTraitOnlyModifiers() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try #require(GameContent.enemies.first?.combatant)
 
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
@@ -17,20 +17,20 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             enemy: enemy
         )
 
-        XCTAssertEqual(configuration.hero.modifiers.blockGainedBonus, 1)
-        XCTAssertEqual(configuration.pet.modifiers.bleedDurationBonus, 1)
-        XCTAssertEqual(configuration.hero.modifiers.damageDealtBonus(for: .physical), 0)
-        XCTAssertEqual(configuration.pet.modifiers.damageDealtBonus(for: .physical), 0)
-        XCTAssertEqual(configuration.hero.combatant.id, knight.id)
-        XCTAssertEqual(configuration.pet.combatant.id, wolf.id)
+        #expect(configuration.hero.modifiers.blockGainedBonus == 1)
+        #expect(configuration.pet.modifiers.bleedDurationBonus == 1)
+        #expect(configuration.hero.modifiers.damageDealtBonus(for: .physical) == 0)
+        #expect(configuration.pet.modifiers.damageDealtBonus(for: .physical) == 0)
+        #expect(configuration.hero.combatant.id == knight.id)
+        #expect(configuration.pet.combatant.id == wolf.id)
     }
 
-    func testMakeResolvesEquippedItemModifiers() throws {
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
-        let keen = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
+    @Test func makeResolvesEquippedItemModifiers() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
         let item = InventoryItem(
             id: "keen-longsword",
             baseType: baseType,
@@ -52,14 +52,14 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             inventory: PlayerInventoryState(items: [item])
         )
 
-        XCTAssertEqual(configuration.hero.modifiers.damageDealtBonus(for: .physical), 1)
-        XCTAssertEqual(configuration.hero.combatant.primaryStats.strength, knight.primaryStats.strength)
+        #expect(configuration.hero.modifiers.damageDealtBonus(for: .physical) == 1)
+        #expect(configuration.hero.combatant.primaryStats.strength == knight.primaryStats.strength)
     }
 
-    func testMakeResolvesEnemyTraitModifiers() throws {
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let skeleton = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
+    @Test func makeResolvesEnemyTraitModifiers() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
 
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
@@ -68,17 +68,17 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             enemy: skeleton.combatant
         )
 
-        XCTAssertGreaterThan(configuration.enemyModifiers.damageTakenVulnerability(for: .holy), 0)
-        XCTAssertGreaterThan(configuration.enemyModifiers.controlResistancePercent, 0)
+        #expect(configuration.enemyModifiers.damageTakenVulnerability(for: .holy) > 0)
+        #expect(configuration.enemyModifiers.controlResistancePercent > 0)
     }
 
-    func testMakePreservesStageMetadata() throws {
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        let enemy = try XCTUnwrap(try GameContent.enemy(matching: XCTUnwrap(stage.encounter.battleEnemyID))?.combatant)
-        let expectedItemName = try XCTUnwrap(
-            GameContent.itemTemplate(matching: XCTUnwrap(stage.rewards.itemTemplateIDs.first))?.displayName
+    @Test func makePreservesStageMetadata() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let enemy = try #require(try GameContent.enemy(matching: #require(stage.encounter.battleEnemyID))?.combatant)
+        let expectedItemName = try #require(
+            GameContent.itemTemplate(matching: #require(stage.rewards.itemTemplateIDs.first))?.displayName
         )
 
         let configuration = ActiveBattleConfigurationTestSupport.make(
@@ -90,18 +90,18 @@ final class ActiveBattleConfigurationTests: XCTestCase {
             stageReward: stage.rewards
         )
 
-        XCTAssertEqual(configuration.stageID, stage.id)
-        XCTAssertEqual(configuration.stageReward, stage.rewards)
-        XCTAssertEqual(configuration.rewardItemNames, [expectedItemName])
+        #expect(configuration.stageID == stage.id)
+        #expect(configuration.stageReward == stage.rewards)
+        #expect(configuration.rewardItemNames == [expectedItemName])
     }
 
-    func testResolvedEncounterScalesEnemyToJourneyLevel() throws {
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        let encounter = try XCTUnwrap(ActiveBattleConfiguration.resolvedEncounter(for: stage))
-        let chapter = try XCTUnwrap(GameContent.chapters.first { $0.id == stage.chapterID })
+    @Test func resolvedEncounterScalesEnemyToJourneyLevel() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        let chapter = try #require(GameContent.chapters.first { $0.id == stage.chapterID })
         let expectedLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
 
-        XCTAssertEqual(encounter.level, expectedLevel)
-        XCTAssertEqual(encounter.combatant.id, stage.encounter.battleEnemyID)
+        #expect(encounter.level == expectedLevel)
+        #expect(encounter.combatant.id == stage.encounter.battleEnemyID)
     }
 }

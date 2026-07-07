@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class CombatOutcomeTests: XCTestCase {
+@Suite
+struct CombatOutcomeTests {
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)
         let source = CombatantFixtures.combatant(id: "source", role: .hero, maxHealth: 50)
@@ -26,7 +27,7 @@ final class CombatOutcomeTests: XCTestCase {
         )
     }
 
-    func testResolveDamageReturnsCombatOutcome() {
+    @Test func resolveDamageReturnsCombatOutcome() {
         var context = makeContext(seed: 1772)
         let outcome = context.resolveDamage(
             .directAbilityHit(
@@ -36,12 +37,12 @@ final class CombatOutcomeTests: XCTestCase {
                 sourceActorID: "source"
             )
         )
-        XCTAssertEqual(outcome.healthLost, 10)
-        XCTAssertEqual(outcome.healthDelta, -10)
-        XCTAssertEqual(context.roster.enemy.currentHealth, 40)
+        #expect(outcome.healthLost == 10)
+        #expect(outcome.healthDelta == -10)
+        #expect(context.roster.enemy.currentHealth == 40)
     }
 
-    func testResolveDamageSetsDodgedFlag() {
+    @Test func resolveDamageSetsDodgedFlag() {
         let stats = PrimaryStats(agility: 140)
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
@@ -73,11 +74,11 @@ final class CombatOutcomeTests: XCTestCase {
             )
         )
         if outcome.healthLost == 0 {
-            XCTAssertTrue(outcome.flags.contains(.dodged))
+            #expect(outcome.flags.contains(.dodged))
         }
     }
 
-    func testResolveDamageSetsLeechedFlag() {
+    @Test func resolveDamageSetsLeechedFlag() {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
@@ -90,41 +91,41 @@ final class CombatOutcomeTests: XCTestCase {
                 sourceActorID: "source"
             )
         )
-        XCTAssertTrue(outcome.flags.contains(.leeched))
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechHeal })
+        #expect(outcome.flags.contains(.leeched))
+        #expect(outcome.events.contains { $0.effectKind == .leechHeal })
     }
 
-    func testDamageRequestDoTTickPresetAppliesBonusesWithoutDodge() {
+    @Test func damageRequestDoTTickPresetAppliesBonusesWithoutDodge() {
         let preset = DamageRequest.doTTick(
             amount: 10,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .burn,
             sourceActorID: "source"
         )
-        XCTAssertTrue(preset.options.applyStatBonus)
-        XCTAssertFalse(preset.options.applyDodge)
-        XCTAssertTrue(preset.options.applyItemBonus)
+        #expect(preset.options.applyStatBonus)
+        #expect(!(preset.options.applyDodge))
+        #expect(preset.options.applyItemBonus)
     }
 
-    func testDamageRequestDirectAbilityHitUsesDefaultOptions() {
+    @Test func damageRequestDirectAbilityHitUsesDefaultOptions() {
         let preset = DamageRequest.directAbilityHit(
             amount: 5,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .physical,
             sourceActorID: "source"
         )
-        XCTAssertEqual(preset.options, .directAbilityHit)
+        #expect(preset.options == .directAbilityHit)
     }
 
-    func testResolveHealReturnsRestoredAmount() {
+    @Test func resolveHealReturnsRestoredAmount() {
         var context = makeContext(seed: 1772)
         _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
         let outcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
         )
-        XCTAssertEqual(outcome.healthRestored, context.roster.enemy.currentHealth - before)
-        XCTAssertGreaterThan(outcome.healthRestored, 0)
-        XCTAssertEqual(outcome.healthDelta, outcome.healthRestored)
+        #expect(outcome.healthRestored == context.roster.enemy.currentHealth - before)
+        #expect(outcome.healthRestored > 0)
+        #expect(outcome.healthDelta == outcome.healthRestored)
     }
 }

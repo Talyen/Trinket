@@ -1,20 +1,21 @@
 import TrinketCore
-import XCTest
+import Testing
 
-final class PrimaryStatsModelTests: XCTestCase {
-    func testDefaultStatsEqualZero() {
+@Suite
+struct PrimaryStatsModelTests {
+    @Test func defaultStatsEqualZero() {
         let stats = PrimaryStats()
-        XCTAssertEqual(stats.strength, 0)
-        XCTAssertEqual(stats.agility, 0)
-        XCTAssertEqual(stats.toughness, 0)
-        XCTAssertEqual(stats.intellect, 0)
-        XCTAssertEqual(stats.wisdom, 0)
+        #expect(stats.strength == 0)
+        #expect(stats.agility == 0)
+        #expect(stats.toughness == 0)
+        #expect(stats.intellect == 0)
+        #expect(stats.wisdom == 0)
     }
 
-    func testPrimaryStatsCodable() throws {
+    @Test func primaryStatsCodable() throws {
         let stats = PrimaryStats(strength: 1, agility: 2, toughness: 3, intellect: 4, wisdom: 5)
         let data = try JSONEncoder().encode(stats)
         let decoded = try JSONDecoder().decode(PrimaryStats.self, from: data)
-        XCTAssertEqual(decoded, stats)
+        #expect(decoded == stats)
     }
 }

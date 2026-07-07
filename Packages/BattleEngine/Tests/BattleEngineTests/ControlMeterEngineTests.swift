@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class ControlMeterEngineTests: XCTestCase {
+@Suite
+struct ControlMeterEngineTests {
     private func makeContext(
         targetMaxHealth: Int = 50,
         targetEffects: [ActiveEffect] = [],
@@ -32,7 +33,7 @@ final class ControlMeterEngineTests: XCTestCase {
         )
     }
 
-    func testApplyBuildupTriggersControlAtThreshold() {
+    @Test func applyBuildupTriggersControlAtThreshold() {
         var context = makeContext(seed: 1772)
         let events = ControlMeterEngine.applyMeterCharge(
             15,
@@ -41,10 +42,10 @@ final class ControlMeterEngineTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
+        #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
-    func testApplyBuildupNoDuplicateWhenSameKeywordSkipPending() {
+    @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
@@ -58,10 +59,10 @@ final class ControlMeterEngineTests: XCTestCase {
             sourceActorID: "source",
             in: &context
         )
-        XCTAssertTrue(events.isEmpty)
+        #expect(events.isEmpty)
     }
 
-    func testApplyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
+    @Test func applyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
@@ -78,17 +79,17 @@ final class ControlMeterEngineTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertTrue(events.isEmpty)
+        #expect(events.isEmpty)
         let freezeMeter = context.roster.activeEffects(for: target).first {
             guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
             return keyword == .freeze && amount == 3
         }
-        _ = try XCTUnwrap(freezeMeter)
-        XCTAssertTrue(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
-        XCTAssertFalse(context.roster.hasPendingActionSkip(for: target, keyword: .freeze))
+        _ = try #require(freezeMeter)
+        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .freeze)))
     }
 
-    func testStunAndFreezeMetersCoexistOnSameTarget() {
+    @Test func stunAndFreezeMetersCoexistOnSameTarget() {
         let context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTicks: 0),
@@ -98,10 +99,10 @@ final class ControlMeterEngineTests: XCTestCase {
         )
         let target = context.roster.enemy.combatant
         let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
-        XCTAssertEqual(meters.count, 2)
+        #expect(meters.count == 2)
     }
 
-    func testContextControlMeterDelegatesToControlMeterEngine() {
+    @Test func contextControlMeterDelegatesToControlMeterEngine() {
         var contextContext = makeContext(seed: 1772)
         var engineContext = makeContext(seed: 1772)
         let target = contextContext.roster.enemy.combatant
@@ -113,13 +114,12 @@ final class ControlMeterEngineTests: XCTestCase {
             15, keyword: .stun, to: target, sourceActorID: "source", in: &engineContext
         )
 
-        XCTAssertEqual(
-            contextEvents.map(\.effectKind),
-            engineEvents.map(\.effectKind)
+        #expect(
+            contextEvents.map(\.effectKind) == engineEvents.map(\.effectKind)
         )
     }
 
-    func testOverflowChargeIsConsumedOnTrigger() {
+    @Test func overflowChargeIsConsumedOnTrigger() {
         var context = makeContext(targetMaxHealth: 100, seed: 1772)
         let target = context.roster.enemy.combatant
 
@@ -131,14 +131,14 @@ final class ControlMeterEngineTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertTrue(events.contains { $0.effectKind == .controlTriggered })
-        XCTAssertNil(
-            context.roster.activeEffects(for: target).first {
+        #expect(events.contains { $0.effectKind == .controlTriggered })
+        #expect(
+            context.roster.activeEffects(for: target == nil).first {
                 guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
                 return amount < threshold
             },
             "Partial build-up should be consumed on trigger"
         )
-        XCTAssertTrue(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 }

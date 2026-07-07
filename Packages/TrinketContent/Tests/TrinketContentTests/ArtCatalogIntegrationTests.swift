@@ -1,66 +1,67 @@
-import XCTest
+import Testing
 @testable import TrinketContent
 
-final class ArtCatalogIntegrationTests: XCTestCase {
-    func testEveryCatalogAbilityHasArt() throws {
+@Suite
+struct ArtCatalogIntegrationTests {
+    @Test func everyCatalogAbilityHasArt() throws {
         for ability in AbilityCatalog.all {
-            _ = try XCTUnwrap(
+            _ = try #require(
                 ability.artReference,
                 "Missing art for ability id \(ability.id)"
             )
         }
     }
 
-    func testArtCatalogOnlyReferencesKnownAbilities() {
+    @Test func artCatalogOnlyReferencesKnownAbilities() {
         let catalogIDs = Set(AbilityCatalog.all.map(\.id))
         let artIDs = Set(ArtCatalog.abilityArtByID.keys)
         let unknownArtIDs = artIDs.subtracting(catalogIDs)
-        XCTAssertTrue(
+        #expect(
             unknownArtIDs.isEmpty,
             "Art catalog references unknown ability IDs: \(unknownArtIDs.sorted())"
         )
     }
 
-    func testGameContentReferencesResolveInCatalog() throws {
+    @Test func gameContentReferencesResolveInCatalog() throws {
         let referenced = referencedAbilityIDs()
         for id in referenced {
-            _ = try XCTUnwrap(
+            _ = try #require(
                 AbilityCatalog.ability(id: id),
                 "GameContent references unknown ability id \(id)"
             )
         }
     }
 
-    func testEachHeroAndPetHasArtReference() throws {
+    @Test func eachHeroAndPetHasArtReference() throws {
         for hero in GameContent.heroes {
-            _ = try XCTUnwrap(
+            _ = try #require(
                 ArtCatalog.combatantArtByID[hero.id],
                 "\(hero.name) should have an art reference in the catalog"
             )
         }
 
         for pet in GameContent.pets {
-            _ = try XCTUnwrap(
+            _ = try #require(
                 ArtCatalog.combatantArtByID[pet.id],
                 "\(pet.name) should have an art reference in the catalog"
             )
         }
     }
 
-    func testEachEnemyHasArtReference() throws {
+    @Test func eachEnemyHasArtReference() throws {
         for enemy in GameContent.enemies {
-            _ = try XCTUnwrap(
+            _ = try #require(
                 ArtCatalog.combatantArtByID[enemy.id],
                 "\(enemy.name) should have an art reference in the catalog"
             )
         }
     }
 
-    func testEncounterArtReferencesExistInCatalog() throws {
+    @Test func encounterArtReferencesExistInCatalog() throws {
         for chapter in GameContent.chapters {
             for stage in chapter.stages {
                 guard let artID = GameContent.encounterArtID(for: stage) else { continue }
-                _ = try XCTUnwrap(
+                _ = try #require(
                     ArtCatalog.encounterArtByID[artID],
                     "Stage \(stage.id) references missing encounter art \(artID)"
                 )

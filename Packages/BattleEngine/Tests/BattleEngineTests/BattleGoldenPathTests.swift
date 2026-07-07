@@ -1,14 +1,15 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// End-to-end regression harness for battle simulation. Pins outcomes for a
 /// fixed matchup and RNG seed so refactors cannot silently change combat behavior.
-final class BattleGoldenPathTests: XCTestCase {
-    private lazy var wizard = GameContent.heroes.first { $0.id == "wizard" }!
-    private lazy var wolf = GameContent.pets.first { $0.id == "wolf" }!
-    private lazy var goblin = GameContent.enemies.first { $0.id == "goblin" }!.combatant
+@Suite
+struct BattleGoldenPathTests {
+    private var wizard: Combatant { GameContent.heroes.first { $0.id == "wizard" }! }
+    private var wolf: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
+    private var goblin: Combatant { GameContent.enemies.first { $0.id == "goblin" }!.combatant }
 
     private func runGoldenBattle() -> BattleSimulationResult {
         BattleSimulator.run(
@@ -17,24 +18,24 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    func testGoldenPathOutcomeAndCounters() {
+    @Test func goldenPathOutcomeAndCounters() {
         let result = runGoldenBattle()
 
-        XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 5)
-        XCTAssertEqual(result.actionCount, 5)
-        XCTAssertEqual(result.finalEnemyHealth, 0)
-        XCTAssertEqual(result.finalHeroHealth, 17)
-        XCTAssertEqual(result.finalPetHealth, 19)
+        #expect(result.outcome == .victory)
+        #expect(result.tickCount == 5)
+        #expect(result.actionCount == 5)
+        #expect(result.finalEnemyHealth == 0)
+        #expect(result.finalHeroHealth == 17)
+        #expect(result.finalPetHealth == 19)
     }
 
-    func testGoldenPathEventSemantics() {
+    @Test func goldenPathEventSemantics() {
         let result = runGoldenBattle()
         let events = result.events
 
         assertEndsWithVictoryMilestone(on: "goblin", events: events)
-        XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .burn })
-        XCTAssertTrue(events.contains { $0.kind == .ability && $0.keyword == .bleed })
+        #expect(events.contains { $0.kind == .ability && $0.keyword == .burn })
+        #expect(events.contains { $0.kind == .ability && $0.keyword == .bleed })
     }
 
     // MARK: - Party defeat
@@ -55,18 +56,18 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    func testPartyDefeatGoldenPath() {
+    @Test func partyDefeatGoldenPath() {
         let result = runPartyDefeatBattle()
 
-        XCTAssertEqual(result.outcome, .defeat)
-        XCTAssertEqual(result.tickCount, 36)
-        XCTAssertEqual(result.actionCount, 29)
-        XCTAssertEqual(result.finalHeroHealth, 0)
-        XCTAssertEqual(result.finalPetHealth, 0)
-        XCTAssertEqual(result.finalEnemyHealth, 100)
+        #expect(result.outcome == .defeat)
+        #expect(result.tickCount == 36)
+        #expect(result.actionCount == 29)
+        #expect(result.finalHeroHealth == 0)
+        #expect(result.finalPetHealth == 0)
+        #expect(result.finalEnemyHealth == 100)
         assertEndsWithVictoryMilestone(on: "strong", events: result.events)
-        XCTAssertTrue(result.events.contains { $0.kind == .ability && $0.keyword == .physical })
-        XCTAssertTrue(result.log.contains { $0.text == "Your party has been defeated by Strong." })
+        #expect(result.events.contains { $0.kind == .ability && $0.keyword == .physical })
+        #expect(result.log.contains { $0.text == "Your party has been defeated by Strong." })
     }
 
     // MARK: - Stun threshold
@@ -97,17 +98,17 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    func testStunThresholdGoldenPath() {
+    @Test func stunThresholdGoldenPath() {
         let result = runStunThresholdBattle()
 
-        XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 9)
-        XCTAssertEqual(result.actionCount, 9)
-        XCTAssertEqual(result.finalEnemyHealth, 0)
+        #expect(result.outcome == .victory)
+        #expect(result.tickCount == 9)
+        #expect(result.actionCount == 9)
+        #expect(result.finalEnemyHealth == 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: result.events)
-        XCTAssertTrue(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
-        XCTAssertTrue(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == .stun })
-        XCTAssertTrue(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
+        #expect(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
+        #expect(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == .stun })
+        #expect(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
     }
 
     // MARK: - Item modifier (Keen)
@@ -142,17 +143,17 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    func testKeenAffixGoldenPath() {
+    @Test func keenAffixGoldenPath() {
         let result = runKeenAffixBattle()
         let damagingHits = result.events.filter {
             $0.kind == .ability && $0.keyword == .physical && $0.amount > 0
         }
 
-        XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 102)
-        XCTAssertEqual(result.actionCount, 52)
-        XCTAssertFalse(damagingHits.isEmpty)
-        XCTAssertTrue(damagingHits.allSatisfy { $0.amount == 2 })
+        #expect(result.outcome == .victory)
+        #expect(result.tickCount == 102)
+        #expect(result.actionCount == 52)
+        #expect(!(damagingHits.isEmpty))
+        #expect(damagingHits.allSatisfy { $0.amount == 2 })
     }
 
     // MARK: - Poison-heavy
@@ -174,17 +175,17 @@ final class BattleGoldenPathTests: XCTestCase {
         )
     }
 
-    func testPoisonHeavyGoldenPath() {
+    @Test func poisonHeavyGoldenPath() {
         let result = runPoisonHeavyBattle()
         let events = result.events
 
-        XCTAssertEqual(result.outcome, .victory)
-        XCTAssertEqual(result.tickCount, 6)
-        XCTAssertEqual(result.actionCount, 5)
-        XCTAssertEqual(result.finalEnemyHealth, 0)
+        #expect(result.outcome == .victory)
+        #expect(result.tickCount == 6)
+        #expect(result.actionCount == 5)
+        #expect(result.finalEnemyHealth == 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: events)
-        XCTAssertTrue(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)
-        XCTAssertTrue(events.contains { $0.kind == .status && $0.keyword == .poison && $0.targetID == "enemy" })
+        #expect(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)
+        #expect(events.contains { $0.kind == .status && $0.keyword == .poison && $0.targetID == "enemy" })
     }
 
     // MARK: - Semantic helpers
@@ -196,8 +197,8 @@ final class BattleGoldenPathTests: XCTestCase {
         line: UInt = #line
     ) {
         let milestones = events.filter { $0.kind == .milestone }
-        XCTAssertFalse(milestones.isEmpty, file: file, line: line)
-        XCTAssertEqual(milestones.last?.targetID, targetID, file: file, line: line)
+        #expect(!(milestones.isEmpty, file: file, line: line))
+        #expect(milestones.last?.targetID == targetID, file: file, line: line)
     }
 
     private func assertContainsEvent(
@@ -208,7 +209,7 @@ final class BattleGoldenPathTests: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        XCTAssertTrue(
+        #expect(
             events.contains { $0.kind == kind && $0.keyword == keyword && $0.targetID == targetID },
             file: file,
             line: line

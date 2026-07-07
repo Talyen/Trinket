@@ -1,10 +1,11 @@
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 
-final class ThemedGearGeneratorTests: XCTestCase {
-    func testGeneratesFixedAffixCountPerSlot() throws {
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+@Suite
+struct ThemedGearGeneratorTests {
+    @Test func generatesFixedAffixCountPerSlot() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var rng = SeededRandomNumberGenerator(seed: 99)
         let generator = ThemedGearGenerator()
 
@@ -16,18 +17,18 @@ final class ThemedGearGeneratorTests: XCTestCase {
             using: &rng
         )
 
-        XCTAssertEqual(build.inventory.count, knight.role.equipmentSlots.count)
-        XCTAssertTrue(build.inventory.allSatisfy { $0.affixes.count == 1 })
-        XCTAssertEqual(build.loadout.itemIDsBySlot.count, knight.role.equipmentSlots.count)
+        #expect(build.inventory.count == knight.role.equipmentSlots.count)
+        #expect(build.inventory.allSatisfy { $0.affixes.count == 1 })
+        #expect(build.loadout.itemIDsBySlot.count == knight.role.equipmentSlots.count)
     }
 
-    func testKeywordProfileIncludesAbilityKeywords() throws {
-        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
-        XCTAssertTrue(wizard.keywordProfile.contains(.burn))
+    @Test func keywordProfileIncludesAbilityKeywords() throws {
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        #expect(wizard.keywordProfile.contains(.burn))
     }
 
-    func testFixedAffixCountOverrideInItemGenerator() throws {
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+    @Test func fixedAffixCountOverrideInItemGenerator() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         var rng = SeededRandomNumberGenerator(seed: 12)
 
         let item = ItemGenerator().generate(
@@ -39,6 +40,6 @@ final class ThemedGearGeneratorTests: XCTestCase {
             using: &rng
         )
 
-        XCTAssertEqual(item.affixes.count, 1)
+        #expect(item.affixes.count == 1)
     }
 }

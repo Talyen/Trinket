@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class TraitBattleTests: XCTestCase {
+@Suite
+struct TraitBattleTests {
     private func makeContext(
         hero: Combatant,
         pet: Combatant,
@@ -56,9 +57,9 @@ final class TraitBattleTests: XCTestCase {
         )
     }
 
-    func testPackLeaderIncreasesPetDamage() throws {
-        let ranger = try XCTUnwrap(GameContent.heroes.first { $0.id == "ranger" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+    @Test func packLeaderIncreasesPetDamage() throws {
+        let ranger = try #require(GameContent.heroes.first { $0.id == "ranger" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let rangerBuild = CombatBuildResolver.build(
             combatant: ranger,
@@ -77,11 +78,11 @@ final class TraitBattleTests: XCTestCase {
             .directAbilityHit(amount: 1, target: enemy, keyword: .physical, sourceActorID: wolf.id)
         )
 
-        XCTAssertEqual(outcome.healthLost, 3)
+        #expect(outcome.healthLost == 3)
     }
 
-    func testPurifyingWisdomHealsAfterCleanse() throws {
-        let owl = try XCTUnwrap(GameContent.pets.first { $0.id == "library_owl" })
+    @Test func purifyingWisdomHealsAfterCleanse() throws {
+        let owl = try #require(GameContent.pets.first { $0.id == "library_owl" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let owlBuild = CombatBuildResolver.build(
@@ -109,12 +110,12 @@ final class TraitBattleTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertEqual(context.roster.health(for: hero), 11)
+        #expect(outcome.didApply)
+        #expect(context.roster.health(for: hero) == 11)
     }
 
-    func testFaeFortuneHealsWhenGainingGold() throws {
-        let pixie = try XCTUnwrap(GameContent.pets.first { $0.id == "pixie" })
+    @Test func faeFortuneHealsWhenGainingGold() throws {
+        let pixie = try #require(GameContent.pets.first { $0.id == "pixie" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let pixieBuild = CombatBuildResolver.build(
@@ -140,14 +141,13 @@ final class TraitBattleTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertEqual(
-            context.roster.health(for: pixieBuild.combatant),
-            pixieBuild.effectiveMaxHealth
+        #expect(
+            context.roster.health(for: pixieBuild.combatant) == pixieBuild.effectiveMaxHealth
         )
     }
 
-    func testLoyalComfortHealsHeroWhenPetRestoresHealth() throws {
-        let retriever = try XCTUnwrap(GameContent.pets.first { $0.id == "golden_retriever" })
+    @Test func loyalComfortHealsHeroWhenPetRestoresHealth() throws {
+        let retriever = try #require(GameContent.pets.first { $0.id == "golden_retriever" })
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let retrieverBuild = CombatBuildResolver.build(
@@ -172,6 +172,6 @@ final class TraitBattleTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertEqual(context.roster.health(for: hero), 13)
+        #expect(context.roster.health(for: hero) == 13)
     }
 }

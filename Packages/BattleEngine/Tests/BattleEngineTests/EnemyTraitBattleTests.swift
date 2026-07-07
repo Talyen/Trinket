@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class EnemyTraitBattleTests: XCTestCase {
+@Suite
+struct EnemyTraitBattleTests {
     private func enemyBuild(id: String) throws -> CombatBuild {
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: id))
+        let enemy = try #require(GameContent.enemy(matching: id))
         return CombatBuildResolver.build(enemy: enemy)
     }
 
@@ -32,7 +33,7 @@ final class EnemyTraitBattleTests: XCTestCase {
         )
     }
 
-    func testSkeletonTakesExtraHolyDamage() throws {
+    @Test func skeletonTakesExtraHolyDamage() throws {
         let skeleton = try enemyBuild(id: "skeleton")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
@@ -46,17 +47,17 @@ final class EnemyTraitBattleTests: XCTestCase {
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
-        XCTAssertEqual(physical.healthLost, 10)
-        XCTAssertEqual(holy.healthLost, 13)
+        #expect(physical.healthLost == 10)
+        #expect(holy.healthLost == 13)
     }
 
-    func testGoblinNimbleDodgeAndScrawnyVulnerability() throws {
+    @Test func goblinNimbleDodgeAndScrawnyVulnerability() throws {
         let goblin = try enemyBuild(id: "goblin")
-        XCTAssertGreaterThan(goblin.modifiers.dodgeChanceBonus, 0)
-        XCTAssertGreaterThan(goblin.modifiers.damageTakenVulnerability(for: .physical), 0)
+        #expect(goblin.modifiers.dodgeChanceBonus > 0)
+        #expect(goblin.modifiers.damageTakenVulnerability(for: .physical) > 0)
     }
 
-    func testMimicAmbushAddsFirstStrikeDamage() throws {
+    @Test func mimicAmbushAddsFirstStrikeDamage() throws {
         let mimic = try enemyBuild(id: "mimic")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 30)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 30)
@@ -69,21 +70,21 @@ final class EnemyTraitBattleTests: XCTestCase {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        XCTAssertEqual(first.healthLost, 5)
-        XCTAssertEqual(second.healthLost, 3)
+        #expect(first.healthLost == 5)
+        #expect(second.healthLost == 3)
     }
 
-    func testLivingArmorCannotBeHealed() throws {
+    @Test func livingArmorCannotBeHealed() throws {
         let livingArmor = try enemyBuild(id: "living_armor")
-        XCTAssertTrue(livingArmor.modifiers.cannotBeHealed)
+        #expect(livingArmor.modifiers.cannotBeHealed)
     }
 
-    func testHemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
+    @Test func hemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
         let necromancer = try enemyBuild(id: "necromancer")
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 100)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 100)
         var context = makeContext(hero: hero, pet: pet, enemyBuild: necromancer)
-        var enemyRuntime = try XCTUnwrap(context.roster.runtime(for: necromancer.combatant))
+        var enemyRuntime = try #require(context.roster.runtime(for: necromancer.combatant))
         enemyRuntime.actionCount = 5
         context.roster.update(enemyRuntime)
 
@@ -97,6 +98,6 @@ final class EnemyTraitBattleTests: XCTestCase {
             context: &context
         )
 
-        XCTAssertEqual(context.roster.health(for: hero), heroHealthBefore - 7)
+        #expect(context.roster.health(for: hero) == heroHealthBefore - 7)
     }
 }

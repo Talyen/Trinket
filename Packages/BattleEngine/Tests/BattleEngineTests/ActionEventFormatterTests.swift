@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// Representative formatter coverage. Battle tests assert event semantics; this file
 /// only locks a few display categories so emphasis mapping does not regress silently.
-final class ActionEventFormatterTests: XCTestCase {
+@Suite
+struct ActionEventFormatterTests {
     private func event(
         id: Int = 1,
         kind: ActionEvent.Kind,
@@ -28,32 +29,32 @@ final class ActionEventFormatterTests: XCTestCase {
         )
     }
 
-    func testAbilityDamageFormatsAsNegativeAmount() {
+    @Test func abilityDamageFormatsAsNegativeAmount() {
         let display = ActionEventFormatter.display(
             for: event(kind: .ability, amount: 3, keyword: .physical)
         )
-        XCTAssertEqual(display.text, "-3")
-        XCTAssertEqual(display.emphasis, .damage)
-        XCTAssertEqual(display.keyword, .physical)
+        #expect(display.text == "-3")
+        #expect(display.emphasis == .damage)
+        #expect(display.keyword == .physical)
     }
 
-    func testInstantHealFormatsAsPositiveWithKeyword() {
+    @Test func instantHealFormatsAsPositiveWithKeyword() {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .instantHeal, amount: 3, keyword: .health)
         )
-        XCTAssertEqual(display.text, "+3 Health")
-        XCTAssertEqual(display.emphasis, .heal)
+        #expect(display.text == "+3 Health")
+        #expect(display.emphasis == .heal)
     }
 
-    func testControlTriggeredUsesStatusAlias() {
+    @Test func controlTriggeredUsesStatusAlias() {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .controlTriggered, keyword: .stun)
         )
-        XCTAssertEqual(display.text, "Stunned!")
-        XCTAssertEqual(display.emphasis, .control)
+        #expect(display.text == "Stunned!")
+        #expect(display.emphasis == .control)
     }
 
-    func testSecondaryTextIsAlwaysNil() {
+    @Test func secondaryTextIsAlwaysNil() {
         let cases: [ActionEvent] = [
             event(kind: .ability, amount: 3, keyword: .physical),
             event(kind: .status, amount: 1, keyword: .burn),
@@ -61,8 +62,8 @@ final class ActionEventFormatterTests: XCTestCase {
             event(kind: .effect, effectKind: .dodgeApplied, keyword: .dodge)
         ]
         for event in cases {
-            XCTAssertNil(
-                ActionEventFormatter.display(for: event).secondaryText,
+            #expect(
+                ActionEventFormatter.display(for: event == nil).secondaryText,
                 "secondaryText should be nil for \(event)"
             )
         }

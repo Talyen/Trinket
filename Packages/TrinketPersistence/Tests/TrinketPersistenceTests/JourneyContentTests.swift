@@ -1,16 +1,17 @@
-import XCTest
+import Testing
 import TrinketContent
 @testable import TrinketPersistence
 
-final class JourneyContentTests: XCTestCase {
+@Suite
+struct JourneyContentTests {
     private var chapter: Chapter {
         GameContent.chapters[0]
     }
 
-    func testEachRewardItemTemplateExists() throws {
+    @Test func eachRewardItemTemplateExists() throws {
         for stage in chapter.stages {
             for templateID in stage.rewards.itemTemplateIDs {
-                _ = try XCTUnwrap(
+                _ = try #require(
                     GameContent.itemTemplate(matching: templateID),
                     "Stage \(stage.id) references missing item template \(templateID)"
                 )
@@ -18,44 +19,44 @@ final class JourneyContentTests: XCTestCase {
         }
     }
 
-    func testChapterOneHasTenSequentialStages() {
-        XCTAssertEqual(chapter.stages.count, 10)
+    @Test func chapterOneHasTenSequentialStages() {
+        #expect(chapter.stages.count == 10)
 
         for (index, stage) in chapter.stages.enumerated() {
-            XCTAssertEqual(stage.stageNumber, index + 1, stage.id)
-            XCTAssertEqual(stage.chapterNumber, 1, stage.id)
-            XCTAssertEqual(stage.chapterID, chapter.id, stage.id)
+            #expect(stage.stageNumber == index + 1, stage.id)
+            #expect(stage.chapterNumber == 1, stage.id)
+            #expect(stage.chapterID == chapter.id, stage.id)
         }
 
         let stageIDs = chapter.stages.map(\.id)
-        XCTAssertEqual(Set(stageIDs).count, stageIDs.count, "Stage IDs must be unique")
+        #expect(Set(stageIDs).count == stageIDs.count, "Stage IDs must be unique")
     }
 
-    func testFinalStageIsBossEncounter() throws {
-        let finalStage = try XCTUnwrap(chapter.stages.last)
-        let enemyID = try XCTUnwrap(finalStage.encounter.battleEnemyID)
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: enemyID))
+    @Test func finalStageIsBossEncounter() throws {
+        let finalStage = try #require(chapter.stages.last)
+        let enemyID = try #require(finalStage.encounter.battleEnemyID)
+        let enemy = try #require(GameContent.enemy(matching: enemyID))
 
-        XCTAssertEqual(enemyID, "the_blight_treant")
-        XCTAssertTrue(enemy.isBoss)
+        #expect(enemyID == "the_blight_treant")
+        #expect(enemy.isBoss)
     }
 
-    func testNextStageReturnsNilAfterFinalStage() throws {
-        let finalStage = try XCTUnwrap(chapter.stages.last)
+    @Test func nextStageReturnsNilAfterFinalStage() throws {
+        let finalStage = try #require(chapter.stages.last)
 
-        XCTAssertNil(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters))
+        #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters == nil))
     }
 
-    func testIsLastCompletedReflectsLastCompletedStageID() {
+    @Test func isLastCompletedReflectsLastCompletedStageID() {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
 
-        XCTAssertFalse(progress.isLastCompleted(firstStage))
+        #expect(!(progress.isLastCompleted(firstStage)))
 
         progress.complete(firstStage, in: GameContent.chapters)
 
-        XCTAssertTrue(progress.isLastCompleted(firstStage))
-        XCTAssertFalse(progress.isLastCompleted(secondStage))
+        #expect(progress.isLastCompleted(firstStage))
+        #expect(!(progress.isLastCompleted(secondStage)))
     }
 }

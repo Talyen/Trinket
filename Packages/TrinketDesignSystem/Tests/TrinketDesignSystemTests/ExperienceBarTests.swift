@@ -1,85 +1,86 @@
 import TrinketCore
 import TrinketDesignSystem
-import XCTest
+import Testing
 
-final class ExperienceBarTests: XCTestCase {
-    func testNoChangeReturnsEmptySegments() {
+@Suite
+struct ExperienceBarTests {
+    @Test func noChangeReturnsEmptySegments() {
         let progression = CombatantProgression(level: 2, currentXP: 35, requiredXP: 155)
         let segments = ExperienceBar.segments(from: progression, to: progression)
-        XCTAssertTrue(segments.isEmpty)
+        #expect(segments.isEmpty)
     }
 
-    func testNoLevelUpProducesSingleSegment() {
+    @Test func noLevelUpProducesSingleSegment() {
         let pre = CombatantProgression(level: 2, currentXP: 35, requiredXP: 155)
         let post = CombatantProgression(level: 2, currentXP: 59, requiredXP: 155)
 
         let segments = ExperienceBar.segments(from: pre, to: post)
 
-        XCTAssertEqual(segments.count, 1)
-        XCTAssertEqual(segments[0].startFraction, pre.progressFraction, accuracy: 0.001)
-        XCTAssertEqual(segments[0].endFraction, post.progressFraction, accuracy: 0.001)
-        XCTAssertEqual(segments[0].endXP, post.currentXP)
-        XCTAssertEqual(segments[0].levelsGained, 0)
-        XCTAssertEqual(segments[0].newLevel, post.level)
+        #expect(segments.count == 1)
+        #expect(abs((segments[0].startFraction) - (pre.progressFraction)) < 0.001)
+        #expect(abs((segments[0].endFraction) - (post.progressFraction)) < 0.001)
+        #expect(segments[0].endXP == post.currentXP)
+        #expect(segments[0].levelsGained == 0)
+        #expect(segments[0].newLevel == post.level)
     }
 
-    func testSingleLevelUpProducesTwoSegments() {
+    @Test func singleLevelUpProducesTwoSegments() {
         let pre = CombatantProgression(level: 2, currentXP: 140, requiredXP: 155)
         let post = CombatantProgression(level: 3, currentXP: 5, requiredXP: 220)
 
         let segments = ExperienceBar.segments(from: pre, to: post)
 
-        XCTAssertEqual(segments.count, 2)
-        XCTAssertEqual(segments[0].startFraction, pre.progressFraction, accuracy: 0.001)
-        XCTAssertEqual(segments[0].endFraction, 1.0, accuracy: 0.001)
-        XCTAssertEqual(segments[0].levelsGained, 1)
-        XCTAssertEqual(segments[0].newLevel, 3)
-        XCTAssertEqual(segments[0].newRequiredXP, 220)
-        XCTAssertEqual(segments[1].startFraction, 0.0, accuracy: 0.001)
-        XCTAssertEqual(segments[1].endFraction, post.progressFraction, accuracy: 0.001)
-        XCTAssertEqual(segments[1].endXP, post.currentXP)
-        XCTAssertEqual(segments[1].levelsGained, 0)
-        XCTAssertEqual(segments[1].newLevel, 3)
-        XCTAssertEqual(segments[1].newRequiredXP, post.requiredXP)
+        #expect(segments.count == 2)
+        #expect(abs((segments[0].startFraction) - (pre.progressFraction)) < 0.001)
+        #expect(abs((segments[0].endFraction) - (1.0)) < 0.001)
+        #expect(segments[0].levelsGained == 1)
+        #expect(segments[0].newLevel == 3)
+        #expect(segments[0].newRequiredXP == 220)
+        #expect(abs((segments[1].startFraction) - (0.0)) < 0.001)
+        #expect(abs((segments[1].endFraction) - (post.progressFraction)) < 0.001)
+        #expect(segments[1].endXP == post.currentXP)
+        #expect(segments[1].levelsGained == 0)
+        #expect(segments[1].newLevel == 3)
+        #expect(segments[1].newRequiredXP == post.requiredXP)
     }
 
-    func testMultiLevelUpProducesThreeSegments() {
+    @Test func multiLevelUpProducesThreeSegments() {
         let pre = CombatantProgression(level: 1, currentXP: 95, requiredXP: 100)
         let post = pre.addingExperience(200)
 
-        XCTAssertEqual(post.level, 3)
-        XCTAssertEqual(post.currentXP, 40)
-        XCTAssertEqual(post.requiredXP, 220)
+        #expect(post.level == 3)
+        #expect(post.currentXP == 40)
+        #expect(post.requiredXP == 220)
 
         let segments = ExperienceBar.segments(from: pre, to: post)
 
-        XCTAssertEqual(segments.count, 3)
-        XCTAssertEqual(segments[0].startFraction, 0.95, accuracy: 0.001)
-        XCTAssertEqual(segments[0].endFraction, 1.0, accuracy: 0.001)
-        XCTAssertEqual(segments[0].levelsGained, 1)
-        XCTAssertEqual(segments[0].newLevel, 2)
-        XCTAssertEqual(segments[0].newRequiredXP, 155)
+        #expect(segments.count == 3)
+        #expect(abs((segments[0].startFraction) - (0.95)) < 0.001)
+        #expect(abs((segments[0].endFraction) - (1.0)) < 0.001)
+        #expect(segments[0].levelsGained == 1)
+        #expect(segments[0].newLevel == 2)
+        #expect(segments[0].newRequiredXP == 155)
 
-        XCTAssertEqual(segments[1].startFraction, 0.0, accuracy: 0.001)
-        XCTAssertEqual(segments[1].endFraction, 1.0, accuracy: 0.001)
-        XCTAssertEqual(segments[1].levelsGained, 1)
-        XCTAssertEqual(segments[1].newLevel, 3)
-        XCTAssertEqual(segments[1].newRequiredXP, 220)
+        #expect(abs((segments[1].startFraction) - (0.0)) < 0.001)
+        #expect(abs((segments[1].endFraction) - (1.0)) < 0.001)
+        #expect(segments[1].levelsGained == 1)
+        #expect(segments[1].newLevel == 3)
+        #expect(segments[1].newRequiredXP == 220)
 
-        XCTAssertEqual(segments[2].startFraction, 0.0, accuracy: 0.001)
-        XCTAssertEqual(segments[2].endFraction, 0.182, accuracy: 0.01)
-        XCTAssertEqual(segments[2].levelsGained, 0)
-        XCTAssertEqual(segments[2].newLevel, 3)
-        XCTAssertEqual(segments[2].endXP, 40)
+        #expect(abs((segments[2].startFraction) - (0.0)) < 0.001)
+        #expect(abs((segments[2].endFraction) - (0.182)) < 0.01)
+        #expect(segments[2].levelsGained == 0)
+        #expect(segments[2].newLevel == 3)
+        #expect(segments[2].endXP == 40)
     }
 
-    func testLevelChainsMatchAddingExperience() {
+    @Test func levelChainsMatchAddingExperience() {
         let pre = CombatantProgression(level: 3, currentXP: 140, requiredXP: 220)
         let delta = 330
         let post = pre.addingExperience(delta)
 
         let segments = ExperienceBar.segments(from: pre, to: post)
         let totalLevelUps = segments.filter { $0.levelsGained > 0 }.count
-        XCTAssertEqual(totalLevelUps, post.level - pre.level)
+        #expect(totalLevelUps == post.level - pre.level)
     }
 }

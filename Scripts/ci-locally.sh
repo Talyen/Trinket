@@ -15,6 +15,10 @@ echo "=== Module boundary check ==="
 ./Scripts/check-module-boundaries.sh
 
 echo ""
+echo "=== Swift Testing migration gate ==="
+./Scripts/check-swift-testing-migration.sh
+
+echo ""
 echo "=== Style check ==="
 ./Scripts/test.sh style
 

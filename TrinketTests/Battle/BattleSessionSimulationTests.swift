@@ -1,13 +1,13 @@
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class BattleSessionSimulationTests: XCTestCase {
-    func testAdvanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
+@Suite @MainActor
+final class BattleSessionSimulationTests {
+    @Test func advanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -23,12 +23,12 @@ final class BattleSessionSimulationTests: XCTestCase {
             _ = session.advanceAutoTick(journey: .initial, homestead: .freshStart)
         }
 
-        XCTAssertTrue(session.isShowingVictory)
-        _ = try XCTUnwrap(session.victorySummary)
-        XCTAssertFalse(session.isShowingDefeat)
+        #expect(session.isShowingVictory)
+        _ = try #require(session.victorySummary)
+        #expect(!(session.isShowingDefeat))
     }
 
-    func testAdvanceAutoTickCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
+    @Test func advanceAutoTickCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -37,7 +37,7 @@ final class BattleSessionSimulationTests: XCTestCase {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
         journey.markRewardsClaimed(for: stage)
         let session = BattleSession()
@@ -55,12 +55,12 @@ final class BattleSessionSimulationTests: XCTestCase {
             if earnedGold != nil { break }
         }
 
-        XCTAssertEqual(earnedGold, session.state?.earnedGold ?? 0)
-        XCTAssertFalse(session.isShowingVictory)
-        XCTAssertNil(session.victorySummary)
+        #expect(earnedGold == session.state?.earnedGold ?? 0)
+        #expect(!(session.isShowingVictory))
+        #expect(session.victorySummary == nil)
     }
 
-    func testAdvanceAutoTickDoesNotAdvanceWhenBattlePaused() {
+    @Test func advanceAutoTickDoesNotAdvanceWhenBattlePaused() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -76,10 +76,10 @@ final class BattleSessionSimulationTests: XCTestCase {
 
         _ = session.advanceAutoTick(journey: .initial, homestead: .freshStart)
 
-        XCTAssertEqual(session.state?.tickCount, tickBefore)
+        #expect(session.state?.tickCount == tickBefore)
     }
 
-    func testClearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
+    @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
         let session = BattleSession()
         session.isShowingVictory = true
         session.isShowingDefeat = true
@@ -100,21 +100,21 @@ final class BattleSessionSimulationTests: XCTestCase {
 
         session.clearOutcomePresentation()
 
-        XCTAssertFalse(session.isShowingVictory)
-        XCTAssertFalse(session.isShowingDefeat)
-        XCTAssertNil(session.victorySummary)
+        #expect(!(session.isShowingVictory))
+        #expect(!(session.isShowingDefeat))
+        #expect(session.victorySummary == nil)
     }
 
-    func testAdvanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() {
+    @Test func advanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() {
         let session = BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
 
-        XCTAssertFalse(session.activeFeedbackEvents.isEmpty)
-        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        #expect(!(session.activeFeedbackEvents.isEmpty))
+        #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    func testAdvanceOneStepExcludesMilestonesWhenBattleEnds() {
+    @Test func advanceOneStepExcludesMilestonesWhenBattleEnds() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -130,11 +130,11 @@ final class BattleSessionSimulationTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        XCTAssertTrue(session.state?.isPartyDefeated == true)
-        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
+        #expect(session.state?.isPartyDefeated == true)
+        #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    func testResetClearsFeedbackAndRebuildsStateWhenResetCalled() {
+    @Test func resetClearsFeedbackAndRebuildsStateWhenResetCalled() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -158,52 +158,52 @@ final class BattleSessionSimulationTests: XCTestCase {
 
         _ = session.advanceOneStep()
         _ = session.advanceOneStep()
-        XCTAssertFalse(session.activeFeedbackEvents.isEmpty)
-        XCTAssertLessThan(session.state?.health(of: session.state?.enemy ?? enemy) ?? 0, 100)
+        #expect(!(session.activeFeedbackEvents.isEmpty))
+        #expect(session.state?.health(of: session.state?.enemy ?? enemy) ?? 0 < 100)
 
         session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
 
-        XCTAssertTrue(session.activeFeedbackEvents.isEmpty)
-        XCTAssertEqual(session.state?.health(of: session.state?.enemy ?? enemy), 100)
-        XCTAssertEqual(session.state?.health(of: session.state?.hero ?? hero), hero.maxHealth)
+        #expect(session.activeFeedbackEvents.isEmpty)
+        #expect(session.state?.health(of: session.state?.enemy ?? enemy) == 100)
+        #expect(session.state?.health(of: session.state?.hero ?? hero) == hero.maxHealth)
     }
 
-    func testRemoveFeedbackEventRemovesByIDWhenMatchingID() throws {
+    @Test func removeFeedbackEventRemovesByIDWhenMatchingID() throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
-        let eventID = try XCTUnwrap(session.activeFeedbackEvents.first?.id)
+        let eventID = try #require(session.activeFeedbackEvents.first?.id)
 
         session.removeFeedbackEvent(eventID)
 
-        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+        #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    func testPruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
+    @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
-        let eventID = try XCTUnwrap(session.activeFeedbackEvents.first?.id)
+        let eventID = try #require(session.activeFeedbackEvents.first?.id)
         let now = Date()
 
         session.pruneExpiredFeedback(at: now)
-        XCTAssertTrue(session.activeFeedbackEvents.contains { $0.id == eventID })
+        #expect(session.activeFeedbackEvents.contains { $0.id == eventID })
 
         session.pruneExpiredFeedback(
             at: now.addingTimeInterval(CombatFeedbackTiming.displayDuration + 0.1)
         )
-        XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+        #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    func testOutcomeReportsOngoingWhenBattleInProgress() {
+    @Test func outcomeReportsOngoingWhenBattleInProgress() {
         let session = BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
 
-        XCTAssertNil(session.outcome)
+        #expect(session.outcome == nil)
     }
 
-    func testOutcomeReportsVictoryWhenEnemyDefeated() {
+    @Test func outcomeReportsVictoryWhenEnemyDefeated() {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
         let session = BattleSessionTestSupport.makeConfiguredSession(enemy: enemy)
 
@@ -211,10 +211,10 @@ final class BattleSessionSimulationTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(session.outcome, .victory)
+        #expect(session.outcome == .victory)
     }
 
-    func testOutcomeReportsDefeatWhenPartyDefeated() {
+    @Test func outcomeReportsDefeatWhenPartyDefeated() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -230,10 +230,10 @@ final class BattleSessionSimulationTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(session.outcome, .defeat)
+        #expect(session.outcome == .defeat)
     }
 
-    func testOutcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() {
+    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -264,24 +264,24 @@ final class BattleSessionSimulationTests: XCTestCase {
             _ = session.advanceOneStep()
         }
 
-        XCTAssertEqual(session.outcome, .victory)
-        XCTAssertFalse(session.state?.isPartyDefeated ?? true)
-        XCTAssertTrue(session.state?.isEnemyDefeated ?? false)
+        #expect(session.outcome == .victory)
+        #expect(!(session.state?.isPartyDefeated ?? true))
+        #expect(session.state?.isEnemyDefeated ?? false)
     }
 
-    func testOutcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
+    @Test func outcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
         let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
-        XCTAssertTrue(session.state?.isPartyDefeated ?? false)
-        XCTAssertTrue(session.state?.isEnemyDefeated ?? false)
-        XCTAssertEqual(session.outcome, .victory)
+        #expect(session.state?.isPartyDefeated ?? false)
+        #expect(session.state?.isEnemyDefeated ?? false)
+        #expect(session.outcome == .victory)
     }
 
-    func testResetPreservesEnemyModifiersWhenBattleReset() throws {
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
+    @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
+        let enemy = try #require(GameContent.enemy(matching: "skeleton"))
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
@@ -298,9 +298,8 @@ final class BattleSessionSimulationTests: XCTestCase {
             enemy: enemy.combatant
         )
 
-        XCTAssertGreaterThan(
-            session.state?.modifiers(for: enemy.combatant.id).controlResistancePercent ?? 0,
-            0
+        #expect(
+            session.state?.modifiers(for: enemy.combatant.id).controlResistancePercent ?? 0 > 0
         )
     }
 }

@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 @testable import BalanceSweepCLI
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BalanceSweepRunnerTests: XCTestCase {
-    func testSmokeBalanceSweep() {
+@Suite
+struct BalanceSweepRunnerTests {
+    @Test func smokeBalanceSweep() {
         let hero = GameContent.heroes.first { $0.id == "wizard" }!
         let pet = GameContent.pets.first { $0.id == "wolf" }!
         let enemies = Array(GameContent.enemies.prefix(2))
@@ -21,13 +22,13 @@ final class BalanceSweepRunnerTests: XCTestCase {
 
         let result = BalanceSweepRunner.run(request)
 
-        XCTAssertEqual(result.matchupRows.count, 2)
-        XCTAssertTrue(result.abilityRows.isEmpty)
-        XCTAssertFalse(result.matchupRows.contains { $0.runCount != 2 })
-        XCTAssertEqual(result.kpis.totalMatchupRows, 2)
+        #expect(result.matchupRows.count == 2)
+        #expect(result.abilityRows.isEmpty)
+        #expect(!(result.matchupRows.contains { $0.runCount != 2 }))
+        #expect(result.kpis.totalMatchupRows == 2)
     }
 
-    func testGenerateBalanceReport() throws {
+    @Test func generateBalanceReport() throws {
         let request = BalanceSweepRequest(
             tiers: [.early],
             runsPerMatchup: 2,
@@ -46,15 +47,16 @@ final class BalanceSweepRunnerTests: XCTestCase {
         let html = BalanceReportRenderer.renderHTML(result)
         let json = try BalanceReportRenderer.renderJSON(result)
 
-        XCTAssertFalse(result.matchupRows.isEmpty)
-        XCTAssertTrue(html.contains("Balance Sweep Report"))
-        XCTAssertTrue(html.contains("KPIs"))
-        XCTAssertFalse(json.isEmpty)
+        #expect(!(result.matchupRows.isEmpty))
+        #expect(html.contains("Balance Sweep Report"))
+        #expect(html.contains("KPIs"))
+        #expect(!(json.isEmpty))
     }
 }
 
-final class BalanceSweepKPIsTests: XCTestCase {
-    func testComputeTracksInBandPerfectWinAndDuration() {
+@Suite
+struct BalanceSweepKPIsTests {
+    @Test func computeTracksInBandPerfectWinAndDuration() {
         let rows = [
             MatchupSweepRow(
                 tier: .middle,
@@ -87,15 +89,16 @@ final class BalanceSweepKPIsTests: XCTestCase {
         ]
 
         let kpis = BalanceSweepKPIs.compute(from: rows)
-        XCTAssertEqual(kpis.totalMatchupRows, 2)
-        XCTAssertEqual(kpis.inBandCount, 0)
-        XCTAssertEqual(kpis.perfectWinCount, 1)
-        XCTAssertEqual(kpis.durationInBandCount, 1)
+        #expect(kpis.totalMatchupRows == 2)
+        #expect(kpis.inBandCount == 0)
+        #expect(kpis.perfectWinCount == 1)
+        #expect(kpis.durationInBandCount == 1)
     }
 }
 
-final class BalanceGateEvaluatorTests: XCTestCase {
-    func testFlagsFodderPerfectWinRateViolation() {
+@Suite
+struct BalanceGateEvaluatorTests {
+    @Test func flagsFodderPerfectWinRateViolation() {
         let request = BalanceSweepRequest(tiers: [.middle])
         let rows = (0 ..< 10).map { index in
             MatchupSweepRow(
@@ -124,15 +127,16 @@ final class BalanceGateEvaluatorTests: XCTestCase {
         )
 
         let violations = BalanceGateEvaluator.evaluate(result)
-        XCTAssertTrue(violations.contains { $0.metric == "middle.fodder.perfectWinRate" })
+        #expect(violations.contains { $0.metric == "middle.fodder.perfectWinRate" })
     }
 }
 
-final class SimulationMatchupAssemblerTests: XCTestCase {
-    func testAssembleAppliesLevelScalingAndModifiers() throws {
-        let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = try XCTUnwrap(GameContent.enemies.first { $0.id == "goblin" })
+@Suite
+struct SimulationMatchupAssemblerTests {
+    @Test func assembleAppliesLevelScalingAndModifiers() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try #require(GameContent.enemies.first { $0.id == "goblin" })
         let progression = CombatantProgression(level: 20, currentXP: 0, requiredXP: 100)
         let heroLoadout = AbilityLoadoutSampler.defaultLoadout(for: hero, progression: progression)
         let petLoadout = AbilityLoadoutSampler.defaultLoadout(for: pet, progression: progression)
@@ -160,25 +164,26 @@ final class SimulationMatchupAssemblerTests: XCTestCase {
             petGear: nil
         )
 
-        XCTAssertGreaterThan(configured.hero.maxHealth, hero.maxHealth)
-        XCTAssertGreaterThan(configured.enemy.maxHealth, earlyEnemy.maxHealth)
-        XCTAssertFalse(configured.heroModifiers == .zero)
-        XCTAssertEqual(configured.context.tier, .middle)
+        #expect(configured.hero.maxHealth > hero.maxHealth)
+        #expect(configured.enemy.maxHealth > earlyEnemy.maxHealth)
+        #expect(!(configured.heroModifiers == .zero))
+        #expect(configured.context.tier == .middle)
     }
 }
 
-final class AnomalyDetectorTests: XCTestCase {
-    func testTargetBandsByRoleAndTier() {
+@Suite
+struct AnomalyDetectorTests {
+    @Test func targetBandsByRoleAndTier() {
         let earlyFodder = AnomalyDetector.targetBand(tier: .early, role: .fodder)
-        XCTAssertEqual(earlyFodder.min, 0.90)
-        XCTAssertEqual(earlyFodder.max, 0.99)
+        #expect(earlyFodder.min == 0.90)
+        #expect(earlyFodder.max == 0.99)
 
         let lateBoss = AnomalyDetector.targetBand(tier: .lateGame, role: .boss)
-        XCTAssertEqual(lateBoss.min, 0.50)
-        XCTAssertEqual(lateBoss.max, 0.60)
+        #expect(lateBoss.min == 0.50)
+        #expect(lateBoss.max == 0.60)
     }
 
-    func testDetectsHardCounterTimeoutTooShortAndUnderpoweredAbility() {
+    @Test func detectsHardCounterTimeoutTooShortAndUnderpoweredAbility() {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .early,
@@ -240,13 +245,13 @@ final class AnomalyDetectorTests: XCTestCase {
 
         let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: abilityRows)
 
-        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
-        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
-        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.tooShort })
-        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
+        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
+        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
+        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.tooShort })
+        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
     }
 
-    func testDetectsAboveTargetForPerfectFodderWin() {
+    @Test func detectsAboveTargetForPerfectFodderWin() {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .middle,
@@ -265,6 +270,6 @@ final class AnomalyDetectorTests: XCTestCase {
         ]
 
         let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: [])
-        XCTAssertTrue(anomalies.contains { $0.kind == BalanceAnomaly.Kind.aboveTarget })
+        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.aboveTarget })
     }
 }

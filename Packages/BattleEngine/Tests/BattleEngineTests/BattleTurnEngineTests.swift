@@ -1,9 +1,10 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleTurnEngineTests: XCTestCase {
+@Suite
+struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
         seed: UInt64 = 1772
@@ -41,7 +42,7 @@ final class BattleTurnEngineTests: XCTestCase {
         return (context, BattleMatchup(hero: hero, pet: pet, enemy: enemy))
     }
 
-    func testConsumeActionSkipEmitsControlActionSkippedAndRemovesEffect() {
+    @Test func consumeActionSkipEmitsControlActionSkippedAndRemovesEffect() {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
@@ -49,32 +50,32 @@ final class BattleTurnEngineTests: XCTestCase {
 
         let events = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        XCTAssertEqual(events.count, 1)
-        XCTAssertEqual(events[0].effectKind, .controlActionSkipped)
-        XCTAssertEqual(events[0].keyword, .stun)
-        XCTAssertFalse(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun))
+        #expect(events.count == 1)
+        #expect(events[0].effectKind == .controlActionSkipped)
+        #expect(events[0].keyword == .stun)
+        #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
     }
 
-    func testConsumeActionSkipRecordsActionForScheduling() throws {
+    @Test func consumeActionSkipRecordsActionForScheduling() throws {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
         let enemy = context.roster.enemy.combatant
-        let before = try XCTUnwrap(context.roster.runtime(for: enemy)?.actionCount)
+        let before = try #require(context.roster.runtime(for: enemy)?.actionCount)
 
         _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        XCTAssertEqual(try XCTUnwrap(context.roster.runtime(for: enemy)?.actionCount), before + 1)
-        XCTAssertEqual(context.actionCount, 1)
+        #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
+        #expect(context.actionCount == 1)
     }
 
-    func testActPerformsAbilityWhenNoSkipPending() {
+    @Test func actPerformsAbilityWhenNoSkipPending() {
         var (context, matchup) = makeContext()
         let enemy = context.roster.enemy.combatant
 
         let events = BattleTurnEngine.act(actor: enemy, matchup: matchup, context: &context)
 
-        XCTAssertTrue(events.contains { $0.kind == .ability })
-        XCTAssertFalse(events.contains { $0.effectKind == .controlActionSkipped })
+        #expect(events.contains { $0.kind == .ability })
+        #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 }

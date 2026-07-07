@@ -1,40 +1,41 @@
-import XCTest
+import Testing
 import TrinketCore
 import TrinketContent
 
 /// Ability loadout selection and tier-unlock filtering.
-final class AbilityLoadoutTests: XCTestCase {
-    func testSelectingReplacesAbilityInMatchingTier() {
+@Suite
+struct AbilityLoadoutTests {
+    @Test func selectingReplacesAbilityInMatchingTier() {
         let loadout = AbilityLoadout(basic: .bash, skill: .smite, ultimate: .blessedAegis)
 
         let updated = loadout.selecting(.shieldBash)
 
-        XCTAssertEqual(updated.basic?.id, "shield-bash")
-        XCTAssertEqual(updated.skill?.id, "smite")
-        XCTAssertEqual(updated.ultimate?.id, "blessed-aegis")
+        #expect(updated.basic?.id == "shield-bash")
+        #expect(updated.skill?.id == "smite")
+        #expect(updated.ultimate?.id == "blessed-aegis")
     }
 
-    func testUnlockedFiltersTiersByProgressionLevel() {
+    @Test func unlockedFiltersTiersByProgressionLevel() {
         let loadout = AbilityLoadout(basic: .shieldBash, skill: .spikedShield, ultimate: .plateMail)
         let levelOne = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
 
         let unlocked = loadout.unlocked(for: levelOne)
 
-        XCTAssertEqual(unlocked.basic?.id, "shield-bash")
-        XCTAssertEqual(unlocked.skill?.id, "spiked-shield")
-        XCTAssertNil(unlocked.ultimate)
+        #expect(unlocked.basic?.id == "shield-bash")
+        #expect(unlocked.skill?.id == "spiked-shield")
+        #expect(unlocked.ultimate == nil)
     }
 
-    func testUnlockedRestoresUltimateAtLevelSix() {
+    @Test func unlockedRestoresUltimateAtLevelSix() {
         let loadout = AbilityLoadout(basic: .shieldBash, skill: .spikedShield, ultimate: .plateMail)
         let levelSix = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         let unlocked = loadout.unlocked(for: levelSix)
 
-        XCTAssertEqual(unlocked.abilities.map(\.id), ["shield-bash", "spiked-shield", "plate-mail"])
+        #expect(unlocked.abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"])
     }
 
-    func testAbilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() {
+    @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() {
         let choices = AbilityChoices(
             basics: [.bash, .shieldBash],
             skills: [.smite, .spikedShield],
@@ -46,6 +47,6 @@ final class AbilityLoadoutTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(choices.selected.skill?.id, "smite")
+        #expect(choices.selected.skill?.id == "smite")
     }
 }

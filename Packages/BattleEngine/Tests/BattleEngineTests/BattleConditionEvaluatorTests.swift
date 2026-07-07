@@ -1,10 +1,11 @@
-import XCTest
+import Testing
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleConditionEvaluatorTests: XCTestCase {
-    func testLowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() {
+@Suite
+struct BattleConditionEvaluatorTests {
+    @Test func lowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -33,10 +34,10 @@ final class BattleConditionEvaluatorTests: XCTestCase {
             context: context
         )
 
-        XCTAssertEqual(target.id, pet.id)
+        #expect(target.id == pet.id)
     }
 
-    func testEnemyBleedingRequiresActiveBleedStack() {
+    @Test func enemyBleedingRequiresActiveBleedStack() {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -58,7 +59,7 @@ final class BattleConditionEvaluatorTests: XCTestCase {
             enemyModifiers: .zero
         )
 
-        XCTAssertFalse(
+        #expect(!(
             BattleConditionEvaluator.isMet(
                 .enemyBleeding,
                 actor: hero,
@@ -66,7 +67,7 @@ final class BattleConditionEvaluatorTests: XCTestCase {
                 hero: hero,
                 pet: pet,
                 context: context
-            )
+            ))
         )
     }
 }
