@@ -140,13 +140,13 @@ final class AppStatePlayFlowTests: XCTestCase {
         let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        state.sessionState.noteMapScrollFocus("chapter-1-stage-2")
+        state.noteMapScrollFocus("chapter-1-stage-2")
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
         state.resetGameplayProgress()
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.mapScrollStageID)
+        XCTAssertNil(state.mapScrollStageID)
         XCTAssertEqual(state.selectedTab, .play)
         XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-1")
         XCTAssertTrue(state.journey.current.completedStageIDs.isEmpty)
@@ -222,7 +222,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        XCTAssertNil(state.activeBattleStageID)
     }
 
     func testCompleteStageUpdatesSessionMapScrollTarget() throws {
@@ -235,7 +235,7 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
+        XCTAssertEqual(state.mapScrollStageID, "chapter-1-stage-2")
     }
 
     func testShouldRestoreMapScrollIgnoresCompletedStage() {
@@ -269,7 +269,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        XCTAssertNil(state.activeBattleStageID)
     }
 
     func testSessionBattleClearedOnEndBattle() throws {
@@ -284,7 +284,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         state.battle.endBattle()
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        XCTAssertNil(state.activeBattleStageID)
     }
 
     func testResetGameplayProgressClearsSessionBattleState() throws {
@@ -294,13 +294,13 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        state.sessionState.mapScrollStageID = "chapter-1-stage-2"
+        state.mapScrollStageID = "chapter-1-stage-2"
 
         state.resetGameplayProgress()
 
         XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
-        XCTAssertNil(state.sessionState.mapScrollStageID)
+        XCTAssertNil(state.activeBattleStageID)
+        XCTAssertNil(state.mapScrollStageID)
     }
 
     func testSessionBattleStageIDSetOnStartBattle() throws {
@@ -309,10 +309,10 @@ final class AppStatePlayFlowTests: XCTestCase {
             userDefaults: defaults
         )
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        XCTAssertNil(state.activeBattleStageID)
 
         _ = state.startBattle(for: stage)
 
-        XCTAssertEqual(state.sessionState.activeBattleStageID, "chapter-1-stage-1")
+        XCTAssertEqual(state.activeBattleStageID, "chapter-1-stage-1")
     }
 }

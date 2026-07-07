@@ -54,8 +54,8 @@ struct ChapterStageSelectView: View {
             .onDisappear {
                 appState.battle.setMusicPreview(for: nil)
             }
-            .onChange(of: appState.sessionState.mapScrollNonce) { _, _ in
-                guard let targetID = appState.sessionState.mapScrollStageID else { return }
+            .onChange(of: appState.mapScrollNonce) { _, _ in
+                guard let targetID = appState.mapScrollStageID else { return }
                 withAnimation(scrollAnimation) {
                     proxy.scrollTo(targetID, anchor: .center)
                 }
@@ -115,7 +115,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func resolvedScrollTargetID() -> String? {
-        if let saved = appState.sessionState.mapScrollStageID,
+        if let saved = appState.mapScrollStageID,
            AppState.shouldRestoreMapScroll(saved, journey: appState.journey.current) {
             return saved
         }

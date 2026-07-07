@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-enum SavedRosterHydration {
+enum RosterHydration {
     static let combatantsByID = Dictionary(
         uniqueKeysWithValues: (GameContent.heroes + GameContent.pets).map { ($0.id, $0) }
     )
@@ -23,12 +23,12 @@ enum SavedRosterHydration {
     }
 
     static func resolveAbilityLoadouts(
-        from savedLoadouts: [String: SavedAbilityLoadout]
+        from wireLoadouts: [String: WireAbilityLoadout]
     ) -> [String: AbilityLoadout] {
         var resolved: [String: AbilityLoadout] = [:]
-        for (combatantID, savedLoadout) in savedLoadouts {
+        for (combatantID, wireLoadout) in wireLoadouts {
             guard let combatant = combatantsByID[combatantID] else { continue }
-            resolved[combatantID] = savedLoadout.loadout(
+            resolved[combatantID] = wireLoadout.loadout(
                 defaults: combatant.abilityLoadout,
                 choices: combatant.abilityChoices
             )
@@ -37,12 +37,12 @@ enum SavedRosterHydration {
     }
 
     static func resolveEquipmentLoadout(
-        _ savedLoadout: SavedEquipmentLoadout,
+        _ wireLoadout: WireEquipmentLoadout,
         inventoryItemIDs: Set<String>,
         combatant: Combatant? = nil,
         inventoryItems: [InventoryItem]? = nil
     ) -> EquipmentLoadout {
-        var loadout = savedLoadout.loadout(inventoryItemIDs: inventoryItemIDs)
+        var loadout = wireLoadout.loadout(inventoryItemIDs: inventoryItemIDs)
         if let combatant, let inventoryItems {
             loadout = loadout.sanitized(for: combatant, inventory: inventoryItems)
         }
@@ -50,18 +50,18 @@ enum SavedRosterHydration {
     }
 
     static func resolveEquipmentLoadouts(
-        from savedLoadouts: [String: SavedEquipmentLoadout],
+        from wireLoadouts: [String: WireEquipmentLoadout],
         inventoryItemIDs: Set<String>,
         inventoryItems: [InventoryItem]? = nil
     ) -> [String: EquipmentLoadout] {
         var resolved: [String: EquipmentLoadout] = [:]
-        for (combatantID, savedLoadout) in savedLoadouts {
+        for (combatantID, wireLoadout) in wireLoadouts {
             let combatant = combatantsByID[combatantID]
             if inventoryItems != nil, combatant == nil {
                 continue
             }
             resolved[combatantID] = resolveEquipmentLoadout(
-                savedLoadout,
+                wireLoadout,
                 inventoryItemIDs: inventoryItemIDs,
                 combatant: combatant,
                 inventoryItems: inventoryItems

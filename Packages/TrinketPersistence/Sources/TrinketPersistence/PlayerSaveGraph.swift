@@ -108,11 +108,11 @@ public final class AbilityLoadoutModel {
     public var ultimateID: String?
     public var roster: RosterModel?
 
-    public init(combatantID: String = "", loadout: SavedAbilityLoadout = SavedAbilityLoadout(AbilityLoadout())) {
+    public init(combatantID: String = "", loadout: AbilityLoadout = AbilityLoadout()) {
         self.combatantID = combatantID
-        basicID = loadout.basicID
-        skillID = loadout.skillID
-        ultimateID = loadout.ultimateID
+        basicID = loadout.basic?.id
+        skillID = loadout.skill?.id
+        ultimateID = loadout.ultimate?.id
     }
 }
 
@@ -184,15 +184,16 @@ public final class InventoryItemModel {
     @Relationship(deleteRule: .cascade, inverse: \ItemAffixModel.item)
     public var affixes: [ItemAffixModel]?
 
-    public init(item: SavedInventoryItem? = nil) {
-        guard let item else { return }
+    public init() {}
+
+    public init(item: InventoryItem) {
         id = item.id
         templateID = item.templateID
-        baseTypeID = item.baseTypeID
+        baseTypeID = item.baseType.id
         rarityID = item.rarity.rawValue
         displayName = item.displayName
-        affixes = item.affixes.enumerated().map { index, savedAffix in
-            let model = ItemAffixModel(affix: savedAffix)
+        affixes = item.affixes.enumerated().map { index, affix in
+            let model = ItemAffixModel(affix: affix)
             model.sortIndex = index
             return model
         }
@@ -208,12 +209,13 @@ public final class ItemAffixModel {
     public var sortIndex: Int = 0
     public var item: InventoryItemModel?
 
-    public init(affix: SavedItemAffix? = nil) {
-        guard let affix else { return }
+    public init() {}
+
+    public init(affix: ItemAffix) {
         id = affix.id
         title = affix.title
         affixDescription = affix.description
-        keywordRawValues = affix.keywordRawValues
+        keywordRawValues = affix.keywords.map(\.rawValue).sorted()
     }
 }
 
@@ -281,14 +283,15 @@ public extension PlayerSaveRoot {
     }
 
     func toPlayerSave() -> PlayerSave {
-        PlayerSave(
+        let inventoryState = inventory?.toPlayerInventoryState() ?? .freshStart
+        return PlayerSave(
             schemaVersion: schemaVersion,
             modifiedAt: modifiedAt,
             sessionGeneration: sessionGeneration,
             journey: journey?.toJourneyProgressState() ?? .initial,
-            roster: roster?.toSavedRosterState() ?? SavedRosterState(.freshStart),
-            inventory: inventory?.toSavedInventoryState() ?? SavedInventoryState(.freshStart),
-            homestead: homestead?.toSavedHomesteadState() ?? SavedHomesteadState(.freshStart)
+            roster: roster?.toPlayerRosterState(inventory: inventoryState) ?? .freshStart,
+            inventory: inventoryState,
+            homestead: homestead?.toPlayerHomesteadState() ?? .freshStart
         )
     }
 
@@ -348,23 +351,23 @@ private extension JourneyProgressModel {
 }
 
 private extension RosterModel {
-    func toSavedRosterState() -> SavedRosterState {
+    func toPlayerRosterState(inventory: PlayerInventoryState) -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
-        let heroIDs = unlocked.filter { $0.role == "hero" }.map(\.combatantID).sorted()
-        let petIDs = unlocked.filter { $0.role == "pet" }.map(\.combatantID).sorted()
+        let heroIDs = Set(unlocked.filter { $0.role == "hero" }.map(\.combatantID))
+        let petIDs = Set(unlocked.filter { $0.role == "pet" }.map(\.combatantID))
         let progressionValues = Dictionary(
             uniqueKeysWithValues: (progressions ?? []).map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
             }
         )
-        let abilityValues = Dictionary(
+        let wireAbilityValues = Dictionary(
             uniqueKeysWithValues: (abilityLoadouts ?? []).map {
-                ($0.combatantID, SavedAbilityLoadout(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
+                ($0.combatantID, WireAbilityLoadout(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
             }
         )
-        let equipmentValues = Dictionary(
+        let wireEquipmentValues = Dictionary(
             uniqueKeysWithValues: (equipmentLoadouts ?? []).map {
-                ($0.combatantID, SavedEquipmentLoadout(itemIDsBySlot: Dictionary(uniqueKeysWithValues: ($0.slots ?? []).map { ($0.slotID, $0.itemID) })))
+                ($0.combatantID, WireEquipmentLoadout(itemIDsBySlot: Dictionary(uniqueKeysWithValues: ($0.slots ?? []).map { ($0.slotID, $0.itemID) })))
             }
         )
         let statValues = Dictionary(
@@ -381,52 +384,63 @@ private extension RosterModel {
                 )
             }
         )
-
-        return SavedRosterState(
+        let inventoryItemIDs = Set(inventory.items.map(\.id))
+        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
             activePetID: activePetID,
             unlockedHeroIDs: heroIDs,
+            unlockedPetIDs: petIDs
+        )
+
+        return PlayerRosterState(
+            activeHeroID: resolvedHeroID,
+            activePetID: resolvedPetID,
+            unlockedHeroIDs: heroIDs,
             unlockedPetIDs: petIDs,
-            abilityLoadouts: abilityValues,
+            abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: wireAbilityValues),
             progressions: progressionValues,
-            equipmentLoadouts: equipmentValues,
+            equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(
+                from: wireEquipmentValues,
+                inventoryItemIDs: inventoryItemIDs,
+                inventoryItems: inventory.items
+            ),
             gold: gold,
-            primaryStats: statValues
+            primaryStatOverrides: statValues
         )
     }
 
-    func update(from saved: SavedRosterState) {
-        activeHeroID = saved.activeHeroID
-        activePetID = saved.activePetID
-        gold = saved.gold
+    func update(from roster: PlayerRosterState) {
+        activeHeroID = roster.activeHeroID
+        activePetID = roster.activePetID
+        gold = roster.gold
 
-        unlockedCombatants = saved.unlockedHeroIDs.map { UnlockedCombatantModel(combatantID: $0, role: "hero") }
-            + saved.unlockedPetIDs.map { UnlockedCombatantModel(combatantID: $0, role: "pet") }
+        unlockedCombatants = roster.unlockedHeroIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "hero") }
+            + roster.unlockedPetIDs.sorted().map { UnlockedCombatantModel(combatantID: $0, role: "pet") }
         unlockedCombatants?.forEach { $0.roster = self }
 
-        progressions = saved.progressions
+        progressions = roster.progressions
             .sorted { $0.key < $1.key }
             .map { CombatantProgressionModel(combatantID: $0.key, progression: $0.value) }
         progressions?.forEach { $0.roster = self }
 
-        abilityLoadouts = saved.abilityLoadouts
+        abilityLoadouts = roster.abilityLoadouts
             .sorted { $0.key < $1.key }
             .map { AbilityLoadoutModel(combatantID: $0.key, loadout: $0.value) }
         abilityLoadouts?.forEach { $0.roster = self }
 
-        equipmentLoadouts = saved.equipmentLoadouts
+        equipmentLoadouts = roster.equipmentLoadouts
             .sorted { $0.key < $1.key }
             .map { combatantID, loadout in
                 let model = EquipmentLoadoutModel(combatantID: combatantID)
                 model.slots = loadout.itemIDsBySlot
-                    .sorted { $0.key < $1.key }
-                    .map { EquipmentSlotModel(slotID: $0.key, itemID: $0.value) }
+                    .map { EquipmentSlotModel(slotID: $0.key.rawValue, itemID: $0.value) }
+                    .sorted { $0.slotID < $1.slotID }
                 model.slots?.forEach { $0.loadout = model }
                 return model
             }
         equipmentLoadouts?.forEach { $0.roster = self }
 
-        primaryStats = saved.primaryStats
+        primaryStats = roster.primaryStatOverrides
             .sorted { $0.key < $1.key }
             .map { PrimaryStatsModel(combatantID: $0.key, stats: $0.value) }
         primaryStats?.forEach { $0.roster = self }
@@ -434,39 +448,44 @@ private extension RosterModel {
 }
 
 private extension InventoryModel {
-    func toSavedInventoryState() -> SavedInventoryState {
-        SavedInventoryState(items: (items ?? [])
+    func toPlayerInventoryState() -> PlayerInventoryState {
+        PlayerInventoryState(items: (items ?? [])
             .sorted { lhs, rhs in
                 if lhs.sortIndex == rhs.sortIndex { return lhs.id < rhs.id }
                 return lhs.sortIndex < rhs.sortIndex
             }
-            .map { item in
-                SavedInventoryItem(
+            .compactMap { item in
+                guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == item.baseTypeID }) else {
+                    return nil
+                }
+                let affixes = (item.affixes ?? [])
+                    .sorted { lhs, rhs in
+                        if lhs.sortIndex == rhs.sortIndex { return lhs.id < rhs.id }
+                        return lhs.sortIndex < rhs.sortIndex
+                    }
+                    .compactMap { affix in
+                        let keywords = Set(affix.keywordRawValues.compactMap { Keyword(rawValue: $0) })
+                        return ItemAffix(
+                            id: affix.id,
+                            title: affix.title,
+                            description: affix.affixDescription,
+                            keywords: keywords
+                        )
+                    }
+                return InventoryItem(
                     id: item.id,
                     templateID: item.templateID,
-                    baseTypeID: item.baseTypeID,
+                    baseType: baseType,
                     rarity: Rarity(rawValue: item.rarityID) ?? .basic,
                     displayName: item.displayName,
-                    affixes: (item.affixes ?? [])
-                        .sorted { lhs, rhs in
-                            if lhs.sortIndex == rhs.sortIndex { return lhs.id < rhs.id }
-                            return lhs.sortIndex < rhs.sortIndex
-                        }
-                        .map {
-                            SavedItemAffix(
-                                id: $0.id,
-                                title: $0.title,
-                                description: $0.affixDescription,
-                                keywordRawValues: $0.keywordRawValues
-                            )
-                        }
+                    affixes: affixes
                 )
             })
     }
 
-    func update(from saved: SavedInventoryState) {
-        items = saved.items.enumerated().map { index, savedItem in
-            let model = InventoryItemModel(item: savedItem)
+    func update(from inventory: PlayerInventoryState) {
+        items = inventory.items.enumerated().map { index, item in
+            let model = InventoryItemModel(item: item)
             model.sortIndex = index
             return model
         }
@@ -478,21 +497,30 @@ private extension InventoryModel {
 }
 
 private extension HomesteadModel {
-    func toSavedHomesteadState() -> SavedHomesteadState {
-        SavedHomesteadState(
-            resources: Dictionary(uniqueKeysWithValues: (resources ?? []).map { ($0.resourceID, $0.quantity) }),
-            nodeTiers: Dictionary(uniqueKeysWithValues: (nodeTiers ?? []).map { ($0.nodeID, $0.tier) })
-        )
+    func toPlayerHomesteadState() -> PlayerHomesteadState {
+        var resolvedResources: [HomesteadResource: Int] = [:]
+        for balance in resources ?? [] {
+            guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
+            resolvedResources[resource] = max(balance.quantity, 0)
+        }
+        var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
+        for tierModel in nodeTiers ?? [] {
+            guard let nodeID = HomesteadNodeID(rawValue: tierModel.nodeID),
+                  let maxTier = HomesteadNodeCatalog.maxTierByNodeID[nodeID]
+            else { continue }
+            resolvedNodeTiers[nodeID] = min(max(tierModel.tier, 0), maxTier)
+        }
+        return PlayerHomesteadState(resources: resolvedResources, nodeTiers: resolvedNodeTiers)
     }
 
-    func update(from saved: SavedHomesteadState) {
-        resources = saved.resources
-            .sorted { $0.key < $1.key }
-            .map { HomesteadResourceBalanceModel(resourceID: $0.key, quantity: $0.value) }
+    func update(from homestead: PlayerHomesteadState) {
+        resources = homestead.resources
+            .map { HomesteadResourceBalanceModel(resourceID: $0.key.rawValue, quantity: $0.value) }
+            .sorted { $0.resourceID < $1.resourceID }
         resources?.forEach { $0.homestead = self }
-        nodeTiers = saved.nodeTiers
-            .sorted { $0.key < $1.key }
-            .map { HomesteadNodeTierModel(nodeID: $0.key, tier: $0.value) }
+        nodeTiers = homestead.nodeTiers
+            .map { HomesteadNodeTierModel(nodeID: $0.key.rawValue, tier: $0.value) }
+            .sorted { $0.nodeID < $1.nodeID }
         nodeTiers?.forEach { $0.homestead = self }
     }
 }

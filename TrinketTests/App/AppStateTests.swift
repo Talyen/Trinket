@@ -187,8 +187,8 @@ final class AppStateTests: XCTestCase {
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         )
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-gate-placeholder-2")
-        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
+        XCTAssertEqual(state.mapScrollStageID, "chapter-gate-placeholder-2")
+        XCTAssertGreaterThan(state.mapScrollNonce, 0)
     }
 
     func testCompleteStageUpdatesStoresAndMapScrollFocus() throws {
@@ -206,8 +206,8 @@ final class AppStateTests: XCTestCase {
         XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
         XCTAssertGreaterThan(state.roster.current.gold, initialGold)
         XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
-        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
+        XCTAssertEqual(state.mapScrollStageID, "chapter-1-stage-2")
+        XCTAssertGreaterThan(state.mapScrollNonce, 0)
     }
 
     private func makeEnvironment(arguments: [String] = []) -> AppEnvironment {

@@ -2,12 +2,12 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct SavedAbilityLoadout: Codable, Equatable, Sendable {
+struct WireAbilityLoadout: Codable, Equatable, Sendable {
     var basicID: String?
     var skillID: String?
     var ultimateID: String?
 
-    public init(_ loadout: AbilityLoadout) {
+    init(_ loadout: AbilityLoadout) {
         basicID = loadout.basic?.id
         skillID = loadout.skill?.id
         ultimateID = loadout.ultimate?.id
@@ -19,30 +19,7 @@ public struct SavedAbilityLoadout: Codable, Equatable, Sendable {
         self.ultimateID = ultimateID
     }
 
-    func merged(with other: SavedAbilityLoadout, preferOther: Bool) -> SavedAbilityLoadout {
-        func mergedSlot(_ local: String?, _ remote: String?) -> String? {
-            switch (local, remote) {
-            case let (local?, remote?) where local != remote:
-                return preferOther ? remote : local
-            case let (local?, remote?) where local == remote:
-                return local
-            case let (local?, nil):
-                return local
-            case let (nil, remote?):
-                return remote
-            default:
-                return nil
-            }
-        }
-
-        var merged = self
-        merged.basicID = mergedSlot(basicID, other.basicID)
-        merged.skillID = mergedSlot(skillID, other.skillID)
-        merged.ultimateID = mergedSlot(ultimateID, other.ultimateID)
-        return merged
-    }
-
-    public func loadout(defaults: AbilityLoadout, choices: AbilityChoices) -> AbilityLoadout {
+    func loadout(defaults: AbilityLoadout, choices: AbilityChoices) -> AbilityLoadout {
         func resolved(_ id: String?, tier: AbilityTier, fallback: Ability?) -> Ability? {
             guard let id else { return fallback }
             return choices.abilities(for: tier).first { $0.id == id } ?? fallback
@@ -56,10 +33,10 @@ public struct SavedAbilityLoadout: Codable, Equatable, Sendable {
     }
 }
 
-public struct SavedEquipmentLoadout: Codable, Equatable, Sendable {
+struct WireEquipmentLoadout: Codable, Equatable, Sendable {
     var itemIDsBySlot: [String: String]
 
-    public init(_ loadout: EquipmentLoadout) {
+    init(_ loadout: EquipmentLoadout) {
         itemIDsBySlot = Dictionary(uniqueKeysWithValues: loadout.itemIDsBySlot.map { ($0.key.rawValue, $0.value) })
     }
 
@@ -67,21 +44,7 @@ public struct SavedEquipmentLoadout: Codable, Equatable, Sendable {
         self.itemIDsBySlot = itemIDsBySlot
     }
 
-    func merged(with other: SavedEquipmentLoadout, preferOther: Bool) -> SavedEquipmentLoadout {
-        var mergedSlots = itemIDsBySlot
-        for (slot, remoteItemID) in other.itemIDsBySlot {
-            if let localItemID = mergedSlots[slot], localItemID != remoteItemID {
-                mergedSlots[slot] = preferOther ? remoteItemID : localItemID
-            } else {
-                mergedSlots[slot] = mergedSlots[slot] ?? remoteItemID
-            }
-        }
-        var merged = self
-        merged.itemIDsBySlot = mergedSlots
-        return merged
-    }
-
-    public func loadout(inventoryItemIDs: Set<String>) -> EquipmentLoadout {
+    func loadout(inventoryItemIDs: Set<String>) -> EquipmentLoadout {
         var resolved: [ItemSlot: String] = [:]
         for (slotRawValue, itemID) in itemIDsBySlot {
             guard let slot = ItemSlot(rawValue: slotRawValue), inventoryItemIDs.contains(itemID) else { continue }
@@ -91,7 +54,7 @@ public struct SavedEquipmentLoadout: Codable, Equatable, Sendable {
     }
 }
 
-public struct SavedItemAffix: Codable, Equatable, Sendable {
+struct WireItemAffix: Codable, Equatable, Sendable {
     var id: String
     var title: String
     var description: String
@@ -111,7 +74,7 @@ public struct SavedItemAffix: Codable, Equatable, Sendable {
         self.keywordRawValues = keywordRawValues
     }
 
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
         title = try container.decode(String.self, forKey: .title)
@@ -119,7 +82,7 @@ public struct SavedItemAffix: Codable, Equatable, Sendable {
         keywordRawValues = try container.decode([String].self, forKey: .keywordRawValues)
     }
 
-    public func affix() -> ItemAffix? {
+    func affix() -> ItemAffix? {
         let keywords = Set(keywordRawValues.compactMap { Keyword(rawValue: $0) })
         return ItemAffix(
             id: id,
@@ -137,13 +100,13 @@ public struct SavedItemAffix: Codable, Equatable, Sendable {
     }
 }
 
-public struct SavedInventoryItem: Codable, Equatable, Sendable {
+struct WireInventoryItem: Codable, Equatable, Sendable {
     var id: String
     var templateID: String
     var baseTypeID: String
     var rarity: Rarity
     var displayName: String
-    var affixes: [SavedItemAffix]
+    var affixes: [WireItemAffix]
 
     init(_ item: InventoryItem) {
         id = item.id
@@ -151,7 +114,7 @@ public struct SavedInventoryItem: Codable, Equatable, Sendable {
         baseTypeID = item.baseType.id
         rarity = item.rarity
         displayName = item.displayName
-        affixes = item.affixes.map(SavedItemAffix.init)
+        affixes = item.affixes.map(WireItemAffix.init)
     }
 
     init(
@@ -160,7 +123,7 @@ public struct SavedInventoryItem: Codable, Equatable, Sendable {
         baseTypeID: String,
         rarity: Rarity,
         displayName: String,
-        affixes: [SavedItemAffix]
+        affixes: [WireItemAffix]
     ) {
         self.id = id
         self.templateID = templateID
@@ -170,7 +133,7 @@ public struct SavedInventoryItem: Codable, Equatable, Sendable {
         self.affixes = affixes
     }
 
-    public func item() -> InventoryItem? {
+    func item() -> InventoryItem? {
         guard let baseType = GameContent.itemBaseTypes.first(where: { $0.id == baseTypeID }) else { return nil }
         let resolvedAffixes = affixes.compactMap { $0.affix() }
         return InventoryItem(
@@ -184,16 +147,16 @@ public struct SavedInventoryItem: Codable, Equatable, Sendable {
     }
 }
 
-public struct SavedRosterState: Codable, Equatable, Sendable {
-    public var activeHeroID: String
-    public var activePetID: String
-    public var unlockedHeroIDs: [String]
-    public var unlockedPetIDs: [String]
-    public var abilityLoadouts: [String: SavedAbilityLoadout]
-    public var progressions: [String: CombatantProgression]
-    public var equipmentLoadouts: [String: SavedEquipmentLoadout]
-    public var gold: Int
-    public var primaryStats: [String: PrimaryStats]
+struct WireRosterState: Codable, Equatable, Sendable {
+    var activeHeroID: String
+    var activePetID: String
+    var unlockedHeroIDs: [String]
+    var unlockedPetIDs: [String]
+    var abilityLoadouts: [String: WireAbilityLoadout]
+    var progressions: [String: CombatantProgression]
+    var equipmentLoadouts: [String: WireEquipmentLoadout]
+    var gold: Int
+    var primaryStats: [String: PrimaryStats]
 
     enum CodingKeys: String, CodingKey {
         case activeHeroID
@@ -207,57 +170,36 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
         case primaryStats
     }
 
-    public init(_ roster: PlayerRosterState) {
+    init(_ roster: PlayerRosterState) {
         activeHeroID = roster.activeHeroID
         activePetID = roster.activePetID
         unlockedHeroIDs = roster.unlockedHeroIDs.sorted()
         unlockedPetIDs = roster.unlockedPetIDs.sorted()
-        abilityLoadouts = roster.abilityLoadouts.mapValues(SavedAbilityLoadout.init)
+        abilityLoadouts = roster.abilityLoadouts.mapValues(WireAbilityLoadout.init)
         progressions = roster.progressions
-        equipmentLoadouts = roster.equipmentLoadouts.mapValues(SavedEquipmentLoadout.init)
+        equipmentLoadouts = roster.equipmentLoadouts.mapValues(WireEquipmentLoadout.init)
         gold = roster.gold
         primaryStats = roster.primaryStatOverrides
     }
 
-    public init(
-        activeHeroID: String,
-        activePetID: String,
-        unlockedHeroIDs: [String],
-        unlockedPetIDs: [String],
-        abilityLoadouts: [String: SavedAbilityLoadout],
-        progressions: [String: CombatantProgression],
-        equipmentLoadouts: [String: SavedEquipmentLoadout],
-        gold: Int,
-        primaryStats: [String: PrimaryStats] = [:]
-    ) {
-        self.activeHeroID = activeHeroID
-        self.activePetID = activePetID
-        self.unlockedHeroIDs = unlockedHeroIDs
-        self.unlockedPetIDs = unlockedPetIDs
-        self.abilityLoadouts = abilityLoadouts
-        self.progressions = progressions
-        self.equipmentLoadouts = equipmentLoadouts
-        self.gold = gold
-        self.primaryStats = primaryStats
-    }
-
-    public init(from decoder: Decoder) throws {
+    init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         activeHeroID = try container.decode(String.self, forKey: .activeHeroID)
         activePetID = try container.decode(String.self, forKey: .activePetID)
         unlockedHeroIDs = try container.decodeIfPresent([String].self, forKey: .unlockedHeroIDs) ?? []
         unlockedPetIDs = try container.decodeIfPresent([String].self, forKey: .unlockedPetIDs) ?? []
-        abilityLoadouts = try container.decode([String: SavedAbilityLoadout].self, forKey: .abilityLoadouts)
+        abilityLoadouts = try container.decode([String: WireAbilityLoadout].self, forKey: .abilityLoadouts)
         progressions = try container.decode([String: CombatantProgression].self, forKey: .progressions)
-        equipmentLoadouts = try container.decode([String: SavedEquipmentLoadout].self, forKey: .equipmentLoadouts)
+        equipmentLoadouts = try container.decode([String: WireEquipmentLoadout].self, forKey: .equipmentLoadouts)
         gold = try container.decode(Int.self, forKey: .gold)
         primaryStats = try container.decodeIfPresent([String: PrimaryStats].self, forKey: .primaryStats) ?? [:]
     }
 
-    public func roster(inventoryItemIDs: Set<String>) -> PlayerRosterState {
+    func roster(inventory: PlayerInventoryState) -> PlayerRosterState {
+        let inventoryItemIDs = Set(inventory.items.map(\.id))
         let unlockedHeroIDSet = Set(unlockedHeroIDs)
         let unlockedPetIDSet = Set(unlockedPetIDs)
-        let (resolvedHeroID, resolvedPetID) = SavedRosterHydration.resolveActiveSelection(
+        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
             activeHeroID: activeHeroID,
             activePetID: activePetID,
             unlockedHeroIDs: unlockedHeroIDSet,
@@ -269,11 +211,12 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
             activePetID: resolvedPetID,
             unlockedHeroIDs: unlockedHeroIDSet,
             unlockedPetIDs: unlockedPetIDSet,
-            abilityLoadouts: SavedRosterHydration.resolveAbilityLoadouts(from: abilityLoadouts),
+            abilityLoadouts: RosterHydration.resolveAbilityLoadouts(from: abilityLoadouts),
             progressions: progressions,
-            equipmentLoadouts: SavedRosterHydration.resolveEquipmentLoadouts(
+            equipmentLoadouts: RosterHydration.resolveEquipmentLoadouts(
                 from: equipmentLoadouts,
-                inventoryItemIDs: inventoryItemIDs
+                inventoryItemIDs: inventoryItemIDs,
+                inventoryItems: inventory.items
             ),
             gold: gold,
             primaryStatOverrides: primaryStats
@@ -281,27 +224,27 @@ public struct SavedRosterState: Codable, Equatable, Sendable {
     }
 }
 
-public struct SavedInventoryState: Codable, Equatable, Sendable {
-    public var items: [SavedInventoryItem]
+struct WireInventoryState: Codable, Equatable, Sendable {
+    var items: [WireInventoryItem]
 
-    public init(_ inventory: PlayerInventoryState) {
-        items = inventory.items.map(SavedInventoryItem.init)
+    init(_ inventory: PlayerInventoryState) {
+        items = inventory.items.map(WireInventoryItem.init)
     }
 
-    init(items: [SavedInventoryItem]) {
+    init(items: [WireInventoryItem]) {
         self.items = items
     }
 
-    public func inventory() -> PlayerInventoryState {
+    func inventory() -> PlayerInventoryState {
         PlayerInventoryState(items: items.compactMap { $0.item() })
     }
 }
 
-public struct SavedHomesteadState: Codable, Equatable, Sendable {
-    public var resources: [String: Int]
-    public var nodeTiers: [String: Int]
+struct WireHomesteadState: Codable, Equatable, Sendable {
+    var resources: [String: Int]
+    var nodeTiers: [String: Int]
 
-    public init(_ homestead: PlayerHomesteadState) {
+    init(_ homestead: PlayerHomesteadState) {
         resources = Dictionary(
             uniqueKeysWithValues: homestead.resources.map { ($0.key.rawValue, max($0.value, 0)) }
         )
@@ -315,7 +258,7 @@ public struct SavedHomesteadState: Codable, Equatable, Sendable {
         self.nodeTiers = nodeTiers
     }
 
-    public func homestead() -> PlayerHomesteadState {
+    func homestead() -> PlayerHomesteadState {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for (rawValue, quantity) in resources {
             guard let resource = HomesteadResource(rawValue: rawValue), resource != .gold else { continue }

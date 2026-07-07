@@ -94,8 +94,8 @@ final class PlayerSaveStoreTests: XCTestCase {
         let storeURL = makeStoreURL()
         let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var save = PlayerSave.testSeed
-        save.roster.equipmentLoadouts["knight"] = SavedEquipmentLoadout(
-            EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
+        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
+            itemIDsBySlot: [.weapon: "missing-item"]
         )
         try firstStore.performBatchMutation { $0 = save }
 

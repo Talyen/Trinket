@@ -42,7 +42,7 @@ struct PlayView: View {
 
     private func handleStageTap(_ stage: Stage) {
         if appState.journey.current.isActive(stage) {
-            appState.sessionState.noteMapScrollFocus(stage.id)
+            appState.noteMapScrollFocus(stage.id)
             if let message = appState.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
             }

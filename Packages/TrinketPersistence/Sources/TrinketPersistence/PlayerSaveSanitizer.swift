@@ -5,13 +5,9 @@ import TrinketCore
 public enum PlayerSaveSanitizer {
     public static func sanitize(_ save: PlayerSave) -> PlayerSave {
         var sanitized = save
-        let inventory = sanitizeInventory(save.inventory.inventory())
-        sanitized.inventory = SavedInventoryState(inventory)
-        sanitized.roster = sanitizeRoster(
-            sanitized.roster,
-            inventory: inventory
-        )
-        sanitized.homestead = SavedHomesteadState(save.homestead.homestead())
+        sanitized.inventory = sanitizeInventory(save.inventory)
+        sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
+        sanitized.homestead = save.homestead
         sanitized.journey = sanitizeJourney(save.journey)
         return sanitized
     }
@@ -132,10 +128,10 @@ public enum PlayerSaveSanitizer {
     }
 
     public static func sanitizeRoster(
-        _ roster: SavedRosterState,
+        _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         catalog: PlayerContentCatalog = GameContentPlayerCatalog()
-    ) -> SavedRosterState {
+    ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
         let validHeroIDs = catalog.heroIDs
         let validPetIDs = catalog.petIDs
@@ -151,30 +147,27 @@ public enum PlayerSaveSanitizer {
             sanitized.unlockedPetIDs = [PlayerRosterState.starterPetID]
         }
 
-        let unlockedHeroIDs = Set(sanitized.unlockedHeroIDs)
-        let unlockedPetIDs = Set(sanitized.unlockedPetIDs)
-        let (resolvedHeroID, resolvedPetID) = SavedRosterHydration.resolveActiveSelection(
+        let (resolvedHeroID, resolvedPetID) = RosterHydration.resolveActiveSelection(
             activeHeroID: sanitized.activeHeroID,
             activePetID: sanitized.activePetID,
-            unlockedHeroIDs: unlockedHeroIDs,
-            unlockedPetIDs: unlockedPetIDs
+            unlockedHeroIDs: sanitized.unlockedHeroIDs,
+            unlockedPetIDs: sanitized.unlockedPetIDs
         )
         sanitized.activeHeroID = resolvedHeroID
         sanitized.activePetID = resolvedPetID
 
-        let resolvedEquipment = SavedRosterHydration.resolveEquipmentLoadouts(
-            from: roster.equipmentLoadouts,
+        let wireEquipment = roster.equipmentLoadouts.mapValues(WireEquipmentLoadout.init)
+        sanitized.equipmentLoadouts = RosterHydration.resolveEquipmentLoadouts(
+            from: wireEquipment,
             inventoryItemIDs: inventoryItemIDs,
             inventoryItems: inventory.items
         )
-        sanitized.equipmentLoadouts = resolvedEquipment.mapValues(SavedEquipmentLoadout.init)
 
-        var abilityLoadouts = roster.abilityLoadouts
-        for combatantID in Array(abilityLoadouts.keys) where SavedRosterHydration.combatantsByID[combatantID] == nil {
-            abilityLoadouts.removeValue(forKey: combatantID)
+        var wireAbility = roster.abilityLoadouts.mapValues(WireAbilityLoadout.init)
+        for combatantID in Array(wireAbility.keys) where RosterHydration.combatantsByID[combatantID] == nil {
+            wireAbility.removeValue(forKey: combatantID)
         }
-        sanitized.abilityLoadouts = SavedRosterHydration.resolveAbilityLoadouts(from: abilityLoadouts)
-            .mapValues(SavedAbilityLoadout.init)
+        sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(from: wireAbility)
 
         return sanitized
     }

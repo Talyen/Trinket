@@ -17,26 +17,43 @@ let appStateLogger = Logger(
 final class AppState {
     let playerSave: PlayerSaveStore
     let musicPlayer: MusicPlayer
-    var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
     var homestead: PlayerHomesteadStore
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
-    let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
+
+    private let sessionDefaults: UserDefaults
+
+    var selectedTab: AppTab {
+        didSet { sessionDefaults.set(selectedTab.rawValue, forKey: Self.sessionTabKey) }
+    }
+
+    var activeBattleStageID: String? {
+        didSet { sessionDefaults.set(activeBattleStageID, forKey: Self.activeBattleStageIDKey) }
+    }
+
+    var mapScrollStageID: String? {
+        didSet { sessionDefaults.set(mapScrollStageID, forKey: Self.mapScrollStageIDKey) }
+    }
+
+    private(set) var mapScrollNonce: UInt = 0
 
     init(
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
         userDefaults: UserDefaults? = nil
     ) {
+        let resolvedDefaults = userDefaults ?? .standard
+        sessionDefaults = resolvedDefaults
+
         let dependencies = Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
-            userDefaults: userDefaults
+            userDefaults: resolvedDefaults
         )
 
         self.playerSave = dependencies.playerSave
@@ -46,10 +63,11 @@ final class AppState {
         homestead = dependencies.homestead
         options = dependencies.options
         journey = dependencies.journey
-        sessionState = dependencies.sessionState
         initialCollectionCombatantDetail = dependencies.initialCollectionCombatantDetail
         initialCollectionItemID = dependencies.initialCollectionItemID
         selectedTab = dependencies.selectedTab
+        activeBattleStageID = dependencies.activeBattleStageID
+        mapScrollStageID = dependencies.mapScrollStageID
         battle = BattleSession()
         finishBootstrap(environment: environment)
     }
@@ -98,7 +116,7 @@ final class AppState {
             materialRewards: materialRewards
         ) {
             scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
-            sessionState.noteMapScrollFocus(scrollTarget)
+            noteMapScrollFocus(scrollTarget)
         }
         return scrollTarget
     }
@@ -163,8 +181,8 @@ final class AppState {
             return false
         }
         battle.endBattle()
-        sessionState.clearBattleState()
-        sessionState.selectedTab = nil
+        clearSessionBattleState()
+        sessionDefaults.removeObject(forKey: Self.sessionTabKey)
         selectedTab = .play
         return true
     }
@@ -181,6 +199,24 @@ final class AppState {
             return false
         }
         return journey.isActive(stage)
+    }
+
+    static func restoredTab(from defaults: UserDefaults) -> AppTab? {
+        guard let raw = defaults.string(forKey: sessionTabKey) else { return nil }
+        return AppTab(rawValue: raw)
+    }
+
+    func clearSessionBattleState() {
+        activeBattleStageID = nil
+        mapScrollStageID = nil
+    }
+
+    func noteMapScrollFocus(_ targetID: String, bumpEvenWhenUnchanged: Bool = false) {
+        let shouldBump = bumpEvenWhenUnchanged || mapScrollStageID != targetID
+        mapScrollStageID = targetID
+        if shouldBump {
+            mapScrollNonce &+= 1
+        }
     }
 
     @discardableResult
@@ -239,8 +275,7 @@ final class AppState {
         refreshMusic(scenePhase: scenePhase)
     }
 
-    func shellDidChangeTab(to newTab: AppTab, scenePhase: ScenePhase) {
-        sessionState.selectedTab = newTab
+    func shellDidChangeTab(to _: AppTab, scenePhase: ScenePhase) {
         if battle.activeBattle != nil {
             // Leaving Play pauses combat; returning stays paused until the player resumes.
             battle.isPaused = true
@@ -340,6 +375,10 @@ final class AppState {
             stageReward: stageReward
         )
     }
+
+    static let sessionTabKey = "session.selectedTab"
+    static let activeBattleStageIDKey = "session.activeBattleStageID"
+    static let mapScrollStageIDKey = "session.mapScrollStageID"
 }
 
 struct ShellDataStatusPresentation: Equatable {

@@ -7,7 +7,7 @@ extension AppState {
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
-        userDefaults: UserDefaults?
+        userDefaults: UserDefaults
     ) -> (
         playerSave: PlayerSaveStore,
         musicPlayer: MusicPlayer,
@@ -16,14 +16,14 @@ extension AppState {
         homestead: PlayerHomesteadStore,
         options: OptionsStore,
         journey: PlayerJourneyStore,
-        sessionState: SessionStateStore,
         selectedTab: AppTab,
+        activeBattleStageID: String?,
+        mapScrollStageID: String?,
         initialCollectionCombatantDetail: CombatantDetailContext?,
         initialCollectionItemID: String?
     ) {
-        let resolvedDefaults = userDefaults ?? .standard
         if environment.resetState {
-            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            userDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
         }
 
         let resolvedPlayerSave = playerSave ?? PlayerSaveStore(
@@ -42,17 +42,17 @@ extension AppState {
             }
         }
 
-        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
+        let resolvedOptions = OptionsStore(defaults: userDefaults)
         if let appearanceOverride = environment.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride
         }
 
-        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
         let resolvedRoster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         let resolvedInventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
         let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
         let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         let launchCollection = launchCollectionTargets(for: environment.launchScreen)
+        let session = restoredSessionState(from: userDefaults)
 
         return (
             playerSave: resolvedPlayerSave,
@@ -62,8 +62,9 @@ extension AppState {
             homestead: resolvedHomestead,
             options: resolvedOptions,
             journey: resolvedJourney,
-            sessionState: resolvedSessionState,
-            selectedTab: selectedTab(environment: environment, sessionState: resolvedSessionState),
+            selectedTab: selectedTab(environment: environment, restoredTab: session.tab),
+            activeBattleStageID: session.activeBattleStageID,
+            mapScrollStageID: session.mapScrollStageID,
             initialCollectionCombatantDetail: launchCollection.combatantDetail,
             initialCollectionItemID: launchCollection.itemID
         )
@@ -72,19 +73,19 @@ extension AppState {
     func finishBootstrap(environment: AppEnvironment) {
         seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         if let mapScrollTarget = environment.mapScrollTarget {
-            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
+            noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
         }
         if environment.launchScreen == .battle {
             startLaunchBattle()
-        } else if let stageID = sessionState.activeBattleStageID {
+        } else if let stageID = activeBattleStageID {
             startRestoredBattle(stageID: stageID)
         }
 
         battle.onBattleStateChange = { [weak self] stageID in
-            self?.sessionState.activeBattleStageID = stageID
+            self?.activeBattleStageID = stageID
         }
         battle.onBattleEnded = { [weak self] in
-            self?.sessionState.activeBattleStageID = nil
+            self?.activeBattleStageID = nil
         }
     }
 
@@ -114,12 +115,12 @@ extension AppState {
         guard let stage = GameContent.stage(id: stageID),
               case .battle = stage.encounter
         else {
-            sessionState.activeBattleStageID = nil
+            activeBattleStageID = nil
             return
         }
 
         guard !journey.current.hasClaimedRewards(for: stage) else {
-            sessionState.activeBattleStageID = nil
+            activeBattleStageID = nil
             return
         }
 
@@ -129,17 +130,24 @@ extension AppState {
 
     private static let launchBattleStageID = "chapter-1-stage-1"
 
-    private static func selectedTab(
-        environment: AppEnvironment,
-        sessionState: SessionStateStore
-    ) -> AppTab {
+    private static func restoredSessionState(
+        from defaults: UserDefaults
+    ) -> (tab: AppTab?, activeBattleStageID: String?, mapScrollStageID: String?) {
+        (
+            restoredTab(from: defaults),
+            defaults.string(forKey: activeBattleStageIDKey),
+            defaults.string(forKey: mapScrollStageIDKey)
+        )
+    }
+
+    private static func selectedTab(environment: AppEnvironment, restoredTab: AppTab?) -> AppTab {
         if let envTab = environment.launchTab {
             return envTab
         }
         if let launchScreen = environment.launchScreen {
             return tab(for: launchScreen)
         }
-        return sessionState.selectedTab ?? .play
+        return restoredTab ?? .play
     }
 
     private static func tab(for launchScreen: LaunchScreen) -> AppTab {

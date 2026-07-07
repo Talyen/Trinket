@@ -1,5 +1,6 @@
 import XCTest
 import TrinketContent
+import TrinketCore
 @testable import TrinketPersistence
 
 @MainActor
@@ -67,7 +68,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
     }
 
     func testSanitizeRosterFiltersInvalidUnlockIDs() {
-        let roster = SavedRosterState(
+        let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID, "missing-hero"],
@@ -79,14 +80,13 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-        let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
-        XCTAssertEqual(playerRoster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
-        XCTAssertEqual(playerRoster.unlockedPetIDs, [PlayerRosterState.starterPetID])
+        XCTAssertEqual(sanitized.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
+        XCTAssertEqual(sanitized.unlockedPetIDs, [PlayerRosterState.starterPetID])
     }
 
     func testSanitizeRosterFallsBackToStartersWhenUnlocksEmpty() {
-        let roster = SavedRosterState(
+        let roster = PlayerRosterState(
             activeHeroID: "wizard",
             activePetID: "wolf",
             unlockedHeroIDs: ["missing-hero"],
@@ -98,25 +98,24 @@ final class PlayerSaveSanitizerTests: XCTestCase {
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-        let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
-        XCTAssertEqual(playerRoster.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
-        XCTAssertEqual(playerRoster.unlockedPetIDs, [PlayerRosterState.starterPetID])
-        XCTAssertEqual(playerRoster.activeHeroID, PlayerRosterState.starterHeroID)
-        XCTAssertEqual(playerRoster.activePetID, PlayerRosterState.starterPetID)
+        XCTAssertEqual(sanitized.unlockedHeroIDs, [PlayerRosterState.starterHeroID])
+        XCTAssertEqual(sanitized.unlockedPetIDs, [PlayerRosterState.starterPetID])
+        XCTAssertEqual(sanitized.activeHeroID, PlayerRosterState.starterHeroID)
+        XCTAssertEqual(sanitized.activePetID, PlayerRosterState.starterPetID)
     }
 
     func testSanitizeRosterStripsUnknownCombatantAbilityLoadouts() throws {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        var unknownLoadout = SavedAbilityLoadout(knight.abilityLoadout)
-        unknownLoadout.basicID = "smite"
-        let roster = SavedRosterState(
+        var unknownLoadout = knight.abilityLoadout
+        unknownLoadout.skill = knight.abilityChoices.abilities(for: .skill).first
+        let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
             unlockedPetIDs: [PlayerRosterState.starterPetID],
             abilityLoadouts: [
-                "knight": SavedAbilityLoadout(knight.abilityLoadout),
+                "knight": knight.abilityLoadout,
                 "missing-combatant": unknownLoadout
             ],
             progressions: [:],
@@ -131,24 +130,28 @@ final class PlayerSaveSanitizerTests: XCTestCase {
 
     func testSanitizeRosterResolvesInvalidAbilityIDs() throws {
         let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        var savedLoadout = SavedAbilityLoadout(knight.abilityLoadout)
-        savedLoadout.skillID = "missing-ability"
-        let roster = SavedRosterState(
+        var invalidLoadout = knight.abilityLoadout
+        invalidLoadout.skill = Ability(
+            id: "missing-ability",
+            name: "Missing",
+            tier: .skill,
+            description: "Missing"
+        )
+        let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
             unlockedPetIDs: [PlayerRosterState.starterPetID],
-            abilityLoadouts: ["knight": savedLoadout],
+            abilityLoadouts: ["knight": invalidLoadout],
             progressions: [:],
             equipmentLoadouts: [:],
             gold: 0
         )
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
-        let playerRoster = sanitized.roster(inventoryItemIDs: [])
 
         XCTAssertEqual(
-            playerRoster.loadout(for: knight).skill?.id,
+            sanitized.loadout(for: knight).skill?.id,
             knight.abilityLoadout.skill?.id
         )
     }
@@ -164,7 +167,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             displayName: "Test Sword",
             affixes: []
         )
-        let roster = SavedRosterState(
+        let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
@@ -172,22 +175,17 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [
-                "knight": SavedEquipmentLoadout(
-                    EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
-                )
+                "knight": EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
             ],
             gold: 0
         )
         var save = PlayerSave.fresh
-        save.inventory = SavedInventoryState(PlayerInventoryState(items: [weapon]))
+        save.inventory = PlayerInventoryState(items: [weapon])
         save.roster = roster
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
-        let playerRoster = sanitized.playerRoster(
-            inventoryItemIDs: Set(sanitized.inventory.items.map(\.id))
-        )
 
-        XCTAssertNil(playerRoster.equipmentLoadout(for: knight).itemID(for: .weapon))
+        XCTAssertNil(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
         XCTAssertEqual(sanitized.inventory.items.map(\.id), ["weapon-id"])
     }
 
@@ -211,7 +209,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             displayName: "Test Ring",
             affixes: []
         )
-        let roster = SavedRosterState(
+        let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
             unlockedHeroIDs: [PlayerRosterState.starterHeroID],
@@ -219,24 +217,19 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             abilityLoadouts: [:],
             progressions: [:],
             equipmentLoadouts: [
-                "bear": SavedEquipmentLoadout(
-                    EquipmentLoadout(itemIDsBySlot: [
-                        .weapon: weapon.id,
-                        .trinket: trinket.id
-                    ])
-                )
+                "bear": EquipmentLoadout(itemIDsBySlot: [
+                    .weapon: weapon.id,
+                    .trinket: trinket.id
+                ])
             ],
             gold: 0
         )
         var save = PlayerSave.fresh
-        save.inventory = SavedInventoryState(PlayerInventoryState(items: [weapon, trinket]))
+        save.inventory = PlayerInventoryState(items: [weapon, trinket])
         save.roster = roster
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
-        let playerRoster = sanitized.playerRoster(
-            inventoryItemIDs: Set(sanitized.inventory.items.map(\.id))
-        )
-        let loadout = playerRoster.equipmentLoadout(for: bear)
+        let loadout = sanitized.roster.equipmentLoadout(for: bear)
 
         XCTAssertNil(loadout.itemID(for: .weapon))
         XCTAssertEqual(loadout.itemID(for: .trinket), trinket.id)
@@ -253,7 +246,7 @@ final class PlayerSaveSanitizerTests: XCTestCase {
             affixes: []
         )
         var save = PlayerSave.fresh
-        save.inventory = SavedInventoryState(PlayerInventoryState(items: [item, item]))
+        save.inventory = PlayerInventoryState(items: [item, item])
         save.roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "invalid-hero"]
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
