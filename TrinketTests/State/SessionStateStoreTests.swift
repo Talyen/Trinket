@@ -138,4 +138,49 @@ final class SessionStateStoreTests: XCTestCase {
 
         XCTAssertEqual(store.mapScrollNonce, 2)
     }
+
+    func testActiveBattleFieldsPersistAndLoad() {
+        let store = SessionStateStore(defaults: defaults)
+        XCTAssertNil(store.activeBattleSavedAt)
+        XCTAssertNil(store.activeBattleSchemaVersion)
+        
+        store.activeBattleStageID = "chapter-1-stage-1"
+        XCTAssertNotNil(store.activeBattleSavedAt)
+        XCTAssertEqual(store.activeBattleSchemaVersion, SessionStateStore.currentSchemaVersion)
+        
+        let store2 = SessionStateStore(defaults: defaults)
+        XCTAssertNotNil(store2.activeBattleSavedAt)
+        XCTAssertEqual(store2.activeBattleSchemaVersion, SessionStateStore.currentSchemaVersion)
+        
+        store.activeBattleStageID = nil
+        XCTAssertNil(store.activeBattleSavedAt)
+        XCTAssertNil(store.activeBattleSchemaVersion)
+        
+        let store3 = SessionStateStore(defaults: defaults)
+        XCTAssertNil(store3.activeBattleSavedAt)
+        XCTAssertNil(store3.activeBattleSchemaVersion)
+    }
+
+    func testLastBackgroundedTimePersistsAndLoads() throws {
+        let store = SessionStateStore(defaults: defaults)
+        XCTAssertNil(store.lastBackgroundedTime)
+        
+        let date = Date()
+        store.lastBackgroundedTime = date
+        
+        let store2 = SessionStateStore(defaults: defaults)
+        let loadedDate = try XCTUnwrap(store2.lastBackgroundedTime)
+        XCTAssertEqual(loadedDate.timeIntervalSince1970, date.timeIntervalSince1970, accuracy: 0.1)
+    }
+
+    func testViewedCombatantsPersistAndLoad() {
+        let store = SessionStateStore(defaults: defaults)
+        XCTAssertTrue(store.viewedCombatantIDs.isEmpty)
+        
+        store.markCombatantAsViewed(id: "knight")
+        XCTAssertTrue(store.viewedCombatantIDs.contains("knight"))
+        
+        let store2 = SessionStateStore(defaults: defaults)
+        XCTAssertTrue(store2.viewedCombatantIDs.contains("knight"))
+    }
 }

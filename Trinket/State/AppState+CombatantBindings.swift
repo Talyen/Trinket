@@ -58,6 +58,9 @@ extension AppState {
                 allowsEditing: roster.current.isUnlocked(combatant),
                 hidesNavigationBar: hidesNavigationBar
             )
+            .onAppear {
+                self.sessionState.markCombatantAsViewed(id: combatantID)
+            }
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Pet Not Found",

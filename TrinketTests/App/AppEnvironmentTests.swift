@@ -64,7 +64,11 @@ final class AppEnvironmentTests: XCTestCase {
 
     func testDisableCloudSyncFlag() {
         XCTAssertTrue(parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
+        #if targetEnvironment(simulator)
+        XCTAssertTrue(parse(arguments: []).disableCloudSync)
+        #else
         XCTAssertFalse(parse(arguments: []).disableCloudSync)
+        #endif
     }
 
     func testDisableAudioFlag() {
@@ -163,13 +167,24 @@ final class AppEnvironmentTests: XCTestCase {
         XCTAssertNil(env.launchScreen)
         XCTAssertFalse(env.resetState)
         XCTAssertFalse(env.seedTestProgress)
+        #if targetEnvironment(simulator)
+        XCTAssertTrue(env.disableCloudSync)
+        #else
         XCTAssertFalse(env.disableCloudSync)
+        #endif
         XCTAssertFalse(env.disableAudio)
         XCTAssertNil(env.appearanceOverride)
         XCTAssertTrue(env.completedStageIDs.isEmpty)
         XCTAssertNil(env.mapScrollTarget)
         XCTAssertNil(env.battleTickInterval)
     }
+
+    #if targetEnvironment(simulator)
+    func testEnableCloudSyncFlagOnSimulator() {
+        let env = parse(arguments: ["-enable-cloud-sync"])
+        XCTAssertFalse(env.disableCloudSync)
+    }
+    #endif
 
     private func parse(
         arguments: [String],

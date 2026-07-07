@@ -20,6 +20,8 @@ struct ChapterStageSelectView: View {
                         overscroll: heroOverscroll
                     )
 
+                    PlayTabDashboardHeaderView()
+
                     LazyVStack(alignment: .leading, spacing: 14) {
                         ForEach(journeyRows) { row in
                             rowView(row)

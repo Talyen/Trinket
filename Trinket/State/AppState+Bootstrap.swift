@@ -76,8 +76,6 @@ extension AppState {
         }
         if environment.launchScreen == .battle {
             startLaunchBattle()
-        } else if let stageID = sessionState.activeBattleStageID {
-            startRestoredBattle(stageID: stageID)
         }
 
         battle.onBattleStateChange = { [weak self] stageID in

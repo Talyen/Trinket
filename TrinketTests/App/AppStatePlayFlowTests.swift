@@ -199,17 +199,78 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
-    func testSessionBattleRestored() throws {
+    func testSessionBattleRestoredAsResumeCardOnColdLaunch() throws {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
+        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
 
         let state = AppTestSupport.makeAppState(
             directoryURL: directoryURL,
             userDefaults: defaults
         )
 
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertTrue(state.showResumeBattleCard)
+        XCTAssertEqual(state.selectedTab, .play)
+    }
+
+    func testForegroundResumeWithinSeamlessWindowResumesBattle() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
+        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        
+        state.isColdLaunch = false
+        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-30)
+        
+        state.evaluateResumeRules()
+        
         let activeBattle = try XCTUnwrap(state.battle.activeBattle)
         XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
+    }
+
+    func testForegroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
+        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        
+        state.isColdLaunch = false
+        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
+        
+        state.evaluateResumeRules()
+        
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertTrue(state.showResumeBattleCard)
         XCTAssertEqual(state.selectedTab, .play)
+    }
+
+    func testForegroundResumeBeyondExpiryWindowDiscardsSave() throws {
+        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
+        defaults.set(Date().addingTimeInterval(-86400 * 3).timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
+
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+        
+        state.isColdLaunch = false
+        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
+        
+        state.evaluateResumeRules()
+        
+        XCTAssertNil(state.battle.activeBattle)
+        XCTAssertFalse(state.showResumeBattleCard)
+        XCTAssertNil(state.sessionState.activeBattleStageID)
     }
 
     func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
@@ -220,6 +281,8 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL,
             userDefaults: defaults
         )
+
+        state.evaluateResumeRules()
 
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertNil(state.sessionState.activeBattleStageID)
@@ -268,17 +331,25 @@ final class AppStatePlayFlowTests: XCTestCase {
             userDefaults: defaults
         )
 
+        state.evaluateResumeRules()
+
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertNil(state.sessionState.activeBattleStageID)
     }
 
     func testSessionBattleClearedOnEndBattle() throws {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
+        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
 
         let state = AppTestSupport.makeAppState(
             directoryURL: directoryURL,
             userDefaults: defaults
         )
+        state.isColdLaunch = false
+        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-30)
+        state.evaluateResumeRules()
+
         _ = try XCTUnwrap(state.battle.activeBattle)
 
         state.battle.endBattle()

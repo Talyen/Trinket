@@ -27,6 +27,77 @@ final class AppState {
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
 
+    var isColdLaunch = true
+    var seamlessWindow: TimeInterval = 120.0
+    var sameSessionWindow: TimeInterval = 3600.0
+    var battleSaveExpiryWindow: TimeInterval = 172800.0
+
+    var showResumeBattleCard: Bool {
+        isSavedBattleValid()
+    }
+
+    func isSavedBattleValid() -> Bool {
+        guard let stageID = sessionState.activeBattleStageID else { return false }
+        guard let stage = GameContent.stage(id: stageID),
+              case .battle = stage.encounter else {
+            return false
+        }
+        guard !journey.current.hasClaimedRewards(for: stage) else {
+            return false
+        }
+        guard let savedVersion = sessionState.activeBattleSchemaVersion,
+              savedVersion == SessionStateStore.currentSchemaVersion else {
+            return false
+        }
+        if let savedAt = sessionState.activeBattleSavedAt {
+            let elapsed = Date.now.timeIntervalSince(savedAt)
+            if elapsed > battleSaveExpiryWindow {
+                return false
+            }
+        }
+        return true
+    }
+
+    func resumeSavedBattle() {
+        guard let stageID = sessionState.activeBattleStageID,
+              let stage = GameContent.stage(id: stageID) else { return }
+        startBattle(for: stage)
+    }
+
+    func abandonSavedBattle() {
+        sessionState.clearBattleState()
+    }
+
+    var collectionActionableCount: Int {
+        let unlockedHeroes = roster.current.unlockedHeroIDs
+        let unlockedPets = roster.current.unlockedPetIDs
+        let viewed = sessionState.viewedCombatantIDs
+        let unviewedHeroes = unlockedHeroes.filter { !viewed.contains($0) }.count
+        let unviewedPets = unlockedPets.filter { !viewed.contains($0) }.count
+        return unviewedHeroes + unviewedPets
+    }
+
+    var homesteadActionableCount: Int {
+        let homesteadState = homestead.current
+        let rosterState = roster.current
+        let definitions = GameContent.homesteadNodes
+        return definitions.filter { definition in
+            let status = HomesteadProjectStatus(definition: definition, homestead: homesteadState, roster: rosterState)
+            return status.canBuildOrUpgrade
+        }.count
+    }
+
+    var collectionBadge: Int? {
+        guard selectedTab != .collection else { return nil }
+        let count = collectionActionableCount
+        return count > 0 ? count : nil
+    }
+
+    var homesteadBadge: String? {
+        guard selectedTab != .homestead else { return nil }
+        return homesteadActionableCount > 0 ? "" : nil
+    }
+
     init(
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,

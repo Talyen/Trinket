@@ -46,12 +46,14 @@ struct ContentView: View {
                     )
                 }
             }
+            .badge(appState.collectionBadge.map { Text("\($0)") })
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 NavigationStack {
                     HomesteadView()
                 }
             }
+            .badge(appState.homesteadBadge.map { Text($0) })
 
             Tab(value: AppTab.search, role: .search) {
                 NavigationStack {
