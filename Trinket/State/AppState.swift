@@ -1,3 +1,4 @@
+import BattleEngine
 import Foundation
 import Observation
 import os
@@ -89,26 +90,15 @@ final class AppState {
         materialRewards: [ResourceAmount]? = nil
     ) -> String {
         var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
-        do {
-            try playerSave.performBatchMutation { save in
-                var context = save.stageCompletionContext()
-                StageCompletion.complete(
-                    stage,
-                    hero: hero,
-                    pet: pet,
-                    battleEarnedGold: battleEarnedGold,
-                    materialRewards: materialRewards,
-                    in: GameContent.chapters,
-                    context: &context
-                )
-                context.apply(to: &save)
-                scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
-            }
+        if let resultingJourney = persistStageCompletions(
+            [stage],
+            hero: hero,
+            pet: pet,
+            battleEarnedGold: battleEarnedGold,
+            materialRewards: materialRewards
+        ) {
+            scrollTarget = JourneyMapPresentation.scrollFocusID(for: resultingJourney)
             sessionState.noteMapScrollFocus(scrollTarget)
-        } catch {
-            appStateLogger.error(
-                "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
-            )
         }
         return scrollTarget
     }
@@ -191,6 +181,164 @@ final class AppState {
             return false
         }
         return journey.isActive(stage)
+    }
+
+    @discardableResult
+    func startBattle(for stage: Stage) -> StageMapMessage? {
+        guard battle.activeBattle == nil else { return nil }
+
+        guard let encounter = ActiveBattleConfiguration.resolvedEncounter(for: stage) else {
+            return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
+        }
+
+        battle.preview = nil
+        battle.activeBattle = makeActiveBattleConfiguration(
+            stageID: stage.id,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: stage.rewards
+        )
+        return nil
+    }
+
+    func restartActiveBattle() {
+        guard let activeBattle = battle.activeBattle else { return }
+
+        let hero = roster.heroes.first(where: { $0.id == activeBattle.hero.combatant.id })
+            ?? roster.activeHero
+        let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
+            ?? roster.activePet
+
+        battle.activeBattle = makeActiveBattleConfiguration(
+            stageID: activeBattle.stageID,
+            hero: hero,
+            pet: pet,
+            enemy: activeBattle.enemy,
+            enemyEncounterLevel: activeBattle.enemyEncounterLevel,
+            stageReward: activeBattle.stageReward
+        )
+    }
+
+    @discardableResult
+    func handleStagePrimaryAction(for stage: Stage) -> StageMapMessage? {
+        switch stage.encounter {
+        case .battle:
+            return startBattle(for: stage)
+        case .event, .shop, .rest, .mysteryEvent:
+            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+            return nil
+        }
+    }
+
+    func shellDidAppear(scenePhase: ScenePhase) {
+        if battle.activeBattle != nil, selectedTab != .play {
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeTab(to newTab: AppTab, scenePhase: ScenePhase) {
+        sessionState.selectedTab = newTab
+        if battle.activeBattle != nil {
+            // Leaving Play pauses combat; returning stays paused until the player resumes.
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeActiveBattle(started: Bool, scenePhase: ScenePhase) {
+        if started {
+            battle.isPaused = selectedTab != .play
+        } else {
+            battle.isPaused = false
+            musicPlayer.clearEncounterResumePositions()
+        }
+        refreshMusic(scenePhase: scenePhase)
+    }
+
+    func shellDidChangeScenePhase(_ newPhase: ScenePhase) {
+        if newPhase != .active, battle.activeBattle != nil {
+            battle.isPaused = true
+        }
+        refreshMusic(scenePhase: newPhase)
+    }
+
+    func refreshMusic(scenePhase: ScenePhase) {
+        musicPlayer.update(
+            route: MusicRoute.resolve(
+                selectedTab: selectedTab,
+                preview: battle.preview,
+                activeBattle: battle.activeBattle,
+                sceneIsActive: scenePhase == .active,
+                musicVolume: options.musicVolume
+            ),
+            volume: options.musicVolume
+        )
+    }
+
+    @discardableResult
+    func persistStageCompletions(
+        _ stages: [Stage],
+        hero: Combatant,
+        pet: Combatant,
+        battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil,
+        resetJourney: Bool = false
+    ) -> JourneyProgressState? {
+        guard !stages.isEmpty else { return nil }
+
+        var resultingJourney = journey.current
+        do {
+            try playerSave.performBatchMutation { save in
+                var context = save.stageCompletionContext()
+                if resetJourney {
+                    context.journey = .initial
+                }
+                for (index, stage) in stages.enumerated() {
+                    let isLast = index == stages.count - 1
+                    StageCompletion.complete(
+                        stage,
+                        hero: hero,
+                        pet: pet,
+                        battleEarnedGold: isLast ? battleEarnedGold : 0,
+                        materialRewards: isLast ? materialRewards : nil,
+                        in: GameContent.chapters,
+                        context: &context
+                    )
+                }
+                context.apply(to: &save)
+                resultingJourney = context.journey
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to persist stage completions: \(error.localizedDescription, privacy: .public)"
+            )
+            return nil
+        }
+        return resultingJourney
+    }
+
+    private func makeActiveBattleConfiguration(
+        stageID: String?,
+        hero: Combatant,
+        pet: Combatant,
+        enemy: Combatant?,
+        enemyEncounterLevel: Int?,
+        stageReward: StageReward?
+    ) -> ActiveBattleConfiguration {
+        ActiveBattleConfiguration.make(
+            stageID: stageID,
+            rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
+            hero: hero,
+            pet: pet,
+            roster: roster,
+            inventory: inventory,
+            enemy: enemy,
+            enemyEncounterLevel: enemyEncounterLevel,
+            stageReward: stageReward
+        )
     }
 }
 

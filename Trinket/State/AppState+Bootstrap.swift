@@ -97,31 +97,12 @@ extension AppState {
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }
 
-        let hero = roster.activeHero
-        let pet = roster.activePet
-
-        do {
-            try playerSave.performBatchMutation { save in
-                var context = save.stageCompletionContext()
-                if resetState {
-                    context.journey = .initial
-                }
-                for stage in stages {
-                    StageCompletion.complete(
-                        stage,
-                        hero: hero,
-                        pet: pet,
-                        in: GameContent.chapters,
-                        context: &context
-                    )
-                }
-                context.apply(to: &save)
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
-            )
-        }
+        _ = persistStageCompletions(
+            stages,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            resetJourney: resetState
+        )
     }
 
     private func startLaunchBattle() {
