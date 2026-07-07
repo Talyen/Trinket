@@ -3,6 +3,8 @@ import SwiftData
 import TrinketContent
 import TrinketCore
 
+// swiftlint:disable:this file_length
+
 @Model
 public final class PlayerSaveRoot {
     public var id: String = "primary"
@@ -337,6 +339,7 @@ public extension PlayerSaveRoot {
         setRoot(model)
     }
 }
+
 private extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
         let stageModels = stages ?? []

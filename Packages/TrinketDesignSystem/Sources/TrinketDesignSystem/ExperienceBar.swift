@@ -162,7 +162,8 @@ public struct ExperienceBar: View {
         public let newRequiredXP: Int
     }
 
-    nonisolated public static func segments(
+    // swiftlint:disable:next modifier_order
+    public nonisolated static func segments(
         from pre: CombatantProgression,
         to post: CombatantProgression
     ) -> [Segment] {
