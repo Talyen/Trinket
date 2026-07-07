@@ -112,21 +112,7 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .options)
     }
 
-    func testCorruptSaveSetsRecoveryAlertFlag() {
-        // Obsolete: SwiftData corruptions are handled by CoreData schema migration plan.
-    }
-
     func testAppearanceOverrideAppliesToOptionsStore() {
-        let defaults = UserDefaults.standard
-        let previousAppearance = defaults.string(forKey: "options.appearance")
-        defer {
-            if let previousAppearance {
-                defaults.set(previousAppearance, forKey: "options.appearance")
-            } else {
-                defaults.removeObject(forKey: "options.appearance")
-            }
-        }
-
         let state = makeAppState(
             environment: makeEnvironment(arguments: ["-appearance", "dark"])
         )

@@ -1,67 +1,57 @@
+import Testing
 import TrinketCore
-import XCTest
 
-final class KeywordCoreTests: XCTestCase {
-    func testAllKeywordsAreCovered() {
+@Suite struct KeywordCoreTests {
+    @Test func allKeywordsAreCovered() {
         let expected: Set = [
             "Physical", "Burn", "Stun", "Block", "Armor", "Health", "Gold", "Holy", "Poison",
             "Bleed", "Leech", "Nature", "Freeze", "Dodge", "Purge", "Mana", "Death's Door",
         ]
         let actual = Set(Keyword.allCases.map(\.rawValue))
-        XCTAssertEqual(expected, actual)
+        #expect(expected == actual)
     }
 
-    func testAllKeywordsHaveRulesText() {
-        for keyword in Keyword.allCases {
-            XCTAssertFalse(keyword.rulesText.isEmpty, "\(keyword.rawValue) should have rules text")
-        }
+    @Test(arguments: Keyword.allCases)
+    func allKeywordsHaveRulesText(keyword: Keyword) {
+        #expect(!keyword.rulesText.isEmpty, "\(keyword.rawValue) should have rules text")
     }
 
-    func testAllKeywordsHaveCategory() {
-        for keyword in Keyword.allCases {
-            XCTAssertFalse(keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
-        }
+    @Test(arguments: Keyword.allCases)
+    func allKeywordsHaveCategory(keyword: Keyword) {
+        #expect(!keyword.category.rawValue.isEmpty, "\(keyword.rawValue) should have a category")
     }
 
-    func testDamageTypeCategory() {
-        let types: [Keyword] = [.physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun]
-        for kw in types {
-            XCTAssertEqual(kw.category, .damageType, "\(kw.rawValue) should be damageType")
-        }
+    @Test(arguments: [Keyword.physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun])
+    func damageTypeCategory(keyword: Keyword) {
+        #expect(keyword.category == .damageType, "\(keyword.rawValue) should be damageType")
     }
 
-    func testMitigationCategory() {
-        let types: [Keyword] = [.block, .armor, .dodge, .purge]
-        for kw in types {
-            XCTAssertEqual(kw.category, .mitigation, "\(kw.rawValue) should be mitigation")
-        }
+    @Test(arguments: [Keyword.block, .armor, .dodge, .purge])
+    func mitigationCategory(keyword: Keyword) {
+        #expect(keyword.category == .mitigation, "\(keyword.rawValue) should be mitigation")
     }
 
-    func testRestorationCategory() {
-        let types: [Keyword] = [.health, .leech, .deathsDoor]
-        for kw in types {
-            XCTAssertEqual(kw.category, .restoration, "\(kw.rawValue) should be restoration")
-        }
+    @Test(arguments: [Keyword.health, .leech, .deathsDoor])
+    func restorationCategory(keyword: Keyword) {
+        #expect(keyword.category == .restoration, "\(keyword.rawValue) should be restoration")
     }
 
-    func testResourceCategory() {
-        let types: [Keyword] = [.gold, .mana]
-        for kw in types {
-            XCTAssertEqual(kw.category, .resource, "\(kw.rawValue) should be resource")
-        }
+    @Test(arguments: [Keyword.gold, .mana])
+    func resourceCategory(keyword: Keyword) {
+        #expect(keyword.category == .resource, "\(keyword.rawValue) should be resource")
     }
 
-    func testStatusAliases() {
-        XCTAssertEqual(Keyword.freeze.statusAlias, "Frozen")
-        XCTAssertEqual(Keyword.stun.statusAlias, "Stunned")
-        XCTAssertEqual(Keyword.burn.statusAlias, "Burning")
-        XCTAssertEqual(Keyword.poison.statusAlias, "Poisoned")
-        XCTAssertEqual(Keyword.bleed.statusAlias, "Bleeding")
+    @Test func statusAliases() {
+        #expect(Keyword.freeze.statusAlias == "Frozen")
+        #expect(Keyword.stun.statusAlias == "Stunned")
+        #expect(Keyword.burn.statusAlias == "Burning")
+        #expect(Keyword.poison.statusAlias == "Poisoned")
+        #expect(Keyword.bleed.statusAlias == "Bleeding")
     }
 
-    func testCategoryAllCases() {
+    @Test func categoryAllCases() {
         let expected: Set = ["Damage Type", "Mitigation", "Restoration", "Resource"]
         let actual = Set(Keyword.Category.allCases.map(\.rawValue))
-        XCTAssertEqual(expected, actual)
+        #expect(expected == actual)
     }
 }

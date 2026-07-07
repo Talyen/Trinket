@@ -143,6 +143,15 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
+    func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
+        guard #available(iOS 17.0, *) else { return }
+        do {
+            try app.performAccessibilityAudit()
+        } catch {
+            fail("Accessibility audit failed: \(error)", file: file, line: line)
+        }
+    }
+
     func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 6, file: StaticString = #file, line: UInt = #line) {
         let element = app.descendants(matching: .any)[identifier]
         scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
