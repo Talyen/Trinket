@@ -9,6 +9,7 @@ struct HomesteadBuildControl {
     var error: String?
     var upgradeEventCount = 0
 
+    @MainActor
     mutating func perform(
         _ definition: HomesteadNodeDefinition,
         homestead: PlayerHomesteadStore,
