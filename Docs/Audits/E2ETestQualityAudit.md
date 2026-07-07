@@ -318,15 +318,74 @@ Sort by Score (P0 → P4), then by Est. Savings (high → low).
 
 ## Improvement Plan
 
-*(To be filled by the agent after running the probes.)*
+*Audit run: 2026-07-07. Probes executed against `main` @ detached `47e9ddc`. Timing log was empty (no prior `test.sh` ingest); speed findings rely on static anti-pattern scans and tier matrix review.*
+
+### Probe 1 — Framework & Migration Baseline (summary)
+
+| Metric | Count |
+|--------|------:|
+| XCTest classes (`XCTestCase` subclasses) | 97 |
+| Swift Testing suites (`@Test`) | 0 |
+| UI test classes (Smoke + exhaustive) | 12 |
+| UI test methods | 14 |
+| `import UIKit` in test targets | 0 |
+| `@MainActor` unit test types | 18 |
+
+**Migration cost tiers (representative high-value targets):**
+
+| File | Framework | Tests | Migrate Cost | Notes |
+|------|-----------|------:|--------------|-------|
+| `Packages/TrinketContent/.../EnemyCatalogTests.swift` | XCTest | 11 | Medium | Catalog `for` loops → `@Test(arguments:)` |
+| `Packages/BattleEngine/.../EffectHandlersTests.swift` | XCTest | 2 | Simple | Registry parity + `EffectKind.allCases` loop |
+| `Packages/TrinketCore/.../KeywordCoreTests.swift` | XCTest | 9 | Medium | Three `Keyword.allCases` loops |
+| `TrinketTests/Battle/BattleSessionTests.swift` | XCTest | 32 | Complex | `@MainActor`, async, temp saves, `setUp`/`tearDown` |
+| `TrinketTests/App/AppStateTests.swift` | XCTest | 17 | Complex | `@MainActor`, `UserDefaults`, file store lifecycle |
+| `TrinketUITests/Smoke/*` | XCTest | 14 | N/A | Keep XCTest — UI automation must stay on `XCUIApplication` |
+
+### Probe 4 — Smoke → Exhaustive → Unit Overlap Matrix
+
+| Feature | Smoke | Exhaustive | Unit | Overlap note |
+|---------|-------|------------|------|--------------|
+| Play map | `SmokePlayTests` (3) | — | `StageMapPresentationTests` | Smoke enters battle — duplicates `SmokeBattleTests` |
+| Battle | `SmokeBattleTests` (1) | `BattleFlowUITests` (1) | `BattleSessionTests` | Appropriate tier split; UI victory wait is slow |
+| Collection grid | `SmokeCollectionTests` (3) | `TabNavigationUITests` (2) | — | Smoke has 14 assertions — borderline exhaustive |
+| Hero/Pet/Item detail | `SmokeHero/Pet/Item*` | `TabNavigationUITests` (3) | — | Intentional: smoke = load; exhaustive = equip/abilities |
+| Search | `SmokeSearchTests` (1) | `SearchUITests` (1) | — | Smoke minimal; exhaustive covers query flows |
+| Tab chrome | — | `TabNavigationUITests.testTabBarRoundTrip` | `AppEnvironmentTests` | UI round-trip could use tab deep links |
+| Homestead / Options | `SmokeHomestead/Options` | — | — | No exhaustive gap |
+| Victory summary | — | — | `BattleSessionTests` | Good — outcome logic stays in unit tier |
+
+### Consolidated Improvement Plan
 
 | # | Probe | Score | Domain | Est. Savings | Files Affected | Remediation |
 |---|-------|-------|--------|-------------|----------------|-------------|
-| 1 | Search Grid Navigation | P1 | UI | 45s | [SearchUITests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketUITests/Search/SearchUITests.swift) | Use direct launch deep links (`-selectedTab search`) and programmatic text replacement in the search field to filter items quickly rather than scrolling through a large grid. |
-| 2 | Tab Navigation Overhead | P1 | UI | 30s | [TabNavigationUITests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketUITests/Collection/TabNavigationUITests.swift) | Refactor large test methods to target individual screens using `-launch-screen` deep links, bypassing full tab-to-tab navigation cycles. |
-| 3 | Battle Animation Ticks | P2 | UI | 20s | [BattleFlowUITests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketUITests/Battle/BattleFlowUITests.swift) | Inject a faster tick-interval override via launch arguments (`-battle-tick-interval 0.05`) to speed up mid-battle UI transition states. |
-| 4 | Accessibility Coverage | P2 | UI | N/A | TrinketUITests/Smoke/* | Add `try app.performAccessibilityAudit()` inside core smoke tests. Ensure decorative and visual-only background components are explicitly hidden with `.accessibilityHidden(true)` to avoid test run noise. |
-| 5 | Swift Testing Adoption | P3 | Unit | 10s | Packages/*/Tests/* | Introduce Swift Testing incrementally, migrating catalog loop invariant assertions (e.g. `EnemyCatalogTests.swift`) to use `@Test(arguments:)`. |
-| 6 | Scroll Hitch Metrics | P3 | Performance | N/A | TrinketUITests/Performance/* | Add targeted performance tests utilizing `XCTHitchMetric` to measure FPS and frame drops when scrolling large collection grids or maps. Consider parsing the Xcode `.xcresult` bundle in CI to automatically generate performance charts. |
-| 7 | Multi-Configuration Plans | P3 | UI | N/A | `Smoke.xctestplan`, `FullUI.xctestplan` | Enable multiple configurations (locales, dark/light modes, dynamic type settings) in Xcode test plans to run smoke tests across different visual layouts. |
+| 1 | Speed | P1 | UI | 40–90s | `TrinketUITests/Battle/BattleFlowUITests.swift` | `assertExists(victory, timeout: 120)` is the dominant wall-clock risk. Keep Play-map entry per `AGENTS.md`, but append a test-local launch override (`-battle-tick-interval 0.05`) for the pre-interaction ticks only, and cap victory wait at 60s once ticks are faster. Projected 20–40s typical pass, up to 90s faster failure detection. |
+| 2 | Speed / Tier | P1 | UI | 30–45s | `TrinketUITests/Smoke/SmokePlayTests.swift` | `testPlayMapFlowAndStageInspection` opens a full battle inside smoke (10+ assertions) while `SmokeBattleTests` already deep-links to battle. Split: keep map/enemy-art inspection in smoke; drop battle-entry assertions from smoke (leave battle to `SmokeBattleTests` + `BattleFlowUITests`). Saves one simulator battle warm-up per smoke run. |
+| 3 | Speed | P1 | UI | 15–25s | `TrinketUITests/Collection/TabNavigationUITests.swift`, `TrinketUITests/Support/Screens/CollectionScreen.swift`, `TrinketUITests/Support/TrinketUITestCase.swift` | Five `waitForExistence(timeout: 5)` call sites add 25s worst-case slack. After deep-link launch, reduce equip/filter/back-navigation waits to 1–2s and rely on `assertExists` defaults; keep 5s only for sheet transitions that genuinely animate. |
+| 4 | Speed | P1 | UI | 10–20s | `TrinketUITests/Collection/TabNavigationUITests.swift` | `testTabBarRoundTrip` launches with `testLaunchArgs` and cycles Play → Homestead → Options → Play. Replace with three lightweight launches via `TestLaunchArg.allForTab(...)` (or a single test that asserts tab bar from each deep-linked tab) to avoid four full navigation stacks per assertion. |
+| 5 | Framework | P1 | Unit | 10–30s | `Packages/TrinketContent/Tests/TrinketContentTests/EnemyCatalogTests.swift`, `GameContentCatalogInvariantTests.swift`, `Packages/BattleEngine/Tests/BattleEngineTests/EffectHandlersTests.swift` | Zero Swift Testing adoption (97 XCTest classes). Pilot migration on catalog invariant files: convert `for kind in EffectKind.allCases` / hero loops to `@Test(arguments:)`, replace `XCTAssertNotNil` with `#require`. Swift Testing parallel-by-default should shave 10–30s off full `test.sh unit` once three catalog files migrate. |
+| 6 | Speed | P2 | UI | 5–15s | `TrinketUITests/Search/SearchUITests.swift` | Search exhaustive test already uses `replaceText` for subsequent queries (good). `typeText("Knight")` on first entry is acceptable; no grid scrolling anti-patterns found. Optional: add `-launch-screen item:wand-basic` variant to skip card navigation for item-result assertion — minor savings only. |
+| 7 | Assertion | P2 | Unit | N/A | `TrinketTests/App/AppStateTests.swift` | `testCorruptSaveSetsRecoveryAlertFlag` is an obsolete comment-only stub — violates `TestQualityAudit.md` (no empty/disabled tests). Delete the method or restore a real assertion behind a `.bug(...)` trait if the scenario is reintroduced. |
+| 8 | Parallel | P2 | Unit | N/A | `TrinketTests/App/AppStateTests.swift` | `testAppearanceOverrideAppliesToOptionsStore` mutates `UserDefaults.standard` while sibling tests use isolated suite names. Switch to `UserDefaults(suiteName:)` + `defer` cleanup (pattern in `OptionsStoreTests`) to avoid cross-test leakage when XCTest parallelization increases. |
+| 9 | Assertion | P2 | Unit | N/A | `Packages/TrinketContent/`, `Packages/BattleEngine/`, `TrinketTests/Battle/BattleSessionTests.swift` | ~40 `XCTAssertNotNil` instances; many are catalog invariants where failure messages matter. During Swift Testing migration, convert to `#require` with descriptive messages; avoid bare `XCTAssertNotNil` on values that should be `#require` per `TestQualityAudit.md`. |
+| 10 | Coverage | P2 | UI | N/A | `TrinketUITests/Smoke/*` | No `performAccessibilityAudit()` usage anywhere in Swift sources. Add one audit call per primary tab smoke (Play, Collection, Homestead, Options) behind `if #available(iOS 17, *)`; hide decorative backgrounds with `.accessibilityHidden(true)` first to keep audits actionable. |
+| 11 | Tier | P2 | UI | N/A | `TrinketUITests/Smoke/SmokeCollectionTests.swift`, `SmokePlayTests.swift` | Smoke classes exceed the 3-assertion guideline (`SmokeCollectionTests`: 14 assertions / 3 tests; `SmokePlayTests`: 16 / 3). Move `testFreshStartItemSlotsRenderLockedUntilSlotItemExists` and multi-step battle/map flows to exhaustive tier; keep smoke to “screen loads + one critical identifier.” |
+| 12 | Speed / Tooling | P2 | CI | N/A | `.DerivedData/TestResults/timing-log.jsonl` | Timing log empty on this runner. Run `./Scripts/test.sh smoke` and `./Scripts/test.sh ui` once, then `./Scripts/test-timing.sh report --top 30 --by-class` to validate P1 estimates and catch regressions. No test-plan or CI workflow changes required. |
+| 13 | Coverage | P2 | UI | N/A | *(new)* `TrinketUITests/Performance/` | No `XCTHitchMetric` or `measure(metrics:)` tests. Add nightly scroll-hitch tests for Play map and Collection inventory grid; keep out of smoke/deploy path. |
+| 14 | Coverage | P3 | UI | N/A | `Smoke.xctestplan`, `FullUI.xctestplan` | No locale, Dark Mode, or Dynamic Type configurations in test sources. Add pre-release configurations (e.g. dark + AX5) replaying smoke subset — document in test plan UI, not `project.yml` edits per audit scope. |
+| 15 | Framework | P3 | Unit | 5–10s | `Packages/TrinketCore/.../KeywordCoreTests.swift`, `TrinketTests/App/AppEnvironmentTests.swift`, `Packages/TrinketDesignSystem/.../KeywordVisualStyleTests.swift` | Seven `for … in .allCases` loops should become `@Test(arguments:)` when migrated. `AppEnvironmentTests` tab-alias loop is a good second-wave migration candidate (26 tests, no `setUp`). |
+| 16 | Framework | P3 | Unit | N/A | 18 `@MainActor` XCTest classes in `TrinketTests/`, `TrinketPersistence/` | Prefer `@MainActor struct …Tests` with Swift Testing over `@MainActor class` XCTestCase for store/session tests. `BattleSessionTests` (32 methods) is Complex — migrate last. |
+| 17 | Speed | P3 | Unit | N/A | `TrinketTests/App/AppStateBattleTickLoopTests.swift`, `Packages/TrinketPersistence/.../AsyncTestSupport.swift` | `Task.sleep(for: .milliseconds(80))` and poll-loop `Task.sleep` are acceptable short intervals (not multi-second anti-pattern). Prefer the existing injectable `clock.sleep` path consistently; no production-delay sleeps found. |
+| 18 | Duplication | P3 | UI | N/A | `TrinketUITests/Smoke/` vs `TrinketUITests/Collection/`, `Search/`, `Battle/` | Hero/pet/item detail covered at smoke (load) and exhaustive (equip/ability). Document as intentional in `TestQualityAudit.md` cross-link — do not remove smoke coverage. `BattleVictorySummary` correctly unit-tested only in `BattleSessionTests`. |
+| 19 | Coverage | P3 | UI | N/A | `TrinketUITests/` | No background/foreground lifecycle, URL-scheme (`app.open`), or offline/sync-failure UI tests. Defer until product adds launch-arg hooks for lifecycle/network simulation; `-disable-cloud-sync` already default in smoke args. |
+| 20 | Framework | P4 | Unit | N/A | All package + app unit tests | No `Confirmation`, `withKnownIssue`, `.tags(`, or `CustomTestStringConvertible` usage. Adopt incrementally post-migration for flaky-integration quarantine and readable parameterized descriptions. |
+| 21 | Assertion | P4 | UI | N/A | `TrinketUITests/Smoke/SmokeHeroDetailTests.swift` | Single `XCTAssertTrue(header.exists)` — prefer `assertExists` helper for consistency with page-object pattern; no `accessibilityIdentifier` removals. |
+| 22 | Speed | P4 | UI | N/A | `TrinketUITests/Support/TrinketUITestCase.swift` | `assertExistsAfterScroll` is defined but unused — good. Keep helper for rare cases; continue preferring `-completed-stages` / `-map-scroll-target` per `AGENTS.md`. |
+
+### Verification (post-plan)
+
+1. **No conflict with `TestQualityAudit.md`** — recommendations reinforce deep links, semantic assertions, fixture extraction, and no empty tests; do not weaken battle determinism or remove `accessibilityIdentifier` values.
+2. **`rngSeed: 0`** — no battle RNG changes suggested.
+3. **Scope** — diagnostic only; no test code, manifests, or `project.yml` edits in this pass.
+4. **Self-conflict check** — battle speedups use tick overrides only where `AGENTS.md` allows (not mid-interaction fast-tick for `BattleFlowUITests` tab-switch segment); smoke battle dedup defers to `SmokeBattleTests` deep link rather than `-launch-screen battle` for exhaustive flows.
 
