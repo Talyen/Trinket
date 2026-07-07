@@ -21,9 +21,9 @@ public struct StageCompletionContext: Sendable {
     }
 
     public mutating func apply(to save: inout PlayerSave) {
-        save.roster = SavedRosterState(roster)
-        save.inventory = SavedInventoryState(inventory)
-        save.homestead = SavedHomesteadState(homestead)
+        save.roster = roster
+        save.inventory = inventory
+        save.homestead = homestead
         save.journey = journey
     }
 }

@@ -30,18 +30,18 @@ public final class PlayerSaveStore {
     }
 
     public var roster: PlayerRosterState {
-        get { currentSave.playerRoster(inventoryItemIDs: Set(currentSave.inventory.items.map(\.id))) }
-        set { mutate { $0.roster = SavedRosterState(newValue) } }
+        get { currentSave.roster }
+        set { mutate { $0.roster = newValue } }
     }
 
     public var inventory: PlayerInventoryState {
-        get { currentSave.inventory.inventory() }
-        set { mutate { $0.inventory = SavedInventoryState(newValue) } }
+        get { currentSave.inventory }
+        set { mutate { $0.inventory = newValue } }
     }
 
     public var homestead: PlayerHomesteadState {
-        get { currentSave.homestead.homestead() }
-        set { mutate { $0.homestead = SavedHomesteadState(newValue) } }
+        get { currentSave.homestead }
+        set { mutate { $0.homestead = newValue } }
     }
 
     public var currentSave: PlayerSave {

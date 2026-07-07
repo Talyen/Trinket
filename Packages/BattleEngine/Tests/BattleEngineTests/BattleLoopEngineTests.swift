@@ -15,7 +15,7 @@ final class BattleLoopEngineTests: XCTestCase {
         for _ in 0 ..< 8 {
             let step = BattleLoopEngine.advanceOneStep(
                 matchup: direct.matchup,
-                context: &direct.store
+                context: &direct
             )
 
             let facadeStep = facade.advanceOneStep()

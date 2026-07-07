@@ -30,8 +30,8 @@ enum SaveTestSupport {
             schemaVersion: PlayerSave.currentSchemaVersion,
             modifiedAt: modifiedAt,
             journey: .initial,
-            roster: SavedRosterState(.freshStart),
-            inventory: SavedInventoryState(.freshStart)
+            roster: .freshStart,
+            inventory: .freshStart
         )
         save.roster.gold = gold
         return save
