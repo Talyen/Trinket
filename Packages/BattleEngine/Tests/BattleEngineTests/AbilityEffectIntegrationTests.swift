@@ -41,7 +41,7 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
-    func testBloodthornDealsComponentDamageAndAppliesDoTs() {
+    func testBloodthornDealsComponentDamageAndAppliesDoTs() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -54,8 +54,10 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
 
-        let step = BattleTestFixtures.advanceUntilAbility("Bloodthorn", on: &battle)
-        XCTAssertNotNil(step, "Expected Bloodthorn to resolve in battle")
+        _ = try XCTUnwrap(
+            BattleTestFixtures.advanceUntilAbility("Bloodthorn", on: &battle),
+            "Expected Bloodthorn to resolve in battle"
+        )
 
         // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
         // before the seeded DoTs tick.

@@ -22,7 +22,7 @@ final class BattleSessionTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testStartBattleConfiguresActiveBattle() throws {
+    func testStartBattleConfiguresActiveBattleWhenStageIsValid() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
 
@@ -46,7 +46,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(appState.battle.activeBattle?.id, firstBattleID)
     }
 
-    func testSetMusicPreviewUsesBattleEncounter() throws {
+    func testSetMusicPreviewUsesBattleEncounterWhenStageHasBattle() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
 
@@ -56,7 +56,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(appState.battle.preview?.enemyID, "skeleton")
     }
 
-    func testPauseForOverlayRestoresPreviousPauseState() throws {
+    func testPauseForOverlayRestoresPreviousPauseStateWhenOverlayDismissed() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -69,7 +69,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertFalse(appState.battle.isPaused)
     }
 
-    func testRestartBattleRefreshesProgressionFromRoster() throws {
+    func testRestartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -91,10 +91,10 @@ final class BattleSessionTests: XCTestCase {
         appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
 
         XCTAssertFalse(appState.battle.isPaused)
-        XCTAssertNotNil(appState.battle.overlayCombatantDetail)
+        _ = try XCTUnwrap(appState.battle.overlayCombatantDetail)
     }
 
-    func testEndBattleClearsSessionState() throws {
+    func testEndBattleClearsSessionStateWhenBattleEnds() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -127,7 +127,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNil(appState.battle.activeBattle)
     }
 
-    func testRestartBattleRebuildsActiveConfiguration() throws {
+    func testRestartBattleRebuildsActiveConfigurationWhenBattleActive() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -141,7 +141,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNotEqual(restarted.id, original.id)
     }
 
-    func testPresentCombatantDetailPausesBattleAndSetsOverlay() throws {
+    func testPresentCombatantDetailPausesBattleAndSetsOverlayWhenBattleActive() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -151,10 +151,10 @@ final class BattleSessionTests: XCTestCase {
         appState.battle.presentCombatantDetail(detail)
 
         XCTAssertTrue(appState.battle.isPaused)
-        XCTAssertNotNil(appState.battle.overlayCombatantDetail)
+        _ = try XCTUnwrap(appState.battle.overlayCombatantDetail)
     }
 
-    func testRestorePauseAfterOverlayPreservesPriorPausedState() throws {
+    func testRestorePauseAfterOverlayPreservesPriorPausedStateWhenAlreadyPaused() throws {
         let appState = makeAppState()
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
@@ -186,7 +186,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNil(appState.battle.preview)
     }
 
-    func testAdvanceAutoTickShowsVictorySummaryWhenEnemyDefeated() {
+    func testAdvanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -203,7 +203,7 @@ final class BattleSessionTests: XCTestCase {
         }
 
         XCTAssertTrue(session.isShowingVictory)
-        XCTAssertNotNil(session.victorySummary)
+        _ = try XCTUnwrap(session.victorySummary)
         XCTAssertFalse(session.isShowingDefeat)
     }
 
@@ -239,7 +239,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNil(session.victorySummary)
     }
 
-    func testAdvanceAutoTickDoesNotAdvanceWhilePaused() {
+    func testAdvanceAutoTickDoesNotAdvanceWhenBattlePaused() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -258,7 +258,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(session.state?.tickCount, tickBefore)
     }
 
-    func testClearOutcomePresentationResetsVictoryAndDefeatFlags() {
+    func testClearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
         let session = BattleSession()
         session.isShowingVictory = true
         session.isShowingDefeat = true
@@ -284,7 +284,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertNil(session.victorySummary)
     }
 
-    func testAdvanceOneStepAppendsNonMilestoneEvents() {
+    func testAdvanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() {
         let session = makeConfiguredSession()
 
         _ = session.advanceOneStep()
@@ -313,7 +313,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    func testResetClearsFeedbackAndRebuildsState() {
+    func testResetClearsFeedbackAndRebuildsStateWhenResetCalled() {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -347,7 +347,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(session.state?.health(of: session.state?.hero ?? hero), hero.maxHealth)
     }
 
-    func testRemoveFeedbackEventRemovesByID() throws {
+    func testRemoveFeedbackEventRemovesByIDWhenMatchingID() throws {
         let session = makeConfiguredSession()
 
         _ = session.advanceOneStep()
@@ -358,7 +358,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    func testPruneExpiredFeedbackRemovesEventsPastDisplayDuration() throws {
+    func testPruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
         let session = makeConfiguredSession()
 
         _ = session.advanceOneStep()
@@ -374,7 +374,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertTrue(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    func testOutcomeReportsOngoingDuringBattle() {
+    func testOutcomeReportsOngoingWhenBattleInProgress() {
         let session = makeConfiguredSession()
 
         _ = session.advanceOneStep()
@@ -459,7 +459,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(session.outcome, .victory)
     }
 
-    func testMakeVictorySummaryIncludesStageAndBattleRewards() throws {
+    func testMakeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
@@ -501,7 +501,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 
-    func testMakeVictorySummaryScalesExperienceByEncounterLevel() throws {
+    func testMakeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
         let hero = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
         let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
@@ -537,7 +537,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(summary.petProgressionAfter.currentXP, expectedPetXP)
     }
 
-    func testMakeVictorySummaryIncludesBattleGoldAndTotalGold() throws {
+    func testMakeVictorySummaryIncludesBattleGoldWhenRewardsGranted() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -572,7 +572,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(summary.totalGold, summary.stageGold + summary.battleGold)
     }
 
-    func testMakeVictorySummaryAppliesHomesteadMaterialBonuses() throws {
+    func testMakeVictorySummaryAppliesHomesteadBonusesWhenBonusesActive() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -610,7 +610,7 @@ final class BattleSessionTests: XCTestCase {
         XCTAssertEqual(summary.materialRewards.first { $0.resource == .stone }?.quantity, 4)
     }
 
-    func testResetPreservesEnemyModifiers() throws {
+    func testResetPreservesEnemyModifiersWhenBattleReset() throws {
         let enemy = try XCTUnwrap(GameContent.enemy(matching: "skeleton"))
         let configuration = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,

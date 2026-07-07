@@ -61,7 +61,7 @@ final class ControlMeterEngineTests: XCTestCase {
         XCTAssertTrue(events.isEmpty)
     }
 
-    func testApplyBuildupAccumulatesOtherKeywordWhileSkipPending() {
+    func testApplyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
@@ -83,7 +83,7 @@ final class ControlMeterEngineTests: XCTestCase {
             guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
             return keyword == .freeze && amount == 3
         }
-        XCTAssertNotNil(freezeMeter)
+        _ = try XCTUnwrap(freezeMeter)
         XCTAssertTrue(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
         XCTAssertFalse(context.roster.hasPendingActionSkip(for: target, keyword: .freeze))
     }

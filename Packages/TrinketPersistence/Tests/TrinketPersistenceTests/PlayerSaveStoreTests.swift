@@ -34,7 +34,7 @@ final class PlayerSaveStoreTests: XCTestCase {
         XCTAssertEqual(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP, 20)
         XCTAssertEqual(secondStore.homestead.resources[.wood], 14)
         XCTAssertEqual(secondStore.homestead.resources[.crystal], 2)
-        XCTAssertNotNil(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        _ = try XCTUnwrap(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(secondStore.journey.activeStageID, "chapter-1-stage-2")
     }
 

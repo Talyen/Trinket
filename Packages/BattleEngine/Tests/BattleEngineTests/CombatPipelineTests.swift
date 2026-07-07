@@ -212,7 +212,7 @@ final class CombatPipelineTests: XCTestCase {
         XCTAssertTrue(events.isEmpty)
     }
 
-    func testApplyControlMeterAllowsOtherKeywordWhileSkipPending() {
+    func testApplyControlMeterAllowsOtherKeywordWhileSkipPending() throws {
         var context = makeContext(targetEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ], seed: 1772)
@@ -223,10 +223,10 @@ final class CombatPipelineTests: XCTestCase {
             guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
             return keyword == .freeze && amount == 4
         }
-        XCTAssertNotNil(freezeMeter)
+        _ = try XCTUnwrap(freezeMeter)
     }
 
-    func testStunAndFreezeBuildupTrackedSeparatelyFromDamage() {
+    func testStunAndFreezeBuildupTrackedSeparatelyFromDamage() throws {
         var context = makeContext(seed: 1772)
         let target = context.roster.enemy.combatant
         _ = context.applyTestDamage(3, to: target, keyword: .stun, sourceActorID: "source", applyDodge: false)
@@ -240,8 +240,8 @@ final class CombatPipelineTests: XCTestCase {
             guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
             return keyword == .freeze && amount == 5
         }
-        XCTAssertNotNil(stunMeter)
-        XCTAssertNotNil(freezeMeter)
+        _ = try XCTUnwrap(stunMeter)
+        _ = try XCTUnwrap(freezeMeter)
     }
 
     // MARK: - DoT damage

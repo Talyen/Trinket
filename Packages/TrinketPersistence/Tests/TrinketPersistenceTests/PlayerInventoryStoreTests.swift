@@ -70,6 +70,6 @@ final class PlayerInventoryStoreTests: XCTestCase {
         inventoryStore.addRewardItem(from: template, for: stage)
 
         let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertNotNil(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        _ = try XCTUnwrap(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
     }
 }

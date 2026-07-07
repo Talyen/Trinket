@@ -228,7 +228,7 @@ final class BattleStateTests: XCTestCase {
         XCTAssertEqual(result.outcome, BattleSimulationOutcome.defeat)
     }
 
-    func testBurnAndPoisonStackIndependently() {
+    func testBurnAndPoisonStackIndependently() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: GameContent.heroes[0], pet: wolfPet, enemy: defaultEnemy,
             activeEnemyEffects: [
@@ -238,10 +238,8 @@ final class BattleStateTests: XCTestCase {
         )
         _ = advance(&battle)
         let summaries = battle.effectSummaries(of: battle.enemy)
-        let burnSummary = summaries.first { $0.keyword == .burn }
-        let poisonSummary = summaries.first { $0.keyword == .poison }
-        XCTAssertNotNil(burnSummary)
-        XCTAssertNotNil(poisonSummary)
+        let burnSummary = try XCTUnwrap(summaries.first { $0.keyword == .burn })
+        let poisonSummary = try XCTUnwrap(summaries.first { $0.keyword == .poison })
     }
 
     func testSeededEffectsDoNotCollideWithNewEffectIDs() {

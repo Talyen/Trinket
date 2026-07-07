@@ -135,7 +135,7 @@ final class PlayerRosterStateTests: XCTestCase {
         let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
         inventory.addRewardItem(from: template, for: GameContent.chapters[0].stages[0])
 
-        XCTAssertNotNil(inventory.item(matching: "shortsword-basic"))
+        _ = try XCTUnwrap(inventory.item(matching: "shortsword-basic"))
     }
 
     func testSetEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {

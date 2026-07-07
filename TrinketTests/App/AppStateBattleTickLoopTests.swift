@@ -80,7 +80,7 @@ final class AppStateBattleTickLoopTests: XCTestCase {
         try await waitUntil {
             (appState.battle.state?.tickCount ?? initialTickCount) > initialTickCount
         }
-        XCTAssertNotNil(appState.battleTickTask)
+        _ = try XCTUnwrap(appState.battleTickTask)
 
         appState.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
 

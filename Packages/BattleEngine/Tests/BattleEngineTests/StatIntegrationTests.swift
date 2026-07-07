@@ -17,7 +17,7 @@ final class StatIntegrationTests: XCTestCase {
 
     // MARK: - Keyword damage
 
-    func testStatBonusAppliedToDirectDamageKeywords() {
+    func testStatBonusAppliedToDirectDamageKeywords() throws {
         let cases: [DirectDamageCase] = [
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .physical),
             DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .stun),
@@ -34,11 +34,13 @@ final class StatIntegrationTests: XCTestCase {
             var battle = BattleTestFixtures.statBattle(hero: hero)
 
             let step = BattleTestFixtures.advanceUntilActorActs(hero.id, on: &battle)
-            let event = step.flatMap(BattleTestFixtures.firstAbilityEvent(in:))
+            let event = try XCTUnwrap(
+                step.flatMap(BattleTestFixtures.firstAbilityEvent(in:)),
+                "Expected ability event for \(testCase.ability.name)"
+            )
 
-            XCTAssertNotNil(event, "Expected ability event for \(testCase.ability.name)")
-            XCTAssertEqual(event?.amount, testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
-            XCTAssertEqual(event?.keyword, testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
+            XCTAssertEqual(event.amount, testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
+            XCTAssertEqual(event.keyword, testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
         }
     }
 
@@ -138,7 +140,7 @@ final class StatIntegrationTests: XCTestCase {
 
     // MARK: - Agility control meter
 
-    func testAgilityRaisesControlMeterThresholdInBattle() {
+    func testAgilityRaisesControlMeterThresholdInBattle() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(agility: 20, toughness: 1),
@@ -168,7 +170,7 @@ final class StatIntegrationTests: XCTestCase {
             }
         }
 
-        XCTAssertNotNil(buildupValues)
-        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
+        let values = try XCTUnwrap(buildupValues)
+        XCTAssertEqual(values.threshold, hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
     }
 }

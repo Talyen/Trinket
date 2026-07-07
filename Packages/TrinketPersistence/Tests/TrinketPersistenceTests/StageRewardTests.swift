@@ -76,7 +76,7 @@ final class StageRewardTests: XCTestCase {
         )
         XCTAssertEqual(context.roster.progression(for: hero), expectedHeroProgression)
         XCTAssertEqual(context.roster.progression(for: pet), expectedPetProgression)
-        XCTAssertNotNil(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        _ = try XCTUnwrap(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
         XCTAssertEqual(context.homestead.resources[.wood], 8)
         XCTAssertEqual(context.homestead.resources[.stone], 3)
         XCTAssertTrue(context.journey.hasClaimedRewards(for: firstStage))

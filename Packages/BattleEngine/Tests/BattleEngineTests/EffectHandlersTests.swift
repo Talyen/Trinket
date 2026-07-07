@@ -4,11 +4,11 @@ import TrinketCore
 import TrinketContent
 
 final class EffectHandlersTests: XCTestCase {
-    func testRegistryContainsEveryEffectKind() {
+    func testRegistryContainsEveryEffectKind() throws {
         XCTAssertEqual(Set(EffectHandlers.all.keys), Set(EffectKind.allCases))
         for kind in EffectKind.allCases {
-            XCTAssertNotNil(EffectHandlers.all[kind], "Missing handler for \(kind)")
-            XCTAssertEqual(EffectHandlers.all[kind]?.kind, kind)
+            let handler = try XCTUnwrap(EffectHandlers.all[kind], "Missing handler for \(kind)")
+            XCTAssertEqual(handler.kind, kind)
             XCTAssertEqual(EffectHandlers.handler(for: kind)?.kind, kind)
         }
     }
