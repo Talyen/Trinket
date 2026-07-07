@@ -1,9 +1,8 @@
+// swiftlint:disable file_length
 import Foundation
 import SwiftData
 import TrinketContent
 import TrinketCore
-
-// swiftlint:disable:this file_length
 
 @Model
 public final class PlayerSaveRoot {

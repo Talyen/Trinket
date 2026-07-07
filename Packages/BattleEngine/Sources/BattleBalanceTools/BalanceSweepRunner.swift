@@ -117,7 +117,7 @@ private final class MatchupRowCollector: Sendable {
 
     var rows: [MatchupSweepRow] {
         storage.withLock { array in
-            array.compactMap { $0 }
+            array.compactMap(\.self)
         }
     }
 }
