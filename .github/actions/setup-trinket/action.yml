@@ -1,5 +1,5 @@
 name: Setup Trinket CI
-description: Homebrew tooling for Trinket CI (swiftformat 0.61.1 pre-installed on macos-26)
+description: Xcode 26 selection and Homebrew tooling for Trinket CI on macos-latest
 
 runs:
   using: composite
@@ -16,19 +16,21 @@ runs:
             fi
           done
         done
-        if [ -n "$xcode_path" ]; then
-          echo "Selecting Xcode: $xcode_path"
-          sudo xcode-select -s "$xcode_path/Contents/Developer"
-        else
-          echo "Xcode 26.x not found; using runner default."
-          xcode-select -p
+        if [ -z "$xcode_path" ]; then
+          echo "Xcode 26.x is required but was not found on this runner." >&2
+          echo "Installed Xcode apps:" >&2
+          ls -1 /Applications/Xcode*.app 2>/dev/null || true
+          exit 1
         fi
+        echo "Selecting Xcode: $xcode_path"
+        sudo xcode-select -s "$xcode_path/Contents/Developer"
+        xcodebuild -version
 
     - name: Cache Homebrew
       uses: actions/cache@v4
       with:
         path: ~/Library/Caches/Homebrew
-        key: brew-${{ runner.os }}-tools-1
+        key: brew-${{ runner.os }}-tools-2-swiftformat-0.61.1-swiftlint-0.65.0
 
     - name: Install tooling
       shell: bash
@@ -37,13 +39,12 @@ runs:
         HOMEBREW_NO_INSTALL_CLEANUP: 1
       run: |
         missing_tools=()
-        for tool in xcodegen swiftlint rg xcbeautify; do
+        for tool in xcodegen swiftformat swiftlint rg xcbeautify; do
           if ! command -v "$tool" &>/dev/null; then
-            if [ "$tool" = "rg" ]; then
-              missing_tools+=("ripgrep")
-            else
-              missing_tools+=("$tool")
-            fi
+            case "$tool" in
+              rg) missing_tools+=("ripgrep") ;;
+              *) missing_tools+=("$tool") ;;
+            esac
           fi
         done
         if [ ${#missing_tools[@]} -gt 0 ]; then
@@ -55,3 +56,20 @@ runs:
         else
           echo "All required tools are already installed."
         fi
+
+    - name: Verify pinned tool versions
+      shell: bash
+      run: |
+        expected_swiftformat="0.61.1"
+        expected_swiftlint="0.65.0"
+        actual_swiftformat="$(swiftformat --version)"
+        actual_swiftlint="$(swiftlint version)"
+        if [ "$actual_swiftformat" != "$expected_swiftformat" ]; then
+          echo "SwiftFormat version mismatch: expected $expected_swiftformat, found $actual_swiftformat" >&2
+          exit 1
+        fi
+        if [ "$actual_swiftlint" != "$expected_swiftlint" ]; then
+          echo "SwiftLint version mismatch: expected $expected_swiftlint, found $actual_swiftlint" >&2
+          exit 1
+        fi
+        echo "SwiftFormat $actual_swiftformat and SwiftLint $actual_swiftlint verified."

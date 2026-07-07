@@ -9,8 +9,20 @@ permissions:
   contents: write
 
 jobs:
+  verify:
+    name: Verify release commit
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-trinket
+      - run: ./Scripts/test-deploy.sh
+
   github-release:
     name: GitHub Release
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

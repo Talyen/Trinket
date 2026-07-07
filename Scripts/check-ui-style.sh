@@ -125,7 +125,7 @@ while IFS= read -r file; do
 ${line}"
     previous_context="$(printf '%s\n' "$previous_context" | tail -n 5)"
   done < "$file"
-done < <(rg --files -g '*.swift' Trinket TrinketTests TrinketUITests)
+done < <(rg --files -g '*.swift' Trinket TrinketTests TrinketUITests Packages/TrinketDesignSystem/Sources)
 
 if [[ ${#violations[@]} -gt 0 ]]; then
   echo "UI style guardrail found ad hoc native styling:"

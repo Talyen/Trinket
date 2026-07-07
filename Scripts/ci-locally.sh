@@ -19,6 +19,10 @@ echo "=== Style check ==="
 ./Scripts/test.sh style
 
 echo ""
+echo "=== Validate release notes config ==="
+./Scripts/release-notes.sh validate
+
+echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh unit
 

@@ -1,0 +1,68 @@
+name: Test job
+description: Restore CI build cache, run tests, summarize failures, upload artifacts
+
+inputs:
+  command:
+    description: Shell command to run tests
+    required: true
+  artifact-name:
+    description: Artifact name for uploaded test results
+    required: true
+  cache-key:
+    description: DerivedData cache key from the build job
+    required: true
+  timing-mode:
+    description: Optional test-timing.sh mode for assert-budget (empty to skip)
+    required: false
+    default: ''
+  timing-budget-seconds:
+    description: Wall-clock budget for assert-budget when timing-mode is set
+    required: false
+    default: '0'
+
+runs:
+  using: composite
+  steps:
+    - name: Restore build cache
+      uses: actions/cache/restore@v4
+      with:
+        path: .DerivedData
+        key: ${{ inputs.cache-key }}
+        fail-on-cache-miss: true
+
+    - name: Run tests
+      shell: bash
+      env:
+        SKIP_GENERATE: 1
+        CI: true
+      run: ${{ inputs.command }}
+
+    - name: Assert timing budget
+      if: inputs.timing-mode != ''
+      shell: bash
+      run: |
+        ./Scripts/test-timing.sh assert-budget \
+          --mode "${{ inputs.timing-mode }}" \
+          --max-wall "${{ inputs.timing-budget-seconds }}" \
+          --skip-if-missing
+
+    - name: Summarize test failures
+      if: failure()
+      shell: bash
+      run: |
+        shopt -s nullglob
+        for xcresult in .DerivedData/TestResults/*.xcresult; do
+          ./Scripts/summarize-failures.py "$xcresult" || true
+        done
+
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ inputs.artifact-name }}-${{ github.run_id }}
+        path: .DerivedData/TestResults/
+        if-no-files-found: ignore
+
+    - name: Clean test results before cache save
+      if: always()
+      shell: bash
+      run: rm -rf .DerivedData/TestResults/*.xcresult

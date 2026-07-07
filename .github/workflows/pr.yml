@@ -2,87 +2,98 @@ name: Trinket PR
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: pr-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+  BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+
 jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
+
   gate:
-    name: Generate and style
+    uses: ./.github/workflows/gate.yml
+
+  assets-gate:
+    name: Asset codegen
+    needs: [gate, changes]
+    if: needs.changes.outputs.assets == 'true'
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh
-      - run: ./Scripts/assert-generated-output.sh
-      - run: ./Scripts/test.sh style
-      - run: ./Scripts/check-module-boundaries.sh
-      - run: ./Scripts/release-notes.sh validate
+      - run: ./Scripts/generate.sh --assets
+      - run: ./Scripts/assert-generated-output.sh --assets
 
-  unit:
-    name: Unit tests
-    needs: gate
+  build:
+    name: Build for testing
+    needs: [gate, changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     env:
       SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
 
-      - name: Cache DerivedData
+      - name: Restore warm build cache
         uses: actions/cache@v4
         with:
           path: .DerivedData
-          key: deriveddata-pr-unit-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          key: build-${{ env.CACHE_HASH }}
           restore-keys: |
-            deriveddata-pr-unit-${{ runner.os }}-
-            deriveddata-unit-${{ runner.os }}-app-
+            build-
 
-      - run: ./Scripts/test.sh unit --verbose
+      - run: ./Scripts/build-for-testing.sh
 
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: Save build cache for test jobs
+        uses: actions/cache/save@v4
         with:
-          name: pr-unit-results-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
+          path: .DerivedData
+          key: ${{ env.BUILD_CACHE_KEY }}
 
-      - name: Clean test results before caching
-        if: always()
-        run: rm -rf .DerivedData/TestResults/*.xcresult
+  unit:
+    name: Unit tests - ${{ matrix.target }}
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [app, TrinketCore, TrinketContent, BattleEngine, TrinketPersistence, TrinketDesignSystem]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+      - uses: ./.github/actions/test-job
+        with:
+          cache-key: ${{ env.BUILD_CACHE_KEY }}
+          artifact-name: pr-unit-${{ matrix.target }}
+          command: |
+            if [ "${{ matrix.target }}" = "app" ]; then
+              ./Scripts/test.sh unit TrinketTests --no-build --verbose
+            else
+              ./Scripts/test-package.sh ${{ matrix.target }} --no-build --verbose
+            fi
 
   smoke:
     name: Smoke UI tests
-    needs: gate
+    needs: build
     runs-on: macos-latest
-    timeout-minutes: 30
-    env:
-      SKIP_GENERATE: 1
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
+      - uses: ./.github/actions/test-job
         with:
-          path: .DerivedData
-          key: deriveddata-pr-smoke-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
-          restore-keys: |
-            deriveddata-pr-smoke-${{ runner.os }}-
-            deriveddata-ui-${{ runner.os }}-smoke-
-
-      - run: ./Scripts/test.sh smoke --verbose
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: pr-smoke-results-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
-
-      - name: Clean test results before caching
-        if: always()
-        run: rm -rf .DerivedData/TestResults/*.xcresult
+          cache-key: ${{ env.BUILD_CACHE_KEY }}
+          artifact-name: pr-smoke
+          command: ./Scripts/test.sh smoke --no-build --verbose
+          timing-mode: smoke
+          timing-budget-seconds: '900'

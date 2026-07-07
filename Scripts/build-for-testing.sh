@@ -40,8 +40,18 @@ for package in "${PACKAGES[@]}"; do
   )
 done
 
-for mode in unit smoke ui; do
-  touch_build_stamp "$RESULTS_DIR" "$mode"
+CI_FINGERPRINTS=(
+  unit
+  unit_TrinketTests
+  smoke
+  ui
+  ui_BattleFlowUITests
+  ui_TabNavigationUITests_SearchUITests
+  all
+)
+
+for fingerprint in "${CI_FINGERPRINTS[@]}"; do
+  touch_build_stamp "$RESULTS_DIR" "$fingerprint"
 done
 
 echo "=== build-for-testing complete ==="

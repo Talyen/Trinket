@@ -1,0 +1,48 @@
+name: Detect changes
+
+on:
+  workflow_call:
+    outputs:
+      code:
+        description: Whether app, package, test, or manifest sources changed
+        value: ${{ jobs.changes.outputs.code }}
+      assets:
+        description: Whether art or music manifests changed
+        value: ${{ jobs.changes.outputs.assets }}
+
+jobs:
+  changes:
+    name: Path filter
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      assets: ${{ steps.filter.outputs.assets }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'Trinket/**'
+              - 'Packages/**'
+              - 'TrinketTests/**'
+              - 'TrinketUITests/**'
+              - 'ContentManifest/**'
+              - 'ArtManifest/**'
+              - 'MusicManifest/**'
+              - 'Scripts/**'
+              - 'project.yml'
+              - 'Package.resolved'
+              - '*.xctestplan'
+              - '.swiftlint.yml'
+              - '.swiftformat'
+              - '.github/**'
+            assets:
+              - 'ArtManifest/**'
+              - 'MusicManifest/**'
+              - 'Raw Assets/**'
+              - 'Scripts/prepare-art-assets.sh'
+              - 'Scripts/prepare-music-assets.sh'
+              - 'Scripts/prepare-sfx-assets.sh'
+              - 'Scripts/prepare-app-icon.sh'
