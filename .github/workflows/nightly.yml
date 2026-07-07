@@ -9,10 +9,6 @@ concurrency:
   group: nightly-${{ github.workflow }}
   cancel-in-progress: true
 
-env:
-  CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-  BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-
 jobs:
   gate:
     uses: ./.github/workflows/gate.yml
@@ -23,6 +19,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     env:
+      CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
       SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +47,8 @@ jobs:
     needs: build
     runs-on: macos-latest
     timeout-minutes: 45
+    env:
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket

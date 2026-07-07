@@ -14,10 +14,6 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-  BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-
 jobs:
   changes:
     uses: ./.github/workflows/changes.yml
@@ -43,6 +39,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     env:
+      CACHE_HASH: ${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
       SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +67,8 @@ jobs:
     needs: build
     runs-on: macos-latest
     timeout-minutes: 15
+    env:
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
     strategy:
       fail-fast: false
       matrix:
@@ -92,6 +92,8 @@ jobs:
     needs: build
     runs-on: macos-latest
     timeout-minutes: 25
+    env:
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
@@ -109,6 +111,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
+    env:
+      BUILD_CACHE_KEY: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
     strategy:
       fail-fast: false
       matrix:
