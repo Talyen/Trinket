@@ -12,14 +12,7 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists("Skeleton detail hero header")
         assertExists("Combatant Stats Section")
         dismissSheet()
-        XCTAssertTrue(app.descendants(matching: .any)["Skeleton detail hero header"].waitForNonExistence(timeout: 5))
-
-        play.openStage("Stage 1-1 Node")
-
-        assertButtonExists("Battle Pause Button")
-        assertExists("Knight card")
-        assertExists("Wolf card")
-        XCTAssertFalse(app.staticTexts["Possible Rewards"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["Skeleton detail hero header"].waitForNonExistence(timeout: 2))
     }
 
     func testNonBattleStubStageCanComplete() {

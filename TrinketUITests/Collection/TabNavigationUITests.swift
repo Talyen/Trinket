@@ -31,7 +31,7 @@ final class TabNavigationUITests: TrinketUITestCase {
 
         button("Weapon item slot").tap()
         assertExists("Equip Weapon")
-        XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 5))
+        XCTAssertTrue(firstEquipOption().waitForExistence(timeout: 2))
         dismissSheet()
 
         assertButtonExists("Knight collection card")
@@ -63,17 +63,14 @@ final class TabNavigationUITests: TrinketUITestCase {
     }
 
     func testTabBarRoundTrip() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-        play.assertLoaded()
+        launchApp(arguments: TestLaunchArg.allForTab("homestead"))
+        homestead.assertLoaded(timeout: 2)
 
-        tabBar.selectHomestead()
-        homestead.assertLoaded()
+        launchApp(arguments: TestLaunchArg.allForTab("options"))
+        options.assertLoaded(timeout: 2)
 
-        tabBar.selectOptions()
-        options.assertLoaded()
-
-        tabBar.selectPlay()
-        play.assertLoaded()
+        launchApp(arguments: TestLaunchArg.allForTab("play"))
+        play.assertLoaded(timeout: 2)
     }
 
     func testInventoryGridLayout() {

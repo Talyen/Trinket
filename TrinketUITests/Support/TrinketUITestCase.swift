@@ -40,6 +40,16 @@ enum TestLaunchArg {
         }
         return args
     }
+
+    static func replacingBattleTickInterval(_ interval: String, in args: [String]) -> [String] {
+        var result = args
+        if let index = result.firstIndex(of: "-battle-tick-interval"), index + 1 < result.count {
+            result[index + 1] = interval
+        } else {
+            result += ["-battle-tick-interval", interval]
+        }
+        return result
+    }
 }
 
 class TrinketUITestCase: XCTestCase {
@@ -144,7 +154,7 @@ class TrinketUITestCase: XCTestCase {
 
     func goBack() {
         let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
-        guard navBackButton.waitForExistence(timeout: 5) else { return }
+        guard navBackButton.waitForExistence(timeout: 2) else { return }
         if navBackButton.isHittable {
             navBackButton.tap()
         } else {
