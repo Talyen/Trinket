@@ -1,4 +1,4 @@
-import BattleEngine
+@testable import BattleEngine
 import TrinketContent
 import TrinketCore
 

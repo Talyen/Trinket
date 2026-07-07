@@ -3,8 +3,8 @@ import BattleEngine
 import TrinketCore
 import TrinketContent
 
-public enum SimulationMatchupAssembler {
-    public static func assemble(
+enum SimulationMatchupAssembler {
+    static func assemble(
         hero: Combatant,
         pet: Combatant,
         enemy: Enemy,

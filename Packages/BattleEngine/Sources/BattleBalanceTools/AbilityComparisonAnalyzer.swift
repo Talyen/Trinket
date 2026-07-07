@@ -4,7 +4,7 @@ import Synchronization
 import TrinketContent
 import TrinketCore
 
-public enum AbilityComparisonAnalyzer {
+enum AbilityComparisonAnalyzer {
     private struct WorkItem: Sendable {
         let comparisonIndex: Int
         let tier: SimulationPowerTier
@@ -16,7 +16,7 @@ public enum AbilityComparisonAnalyzer {
         let abilityB: Ability
     }
 
-    public static func analyze(request: BalanceSweepRequest) -> [AbilityComparisonRow] {
+    static func analyze(request: BalanceSweepRequest) -> [AbilityComparisonRow] {
         guard
             let representativeHero = BalanceSweepCatalog.representativeHero(id: request.representativeHeroID),
             let representativePet = BalanceSweepCatalog.representativePet(id: request.representativePetID)

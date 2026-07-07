@@ -1,5 +1,5 @@
 import XCTest
-import BattleEngine
+@testable import BattleEngine
 import TrinketCore
 import TrinketContent
 

@@ -1,5 +1,5 @@
 import XCTest
-import BattleBalanceTools
+@testable import BalanceSweepCLI
 import BattleEngine
 import TrinketCore
 import TrinketContent
