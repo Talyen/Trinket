@@ -543,10 +543,10 @@ private extension HomesteadModel {
 }
 
 private extension Array {
-    func linkEach<Parent, Model>(
+    func linkEach<Parent>(
         to parent: Parent,
-        parent keyPath: ReferenceWritableKeyPath<Model, Parent?>
-    ) where Element == Model {
+        parent keyPath: ReferenceWritableKeyPath<Element, Parent?>
+    ) {
         forEach { $0[keyPath: keyPath] = parent }
     }
 }
