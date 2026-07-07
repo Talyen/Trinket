@@ -146,6 +146,15 @@
 		FB3299762F0E055E1941347A /* SmokePlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43A50775733A11230CAAA95 /* SmokePlayTests.swift */; };
 		FB768D6C41E3CBA4B39F3A8F /* ItemSlotPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 769E5E691395F845BABD973F /* ItemSlotPickerView.swift */; };
 		FC89C4C57E58A816112E33A3 /* BattleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8582E665966D926FE0BE2 /* BattleLogSheet.swift */; };
+		C46E1602BC0C0819B46D89BC /* AppStateBattleTickLoopTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442EA34616557D6797695261 /* AppStateBattleTickLoopTests.swift */; };
+		1F5EC593424D3230F0742A58 /* AppStateSessionPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147A9C0849BBAFA789AACFB2 /* AppStateSessionPersistenceTests.swift */; };
+		3FC20F1F5811A90C6EC6F14C /* AppTestContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB2091B8BEE092DF47BF5E3 /* AppTestContext.swift */; };
+		98B63B219A25B2339B474215 /* BattleSessionAppIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D957EF8F10954D49EC897265 /* BattleSessionAppIntegrationTests.swift */; };
+		D118F6B2984971D63C129291 /* BattleSessionSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F78255C6F9D1B80CDD3FE57 /* BattleSessionSimulationTests.swift */; };
+		3F1EF26D98630D2F3674303C /* BattleSessionTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A38CC4DCC5AF1357292919D /* BattleSessionTestSupport.swift */; };
+		01440082C7B95FF361CAAF9B /* BattleVictorySummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE82D54920743F86D0F2A5CE /* BattleVictorySummaryTests.swift */; };
+		58E8AB224B2FAC364E35DE5C /* TrinketTestTags.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14ED3E2E9CCB638A30C376E /* TrinketTestTags.swift */; };
+		F1648382E80EE54BF9AA4216 /* PlayMapUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 588318E2E2179BF8D798AEE2 /* PlayMapUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -307,6 +316,15 @@
 		F9D7159B5F1DC16EA97A4203 /* ActiveBattleConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleConfigurationTests.swift; sourceTree = "<group>"; };
 		FB2F3612614E891F44DD2597 /* TrinketContent */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TrinketContent; path = Packages/TrinketContent; sourceTree = SOURCE_ROOT; };
 		FB61792D31788FD010058036 /* CollectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionScreen.swift; sourceTree = "<group>"; };
+		442EA34616557D6797695261 /* AppStateBattleTickLoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateBattleTickLoopTests.swift; sourceTree = "<group>"; };
+		147A9C0849BBAFA789AACFB2 /* AppStateSessionPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateSessionPersistenceTests.swift; sourceTree = "<group>"; };
+		4BB2091B8BEE092DF47BF5E3 /* AppTestContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTestContext.swift; sourceTree = "<group>"; };
+		D957EF8F10954D49EC897265 /* BattleSessionAppIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSessionAppIntegrationTests.swift; sourceTree = "<group>"; };
+		3F78255C6F9D1B80CDD3FE57 /* BattleSessionSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSessionSimulationTests.swift; sourceTree = "<group>"; };
+		4A38CC4DCC5AF1357292919D /* BattleSessionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSessionTestSupport.swift; sourceTree = "<group>"; };
+		DE82D54920743F86D0F2A5CE /* BattleVictorySummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleVictorySummaryTests.swift; sourceTree = "<group>"; };
+		E14ED3E2E9CCB638A30C376E /* TrinketTestTags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketTestTags.swift; sourceTree = "<group>"; };
+		588318E2E2179BF8D798AEE2 /* PlayMapUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayMapUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1056,7 +1074,6 @@
 				4DF6741EDD1CB7A57E01A54F /* PartySelectionCard.swift in Sources */,
 				554CA0EA31452D792F43F2EA /* PlayView.swift in Sources */,
 				9C8E96DB792798B0B7ED4AC0 /* SearchView.swift in Sources */,
-				5A443C6F3C6657CAA87B24FA /* SessionStateStore.swift in Sources */,
 				DADCDE448587F4820BE03CD5 /* StageMapPresentation.swift in Sources */,
 				10A6F43A5C53F50FFF127070 /* StageStatusHeader.swift in Sources */,
 				C5E487CC286D93FF516EA957 /* TrinketApp.swift in Sources */,
@@ -1072,21 +1089,26 @@
 				523023324251F4B27855776E /* ActiveBattleConfigurationTestSupport.swift in Sources */,
 				6BCB5220378B08D2C2A0F9F3 /* ActiveBattleConfigurationTests.swift in Sources */,
 				11F707F7833A236E4137A5AC /* AppEnvironmentTests.swift in Sources */,
+				C46E1602BC0C0819B46D89BC /* AppStateBattleTickLoopTests.swift in Sources */,
 				BA8E7EE4C04A26945E262726 /* AppStatePlayFlowTests.swift in Sources */,
+				1F5EC593424D3230F0742A58 /* AppStateSessionPersistenceTests.swift in Sources */,
 				4AD0691025C95E3D170814F5 /* AppStateTests.swift in Sources */,
+				3FC20F1F5811A90C6EC6F14C /* AppTestContext.swift in Sources */,
 				AA99780B3FAE6ACF16BC62FE /* AppTestSupport.swift in Sources */,
 				F948894FA511AB1A697900CD /* BattleCardGridLayoutTests.swift in Sources */,
-				C820A410CB97EB157E421720 /* BattleSessionTests.swift in Sources */,
+				98B63B219A25B2339B474215 /* BattleSessionAppIntegrationTests.swift in Sources */,
+				D118F6B2984971D63C129291 /* BattleSessionSimulationTests.swift in Sources */,
+				3F1EF26D98630D2F3674303C /* BattleSessionTestSupport.swift in Sources */,
+				01440082C7B95FF361CAAF9B /* BattleVictorySummaryTests.swift in Sources */,
 				5699485F54690CFC73CB24D5 /* CombatantFixtures.swift in Sources */,
-				31254003BDFA01AAF1EDB152 /* ExperienceBarSegmentsTests.swift in Sources */,
 				2C2733EFB9063B1ABE5AEE67 /* GameContentEncounterArtTests.swift in Sources */,
 				CF563346E449A54767ACC2CC /* HeroHeaderLayoutTests.swift in Sources */,
 				67D2671D474172DD541CE613 /* JourneyMapPresentationTests.swift in Sources */,
 				767377A714B22B79EF3D7A59 /* MusicPlayerRoutingTests.swift in Sources */,
 				A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */,
 				D77DC069021AFAADD69A8460 /* SaveTestSupport.swift in Sources */,
-				AEBB4FC8F25FA1A431007BFA /* SessionStateStoreTests.swift in Sources */,
 				C751A1A56C507A7C2911B53E /* StageMapPresentationTests.swift in Sources */,
+				58E8AB224B2FAC364E35DE5C /* TrinketTestTags.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1094,10 +1116,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13151290F25256C1AE196F9B /* AccessibilityID.swift in Sources */,
+				62BBFCDC2D75667482B9AEB9 /* AccessibilityID.swift in Sources */,
 				5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */,
 				6EE46B612F3E5A1AD54A72C9 /* CollectionScreen.swift in Sources */,
 				74B5D8902C7B3F0E7447C14D /* CombatantDetailScreen.swift in Sources */,
+				F1648382E80EE54BF9AA4216 /* PlayMapUITests.swift in Sources */,
 				A64650460BFE95E1634FC57E /* PlayScreen.swift in Sources */,
 				D4B6C64A1B6B6815884EDBAD /* SearchUITests.swift in Sources */,
 				68C6149D397A3A8CB2E8DD8C /* SeededSmokeUITestCase.swift in Sources */,
@@ -1234,6 +1257,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
@@ -1283,6 +1307,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_CODE_COVERAGE = YES;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1351,6 +1377,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
@@ -1359,6 +1386,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_CODE_COVERAGE = YES;
+				ENABLE_CODE_COVERAGE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
