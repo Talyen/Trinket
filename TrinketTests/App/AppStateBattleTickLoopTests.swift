@@ -66,6 +66,31 @@ final class AppStateBattleTickLoopTests: XCTestCase {
         XCTAssertGreaterThan(try XCTUnwrap(appState.battle.state?.tickCount), initialTickCount)
     }
 
+    func testBattleTickLoopStopsWhileInBackground() async throws {
+        let appState = makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+        _ = appState.startBattle(for: stage)
+
+        appState.shellScenePhase = .active
+        appState.selectedTab = .play
+        appState.battle.isPaused = false
+        appState.syncBattleTickLoop()
+
+        let initialTickCount = try XCTUnwrap(appState.battle.state?.tickCount)
+        try await waitUntil {
+            (appState.battle.state?.tickCount ?? initialTickCount) > initialTickCount
+        }
+        XCTAssertNotNil(appState.battleTickTask)
+
+        appState.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
+
+        XCTAssertNil(appState.battleTickTask)
+
+        let tickCountAfterBackground = try XCTUnwrap(appState.battle.state?.tickCount)
+        try await Task.sleep(for: .milliseconds(80))
+        XCTAssertEqual(appState.battle.state?.tickCount, tickCountAfterBackground)
+    }
+
     func testBattleTickLoopDoesNotAdvanceWhilePaused() async throws {
         let appState = makeAppState(arguments: ["-battle-tick-interval", "0.01"])
         let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)

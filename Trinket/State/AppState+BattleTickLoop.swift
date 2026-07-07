@@ -23,7 +23,7 @@ extension AppState {
     }
 
     private var shouldRunBattleTickLoop: Bool {
-        battle.activeBattle != nil
+        battle.activeBattle != nil && shellScenePhase == .active
     }
 
     var canAdvanceBattleTicks: Bool {
