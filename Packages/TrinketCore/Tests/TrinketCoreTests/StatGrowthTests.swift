@@ -1,5 +1,5 @@
 import XCTest
-import TrinketCore
+@testable import TrinketCore
 
 final class StatGrowthTests: XCTestCase {
     func testPlayerGrowthAtLevelOneIsZero() {

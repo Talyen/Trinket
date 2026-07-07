@@ -1,18 +1,18 @@
 import Foundation
 import BattleEngine
 
-public enum BalanceReportRenderer {
-    public struct Options: Equatable, Sendable {
-        public let title: String
-        public let gitSHA: String?
+enum BalanceReportRenderer {
+    struct Options: Equatable, Sendable {
+        let title: String
+        let gitSHA: String?
 
-        public init(title: String = "Trinket Balance Sweep Report", gitSHA: String? = nil) {
+        init(title: String = "Trinket Balance Sweep Report", gitSHA: String? = nil) {
             self.title = title
             self.gitSHA = gitSHA
         }
     }
 
-    public static func renderHTML(
+    static func renderHTML(
         _ result: BalanceSweepResult,
         options: Options = Options()
     ) -> String {
@@ -50,7 +50,7 @@ public enum BalanceReportRenderer {
         return html.joined(separator: "\n")
     }
 
-    public static func renderJSON(_ result: BalanceSweepResult) throws -> Data {
+    static func renderJSON(_ result: BalanceSweepResult) throws -> Data {
         try BalanceReportJSONExporter.render(result)
     }
 

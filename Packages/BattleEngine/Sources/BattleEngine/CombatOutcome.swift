@@ -7,7 +7,7 @@ public struct CombatOutcome: Equatable {
     /// Negative when the target lost health; positive when the target gained health.
     public var healthDelta: Int
     public var events: [ActionEvent]
-    public var flags: Set<CombatFlag>
+    var flags: Set<CombatFlag>
 
     public init(
         healthDelta: Int = 0,
@@ -36,7 +36,7 @@ public struct CombatOutcome: Equatable {
 }
 
 /// Semantic markers for combat mutations. Populated from pipeline state and events.
-public enum CombatFlag: Hashable, Sendable {
+enum CombatFlag: Hashable, Sendable {
     case dodged
     case shieldAbsorbed
     case leeched

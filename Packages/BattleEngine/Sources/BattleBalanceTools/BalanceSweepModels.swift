@@ -3,25 +3,25 @@ import TrinketCore
 import TrinketContent
 import BattleEngine
 
-public enum LoadoutSamplingMode: String, Codable, Sendable, CaseIterable {
+enum LoadoutSamplingMode: String, Codable, Sendable, CaseIterable {
     case optimistic
     case realistic
 }
 
-public struct BalanceSweepRequest: Equatable, Sendable {
-    public let tiers: [SimulationPowerTier]
-    public let runsPerMatchup: Int
-    public let loadoutSamplesPerMatchup: Int
-    public let baseSeed: UInt64
-    public let includeAbilityAnalysis: Bool
-    public let representativeHeroID: String
-    public let representativePetID: String
-    public let maxTicks: Int
-    public let stageWeighted: Bool
-    public let loadoutSamplingMode: LoadoutSamplingMode
-    public let triples: [BalanceSweepTriple]?
+struct BalanceSweepRequest: Equatable, Sendable {
+    let tiers: [SimulationPowerTier]
+    let runsPerMatchup: Int
+    let loadoutSamplesPerMatchup: Int
+    let baseSeed: UInt64
+    let includeAbilityAnalysis: Bool
+    let representativeHeroID: String
+    let representativePetID: String
+    let maxTicks: Int
+    let stageWeighted: Bool
+    let loadoutSamplingMode: LoadoutSamplingMode
+    let triples: [BalanceSweepTriple]?
 
-    public init(
+    init(
         tiers: [SimulationPowerTier] = SimulationPowerTier.allCases,
         runsPerMatchup: Int = BalanceSweepDefaults.runsPerMatchup,
         loadoutSamplesPerMatchup: Int = BalanceSweepDefaults.loadoutSamplesPerMatchup,
@@ -47,9 +47,9 @@ public struct BalanceSweepRequest: Equatable, Sendable {
         self.triples = triples
     }
 
-    public static let `default` = BalanceSweepRequest()
+    static let `default` = BalanceSweepRequest()
 
-    public var encodedTripleCount: Int {
+    var encodedTripleCount: Int {
         if let triples {
             return triples.count
         }
@@ -62,20 +62,20 @@ public struct BalanceSweepRequest: Equatable, Sendable {
     }
 }
 
-public struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
-    public let tiers: [String]
-    public let runsPerMatchup: Int
-    public let loadoutSamplesPerMatchup: Int
-    public let baseSeed: UInt64
-    public let includeAbilityAnalysis: Bool
-    public let representativeHeroID: String
-    public let representativePetID: String
-    public let maxTicks: Int
-    public let stageWeighted: Bool
-    public let loadoutSamplingMode: String
-    public let tripleCount: Int
+struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
+    let tiers: [String]
+    let runsPerMatchup: Int
+    let loadoutSamplesPerMatchup: Int
+    let baseSeed: UInt64
+    let includeAbilityAnalysis: Bool
+    let representativeHeroID: String
+    let representativePetID: String
+    let maxTicks: Int
+    let stageWeighted: Bool
+    let loadoutSamplingMode: String
+    let tripleCount: Int
 
-    public init(request: BalanceSweepRequest) {
+    init(request: BalanceSweepRequest) {
         tiers = request.tiers.map(\.rawValue)
         runsPerMatchup = request.runsPerMatchup
         loadoutSamplesPerMatchup = request.loadoutSamplesPerMatchup
@@ -90,25 +90,25 @@ public struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
     }
 }
 
-public struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
-    public var id: String {
+struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
+    var id: String {
         "\(tier.rawValue)-\(heroID)-\(petID)-\(enemyID)-sample\(loadoutSampleIndex)"
     }
 
-    public let tier: SimulationPowerTier
-    public let heroID: String
-    public let petID: String
-    public let enemyID: String
-    public let isBoss: Bool
-    public let isElite: Bool
-    public let loadoutSampleIndex: Int
-    public let winCount: Int
-    public let tickLimitCount: Int
-    public let runCount: Int
-    public let averageTickCount: Double
-    public let averageActionCount: Double
+    let tier: SimulationPowerTier
+    let heroID: String
+    let petID: String
+    let enemyID: String
+    let isBoss: Bool
+    let isElite: Bool
+    let loadoutSampleIndex: Int
+    let winCount: Int
+    let tickLimitCount: Int
+    let runCount: Int
+    let averageTickCount: Double
+    let averageActionCount: Double
 
-    public init(
+    init(
         tier: SimulationPowerTier,
         heroID: String,
         petID: String,
@@ -136,34 +136,34 @@ public struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
         self.averageActionCount = averageActionCount
     }
 
-    public var winRate: Double {
+    var winRate: Double {
         guard runCount > 0 else { return 0 }
         return Double(winCount) / Double(runCount)
     }
 
-    public var tickLimitRate: Double {
+    var tickLimitRate: Double {
         guard runCount > 0 else { return 0 }
         return Double(tickLimitCount) / Double(runCount)
     }
 }
 
-public struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
-    public var id: String {
+struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
+    var id: String {
         "\(tier.rawValue)-\(combatantID)-\(tierName)-\(abilityID)-vs-\(siblingAbilityID)"
     }
 
-    public let tier: SimulationPowerTier
-    public let combatantID: String
-    public let combatantName: String
-    public let abilityTier: AbilityTier
-    public let abilityID: String
-    public let abilityName: String
-    public let siblingAbilityID: String
-    public let siblingAbilityName: String
-    public let winCount: Int
-    public let lossCount: Int
+    let tier: SimulationPowerTier
+    let combatantID: String
+    let combatantName: String
+    let abilityTier: AbilityTier
+    let abilityID: String
+    let abilityName: String
+    let siblingAbilityID: String
+    let siblingAbilityName: String
+    let winCount: Int
+    let lossCount: Int
 
-    public init(
+    init(
         tier: SimulationPowerTier,
         combatantID: String,
         combatantName: String,
@@ -187,26 +187,26 @@ public struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
         self.lossCount = lossCount
     }
 
-    public var tierName: String {
+    var tierName: String {
         abilityTier.rawValue
     }
 
-    public var sampleCount: Int {
+    var sampleCount: Int {
         winCount + lossCount
     }
 
-    public var winRate: Double {
+    var winRate: Double {
         guard sampleCount > 0 else { return 0 }
         return Double(winCount) / Double(sampleCount)
     }
 
-    public var deltaVsSibling: Double {
+    var deltaVsSibling: Double {
         winRate - 0.5
     }
 }
 
-public struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
-    public enum Kind: String, Sendable, Codable {
+struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
+    enum Kind: String, Sendable, Codable {
         case hardCounter
         case belowTarget
         case aboveTarget
@@ -218,25 +218,25 @@ public struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
         case bossTuning
     }
 
-    public enum Severity: String, Sendable, Codable {
+    enum Severity: String, Sendable, Codable {
         case critical
         case warning
     }
 
-    public var id: String {
+    var id: String {
         if let subjectID {
             return "\(kind.rawValue)-\(subjectID)"
         }
         return "\(kind.rawValue)-\(detail)"
     }
 
-    public let kind: Kind
-    public let severity: Severity
-    public let subjectID: String?
-    public let detail: String
-    public let value: Double
+    let kind: Kind
+    let severity: Severity
+    let subjectID: String?
+    let detail: String
+    let value: Double
 
-    public init(
+    init(
         kind: Kind,
         severity: Severity,
         subjectID: String? = nil,
@@ -251,16 +251,16 @@ public struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
     }
 }
 
-public struct BalanceSweepResult: Equatable, Sendable, Codable {
-    public let request: BalanceSweepRequestSnapshot
-    public let matchupRows: [MatchupSweepRow]
-    public let abilityRows: [AbilityComparisonRow]
-    public let anomalies: [BalanceAnomaly]
-    public let kpis: BalanceSweepKPIs
-    public let gateViolations: [BalanceGateViolation]
-    public let generatedAt: Date
+struct BalanceSweepResult: Equatable, Sendable, Codable {
+    let request: BalanceSweepRequestSnapshot
+    let matchupRows: [MatchupSweepRow]
+    let abilityRows: [AbilityComparisonRow]
+    let anomalies: [BalanceAnomaly]
+    let kpis: BalanceSweepKPIs
+    let gateViolations: [BalanceGateViolation]
+    let generatedAt: Date
 
-    public init(
+    init(
         request: BalanceSweepRequest,
         matchupRows: [MatchupSweepRow],
         abilityRows: [AbilityComparisonRow],

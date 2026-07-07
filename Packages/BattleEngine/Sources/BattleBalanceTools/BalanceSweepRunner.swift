@@ -3,7 +3,7 @@ import BattleEngine
 import TrinketCore
 import TrinketContent
 
-public enum BalanceSweepRunner {
+enum BalanceSweepRunner {
     private struct MatchupWorkItem: Sendable {
         let matchupIndex: Int
         let sampleIndex: Int
@@ -11,7 +11,7 @@ public enum BalanceSweepRunner {
         let triple: BalanceSweepTriple
     }
 
-    public static func run(_ request: BalanceSweepRequest = .default) -> BalanceSweepResult {
+    static func run(_ request: BalanceSweepRequest = .default) -> BalanceSweepResult {
         let workItems = buildWorkItems(request: request)
         let matchupRows = runMatchups(workItems, request: request)
 
