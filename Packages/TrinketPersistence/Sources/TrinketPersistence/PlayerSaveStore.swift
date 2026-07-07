@@ -12,12 +12,17 @@ public final class PlayerSaveStore {
     private let context: ModelContext
     private var root: PlayerSaveRoot
     private var deferredSaveTask: Task<Void, Never>?
+    private var pendingRollbackSnapshot: PlayerSave?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
     )
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
+
+    #if DEBUG
+    var forcesNextSaveFailure = false
+    #endif
 
     public var journey: JourneyProgressState {
         get { currentSave.journey }
@@ -129,7 +134,8 @@ public final class PlayerSaveStore {
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true
     ) throws {
-        var candidate = currentSave
+        let snapshot = currentSave
+        var candidate = snapshot
         update(&candidate)
         candidate.modifiedAt = Date()
         candidate = PlayerSaveSanitizer.sanitize(candidate)
@@ -141,10 +147,13 @@ public final class PlayerSaveStore {
                 try saveGraph()
                 lastPersistenceError = nil
             } catch {
+                root.update(from: snapshot)
                 lastPersistenceError = .writeFailed
                 logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
                 throw PlayerSavePersistenceError.writeFailed
             }
+        } else {
+            pendingRollbackSnapshot = snapshot
         }
     }
 
@@ -153,8 +162,10 @@ public final class PlayerSaveStore {
         deferredSaveTask = nil
         do {
             try saveGraph()
+            pendingRollbackSnapshot = nil
             lastPersistenceError = nil
         } catch {
+            rollbackPendingMutationIfNeeded()
             lastPersistenceError = .writeFailed
             logger.error("Failed to flush deferred SwiftData save: \(error.localizedDescription, privacy: .public)")
         }
@@ -171,14 +182,22 @@ public final class PlayerSaveStore {
             guard let self, !Task.isCancelled else { return }
             do {
                 try self.saveGraph()
+                self.pendingRollbackSnapshot = nil
                 self.lastPersistenceError = nil
             } catch {
+                self.rollbackPendingMutationIfNeeded()
                 self.lastPersistenceError = .writeFailed
                 self.logger.error(
                     "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
                 )
             }
         }
+    }
+
+    private func rollbackPendingMutationIfNeeded() {
+        guard let pendingRollbackSnapshot else { return }
+        root.update(from: pendingRollbackSnapshot)
+        self.pendingRollbackSnapshot = nil
     }
 
     private func resetRoot(with save: PlayerSave) throws {
@@ -196,6 +215,7 @@ public final class PlayerSaveStore {
         try saveGraph()
 
         self.root = newRoot
+        pendingRollbackSnapshot = nil
     }
 
     public func resetGameplayProgress() throws {
@@ -225,6 +245,12 @@ public final class PlayerSaveStore {
 
     private func saveGraph() throws {
         do {
+            #if DEBUG
+            if forcesNextSaveFailure {
+                forcesNextSaveFailure = false
+                throw NSError(domain: "PlayerSaveStoreTests", code: 1)
+            }
+            #endif
             try context.save()
             lastPersistenceError = nil
         } catch {

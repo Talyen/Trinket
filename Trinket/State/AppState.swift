@@ -91,7 +91,6 @@ final class AppState {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
     ) -> String {
-        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
         do {
             try playerSave.performBatchMutation { save in
                 var context = save.stageCompletionContext()
@@ -105,15 +104,16 @@ final class AppState {
                     context: &context
                 )
                 context.apply(to: &save)
-                scrollTarget = JourneyMapPresentation.scrollFocusID(for: context.journey)
             }
+            let scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
             sessionState.noteMapScrollFocus(scrollTarget)
+            return scrollTarget
         } catch {
             appStateLogger.error(
                 "Failed to persist stage completion: \(error.localizedDescription, privacy: .public)"
             )
+            return JourneyMapPresentation.scrollFocusID(for: journey.current)
         }
-        return scrollTarget
     }
 
     func completeActiveBattle(

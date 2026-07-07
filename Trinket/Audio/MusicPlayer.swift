@@ -26,6 +26,10 @@ final class MusicPlayer {
         self.fadeDuration = fadeDuration
     }
 
+    deinit {
+        fadeTask?.cancel()
+    }
+
     func update(route: MusicRoute, volume: Double) {
         guard !isDisabled else { return }
 
