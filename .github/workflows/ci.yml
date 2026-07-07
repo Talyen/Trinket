@@ -52,9 +52,9 @@ jobs:
       - name: Run unit tests
         run: |
           if [ "${{ matrix.target }}" = "app" ]; then
-            ./Scripts/test.sh unit
+            ./Scripts/test.sh unit TrinketTests --verbose
           else
-            ./Scripts/test-package.sh ${{ matrix.target }}
+            ./Scripts/test-package.sh ${{ matrix.target }} --verbose
           fi
 
       - uses: actions/upload-artifact@v4
@@ -64,17 +64,51 @@ jobs:
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
 
-  ui:
+      - name: Clean test results before caching
+        if: always()
+        run: rm -rf .DerivedData/TestResults/*.xcresult
+
+  ui-smoke:
+    name: UI tests - smoke
+    needs: gate
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-ui-${{ runner.os }}-smoke-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          restore-keys: |
+            deriveddata-ui-${{ runner.os }}-smoke-
+
+      - name: Run UI tests
+        run: ./Scripts/test.sh smoke --verbose
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-results-smoke-${{ github.run_id }}
+          path: .DerivedData/TestResults/
+          if-no-files-found: ignore
+
+      - name: Clean test results before caching
+        if: always()
+        run: rm -rf .DerivedData/TestResults/*.xcresult
+
+  ui-exhaustive:
     name: UI tests - ${{ matrix.shard }}
     needs: gate
     runs-on: macos-latest
     timeout-minutes: 25
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
     strategy:
       fail-fast: false
       matrix:
         include:
-          - shard: 'smoke'
-            command: 'smoke'
           - shard: 'exhaustive-battle'
             command: 'ui BattleFlowUITests'
           - shard: 'exhaustive-collection'
@@ -92,8 +126,7 @@ jobs:
             deriveddata-ui-${{ runner.os }}-${{ matrix.shard }}-
 
       - name: Run UI tests
-        if: matrix.shard == 'smoke' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-        run: ./Scripts/test.sh ${{ matrix.command }}
+        run: ./Scripts/test.sh ${{ matrix.command }} --verbose
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -101,3 +134,7 @@ jobs:
           name: ui-test-results-${{ matrix.shard }}-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
+
+      - name: Clean test results before caching
+        if: always()
+        run: rm -rf .DerivedData/TestResults/*.xcresult

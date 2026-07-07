@@ -32,8 +32,11 @@ runs:
 
     - name: Install tooling
       shell: bash
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: 1
+        HOMEBREW_NO_INSTALL_CLEANUP: 1
       run: |
-        brew install xcodegen swiftlint ripgrep
-        for formula in xcodegen swiftlint ripgrep; do
+        brew install xcodegen swiftlint ripgrep xcbeautify
+        for formula in xcodegen swiftlint ripgrep xcbeautify; do
           brew link --overwrite "$formula" 2>/dev/null || true
         done

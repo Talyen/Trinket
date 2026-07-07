@@ -29,13 +29,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/test.sh unit
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-pr-unit-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          restore-keys: |
+            deriveddata-pr-unit-${{ runner.os }}-
+            deriveddata-unit-${{ runner.os }}-app-
+
+      - run: ./Scripts/test.sh unit --verbose
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pr-unit-results-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
+
+      - name: Clean test results before caching
+        if: always()
+        run: rm -rf .DerivedData/TestResults/*.xcresult
 
   smoke:
     name: Smoke UI tests
@@ -45,10 +60,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/test.sh smoke
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-pr-smoke-${{ runner.os }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          restore-keys: |
+            deriveddata-pr-smoke-${{ runner.os }}-
+            deriveddata-ui-${{ runner.os }}-smoke-
+
+      - run: ./Scripts/test.sh smoke --verbose
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pr-smoke-results-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
+
+      - name: Clean test results before caching
+        if: always()
+        run: rm -rf .DerivedData/TestResults/*.xcresult
