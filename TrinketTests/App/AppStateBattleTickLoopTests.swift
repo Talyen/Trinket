@@ -1,38 +1,43 @@
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import Testing
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class AppStateBattleTickLoopTests: AppTestCase {
+@Suite @MainActor
+final class AppStateBattleTickLoopTests {
+    let context: AppTestContext
 
-    func testCanAdvanceBattleTicksRequiresActivePlayTabAndUnpausedBattle() throws {
-        let appState = makeAppState()
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    init() throws {
+        context = try AppTestContext()
+    }
+
+    @Test func canAdvanceBattleTicksRequiresActivePlayTabAndUnpausedBattle() throws {
+        let appState = context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
         appState.shellScenePhase = .active
         appState.selectedTab = .play
         appState.battle.isPaused = false
 
-        XCTAssertTrue(appState.canAdvanceBattleTicks)
+        #expect(appState.canAdvanceBattleTicks)
 
         appState.battle.isPaused = true
-        XCTAssertFalse(appState.canAdvanceBattleTicks)
+        #expect(!(appState.canAdvanceBattleTicks))
 
         appState.battle.isPaused = false
         appState.selectedTab = .collection
-        XCTAssertFalse(appState.canAdvanceBattleTicks)
+        #expect(!(appState.canAdvanceBattleTicks))
 
         appState.selectedTab = .play
         appState.shellScenePhase = .background
-        XCTAssertFalse(appState.canAdvanceBattleTicks)
+        #expect(!(appState.canAdvanceBattleTicks))
     }
 
-    func testBattleTickLoopAdvancesSimulationWhenEligible() async throws {
-        let appState = makeAppState(arguments: ["-battle-tick-interval", "0.01"])
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func battleTickLoopAdvancesSimulationWhenEligible() async throws {
+        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
         appState.shellScenePhase = .active
@@ -40,17 +45,17 @@ final class AppStateBattleTickLoopTests: AppTestCase {
         appState.battle.isPaused = false
         appState.syncBattleTickLoop()
 
-        let initialTickCount = try XCTUnwrap(appState.battle.state?.tickCount)
+        let initialTickCount = try #require(appState.battle.state?.tickCount)
         try await waitUntil {
             (appState.battle.state?.tickCount ?? initialTickCount) > initialTickCount
         }
 
-        XCTAssertGreaterThan(try XCTUnwrap(appState.battle.state?.tickCount), initialTickCount)
+        #expect(try #require(appState.battle.state?.tickCount) > initialTickCount)
     }
 
-    func testBattleTickLoopStopsWhileInBackground() async throws {
-        let appState = makeAppState(arguments: ["-battle-tick-interval", "0.01"])
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func battleTickLoopStopsWhileInBackground() async throws {
+        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
         appState.shellScenePhase = .active
@@ -58,23 +63,23 @@ final class AppStateBattleTickLoopTests: AppTestCase {
         appState.battle.isPaused = false
         appState.syncBattleTickLoop()
 
-        let initialTickCount = try XCTUnwrap(appState.battle.state?.tickCount)
+        let initialTickCount = try #require(appState.battle.state?.tickCount)
         try await waitUntil {
             (appState.battle.state?.tickCount ?? initialTickCount) > initialTickCount
         }
-        _ = try XCTUnwrap(appState.battleTickTask)
+        _ = try #require(appState.battleTickTask)
 
         appState.reconcileShellState(.scenePhaseChanged, scenePhase: .background)
 
-        XCTAssertNil(appState.battleTickTask)
+        #expect(appState.battleTickTask == nil)
 
-        let tickCountAfterBackground = try XCTUnwrap(appState.battle.state?.tickCount)
+        let tickCountAfterBackground = try #require(appState.battle.state?.tickCount)
         try await assertTickCountRemainsStable(tickCountAfterBackground, for: appState)
     }
 
-    func testBattleTickLoopDoesNotAdvanceWhilePaused() async throws {
-        let appState = makeAppState(arguments: ["-battle-tick-interval", "0.01"])
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func battleTickLoopDoesNotAdvanceWhilePaused() async throws {
+        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
         appState.shellScenePhase = .active
@@ -82,11 +87,11 @@ final class AppStateBattleTickLoopTests: AppTestCase {
         appState.battle.isPaused = true
         appState.syncBattleTickLoop()
 
-        let tickCount = try XCTUnwrap(appState.battle.state?.tickCount)
+        let tickCount = try #require(appState.battle.state?.tickCount)
         try await assertTickCountRemainsStable(tickCount, for: appState)
     }
 
-    func testTrimMemoryFootprintReleasesBattleLogProjection() throws {
+    @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
         let session = BattleSession()
         session.activeBattle = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
@@ -96,12 +101,12 @@ final class AppStateBattleTickLoopTests: AppTestCase {
         )
         _ = session.advanceOneStep()
         session.syncLogForDisplay()
-        XCTAssertFalse(session.state?.log.isEmpty ?? true)
+        #expect(!(session.state?.log.isEmpty ?? true))
 
         session.trimMemoryFootprint(releaseBattleLog: true)
 
-        XCTAssertTrue(session.state?.log.isEmpty ?? false)
-        XCTAssertFalse(session.state?.events.isEmpty ?? true)
+        #expect(session.state?.log.isEmpty ?? false)
+        #expect(!(session.state?.events.isEmpty ?? true))
     }
 
     private func assertTickCountRemainsStable(
@@ -113,7 +118,7 @@ final class AppStateBattleTickLoopTests: AppTestCase {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: duration)
         while clock.now < deadline {
-            XCTAssertEqual(appState.battle.state?.tickCount, expected)
+            #expect(appState.battle.state?.tickCount == expected)
             try await clock.sleep(for: pollInterval)
         }
     }
@@ -129,6 +134,6 @@ final class AppStateBattleTickLoopTests: AppTestCase {
             if condition() { return }
             try await clock.sleep(for: pollInterval)
         }
-        XCTFail("Timed out waiting for condition")
+        Issue.record("Timed out waiting for condition")
     }
 }

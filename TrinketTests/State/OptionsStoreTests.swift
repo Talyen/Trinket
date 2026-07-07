@@ -1,82 +1,71 @@
 import TrinketDesignSystem
-import XCTest
+import Testing
 @testable import Trinket
 
-@MainActor
-final class OptionsStoreTests: XCTestCase {
-    private var defaults: UserDefaults!
-    private var suiteName: String!
+@Suite @MainActor
+final class OptionsStoreTests {
+    let context: AppTestContext
 
-    override func setUp() {
-        super.setUp()
-        suiteName = "OptionsStoreTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suiteName)
-        defaults.removePersistentDomain(forName: suiteName)
+    init() throws {
+        context = try AppTestContext()
     }
 
-    override func tearDown() {
-        defaults.removePersistentDomain(forName: suiteName)
-        defaults = nil
-        suiteName = nil
-        super.tearDown()
-    }
-
-    func testDefaultsWhenNoStoredValues() {
-        let store = OptionsStore(defaults: defaults)
+    @Test func defaultsWhenNoStoredValues() {
+        let store = OptionsStore(defaults: context.userDefaults)
 
         #if targetEnvironment(simulator)
-        XCTAssertEqual(store.musicVolume, 0, accuracy: 0.001)
+        #expect(abs((store.musicVolume) - (0)) < 0.001)
         #else
-        XCTAssertEqual(store.musicVolume, 0.75, accuracy: 0.001)
+        #expect(abs((store.musicVolume) - (0.75)) < 0.001)
         #endif
-        XCTAssertEqual(store.effectsVolume, 0.85, accuracy: 0.001)
-        XCTAssertTrue(store.hapticsEnabled)
-        XCTAssertEqual(store.appearance, .system)
+        #expect(abs((store.effectsVolume) - (0.85)) < 0.001)
+        #expect(store.hapticsEnabled)
+        #expect(store.appearance == .system)
     }
 
-    func testLoadsPreviouslyStoredValues() {
-        defaults.set(0.4, forKey: "options.musicVolume")
-        defaults.set(0.6, forKey: "options.effectsVolume")
-        defaults.set(false, forKey: "options.hapticsEnabled")
-        defaults.set(TrinketDesign.AppAppearance.dark.rawValue, forKey: "options.appearance")
+    @Test func loadsPreviouslyStoredValues() {
+        context.userDefaults.set(0.4, forKey: "options.musicVolume")
+        context.userDefaults.set(0.6, forKey: "options.effectsVolume")
+        context.userDefaults.set(false, forKey: "options.hapticsEnabled")
+        context.userDefaults.set(TrinketDesign.AppAppearance.dark.rawValue, forKey: "options.appearance")
 
-        let store = OptionsStore(defaults: defaults)
+        let store = OptionsStore(defaults: context.userDefaults)
 
-        XCTAssertEqual(store.musicVolume, 0.4, accuracy: 0.001)
-        XCTAssertEqual(store.effectsVolume, 0.6, accuracy: 0.001)
-        XCTAssertFalse(store.hapticsEnabled)
-        XCTAssertEqual(store.appearance, .dark)
+        #expect(abs((store.musicVolume) - (0.4)) < 0.001)
+        #expect(abs((store.effectsVolume) - (0.6)) < 0.001)
+        #expect(!(store.hapticsEnabled))
+        #expect(store.appearance == .dark)
     }
 
-    func testMusicVolumePersistsOnChange() {
-        let store = OptionsStore(defaults: defaults)
+    @Test func musicVolumePersistsOnChange() {
+        let store = OptionsStore(defaults: context.userDefaults)
         store.musicVolume = 0.25
 
-        XCTAssertEqual(defaults.double(forKey: "options.musicVolume"), 0.25, accuracy: 0.001)
-        XCTAssertEqual(OptionsStore(defaults: defaults).musicVolume, 0.25, accuracy: 0.001)
+        #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - (0.25)) < 0.001)
+        #expect(abs((OptionsStore(defaults: context.userDefaults).musicVolume) - (0.25)) < 0.001)
     }
 
-    func testEffectsVolumePersistsOnChange() {
-        let store = OptionsStore(defaults: defaults)
+    @Test func effectsVolumePersistsOnChange() {
+        let store = OptionsStore(defaults: context.userDefaults)
         store.effectsVolume = 0.5
 
-        XCTAssertEqual(defaults.double(forKey: "options.effectsVolume"), 0.5, accuracy: 0.001)
-        XCTAssertEqual(OptionsStore(defaults: defaults).effectsVolume, 0.5, accuracy: 0.001)
+        #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - (0.5)) < 0.001)
+        #expect(abs((OptionsStore(defaults: context.userDefaults).effectsVolume) - (0.5)) < 0.001)
     }
 
-    func testHapticsEnabledPersistsOnChange() {
-        let store = OptionsStore(defaults: defaults)
+    @Test func hapticsEnabledPersistsOnChange() {
+        let store = OptionsStore(defaults: context.userDefaults)
         store.hapticsEnabled = false
 
-        XCTAssertFalse(defaults.bool(forKey: "options.hapticsEnabled"))
-        XCTAssertFalse(OptionsStore(defaults: defaults).hapticsEnabled)
+        #expect(!(context.userDefaults.bool(forKey: "options.hapticsEnabled")))
+        #expect(!(OptionsStore(defaults: context.userDefaults)).hapticsEnabled)
     }
 
-    func testAppearancePersistsOnChange() {
-        let store = OptionsStore(defaults: defaults)
+    @Test func appearancePersistsOnChange() {
+        let store = OptionsStore(defaults: context.userDefaults)
         store.appearance = .dark
 
-        XCTAssertEqual(defaults.string(forKey: "options.appearance"), TrinketDesign.AppAppearance.dark.rawValue)
-        XCTAssertEqual(OptionsStore(defaults: defaults).appearance, .dark)
+        #expect(context.userDefaults.string(forKey: "options.appearance") == TrinketDesign.AppAppearance.dark.rawValue)
+        #expect(OptionsStore(defaults: context.userDefaults).appearance == .dark)
     }
 }
