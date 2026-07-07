@@ -10,7 +10,7 @@ public final class PlayerSaveStore {
 
     private let container: ModelContainer
     private let context: ModelContext
-    private let root: PlayerSaveRoot
+    private var root: PlayerSaveRoot
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -116,20 +116,25 @@ public final class PlayerSaveStore {
         }
     }
 
+    private func resetRoot(with save: PlayerSave) throws {
+        try? context.delete(model: PlayerSaveRoot.self)
+        try? context.save()
+
+        let newRoot = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(save))
+        context.insert(newRoot)
+        try saveGraph()
+
+        self.root = newRoot
+    }
+
     public func resetGameplayProgress() throws {
         var fresh = PlayerSave.fresh
         fresh.sessionGeneration = currentSave.sessionGeneration &+ 1
-        let sanitized = PlayerSaveSanitizer.sanitize(fresh)
-        try PlayerSaveSanitizer.validate(sanitized)
-        root.update(from: sanitized)
-        try saveGraph()
+        try resetRoot(with: fresh)
     }
 
     public func applyTestSeed() throws {
-        let seed = PlayerSaveSanitizer.sanitize(.testSeed)
-        try PlayerSaveSanitizer.validate(seed)
-        root.update(from: seed)
-        try saveGraph()
+        try resetRoot(with: .testSeed)
     }
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {

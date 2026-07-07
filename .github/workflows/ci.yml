@@ -29,41 +29,75 @@ jobs:
       - run: ./Scripts/release-notes.sh validate
 
   unit:
-    name: Unit tests
+    name: Unit tests - ${{ matrix.target }}
     needs: gate
     runs-on: macos-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [app, TrinketCore, TrinketContent, BattleEngine, TrinketPersistence, TrinketDesignSystem]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/test.sh unit
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-unit-${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          restore-keys: |
+            deriveddata-unit-${{ runner.os }}-${{ matrix.target }}-
+
+      - name: Run unit tests
+        run: |
+          if [ "${{ matrix.target }}" = "app" ]; then
+            ./Scripts/test.sh unit
+          else
+            ./Scripts/test-package.sh ${{ matrix.target }}
+          fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unit-test-results-${{ github.run_id }}
+          name: unit-test-results-${{ matrix.target }}-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
 
   ui:
-    name: UI tests
+    name: UI tests - ${{ matrix.shard }}
     needs: gate
     runs-on: macos-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 'smoke'
+            command: 'smoke'
+          - shard: 'exhaustive-battle'
+            command: 'ui BattleFlowUITests'
+          - shard: 'exhaustive-collection'
+            command: 'ui TabNavigationUITests SearchUITests'
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
 
-      - name: Full UI tests
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-        run: ./Scripts/test.sh ui
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: .DerivedData
+          key: deriveddata-ui-${{ runner.os }}-${{ matrix.shard }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
+          restore-keys: |
+            deriveddata-ui-${{ runner.os }}-${{ matrix.shard }}-
 
-      - name: UI smoke tests
-        if: github.event_name == 'workflow_dispatch' && inputs.scope != 'exhaustive'
-        run: ./Scripts/test.sh smoke
+      - name: Run UI tests
+        if: matrix.shard == 'smoke' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
+        run: ./Scripts/test.sh ${{ matrix.command }}
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ui-test-results-${{ github.run_id }}
+          name: ui-test-results-${{ matrix.shard }}-${{ github.run_id }}
           path: .DerivedData/TestResults/
           if-no-files-found: ignore
