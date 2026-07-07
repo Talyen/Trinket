@@ -4,9 +4,16 @@ import TrinketDesignSystem
 
 struct CollectionCombatantGridView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedCombatant: CombatantDetailContext?
 
     let kind: CombatantDetailContext.Kind
+    /// Binding owned by CollectionView (the NavigationStack root).
+    /// Tap selects here; the sheet is presented by the root, avoiding tab bar blocking.
+    @Binding var selectedCombatant: CombatantDetailContext?
+
+    init(kind: CombatantDetailContext.Kind, selectedCombatant: Binding<CombatantDetailContext?> = .constant(nil)) {
+        self.kind = kind
+        _selectedCombatant = selectedCombatant
+    }
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
@@ -50,6 +57,7 @@ struct CollectionCombatantGridView: View {
                                     combatantID: combatant.id
                                 )
                             }
+                            .accessibilityIdentifier("\(combatant.name) collection card")
                         }
                     }
                 }
@@ -59,14 +67,6 @@ struct CollectionCombatantGridView: View {
         .trinketScreenBackground(.collection)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.large)
-        .sheet(item: $selectedCombatant) { context in
-            appState.rosterCombatantDetail(
-                kind: context.kind,
-                combatantID: context.combatantID
-            )
-            .presentationDetents([.large])
-            .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.visible)
-        }
+        // No .sheet here — the sheet is owned by CollectionView (NavigationStack root).
     }
 }

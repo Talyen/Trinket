@@ -32,7 +32,6 @@ struct InventoryGridView: View {
     @Environment(AppState.self) private var appState
     @State private var searchText = ""
     @State private var selectedFilter: InventoryFilter = .all
-    @State private var selectedItem: InventoryItem?
 
     private let columns = [
         GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
@@ -50,8 +49,8 @@ struct InventoryGridView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(items) { item in
-                            Button {
-                                selectedItem = item
+                            NavigationLink {
+                                ItemDetailView(item: item)
                             } label: {
                                 ItemCard(item: item, showsAffixCount: true)
                             }
@@ -85,13 +84,6 @@ struct InventoryGridView: View {
                 .accessibilityIdentifier("Inventory filter")
             }
         }
-        .sheet(item: $selectedItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
@@ -115,29 +107,19 @@ struct InventoryGridView: View {
 
     @ViewBuilder
     private func inventoryEmptyState(inventoryState: PlayerInventoryState) -> some View {
-        let isFilteredEmpty = !inventoryState.items.isEmpty
-
-        if isFilteredEmpty {
+        if !inventoryState.items.isEmpty {
             ContentUnavailableView(
                 "No Matching Items",
                 systemImage: "magnifyingglass",
                 description: Text("Try a different search or filter.")
             )
             .accessibilityIdentifier(AccessibilityID.Collection.inventoryNoResults)
-        } else {
-            ContentUnavailableView(
-                "No Items Yet",
-                systemImage: "shippingbox",
-                description: Text("Complete stages to earn gear for your heroes.")
-            )
-            .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
         }
     }
 }
 
 struct ItemDetailView: View {
     let item: InventoryItem
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         List {
@@ -189,12 +171,5 @@ struct ItemDetailView: View {
         .trinketScreenBackground(.denseList)
         .navigationTitle(item.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    dismiss()
-                }
-            }
-        }
     }
 }

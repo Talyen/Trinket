@@ -199,7 +199,7 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
-    func testSessionBattleRestoredAsResumeCardOnColdLaunch() throws {
+    func testSessionBattleRestoredAsResumeCardOnColdLaunch() {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
         defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
         defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
@@ -223,17 +223,17 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL,
             userDefaults: defaults
         )
-        
+
         state.isColdLaunch = false
         state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-30)
-        
+
         state.evaluateResumeRules()
-        
+
         let activeBattle = try XCTUnwrap(state.battle.activeBattle)
         XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
     }
 
-    func testForegroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() throws {
+    func testForegroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
         defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
         defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
@@ -242,18 +242,18 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL,
             userDefaults: defaults
         )
-        
+
         state.isColdLaunch = false
         state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
-        
+
         state.evaluateResumeRules()
-        
+
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertTrue(state.showResumeBattleCard)
         XCTAssertEqual(state.selectedTab, .play)
     }
 
-    func testForegroundResumeBeyondExpiryWindowDiscardsSave() throws {
+    func testForegroundResumeBeyondExpiryWindowDiscardsSave() {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
         defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
         defaults.set(Date().addingTimeInterval(-86400 * 3).timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
@@ -262,12 +262,12 @@ final class AppStatePlayFlowTests: XCTestCase {
             directoryURL: directoryURL,
             userDefaults: defaults
         )
-        
+
         state.isColdLaunch = false
         state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
-        
+
         state.evaluateResumeRules()
-        
+
         XCTAssertNil(state.battle.activeBattle)
         XCTAssertFalse(state.showResumeBattleCard)
         XCTAssertNil(state.sessionState.activeBattleStageID)

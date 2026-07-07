@@ -7,14 +7,16 @@ struct AbilitySummaryGrid: View {
     let progression: CombatantProgression
     @Binding var loadout: AbilityLoadout
     let allowsEditing: Bool
-    @State private var selectedAbilityTier: AbilityTier?
+    /// Called by the parent when the user taps an ability slot. The parent owns
+    /// the navigation/presentation so no nested sheet is needed here.
+    var onSelectTier: ((AbilityTier) -> Void)?
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             ForEach(AbilityTier.allCases) { tier in
                 if allowsEditing, !isLocked(tier) {
                     Button {
-                        selectedAbilityTier = tier
+                        onSelectTier?(tier)
                     } label: {
                         abilitySlot(for: tier)
                     }
@@ -29,17 +31,6 @@ struct AbilitySummaryGrid: View {
                         .accessibilityHint(accessibilityHint(for: tier))
                 }
             }
-        }
-        .sheet(item: $selectedAbilityTier) { tier in
-            NavigationStack {
-                AbilityTierPickerSheet(
-                    combatant: combatant,
-                    tier: tier,
-                    loadout: $loadout
-                )
-            }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
         }
     }
 

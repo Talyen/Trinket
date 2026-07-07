@@ -6,7 +6,6 @@ import TrinketPersistence
 struct SearchView: View {
     @Environment(AppState.self) private var appState
     @State private var searchText = ""
-    @State private var selectedItem: InventoryItem?
 
     var body: some View {
         searchContent
@@ -14,13 +13,6 @@ struct SearchView: View {
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
-            .sheet(item: $selectedItem) { item in
-                NavigationStack {
-                    ItemDetailView(item: item)
-                }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-            }
     }
 
     @ViewBuilder
@@ -60,8 +52,8 @@ struct SearchView: View {
 
                     if !results.items.isEmpty {
                         SearchResultSection(title: "Items", items: results.items) { item in
-                            Button {
-                                selectedItem = item
+                            NavigationLink {
+                                ItemDetailView(item: item)
                             } label: {
                                 ItemCard(item: item, showsAffixCount: true)
                                     .collectionShelfCardWidth()
@@ -98,8 +90,7 @@ struct SearchView: View {
         NavigationLink {
             appState.rosterCombatantDetail(
                 kind: kind,
-                combatantID: combatant.id,
-                hidesNavigationBar: false
+                combatantID: combatant.id
             )
         } label: {
             CombatantCard(combatant: combatant)

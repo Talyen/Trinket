@@ -13,7 +13,7 @@ struct PlayView: View {
             .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
                 appState.battle.restorePauseAfterOverlay()
             }, content: { detail in
-                CombatantDetailPane(snapshot: detail)
+                CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
                     .presentationDetents([.large])
                     .presentationContentInteraction(.resizes)
                     .presentationDragIndicator(.hidden)

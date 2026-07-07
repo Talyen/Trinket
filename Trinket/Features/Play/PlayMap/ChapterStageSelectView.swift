@@ -80,11 +80,22 @@ struct ChapterStageSelectView: View {
     }
 
     private var journeyRows: [ChapterJourneyRow] {
-        JourneyMapPresentation.chapterRows(
+        let rows = JourneyMapPresentation.chapterRows(
             chapters: GameContent.chapters,
             chapter: appState.playChapter,
             progress: appState.journey.current
         )
+        if appState.showResumeBattleCard, let activeStageID = appState.sessionState.activeBattleStageID {
+            return rows.filter { row in
+                switch row {
+                case let .stage(stage, _):
+                    return stage.id != activeStageID
+                case .chapterGate:
+                    return true
+                }
+            }
+        }
+        return rows
     }
 
     @ViewBuilder

@@ -16,7 +16,11 @@ struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var hidesNavigationBar = false
 
+    /// Sub-picker navigation state — owned here at the pane level so the
+    /// navigationDestination modifiers are at the root of whatever NavigationStack
+    /// is presenting this view. No nested UISheetPresentationControllers.
     @State private var selectedItemSlot: ItemSlot?
+    @State private var selectedAbilityTier: AbilityTier?
     @State private var headerBaseHeight: CGFloat = 300
     @State private var heroOverscroll: CGFloat = 0
     @State private var titleOpacity: CGFloat = 0
@@ -106,7 +110,8 @@ struct CombatantDetailPane: View {
                                 combatant: combatant,
                                 progression: progression,
                                 loadout: $loadout,
-                                allowsEditing: allowsEditing
+                                allowsEditing: allowsEditing,
+                                onSelectTier: allowsEditing ? { selectedAbilityTier = $0 } : nil
                             )
                             .padding(.vertical, 4)
                         }
@@ -142,16 +147,22 @@ struct CombatantDetailPane: View {
                 let threshold = headerBaseHeight - metrics.topInset - 44
                 titleOpacity = min(max((metrics.offsetY - threshold) / 20, 0), 1)
             }
-            .sheet(item: $selectedItemSlot) { slot in
-                NavigationStack {
-                    ItemSlotPickerView(
-                        slot: slot,
-                        equipmentLoadout: $equipmentLoadout,
-                        inventoryState: $inventoryState
-                    )
-                }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+            // Sub-picker navigation — declared here so they land at the root of whichever
+            // NavigationStack contains this pane (the sheet's own stack for Collection,
+            // or the tab stack for Search). This keeps all presentation at the stack root.
+            .navigationDestination(item: $selectedItemSlot) { slot in
+                ItemSlotPickerView(
+                    slot: slot,
+                    equipmentLoadout: $equipmentLoadout,
+                    inventoryState: $inventoryState
+                )
+            }
+            .navigationDestination(item: $selectedAbilityTier) { tier in
+                AbilityTierPickerSheet(
+                    combatant: combatant,
+                    tier: tier,
+                    loadout: $loadout
+                )
             }
         }
     }

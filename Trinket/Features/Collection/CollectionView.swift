@@ -4,24 +4,20 @@ import TrinketDesignSystem
 
 struct CollectionView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
+    private let initialCombatantDetail: CombatantDetailContext?
     private let initialItemID: String?
+    @Binding var collectionPath: NavigationPath
 
     init(
         initialCombatantDetail: CombatantDetailContext? = nil,
-        initialItemID: String? = nil
+        initialItemID: String? = nil,
+        collectionPath: Binding<NavigationPath> = .constant(NavigationPath())
     ) {
-        _selectedCombatant = State(initialValue: initialCombatantDetail)
-        if let initialItemID {
-            _selectedItem = State(
-                initialValue: GameContent.itemTemplate(matching: initialItemID)
-            )
-        } else {
-            _selectedItem = State(initialValue: nil)
-        }
+        self.initialCombatantDetail = initialCombatantDetail
         self.initialItemID = initialItemID
+        _collectionPath = collectionPath
     }
 
     var body: some View {
@@ -50,29 +46,13 @@ struct CollectionView: View {
                         destination: InventoryGridView()
                     ) {
                         ForEach(Array(inventoryState.items.prefix(12))) { item in
-                            Button {
-                                selectedItem = item
-                            } label: {
+                            NavigationLink(value: item) {
                                 ItemCard(item: item, showsAffixCount: false, showsName: false)
                                     .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
-                    }
-                } else {
-                    collectionCategorySection(
-                        title: "Inventory",
-                        accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        destination: InventoryGridView()
-                    ) {
-                        ContentUnavailableView(
-                            "No Items Yet",
-                            systemImage: "shippingbox",
-                            description: Text("Complete stages to earn gear for your heroes.")
-                        )
-                        .collectionShelfCardWidth()
-                        .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
                     }
                 }
             }
@@ -83,36 +63,44 @@ struct CollectionView: View {
         .accessibilityIdentifier("Collection Screen")
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
-        .onAppear {
-            guard selectedItem == nil, let initialItemID else { return }
-            if let owned = appState.inventory.current.item(matching: initialItemID) {
-                selectedItem = owned
-            } else if let template = GameContent.itemTemplate(matching: initialItemID) {
-                selectedItem = template
-            } else {
-                showMissingItem = true
+        // Items use navigationDestination (push) — no sheet conflict.
+        .navigationDestination(for: InventoryItem.self) { item in
+            ItemDetailView(item: item)
+        }
+        // Combatant detail is a sheet, owned here at the NavigationStack root.
+        // This prevents the UITransitionView from overlapping the tab bar during dismissal.
+        .sheet(item: $selectedCombatant) { context in
+            NavigationStack {
+                appState.rosterCombatantDetail(
+                    kind: context.kind,
+                    combatantID: context.combatantID
+                )
             }
+            .presentationDetents([.large])
+            .presentationContentInteraction(.resizes)
+            .presentationDragIndicator(.visible)
+        }
+        .onAppear {
+            handleDeepLink()
         }
         .alert("Item Not Found", isPresented: $showMissingItem) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("That item isn't in your collection.")
         }
-        .sheet(item: $selectedItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
+    }
+
+    private func handleDeepLink() {
+        if let context = initialCombatantDetail {
+            selectedCombatant = context
+        } else if let itemID = initialItemID {
+            if let owned = appState.inventory.current.item(matching: itemID) {
+                collectionPath.append(owned)
+            } else if let template = GameContent.itemTemplate(matching: itemID) {
+                collectionPath.append(template)
+            } else {
+                showMissingItem = true
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(item: $selectedCombatant) { context in
-            appState.rosterCombatantDetail(
-                kind: context.kind,
-                combatantID: context.combatantID
-            )
-            .presentationDetents([.large])
-            .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.visible)
         }
     }
 
@@ -125,12 +113,13 @@ struct CollectionView: View {
         collectionCategorySection(
             title: title,
             accessibilityIdentifier: accessibilityIdentifier,
-            destination: CollectionCombatantGridView(kind: kind)
+            destination: CollectionCombatantGridView(kind: kind, selectedCombatant: $selectedCombatant)
         ) {
             ForEach(combatants) { combatant in
+                let isLocked = !appState.roster.current.isUnlocked(combatant)
                 CollectionCombatantButton(
                     combatant: combatant,
-                    isLocked: !appState.roster.current.isUnlocked(combatant),
+                    isLocked: isLocked,
                     cardWidth: nil,
                     showsName: false
                 ) {

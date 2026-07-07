@@ -37,7 +37,7 @@ extension AppState {
     func rosterCombatantDetail(
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        hidesNavigationBar: Bool = true
+        hidesNavigationBar: Bool = false
     ) -> some View {
         let catalog: [Combatant] = switch kind {
         case .hero:

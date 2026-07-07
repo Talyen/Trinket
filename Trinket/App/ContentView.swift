@@ -4,6 +4,7 @@ import TrinketDesignSystem
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
+    @State private var collectionPath = NavigationPath()
 
     var body: some View {
         @Bindable var state = appState
@@ -39,10 +40,11 @@ struct ContentView: View {
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
-                NavigationStack {
+                NavigationStack(path: $collectionPath) {
                     CollectionView(
                         initialCombatantDetail: appState.initialCollectionCombatantDetail,
-                        initialItemID: appState.initialCollectionItemID
+                        initialItemID: appState.initialCollectionItemID,
+                        collectionPath: $collectionPath
                     )
                 }
             }
