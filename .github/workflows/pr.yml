@@ -26,7 +26,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh --assets
       - run: ./Scripts/assert-generated-output.sh --assets
@@ -40,11 +40,11 @@ jobs:
     env:
       SKIP_GENERATE: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-trinket
 
       - name: Restore warm build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .DerivedData
           key: build-${{ env.CACHE_HASH }}
@@ -54,7 +54,7 @@ jobs:
       - run: ./Scripts/build-for-testing.sh
 
       - name: Save build cache for test jobs
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .DerivedData
           key: ${{ env.BUILD_CACHE_KEY }}
@@ -69,7 +69,7 @@ jobs:
       matrix:
         target: [app, TrinketCore, TrinketContent, BattleEngine, TrinketPersistence, TrinketDesignSystem]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
@@ -88,7 +88,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:

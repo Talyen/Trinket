@@ -9,7 +9,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh
       - run: ./Scripts/assert-generated-output.sh
