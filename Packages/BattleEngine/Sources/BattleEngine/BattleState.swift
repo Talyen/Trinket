@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Mutation surface passed to rule engines. Same storage as `BattleState`.
 ///

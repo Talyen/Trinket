@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// A single observable event emitted during a battle tick. Rendered as
 /// floating text in the UI and reduced into combat-log lines by

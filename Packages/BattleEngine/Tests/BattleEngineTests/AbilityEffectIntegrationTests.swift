@@ -94,7 +94,9 @@ struct AbilityEffectIntegrationTests {
 
         let step = BattleTestFixtures.advanceUntilAbility("Prayer", on: &battle)
         guard let step else {
-            return Issue.record("Expected Prayer to resolve in battle")
+            Issue.record("Expected Prayer to resolve in battle")
+
+            return
         }
         #expect(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
         #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)

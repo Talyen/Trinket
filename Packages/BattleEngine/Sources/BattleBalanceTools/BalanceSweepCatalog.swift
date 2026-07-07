@@ -1,23 +1,31 @@
+import BattleEngine
 import Foundation
 import TrinketContent
-import BattleEngine
 
-struct BalanceSweepTriple: Equatable, Hashable, Sendable {
+struct BalanceSweepTriple: Equatable, Hashable {
     let hero: Combatant
     let pet: Combatant
     let enemy: Enemy
 
-    init(hero: Combatant, pet: Combatant, enemy: Enemy) {
-        self.hero = hero
-        self.pet = pet
-        self.enemy = enemy
+    var heroID: String {
+        hero.id
     }
 
-    var heroID: String { hero.id }
-    var petID: String { pet.id }
-    var enemyID: String { enemy.id }
-    var isBoss: Bool { enemy.isBoss }
-    var isElite: Bool { enemy.isElite }
+    var petID: String {
+        pet.id
+    }
+
+    var enemyID: String {
+        enemy.id
+    }
+
+    var isBoss: Bool {
+        enemy.isBoss
+    }
+
+    var isElite: Bool {
+        enemy.isElite
+    }
 }
 
 enum BalanceSweepCatalog {
@@ -132,7 +140,7 @@ enum BalanceSweepDefaults {
     static let representativePetID = "wolf"
     static let runsPerMatchup = 20
     static let loadoutSamplesPerMatchup = 5
-    static let baseSeed: UInt64 = 42_026
+    static let baseSeed: UInt64 = 42026
     static let maxTicks = 100
     static let minFightTicks = 10
 }

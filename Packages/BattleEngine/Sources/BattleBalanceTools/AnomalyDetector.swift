@@ -1,14 +1,14 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-enum EnemyDifficultyRole: String, Sendable, Codable, CaseIterable {
+enum EnemyDifficultyRole: String, Codable, CaseIterable {
     case fodder
     case elite
     case boss
 }
 
 enum AnomalyDetector {
-    struct Thresholds: Equatable, Sendable {
+    struct Thresholds: Equatable {
         let hardCounterWinRate: Double
         let timeoutRate: Double
         let minFightTicks: Int
@@ -35,7 +35,7 @@ enum AnomalyDetector {
         static let `default` = Thresholds()
     }
 
-    struct WinRateBand: Equatable, Sendable {
+    struct WinRateBand: Equatable {
         let min: Double
         let max: Double
         let role: EnemyDifficultyRole

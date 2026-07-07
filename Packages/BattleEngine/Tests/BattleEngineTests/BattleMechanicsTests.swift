@@ -55,8 +55,11 @@ struct BattleMechanicsTests {
         )
 
         #expect(outcome.healthLost == 5)
-        #expect(!(
-            context.roster.activeEffects(for: enemy)).contains { if case .marked = $0.effect { return true }; return false }
+        #expect(
+            !context.roster.activeEffects(for: enemy).contains {
+                if case .marked = $0.effect { return true }
+                return false
+            }
         )
     }
 

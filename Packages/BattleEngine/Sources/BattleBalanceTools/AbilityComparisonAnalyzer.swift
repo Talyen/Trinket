@@ -5,7 +5,7 @@ import TrinketContent
 import TrinketCore
 
 enum AbilityComparisonAnalyzer {
-    private struct WorkItem: Sendable {
+    private struct WorkItem {
         let comparisonIndex: Int
         let tier: SimulationPowerTier
         let combatant: Combatant
@@ -142,7 +142,7 @@ enum AbilityComparisonAnalyzer {
             if tier.includesGear,
                let rarity = tier.rarity,
                let affixCount = tier.fixedAffixCount {
-                let gearSeed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 200_000
+                let gearSeed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 200000
                 var heroARNG = SeededRandomNumberGenerator(seed: gearSeed)
                 var petARNG = SeededRandomNumberGenerator(seed: gearSeed &+ 1)
                 var heroBRNG = SeededRandomNumberGenerator(seed: gearSeed &+ 2)
@@ -202,7 +202,7 @@ enum AbilityComparisonAnalyzer {
                 seed: request.baseSeed &+ UInt64(workItem.comparisonIndex)
             )
 
-            let seed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 300_000
+            let seed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 300000
             let options = BalanceSweepRunner.sweepOptions(maxTicks: request.maxTicks, seed: seed)
             if BattleSimulator.run(configuredA, options: options).didWin {
                 winsA += 1

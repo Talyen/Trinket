@@ -1,7 +1,7 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
 import TrinketContent
+import TrinketCore
 
 enum SimulationMatchupAssembler {
     static func assemble(

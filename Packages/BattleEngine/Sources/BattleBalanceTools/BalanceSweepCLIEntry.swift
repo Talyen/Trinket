@@ -1,5 +1,5 @@
-import Foundation
 import BattleEngine
+import Foundation
 import TrinketContent
 
 struct CLIOptions {
@@ -229,21 +229,21 @@ enum CLIError: Error, CustomStringConvertible {
         switch self {
         case .help:
             return "Help requested."
-        case .unknownFlag(let flag):
+        case let .unknownFlag(flag):
             return "Unknown flag: \(flag)"
-        case .missingValue(let flag):
+        case let .missingValue(flag):
             return "Missing value for \(flag)."
-        case .invalidInteger(let raw, let flag):
+        case let .invalidInteger(raw, flag):
             return "Invalid integer '\(raw)' for \(flag)."
-        case .invalidTiers(let raw):
+        case let .invalidTiers(raw):
             return "No valid tiers in '\(raw)'."
-        case .invalidSeed(let raw):
+        case let .invalidSeed(raw):
             return "Invalid seed '\(raw)'."
-        case .invalidLoadoutMode(let raw):
+        case let .invalidLoadoutMode(raw):
             return "Invalid loadout mode '\(raw)' (expected optimistic or realistic)."
-        case .missingRepresentative(let id, let label):
+        case let .missingRepresentative(id, label):
             return "Missing representative \(label) '\(id)'."
-        case .gateFailed(let count):
+        case let .gateFailed(count):
             return "Balance gate failed with \(count) violation(s)."
         }
     }

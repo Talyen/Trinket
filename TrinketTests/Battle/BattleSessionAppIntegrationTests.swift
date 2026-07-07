@@ -1,11 +1,11 @@
+import Testing
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
-import Testing
 @testable import BattleEngine
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 final class BattleSessionAppIntegrationTests {
     let context: AppTestContext
 

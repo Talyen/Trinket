@@ -1,14 +1,14 @@
-import Foundation
-import TrinketCore
-import TrinketContent
 import BattleEngine
+import Foundation
+import TrinketContent
+import TrinketCore
 
-enum LoadoutSamplingMode: String, Codable, Sendable, CaseIterable {
+enum LoadoutSamplingMode: String, Codable, CaseIterable {
     case optimistic
     case realistic
 }
 
-struct BalanceSweepRequest: Equatable, Sendable {
+struct BalanceSweepRequest: Equatable {
     let tiers: [SimulationPowerTier]
     let runsPerMatchup: Int
     let loadoutSamplesPerMatchup: Int
@@ -62,7 +62,7 @@ struct BalanceSweepRequest: Equatable, Sendable {
     }
 }
 
-struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
+struct BalanceSweepRequestSnapshot: Codable, Equatable {
     let tiers: [String]
     let runsPerMatchup: Int
     let loadoutSamplesPerMatchup: Int
@@ -90,7 +90,7 @@ struct BalanceSweepRequestSnapshot: Codable, Equatable, Sendable {
     }
 }
 
-struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
+struct MatchupSweepRow: Equatable, Identifiable, Codable {
     var id: String {
         "\(tier.rawValue)-\(heroID)-\(petID)-\(enemyID)-sample\(loadoutSampleIndex)"
     }
@@ -147,7 +147,7 @@ struct MatchupSweepRow: Equatable, Sendable, Identifiable, Codable {
     }
 }
 
-struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
+struct AbilityComparisonRow: Equatable, Identifiable, Codable {
     var id: String {
         "\(tier.rawValue)-\(combatantID)-\(tierName)-\(abilityID)-vs-\(siblingAbilityID)"
     }
@@ -162,30 +162,6 @@ struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
     let siblingAbilityName: String
     let winCount: Int
     let lossCount: Int
-
-    init(
-        tier: SimulationPowerTier,
-        combatantID: String,
-        combatantName: String,
-        abilityTier: AbilityTier,
-        abilityID: String,
-        abilityName: String,
-        siblingAbilityID: String,
-        siblingAbilityName: String,
-        winCount: Int,
-        lossCount: Int
-    ) {
-        self.tier = tier
-        self.combatantID = combatantID
-        self.combatantName = combatantName
-        self.abilityTier = abilityTier
-        self.abilityID = abilityID
-        self.abilityName = abilityName
-        self.siblingAbilityID = siblingAbilityID
-        self.siblingAbilityName = siblingAbilityName
-        self.winCount = winCount
-        self.lossCount = lossCount
-    }
 
     var tierName: String {
         abilityTier.rawValue
@@ -205,8 +181,8 @@ struct AbilityComparisonRow: Equatable, Sendable, Identifiable, Codable {
     }
 }
 
-struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
-    enum Kind: String, Sendable, Codable {
+struct BalanceAnomaly: Equatable, Identifiable, Codable {
+    enum Kind: String, Codable {
         case hardCounter
         case belowTarget
         case aboveTarget
@@ -218,7 +194,7 @@ struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
         case bossTuning
     }
 
-    enum Severity: String, Sendable, Codable {
+    enum Severity: String, Codable {
         case critical
         case warning
     }
@@ -251,7 +227,7 @@ struct BalanceAnomaly: Equatable, Sendable, Identifiable, Codable {
     }
 }
 
-struct BalanceSweepResult: Equatable, Sendable, Codable {
+struct BalanceSweepResult: Equatable, Codable {
     let request: BalanceSweepRequestSnapshot
     let matchupRows: [MatchupSweepRow]
     let abilityRows: [AbilityComparisonRow]

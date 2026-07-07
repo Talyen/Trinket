@@ -120,7 +120,7 @@ public struct Combatant: Identifiable, Hashable, Sendable {
 }
 
 public extension Combatant.Role {
-    public var fallbackArtSymbolName: String {
+    var fallbackArtSymbolName: String {
         switch self {
         case .hero:
             return "person.fill"

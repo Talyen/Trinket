@@ -1,8 +1,8 @@
-import Foundation
 import BattleEngine
+import Foundation
 
 enum BalanceReportRenderer {
-    struct Options: Equatable, Sendable {
+    struct Options: Equatable {
         let title: String
         let gitSHA: String?
 

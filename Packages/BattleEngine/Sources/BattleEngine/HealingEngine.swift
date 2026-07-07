@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Healing and leech rules.
 package enum HealingEngine {

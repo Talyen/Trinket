@@ -1,7 +1,7 @@
 import Foundation
 import Observation
-import SwiftData
 import os
+import SwiftData
 
 @MainActor
 @Observable
@@ -62,7 +62,7 @@ public final class PlayerSaveStore {
             finalURL = storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
         }
 
-        if resetState && !inMemoryOnly {
+        if resetState, !inMemoryOnly {
             let shmURL = finalURL.deletingPathExtension().appendingPathExtension("store-shm")
             let walURL = finalURL.deletingPathExtension().appendingPathExtension("store-wal")
             try? FileManager.default.removeItem(at: finalURL)
@@ -214,7 +214,7 @@ public final class PlayerSaveStore {
         context.insert(newRoot)
         try saveGraph()
 
-        self.root = newRoot
+        root = newRoot
         pendingRollbackSnapshot = nil
     }
 

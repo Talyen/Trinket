@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Working state threaded through the named damage-resolution steps in
 /// `BattleEngineContext.resolveDamage`. Each step mutates this struct in place; the
@@ -81,4 +81,3 @@ package struct DamageResolutionState {
         self.qualifiesForAmbush = qualifiesForAmbush
     }
 }
-

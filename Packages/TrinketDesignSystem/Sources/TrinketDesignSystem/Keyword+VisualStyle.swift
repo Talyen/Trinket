@@ -1,8 +1,8 @@
 import SwiftUI
 import TrinketCore
 
-extension Keyword {
-    public struct VisualStyle: Sendable {
+public extension Keyword {
+    struct VisualStyle: Sendable {
         public let color: Color
         public let secondaryColor: Color
         public let glowColor: Color
@@ -43,7 +43,7 @@ extension Keyword {
         )
     }
 
-    public var visualStyle: VisualStyle {
+    var visualStyle: VisualStyle {
         switch self {
         case .physical: return .physical
         case .burn: return .burn

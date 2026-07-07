@@ -1,10 +1,10 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import Testing
 @testable import BattleEngine
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 final class AppStateBattleTickLoopTests {
     let context: AppTestContext
 
@@ -91,7 +91,7 @@ final class AppStateBattleTickLoopTests {
         try await assertTickCountRemainsStable(tickCount, for: appState)
     }
 
-    @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
+    @Test func trimMemoryFootprintReleasesBattleLogProjection() {
         let session = BattleSession()
         session.activeBattle = ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,

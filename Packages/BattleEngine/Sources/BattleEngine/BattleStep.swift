@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// One step of the battle loop. `events` holds only the delta emitted during
 /// this step (effect ticks, the acting combatant's turn, defeat milestones).

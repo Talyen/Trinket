@@ -39,8 +39,8 @@ struct GameContentTraitCatalogTests {
 
     @Test func traitDescriptionsAreNonEmpty() {
         for trait in GameContent.traits {
-            #expect(!(trait.name.isEmpty, "Trait \(trait.id)) needs a name")
-            #expect(!(trait.description.isEmpty, "Trait \(trait.id)) needs a description")
+            #expect(!trait.name.isEmpty, "Trait \(trait.id)) needs a name")
+            #expect(!trait.description.isEmpty, "Trait \(trait.id)) needs a description")
         }
     }
 

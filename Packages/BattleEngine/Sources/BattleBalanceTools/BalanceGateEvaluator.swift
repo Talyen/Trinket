@@ -1,7 +1,7 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-struct BalanceGateThresholds: Equatable, Sendable, Codable {
+struct BalanceGateThresholds: Equatable, Codable {
     /// Maximum share of matchup rows with a 100% win rate (middle-tier fodder).
     let maxFodderPerfectWinRateMiddle: Double
     /// Minimum share of rows inside the win-rate target band (middle-tier fodder).
@@ -26,7 +26,7 @@ struct BalanceGateThresholds: Equatable, Sendable, Codable {
     static let ci = BalanceGateThresholds()
 }
 
-struct BalanceGateViolation: Equatable, Sendable, Codable {
+struct BalanceGateViolation: Equatable, Codable {
     let metric: String
     let actual: Double
     let limit: Double

@@ -197,7 +197,7 @@ struct BattleGoldenPathTests {
         line: UInt = #line
     ) {
         let milestones = events.filter { $0.kind == .milestone }
-        #expect(!(milestones.isEmpty, file: file, line: line))
+        #expect(!milestones.isEmpty, file: file, line: line))
         #expect(milestones.last?.targetID == targetID, file: file, line: line)
     }
 

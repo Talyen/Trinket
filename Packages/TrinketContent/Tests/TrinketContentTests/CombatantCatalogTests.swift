@@ -56,9 +56,9 @@ struct CombatantCatalogTests {
 
     @Test func eachHeroHasBasicSkillUltimateChoices() throws {
         for hero in GameContent.heroes {
-            #expect(!(hero.abilityChoices.basics.isEmpty, "\(hero.name)) should have basic choices")
-            #expect(!(hero.abilityChoices.skills.isEmpty, "\(hero.name)) should have skill choices")
-            #expect(!(hero.abilityChoices.ultimates.isEmpty, "\(hero.name)) should have ultimate choices")
+            #expect(!hero.abilityChoices.basics.isEmpty, "\(hero.name)) should have basic choices")
+            #expect(!hero.abilityChoices.skills.isEmpty, "\(hero.name)) should have skill choices")
+            #expect(!hero.abilityChoices.ultimates.isEmpty, "\(hero.name)) should have ultimate choices")
             _ = try #require(hero.abilityLoadout.basic, "\(hero.name) should have a selected basic")
             _ = try #require(hero.abilityLoadout.skill, "\(hero.name) should have a selected skill")
             _ = try #require(hero.abilityLoadout.ultimate, "\(hero.name) should have a selected ultimate")
@@ -67,9 +67,9 @@ struct CombatantCatalogTests {
 
     @Test func eachPetHasBasicSkillUltimateChoices() throws {
         for pet in GameContent.pets {
-            #expect(!(pet.abilityChoices.basics.isEmpty, "\(pet.name)) should have basic choices")
-            #expect(!(pet.abilityChoices.skills.isEmpty, "\(pet.name)) should have skill choices")
-            #expect(!(pet.abilityChoices.ultimates.isEmpty, "\(pet.name)) should have ultimate choices")
+            #expect(!pet.abilityChoices.basics.isEmpty, "\(pet.name)) should have basic choices")
+            #expect(!pet.abilityChoices.skills.isEmpty, "\(pet.name)) should have skill choices")
+            #expect(!pet.abilityChoices.ultimates.isEmpty, "\(pet.name)) should have ultimate choices")
             _ = try #require(pet.abilityLoadout.basic, "\(pet.name) should have a selected basic")
             _ = try #require(pet.abilityLoadout.skill, "\(pet.name) should have a selected skill")
             _ = try #require(pet.abilityLoadout.ultimate, "\(pet.name) should have a selected ultimate")

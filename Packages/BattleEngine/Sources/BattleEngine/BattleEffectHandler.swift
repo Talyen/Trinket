@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Result of dispatching a single `Effect` through a `BattleEffectHandler`.
 /// The caller (`BattleTurnEngine.performAction`) merges these into the

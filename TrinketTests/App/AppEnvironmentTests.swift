@@ -1,7 +1,7 @@
 import Testing
 @testable import Trinket
 
-@Suite struct AppEnvironmentTests {
+struct AppEnvironmentTests {
     private static let emptyEnvironment: [String: String] = [:]
 
     @Test(arguments: AppTab.allCases)

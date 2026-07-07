@@ -98,8 +98,7 @@ public enum PlayerSaveSanitizer {
 
         if let activeStageID = sanitized.activeStageID,
            validStageIDs.contains(activeStageID),
-           !sanitized.completedStageIDs.contains(activeStageID)
-        {
+           !sanitized.completedStageIDs.contains(activeStageID) {
             sanitized.activeStageID = activeStageID
         } else {
             sanitized.activeStageID = chapters
@@ -109,8 +108,7 @@ public enum PlayerSaveSanitizer {
         }
 
         if let activeStageID = sanitized.activeStageID,
-           let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID })
-        {
+           let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID }) {
             sanitized.activeChapterID = stage.chapterID
         }
 

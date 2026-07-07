@@ -31,10 +31,7 @@ struct MysteryEventCatalogTests {
     @Test func allMysteryEventsHaveAtLeastOneEffectPerChoice() {
         for event in GameContent.mysteryEvents {
             for choice in event.choices {
-                #expect(!(
-                    choice.effects.isEmpty,
-                    "Choice \(choice.id)) in event \(event.id) has no effects"
-                )
+                #expect(!choice.effects.isEmpty, "Choice \(choice.id)) in event \(event.id) has no effects")
             }
         }
     }

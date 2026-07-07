@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public enum BattleConditionEvaluator {
     public static func isMet(

@@ -1,6 +1,6 @@
 import Foundation
 
-enum ProgressionBracket: Equatable, Sendable {
+enum ProgressionBracket: Equatable {
     case early
     case mid
     case late

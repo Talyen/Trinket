@@ -6,7 +6,7 @@ import Foundation
 public extension PrimaryStats {
     /// Bonus added to a damage roll for the given `keyword`. Mirrors the
     /// prior `BattleState.statBonusForDamage(from:keyword:)` formula.
-    public func statBonusForDamage(keyword: Keyword) -> Int {
+    func statBonusForDamage(keyword: Keyword) -> Int {
         switch keyword {
         case .physical, .stun: return strength / 5
         case .bleed: return agility / 5
@@ -18,14 +18,14 @@ public extension PrimaryStats {
 
     /// Probability that an incoming attack is dodged. Capped at 75%.
     /// Mirrors the prior `BattleState.dodgeChance(for:)` formula.
-    public var dodgeChance: Double {
+    var dodgeChance: Double {
         min(0.75, 0.05 + Double(agility) * 0.005)
     }
 
     /// Percentage of incoming damage absorbed passively by toughness, as a
     /// fraction in `[0, 1)`. Mirrors the prior
     /// `BattleState.toughnessMitigationPct(for:)` formula.
-    public var toughnessMitigationPct: Double {
+    var toughnessMitigationPct: Double {
         let t = Double(toughness)
         return t / (t + 50.0)
     }
@@ -33,7 +33,7 @@ public extension PrimaryStats {
     /// Stun/freeze control-meter buildup threshold for a combatant with the given
     /// effective max health (`base max + toughness`). Mirrors the prior
     /// `ControlMeterEngine` / roster max-health formula.
-    public func controlMeterThreshold(baseMaxHealth: Int) -> Int {
+    func controlMeterThreshold(baseMaxHealth: Int) -> Int {
         let baseThreshold = Double(baseMaxHealth) * 0.20
         let agilityResist = 1.0 + Double(agility) * 0.01
         return max(1, Int(ceil(baseThreshold * agilityResist)))
@@ -41,7 +41,7 @@ public extension PrimaryStats {
 
     /// Base critical-hit chance for damage of the given keyword, before ability
     /// or item bonuses. Capped at 75%.
-    public func criticalChance(for keyword: Keyword) -> Double {
+    func criticalChance(for keyword: Keyword) -> Double {
         let statBonus: Double
         switch keyword {
         case .physical, .bleed, .stun:

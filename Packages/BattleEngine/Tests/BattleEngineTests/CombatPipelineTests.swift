@@ -340,7 +340,7 @@ struct CombatPipelineTests {
 
         #expect(lost == 0)
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
-        #expect(buildup, "Fully shielded hits should not build control meters" == nil)
+        #expect(buildup == nil, "Fully shielded hits should not build control meters")
     }
 
     // MARK: - Pipeline ordering

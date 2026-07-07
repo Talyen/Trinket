@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Incremental combat-log cache derived from the append-only `ActionEvent` stream.
 /// Optional on `BattleState` so simulations that do not need a log avoid allocating

@@ -1,8 +1,7 @@
-import TrinketContent
 import Testing
+import TrinketContent
 @testable import Trinket
 
-@Suite
 struct GameContentEncounterArtTests {
     @Test func mappedEventStagesResolveEncounterArt() throws {
         let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-2" })

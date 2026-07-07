@@ -1,11 +1,11 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
-extension DamagePipeline {
+package extension DamagePipeline {
     // MARK: - Stochastic steps
 
-    package static func applyDodgeGate(
+    static func applyDodgeGate(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -31,7 +31,7 @@ extension DamagePipeline {
         }
     }
 
-    package static func dodgeChance(
+    static func dodgeChance(
         for state: DamageResolutionState,
         in context: BattleEngineContext
     ) -> Double {
@@ -44,7 +44,7 @@ extension DamagePipeline {
         return min(0.75, chance)
     }
 
-    package static func applyCriticalGate(
+    static func applyCriticalGate(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -86,7 +86,7 @@ extension DamagePipeline {
 
     // MARK: - Resolution steps
 
-    package static func applyDamageBonus(
+    static func applyDamageBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -117,7 +117,7 @@ extension DamagePipeline {
         state.dealt = state.remaining
     }
 
-    package static func outgoingDamageBonus(
+    static func outgoingDamageBonus(
         for sourceActorID: String,
         keyword: Keyword,
         in context: BattleEngineContext
@@ -129,7 +129,7 @@ extension DamagePipeline {
         return bonus
     }
 
-    package static func applyMarkedBonus(
+    static func applyMarkedBonus(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -148,7 +148,7 @@ extension DamagePipeline {
         state.markedBonusApplied = true
     }
 
-    package static func applyMitigation(
+    static func applyMitigation(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -173,7 +173,7 @@ extension DamagePipeline {
         }
     }
 
-    package static func applyItemReduction(
+    static func applyItemReduction(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -197,7 +197,7 @@ extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
-    package static func applyShieldAbsorption(
+    static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -241,7 +241,7 @@ extension DamagePipeline {
         state.activeEffects = effects
     }
 
-    package static func applyCriticalMultiply(
+    static func applyCriticalMultiply(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -251,7 +251,7 @@ extension DamagePipeline {
         state.dealt = state.remaining
     }
 
-    package static func applyTakeDamage(
+    static func applyTakeDamage(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -261,7 +261,7 @@ extension DamagePipeline {
         state.healthLost = lost
     }
 
-    package static func applyMarkedConsume(
+    static func applyMarkedConsume(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -285,7 +285,7 @@ extension DamagePipeline {
         ))
     }
 
-    package static func applyDeathsDoor(
+    static func applyDeathsDoor(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -297,7 +297,7 @@ extension DamagePipeline {
 
     // MARK: - Post steps
 
-    package static func applyLeech(
+    static func applyLeech(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -313,7 +313,7 @@ extension DamagePipeline {
         state.damageEvents.append(contentsOf: leechOutcome.events)
     }
 
-    package static func applyControlMeter(
+    static func applyControlMeter(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -331,7 +331,7 @@ extension DamagePipeline {
         ))
     }
 
-    package static func applyReactiveOnHit(
+    static func applyReactiveOnHit(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {

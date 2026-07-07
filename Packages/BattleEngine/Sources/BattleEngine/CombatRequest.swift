@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Tunable damage-resolution switches for a single `DamageRequest`.
 public struct DamageOptions: Equatable, Hashable, Sendable {
@@ -97,14 +97,14 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
 }
 
 /// Controls whether `HealingEngine.resolveHeal` emits combat-log events.
-enum HealLogPolicy: Equatable, Hashable, Sendable {
+enum HealLogPolicy: Equatable, Hashable {
     case silent
     case leech
     case instantHeal(actorName: String, abilityName: String, keyword: Keyword, displayAmount: Int)
 }
 
 /// Describes one heal application.
-struct HealRequest: Equatable, Hashable, Sendable {
+struct HealRequest: Equatable, Hashable {
     var amount: Int
     var target: Combatant
     var sourceActorID: String?

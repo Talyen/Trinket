@@ -29,13 +29,38 @@ def convert_assertions(text: str) -> str:
     text = re.sub(r"\btry XCTUnwrap\(", "try #require(", text)
     text = re.sub(r"\bXCTUnwrap\(", "#require(", text)
 
-    # XCTAssertNil / XCTAssertNotNil
-    text = re.sub(r"XCTAssertNil\(([^)]+)\)", r"#expect(\1 == nil)", text)
-    text = re.sub(r"XCTAssertNotNil\(([^)]+)\)", r"#expect(\1 != nil)", text)
-
-    # XCTAssertFalse / XCTAssertTrue
+    # XCTAssertFalse / XCTAssertTrue (with optional message)
+    text = re.sub(
+        r'XCTAssertFalse\(([^,()]+(?:\([^)]*\))?[^,()]*),\s*"([^"]*)"\)',
+        r'#expect(!\1, "\2")',
+        text,
+    )
+    text = re.sub(
+        r"XCTAssertFalse\(([^,()]+(?:\([^)]*\))?[^,()]*),\s*file:\s*([^,]+),\s*line:\s*([^)]+)\)",
+        r"#expect(!\1, file: \2, line: \3)",
+        text,
+    )
     text = re.sub(r"XCTAssertFalse\(([^)]+)\)", r"#expect(!(\1))", text)
+    text = re.sub(
+        r'XCTAssertTrue\(([^,()]+(?:\([^)]*\))?[^,()]*),\s*"([^"]*)"\)',
+        r'#expect(\1, "\2")',
+        text,
+    )
     text = re.sub(r"XCTAssertTrue\(([^)]+)\)", r"#expect(\1)", text)
+
+    # XCTAssertNil / XCTAssertNotNil (with optional message)
+    text = re.sub(
+        r'XCTAssertNil\(([^,()]+(?:\([^)]*\))?[^,()]*),\s*"([^"]*)"\)',
+        r'#expect(\1 == nil, "\2")',
+        text,
+    )
+    text = re.sub(r"XCTAssertNil\(([^)]+)\)", r"#expect(\1 == nil)", text)
+    text = re.sub(
+        r'XCTAssertNotNil\(([^,()]+(?:\([^)]*\))?[^,()]*),\s*"([^"]*)"\)',
+        r'#expect(\1 != nil, "\2")',
+        text,
+    )
+    text = re.sub(r"XCTAssertNotNil\(([^)]+)\)", r"#expect(\1 != nil)", text)
 
     # XCTAssertEqual with accuracy
     def accuracy_repl(m: re.Match[str]) -> str:

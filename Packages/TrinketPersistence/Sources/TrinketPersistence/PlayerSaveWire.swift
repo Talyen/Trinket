@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct WireAbilityLoadout: Codable, Equatable, Sendable {
+struct WireAbilityLoadout: Codable, Equatable {
     var basicID: String?
     var skillID: String?
     var ultimateID: String?
@@ -33,7 +33,7 @@ struct WireAbilityLoadout: Codable, Equatable, Sendable {
     }
 }
 
-struct WireEquipmentLoadout: Codable, Equatable, Sendable {
+struct WireEquipmentLoadout: Codable, Equatable {
     var itemIDsBySlot: [String: String]
 
     init(_ loadout: EquipmentLoadout) {
@@ -54,7 +54,7 @@ struct WireEquipmentLoadout: Codable, Equatable, Sendable {
     }
 }
 
-struct WireItemAffix: Codable, Equatable, Sendable {
+struct WireItemAffix: Codable, Equatable {
     var id: String
     var title: String
     var description: String
@@ -100,7 +100,7 @@ struct WireItemAffix: Codable, Equatable, Sendable {
     }
 }
 
-struct WireInventoryItem: Codable, Equatable, Sendable {
+struct WireInventoryItem: Codable, Equatable {
     var id: String
     var templateID: String
     var baseTypeID: String
@@ -147,7 +147,7 @@ struct WireInventoryItem: Codable, Equatable, Sendable {
     }
 }
 
-struct WireRosterState: Codable, Equatable, Sendable {
+struct WireRosterState: Codable, Equatable {
     var activeHeroID: String
     var activePetID: String
     var unlockedHeroIDs: [String]
@@ -224,7 +224,7 @@ struct WireRosterState: Codable, Equatable, Sendable {
     }
 }
 
-struct WireInventoryState: Codable, Equatable, Sendable {
+struct WireInventoryState: Codable, Equatable {
     var items: [WireInventoryItem]
 
     init(_ inventory: PlayerInventoryState) {
@@ -240,7 +240,7 @@ struct WireInventoryState: Codable, Equatable, Sendable {
     }
 }
 
-struct WireHomesteadState: Codable, Equatable, Sendable {
+struct WireHomesteadState: Codable, Equatable {
     var resources: [String: Int]
     var nodeTiers: [String: Int]
 

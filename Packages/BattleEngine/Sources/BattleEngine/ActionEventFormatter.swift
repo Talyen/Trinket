@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// The view-facing shape of a battle event. Produced by
 /// `ActionEventFormatter.display(for:)` so the model (`ActionEvent`) stays
@@ -113,7 +113,7 @@ public enum ActionEventFormatter {
         }
     }
 
-    private static func deathsDoorDisplay(for event: ActionEvent) -> ActionEventDisplay {
+    private static func deathsDoorDisplay(for _: ActionEvent) -> ActionEventDisplay {
         ActionEventDisplay(
             emphasis: .deathsDoor,
             keyword: .deathsDoor,

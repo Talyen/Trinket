@@ -1,9 +1,8 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import Testing
 @testable import Trinket
 
-@Suite
 struct StageMapPresentationTests {
     @Test func chapterGateIDUsesChapterIdentifier() {
         let chapter = GameContent.chapters[0]

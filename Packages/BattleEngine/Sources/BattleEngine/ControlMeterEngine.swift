@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Stun/freeze control meter: tracks charge toward the next action skip.
 package enum ControlMeterEngine {

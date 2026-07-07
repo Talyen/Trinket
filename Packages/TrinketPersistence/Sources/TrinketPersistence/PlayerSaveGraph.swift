@@ -325,12 +325,12 @@ public extension PlayerSaveRoot {
         }
     }
 
-    private func syncChild<Model>(
+    private func syncChild<Model: AnyObject>(
         _ keyPath: ReferenceWritableKeyPath<PlayerSaveRoot, Model?>,
         make: () -> Model,
         update: (Model) -> Void,
         setRoot: (Model) -> Void
-    ) where Model: AnyObject {
+    ) {
         let model = self[keyPath: keyPath] ?? make()
         update(model)
         self[keyPath: keyPath] = model

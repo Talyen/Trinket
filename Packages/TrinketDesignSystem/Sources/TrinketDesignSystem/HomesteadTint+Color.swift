@@ -1,8 +1,8 @@
 import SwiftUI
 import TrinketCore
 
-extension HomesteadTint {
-    public var color: Color {
+public extension HomesteadTint {
+    var color: Color {
         switch self {
         case .orange:
             return .orange

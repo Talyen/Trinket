@@ -1,9 +1,9 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import Testing
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 final class ActiveBattleConfigurationTests {
     @Test func makeWithoutEquipmentUsesTraitOnlyModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })

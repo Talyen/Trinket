@@ -1,7 +1,6 @@
 import Testing
 @testable import Trinket
 
-@Suite
 struct HeroHeaderLayoutTests {
     // MARK: - Header height (3:4 of width, minimum 300)
 
@@ -9,7 +8,7 @@ struct HeroHeaderLayoutTests {
         let width: CGFloat = 390
         let height = HeroHeaderLayout.headerHeight(forWidth: width)
         let aspect = height / width
-        #expect(abs((aspect) - (4.0 / 3.0)) < 0.001)
+        #expect(abs(aspect - (4.0 / 3.0)) < 0.001)
     }
 
     @Test func headerHeightHasMinimumOf300() {
@@ -27,7 +26,7 @@ struct HeroHeaderLayoutTests {
     @Test func headerHeightAboveMinimumUsesWidth() {
         let width: CGFloat = 300
         let height = HeroHeaderLayout.headerHeight(forWidth: width)
-        #expect(abs((height) - (400)) < 0.5)
+        #expect(abs(height - 400) < 0.5)
     }
 
     @Test func headerHeightForCommonDeviceWidths() {
@@ -40,8 +39,8 @@ struct HeroHeaderLayoutTests {
         ]
         for (width, expected) in widths {
             let height = HeroHeaderLayout.headerHeight(forWidth: width)
-            #expect(abs((height) - (expected)) < 1,
-                           "Expected height for width \(width)")
+            #expect(abs(height - expected) < 1,
+                    "Expected height for width \(width)")
         }
     }
 

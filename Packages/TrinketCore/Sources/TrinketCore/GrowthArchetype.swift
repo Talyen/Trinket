@@ -38,7 +38,7 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
     }
 }
 
-internal struct EnemyGearCompensation: Equatable, Sendable {
+struct EnemyGearCompensation: Equatable {
     let healthMultiplier: Double
     let primaryStatMultiplier: Double
     let statDelta: StatGrowthDelta
@@ -197,7 +197,7 @@ public enum StatGrowth {
 
     /// Smooth gear-compensation tuned for balance targets:
     /// fodder 90–99% / 80–90% / 70–80% and bosses-elites ~70–80% across tiers.
-    internal static func enemyGearCompensation(
+    static func enemyGearCompensation(
         level: Int,
         identityStats: PrimaryStats,
         isBoss: Bool = false,

@@ -1,7 +1,7 @@
 import Foundation
 import os
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public enum BattleTurnEngine {
     private static let logger = Logger(

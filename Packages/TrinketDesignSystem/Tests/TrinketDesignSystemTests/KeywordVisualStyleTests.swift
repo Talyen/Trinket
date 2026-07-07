@@ -12,7 +12,7 @@ struct KeywordVisualStyleTests {
             #expect(style.glowColor != .clear, "\(keyword.rawValue) should have a glow color")
             #expect(style.subtleBackgroundColor != .clear, "\(keyword.rawValue) should have a subtle background color")
             #expect(style.borderColor != .clear, "\(keyword.rawValue) should have a border color")
-            #expect(!(style.symbolName.isEmpty, "\(keyword.rawValue)) should have a symbol name")
+            #expect(!style.symbolName.isEmpty, "\(keyword.rawValue)) should have a symbol name")
         }
     }
 }

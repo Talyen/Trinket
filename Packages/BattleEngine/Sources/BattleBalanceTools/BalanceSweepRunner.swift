@@ -5,7 +5,7 @@ import TrinketContent
 import TrinketCore
 
 enum BalanceSweepRunner {
-    private struct MatchupWorkItem: Sendable {
+    private struct MatchupWorkItem {
         let matchupIndex: Int
         let sampleIndex: Int
         let tier: SimulationPowerTier
@@ -123,7 +123,6 @@ private final class MatchupRowCollector: Sendable {
 }
 
 extension BalanceSweepRunner {
-
     private static func evaluate(
         _ workItem: MatchupWorkItem,
         request: BalanceSweepRequest
@@ -161,7 +160,7 @@ extension BalanceSweepRunner {
         if tier.includesGear,
            let rarity = tier.rarity,
            let affixCount = tier.fixedAffixCount {
-            let gearSeed = request.baseSeed &+ UInt64(workItem.matchupIndex) &+ 9_001
+            let gearSeed = request.baseSeed &+ UInt64(workItem.matchupIndex) &+ 9001
             var heroGearRNG = SeededRandomNumberGenerator(seed: gearSeed)
             var petGearRNG = SeededRandomNumberGenerator(seed: gearSeed &+ 1)
             heroGear = gearGenerator.generate(

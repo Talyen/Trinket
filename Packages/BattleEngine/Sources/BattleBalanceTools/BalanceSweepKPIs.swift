@@ -1,7 +1,7 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-struct BalanceRoleKPI: Equatable, Sendable, Codable {
+struct BalanceRoleKPI: Equatable, Codable {
     let rowCount: Int
     let inBandCount: Int
     let perfectWinCount: Int
@@ -23,7 +23,7 @@ struct BalanceRoleKPI: Equatable, Sendable, Codable {
     }
 }
 
-struct BalanceTierKPI: Equatable, Sendable, Codable {
+struct BalanceTierKPI: Equatable, Codable {
     let rowCount: Int
     let inBandCount: Int
     let perfectWinCount: Int
@@ -46,7 +46,7 @@ struct BalanceTierKPI: Equatable, Sendable, Codable {
     }
 }
 
-struct BalanceSweepKPIs: Equatable, Sendable, Codable {
+struct BalanceSweepKPIs: Equatable, Codable {
     let totalMatchupRows: Int
     let inBandCount: Int
     let perfectWinCount: Int

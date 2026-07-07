@@ -1,6 +1,6 @@
 import Foundation
 
-enum MusicTrackKind: String, Hashable, Sendable {
+enum MusicTrackKind: String, Hashable {
     case menu
     case battle
     case boss
@@ -14,24 +14,6 @@ public struct MusicTrack: Identifiable, Hashable, Sendable {
     public let bossEnemyID: String
     public let isLooping: Bool
     public let volumeGain: Double
-
-    init(
-        id: String,
-        kind: MusicTrackKind,
-        resourceName: String,
-        fileExtension: String,
-        bossEnemyID: String,
-        isLooping: Bool,
-        volumeGain: Double
-    ) {
-        self.id = id
-        self.kind = kind
-        self.resourceName = resourceName
-        self.fileExtension = fileExtension
-        self.bossEnemyID = bossEnemyID
-        self.isLooping = isLooping
-        self.volumeGain = volumeGain
-    }
 
     public var resolvedBossEnemyID: String? {
         bossEnemyID.isEmpty ? nil : bossEnemyID

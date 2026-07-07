@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public struct StageCompletionContext: Sendable {
     public var roster: PlayerRosterState

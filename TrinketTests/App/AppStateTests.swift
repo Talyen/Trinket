@@ -1,9 +1,9 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import Testing
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 final class AppStateTests {
     let context: AppTestContext
 

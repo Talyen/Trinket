@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Mutable per-combatant state for the duration of a single battle. Replaces
 /// the triplicated `heroHealth`/`petHealth`/`enemyHealth`, three effect arrays,

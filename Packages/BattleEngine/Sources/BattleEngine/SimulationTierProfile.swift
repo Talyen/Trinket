@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
     case early

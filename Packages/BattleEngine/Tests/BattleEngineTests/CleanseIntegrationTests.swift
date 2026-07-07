@@ -131,6 +131,6 @@ struct CleanseIntegrationTests {
 
         BattleTestFixtures.advanceTicks(1, on: &battle)
 
-        #expect(!(battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup"))
+        #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup"))
     }
 }

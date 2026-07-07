@@ -1,9 +1,8 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import Testing
 @testable import Trinket
 
-@Suite
 struct JourneyMapPresentationTests {
     private var chapter: Chapter {
         GameContent.chapters[0]
@@ -87,12 +86,10 @@ struct JourneyMapPresentationTests {
             progress: progress
         )
 
-        #expect(!(
-            rows.contains {
-                guard case let .stage(_, state)) = $0 else { return false }
-                return state == .justCompleted
-            }
-        )
+        #expect(!rows.contains {
+            guard case let .stage(_, state) = $0 else { return false }
+            return state == .justCompleted
+        })
     }
 
     @Test func rowsEndWithChapterGate() {
@@ -106,7 +103,9 @@ struct JourneyMapPresentationTests {
         )
 
         guard case let .chapterGate(gateChapter) = rows.last else {
-            return Issue.record("Expected chapter gate row")
+            Issue.record("Expected chapter gate row")
+
+            return
         }
         #expect(gateChapter.number == 2)
     }

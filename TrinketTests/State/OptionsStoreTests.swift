@@ -1,8 +1,8 @@
-import TrinketDesignSystem
 import Testing
+import TrinketDesignSystem
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 final class OptionsStoreTests {
     let context: AppTestContext
 
@@ -14,11 +14,11 @@ final class OptionsStoreTests {
         let store = OptionsStore(defaults: context.userDefaults)
 
         #if targetEnvironment(simulator)
-        #expect(abs((store.musicVolume) - (0)) < 0.001)
+        #expect(abs((store.musicVolume) - 0) < 0.001)
         #else
-        #expect(abs((store.musicVolume) - (0.75)) < 0.001)
+        #expect(abs((store.musicVolume) - 0.75) < 0.001)
         #endif
-        #expect(abs((store.effectsVolume) - (0.85)) < 0.001)
+        #expect(abs((store.effectsVolume) - 0.85) < 0.001)
         #expect(store.hapticsEnabled)
         #expect(store.appearance == .system)
     }
@@ -31,8 +31,8 @@ final class OptionsStoreTests {
 
         let store = OptionsStore(defaults: context.userDefaults)
 
-        #expect(abs((store.musicVolume) - (0.4)) < 0.001)
-        #expect(abs((store.effectsVolume) - (0.6)) < 0.001)
+        #expect(abs((store.musicVolume) - 0.4) < 0.001)
+        #expect(abs((store.effectsVolume) - 0.6) < 0.001)
         #expect(!(store.hapticsEnabled))
         #expect(store.appearance == .dark)
     }
@@ -41,16 +41,16 @@ final class OptionsStoreTests {
         let store = OptionsStore(defaults: context.userDefaults)
         store.musicVolume = 0.25
 
-        #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - (0.25)) < 0.001)
-        #expect(abs((OptionsStore(defaults: context.userDefaults).musicVolume) - (0.25)) < 0.001)
+        #expect(abs((context.userDefaults.double(forKey: "options.musicVolume")) - 0.25) < 0.001)
+        #expect(abs((OptionsStore(defaults: context.userDefaults).musicVolume) - 0.25) < 0.001)
     }
 
     @Test func effectsVolumePersistsOnChange() {
         let store = OptionsStore(defaults: context.userDefaults)
         store.effectsVolume = 0.5
 
-        #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - (0.5)) < 0.001)
-        #expect(abs((OptionsStore(defaults: context.userDefaults).effectsVolume) - (0.5)) < 0.001)
+        #expect(abs((context.userDefaults.double(forKey: "options.effectsVolume")) - 0.5) < 0.001)
+        #expect(abs((OptionsStore(defaults: context.userDefaults).effectsVolume) - 0.5) < 0.001)
     }
 
     @Test func hapticsEnabledPersistsOnChange() {
@@ -58,7 +58,7 @@ final class OptionsStoreTests {
         store.hapticsEnabled = false
 
         #expect(!(context.userDefaults.bool(forKey: "options.hapticsEnabled")))
-        #expect(!(OptionsStore(defaults: context.userDefaults)).hapticsEnabled)
+        #expect(!OptionsStore(defaults: context.userDefaults).hapticsEnabled)
     }
 
     @Test func appearancePersistsOnChange() {

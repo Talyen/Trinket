@@ -59,8 +59,7 @@ struct BattleConditionEvaluatorTests {
             enemyModifiers: .zero
         )
 
-        #expect(!(
-            BattleConditionEvaluator.isMet(
+        #expect(!BattleConditionEvaluator.isMet(
                 .enemyBleeding,
                 actor: hero,
                 enemy: enemy,
@@ -68,6 +67,5 @@ struct BattleConditionEvaluatorTests {
                 pet: pet,
                 context: context
             ))
-        )
     }
 }

@@ -23,7 +23,7 @@ public final class PlayerHomesteadStore {
         current = updated
     }
 
-    public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster: PlayerRosterStore) -> HomesteadBuildResult {
+    public func buildOrUpgrade(_ definition: HomesteadNodeDefinition, roster _: PlayerRosterStore) -> HomesteadBuildResult {
         var didUpgrade = false
         do {
             try saveStore.performBatchMutation { save in

@@ -2,27 +2,27 @@ import Foundation
 import TrinketContent
 
 public extension JourneyProgressState {
-    public func isActive(_ stage: Stage) -> Bool {
+    func isActive(_ stage: Stage) -> Bool {
         activeStageID == stage.id
     }
 
-    public func isCompleted(_ stage: Stage) -> Bool {
+    func isCompleted(_ stage: Stage) -> Bool {
         completedStageIDs.contains(stage.id)
     }
 
-    public func isLastCompleted(_ stage: Stage) -> Bool {
+    func isLastCompleted(_ stage: Stage) -> Bool {
         lastCompletedStageID == stage.id
     }
 
-    public func hasClaimedRewards(for stage: Stage) -> Bool {
+    func hasClaimedRewards(for stage: Stage) -> Bool {
         claimedRewardStageIDs.contains(stage.id)
     }
 
-    public mutating func markRewardsClaimed(for stage: Stage) {
+    mutating func markRewardsClaimed(for stage: Stage) {
         claimedRewardStageIDs.insert(stage.id)
     }
 
-    public mutating func complete(_ stage: Stage, in chapters: [Chapter]) {
+    mutating func complete(_ stage: Stage, in chapters: [Chapter]) {
         completedStageIDs.insert(stage.id)
         lastCompletedStageID = stage.id
 
@@ -34,7 +34,7 @@ public extension JourneyProgressState {
         }
     }
 
-    public static func nextStage(after stage: Stage, in chapters: [Chapter]) -> Stage? {
+    static func nextStage(after stage: Stage, in chapters: [Chapter]) -> Stage? {
         guard let chapterIndex = chapters.firstIndex(where: { $0.id == stage.chapterID }),
               let stageIndex = chapters[chapterIndex].stages.firstIndex(where: { $0.id == stage.id })
         else { return nil }
