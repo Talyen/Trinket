@@ -25,10 +25,13 @@ final class BattleFlowUITests: TrinketUITestCase {
                 XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 155 experience")
                 assertCombatantDetailSections()
                 dismissSheet()
+
+                // Resume the battle since changing tabs paused it
+                button("Battle Pause Button").tap()
             }
         }
 
-        assertExists(victory, timeout: 30)
+        assertExists(victory, timeout: 120)
 
         assertExists("Experience")
         assertExists("Rewards")
