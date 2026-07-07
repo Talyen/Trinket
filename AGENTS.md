@@ -34,7 +34,7 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
 ## Battle Module
 
-Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
+Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/ActiveBattleConfiguration.swift`, `Trinket/BattleShell/BattleVictorySummary.swift`.
 
 Key patterns:
 - Effects are value-type structs conforming to `BattleEffectHandler`; lookup by `EffectKind` dictionary in `BattleState`.
@@ -144,8 +144,8 @@ Framework: **XCTest** + `@testable import Trinket`. Mirror production folders un
 
 | Helper | Location | Use for |
 |--------|----------|---------|
-| `SaveTestSupport` | `TrinketTests/Support/` | Temp save directories, `PlayerSaveFileStore` / `PlayerSaveStore` factories |
-| `AppTestSupport` | `TrinketTests/Support/` | `makeAppState` with injectable `sync`, `fileStore`, `userDefaults` |
+| `SaveTestSupport` | `TrinketTests/Support/` | Temp save directories and `PlayerSaveStore` factories |
+| `AppTestSupport` | `TrinketTests/Support/` | `makeAppState` with injectable `playerSave`, `userDefaults` |
 | `CombatantFixtures` | `TrinketTests/Support/` (app) · `Packages/BattleEngine/Tests/.../Support/` (battle) | Minimal combatants and abilities |
 | `BattleStateTestFactory` | `Packages/BattleEngine/Tests/BattleEngineTests/` | **Always** use for RNG-sensitive battle tests (`rngSeed: 0`) |
 | `BattleTestFixtures` | `Packages/BattleEngine/Tests/BattleEngineTests/Support/` | Integration tick helpers, `standardParty`, effect predicates |

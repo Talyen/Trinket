@@ -6,14 +6,14 @@ You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swif
 
 ## Targets
 
-All 31 markdown files in the repository:
+All 37 markdown files in the repository:
 
 | Group | Files |
 |-------|-------|
 | Root | `README.md` `AGENTS.md` `CHANGELOG.md` `LICENSE.md` |
 | Docs | `Docs/Architecture.md` `Docs/Roadmap.md` |
 | Docs/Design | `Docs/Design/CoreDesignConcepts.md` `Docs/Design/AppleNativeGuidelines.md` `Docs/Design/StyleGuide/AppVisualFoundation.md` `Docs/Design/StyleGuide/VisualReferences/README.md` |
-| Docs/Audits | `Docs/Audits/BehaviorHardeningAudit.md` `Docs/Audits/CloudKitPreShipChecklist.md` `Docs/Audits/ComplexityReductionAudit.md` `Docs/Audits/DeadCodeRatioAudit.md` `Docs/Audits/ImportCouplingBoundaryAudit.md` `Docs/Audits/SideEffectSurfaceAudit.md` `Docs/Audits/TestQualityAudit.md` `Docs/Audits/TypeSafetyAudit.md` `Docs/Audits/UIInteractionFeedbackAudit.md` `Docs/Audits/DocumentationStalenessAudit.md` |
+| Docs/Audits | `Docs/Audits/BehaviorHardeningAudit.md` `Docs/Audits/BugHuntingAudit.md` `Docs/Audits/CloudKitPreShipChecklist.md` `Docs/Audits/ComplexityReductionAudit.md` `Docs/Audits/DeadCodeRatioAudit.md` `Docs/Audits/E2ETestQualityAudit.md` `Docs/Audits/ImportCouplingBoundaryAudit.md` `Docs/Audits/PerformanceMemoryEnergyAudit.md` `Docs/Audits/SideEffectSurfaceAudit.md` `Docs/Audits/SwiftConcurrencyDataRaceAudit.md` `Docs/Audits/TestQualityAudit.md` `Docs/Audits/TypeSafetyAudit.md` `Docs/Audits/UIInteractionFeedbackAudit.md` `Docs/Audits/UnitTestAudit.md` `Docs/Audits/DocumentationStalenessAudit.md` |
 | Packages | `Packages/TrinketCore/README.md` `Packages/TrinketContent/README.md` `Packages/BattleEngine/README.md` `Packages/TrinketPersistence/README.md` `Packages/TrinketDesignSystem/README.md` |
 | Package tests | `Packages/BattleEngine/Tests/README.md` `Packages/TrinketContent/Tests/README.md` `Packages/TrinketPersistence/Tests/README.md` |
 | Manifests | `ContentManifest/README.md` `ArtManifest/README.md` `MusicManifest/README.md` |
@@ -43,7 +43,7 @@ rg -n '(Status:|R-\d{3})' --type md
 
 ## Workflow
 
-1. **Survey** — Process all 31 `.md` files. For each file, catalog every:
+1. **Survey** — Process all 37 `.md` files. For each file, catalog every:
    - Code reference: file path, type name, function signature, enum case, property, test class
    - Internal cross-reference: both linked `[text](path.md)` and plain-text "see X.md"
    - External URL
@@ -97,7 +97,7 @@ For all external URLs across the repo:
 
 Check these file-by-file:
 
-- **`AGENTS.md`**: `iOS 26.0` / `Swift 6.0` — match against current `project.yml` and `Package.swift`; "9 Smoke* UI classes only (~2 min)" — count actual `Smoke*.swift` files with `ls TrinketUITests/Smoke/Smoke*.swift | wc -l`; `UI_PARALLEL_WORKERS=3` — match current default
+- **`AGENTS.md`**: `iOS 26.0` / `Swift 6.0` — match against current `project.yml` and `Package.swift`; "9 Smoke* UI classes only (~2 min)" — count actual `Smoke*.swift` files with `ls TrinketUITests/Smoke/Smoke*.swift | wc -l`; UI parallelization — match `Scripts/test.sh` (`-parallel-testing-enabled NO` for unit/smoke/ui)
 - **`README.md`**: `Xcode 26+` / `Swift 6.0` — match current toolchain; `sudo xcode-select --switch` path — verify it is still correct
 - **`Docs/Architecture.md`**: `iOS 26.0, Swift 6.0` / `swift-tools-version: 6.2` — match current; `SpriteKit is not in use yet` — confirm this is still true; ✅ checklist items — verify each is truly completed
 - **`Scripts/README.md`**: `MARKETING_VERSION: "0.1.0"` — match against `project.yml`; `Phase 3: TestFlight / App Store automation` — update if any part has been implemented
@@ -119,7 +119,7 @@ Every instance of these phrases needs evaluation:
 
 Cross-doc naming audit — each concept should use the same name everywhere:
 
-- Collection tab surface: `PlayerCollectionState` / Roster / Heroes / Pets / Inventory — verify consistent across `AGENTS.md`, `CoreDesignConcepts.md`, `Architecture.md`
+- Collection tab surface: `PlayerRosterState` / `PlayerInventoryState` / Heroes / Pets / Inventory — verify consistent across `AGENTS.md`, `CoreDesignConcepts.md`, `Architecture.md`
 - Tab enum: `AppTab` case names — verify `README.md`, `AGENTS.md`, and `Docs/Architecture.md` all agree (`.play`, `.collection`, `.homestead`, `.search`, `.options`)
 - Battle orchestration: `BattleSession` / `ActiveBattleConfiguration` / `BattleVictorySummary` — verify consistent use across all docs
 - Store names: `PlayerSaveStore` / `PlayerRosterStore` / `PlayerInventoryStore` / `PlayerJourneyStore` — verify names match current source

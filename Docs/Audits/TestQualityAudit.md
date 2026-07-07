@@ -1,8 +1,8 @@
 # Test Quality Audit
 
-Goal: Tests protect behavior without adding maintenance burden — following the conventions in [AGENTS.md](file:///Users/ryanmcintire/Documents/Trinket/AGENTS.md).
+Goal: Tests protect behavior without adding maintenance burden — following the conventions in [AGENTS.md](../../AGENTS.md).
 
-*Note: This document focuses on high-level testing policies and general practices. For detailed unit testing diagnostic tools, Swift Testing migrations, and concurrency hygiene, see [UnitTestAudit.md](file:///Users/ryanmcintire/Documents/Trinket/Docs/Audits/UnitTestAudit.md).*
+*Note: This document focuses on high-level testing policies and general practices. For detailed unit testing diagnostic tools, Swift Testing migrations, and concurrency hygiene, see [UnitTestAudit.md](UnitTestAudit.md).*
 
 ## Targets
 

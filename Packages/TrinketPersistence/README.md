@@ -7,7 +7,7 @@ Player save model, SwiftData stores, and CloudKit sync.
 - **`PlayerSaveStore`** — Singleton hub owning a `ModelContainer`/`ModelContext`. Creates the save root idempotently.
 - **Domain stores** — `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, `PlayerHomesteadStore` — observe/mutate slices through `PlayerSaveStore`.
 - **Value types** — `PlayerSave`, `PlayerRosterState`, `StageCompletionContext` are calculation snapshots, not canonical persisted form.
-- **Options** — `OptionsStore` and `SessionStateStore` use `UserDefaults` explicitly (not SwiftData).
+- **Options** — `OptionsStore` uses `UserDefaults` explicitly. `AppState` persists tab and map-scroll session keys via `UserDefaults` (not SwiftData).
 
 ## Key conventions
 

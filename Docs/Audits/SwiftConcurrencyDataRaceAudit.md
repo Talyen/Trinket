@@ -45,14 +45,14 @@ Identify unchecked Sendable declarations and unsafe isolation escapes:
 ```bash
 rg -n '@unchecked Sendable|nonisolated\(unsafe\)' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
-*Triage:* Ensure each bypass is documented with an internal synchronization method. Key targets include [AbilityComparisonRowCollector](file:///Users/ryanmcintire/Documents/Trinket/Packages/BattleEngine/Sources/BattleBalanceTools/AbilityComparisonAnalyzer.swift#L242) and [MatchupRowCollector](file:///Users/ryanmcintire/Documents/Trinket/Packages/BattleEngine/Sources/BattleBalanceTools/BalanceSweepRunner.swift#L103).
+*Triage:* Ensure each bypass is documented with an internal synchronization method. Key targets include [AbilityComparisonRowCollector](../../Packages/BattleEngine/Sources/BattleBalanceTools/AbilityComparisonAnalyzer.swift#L242) and [MatchupRowCollector](../../Packages/BattleEngine/Sources/BattleBalanceTools/BalanceSweepRunner.swift#L103).
 
 ### Probe 3: Legacy Dispatch Bridging
 Locate Grand Central Dispatch (GCD) queues crossing actor/concurrency boundaries:
 ```bash
 rg -n 'DispatchQueue\.(main|global|shared)' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
-*Triage:* Prefer `@MainActor.run` or actor isolation over `DispatchQueue.main.async` (e.g., in [ChapterStageSelectView.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Features/Play/PlayMap/ChapterStageSelectView.swift#L110)).
+*Triage:* Prefer `@MainActor.run` or actor isolation over `DispatchQueue.main.async` (e.g., in [ChapterStageSelectView.swift](../../Trinket/Features/Play/PlayMap/ChapterStageSelectView.swift#L110)).
 
 ### Probe 4: Cooperative Thread Starvation (Blocking Calls)
 Identify operations that block the cooperative pool (sleeps, semaphore waits, synchronous file loading):
@@ -62,7 +62,7 @@ rg -n '\bsleep\(|\busleep\(|\bThread\.sleep\(|\.wait\(|\bData\(contentsOf:' --ty
 *Triage:* Replace thread-blocking operations in async methods with non-blocking equivalents (e.g., `Task.sleep` or asynchronous I/O).
 
 ### Probe 5: Project Concurrency Configuration
-Verify that complete concurrency checking is enforced. Check [project.yml](file:///Users/ryanmcintire/Documents/Trinket/project.yml) and package files:
+Verify that complete concurrency checking is enforced. Check [project.yml](../../project.yml) and package files:
 ```bash
 rg -n 'SWIFT_TREAT_WARNINGS_AS_ERRORS|SWIFT_CONCURRENCY_CHECKS|OTHER_SWIFT_FLAGS' --type yaml --type swift .
 ```

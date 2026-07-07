@@ -4,7 +4,7 @@ This document turns the v2 visual reference boards into implementation guidance 
 
 ## Source References
 
-Use the v2 boards in `Docs/Design/StyleGuide/VisualReferences/v2/` as the current visual north star:
+Reference PNG boards are described in `Docs/Design/StyleGuide/VisualReferences/README.md` (including the v2 game-compatible pass). Those images are not committed to the repository; this document and `TrinketDesignSystem` source are the implementation north star. When boards are available locally, use them for taste and proportion:
 
 - `01-north-star-overview-v2.png` — overall style direction and scope.
 - `02-theme-presets-v2.png` — theme preset comparison using Trinket's Play journey skeleton.

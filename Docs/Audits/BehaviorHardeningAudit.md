@@ -15,29 +15,29 @@ Goal: Strengthen correctness at module boundaries — Swift concurrency, persist
 
 - Every `init?(from:)` decoder validates required keys; do not rely on implicit defaults for critical save fields
 - `Codable` structs with optional fields — verify that nil is a valid semantic state, not a forgotten migration path
-- `as?` + `guard`/`if let` for all downcasts (see [TypeSafetyAudit.md](file:///Users/ryanmcintire/Documents/Trinket/Docs/Audits/TypeSafetyAudit.md)); target zero `as!`
+- `as?` + `guard`/`if let` for all downcasts (see [TypeSafetyAudit.md](TypeSafetyAudit.md)); target zero `as!`
 - At persistence boundaries, validate decoded values (range-check IDs, stage numbers, counts) — a corrupt save should fail decode, not silently produce invalid game state
-- UI test launch args (`-completed-stages`, `-launch-screen`) parse through [AppEnvironment.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Shared/AppEnvironment.swift) — invalid args should fall back to defaults gracefully, not crash
+- UI test launch args (`-completed-stages`, `-launch-screen`) parse through [AppEnvironment.swift](../../Trinket/App/AppEnvironment.swift) — invalid args should fall back to defaults gracefully, not crash
 
 ### State transitions are idempotent
 
-- [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — SwiftData automatic synchronization merges and replicates fields natively. Verify mutations to the model graph always update `modifiedAt` cleanly and sanitize inputs using [PlayerSaveSanitizer.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift).
-- [BattleSession.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/BattleSession.swift) — stage completion should be idempotent: tapping "Continue" twice must not double-grant rewards.
+- [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — SwiftData automatic synchronization merges and replicates fields natively. Verify mutations to the model graph always update `modifiedAt` cleanly and sanitize inputs using [PlayerSaveSanitizer.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift).
+- [BattleSession.swift](../../Trinket/State/BattleSession.swift) — stage completion should be idempotent: tapping "Continue" twice must not double-grant rewards.
 - `PlayerHomesteadState.adjustedMaterialRewards` — multiple calls with the same stage data must return the same result.
-- Debounced save writes in [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — rapid mutations should coalesce correctly without producing duplicate, stale, or out-of-order writes.
+- Debounced save writes in [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — rapid mutations should coalesce correctly without producing duplicate, stale, or out-of-order writes.
 - SwiftUI `task` modifiers — ensure cancellation and re-entrance: a view that appears, disappears, and reappears must not leak concurrent operations.
 
 ### No swallowed errors
 
 - `Task { … }` blocks at the UI layer should at minimum log failures; silent `try?` in orchestration code (state transitions, battle outcome, save) is suspect
-- [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) writes — failure must surface (sets `lastPersistenceError`); silent failure on save is data loss
+- [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) writes — failure must surface (sets `lastPersistenceError`); silent failure on save is data loss
 - CloudKit sync replication — watch diagnostics in output when debugging sync; SwiftData-managed CloudKit integration errors should be surfaced or handled gracefully (offline fallback)
 - `AVFoundation` playback errors — `try?` is acceptable in audio (playback failure is non-fatal), but should log
 - Store loading failures — if a save store is corrupt, fall back to default/in-memory state cleanly rather than crashing; log the original error
 
 ### Architectural invariants in changed code
 
-- Packages must not import `Trinket` app code (verified by [check-module-boundaries.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/check-module-boundaries.sh))
+- Packages must not import `Trinket` app code (verified by [check-module-boundaries.sh](../../Scripts/check-module-boundaries.sh))
 - `TrinketDesignSystem` must not import `BattleEngine` or `TrinketContent` (depends on `TrinketCore` only)
 - `BattleEngine` and `TrinketPersistence` are siblings — must not import each other
 - `Effects` are value-type structs conforming to `BattleEffectHandler`; verify new effect kinds are registered in `EffectHandlers.all`
