@@ -10,9 +10,25 @@ import TrinketPersistence
 @MainActor
 @Observable
 final class BattleSession {
-    var isPaused = false
-    var isShowingVictory = false
-    var isShowingDefeat = false
+    var isPaused = false {
+        didSet {
+            guard isPaused != oldValue else { return }
+            onTickEligibilityChange?()
+        }
+    }
+    var isShowingVictory = false {
+        didSet {
+            guard isShowingVictory != oldValue else { return }
+            onTickEligibilityChange?()
+        }
+    }
+
+    var isShowingDefeat = false {
+        didSet {
+            guard isShowingDefeat != oldValue else { return }
+            onTickEligibilityChange?()
+        }
+    }
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
@@ -32,6 +48,7 @@ final class BattleSession {
     private(set) var state: BattleState?
     var onBattleStateChange: ((String?) -> Void)?
     var onBattleEnded: (() -> Void)?
+    var onTickEligibilityChange: (() -> Void)?
 
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]
@@ -118,6 +135,13 @@ final class BattleSession {
         for eventID in expiredIDs {
             removeFeedbackEvent(eventID)
         }
+    }
+
+    func trimMemoryFootprint(releaseBattleLog: Bool) {
+        pruneExpiredFeedback()
+        guard releaseBattleLog, var state else { return }
+        state.releaseLogProjection()
+        self.state = state
     }
 
     func syncLogForDisplay() {

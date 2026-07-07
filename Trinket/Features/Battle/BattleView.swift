@@ -7,14 +7,12 @@ import TrinketDesignSystem
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var isShowingBattleLog = false
-    @State private var timelineStartDate: Date
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let configuration: ActiveBattleConfiguration
 
     init(configuration: ActiveBattleConfiguration) {
         self.configuration = configuration
-        _timelineStartDate = State(initialValue: Date())
     }
 
     var body: some View {
@@ -49,7 +47,9 @@ struct BattleView: View {
             }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
-                timelineStartDate = Date()
+            }
+            .onChange(of: battleSession.isPaused) { _, _ in
+                appState.syncBattleTickLoop()
             }
     }
 
@@ -80,7 +80,7 @@ struct BattleView: View {
                 }
             )
         } else {
-            battlefieldWithTimeline(battleSession: battleSession, battleState: battleState)
+            battlefield(battleSession: battleSession, battleState: battleState)
         }
     }
 
@@ -105,19 +105,6 @@ struct BattleView: View {
 
     private var hasStageProgression: Bool {
         configuration.stageID != nil
-    }
-
-    private var battleTickInterval: TimeInterval {
-        AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
-    }
-
-    private func battlefieldWithTimeline(battleSession: BattleSession, battleState: BattleState) -> some View {
-        TimelineView(.periodic(from: timelineStartDate, by: battleTickInterval)) { context in
-            battlefield(battleSession: battleSession, battleState: battleState)
-                .onChange(of: context.date) { _, date in
-                    appState.handleBattlePeriodicTick(configuration: configuration, at: date)
-                }
-        }
     }
 
     private func battleActionsMenu(battleSession: BattleSession) -> some View {

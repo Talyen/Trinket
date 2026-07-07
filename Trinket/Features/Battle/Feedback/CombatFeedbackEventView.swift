@@ -15,10 +15,14 @@ struct CombatFeedbackEventView: View {
                 .opacity(rmOpacity)
                 .offset(y: CGFloat(stackIndex) * CombatFeedbackTiming.stackSpacing)
                 .task(id: event.id) {
+                    let clock = SuspendingClock()
                     withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeIn)) {
                         rmOpacity = 1.0
                     }
-                    try? await Task.sleep(for: .seconds(CombatFeedbackTiming.reduceMotionHold))
+                    try? await clock.sleep(
+                        for: .seconds(CombatFeedbackTiming.reduceMotionHold),
+                        tolerance: .milliseconds(25)
+                    )
                     withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeOut)) {
                         rmOpacity = 0.0
                     }

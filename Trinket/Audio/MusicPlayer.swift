@@ -40,11 +40,20 @@ final class MusicPlayer {
     }
 
     func stop() {
-        fadeTask?.cancel()
+        cancelActiveFades()
         saveCurrentPosition()
         currentPlayer?.stop()
         currentPlayer = nil
         currentRequest = nil
+    }
+
+    func cancelActiveFades() {
+        fadeTask?.cancel()
+        fadeTask = nil
+    }
+
+    func trimMemoryFootprint() {
+        clearEncounterResumePositions()
     }
 
     func clearEncounterResumePositions() {
@@ -86,7 +95,7 @@ final class MusicPlayer {
         }
 
         let oldPlayer = currentPlayer
-        fadeTask?.cancel()
+        cancelActiveFades()
         currentPlayer = nil
         currentRequest = nil
 
@@ -98,7 +107,7 @@ final class MusicPlayer {
 
     private func crossfade(to newPlayer: AVAudioPlayer, request: MusicPlaybackRequest, targetVolume: Float) {
         let oldPlayer = currentPlayer
-        fadeTask?.cancel()
+        cancelActiveFades()
         currentPlayer = newPlayer
         currentRequest = request
 
@@ -116,15 +125,16 @@ final class MusicPlayer {
     ) async {
         let steps = 18
         let oldStartVolume = oldPlayer?.volume ?? 0
+        let clock = SuspendingClock()
+        let stepDuration = Duration.seconds(duration / Double(steps))
+        let stepTolerance = Duration.milliseconds(20)
 
         for step in 1 ... steps {
             guard !Task.isCancelled else { return }
             let progress = Float(step) / Float(steps)
             oldPlayer?.volume = oldStartVolume * (1 - progress)
             newPlayer?.volume = targetVolume * progress
-
-            let delay = UInt64((duration / Double(steps)) * Double(1000000000))
-            try? await Task.sleep(nanoseconds: delay)
+            try? await clock.sleep(for: stepDuration, tolerance: stepTolerance)
         }
 
         oldPlayer?.volume = 0

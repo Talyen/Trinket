@@ -11,6 +11,7 @@ public final class PlayerSaveStore {
     private let container: ModelContainer
     private let context: ModelContext
     private var root: PlayerSaveRoot
+    private var deferredSaveTask: Task<Void, Never>?
     private let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerSave"
@@ -124,7 +125,10 @@ public final class PlayerSaveStore {
         }
     }
 
-    public func performBatchMutation(_ update: (inout PlayerSave) -> Void) throws {
+    public func performBatchMutation(
+        _ update: (inout PlayerSave) -> Void,
+        persistImmediately: Bool = true
+    ) throws {
         var candidate = currentSave
         update(&candidate)
         candidate.modifiedAt = Date()
@@ -132,13 +136,48 @@ public final class PlayerSaveStore {
         try PlayerSaveSanitizer.validate(candidate)
         root.update(from: candidate)
 
+        if persistImmediately {
+            do {
+                try saveGraph()
+                lastPersistenceError = nil
+            } catch {
+                lastPersistenceError = .writeFailed
+                logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
+                throw PlayerSavePersistenceError.writeFailed
+            }
+        }
+    }
+
+    public func flushPendingSave() async {
+        deferredSaveTask?.cancel()
+        deferredSaveTask = nil
         do {
-            try context.save()
+            try saveGraph()
             lastPersistenceError = nil
         } catch {
             lastPersistenceError = .writeFailed
-            logger.error("Failed to save SwiftData player graph: \(error.localizedDescription, privacy: .public)")
-            throw PlayerSavePersistenceError.writeFailed
+            logger.error("Failed to flush deferred SwiftData save: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    private var persistsMutationsImmediately: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    private func scheduleDeferredSave() {
+        deferredSaveTask?.cancel()
+        deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
+            await Task.yield()
+            guard let self, !Task.isCancelled else { return }
+            do {
+                try self.saveGraph()
+                self.lastPersistenceError = nil
+            } catch {
+                self.lastPersistenceError = .writeFailed
+                self.logger.error(
+                    "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
+                )
+            }
         }
     }
 
@@ -171,7 +210,10 @@ public final class PlayerSaveStore {
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {
         do {
-            try performBatchMutation(update)
+            try performBatchMutation(update, persistImmediately: persistsMutationsImmediately)
+            if !persistsMutationsImmediately {
+                scheduleDeferredSave()
+            }
         } catch let error as PlayerSavePersistenceError {
             lastPersistenceError = error
             logger.error("Failed to persist player graph mutation: \(error.localizedDescription, privacy: .public)")

@@ -232,6 +232,11 @@ public struct BattleState {
         }
     }
 
+    /// Drops the cached combat-log projection to reclaim memory. Call `syncLog()` to rebuild.
+    public mutating func releaseLogProjection() {
+        logProjection = nil
+    }
+
     private mutating func finishMutation(rebuildLog: Bool) {
         guard rebuildLog, tracksLog else { return }
         logProjection?.sync(events: store.events, matchup: cachedMatchup)

@@ -34,6 +34,8 @@ extension AppState {
             enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards
         )
+        battle.isPaused = selectedTab != .play
+        syncBattleTickLoop()
         return nil
     }
 
@@ -56,6 +58,7 @@ extension AppState {
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward
         )
+        syncBattleTickLoop()
     }
 
     @discardableResult

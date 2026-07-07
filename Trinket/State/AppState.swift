@@ -16,6 +16,7 @@ let appStateLogger = Logger(
 final class AppState {
     let playerSave: PlayerSaveStore
     let musicPlayer: MusicPlayer
+    var shellScenePhase: ScenePhase = .active
     var selectedTab: AppTab
     var roster: PlayerRosterStore
     var inventory: PlayerInventoryStore
@@ -26,6 +27,8 @@ final class AppState {
     let sessionState: SessionStateStore
     let initialCollectionCombatantDetail: CombatantDetailContext?
     let initialCollectionItemID: String?
+
+    var battleTickTask: Task<Void, Never>?
 
     init(
         environment: AppEnvironment = .shared,

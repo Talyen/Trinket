@@ -85,7 +85,13 @@ extension AppState {
         }
         battle.onBattleEnded = { [weak self] in
             self?.sessionState.activeBattleStageID = nil
+            self?.syncBattleTickLoop()
         }
+        battle.onTickEligibilityChange = { [weak self] in
+            self?.syncBattleTickLoop()
+        }
+        installMemoryPressureHandling()
+        syncBattleTickLoop()
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
