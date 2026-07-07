@@ -129,7 +129,7 @@ struct AppEnvironment {
         from arguments: [String],
         isRunningTests: Bool
     ) -> TimeInterval? {
-        if let idx = arguments.firstIndex(of: "-battle-tick-interval"),
+        if let idx = arguments.lastIndex(of: "-battle-tick-interval"),
            arguments.indices.contains(idx + 1),
            let value = TimeInterval(arguments[idx + 1]),
            value > 0 {
