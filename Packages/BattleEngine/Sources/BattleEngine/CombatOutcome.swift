@@ -38,7 +38,7 @@ public struct CombatOutcome: Equatable {
 }
 
 /// Semantic markers for combat mutations. Populated from pipeline state and events.
-enum CombatFlag: Hashable {
+public enum CombatFlag: Hashable, Sendable {
     case dodged
     case shieldAbsorbed
     case leeched

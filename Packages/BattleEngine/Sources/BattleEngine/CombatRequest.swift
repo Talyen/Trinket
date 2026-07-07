@@ -97,22 +97,22 @@ public struct DamageRequest: Equatable, Hashable, Sendable {
 }
 
 /// Controls whether `HealingEngine.resolveHeal` emits combat-log events.
-enum HealLogPolicy: Equatable, Hashable {
+public enum HealLogPolicy: Equatable, Hashable, Sendable {
     case silent
     case leech
     case instantHeal(actorName: String, abilityName: String, keyword: Keyword, displayAmount: Int)
 }
 
 /// Describes one heal application.
-struct HealRequest: Equatable, Hashable {
-    var amount: Int
-    var target: Combatant
-    var sourceActorID: String?
-    var logAs: HealLogPolicy
+public struct HealRequest: Equatable, Hashable, Sendable {
+    public var amount: Int
+    public var target: Combatant
+    public var sourceActorID: String?
+    public var logAs: HealLogPolicy
 
-    var suppressTraitReactions: Bool
+    public var suppressTraitReactions: Bool
 
-    init(
+    public init(
         amount: Int,
         target: Combatant,
         sourceActorID: String? = nil,
