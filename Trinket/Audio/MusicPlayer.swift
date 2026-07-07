@@ -103,8 +103,9 @@ final class MusicPlayer {
         currentPlayer = nil
         currentRequest = nil
 
-        fadeTask = Task { @MainActor in
-            await ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: fadeDuration)
+        let duration = fadeDuration
+        fadeTask = Task { @MainActor [weak self] in
+            await self?.ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: duration)
             oldPlayer?.stop()
         }
     }
@@ -115,8 +116,14 @@ final class MusicPlayer {
         currentPlayer = newPlayer
         currentRequest = request
 
-        fadeTask = Task { @MainActor in
-            await ramp(oldPlayer: oldPlayer, newPlayer: newPlayer, targetVolume: targetVolume, duration: fadeDuration)
+        let duration = fadeDuration
+        fadeTask = Task { @MainActor [weak self] in
+            await self?.ramp(
+                oldPlayer: oldPlayer,
+                newPlayer: newPlayer,
+                targetVolume: targetVolume,
+                duration: duration
+            )
             oldPlayer?.stop()
         }
     }

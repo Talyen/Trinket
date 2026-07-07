@@ -6,7 +6,7 @@ import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
-    @State private var buildActions = HomesteadBuildActions()
+    @State private var build = HomesteadBuildControl()
 
     let definition: HomesteadNodeDefinition
 
@@ -23,8 +23,6 @@ struct HomesteadNodeDetailView: View {
     }
 
     var body: some View {
-        @Bindable var buildActions = buildActions
-
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 HomesteadDetailHeader(definition: definition, status: status)
@@ -65,7 +63,7 @@ struct HomesteadNodeDetailView: View {
             VStack(spacing: 10) {
                 HomesteadProjectActionFooter(
                     status: status,
-                    isBuilding: buildActions.isBuilding,
+                    isBuilding: build.isBuilding,
                     buildButtonAccessibilityID: status.detailBuildButtonAccessibilityID,
                     onBuild: buildOrUpgrade
                 )
@@ -76,8 +74,8 @@ struct HomesteadNodeDetailView: View {
             .trinketMaterial(.bottomBar, cornerRadius: 0)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
-        .sensoryFeedback(.success, trigger: buildActions.upgradeEventCount)
-        .homesteadBuildErrorAlert(error: $buildActions.error)
+        .sensoryFeedback(.success, trigger: build.upgradeEventCount)
+        .homesteadBuildErrorAlert(build: $build)
     }
 
     private var currentBonus: HomesteadBonus {
@@ -91,7 +89,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
-        buildActions.perform(
+        build.perform(
             definition,
             homestead: appState.homestead,
             roster: appState.roster

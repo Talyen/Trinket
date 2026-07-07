@@ -34,6 +34,7 @@ enum AbilityComparisonAnalyzer {
         let enemies = GameContent.enemies
         let collector = AbilityComparisonRowCollector(capacity: workItems.count)
 
+        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism; rows are stored via Mutex-backed collector.
         DispatchQueue.concurrentPerform(iterations: workItems.count) { index in
             let rows = evaluate(workItems[index], enemies: enemies, request: request)
             collector.store(rows, at: index)
