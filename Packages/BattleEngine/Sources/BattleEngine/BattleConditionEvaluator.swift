@@ -36,7 +36,7 @@ public enum BattleConditionEvaluator {
             let petMax = context.roster.runtime(for: pet)?.maxHealth ?? pet.maxHealth
             return heroHealth * 2 < heroMax || petHealth * 2 < petMax
         case .enemyHasBuff:
-            return context.roster.activeEffects(for: enemy).contains { $0.effect.isRemovableBuff }
+            return context.roster.activeEffects(for: enemy).contains(where: \.effect.isRemovableBuff)
         }
     }
 

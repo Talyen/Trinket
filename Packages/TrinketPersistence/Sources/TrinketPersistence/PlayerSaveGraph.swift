@@ -337,7 +337,6 @@ public extension PlayerSaveRoot {
         setRoot(model)
     }
 }
-
 private extension JourneyProgressModel {
     func toJourneyProgressState() -> JourneyProgressState {
         let stageModels = stages ?? []

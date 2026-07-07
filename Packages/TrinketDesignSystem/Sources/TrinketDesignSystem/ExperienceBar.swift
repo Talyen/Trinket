@@ -162,7 +162,7 @@ public struct ExperienceBar: View {
         public let newRequiredXP: Int
     }
 
-    public nonisolated static func segments(
+    nonisolated public static func segments(
         from pre: CombatantProgression,
         to post: CombatantProgression
     ) -> [Segment] {

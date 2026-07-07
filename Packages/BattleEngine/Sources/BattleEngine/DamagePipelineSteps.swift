@@ -65,7 +65,7 @@ package extension DamagePipeline {
         }
 
         if state.guaranteedCriticalIfEnemyBuffed,
-           context.roster.activeEffects(for: state.combatant).contains(where: { $0.effect.isRemovableBuff }) {
+           context.roster.activeEffects(for: state.combatant).contains(where: \.effect.isRemovableBuff) {
             chance = 1.0
         }
 
@@ -331,6 +331,7 @@ package extension DamagePipeline {
         ))
     }
 
+    // swiftlint:disable:next function_body_length
     static func applyReactiveOnHit(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext

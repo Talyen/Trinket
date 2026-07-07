@@ -69,6 +69,7 @@ public enum ActionEventFormatter {
         return displayForEffectKind(effectKind, event: event)
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private static func displayForEffectKind(_ effectKind: ActionEvent.EffectKind, event: ActionEvent) -> ActionEventDisplay {
         switch effectKind {
         case .instantHeal:

@@ -64,8 +64,7 @@ public enum PlayerSaveSanitizer {
         chapters
             .flatMap(\.stages)
             .map(\.id)
-            .filter { completedStageIDs.contains($0) }
-            .last
+            .last { completedStageIDs.contains($0) }
     }
 
     public static func sanitizeJourney(

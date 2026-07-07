@@ -132,6 +132,7 @@ enum BalanceSweepCLI {
         }
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private static func parseOptions() throws -> CLIOptions {
         var options = CLIOptions()
         var arguments = Array(CommandLine.arguments.dropFirst())

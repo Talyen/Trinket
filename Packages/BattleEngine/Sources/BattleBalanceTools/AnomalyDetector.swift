@@ -96,6 +96,7 @@ enum AnomalyDetector {
             && averageTickCount <= Double(thresholds.maxFightTicks)
     }
 
+    // swiftlint:disable:next function_body_length
     static func detect(
         matchupRows: [MatchupSweepRow],
         abilityRows: [AbilityComparisonRow],

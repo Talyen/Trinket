@@ -123,6 +123,7 @@ private final class MatchupRowCollector: Sendable {
 }
 
 extension BalanceSweepRunner {
+    // swiftlint:disable:next function_body_length
     private static func evaluate(
         _ workItem: MatchupWorkItem,
         request: BalanceSweepRequest

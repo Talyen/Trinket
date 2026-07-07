@@ -48,6 +48,7 @@ public final class PlayerSaveStore {
         root.toPlayerSave()
     }
 
+    // swiftlint:disable:next function_body_length
     public init(
         storeName: String? = nil,
         storeURL: URL? = nil,
@@ -158,6 +159,7 @@ public final class PlayerSaveStore {
     }
 
     public func flushPendingSave() async {
+        await Task.yield()
         deferredSaveTask?.cancel()
         deferredSaveTask = nil
         do {

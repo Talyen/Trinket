@@ -86,6 +86,7 @@ enum AbilityComparisonAnalyzer {
         return workItems
     }
 
+    // swiftlint:disable:next function_body_length
     private static func evaluate(
         _ workItem: WorkItem,
         enemies: [Enemy],
@@ -256,7 +257,7 @@ private final class AbilityComparisonRowCollector: Sendable {
 
     var rows: [AbilityComparisonRow] {
         storage.withLock { array in
-            array.compactMap { $0 }.flatMap { $0 }
+            array.compactMap(\.self).flatMap(\.self)
         }
     }
 }

@@ -182,6 +182,7 @@ private struct SurfaceStyle {
     let cornerRadius: CGFloat
     let shadow: ShadowStyle
 
+    // swiftlint:disable:next function_body_length
     init(role: SurfaceRole, palette: ThemePalette) {
         switch role {
         case .base:

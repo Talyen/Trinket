@@ -119,6 +119,7 @@ public enum BattleTurnEngine {
         let totalDealtToAbilityTarget: Int
     }
 
+    // swiftlint:disable:next function_body_length
     private static func applyDamageComponents(
         ability: Ability,
         actor: Combatant,
