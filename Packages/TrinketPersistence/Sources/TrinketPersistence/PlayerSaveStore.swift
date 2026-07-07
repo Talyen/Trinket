@@ -96,18 +96,31 @@ public final class PlayerSaveStore {
         context.autosaveEnabled = false
 
         if resetState {
-            try? context.delete(model: PlayerSaveRoot.self)
-            try? context.save()
+            do {
+                try context.delete(model: PlayerSaveRoot.self)
+                try context.save()
+            } catch {
+                logger.error(
+                    "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
+                )
+            }
         }
 
-        if let existingRoot = Self.fetchRoot(in: context) {
+        if let existingRoot = Self.fetchRoot(in: context, logger: logger) {
             root = existingRoot
             ensureRequiredGraph()
         } else {
             let newRoot = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(.fresh))
             context.insert(newRoot)
             root = newRoot
-            try? context.save()
+            do {
+                try context.save()
+            } catch {
+                lastPersistenceError = .writeFailed
+                logger.error(
+                    "Failed to save initial player save root: \(error.localizedDescription, privacy: .public)"
+                )
+            }
         }
     }
 
@@ -130,8 +143,14 @@ public final class PlayerSaveStore {
     }
 
     private func resetRoot(with save: PlayerSave) throws {
-        try? context.delete(model: PlayerSaveRoot.self)
-        try? context.save()
+        do {
+            try context.delete(model: PlayerSaveRoot.self)
+            try context.save()
+        } catch {
+            logger.error(
+                "Failed to clear existing save root: \(error.localizedDescription, privacy: .public)"
+            )
+        }
 
         let newRoot = PlayerSaveRoot(save: PlayerSaveSanitizer.sanitize(save))
         context.insert(newRoot)
@@ -176,11 +195,25 @@ public final class PlayerSaveStore {
         var save = currentSave
         save = PlayerSaveSanitizer.sanitize(save)
         root.update(from: save)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            lastPersistenceError = .writeFailed
+            logger.error(
+                "Failed to persist sanitized player graph: \(error.localizedDescription, privacy: .public)"
+            )
+        }
     }
 
-    private static func fetchRoot(in context: ModelContext) -> PlayerSaveRoot? {
+    private static func fetchRoot(in context: ModelContext, logger: Logger) -> PlayerSaveRoot? {
         let descriptor = FetchDescriptor<PlayerSaveRoot>()
-        return try? context.fetch(descriptor).first { $0.id == "primary" }
+        do {
+            return try context.fetch(descriptor).first { $0.id == "primary" }
+        } catch {
+            logger.error(
+                "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
+            )
+            return nil
+        }
     }
 }

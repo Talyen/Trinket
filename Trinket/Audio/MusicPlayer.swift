@@ -171,9 +171,9 @@ final class MusicPlayer {
             try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
-            #if DEBUG
-            print("Unable to configure audio session: \(error.localizedDescription)")
-            #endif
+            logger.error(
+                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)"
+            )
         }
         hasConfiguredSession = true
     }
