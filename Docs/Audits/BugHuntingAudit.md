@@ -43,7 +43,7 @@ For any fix that changes player-visible behavior (game balance, UI layout/text, 
 
 ## Probe 1: Retain Cycle & Lifetime Mismatch
 
-Signals: missing `[weak self]`, `Task` in `@MainActor` class without lifetime management, stale delegate, timer without invalidation.
+Signals: missing `[weak self]`, `Task` in `@MainActor` class without lifetime management, stale delegate, timer or clock sleep without cancellation.
 
 ```bash
 # Missing weak self in closures assigned to stored properties
@@ -52,8 +52,8 @@ rg -n '\.on\w+\s*=\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Gene
 # Task in @MainActor class — check that the Task is stored + cancelled
 rg -n 'Task\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 
-# Timer / display-link patterns
-rg -n 'Timer\b|CADisplayLink|DisplayLink' --type swift -g '!*Tests*' -g '!*UITests*'
+# Timer / display-link / clocks & async sleep patterns
+rg -n 'Timer\b|CADisplayLink|DisplayLink|ContinuousClock|SuspendingClock|Task\.sleep' --type swift -g '!*Tests*' -g '!*UITests*'
 
 # Delegates without weak
 rg -n '(var|let)\s+\w+Delegate\??\s*:\s*\w+\s*[={]' --type swift -g '!*Tests*' -g '!*UITests*'
@@ -61,7 +61,7 @@ rg -n '(var|let)\s+\w+Delegate\??\s*:\s*\w+\s*[={]' --type swift -g '!*Tests*' -
 
 For each hit: is the closure's captured `self` released when the owning object deinits? Is the Task cancelled in `deinit`? Are there stored closures that could outlive their owner?
 
-Key target: `MusicPlayer.swift` — `fadeTask` overwrites without atomic cancel, and `Task { @MainActor in` captures `self` implicitly. Verify `deinit` cancels `fadeTask`.
+Key target: [MusicPlayer.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Audio/MusicPlayer.swift) — `fadeTask` overwrites without atomic cancel, and `Task { @MainActor in` captures `self` implicitly. Verify `deinit` cancels `fadeTask`.
 
 ---
 
@@ -114,7 +114,7 @@ rg -n 'func\s+\w+' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/
 
 For each suspect: use `rg '\bPropertyName\b'` to check for references. If a property is set but never read (outside tests), it's orphaned state. If an error case is never thrown, it's dead code.
 
-Key targets: `BattleSession.swift`, `AppState.swift`, `ActiveBattleConfiguration.swift` — the most-churned files in the refactoring wave.
+Key targets: [BattleSession.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/BattleSession.swift), [AppState.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/AppState.swift), [ActiveBattleConfiguration.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/BattleShell/ActiveBattleConfiguration.swift) — the most-churned files in the refactoring wave.
 
 ---
 
@@ -122,7 +122,7 @@ Key targets: `BattleSession.swift`, `AppState.swift`, `ActiveBattleConfiguration
 
 Signals: files modified 15+ times with no matching unit test (only UI tests or nothing).
 
-Manual check — for each high-churn file below, count modifications and check for a unit test companion:
+Manual check — for each high-churn file below (e.g. [BattleView.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Features/Battle/BattleView.swift), [PlayView.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Features/Play/PlayView.swift), [ContentView.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/App/ContentView.swift), [AppState.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/AppState.swift), [BattleSession.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/BattleSession.swift), [CombatantDetailPane.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Shared/Detail/CombatantDetailPane.swift)), count modifications and check for a unit test companion:
 
 ```bash
 for f in \

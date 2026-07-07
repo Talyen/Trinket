@@ -44,29 +44,29 @@ rg -n 'CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 
 ### Persistence boundaries
 
-- `PlayerSaveStore` is the single write-through hub; all disk/CloudKit writes route through it
-- Domain stores (`PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`) mutate in-memory state then delegate persistence — no direct `FileManager` or `JSONEncoder` calls outside `TrinketPersistence`
+- [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) is the single write-through hub; all disk/CloudKit writes route through it.
+- Domain stores (`PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`) mutate in-memory state then delegate persistence — no direct `FileManager` or `JSONEncoder` calls outside `TrinketPersistence`.
 - `UserDefaults` is intentional for:
   - `OptionsStore` (theme, volumes, preferences)
   - `SessionStateStore` (tab, in-flight battle, map scroll restoration — not part of `PlayerSave`)
   - `PlayerSaveFileStore` one-time legacy journey migration only
-- `PlayerSaveSyncCoordinator` owns CloudKit reconciliation; `PlayerSaveSyncFactory` (in `TrinketPersistence`) selects CloudKit vs local-only sync; test via `-disable-cloud-sync` to isolate
+- SwiftData manages CloudKit private database container synchronization natively. [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) selects private CloudKit vs local-only configurations during initialization (`disableCloudSync` parameter); test via `-disable-cloud-sync` to isolate.
 
 ### Audio side effects
 
-- `Trinket/Audio/` is the sole seam for `AVFoundation` playback
-- Music director and SFX triggers go through catalog types from `TrinketContent` — no raw audio URLs in feature views
-- `AVPlayer`/`AVAudioEngine` references outside `Trinket/Audio/` are violations
+- [Trinket/Audio/](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Audio/) is the sole seam for `AVFoundation` / `AVAudioPlayer` playback.
+- Music director and SFX triggers go through catalog types from `TrinketContent` — no raw audio URLs in feature views.
+- `AVPlayer`/`AVAudioEngine`/`AVAudioPlayer` references outside [Trinket/Audio/](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Audio/) are violations.
 
 ### Non-determinism in UI / orchestration
 
-- SwiftUI `onAppear`, `task`, button actions may trigger async work, but randomness (e.g. battle damage display) must source from the battle outcome, not new `random()` calls
-- Per-battle RNG seeds are generated at the orchestration seam (`BattleRNGSeed` / `BattleSession`), not in `ActiveBattleConfiguration` defaults
-- Content randomness (`ItemGenerator`, `pickMysteryEvent`, etc.) must accept an injected `RandomNumberGenerator`
-- For UI-only randomness (e.g. decorative animations), initialize lazily with `@State var x = { … }()` or `State(initialValue: …)` — not at the view level in `let`/`var`
+- SwiftUI `onAppear`, `task`, button actions may trigger async work, but randomness (e.g. battle damage display) must source from the battle outcome, not new `random()` calls.
+- Per-battle RNG seeds are generated at the orchestration seam (`BattleRNGSeed` / [BattleSession.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/State/BattleSession.swift)), not in `ActiveBattleConfiguration` defaults.
+- Content randomness (`ItemGenerator`, `pickMysteryEvent`, etc.) must accept an injected `RandomNumberGenerator`.
+- For UI-only randomness (e.g. decorative animation delay/offset), seed within `.onAppear { ... }` or keep it strictly visual/non-stateful — do not initialize it inline at the view definition level where it can recalculate on body evaluation.
 
 ### Fixes
 
-- Inject the dependency (RNG, clock, store) as a parameter rather than calling the global
-- Push the effect to the designated seam (persistence → `TrinketPersistence`, audio → `Trinket/Audio/`, battle seed → `BattleSession`, randomness → `state.rng` or injected RNG)
-- Add a `// UIStyleCheck: allow - <reason>` bypass comment only when the alternative is worse than the side-effect; aim for zero
+- Inject the dependency (RNG, clock, store) as a parameter rather than calling the global.
+- Push the effect to the designated seam (persistence → `TrinketPersistence`, audio → `Trinket/Audio/`, battle seed → `BattleSession`, randomness → `state.rng` or injected RNG).
+- Add a `// UIStyleCheck: allow - <reason>` bypass comment only when the alternative is worse than the side-effect; aim for zero.

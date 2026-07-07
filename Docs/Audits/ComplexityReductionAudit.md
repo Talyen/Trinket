@@ -38,7 +38,7 @@ Score candidate areas using these signals. The winner should score high on sever
 
 | Signal | How to measure | Why it matters |
 |--------|----------------|----------------|
-| LOC density | `wc -l` on the target file(s) and immediate helpers | Large files often hide multiple responsibilities |
+| LOC density | `wc -l` on target files or code line count using `cloc` | Large files often hide multiple responsibilities |
 | Indirection depth | Count wrappers, coordinators, and "forward to" methods with no added logic | Layers that only delegate are maintenance tax |
 | Single-use abstractions | Types or protocols referenced from one call site | Abstraction without reuse adds ceremony |
 | Duplicate logic | `rg` for near-identical blocks in sibling files | Two copies will diverge |
@@ -95,7 +95,7 @@ Enforce these dependency rules after edits (verify with `./Scripts/check-module-
 
 - **Battle rules** — outcome semantics unchanged; existing `BattleEngineTests` still pass; use `BattleStateTestFactory` for any new battle tests
 - **Persistence** — mutate → reload → assert for store changes; no silent save failures
-- **UI flows** — smoke `accessibilityIdentifier`s unchanged unless the control is removed; update `TrinketUITests` only when the flow truly changed
+- **UI flows** — smoke `accessibilityIdentifier`s unchanged unless the control is removed; update `TrinketUITests` only when the flow truly changed. Verify visual/layout invariants (such as view padding, alignment, and native spacing elements) are preserved when refactoring or inlining UI view code.
 - **Launch args** — `AppEnvironment` parsing stays backward-compatible for `TestLaunchArg` helpers
 - **Player-visible copy and balance** — do not retune numbers or rename player-facing strings unless removing dead UI
 

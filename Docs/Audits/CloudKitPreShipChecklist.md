@@ -25,6 +25,7 @@ Use this checklist before enabling CloudKit sync in production or submitting Tri
 - [ ] Independent updates merge as expected: gold earned, stage completed, item added, and homestead tier upgraded on different devices
 - [ ] **Reset Game Progress** replaces local progress and propagates through CloudKit sync
 - [ ] App remains fully playable when **not signed into iCloud** (local-only)
+- [ ] Verify app handles iCloud account status changes gracefully (e.g. going from logged in to logged out, or restricted accounts) using container status checks or local fallback logic
 - [ ] App remains playable **offline**; sync resumes when connectivity returns
 - [ ] Conflict test: concurrent writes to separate records/properties converge without custom app reconciliation
 
@@ -36,8 +37,9 @@ Use this checklist before enabling CloudKit sync in production or submitting Tri
 
 ## CI & Automated Tests
 
-- [ ] Unit/UI tests run with **`-disable-cloud-sync`** (see `TestLaunchArg.testLaunchArgs`)
+- [ ] Unit/UI tests run with **`-disable-cloud-sync`** (see `TestLaunchArg.testLaunchArgs` in [AppTypes.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Shared/AppTypes.swift) and parsed in [AppEnvironment.swift](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Shared/AppEnvironment.swift))
 - [ ] No CI job depends on iCloud credentials or CloudKit network access
+- [ ] Verify all unit/integration tests for persistence configure in-memory databases (e.g., `ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)`) in [PlayerSaveStore.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) to avoid generating SQLite file artifacts or leaking persistent state across test runs
 - [ ] SwiftData persistence tests cover root creation, reset, test seed, relaunch from the same SQLite URL, and graph record mutations
 
 ## Release Engineering

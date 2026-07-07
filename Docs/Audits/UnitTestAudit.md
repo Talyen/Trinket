@@ -399,35 +399,37 @@ Check for:
 
 Organize findings into three tiers. The agent executing the audit should populate specific file:line references and current metrics.
 
+*Tip: You can identify missing test companion files automatically by running a script that matches files in the production source directory against files in the test directory (e.g., comparing files in `Trinket/Features/` with `TrinketTests/Features/` and flagging mismatches).*
+
 #### Tier 1 — High impact, low effort (quick wins)
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
 | `XCTAssertNotNil` → `XCTUnwrap` | Mechanical rename; safer assertions | All test files |
-| Silent `try?` in tests | Replace with `XCTAssertNoThrow` | `BattleSessionTests`, `AppStatePlayFlowTests` |
-| Orphaned `// swiftlint:disable` | Remove or add inline reason | `BattleSessionTests.swift:8` |
-| Missing `@MainActor` on store tests | Add annotation | `TrinketPersistence*.swift` (verify current) |
+| Silent `try?` in tests | Replace with `XCTAssertNoThrow` | [BattleSessionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift), [AppStatePlayFlowTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStatePlayFlowTests.swift) |
+| Orphaned `// swiftlint:disable` | Remove or add inline reason | [BattleSessionTests.swift:8](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift#L8) |
+| Missing `@MainActor` on store tests | Add annotation | TrinketPersistence tests |
 | `Task.sleep` in tests | Replace with injected short interval | Search results |
-| Catalog loop tests not using `@Test(arguments:)` | Migrate to Swift Testing | `EnemyCatalogTests`, `AbilityCatalogTests` |
+| Catalog loop tests not using `@Test(arguments:)` | Migrate to Swift Testing | [EnemyCatalogTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketContent/Tests/TrinketContentTests/EnemyCatalogTests.swift), [AbilityCatalogTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketContent/Tests/TrinketContentTests/AbilityCatalogTests.swift) |
 
 #### Tier 2 — Medium impact, medium effort
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
-| `TrinketDesignSystem` test gap (2 files only) | Add tests for theme rendering, surface views, `ExperienceBar` | `Packages/TrinketDesignSystem/Tests/` |
-| Setup duplication across `App*Tests` | Extract shared `makeSUT` base or support | `AppStateTests`, `AppStatePlayFlowTests` |
-| `BattleSessionTests.swift` 684 lines | Split into focused test files by concern | `BattleSessionTests.swift` |
+| `TrinketDesignSystem` test gap (2 files only) | Add tests for theme rendering, surface views, `ExperienceBar` | [Packages/TrinketDesignSystem/Tests/](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketDesignSystem/Tests/) |
+| Setup duplication across `App*Tests` | Extract shared `makeSUT` base or support | [AppStateTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStateTests.swift), [AppStatePlayFlowTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStatePlayFlowTests.swift) |
+| `BattleSessionTests.swift` 684 lines | Split into focused test files by concern | [BattleSessionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift) |
 | Right-size integration test files (target 3–6 tests) | Move extra tests to focused handler tests | `StatIntegrationTests`, `AbilityEffectIntegrationTests` |
-| UI test flakiness in `BattleFlowUITests` | Add retry or redesign entry path | `BattleFlowUITests.swift` |
-| `CombatPipelineTests.swift` hand-builds `BattleEngineContext` | Refactor to use `BattleStateTestFactory` | `CombatPipelineTests.swift` |
+| UI test flakiness in `BattleFlowUITests` | Add retry or redesign entry path | [BattleFlowUITests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketUITests/Battle/BattleFlowUITests.swift) |
+| `CombatPipelineTests.swift` hand-builds `BattleEngineContext` | Refactor to use `BattleStateTestFactory` | [CombatPipelineTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/BattleEngine/Tests/BattleEngineTests/CombatPipelineTests.swift) |
 
 #### Tier 3 — Lower impact, higher effort (strategic)
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
 | Swift Testing incremental migration | New tests in Swift Testing; migrate catalog loops first | All modules |
-| Code coverage infra + CI gate | Enable coverage, set minimums, add to CI | `project.yml`, `ci-locally.sh` |
-| `TrinketCore` edge case coverage gaps | Add boundary/zero/negative tests | `PrimaryStatsRulesTests`, `CombatantProgressionTests` |
+| Code coverage infra + CI gate | Enable coverage, set minimums, add to CI | [project.yml](file:///Users/ryanmcintire/Documents/Trinket/project.yml), [ci-locally.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/ci-locally.sh) |
+| `TrinketCore` edge case coverage gaps | Add boundary/zero/negative tests | [PrimaryStatsRulesTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketCore/Tests/TrinketCoreTests/PrimaryStatsRulesTests.swift), [CombatantProgressionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketCore/Tests/TrinketCoreTests/CombatantProgressionTests.swift) |
 | Test timing budget (target <60s unit, <3m smoke) | Profile top 10 hotspots, eliminate sleeps, parallelize package tests | Run `test-timing.sh` |
 | No AAA pattern in legacy test files | Refactor for readability during other edits (not wholesale) | Oldest test files |
 

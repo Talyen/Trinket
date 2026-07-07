@@ -162,9 +162,11 @@ Do **not** hand-edit `CHANGELOG.md` — that file is maintained by `./Scripts/re
 ## Verification
 
 ```bash
-# Internal links — confirm every .md link resolves
-rg -oP '\([^)]+\.md[#)]' --type md -g '!.DerivedData/' | \
-  sed 's/[()#].*//' | sort -u | while read -r link; do
+# Internal links — confirm every .md link resolves (using standard, portable grep/rg)
+rg -o '\([^)]+\.md[#)]' --type md -g '!.DerivedData/' | \
+  sed -e 's/^[^(]*(//' -e 's/[)#].*//' | sort -u | while read -r link; do
+  # Skip absolute file:/// links or web URLs
+  if [[ "$link" =~ ^(file:|http:|https:) ]]; then continue; fi
   test -f "$link" || echo "MISSING: $link"
 done
 
@@ -179,6 +181,8 @@ grep -rn 'MARKETING_VERSION' --type md -g '!.DerivedData/' -h
 ls -1 TrinketUITests/Smoke/Smoke*.swift | wc -l
 # Update AGENTS.md if the count differs from "9 Smoke* UI classes"
 ```
+
+*Note: For long-term documentation health, consider setting up a link-validation build phase script (e.g. `Scripts/validate-markdown-links.sh`) or a git pre-commit hook to catch broken internal links automatically.*
 
 Commit with this format:
 

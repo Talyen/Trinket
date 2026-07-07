@@ -12,9 +12,36 @@ Goal: Drive unsafe typing escapes toward zero in non-test source.
 
 ## Checks
 
-- Replace `as!` with `as?` + `guard`/`if let`, or redesign types to avoid the downcast
-- Replace `try!` with proper error handling (`do/catch`, `Result`, throwing `init?`)
-- Replace force unwraps (`!`) with `guard let`, `if let`, or optional chaining
-- Remove `// swiftlint:disable` by fixing the violation; surviving disables must be line-scoped with a reason comment
-- Use `Any` only at Clearance/save-load boundaries with `Codable` or `NSCoding`; prefer `any SomeProtocol` (existentials) elsewhere
-- Keep `Codable`/`JSONEncoder`/`JSONDecoder` at persistence boundaries; validate with `init(from:)` throws, not runtime casts
+### Force Casting & Unwrapping Refactoring Patterns
+
+#### Force Cast (`as!`)
+* **Bad**: `let cell = item as! HeroCell`
+* **Good**: 
+  ```swift
+  guard let cell = item as? HeroCell else {
+      logger.error("Invalid cell item type: \(type(of: item))")
+      return
+  }
+  ```
+
+#### Force Unwrapping (`!`)
+* **Bad**: `let name = combatant.name!`
+* **Good**: `let name = combatant.name ?? "Unknown"` or `guard let name = combatant.name else { ... }`
+
+#### Force Try (`try!`)
+* **Bad**: `let data = try! JSONEncoder().encode(save)`
+* **Good**:
+  ```swift
+  do {
+      let data = try JSONEncoder().encode(save)
+  } catch {
+      logger.error("Failed to encode save: \(error.localizedDescription)")
+  }
+  ```
+
+### Safe SwiftUI Environment Isolation
+- Audit usage of `@EnvironmentObject` which will crash at runtime if the object is missing from the parent view context.
+- Prefer defining modern `@Environment` keys with a safe default value, or wrap in a fallback structure to prevent runtime crashes.
+- Avoid using `// swiftlint:disable` wherever possible; if a disable is required, scope it strictly to a single line with an explicit reason comment.
+- Use `Any` only at serialization/JSON boundaries; prefer existentials (`any MyProtocol`) for dynamic interface variables.
+- Validate incoming decoded save payload structures using `init(from:)` checks in [PlayerSaveSanitizer.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift) rather than relying on structural runtime casts.

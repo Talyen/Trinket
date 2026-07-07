@@ -12,28 +12,26 @@ Goal: Zero circular imports; efferent imports per module p90 ≤ 12, max ≤ 20;
 
 ### Package graph violations
 
-Enforce the dependency graph from `Docs/Architecture.md`:
+Enforce the unified dependency graph from [Architecture.md](file:///Users/ryanmcintire/Documents/Trinket/Docs/Architecture.md):
 
 ```
-TrinketCore
-  ↑
-TrinketContent
-  ↑
-  ├── BattleEngine
-  ├── TrinketPersistence
-  └── Trinket app
-
-TrinketCore
-  ↑
-TrinketDesignSystem
-  ↑
-  Trinket app
+          TrinketCore
+           ▲       ▲
+           │       │
+    TrinketContent │
+       ▲       ▲   │
+       │       │   │
+  BattleEngine │   TrinketDesignSystem
+       │   TrinketPersistence
+       │       ▲   │
+       │       │   │
+       └────Trinket app
 ```
 
-- `BattleEngine` and `TrinketPersistence` are siblings — they must not import each other
-- `TrinketDesignSystem` depends on `TrinketCore` only — must not import `BattleEngine` or `TrinketContent`
-- Packages must not import `Trinket` app code or SwiftUI feature views
-- No circular imports between packages (`madge`-style check via `check-module-boundaries.sh`)
+- `BattleEngine` and `TrinketPersistence` are siblings — they must not import each other.
+- `TrinketDesignSystem` depends on `TrinketCore` only — must not import `BattleEngine` or `TrinketContent`.
+- Packages must not import `Trinket` app code or SwiftUI feature views.
+- No circular imports between packages (`madge`-style check via [check-module-boundaries.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/check-module-boundaries.sh)). Ensure this script is integrated into your local git workflow (e.g. pre-push hook).
 
 ### App target layer violations
 

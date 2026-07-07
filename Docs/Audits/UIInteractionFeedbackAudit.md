@@ -13,7 +13,7 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 ### Navigation & modal hygiene
 
-- `NavigationStack` within each tab; `TabView` is top-level only (`Docs/Design/AppleNativeGuidelines.md`)
+- `NavigationStack` within each tab; `TabView` is top-level only (see [AppleNativeGuidelines.md](file:///Users/ryanmcintire/Documents/Trinket/Docs/Design/AppleNativeGuidelines.md))
 - Every sheet, popover, and full-screen cover must have a clear dismiss path:
   - `toolbar` dismiss button or swipe-down for sheets
   - `Environment(\.dismiss)` for programmatic dismissal
@@ -43,7 +43,7 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 - Hover tooltips (if present on iPad via cursor): must show/hide cleanly; must not block taps on underlying controls
 - Homestead node tint presentation lives in `Trinket/Models/Homestead.swift` — verify tint changes are animated and readable at all Dynamic Type sizes
-- No simulated glass or ad-hoc `.buttonStyle`, materials, or capsules without `// UIStyleCheck: allow - <reason>` (see `AGENTS.md`)
+- No simulated glass or ad-hoc `.buttonStyle`, materials, or capsules without `// UIStyleCheck: allow - <reason>` (enforced by [check-ui-style.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/check-ui-style.sh), see [AGENTS.md](file:///Users/ryanmcintire/Documents/Trinket/AGENTS.md))
 - Use `.controlSize`, `.buttonBorderShape`, `Label`, and semantic styles from `TrinketDesignSystem` first
 
 ### Accessibility (VoiceOver, Dynamic Type, Reduce Motion)
@@ -65,5 +65,5 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 - Rapid tapping: a button that triggers a `Task { … }` should disable or debounce to prevent duplicate work (e.g., stage start, forge craft, reward claim)
 - Background/foreground: battle paused on `scenePhase` change; homestead timer should resume correctly
-- Keyboard dismiss: search fields (Collection, Search tab) should dismiss keyboard on scroll or tap-away
+- Keyboard dismiss: search fields (Collection, Search tab) must dismiss the keyboard on drag scroll (using `.scrollDismissesKeyboard(.immediately)`) or tap-away gesture to prevent blocking layout views.
 - Empty states: Collection with no heroes, Inventory with no items, Homestead with no upgrades — each should show a helpful empty-state message, not a blank grid
