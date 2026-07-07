@@ -75,7 +75,9 @@ class TrinketUITestCase: XCTestCase {
 
     func launchApp(arguments: [String] = []) {
         app = XCUIApplication()
-        app.launchArguments = arguments
+        var launchArgs = arguments
+        launchArgs.append(contentsOf: ["-store-name", UUID().uuidString])
+        app.launchArguments = launchArgs
         app.launch()
     }
 

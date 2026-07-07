@@ -27,9 +27,10 @@ extension AppState {
         }
 
         let resolvedPlayerSave = playerSave ?? PlayerSaveStore(
+            storeName: environment.storeName,
             disableCloudSync: environment.disableCloudSync,
             resetState: environment.resetState,
-            inMemoryOnly: environment.resetState
+            inMemoryOnly: environment.resetState && environment.storeName == nil
         )
         if environment.seedTestProgress {
             do {

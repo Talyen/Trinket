@@ -43,16 +43,23 @@ public final class PlayerSaveStore {
     }
 
     public init(
+        storeName: String? = nil,
         storeURL: URL? = nil,
         disableCloudSync: Bool = false,
         resetState: Bool = false,
         inMemoryOnly: Bool = false
     ) {
+        let finalURL: URL
+        if let storeName {
+            finalURL = URL.applicationSupportDirectory.appending(path: "\(storeName).store")
+        } else {
+            finalURL = storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
+        }
+
         if resetState && !inMemoryOnly {
-            let targetURL = storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
-            let shmURL = targetURL.deletingPathExtension().appendingPathExtension("store-shm")
-            let walURL = targetURL.deletingPathExtension().appendingPathExtension("store-wal")
-            try? FileManager.default.removeItem(at: targetURL)
+            let shmURL = finalURL.deletingPathExtension().appendingPathExtension("store-shm")
+            let walURL = finalURL.deletingPathExtension().appendingPathExtension("store-wal")
+            try? FileManager.default.removeItem(at: finalURL)
             try? FileManager.default.removeItem(at: shmURL)
             try? FileManager.default.removeItem(at: walURL)
         }
@@ -61,6 +68,8 @@ public final class PlayerSaveStore {
         let config: ModelConfiguration
         if inMemoryOnly {
             config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        } else if storeName != nil {
+            config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
         } else if let storeURL {
             config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
         } else if disableCloudSync {

@@ -16,6 +16,7 @@ struct AppEnvironment {
     let mapScrollTarget: String?
     /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
     let battleTickInterval: TimeInterval?
+    let storeName: String?
 
     static let defaultBattleTickInterval: TimeInterval = 0.8
     static let testBattleTickInterval: TimeInterval = 0.05
@@ -30,7 +31,8 @@ struct AppEnvironment {
         appearanceOverride: TrinketDesign.AppAppearance?,
         completedStageIDs: [String],
         mapScrollTarget: String?,
-        battleTickInterval: TimeInterval?
+        battleTickInterval: TimeInterval?,
+        storeName: String?
     ) {
         self.launchTab = launchTab
         self.launchScreen = launchScreen
@@ -42,6 +44,7 @@ struct AppEnvironment {
         self.completedStageIDs = completedStageIDs
         self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
+        self.storeName = storeName
     }
 
     private static func load() -> AppEnvironment {
@@ -64,7 +67,10 @@ struct AppEnvironment {
             appearanceOverride: appearanceOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
-            battleTickInterval: battleTickInterval(from: arguments, isRunningTests: isRunningTests)
+            battleTickInterval: battleTickInterval(from: arguments, isRunningTests: isRunningTests),
+            storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
+                arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
+            }
         )
     }
 
