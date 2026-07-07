@@ -5,16 +5,20 @@ struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
     @State private var collectionPath = NavigationPath()
+    @State private var localSelectedTab: AppTab = .play
 
     var body: some View {
-        @Bindable var state = appState
-
-        tabRoot(selection: $state.selectedTab)
+        tabRoot(selection: $localSelectedTab)
             .preferredColorScheme(appState.options.appearance.colorScheme)
             .onAppear {
+                localSelectedTab = appState.selectedTab
                 appState.shellDidAppear(scenePhase: scenePhase)
             }
+            .onChange(of: localSelectedTab) { _, newTab in
+                appState.selectedTab = newTab
+            }
             .onChange(of: appState.selectedTab) { _, newTab in
+                localSelectedTab = newTab
                 appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
             }
             .onChange(of: appState.battle.activeBattle?.id) { _, newValue in

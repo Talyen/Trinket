@@ -176,7 +176,7 @@ struct CombatantDetailPane: View {
             content()
                 .navigationTitle(combatant.name)
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarBackground(.clear, for: .navigationBar)
                 .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .principal) {

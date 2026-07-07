@@ -199,6 +199,27 @@ final class AppStatePlayFlowTests: XCTestCase {
         XCTAssertEqual(state.selectedTab, .play)
     }
 
+    func testShellDidChangeTabPersistsTabToSessionState() {
+        let state = AppTestSupport.makeAppState(
+            directoryURL: directoryURL,
+            userDefaults: defaults
+        )
+
+        state.shellDidChangeTab(to: .homestead, scenePhase: .active)
+        XCTAssertEqual(state.sessionState.selectedTab, .homestead)
+        XCTAssertEqual(
+            defaults.string(forKey: "session.selectedTab"),
+            AppTab.homestead.rawValue
+        )
+
+        state.shellDidChangeTab(to: .options, scenePhase: .active)
+        XCTAssertEqual(state.sessionState.selectedTab, .options)
+        XCTAssertEqual(
+            defaults.string(forKey: "session.selectedTab"),
+            AppTab.options.rawValue
+        )
+    }
+
     func testSessionBattleRestoredAsResumeCardOnColdLaunch() {
         defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
         defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")

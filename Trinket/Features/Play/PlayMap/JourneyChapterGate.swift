@@ -17,10 +17,6 @@ struct JourneyChapterGate: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
-                Label("Locked", systemImage: "lock.fill")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.84))
-
                 Text("Chapter \(chapter.number)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.84))
@@ -39,6 +35,7 @@ struct JourneyChapterGate: View {
             TrinketDesign.cardShape
                 .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
         }
+        .trinketLockedCardEffect(isLocked: true, text: "Locked")
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(StageMapID.chapterLocked(chapter))
         .accessibilityLabel("Chapter \(chapter.number), locked")

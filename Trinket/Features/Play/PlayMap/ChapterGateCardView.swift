@@ -7,17 +7,6 @@ struct ChapterGateCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.secondary.opacity(0.12))
-                    .frame(width: 52, height: 52)
-
-                Image(systemName: "lock.rectangle.on.rectangle.fill")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityHidden(true)
-
             VStack(alignment: .leading, spacing: 6) {
                 Text("Chapter \(chapter.number)")
                     .font(.caption.weight(.bold))
@@ -35,6 +24,7 @@ struct ChapterGateCardView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 272, alignment: .topLeading)
+        .trinketLockedCardEffect(isLocked: true)
         .trinketSurface(.disabled)
     }
 }

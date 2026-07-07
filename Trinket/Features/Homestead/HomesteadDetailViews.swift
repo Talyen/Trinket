@@ -107,11 +107,7 @@ struct HomesteadDetailHeader: View {
         ZStack(alignment: .bottomLeading) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                .homesteadLockedArtworkStyle(
-                    isUnlocked: status.isUnlocked,
-                    lockedSaturation: 0.14,
-                    lockedOpacity: 0.62
-                )
+                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
                 .overlay {
                     LinearGradient(
                         colors: [.clear, .black.opacity(0.58)],

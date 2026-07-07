@@ -80,11 +80,7 @@ struct HomesteadProjectCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .homesteadLockedArtworkStyle(
-                    isUnlocked: status.isUnlocked,
-                    lockedSaturation: 0.16,
-                    lockedOpacity: 0.62
-                )
+                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
                 .overlay(alignment: .topLeading) {
                     HomesteadStatusBadge(status: status)
                         .padding(12)
@@ -99,11 +95,7 @@ struct HomesteadProjectCard: View {
         HStack(spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .frame(width: 78, height: 78)
-                .homesteadLockedArtworkStyle(
-                    isUnlocked: status.isUnlocked,
-                    lockedSaturation: 0.12,
-                    lockedOpacity: 0.58
-                )
+                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
 
             projectSummary(.compact(isUnlocked: status.isUnlocked))
 
@@ -312,16 +304,22 @@ struct HomesteadStatusBadge: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        Label(status.statusTitle, systemImage: status.statusSymbolName)
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(status.statusColor)
-            .lineLimit(1)
-            .minimumScaleFactor(0.78)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            // UIStyleCheck: allow - Status badges intentionally float as native glass chips.
-            .background(.regularMaterial, in: Capsule(style: .continuous))
-            .accessibilityLabel(status.statusTitle)
+        Group {
+            if status.isUnlocked {
+                Label(status.statusTitle, systemImage: status.statusSymbolName)
+            } else {
+                Text(status.statusTitle)
+            }
+        }
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(status.statusColor)
+        .lineLimit(1)
+        .minimumScaleFactor(0.78)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        // UIStyleCheck: allow - Status badges intentionally float as native glass chips.
+        .background(.regularMaterial, in: Capsule(style: .continuous))
+        .accessibilityLabel(status.statusTitle)
     }
 }
 

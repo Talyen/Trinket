@@ -34,15 +34,6 @@ final class HomesteadBuildActions {
 }
 
 extension View {
-    func homesteadLockedArtworkStyle(
-        isUnlocked: Bool,
-        lockedSaturation: Double,
-        lockedOpacity: Double
-    ) -> some View {
-        saturation(isUnlocked ? 1 : lockedSaturation)
-            .opacity(isUnlocked ? 1 : lockedOpacity)
-    }
-
     func homesteadBuildErrorAlert(error: Binding<String?>) -> some View {
         alert(
             "Build Failed",

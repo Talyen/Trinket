@@ -14,8 +14,8 @@ struct CombatantCard: View {
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)
                         .clipShape(TrinketDesign.cardShape)
-                        .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
                 }
+                .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
                 .trinketCardSurface()
 
             if showsName {
@@ -59,7 +59,7 @@ struct CollectionCombatantButton: View {
             }
         }
         .buttonStyle(.plain)
-        .disabled(isLocked)
+        .allowsHitTesting(!isLocked)
         .accessibilityIdentifier("\(combatant.name) collection card")
     }
 }

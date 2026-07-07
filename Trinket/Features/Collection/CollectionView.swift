@@ -69,16 +69,17 @@ struct CollectionView: View {
         }
         // Combatant detail is a sheet, owned here at the NavigationStack root.
         // This prevents the UITransitionView from overlapping the tab bar during dismissal.
+        // The sheet header (drag indicator and navigation bar) is hidden — the hero art
+        // runs edge-to-edge with a close button overlaid.
         .sheet(item: $selectedCombatant) { context in
-            NavigationStack {
-                appState.rosterCombatantDetail(
-                    kind: context.kind,
-                    combatantID: context.combatantID
-                )
-            }
+            CombatantDetailSheet(
+                kind: context.kind,
+                combatantID: context.combatantID
+            )
             .presentationDetents([.large])
             .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
+            .presentationBackgroundInteraction(.enabled)
         }
         .onAppear {
             handleDeepLink()
@@ -178,5 +179,24 @@ struct CollectionView: View {
             for: .scrollContent
         )
         .scrollTargetBehavior(.viewAligned)
+    }
+}
+
+// MARK: - Sheet content for combatant detail.
+// The sheet header (drag indicator + navigation bar) is removed so the hero
+// artwork runs edge-to-edge.
+private struct CombatantDetailSheet: View {
+    let kind: CombatantDetailContext.Kind
+    let combatantID: String
+    @Environment(AppState.self) private var appState
+
+    var body: some View {
+        NavigationStack {
+            appState.rosterCombatantDetail(
+                kind: kind,
+                combatantID: combatantID,
+                hidesNavigationBar: true
+            )
+        }
     }
 }

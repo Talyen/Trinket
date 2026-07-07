@@ -15,17 +15,13 @@ public struct LockedCardEffectModifier: ViewModifier {
     public func body(content: Content) -> some View {
         if isLocked {
             content
-                .blur(radius: 3)
-                .saturation(0.15)
-                .opacity(0.68)
+                .blur(radius: 1.5)
+                .saturation(0.40)
                 .overlay {
-                    TrinketDesign.cardShape
-                        .fill(.black.opacity(0.36))
-
                     GeometryReader { proxy in
                         let shortSide = min(proxy.size.width, proxy.size.height)
-                        let iconSize = min(max(shortSide * 0.16, 13), 32)
-                        let textSize = min(max(shortSide * 0.065, 10), 13)
+                        let iconSize = min(max(shortSide * 0.20, 13), 40)
+                        let textSize = min(max(shortSide * 0.080, 10), 16)
                         let spacing = min(max(shortSide * 0.035, 4), 7)
                         let horizontalPadding = min(max(shortSide * 0.08, 8), 18)
 
@@ -43,7 +39,8 @@ public struct LockedCardEffectModifier: ViewModifier {
                                     .padding(.horizontal, horizontalPadding)
                             }
                         }
-                        .foregroundStyle(Color(.systemGray3))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.40), radius: 3, x: 0, y: 1)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
