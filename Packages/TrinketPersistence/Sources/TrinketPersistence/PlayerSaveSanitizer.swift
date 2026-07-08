@@ -52,14 +52,7 @@ public enum PlayerSaveSanitizer {
 
     public static func latestStageID(
         in completedStageIDs: Set<String>,
-        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
-    ) -> String? {
-        latestStageID(in: completedStageIDs, chapters: catalog.chapters)
-    }
-
-    public static func latestStageID(
-        in completedStageIDs: Set<String>,
-        chapters: [Chapter]
+        chapters: [Chapter] = GameContent.chapters
     ) -> String? {
         chapters
             .flatMap(\.stages)
@@ -69,14 +62,7 @@ public enum PlayerSaveSanitizer {
 
     public static func sanitizeJourney(
         _ journey: JourneyProgressState,
-        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
-    ) -> JourneyProgressState {
-        sanitizeJourney(journey, chapters: catalog.chapters)
-    }
-
-    public static func sanitizeJourney(
-        _ journey: JourneyProgressState,
-        chapters: [Chapter]
+        chapters: [Chapter] = GameContent.chapters
     ) -> JourneyProgressState {
         let validChapterIDs = Set(chapters.map(\.id))
         let validStageIDs = Set(chapters.flatMap { $0.stages.map(\.id) })
@@ -127,11 +113,12 @@ public enum PlayerSaveSanitizer {
     public static func sanitizeRoster(
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
-        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
+        heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
+        petIDs: Set<String> = Set(GameContent.pets.map(\.id))
     ) -> PlayerRosterState {
         let inventoryItemIDs = Set(inventory.items.map(\.id))
-        let validHeroIDs = catalog.heroIDs
-        let validPetIDs = catalog.petIDs
+        let validHeroIDs = heroIDs
+        let validPetIDs = petIDs
 
         var sanitized = roster
         sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filter { validHeroIDs.contains($0) }

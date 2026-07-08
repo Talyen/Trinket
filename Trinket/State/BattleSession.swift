@@ -142,8 +142,7 @@ final class BattleSession {
     func advanceAutoTick(
         at date: Date = .now,
         journey: JourneyProgressState,
-        homestead: PlayerHomesteadState,
-        contentCatalog: PlayerContentCatalog = GameContentPlayerCatalog()
+        homestead: PlayerHomesteadState
     ) -> Int? {
         pruneExpiredFeedback(at: date)
         guard canAutoAdvanceTick(),
@@ -155,8 +154,7 @@ final class BattleSession {
         case .victory:
             if Self.stageRewardsAlreadyClaimed(
                 stageID: configuration.stageID,
-                journey: journey,
-                catalog: contentCatalog
+                journey: journey
             ) {
                 return state?.earnedGold ?? 0
             }
@@ -178,11 +176,10 @@ final class BattleSession {
 
     static func stageRewardsAlreadyClaimed(
         stageID: String?,
-        journey: JourneyProgressState,
-        catalog: PlayerContentCatalog = GameContentPlayerCatalog()
+        journey: JourneyProgressState
     ) -> Bool {
         guard let stageID,
-              let stage = catalog.stage(id: stageID) else { return false }
+              let stage = GameContent.stage(id: stageID) else { return false }
         return journey.hasClaimedRewards(for: stage)
     }
 

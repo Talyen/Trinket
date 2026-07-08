@@ -33,12 +33,11 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     static func resolvedEncounter(
-        for stage: Stage,
-        contentCatalog: PlayerContentCatalog = GameContentPlayerCatalog()
+        for stage: Stage
     ) -> (combatant: Combatant, level: Int)? {
         guard let enemyID = stage.encounter.battleEnemyID,
               let catalogEnemy = GameContent.enemy(matching: enemyID),
-              let chapter = contentCatalog.chapters.first(where: { $0.id == stage.chapterID })
+              let chapter = GameContent.chapters.first(where: { $0.id == stage.chapterID })
         else { return nil }
 
         let level = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
@@ -58,24 +57,21 @@ struct ActiveBattleConfiguration: Identifiable {
         inventoryState: PlayerInventoryState,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
-        stageReward: StageReward? = nil,
-        catalog: CombatCatalog = GameContentCombatCatalog()
+        stageReward: StageReward? = nil
     ) -> ActiveBattleConfiguration {
-        let enemyBuild = resolvedEnemyBuild(enemy: enemy, catalog: catalog)
+        let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         return ActiveBattleConfiguration(
             stageID: stageID,
             rngSeed: rngSeed,
             hero: partyMember(
                 combatant: hero,
                 rosterState: rosterState,
-                inventoryState: inventoryState,
-                catalog: catalog
+                inventoryState: inventoryState
             ),
             pet: partyMember(
                 combatant: pet,
                 rosterState: rosterState,
-                inventoryState: inventoryState,
-                catalog: catalog
+                inventoryState: inventoryState
             ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
@@ -92,8 +88,7 @@ struct ActiveBattleConfiguration: Identifiable {
     private static func partyMember(
         combatant: Combatant,
         rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState,
-        catalog: CombatCatalog
+        inventoryState: PlayerInventoryState
     ) -> PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
@@ -103,8 +98,7 @@ struct ActiveBattleConfiguration: Identifiable {
                 level: progression.level
             ),
             equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState.items,
-            catalog: catalog
+            inventory: inventoryState.items
         )
         return PartyMember(
             combatant: build.combatant,
@@ -115,12 +109,11 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     private static func resolvedEnemyBuild(
-        enemy: Combatant?,
-        catalog: CombatCatalog
+        enemy: Combatant?
     ) -> CombatBuild {
         if let enemy,
-           let catalogEnemy = catalog.enemy(matching: enemy.id) {
-            return CombatBuildResolver.build(enemy: catalogEnemy, catalog: catalog)
+           let catalogEnemy = GameContent.enemy(matching: enemy.id) {
+            return CombatBuildResolver.build(enemy: catalogEnemy)
         }
         return CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
     }

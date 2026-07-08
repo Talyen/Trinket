@@ -6,8 +6,7 @@ public enum CombatBuildResolver {
     public static func build(
         combatant: Combatant,
         equipmentLoadout: EquipmentLoadout,
-        inventory: [InventoryItem],
-        catalog: CombatCatalog = GameContentCombatCatalog()
+        inventory: [InventoryItem]
     ) -> CombatBuild {
         let itemsByID = Dictionary(uniqueKeysWithValues: inventory.map { ($0.id, $0) })
         let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
@@ -17,9 +16,9 @@ public enum CombatBuildResolver {
 
         var profile = CombatModifierProfile.zero
         for item in equippedItems {
-            profile.merge(affixProfile(for: item, catalog: catalog))
+            profile.merge(affixProfile(for: item))
         }
-        if let trait = catalog.trait(forCombatantID: combatant.id) {
+        if let trait = GameContent.trait(forCombatantID: combatant.id) {
             trait.apply(to: &profile)
             profile.traitDisplayName = trait.name
         }
@@ -41,15 +40,14 @@ public enum CombatBuildResolver {
     }
 
     public static func build(
-        enemy: Enemy,
-        catalog: CombatCatalog = GameContentCombatCatalog()
+        enemy: Enemy
     ) -> CombatBuild {
         var profile = CombatModifierProfile.zero
-        if let positiveTrait = catalog.positiveTrait(for: enemy) {
+        if let positiveTrait = GameContent.positiveTrait(for: enemy) {
             positiveTrait.apply(to: &profile)
             profile.traitDisplayName = positiveTrait.name
         }
-        if let negativeTrait = catalog.negativeTrait(for: enemy) {
+        if let negativeTrait = GameContent.negativeTrait(for: enemy) {
             negativeTrait.apply(to: &profile)
         }
 
@@ -57,11 +55,10 @@ public enum CombatBuildResolver {
     }
 
     private static func affixProfile(
-        for item: InventoryItem,
-        catalog: CombatCatalog
+        for item: InventoryItem
     ) -> CombatModifierProfile {
         item.affixes.reduce(into: CombatModifierProfile.zero) { partial, affix in
-            guard let definition = catalog.itemAffixDefinition(id: affix.id) else {
+            guard let definition = GameContent.itemAffixDefinitions.first(where: { $0.id == affix.id }) else {
                 return
             }
             let power = definition.power(for: item.rarity)
