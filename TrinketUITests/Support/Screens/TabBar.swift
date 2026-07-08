@@ -27,7 +27,11 @@ struct TabBar {
 struct HomesteadScreen {
     let app: XCUIApplication
 
-    func assertLoaded(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertLoaded(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.homestead]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Homestead screen not found", file: file, line: line)
     }
@@ -38,7 +42,7 @@ struct HomesteadScreen {
 
     func assertNodeDetail(
         named title: String,
-        timeout: TimeInterval = 5,
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
         file: StaticString = #file,
         line: UInt = #line
     ) {
@@ -50,12 +54,20 @@ struct HomesteadScreen {
 struct SearchScreen {
     let app: XCUIApplication
 
-    func assertEmptyState(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertEmptyState(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Search.emptyState]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Search empty state not found", file: file, line: line)
     }
 
-    func assertNoResults(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertNoResults(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Search.noResults]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Search no-results state not found", file: file, line: line)
     }
@@ -68,8 +80,12 @@ struct SearchScreen {
 struct OptionsScreen {
     let app: XCUIApplication
 
-    func assertLoaded(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
-        let element = app.descendants(matching: .any)["Options Screen"]
+    func assertLoaded(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.descendants(matching: .any)[AccessibilityID.Screen.options]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)
     }
 }

@@ -10,14 +10,14 @@ final class SearchUITests: TrinketUITestCase {
         searchField.tap()
         searchField.typeText("Knight")
 
-        assertButtonExists("Knight collection card")
+        assertButtonExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
         collection.openCombatantCard(named: "Knight")
         assertCombatantDetailSections()
         goBack()
 
         searchField.tap()
         replaceText(in: searchField, with: "Wolf")
-        assertButtonExists("Wolf collection card")
+        assertButtonExists(AccessibilityID.CombatantDetail.collectionCard(name: "Wolf"))
 
         replaceText(in: searchField, with: "Wand")
         assertItemCardExists("Wand")

@@ -3,25 +3,29 @@ import XCTest
 struct CollectionScreen {
     let app: XCUIApplication
 
-    func assertLoaded(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
-        let element = app.buttons["Heroes collection category"]
+    func assertLoaded(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.buttons[AccessibilityID.Collection.heroesCategory]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Collection screen not found", file: file, line: line)
     }
 
     func openHeroesCategory() {
-        app.buttons["Heroes collection category"].tap()
+        app.buttons[AccessibilityID.Collection.heroesCategory].tap()
     }
 
     func openPetsCategory() {
-        app.buttons["Pets collection category"].tap()
+        app.buttons[AccessibilityID.Collection.petsCategory].tap()
     }
 
     func openInventoryCategory() {
-        app.buttons["Inventory collection category"].tap()
+        app.buttons[AccessibilityID.Collection.inventoryCategory].tap()
     }
 
     func openCombatantCard(named name: String) {
-        app.buttons["\(name) collection card"].tap()
+        app.buttons[AccessibilityID.CombatantDetail.collectionCard(name: name)].tap()
     }
 
     func openItemCard(named name: String) {
@@ -29,7 +33,7 @@ struct CollectionScreen {
     }
 
     func filterInventory(to slot: String, file: StaticString = #filePath, line: UInt = #line) {
-        let filterButton = app.buttons["Inventory filter"]
+        let filterButton = app.buttons[AccessibilityID.Collection.inventoryFilter]
         XCTAssertTrue(filterButton.waitForExistence(timeout: 2), "Inventory filter not found", file: file, line: line)
         filterButton.tap()
         let option = app.buttons[slot]

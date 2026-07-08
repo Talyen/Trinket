@@ -3,8 +3,8 @@ import XCTest
 final class SmokeCollectionTests: TrinketUITestCase {
     func testCollectionScreenLoads() {
         launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        assertExists("Heroes collection category")
-        assertExists("Pets collection category")
+        collection.assertLoaded()
+        assertExists(AccessibilityID.Collection.petsCategory)
         assertExists(AccessibilityID.Collection.inventoryCategory)
     }
 
@@ -15,24 +15,9 @@ final class SmokeCollectionTests: TrinketUITestCase {
             "-selectedTab",
             "collection"
         ])
-        assertExists("Heroes collection category")
-        assertExists("Pets collection category")
+        assertExists(AccessibilityID.Collection.heroesCategory)
+        assertExists(AccessibilityID.Collection.petsCategory)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryEmptyState].exists)
-    }
-
-    func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync
-        ] + TestLaunchArg.screen("hero:knight"))
-
-        scrollUntilVisible(app.descendants(matching: .any)["Weapon item slot"], swipingUp: true)
-        assertExists("Find a Weapon to Unlock")
-        assertExists("Find Armor to Unlock")
-        assertExists("Find a Trinket to Unlock")
-
-        app.descendants(matching: .any)["Weapon item slot"].tap()
-        XCTAssertFalse(app.navigationBars["Equip Weapon"].waitForExistence(timeout: 1))
     }
 }

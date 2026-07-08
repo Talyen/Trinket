@@ -1,44 +1,60 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    func testBattleFlowAndCombatLoops() {
+    /// Mid-battle interactions: enter via Play map (not `-launch-screen battle` + extreme ticks).
+    func testMidBattleCombatantDetailAndTabPause() {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.05", in: TestLaunchArg.testLaunchArgs))
 
         play.assertLoaded()
-        play.openStage("Stage 1-1 Node")
+        play.openStage(chapter: 1, stage: 1)
 
-        assertButtonExists("Battle Pause Button")
-        assertExists("Knight card")
-        assertExists("Wolf card")
+        battle.assertActive()
+        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
+        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Wolf"))
 
-        let victory = any("Victory")
-        if !victory.waitForExistence(timeout: 1) {
-            _ = any("Battle Menu").waitForExistence(timeout: 2)
-            tabBar.selectCollection()
-            assertExists("Knight collection card")
-            tabBar.selectPlay()
-
-            if button("Battle Pause Button").waitForExistence(timeout: 2) {
-                button("Knight card").tap()
-                let knightHeader = combatantDetail.header(for: "Knight")
-                assertExists(knightHeader)
-                XCTAssertEqual(knightHeader.label, "Knight, Hero, level 2, 35 of 155 experience")
-                assertCombatantDetailSections()
-                dismissSheet()
-
-                // Resume the battle since changing tabs paused it
-                button("Battle Pause Button").tap()
-            }
+        // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
+        if battle.victory.waitForExistence(timeout: 1) {
+            return
         }
 
-        assertExists(victory, timeout: 60)
+        // Leave Play to pause the battle, then return and inspect a combatant.
+        _ = battle.menu.waitForExistence(timeout: 2)
+        tabBar.selectCollection()
+        assertExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
+        tabBar.selectPlay()
 
-        assertExists("Experience")
-        assertExists("Rewards")
-        assertButtonExists("Continue Button")
+        if battle.victory.waitForExistence(timeout: 1) {
+            return
+        }
 
-        button("Battle Menu").tap()
-        assertExists("Combat Log")
-        XCTAssertFalse(button("Retreat").exists)
+        battle.assertActive(timeout: 2)
+        battle.openCombatantCard(named: "Knight")
+        combatantDetail.assertSeededHeroHeaderSummary(for: "Knight")
+        assertCombatantDetailSections()
+        dismissSheet()
+
+        // Resume after tab-switch pause so the battle can continue if needed.
+        if battle.pauseButton.exists {
+            battle.pauseButton.tap()
+        }
+    }
+
+    /// Victory path stays focused on outcome chrome; no mid-battle side quests.
+    func testBattleVictorySummaryAndPostVictoryMenu() {
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.05", in: TestLaunchArg.testLaunchArgs))
+
+        play.assertLoaded()
+        play.openStage(chapter: 1, stage: 1)
+        battle.assertActive()
+
+        assertExists(battle.victory, timeout: 60)
+
+        assertExists(AccessibilityID.Battle.experience)
+        assertExists(AccessibilityID.Battle.rewards)
+        assertButtonExists(AccessibilityID.Battle.continueButton)
+
+        battle.openMenu()
+        battle.assertCombatLogVisible()
+        battle.assertRetreatUnavailable()
     }
 }

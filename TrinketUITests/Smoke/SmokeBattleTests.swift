@@ -6,6 +6,6 @@ final class SmokeBattleTests: SeededSmokeUITestCase {
     }
 
     func testBattleLaunchScreenStartsStageOneOne() {
-        assertButtonExists("Battle Pause Button")
+        battle.assertActive()
     }
 }

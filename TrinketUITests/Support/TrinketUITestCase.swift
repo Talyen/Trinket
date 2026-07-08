@@ -61,6 +61,9 @@ enum TestLaunchArg {
 }
 
 class TrinketUITestCase: XCTestCase {
+    /// Deep-linked screens should appear quickly; keep failure waits short to cut flake wall time.
+    static let defaultTimeout: TimeInterval = 3
+
     private(set) var app: XCUIApplication!
 
     var play: PlayScreen {
@@ -91,6 +94,23 @@ class TrinketUITestCase: XCTestCase {
         OptionsScreen(app: app)
     }
 
+    var battle: BattleScreen {
+        BattleScreen(app: app)
+    }
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        continueAfterFailure = false
+    }
+
+    override func tearDownWithError() throws {
+        if let app {
+            app.terminate()
+        }
+        app = nil
+        try super.tearDownWithError()
+    }
+
     func launchApp(arguments: [String] = []) {
         app = XCUIApplication()
         var launchArgs = arguments
@@ -107,7 +127,12 @@ class TrinketUITestCase: XCTestCase {
         app.descendants(matching: .any)[identifier]
     }
 
-    func assertButtonExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertButtonExists(
+        _ identifier: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = button(identifier)
         guard element.waitForExistence(timeout: timeout) else {
             fail("Button '\(identifier)' not found", file: file, line: line)
@@ -115,11 +140,20 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertCombatantDetailSections(timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertCombatantDetailSections(
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         combatantDetail.assertSections(timeout: timeout, file: file, line: line)
     }
 
-    func assertExists(_ identifier: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertExists(
+        _ identifier: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = app.descendants(matching: .any)[identifier]
         guard element.waitForExistence(timeout: timeout) else {
             fail("Element '\(identifier)' not found", file: file, line: line)
@@ -127,7 +161,12 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertItemCardExists(_ itemName: String, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertItemCardExists(
+        _ itemName: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
         guard card.waitForExistence(timeout: timeout) else {
             fail("Item card '\(itemName)' not found", file: file, line: line)
@@ -135,7 +174,12 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertItemCardExistsAfterScroll(_ itemName: String, maxAttempts: Int = 8, file: StaticString = #file, line: UInt = #line) {
+    func assertItemCardExistsAfterScroll(
+        _ itemName: String,
+        maxAttempts: Int = 8,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let card = app.buttons.matching(identifier: "\(itemName) item card").firstMatch
         scrollUntilVisible(card, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
         guard card.exists else {
@@ -144,10 +188,30 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertExists(_ element: XCUIElement, timeout: TimeInterval = 5, file: StaticString = #file, line: UInt = #line) {
+    func assertExists(
+        _ element: XCUIElement,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         guard element.waitForExistence(timeout: timeout) else {
             fail("Element not found", file: file, line: line)
             return
+        }
+    }
+
+    func assertDoesNotExist(
+        _ identifier: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = app.descendants(matching: .any)[identifier]
+        if element.exists {
+            guard element.waitForNonExistence(timeout: timeout) else {
+                fail("Element '\(identifier)' still present", file: file, line: line)
+                return
+            }
         }
     }
 
@@ -159,7 +223,12 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 6, file: StaticString = #file, line: UInt = #line) {
+    func assertExistsAfterScroll(
+        _ identifier: String,
+        maxAttempts: Int = 6,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
         let element = app.descendants(matching: .any)[identifier]
         scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
         guard element.exists else {
@@ -178,7 +247,13 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func scrollUntilVisible(_ element: XCUIElement, swipingUp: Bool, maxAttempts: Int = 6, file _: StaticString = #file, line _: UInt = #line) {
+    func scrollUntilVisible(
+        _ element: XCUIElement,
+        swipingUp: Bool,
+        maxAttempts: Int = 6,
+        file _: StaticString = #file,
+        line _: UInt = #line
+    ) {
         for _ in 0 ..< maxAttempts where !element.exists {
             if swipingUp {
                 dragScroll(fromY: 0.90, toY: 0.35)
@@ -202,10 +277,6 @@ class TrinketUITestCase: XCTestCase {
         let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
         let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
         start.press(forDuration: 0.05, thenDragTo: end)
-    }
-
-    private func dragInDetailList(fromY: CGFloat, toY: CGFloat) {
-        dragScroll(fromY: fromY, toY: toY)
     }
 
     func dismissSheet() {
