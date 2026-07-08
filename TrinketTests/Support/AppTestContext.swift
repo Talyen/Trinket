@@ -2,7 +2,6 @@ import Foundation
 import TrinketPersistence
 @testable import Trinket
 
-@MainActor
 final class AppTestContext {
     let directoryURL: URL
     let suiteName: String
@@ -20,14 +19,15 @@ final class AppTestContext {
     }
 
     deinit {
-        userDefaults.removePersistentDomain(forName: suiteName)
         SaveTestSupport.removeTempDirectory(directoryURL)
     }
 
+    @MainActor
     func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
         AppEnvironment.parse(arguments: arguments, environment: [:])
     }
 
+    @MainActor
     func makeAppState(
         arguments: [String] = [],
         environment: [String: String] = [:],
@@ -47,6 +47,7 @@ final class AppTestContext {
         )
     }
 
+    @MainActor
     func makeAppState(environment: AppEnvironment) -> AppState {
         AppState(
             environment: environment,
