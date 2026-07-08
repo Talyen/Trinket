@@ -3,7 +3,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-EXPECTED_VERSION="0.65.0"
+# shellcheck source=tool-versions.env
+source Scripts/tool-versions.env
+EXPECTED_VERSION="$SWIFTLINT_VERSION"
 SOURCE_DIRS=(
   Trinket
   TrinketTests
@@ -15,15 +17,22 @@ SOURCE_DIRS=(
   Packages/TrinketDesignSystem/Sources
 )
 
+# Prefer pinned .tools binary when present.
+if [[ -x .tools/swiftlint ]]; then
+  export PATH="$PWD/.tools:$PATH"
+fi
+
 if ! command -v swiftlint &>/dev/null; then
-  echo "SwiftLint is not installed. Install via: brew install swiftlint"
+  echo "SwiftLint is not installed."
+  echo "Install the pinned version via: ./Scripts/ensure-ci-tools.sh"
+  echo "Or: brew install swiftlint (must be $EXPECTED_VERSION)"
   exit 1
 fi
 
 INSTALLED_VERSION="$(swiftlint version)"
 if [[ "$INSTALLED_VERSION" != "$EXPECTED_VERSION" ]]; then
   echo "SwiftLint version mismatch: expected $EXPECTED_VERSION, found $INSTALLED_VERSION"
-  echo "Install the expected version via: brew install swiftlint"
+  echo "Install the expected version via: ./Scripts/ensure-ci-tools.sh"
   exit 1
 fi
 

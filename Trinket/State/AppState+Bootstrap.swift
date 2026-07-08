@@ -15,7 +15,6 @@ extension AppState {
         let pendingCollectionPresentation: LaunchPresentation?
     }
 
-
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
@@ -70,7 +69,6 @@ extension AppState {
             mapScrollStageID: resolvedShellSession.mapScrollStageID,
             pendingCollectionPresentation: launchCollection
         )
-
     }
 
     func finishBootstrap(environment: AppEnvironment) {

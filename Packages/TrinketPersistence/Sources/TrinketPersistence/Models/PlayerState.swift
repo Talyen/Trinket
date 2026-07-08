@@ -276,17 +276,16 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 }
 
-extension PlayerRosterState {
-    public var current: PlayerRosterState {
+public extension PlayerRosterState {
+    var current: PlayerRosterState {
         get { self }
         set { self = newValue }
     }
 }
 
-extension PlayerInventoryState {
-    public var current: PlayerInventoryState {
+public extension PlayerInventoryState {
+    var current: PlayerInventoryState {
         get { self }
         set { self = newValue }
     }
 }
-

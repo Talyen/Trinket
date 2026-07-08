@@ -10,11 +10,17 @@ struct TrinketApp: App {
             _appState = try State(initialValue: AppState(environment: .shared))
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
-            _appState = State(initialValue: try! AppState(
-                environment: .shared,
-                playerSave: try! PlayerSaveStore(inMemoryOnly: true),
-                shellSessionStore: try! PlayerShellSessionStore(inMemoryOnly: true)
-            ))
+            do {
+                let fallbackSave = try PlayerSaveStore(inMemoryOnly: true)
+                let fallbackShell = try PlayerShellSessionStore(inMemoryOnly: true)
+                _appState = try State(initialValue: AppState(
+                    environment: .shared,
+                    playerSave: fallbackSave,
+                    shellSessionStore: fallbackShell
+                ))
+            } catch {
+                fatalError("AppState in-memory fallback failed: \(error)")
+            }
         }
     }
 

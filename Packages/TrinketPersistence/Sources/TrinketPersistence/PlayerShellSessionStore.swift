@@ -159,7 +159,7 @@ public final class PlayerShellSessionStore {
             try context.delete(model: PlayerShellSession.self)
             try context.save()
         } catch {
-            Self.logger.error(
+            logger.error(
                 "Failed to clear shell session during reset: \(error.localizedDescription, privacy: .public)"
             )
         }

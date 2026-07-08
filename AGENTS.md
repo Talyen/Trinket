@@ -123,22 +123,24 @@ Breaking: <description if only applicable>
 - Imperative subjects without a type prefix are acceptable.
 - **`User-Facing: yes`** when players would notice; **`no`** for CI/style/refactor/tooling.
 - Do **not** edit `CHANGELOG.md` per commit — `./Scripts/release.sh` generates it at release time.
-- Optional hook: `git config core.hooksPath .githooks` (advisory via `./Scripts/validate-commit-msg.sh`).
+- See `Scripts/README.md` for the full release workflow.
+- Local hooks: `git config core.hooksPath .githooks` — `commit-msg` (advisory) + `pre-push` (format lint + generate assert). Skip once with `SKIP_TRINKET_PREPUSH=1`. Fast gate without tests: `./Scripts/ci-gate.sh`.
 
 ## Commands & Verification
 
-Scripts live under `./Scripts/`. Tooling: XcodeGen, `xcodebuild`, XCTest, Swift Testing, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Timings: `.DerivedData/TestResults/timing-log.jsonl`; report with `./Scripts/test-timing.sh`.
+Scripts live under `./Scripts/`. Tooling: XcodeGen, `xcodebuild`, XCTest, Swift Testing, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Timings: `.DerivedData/TestResults/timing-log.jsonl`; report with `./Scripts/test-timing.sh`. Pin format/lint with `./Scripts/ensure-ci-tools.sh` (`Scripts/tool-versions.env`).
 
-**Groups** (see `Scripts/` for the full set): **Codegen** (`generate.sh`, manifest/asset preparers, assert-generated) · **Quality** (`format.sh`, `lint.sh`, `check-ui-style.sh`, `check-module-boundaries.sh`, `check-swift-testing-migration.sh`) · **Build/test** (`build.sh`, `test.sh`, `test-package.sh`, `test-iterate.sh`, `ci-locally.sh`, `test-deploy.sh`, …) · **Release** (`release.sh`, release-notes helpers).
+**Groups** (see `Scripts/` for the full set): **Codegen** (`generate.sh`, manifest/asset preparers, assert-generated) · **Quality** (`format.sh`, `lint.sh`, `check-ui-style.sh`, `check-module-boundaries.sh`, `check-swift-testing-migration.sh`, `ci-gate.sh`, `ensure-ci-tools.sh`) · **Build/test** (`build.sh`, `test.sh`, `test-package.sh`, `test-iterate.sh`, `ci-locally.sh`, `test-deploy.sh`, …) · **Release** (`release.sh`, release-notes helpers).
 
 **Gates:**
 
 | Script / CI | Runs |
 |-------------|------|
-| `ci-locally.sh` | generate → assert-generated → boundaries → Swift Testing migration check → style → validate release notes → unit → unit timing budget → smoke |
+| `ci-gate.sh` | generate → assert-generated → boundaries → Swift Testing migration check → style → validate release notes |
+| `ci-locally.sh` | `ci-gate.sh` → unit → unit timing budget → smoke → smoke timing budget |
 | `test-deploy.sh` | generate → assert-generated → boundaries → style → validate release notes → unit → full UI |
-| GitHub `pr.yml` | gate → unit + smoke (parallel) |
-| GitHub `ci.yml` (main) | gate → unit + full UI (parallel) |
+| GitHub `pr.yml` | gate → unit + smoke (parallel) on `macos-26` |
+| GitHub `ci.yml` (main) | gate → unit + full UI (parallel) on `macos-26` |
 
 **Test tiers** (fast → thorough):
 

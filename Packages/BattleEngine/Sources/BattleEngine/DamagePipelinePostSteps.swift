@@ -66,48 +66,25 @@ package extension DamagePipeline {
             in: &context
         ))
 
+        applyActiveReactiveEffects(to: &state, attacker: attacker, in: &context)
+    }
+
+    private static func applyActiveReactiveEffects(
+        to state: inout DamageResolutionState,
+        attacker: CombatantRuntime,
+        in context: inout BattleEngineContext
+    ) {
         let activeEffects = context.roster.activeEffects(for: state.combatant)
         for active in activeEffects {
             switch active.effect {
             case let .thorns(keyword, amount, _):
-                guard amount > 0 else { continue }
-                let outcome = context.resolveDamage(
-                    DamageRequest(
-                        amount: amount,
-                        target: attacker.combatant,
-                        keyword: keyword,
-                        sourceActorID: state.combatant.id,
-                        options: DamageOptions(applyDodge: false, isRetaliation: true)
-                    )
+                appendThornsRetaliation(
+                    amount: amount,
+                    keyword: keyword,
+                    attacker: attacker,
+                    to: &state,
+                    in: &context
                 )
-                var thornsEvents = outcome.events
-                if let lastIndex = thornsEvents.indices.last {
-                    let event = thornsEvents[lastIndex]
-                    thornsEvents[lastIndex] = ActionEvent(
-                        id: event.id,
-                        kind: event.kind,
-                        effectKind: .thornsTriggered,
-                        actorName: state.combatant.name,
-                        abilityName: "Thorns",
-                        targetID: event.targetID,
-                        targetName: event.targetName,
-                        amount: event.amount,
-                        keyword: event.keyword,
-                        appliedEffectSummaries: event.appliedEffectSummaries,
-                        milestone: event.milestone
-                    )
-                } else if outcome.healthLost > 0 {
-                    thornsEvents.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .thornsTriggered,
-                        actorName: state.combatant.name,
-                        abilityName: "Thorns",
-                        target: attacker.combatant,
-                        amount: outcome.healthLost,
-                        keyword: keyword
-                    ))
-                }
-                state.damageEvents.append(contentsOf: thornsEvents)
             case let .restoreManaOnHit(amount, _):
                 let restored = context.restoreMana(amount, to: state.combatant, sourceActorID: state.combatant.id)
                 guard restored > 0 else { continue }
@@ -124,5 +101,52 @@ package extension DamagePipeline {
                 continue
             }
         }
+    }
+
+    private static func appendThornsRetaliation(
+        amount: Int,
+        keyword: Keyword,
+        attacker: CombatantRuntime,
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        guard amount > 0 else { return }
+        let outcome = context.resolveDamage(
+            DamageRequest(
+                amount: amount,
+                target: attacker.combatant,
+                keyword: keyword,
+                sourceActorID: state.combatant.id,
+                options: DamageOptions(applyDodge: false, isRetaliation: true)
+            )
+        )
+        var thornsEvents = outcome.events
+        if let lastIndex = thornsEvents.indices.last {
+            let event = thornsEvents[lastIndex]
+            thornsEvents[lastIndex] = ActionEvent(
+                id: event.id,
+                kind: event.kind,
+                effectKind: .thornsTriggered,
+                actorName: state.combatant.name,
+                abilityName: "Thorns",
+                targetID: event.targetID,
+                targetName: event.targetName,
+                amount: event.amount,
+                keyword: event.keyword,
+                appliedEffectSummaries: event.appliedEffectSummaries,
+                milestone: event.milestone
+            )
+        } else if outcome.healthLost > 0 {
+            thornsEvents.append(context.nextEvent(
+                kind: .effect,
+                effectKind: .thornsTriggered,
+                actorName: state.combatant.name,
+                abilityName: "Thorns",
+                target: attacker.combatant,
+                amount: outcome.healthLost,
+                keyword: keyword
+            ))
+        }
+        state.damageEvents.append(contentsOf: thornsEvents)
     }
 }

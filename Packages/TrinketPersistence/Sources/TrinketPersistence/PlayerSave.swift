@@ -53,8 +53,6 @@ public struct PlayerSave: Equatable, Sendable {
         self.homestead = homestead
     }
 
-
-
     public func markedLocalMutation(at date: Date = Date()) -> PlayerSave {
         var updated = self
         updated.modifiedAt = date

@@ -24,11 +24,21 @@ runs:
   using: composite
   steps:
     - name: Restore build cache
+      id: restore-build-cache
       uses: actions/cache/restore@v4
       with:
         path: .DerivedData
         key: ${{ inputs.cache-key }}
-        fail-on-cache-miss: true
+        fail-on-cache-miss: false
+
+    - name: Rebuild when cache miss
+      if: steps.restore-build-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        SKIP_GENERATE: 1
+      run: |
+        echo "Build cache miss for key ${{ inputs.cache-key }}; rebuilding with build-for-testing.sh"
+        ./Scripts/build-for-testing.sh
 
     - name: Run tests
       shell: bash

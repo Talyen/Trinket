@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     name: Verify release commit
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4

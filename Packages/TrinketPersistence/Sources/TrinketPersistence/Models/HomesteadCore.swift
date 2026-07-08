@@ -118,10 +118,9 @@ public extension PlayerHomesteadState {
     }
 }
 
-extension PlayerHomesteadState {
-    public var current: PlayerHomesteadState {
+public extension PlayerHomesteadState {
+    var current: PlayerHomesteadState {
         get { self }
         set { self = newValue }
     }
 }
-

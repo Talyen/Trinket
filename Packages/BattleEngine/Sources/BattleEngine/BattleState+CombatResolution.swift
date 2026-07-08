@@ -1,8 +1,8 @@
 import TrinketContent
 import TrinketCore
 
-extension BattleState {
-    package mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
+package extension BattleState {
+    mutating func resolveDamage(_ request: DamageRequest) -> CombatOutcome {
         guard request.amount > 0 else { return .empty }
 
         var state = DamageResolutionState(
@@ -25,15 +25,15 @@ extension BattleState {
         return CombatOutcome.fromDamage(state: state)
     }
 
-    package mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
+    mutating func resolveHeal(_ request: HealRequest) -> CombatOutcome {
         HealingEngine.resolveHeal(request, in: &self)
     }
 
-    package mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
+    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
         HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &self).events
     }
 
-    package mutating func applyControlMeter(
+    mutating func applyControlMeter(
         _ amount: Int,
         keyword: Keyword,
         to combatant: Combatant,
@@ -48,7 +48,7 @@ extension BattleState {
         )
     }
 
-    package mutating func resolveDoTTick(
+    mutating func resolveDoTTick(
         basePotency: Int,
         keyword: Keyword,
         target: Combatant,
@@ -63,7 +63,7 @@ extension BattleState {
         )
     }
 
-    package mutating func applyDecayingDoT(
+    mutating func applyDecayingDoT(
         keyword: Keyword,
         potency: Int,
         to effectTarget: Combatant,

@@ -67,10 +67,21 @@ public final class PlayerSaveStore {
     }
 
     /// Domain facades — prefer these for player actions over growing this hub.
-    public var journeyStore: PlayerJourneyStore { PlayerJourneyStore(save: self) }
-    public var rosterStore: PlayerRosterStore { PlayerRosterStore(save: self) }
-    public var inventoryStore: PlayerInventoryStore { PlayerInventoryStore(save: self) }
-    public var homesteadStore: PlayerHomesteadStore { PlayerHomesteadStore(save: self) }
+    public var journeyStore: PlayerJourneyStore {
+        PlayerJourneyStore(save: self)
+    }
+
+    public var rosterStore: PlayerRosterStore {
+        PlayerRosterStore(save: self)
+    }
+
+    public var inventoryStore: PlayerInventoryStore {
+        PlayerInventoryStore(save: self)
+    }
+
+    public var homesteadStore: PlayerHomesteadStore {
+        PlayerHomesteadStore(save: self)
+    }
 
     private let persistSaveImmediately: Bool
 

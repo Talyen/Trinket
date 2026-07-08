@@ -29,7 +29,6 @@ struct HomesteadBuildControl {
             error = "Couldn't save homestead progress. Try again."
         }
     }
-
 }
 
 extension View {

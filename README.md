@@ -7,7 +7,7 @@ Portrait-first **iOS 26+** native fantasy idle auto-battler. Built with **Swift 
 - Xcode 26+ with iOS 26 simulator runtime
 - Swift 6.0
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen)
-- SwiftLint and SwiftFormat (`brew install swiftlint swiftformat`)
+- SwiftLint and SwiftFormat (pinned via `./Scripts/ensure-ci-tools.sh`; versions in `Scripts/tool-versions.env`)
 - Ripgrep (`brew install ripgrep`) for `./Scripts/check-module-boundaries.sh`
 - Python 3 (content codegen)
 
@@ -16,14 +16,17 @@ Portrait-first **iOS 26+** native fantasy idle auto-battler. Built with **Swift 
 ```sh
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -runFirstLaunch
-brew install xcodegen swiftlint swiftformat ripgrep
+brew install xcodegen ripgrep
+./Scripts/ensure-ci-tools.sh   # installs pinned SwiftFormat + SwiftLint into .tools/
 ```
 
-Optional commit-message hook (advisory warnings):
+Enable git hooks (commit-msg advisory + pre-push format/generate gate):
 
 ```sh
 git config core.hooksPath .githooks
 ```
+
+Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1 git push` when needed.
 
 ## First Run
 
@@ -49,7 +52,8 @@ For manifest, art, music, or SFX edits:
 ./Scripts/test.sh smoke            # UI smoke (~2 min)
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
-./Scripts/ci-locally.sh            # pre-push: generate, boundaries, style, unit, smoke
+./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
+./Scripts/ci-locally.sh            # pre-merge local: gate + unit + smoke
 ./Scripts/test-deploy.sh           # pre-merge: generate, style, unit, full UI
 ./Scripts/run-simulator.sh
 ./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)

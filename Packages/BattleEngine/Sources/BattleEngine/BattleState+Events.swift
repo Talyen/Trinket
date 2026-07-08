@@ -1,8 +1,8 @@
 import TrinketContent
 import TrinketCore
 
-extension BattleState {
-    package mutating func nextEvent(
+package extension BattleState {
+    mutating func nextEvent(
         kind: ActionEvent.Kind,
         effectKind: ActionEvent.EffectKind? = nil,
         actorName: String,
@@ -31,7 +31,7 @@ extension BattleState {
         return event
     }
 
-    package mutating func appendMilestone(_ milestone: ActionEvent.Milestone, matchup: BattleMatchup) -> ActionEvent {
+    mutating func appendMilestone(_ milestone: ActionEvent.Milestone, matchup: BattleMatchup) -> ActionEvent {
         nextEvent(
             kind: .milestone,
             actorName: "",
@@ -43,7 +43,7 @@ extension BattleState {
         )
     }
 
-    package mutating func appendDefeatMilestonesIfNeeded(matchup: BattleMatchup) -> [ActionEvent] {
+    mutating func appendDefeatMilestonesIfNeeded(matchup: BattleMatchup) -> [ActionEvent] {
         var milestones: [ActionEvent] = []
         if roster.isEnemyDefeated, !hasLoggedDefeat {
             hasLoggedDefeat = true

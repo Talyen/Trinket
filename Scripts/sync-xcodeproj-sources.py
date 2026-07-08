@@ -96,7 +96,8 @@ def parse_build_files(text: str) -> dict[str, str]:
     return mapping
 
 
-def extract_phase_files(text: str, phase_id: str) -> list[str]:
+def extract_phase_entries(text: str, phase_id: str) -> list[tuple[str, str]]:
+    """Return [(build_file_id, basename), ...] for a sources phase."""
     pattern = (
         rf"{phase_id} /\* Sources \*/ = \{{\n\t\t\tisa = PBXSourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = \((.*?)\);\n\t\t\trunOnlyForDeploymentPostprocessing = 0;\n\t\t\}};"
     )
@@ -104,7 +105,11 @@ def extract_phase_files(text: str, phase_id: str) -> list[str]:
     if not match:
         raise SystemExit(f"Could not find sources phase {phase_id}")
     block = match.group(1)
-    return re.findall(r"([0-9A-F]{24}) /\* .+? in Sources \*/", block)
+    return re.findall(r"([0-9A-F]{24}) /\* (.+?) in Sources \*/", block)
+
+
+def extract_phase_files(text: str, phase_id: str) -> list[str]:
+    return [build_id for build_id, _ in extract_phase_entries(text, phase_id)]
 
 
 def replace_phase_files(text: str, phase_id: str, build_file_ids: list[str], names: dict[str, str]) -> str:
@@ -145,6 +150,13 @@ def ensure_build_file(text: str, path: Path, file_id: str, build_files: dict[str
 
 
 def sync_target(text: str, target: str, phase_id: str) -> str:
+    """Add missing Swift sources and drop deleted ones without reshuffling IDs.
+
+    Preserves existing PBXBuildFile / PBXFileReference IDs and phase order so Linux
+    sync does not fight XcodeGen's committed UUIDs when the file set is unchanged.
+    Matches by the phase comment basename (not fileRef maps) so shared sources like
+    AccessibilityID.swift can appear in multiple targets.
+    """
     root = TARGET_ROOTS[target]
     desired = {basename(p): p for p in discover_swift_files(root)}
     for extra in TARGET_EXTRA_SOURCES.get(target, []):
@@ -153,17 +165,42 @@ def sync_target(text: str, target: str, phase_id: str) -> str:
     refs = parse_file_refs(text)
     build_files = parse_build_files(text)
 
-    build_ids: list[str] = []
+    kept: list[str] = []
     names: dict[str, str] = {}
+    present_names: set[str] = set()
+
+    for build_id, name in extract_phase_entries(text, phase_id):
+        if name not in desired:
+            continue
+        kept.append(build_id)
+        names[build_id] = name
+        present_names.add(name)
 
     for name in sorted(desired):
+        if name in present_names:
+            continue
         path = desired[name]
         text, file_id = ensure_file_reference(text, path, refs)
-        text, build_id = ensure_build_file(text, path, file_id, build_files)
-        build_ids.append(build_id)
+        # Prefer a dedicated build-file ID keyed by target+path so shared sources
+        # (e.g. AccessibilityID in UITests) do not collide across targets.
+        dedicated_key = f"buildfile:{target}:{rel_path(path)}"
+        dedicated_id = make_id(dedicated_key)
+        if dedicated_id not in {bid for bid, _ in extract_phase_entries(text, phase_id)} and dedicated_id not in names:
+            if f"{dedicated_id} /* {name} in Sources */" not in text:
+                build_entry = (
+                    f"\t\t{dedicated_id} /* {name} in Sources */ = {{isa = PBXBuildFile; fileRef = {file_id} /* {name} */; }};\n"
+                )
+                text = text.replace(
+                    "/* End PBXBuildFile section */\n",
+                    build_entry + "/* End PBXBuildFile section */\n",
+                )
+            build_id = dedicated_id
+        else:
+            text, build_id = ensure_build_file(text, path, file_id, build_files)
+        kept.append(build_id)
         names[build_id] = name
 
-    return replace_phase_files(text, phase_id, build_ids, names)
+    return replace_phase_files(text, phase_id, kept, names)
 
 
 def remove_missing_app_sources(text: str, phase_id: str) -> str:

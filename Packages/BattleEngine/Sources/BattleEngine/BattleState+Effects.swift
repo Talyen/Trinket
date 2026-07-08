@@ -1,14 +1,14 @@
 import TrinketContent
 import TrinketCore
 
-extension BattleState {
-    package mutating func consumeNextEffectID() -> Int {
+package extension BattleState {
+    mutating func consumeNextEffectID() -> Int {
         let id = nextEffectID
         nextEffectID += 1
         return id
     }
 
-    package func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
+    func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
         let profile = modifiers(for: sourceID)
         switch effect {
         case let .shield(keyword, buffer, durationTicks):
@@ -34,7 +34,7 @@ extension BattleState {
         }
     }
 
-    package mutating func appendEffect(
+    mutating func appendEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String,
@@ -53,7 +53,7 @@ extension BattleState {
         }
     }
 
-    package mutating func prependEffect(
+    mutating func prependEffect(
         _ effect: Effect,
         to target: Combatant,
         sourceID: String? = nil,

@@ -16,7 +16,7 @@ jobs:
   build:
     name: Build for testing
     needs: gate
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     outputs:
       build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
@@ -47,7 +47,7 @@ jobs:
   integration:
     name: Integration tests
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4

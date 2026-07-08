@@ -1,5 +1,5 @@
 name: Setup Trinket CI
-description: Xcode 26 selection and Homebrew tooling for Trinket CI on macos-latest
+description: Xcode 26 selection and pinned tooling for Trinket CI on macos-26
 
 runs:
   using: composite
@@ -7,8 +7,10 @@ runs:
     - name: Select Xcode Version
       shell: bash
       run: |
+        # Prefer the newest exact Xcode 26.x install. Fail clearly if none is present.
+        preferred_versions=(26.5.0 26.5 26.4.0 26.4 26.2.0 26.2 26)
         xcode_path=""
-        for version in 26.5.0 26.5 26.4.0 26.4 26.2.0 26.2 26; do
+        for version in "${preferred_versions[@]}"; do
           for path in "/Applications/Xcode_${version}.app" "/Applications/Xcode_${version}"*.app; do
             if [ -d "$path" ]; then
               xcode_path="$path"
@@ -16,6 +18,15 @@ runs:
             fi
           done
         done
+        if [ -z "$xcode_path" ]; then
+          # Fall back to any Xcode 26.app variant on the image.
+          for path in /Applications/Xcode_26*.app /Applications/Xcode.app; do
+            if [ -d "$path" ]; then
+              xcode_path="$path"
+              break
+            fi
+          done
+        fi
         if [ -z "$xcode_path" ]; then
           echo "Xcode 26.x is required but was not found on this runner." >&2
           echo "Installed Xcode apps:" >&2
@@ -25,21 +36,22 @@ runs:
         echo "Selecting Xcode: $xcode_path"
         sudo xcode-select -s "$xcode_path/Contents/Developer"
         xcodebuild -version
+        echo "XCODE_PATH=$xcode_path" >> "$GITHUB_ENV"
 
-    - name: Cache Homebrew
+    - name: Cache Homebrew (xcodegen / ripgrep / xcbeautify)
       uses: actions/cache@v4
       with:
         path: ~/Library/Caches/Homebrew
-        key: brew-${{ runner.os }}-tools-2-swiftformat-0.61.1-swiftlint-0.65.0
+        key: brew-${{ runner.os }}-xcodegen-rg-xcbeautify-1
 
-    - name: Install tooling
+    - name: Install Homebrew helpers
       shell: bash
       env:
         HOMEBREW_NO_AUTO_UPDATE: 1
         HOMEBREW_NO_INSTALL_CLEANUP: 1
       run: |
         missing_tools=()
-        for tool in xcodegen swiftformat swiftlint rg xcbeautify; do
+        for tool in xcodegen rg xcbeautify; do
           if ! command -v "$tool" &>/dev/null; then
             case "$tool" in
               rg) missing_tools+=("ripgrep") ;;
@@ -54,22 +66,28 @@ runs:
             brew link --overwrite "$formula" 2>/dev/null || true
           done
         else
-          echo "All required tools are already installed."
+          echo "Homebrew helpers already installed."
         fi
+
+    - name: Install pinned SwiftFormat and SwiftLint
+      shell: bash
+      run: ./Scripts/ensure-ci-tools.sh
 
     - name: Verify pinned tool versions
       shell: bash
       run: |
-        expected_swiftformat="0.61.1"
-        expected_swiftlint="0.65.0"
+        # shellcheck source=../../Scripts/tool-versions.env
+        source Scripts/tool-versions.env
+        export PATH="$PWD/.tools:$PATH"
         actual_swiftformat="$(swiftformat --version)"
         actual_swiftlint="$(swiftlint version)"
-        if [ "$actual_swiftformat" != "$expected_swiftformat" ]; then
-          echo "SwiftFormat version mismatch: expected $expected_swiftformat, found $actual_swiftformat" >&2
+        if [ "$actual_swiftformat" != "$SWIFTFORMAT_VERSION" ]; then
+          echo "SwiftFormat version mismatch: expected $SWIFTFORMAT_VERSION, found $actual_swiftformat" >&2
           exit 1
         fi
-        if [ "$actual_swiftlint" != "$expected_swiftlint" ]; then
-          echo "SwiftLint version mismatch: expected $expected_swiftlint, found $actual_swiftlint" >&2
+        if [ "$actual_swiftlint" != "$SWIFTLINT_VERSION" ]; then
+          echo "SwiftLint version mismatch: expected $SWIFTLINT_VERSION, found $actual_swiftlint" >&2
           exit 1
         fi
         echo "SwiftFormat $actual_swiftformat and SwiftLint $actual_swiftlint verified."
+        echo "PATH=$PWD/.tools:$PATH" >> "$GITHUB_ENV"

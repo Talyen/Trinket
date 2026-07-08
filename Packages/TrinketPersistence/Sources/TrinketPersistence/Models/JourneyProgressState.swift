@@ -30,10 +30,9 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
     }
 }
 
-extension JourneyProgressState {
-    public var current: JourneyProgressState {
+public extension JourneyProgressState {
+    var current: JourneyProgressState {
         get { self }
         set { self = newValue }
     }
 }
-
