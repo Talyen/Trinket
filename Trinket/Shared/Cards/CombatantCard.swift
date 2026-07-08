@@ -18,8 +18,12 @@ struct CombatantCard: View {
                 }
                 .overlay(alignment: .topTrailing) {
                     if showsNewMarker && !isLocked {
-                        CollectionNewMarker(combatantName: combatant.name)
-                            .padding(8)
+                        CollectionNewMarker(
+                            accessibilityIdentifier: AccessibilityID.Collection.newMarker(
+                                combatantName: combatant.name
+                            )
+                        )
+                        .padding(8)
                     }
                 }
                 .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
@@ -51,7 +55,7 @@ struct CombatantCard: View {
 }
 
 struct CollectionNewMarker: View {
-    let combatantName: String
+    let accessibilityIdentifier: String
 
     var body: some View {
         Text("NEW")
@@ -60,8 +64,8 @@ struct CollectionNewMarker: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
             .trinketStatusBadge()
-            // Card uses children: .ignore; identifier remains for hierarchy debugging.
-            .accessibilityIdentifier(AccessibilityID.Collection.newMarker(combatantName: combatantName))
+            // Parent card uses children: .ignore; identifier remains for hierarchy debugging.
+            .accessibilityIdentifier(accessibilityIdentifier)
     }
 }
 

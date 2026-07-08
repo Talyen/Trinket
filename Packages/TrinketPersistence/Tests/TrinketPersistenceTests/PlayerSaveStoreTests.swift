@@ -32,6 +32,30 @@ final class PlayerSaveStoreTests {
         try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
     }
 
+    @Test func playerSavePersistsCollectionAttention() throws {
+        let storeURL = context.storeURL()
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
+        var roster = firstStore.roster
+        roster.unlockedHeroIDs.insert("rogue")
+        roster.progressions["rogue"] = .initial
+        firstStore.roster = roster
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let item = template.rewardInstance(for: "attention-persist")
+        firstStore.appendInventoryItem(item)
+
+        var attention = firstStore.collectionAttention
+        attention.markCombatantAsViewed(id: "rogue")
+        attention.markItemAsViewed(id: item.id)
+        firstStore.collectionAttention = attention
+
+        let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        try #expect(secondStore.collectionAttention.viewedCombatantIDs.contains("rogue"))
+        try #expect(secondStore.collectionAttention.viewedItemIDs.contains(item.id))
+        try #expect(
+            secondStore.collectionAttention.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID)
+        )
+    }
+
     @Test func swiftDataGraphStoresIndependentRecords() throws {
         let storeURL = context.storeURL()
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)

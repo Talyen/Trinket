@@ -276,3 +276,36 @@ struct WireHomesteadState: Codable, Equatable {
         return PlayerHomesteadState(resources: resolvedResources, nodeTiers: resolvedNodeTiers)
     }
 }
+
+struct WireCollectionAttentionState: Codable, Equatable {
+    var viewedCombatantIDs: [String]
+    var viewedItemIDs: [String]
+
+    init(_ attention: PlayerCollectionAttentionState) {
+        viewedCombatantIDs = attention.viewedCombatantIDs.sorted()
+        viewedItemIDs = attention.viewedItemIDs.sorted()
+    }
+
+    init(viewedCombatantIDs: [String], viewedItemIDs: [String]) {
+        self.viewedCombatantIDs = viewedCombatantIDs
+        self.viewedItemIDs = viewedItemIDs
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        viewedCombatantIDs = try container.decodeIfPresent([String].self, forKey: .viewedCombatantIDs) ?? []
+        viewedItemIDs = try container.decodeIfPresent([String].self, forKey: .viewedItemIDs) ?? []
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case viewedCombatantIDs
+        case viewedItemIDs
+    }
+
+    func attention() -> PlayerCollectionAttentionState {
+        PlayerCollectionAttentionState(
+            viewedCombatantIDs: Set(viewedCombatantIDs),
+            viewedItemIDs: Set(viewedItemIDs)
+        )
+    }
+}

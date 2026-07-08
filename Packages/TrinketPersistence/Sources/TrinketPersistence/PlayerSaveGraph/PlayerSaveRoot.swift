@@ -17,6 +17,8 @@ public final class PlayerSaveRoot {
     public var inventory: InventoryModel?
     @Relationship(deleteRule: .cascade, inverse: \HomesteadModel.root)
     public var homestead: HomesteadModel?
+    @Relationship(deleteRule: .cascade, inverse: \CollectionAttentionModel.root)
+    public var collectionAttention: CollectionAttentionModel?
 
     public init(id: String = "primary") {
         self.id = id
@@ -40,6 +42,7 @@ public enum PlayerSaveGraph {
         ItemAffixModel.self,
         HomesteadModel.self,
         HomesteadResourceBalanceModel.self,
-        HomesteadNodeTierModel.self
+        HomesteadNodeTierModel.self,
+        CollectionAttentionModel.self
     ])
 }

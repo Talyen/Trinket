@@ -71,6 +71,10 @@ enum AccessibilityID {
         static func newMarker(combatantName: String) -> String {
             "\(combatantName) collection new marker"
         }
+
+        static func newMarker(itemName: String) -> String {
+            "\(itemName) item new marker"
+        }
     }
 
     enum Search {

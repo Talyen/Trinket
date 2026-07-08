@@ -37,8 +37,13 @@ struct CollectionView: View {
                             Button {
                                 selectedItem = item
                             } label: {
-                                ItemCard(item: item, showsAffixCount: false, showsName: false)
-                                    .collectionShelfCardWidth()
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: false,
+                                    showsName: false,
+                                    showsNewMarker: appState.showsCollectionNewMarker(forItem: item.id)
+                                )
+                                .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")

@@ -53,7 +53,11 @@ struct InventoryGridView: View {
                             Button {
                                 selectedItem = item
                             } label: {
-                                ItemCard(item: item, showsAffixCount: true)
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: true,
+                                    showsNewMarker: appState.showsCollectionNewMarker(forItem: item.id)
+                                )
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
@@ -137,6 +141,7 @@ struct InventoryGridView: View {
 
 struct ItemDetailView: View {
     let item: InventoryItem
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -195,6 +200,9 @@ struct ItemDetailView: View {
                     dismiss()
                 }
             }
+        }
+        .onAppear {
+            appState.markItemAsViewed(id: item.id)
         }
     }
 }

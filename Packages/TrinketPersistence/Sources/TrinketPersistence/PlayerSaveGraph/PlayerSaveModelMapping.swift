@@ -205,6 +205,20 @@ extension HomesteadModel {
     }
 }
 
+extension CollectionAttentionModel {
+    func toPlayerCollectionAttentionState() -> PlayerCollectionAttentionState {
+        PlayerCollectionAttentionState(
+            viewedCombatantIDs: Set(viewedCombatantIDs),
+            viewedItemIDs: Set(viewedItemIDs)
+        )
+    }
+
+    func update(from attention: PlayerCollectionAttentionState) {
+        viewedCombatantIDs = attention.viewedCombatantIDs.sorted()
+        viewedItemIDs = attention.viewedItemIDs.sorted()
+    }
+}
+
 extension Array {
     func linkEach<Parent>(
         to parent: Parent,

@@ -71,11 +71,12 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    /// Stored (not SwiftData-backed computed) so `@Observable` invalidates tab badges / NEW markers.
+    /// Legacy pre-schema-7 Collection attention. Migrated into `PlayerSave.collectionAttention` on bootstrap; do not write new viewed state here.
     public var viewedCombatantIDs: Set<String> = [] {
         didSet { persistViewedCombatantIDs() }
     }
 
+    @available(*, deprecated, message: "Use PlayerSave.collectionAttention via AppState.markCombatantAsViewed")
     public func markCombatantAsViewed(id: String) {
         guard !viewedCombatantIDs.contains(id) else { return }
         viewedCombatantIDs.insert(id)

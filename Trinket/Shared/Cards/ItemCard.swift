@@ -7,22 +7,35 @@ struct ItemCard: View {
     var showsAffixCount: Bool
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
+    var showsNewMarker: Bool = false
 
     var body: some View {
         VStack(spacing: 8) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    if let imageName = item.artReference?.imageName {
-                        Image(imageName)
-                            .resizable()
-                            .scaledToFill()
-                    } else {
-                        TrinketDesign.cardShape
-                            .fill(Color(.secondarySystemBackground))
+                    Group {
+                        if let imageName = item.artReference?.imageName {
+                            Image(imageName)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            TrinketDesign.cardShape
+                                .fill(Color(.secondarySystemBackground))
+                        }
+                    }
+                    .clipShape(TrinketDesign.cardShape)
+                }
+                .overlay(alignment: .topTrailing) {
+                    if showsNewMarker {
+                        CollectionNewMarker(
+                            accessibilityIdentifier: AccessibilityID.Collection.newMarker(
+                                itemName: item.displayName
+                            )
+                        )
+                        .padding(8)
                     }
                 }
-                .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
 
             if showsName {
@@ -44,8 +57,16 @@ struct ItemCard: View {
                 .trinketCardLabelSpace(reservesLabelSpace)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        let base = "\(item.displayName), \(item.baseType.slot.rawValue)"
+        if showsNewMarker {
+            return "\(base), new"
+        }
+        return base
     }
 }
 

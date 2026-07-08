@@ -22,8 +22,12 @@ struct AppStateAttentionTests {
         #expect(state.collectionBadge == nil)
         #expect(state.showsCollectionNewMarker(for: PlayerRosterState.starterHeroID) == false)
         #expect(state.showsCollectionNewMarker(for: PlayerRosterState.starterPetID) == false)
-        #expect(state.shellSession.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID))
-        #expect(state.shellSession.viewedCombatantIDs.contains(PlayerRosterState.starterPetID))
+        #expect(
+            state.collectionAttention.current.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID)
+        )
+        #expect(
+            state.collectionAttention.current.viewedCombatantIDs.contains(PlayerRosterState.starterPetID)
+        )
     }
 
     @Test func unlockingCombatantRaisesCollectionBadgeAndNewMarker() throws {
@@ -55,6 +59,26 @@ struct AppStateAttentionTests {
         #expect(state.showsCollectionNewMarker(for: "rogue") == false)
     }
 
+    @Test func newInventoryItemRaisesCollectionBadgeAndNewMarker() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let item = template.rewardInstance(for: "attention-test")
+
+        var inventory = state.inventory.current
+        inventory.items.append(item)
+        state.inventory.current = inventory
+
+        #expect(state.collectionActionableCount == 1)
+        #expect(state.collectionBadge == 1)
+        #expect(state.showsCollectionNewMarker(forItem: item.id))
+
+        state.markItemAsViewed(id: item.id)
+
+        #expect(state.collectionActionableCount == 0)
+        #expect(state.collectionBadge == nil)
+        #expect(state.showsCollectionNewMarker(forItem: item.id) == false)
+    }
+
     @Test func collectionBadgeNilWhileOnCollectionTab() throws {
         let state = try context.makeAppState(environment: context.makeEnvironment())
         var roster = state.roster.current
@@ -78,9 +102,37 @@ struct AppStateAttentionTests {
         first.markCombatantAsViewed(id: "rogue")
 
         let reloaded = try context.makeAppState(environment: context.makeEnvironment())
-        #expect(reloaded.shellSession.viewedCombatantIDs.contains("rogue"))
+        #expect(reloaded.collectionAttention.current.viewedCombatantIDs.contains("rogue"))
         #expect(reloaded.collectionActionableCount == 0)
         #expect(reloaded.showsCollectionNewMarker(for: "rogue") == false)
+    }
+
+    @Test func migratesLegacyShellViewedCombatantsIntoPlayerSave() throws {
+        let playerSave = try PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
+            disableCloudSync: true,
+            persistSaveImmediately: true
+        )
+        var roster = playerSave.roster
+        roster.unlockedHeroIDs.insert("rogue")
+        roster.progressions["rogue"] = .initial
+        playerSave.roster = roster
+
+        let shell = try context.makeShellSessionStore(
+            environment: context.makeEnvironment(arguments: ["-reset-state"])
+        )
+        shell.viewedCombatantIDs = ["rogue"]
+
+        let state = try AppState(
+            environment: context.makeEnvironment(),
+            playerSave: playerSave,
+            shellSessionStore: shell,
+            userDefaults: context.userDefaults
+        )
+
+        #expect(state.shellSession.viewedCombatantIDs.isEmpty)
+        #expect(state.collectionAttention.current.viewedCombatantIDs.contains("rogue"))
+        #expect(state.showsCollectionNewMarker(for: "rogue") == false)
     }
 
     @Test func resetGameplayProgressReseedsStarterViewedState() throws {
@@ -94,9 +146,29 @@ struct AppStateAttentionTests {
         #expect(state.resetGameplayProgress())
         #expect(state.roster.current == .freshStart)
         #expect(state.collectionActionableCount == 0)
-        #expect(state.shellSession.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID))
-        #expect(state.shellSession.viewedCombatantIDs.contains(PlayerRosterState.starterPetID))
+        #expect(
+            state.collectionAttention.current.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID)
+        )
+        #expect(
+            state.collectionAttention.current.viewedCombatantIDs.contains(PlayerRosterState.starterPetID)
+        )
         #expect(state.showsCollectionNewMarker(for: "rogue") == false)
+    }
+
+    @Test func seedTestProgressMarksSampleInventoryAsViewed() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-seed-test-progress"])
+        )
+
+        #expect(state.inventory.current.items.isEmpty == false)
+        for item in state.inventory.current.items {
+            #expect(state.showsCollectionNewMarker(forItem: item.id) == false)
+        }
+        #expect(state.showsCollectionNewMarker(for: PlayerRosterState.starterHeroID) == false)
+        #expect(state.showsCollectionNewMarker(for: PlayerRosterState.starterPetID) == false)
+        // Non-starter unlocks under test seed remain discoverable.
+        #expect(state.showsCollectionNewMarker(for: "rogue"))
+        #expect(state.collectionActionableCount > 0)
     }
 
     @Test func homesteadBadgeAppearsWhenProjectIsAffordable() throws {

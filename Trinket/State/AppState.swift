@@ -38,6 +38,11 @@ final class AppState {
         set { playerSave.homestead = newValue }
     }
 
+    var collectionAttention: PlayerCollectionAttentionState {
+        get { playerSave.collectionAttention }
+        set { playerSave.collectionAttention = newValue }
+    }
+
     var options: OptionsStore
     var battle: BattleSession
     var activeMysteryEncounter: MysteryEncounterSession?
@@ -81,7 +86,15 @@ final class AppState {
     }
 
     func markCombatantAsViewed(id: String) {
-        shellSession.markCombatantAsViewed(id: id)
+        var attention = collectionAttention.current
+        attention.markCombatantAsViewed(id: id)
+        collectionAttention.current = attention
+    }
+
+    func markItemAsViewed(id: String) {
+        var attention = collectionAttention.current
+        attention.markItemAsViewed(id: id)
+        collectionAttention.current = attention
     }
 
     /// Starters are granted at install — they are not "new" discoveries.
@@ -90,21 +103,38 @@ final class AppState {
         markCombatantAsViewed(id: PlayerRosterState.starterPetID)
     }
 
+    /// One-release import from pre-schema-7 shell session viewed IDs into `PlayerSave`.
+    func migrateShellViewedCombatantsToPlayerSaveIfNeeded() {
+        let shellViewed = shellSession.viewedCombatantIDs
+        guard !shellViewed.isEmpty else { return }
+        var attention = collectionAttention.current
+        attention.viewedCombatantIDs.formUnion(shellViewed)
+        collectionAttention.current = attention
+        shellSession.viewedCombatantIDs = []
+    }
+
     func showsCollectionNewMarker(for combatantID: String) -> Bool {
         let rosterState = roster.current
         let isUnlocked = rosterState.unlockedHeroIDs.contains(combatantID)
             || rosterState.unlockedPetIDs.contains(combatantID)
         guard isUnlocked else { return false }
-        return !shellSession.viewedCombatantIDs.contains(combatantID)
+        return !collectionAttention.current.viewedCombatantIDs.contains(combatantID)
+    }
+
+    func showsCollectionNewMarker(forItem itemID: String) -> Bool {
+        guard inventory.current.items.contains(where: { $0.id == itemID }) else { return false }
+        return !collectionAttention.current.viewedItemIDs.contains(itemID)
     }
 
     var collectionActionableCount: Int {
         let unlockedHeroes = roster.current.unlockedHeroIDs
         let unlockedPets = roster.current.unlockedPetIDs
-        let viewed = shellSession.viewedCombatantIDs
-        let unviewedHeroes = unlockedHeroes.filter { !viewed.contains($0) }.count
-        let unviewedPets = unlockedPets.filter { !viewed.contains($0) }.count
-        return unviewedHeroes + unviewedPets
+        let viewedCombatants = collectionAttention.current.viewedCombatantIDs
+        let unviewedHeroes = unlockedHeroes.filter { !viewedCombatants.contains($0) }.count
+        let unviewedPets = unlockedPets.filter { !viewedCombatants.contains($0) }.count
+        let viewedItems = collectionAttention.current.viewedItemIDs
+        let unviewedItems = inventory.current.items.filter { !viewedItems.contains($0.id) }.count
+        return unviewedHeroes + unviewedPets + unviewedItems
     }
 
     var homesteadActionableCount: Int {

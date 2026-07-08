@@ -71,8 +71,12 @@ struct SearchView: View {
                             Button {
                                 selectedItem = item
                             } label: {
-                                ItemCard(item: item, showsAffixCount: true)
-                                    .collectionShelfCardWidth()
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: true,
+                                    showsNewMarker: appState.showsCollectionNewMarker(forItem: item.id)
+                                )
+                                .collectionShelfCardWidth()
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("\(item.displayName) item card")
@@ -97,8 +101,11 @@ struct SearchView: View {
                 Button {
                     selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
                 } label: {
-                    CombatantCard(combatant: combatant)
-                        .collectionShelfCardWidth()
+                    CombatantCard(
+                        combatant: combatant,
+                        showsNewMarker: appState.showsCollectionNewMarker(for: combatant.id)
+                    )
+                    .collectionShelfCardWidth()
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("\(combatant.name) collection card")
