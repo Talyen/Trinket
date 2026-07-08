@@ -29,19 +29,19 @@ Goal: Zero dead exports, imports, types, files, and orphaned generated artifacts
 - Any source file that has zero references outside its own module and is not an entry point should be deleted.
 - Consider utilizing automated Swift dead code analyzers (such as `Periphery`) or strict Swift compiler unused declarations warnings to detect stale symbols.
 - One-use helpers: prefer inlining where it reduces total LOC; do not extract a helper used only once unless it meaningfully improves readability.
-- Deleted feature? Delete its test file, its feature folder, and its entry in `project.yml` (then run [generate.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/generate.sh))
+- Deleted feature? Delete its test file, its feature folder, and its entry in `project.yml` (then run [generate.sh](../../Scripts/generate.sh))
 - Deleted model type? Remove its coded conformance, its test fixtures, and any serialization glue.
 
 ### Unused assets and resources
 
-- Audit [Assets.xcassets](file:///Users/ryanmcintire/Documents/Trinket/Trinket/Assets.xcassets) and raw asset resource directories for images, sound effects (`.wav`, `.mp3`), and fonts that are stored in the bundle but never referenced by code.
+- Audit [Assets.xcassets](../../Trinket/Assets.xcassets) and raw asset resource directories for images, sound effects (`.wav`, `.mp3`), and fonts that are stored in the bundle but never referenced by code.
 - If a manifest entry is deleted, ensure the matching resource asset files are cleaned up to control application package/bundle size.
 
 ### Generated code drift
 
-- After editing `ContentManifest/`, `ArtManifest/`, `MusicManifest/`, or `SoundManifest/`, run [generate.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/generate.sh) to regenerate catalogs.
+- After editing `ContentManifest/`, `ArtManifest/`, `MusicManifest/`, or `SoundManifest/`, run [generate.sh](../../Scripts/generate.sh) to regenerate catalogs.
 - If a manifest entry is removed, the regenerated Swift should no longer reference it — if a stale reference remains in non-generated code, remove it.
-- [assert-generated-output.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/assert-generated-output.sh) (CI gate) catches drift before commit — do not bypass.
+- [assert-generated-output.sh](../../Scripts/assert-generated-output.sh) (CI gate) catches drift before commit — do not bypass.
 - Generated files themselves must not be hand-edited; if a generated symbol is unused, remove it from the manifest, not from the Swift file.
 
 ### Orphaned test files

@@ -29,7 +29,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
 public extension Effect {
     /// Discriminator for dispatch tables. New `Effect` cases must add a
     /// matching `EffectKind` case and extend this switch.
-    public var kind: EffectKind {
+    var kind: EffectKind {
         switch self {
         case .burn: return .burn
         case .poison: return .poison
@@ -56,7 +56,7 @@ public extension Effect {
 
     /// True when this effect represents a debuff that `cleanse` is allowed to
     /// strip from allies.
-    public var isRemovableDebuff: Bool {
+    var isRemovableDebuff: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter, .marked:
             return true
@@ -69,7 +69,7 @@ public extension Effect {
 
     /// True when this effect represents a buff that `purge` is allowed to
     /// strip from enemies.
-    public var isRemovableBuff: Bool {
+    var isRemovableBuff: Bool {
         switch self {
         case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
             return true
@@ -81,7 +81,7 @@ public extension Effect {
     /// True when this effect occupies a slot on the combatant and ticks down
     /// its `remainingTicks` over time. Used by the "decrement duration" pass
     /// in `tickEffects`.
-    public var isTickable: Bool {
+    var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
              .shield, .mitigation, .leech, .deathsDoor,
@@ -95,7 +95,7 @@ public extension Effect {
 
     /// True when this effect resolves immediately and never occupies a slot
     /// on the combatant.
-    public var isInstant: Bool {
+    var isInstant: Bool {
         switch self {
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
@@ -107,7 +107,7 @@ public extension Effect {
 
     /// True for burn and poison, which decay their potency each tick instead
     /// of consuming duration.
-    public var isDecayingDoT: Bool {
+    var isDecayingDoT: Bool {
         switch self {
         case .burn, .poison:
             return true
@@ -117,20 +117,20 @@ public extension Effect {
     }
 
     /// True for bleed, which tracks its own duration.
-    public var isBleed: Bool {
+    var isBleed: Bool {
         if case .bleed = self { return true }
         return false
     }
 
     /// Amount and threshold for `.controlMeter`, if applicable.
-    public var controlMeterValues: (amount: Int, threshold: Int)? {
+    var controlMeterValues: (amount: Int, threshold: Int)? {
         guard case let .controlMeter(_, amount, threshold) = self else { return nil }
         return (amount, threshold)
     }
 
     /// True when the control meter is full and the target's next action will
     /// be skipped (Stunned / Frozen).
-    public var isActionSkipPending: Bool {
+    var isActionSkipPending: Bool {
         guard let values = controlMeterValues else { return false }
         return values.threshold > 0 && values.amount >= values.threshold
     }

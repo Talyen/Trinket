@@ -1,0 +1,61 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    uses: ./.github/workflows/gate.yml
+
+  build:
+    name: Build for testing
+    needs: gate
+    runs-on: macos-latest
+    timeout-minutes: 25
+    outputs:
+      build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+
+      - name: Restore warm build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .DerivedData
+          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+          restore-keys: |
+            build-
+
+      - name: Build for testing
+        run: ./Scripts/build-for-testing.sh
+        env:
+          SKIP_GENERATE: 1
+
+      - name: Save build cache for test jobs
+        id: save-build-cache
+        uses: actions/cache/save@v4
+        with:
+          path: .DerivedData
+          key: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+
+  integration:
+    name: Integration tests
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+      - uses: ./.github/actions/test-job
+        with:
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: nightly-integration
+          command: ./Scripts/test.sh all --no-build --verbose
+          timing-mode: all
+          timing-budget-seconds: '2400'

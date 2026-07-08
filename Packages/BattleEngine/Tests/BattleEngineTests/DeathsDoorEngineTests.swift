@@ -1,9 +1,11 @@
-import XCTest
+import Testing
+import TrinketTestSupport
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class DeathsDoorEngineTests: XCTestCase {
+@Suite
+struct DeathsDoorEngineTests {
     private func makeContext(
         heroHP: Int = 10,
         petHP: Int = 10,
@@ -31,7 +33,7 @@ final class DeathsDoorEngineTests: XCTestCase {
         )
     }
 
-    func testTriggerOnFirstLethalHit() {
+    @Test func triggerOnFirstLethalHit() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         let (_, events) = context.applyTestDamage(
@@ -42,17 +44,16 @@ final class DeathsDoorEngineTests: XCTestCase {
             applyDodge: false
         )
 
-        XCTAssertEqual(context.roster.health(for: hero), 1)
-        XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
-        XCTAssertEqual(
-            context.roster.activeEffects(for: hero).first?.remainingTicks,
-            BattleTiming.deathsDoorDurationTicks
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        #expect(context.roster.isDeathsDoorActive(for: hero))
+        #expect(
+            context.roster.activeEffects(for: hero).first?.remainingTicks == BattleTiming.deathsDoorDurationTicks
         )
-        XCTAssertTrue(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
-    func testEnemyNeverTriggers() {
+    @Test func enemyNeverTriggers() {
         var context = makeContext(enemyHP: 5)
         let enemy = context.roster.enemy.combatant
         _ = context.applyTestDamage(
@@ -63,21 +64,21 @@ final class DeathsDoorEngineTests: XCTestCase {
             applyDodge: false
         )
 
-        XCTAssertEqual(context.roster.health(for: enemy), 0)
-        XCTAssertFalse(context.roster.isDeathsDoorActive(for: enemy))
+        #expect(context.roster.health(for: enemy) == 0)
+        #expect(!(context.roster.isDeathsDoorActive(for: enemy)))
     }
 
-    func testProtectionClampsToOneWhileActive() {
+    @Test func protectionClampsToOneWhileActive() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         _ = context.applyTestDamage(20, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        XCTAssertEqual(context.roster.health(for: hero), 1)
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    func testSecondLethalAfterExpiryKills() {
+    @Test func secondLethalAfterExpiryKills() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -89,13 +90,13 @@ final class DeathsDoorEngineTests: XCTestCase {
         }
         context.roster.setActiveEffects(effects, for: hero)
 
-        XCTAssertFalse(context.roster.isDeathsDoorActive(for: hero))
+        #expect(!(context.roster.isDeathsDoorActive(for: hero)))
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        XCTAssertEqual(context.roster.health(for: hero), 0)
-        XCTAssertFalse(context.roster.hero.isAlive)
+        #expect(context.roster.health(for: hero) == 0)
+        #expect(!(context.roster.hero.isAlive))
     }
 
-    func testHeroAndPetProcIndependently() {
+    @Test func heroAndPetProcIndependently() {
         var context = makeContext(heroHP: 3, petHP: 3)
         let hero = context.roster.hero.combatant
         let pet = context.roster.pet.combatant
@@ -103,13 +104,13 @@ final class DeathsDoorEngineTests: XCTestCase {
         _ = context.applyTestDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         _ = context.applyTestDamage(3, to: pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: hero))
-        XCTAssertTrue(context.roster.hasConsumedDeathsDoor(for: pet))
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: pet))
+        #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        #expect(context.roster.hasConsumedDeathsDoor(for: pet))
+        #expect(context.roster.isDeathsDoorActive(for: hero))
+        #expect(context.roster.isDeathsDoorActive(for: pet))
     }
 
-    func testEffectInsertedAtFrontOfActiveEffects() {
+    @Test func effectInsertedAtFrontOfActiveEffects() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects(
@@ -120,11 +121,11 @@ final class DeathsDoorEngineTests: XCTestCase {
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         let effects = context.roster.activeEffects(for: hero)
-        XCTAssertEqual(effects.count, 2)
-        XCTAssertEqual(effects.first?.effect.kind, .deathsDoor)
+        #expect(effects.count == 2)
+        #expect(effects.first?.effect.kind == .deathsDoor)
     }
 
-    func testDoTTickTriggersDeathsDoor() {
+    @Test func doTTickTriggersDeathsDoor() {
         var context = makeContext(heroHP: 3)
         let hero = context.roster.hero.combatant
         let outcome = context.resolveDoTTick(
@@ -134,12 +135,12 @@ final class DeathsDoorEngineTests: XCTestCase {
             sourceActorID: "enemy"
         )
 
-        XCTAssertGreaterThan(outcome.healthLost, 0)
-        XCTAssertEqual(context.roster.health(for: hero), 1)
-        XCTAssertTrue(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        #expect(outcome.healthLost > 0)
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
-    func testOverkillShowsActualHPLost() {
+    @Test func overkillShowsActualHPLost() {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         let (lost, _) = context.applyTestDamage(
@@ -150,7 +151,7 @@ final class DeathsDoorEngineTests: XCTestCase {
             applyDodge: false
         )
 
-        XCTAssertEqual(lost, 5)
-        XCTAssertEqual(context.roster.health(for: hero), 1)
+        #expect(lost == 5)
+        #expect(context.roster.health(for: hero) == 1)
     }
 }

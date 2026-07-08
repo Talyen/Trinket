@@ -8,7 +8,7 @@ High-level structure for Trinket after the Swift package migration.
 Trinket/                    App target — shell, features, presentation glue
   App/                      Entry, environment, tab routing
   Features/                 SwiftUI product surfaces (Play, Collection, Battle UI, …)
-  BattleShell/              ActiveBattleConfiguration, StageEncounterResolver, victory orchestration
+  BattleShell/              ActiveBattleConfiguration, EncounterLevelResolver, victory orchestration
   State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
@@ -21,7 +21,8 @@ Packages/
   TrinketContent/           Catalogs + Generated/ content, art, music, and SFX catalogs
   BattleEngine/             Combat simulation, effect handlers, simulator
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
-  TrinketDesignSystem/      App chrome, theme presets, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
+  TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
+  TrinketTestSupport/       Shared unit-test fixtures (CombatantFixtures, SaveTestSupport, battle parties)
 
 ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -45,8 +46,8 @@ Manifests and pipelines live outside the app folder:
 | Effects, keywords, stats, progression | `TrinketCore` | `CombatantProgression`, `Effect`, `Keyword`, `PrimaryStats` |
 | Heroes, pets, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
-| Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store`, reconciler |
-| Shared UI chrome | `TrinketDesignSystem` | Theme presets, backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
+| Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store` |
+| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
 | Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, launch args |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
 | Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
@@ -135,19 +136,21 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 
 ## Persistence overview
 
-- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph. `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
-- **Save hub:** `PlayerSaveStore` owns a `ModelContainer` / `ModelContext`, creates the singleton root idempotently, and mutates model objects directly. Value types such as `PlayerSave`, `PlayerRosterState`, and `StageCompletionContext` are calculation snapshots, not the canonical persisted form.
+- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
+- **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form.
 - **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, and homestead APIs observe/mutate slices through `PlayerSaveStore`.
-- **Options/preferences:** `OptionsStore` (theme, volumes) and `SessionStateStore` (tab/battle restoration) use `UserDefaults` intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
+- **Options/preferences:** `OptionsStore` (appearance, volumes) and `AppState` session keys (tab/battle restoration via `UserDefaults`) intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
 - **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
 - **Pre-ship:** `Docs/Audits/CloudKitPreShipChecklist.md`
 
 ## Tech stack
 
+Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([README](Platform/README.md)).
+
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
 - Swift 6 strict concurrency enabled on all package targets
-- XCTest unit + XCUITest UI (tiered via `.xctestplan` files)
+- Swift Testing unit + XCTest UI (tiered via `.xctestplan` files)
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use yet

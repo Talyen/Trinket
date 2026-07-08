@@ -1,34 +1,35 @@
 import TrinketCore
-import XCTest
+import Testing
 
-final class EffectPresentationTests: XCTestCase {
-    func testActivePhraseFormatsControlMeterBuildUp() {
+@Suite
+struct EffectPresentationTests {
+    @Test func activePhraseFormatsControlMeterBuildUp() {
         let active = ActiveEffect(
             id: 1,
             effect: .controlMeter(.stun, 3, 10),
             remainingTicks: 0
         )
 
-        XCTAssertEqual(EffectPresentation.activePhrase(for: active), "Stun Build-up: 3/10")
+        #expect(EffectPresentation.activePhrase(for: active) == "Stun Build-up: 3/10")
     }
 
-    func testActivePhraseFormatsTriggeredControlAsStatusAlias() {
+    @Test func activePhraseFormatsTriggeredControlAsStatusAlias() {
         let active = ActiveEffect(
             id: 1,
             effect: .controlMeter(.stun, 10, 10),
             remainingTicks: 2
         )
 
-        XCTAssertEqual(EffectPresentation.activePhrase(for: active), "Stunned")
+        #expect(EffectPresentation.activePhrase(for: active) == "Stunned")
     }
 
-    func testActivePhraseFormatsDeathsDoor() {
+    @Test func activePhraseFormatsDeathsDoor() {
         let active = ActiveEffect(
             id: 1,
             effect: .deathsDoor,
             remainingTicks: 8
         )
 
-        XCTAssertEqual(EffectPresentation.activePhrase(for: active), "Death's Door")
+        #expect(EffectPresentation.activePhrase(for: active) == "Death's Door")
     }
 }

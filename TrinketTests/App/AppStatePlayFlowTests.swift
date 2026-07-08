@@ -1,64 +1,51 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import TrinketTestSupport
 @testable import Trinket
 
-@MainActor
-final class AppStatePlayFlowTests: XCTestCase {
-    private var directoryURL: URL!
-    private var defaults: UserDefaults!
-    private var suiteName: String!
+@Suite @MainActor
+struct AppStatePlayFlowTests {
+    let context: AppTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "AppStatePlayFlowTests")
-        suiteName = "AppStatePlayFlowTests.\(UUID().uuidString)"
-        defaults = UserDefaults(suiteName: suiteName)
-        defaults.removePersistentDomain(forName: suiteName)
+    init() throws {
+        context = try AppTestContext()
     }
 
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        defaults.removePersistentDomain(forName: suiteName)
-        defaults = nil
-        suiteName = nil
-        try await super.tearDown()
-    }
-
-    func testCompleteActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        let configuration = try XCTUnwrap(state.battle.activeBattle)
+        let configuration = try #require(state.battle.activeBattle)
         let initialGold = state.roster.current.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
-        XCTAssertGreaterThan(state.roster.current.gold, initialGold + 4)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+        #expect(state.roster.current.gold > initialGold + 4)
     }
 
-    func testCompleteActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        let configuration = try XCTUnwrap(state.battle.activeBattle)
+        let configuration = try #require(state.battle.activeBattle)
         let initialGold = state.roster.current.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertEqual(state.roster.current.gold, initialGold + 5 + stage.rewards.gold)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.roster.current.gold == initialGold + 5 + stage.rewards.gold)
     }
 
-    func testCompleteActiveBattleWithoutStageGrantsGoldOnly() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+    @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
+        let state = try context.makeAppState()
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
@@ -70,15 +57,15 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         state.completeActiveBattle(configuration, battleEarnedGold: 10)
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertEqual(state.journey.current, journeyBefore)
-        XCTAssertEqual(state.roster.current.gold, initialGold + 10)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.journey.current == journeyBefore)
+        #expect(state.roster.current.gold == initialGold + 10)
     }
 
-    func testCompleteActiveBattleWithoutStageIgnoresZeroGold() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+    @Test func completeActiveBattleWithoutStageIgnoresZeroGold() throws {
+        let state = try context.makeAppState()
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
@@ -89,42 +76,38 @@ final class AppStatePlayFlowTests: XCTestCase {
 
         state.completeActiveBattle(configuration, battleEarnedGold: 0)
 
-        XCTAssertEqual(state.roster.current.gold, initialGold)
+        #expect(state.roster.current.gold == initialGold)
     }
 
-    func testCompleteActiveBattleAdvancesJourneyWhenPersistFails() throws {
-        let playerSave = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        let state = AppTestSupport.makeAppState(
-            playerSave: playerSave,
-            directoryURL: directoryURL
-        )
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeActiveBattleAdvancesJourneyWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(playerSave: playerSave)
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        let configuration = try XCTUnwrap(state.battle.activeBattle)
+        let configuration = try #require(state.battle.activeBattle)
 
         state.completeActiveBattle(configuration, battleEarnedGold: 0)
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
     }
 
-    func testMapScrollFocusIDReturnsActiveStageWhenInProgress() {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+    @Test func mapScrollFocusIDReturnsActiveStageWhenInProgress() throws {
+        let state = try context.makeAppState()
 
-        XCTAssertEqual(JourneyMapPresentation.scrollFocusID(for: .initial), "chapter-1-stage-1")
+        #expect(JourneyMapPresentation.scrollFocusID(for: .initial) == "chapter-1-stage-1")
     }
 
-    func testMapScrollFocusIDReturnsChapterGateWhenChapterComplete() {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
+    @Test func mapScrollFocusIDReturnsChapterGateWhenChapterComplete() throws {
+        let state = try context.makeAppState()
         var progress = JourneyProgressState.initial
         for stage in GameContent.chapters[0].stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        XCTAssertNil(progress.activeStageID)
-        XCTAssertEqual(
-            JourneyMapPresentation.scrollFocusID(for: progress),
-            StageMapID.chapterGate(
+        #expect(progress.activeStageID == nil)
+        #expect(
+            JourneyMapPresentation.scrollFocusID(for: progress) == StageMapID.chapterGate(
                 for: Chapter(
                     id: StageMapID.placeholderGate(afterChapterNumber: 2),
                     number: 2,
@@ -136,275 +119,285 @@ final class AppStatePlayFlowTests: XCTestCase {
         )
     }
 
-    func testResetGameplayProgressClearsBattleAndMapScroll() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func resetGameplayProgressClearsBattleAndMapScroll() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        state.sessionState.noteMapScrollFocus("chapter-1-stage-2")
+        state.noteMapScrollFocus("chapter-1-stage-2")
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
         state.resetGameplayProgress()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.mapScrollStageID)
-        XCTAssertEqual(state.selectedTab, .play)
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-1")
-        XCTAssertTrue(state.journey.current.completedStageIDs.isEmpty)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.mapScrollStageID == nil)
+        #expect(state.selectedTab == .play)
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
+        #expect(state.journey.current.completedStageIDs.isEmpty)
     }
 
-    func testCompleteStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
-        let state = AppTestSupport.makeAppState(directoryURL: directoryURL)
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.roster.activeHero
         let pet = state.roster.activePet
 
         let scrollTarget = state.completeStage(stage, hero: hero, pet: pet)
 
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
-        XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+        #expect(scrollTarget == "chapter-1-stage-2")
     }
 
     // MARK: - Session state restoration
 
-    func testSessionTabRestored() {
-        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionTabRestored() throws {
+        context.userDefaults.set(
+            AppTab.homestead.rawValue,
+            forKey: PlayerShellSessionStore.legacySessionTabKey
         )
 
-        XCTAssertEqual(state.selectedTab, .homestead)
+        let state = try context.makeAppState()
+
+        #expect(state.selectedTab == .homestead)
     }
 
-    func testSessionTabOverriddenByEnv() {
-        defaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
-
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-selectedTab", "options"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionTabOverriddenByEnv() throws {
+        context.userDefaults.set(
+            AppTab.homestead.rawValue,
+            forKey: PlayerShellSessionStore.legacySessionTabKey
         )
 
-        XCTAssertEqual(state.selectedTab, .options)
+        let state = try context.makeAppState(arguments: ["-selectedTab", "options"])
+
+        #expect(state.selectedTab == .options)
     }
 
-    func testSessionTabDefaultWhenNoSavedState() {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+    @Test func sessionTabDefaultWhenNoSavedState() throws {
+        let state = try context.makeAppState()
 
-        XCTAssertEqual(state.selectedTab, .play)
+        #expect(state.selectedTab == .play)
     }
 
-    func testShellDidChangeTabPersistsTabToSessionState() {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
+    @Test func selectedTabPersistsToSessionState() throws {
+        let state = try context.makeAppState()
+        state.selectedTab = .homestead
+        #expect(state.selectedTab == .homestead)
 
-        state.shellDidChangeTab(to: .homestead, scenePhase: .active)
-        XCTAssertEqual(state.sessionState.selectedTab, .homestead)
-        XCTAssertEqual(
-            defaults.string(forKey: "session.selectedTab"),
-            AppTab.homestead.rawValue
-        )
-
-        state.shellDidChangeTab(to: .options, scenePhase: .active)
-        XCTAssertEqual(state.sessionState.selectedTab, .options)
-        XCTAssertEqual(
-            defaults.string(forKey: "session.selectedTab"),
-            AppTab.options.rawValue
-        )
+        let state2 = try context.makeAppState()
+        #expect(state2.selectedTab == .homestead)
     }
 
-    func testSessionBattleRestoredAsResumeCardOnColdLaunch() {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
-        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionBattleRestoredAsResumeCardOnColdLaunch() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
         )
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertTrue(state.showResumeBattleCard)
-        XCTAssertEqual(state.selectedTab, .play)
+        let state = try context.makeAppState()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.showResumeBattleCard)
+        #expect(state.selectedTab == .play)
     }
 
-    func testForegroundResumeWithinSeamlessWindowResumesBattle() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
-        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func foregroundResumeWithinSeamlessWindowResumesBattle() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
+        )
+
+        let state = try context.makeAppState()
 
         state.isColdLaunch = false
-        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-30)
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-30)
 
         state.evaluateResumeRules()
 
-        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
-        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
+        let activeBattle = try #require(state.battle.activeBattle)
+        #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
 
-    func testForegroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
-        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func foregroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
+        )
+
+        let state = try context.makeAppState()
 
         state.isColdLaunch = false
-        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
 
         state.evaluateResumeRules()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertTrue(state.showResumeBattleCard)
-        XCTAssertEqual(state.selectedTab, .play)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.showResumeBattleCard)
+        #expect(state.selectedTab == .play)
     }
 
-    func testForegroundResumeBeyondExpiryWindowDiscardsSave() {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
-        defaults.set(Date().addingTimeInterval(-86400 * 3).timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func foregroundResumeBeyondExpiryWindowDiscardsSave() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().addingTimeInterval(-86400 * 3).timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
+        )
+
+        let state = try context.makeAppState()
 
         state.isColdLaunch = false
-        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-300)
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
 
         state.evaluateResumeRules()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertFalse(state.showResumeBattleCard)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        #expect(state.battle.activeBattle == nil)
+        #expect(!state.showResumeBattleCard)
+        #expect(state.activeBattleStageID == nil)
     }
 
-    func testSessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-completed-stages", "chapter-1-stage-1"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionBattleNotRestoredWhenRewardsAlreadyClaimed() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
+        )
+
+        let state = try context.makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
 
         state.evaluateResumeRules()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.activeBattleStageID == nil)
     }
 
-    func testCompleteStageUpdatesSessionMapScrollTarget() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        defaults.set(stage.id, forKey: "session.mapScrollStageID")
+    @Test func completeStageUpdatesSessionMapScrollTarget() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        context.userDefaults.set(stage.id, forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
+        #expect(state.mapScrollStageID == "chapter-1-stage-2")
     }
 
-    func testShouldRestoreMapScrollIgnoresCompletedStage() {
+    @Test func shouldRestoreMapScrollIgnoresCompletedStage() {
         var journey = JourneyProgressState.initial
         journey.complete(GameContent.chapters[0].stages[0], in: GameContent.chapters)
 
-        XCTAssertFalse(AppState.shouldRestoreMapScroll("chapter-1-stage-1", journey: journey))
-        XCTAssertTrue(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
+        #expect(!(AppState.shouldRestoreMapScroll("chapter-1-stage-1", journey: journey)))
+        #expect(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
     }
 
-    func testSessionBattleNotRestoredWhenLaunchScreenBattle() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-
-        let state = AppTestSupport.makeAppState(
-            arguments: ["-launch-screen", "battle"],
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionBattleNotRestoredWhenLaunchScreenBattle() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+
+        let state = try context.makeAppState(arguments: ["-launch-screen", "battle"])
 
         // launch-screen battle uses the hardcoded stage, not the session one
-        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
-        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
+        let activeBattle = try #require(state.battle.activeBattle)
+        #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
 
-    func testSessionStaleStageIDIgnored() {
-        defaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionStaleStageIDIgnored() throws {
+        context.userDefaults.set(
+            "nonexistent-stage",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
+        let state = try context.makeAppState()
         state.evaluateResumeRules()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.activeBattleStageID == nil)
     }
 
-    func testSessionBattleClearedOnEndBattle() throws {
-        defaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
-        defaults.set(SessionStateStore.currentSchemaVersion, forKey: "session.activeBattleSchemaVersion")
-        defaults.set(Date().timeIntervalSince1970, forKey: "session.activeBattleSavedAt")
-
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
+    @Test func sessionBattleClearedOnEndBattle() throws {
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
+        context.userDefaults.set(
+            PlayerShellSessionStore.currentSchemaVersion,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
+        )
+        context.userDefaults.set(
+            Date().timeIntervalSince1970,
+            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
+        )
+
+        let state = try context.makeAppState()
         state.isColdLaunch = false
-        state.sessionState.lastBackgroundedTime = Date().addingTimeInterval(-30)
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-30)
         state.evaluateResumeRules()
 
-        _ = try XCTUnwrap(state.battle.activeBattle)
+        _ = try #require(state.battle.activeBattle)
 
         state.battle.endBattle()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.activeBattleStageID == nil)
     }
 
-    func testResetGameplayProgressClearsSessionBattleState() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func resetGameplayProgressClearsSessionBattleState() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
-        state.sessionState.mapScrollStageID = "chapter-1-stage-2"
+        state.mapScrollStageID = "chapter-1-stage-2"
 
         state.resetGameplayProgress()
 
-        XCTAssertNil(state.battle.activeBattle)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
-        XCTAssertNil(state.sessionState.mapScrollStageID)
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.activeBattleStageID == nil)
+        #expect(state.mapScrollStageID == nil)
     }
 
-    func testSessionBattleStageIDSetOnStartBattle() throws {
-        let state = AppTestSupport.makeAppState(
-            directoryURL: directoryURL,
-            userDefaults: defaults
-        )
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
-        XCTAssertNil(state.sessionState.activeBattleStageID)
+    @Test func sessionBattleStageIDSetOnStartBattle() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(state.activeBattleStageID == nil)
 
         _ = state.startBattle(for: stage)
 
-        XCTAssertEqual(state.sessionState.activeBattleStageID, "chapter-1-stage-1")
+        #expect(state.activeBattleStageID == "chapter-1-stage-1")
     }
 }

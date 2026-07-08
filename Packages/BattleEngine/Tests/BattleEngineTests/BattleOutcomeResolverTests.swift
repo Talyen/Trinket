@@ -1,33 +1,31 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleOutcomeResolverTests: XCTestCase {
-    func testSimultaneousDefeatResolvesAsVictory() {
-        XCTAssertEqual(
-            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true),
-            .victory
+@Suite
+struct BattleOutcomeResolverTests {
+    @Test func simultaneousDefeatResolvesAsVictory() {
+        #expect(
+            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true) == .victory
         )
     }
 
-    func testPartyDefeatResolvesAsDefeat() {
-        XCTAssertEqual(
-            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: false),
-            .defeat
+    @Test func partyDefeatResolvesAsDefeat() {
+        #expect(
+            BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: false) == .defeat
         )
     }
 
-    func testEnemyDefeatResolvesAsVictory() {
-        XCTAssertEqual(
-            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: true),
-            .victory
+    @Test func enemyDefeatResolvesAsVictory() {
+        #expect(
+            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: true) == .victory
         )
     }
 
-    func testOngoingBattleReturnsNil() {
-        XCTAssertNil(
-            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: false)
+    @Test func ongoingBattleReturnsNil() {
+        #expect(
+            BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: false) == nil
         )
     }
 }

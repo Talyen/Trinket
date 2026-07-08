@@ -1,0 +1,19 @@
+name: Gate
+
+on:
+  workflow_call:
+
+jobs:
+  gate:
+    name: Generate and style
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+      - run: ./Scripts/generate.sh
+      - run: ./Scripts/assert-generated-output.sh
+      - run: ./Scripts/test.sh style
+      - run: ./Scripts/check-module-boundaries.sh
+      - run: ./Scripts/check-swift-testing-migration.sh
+      - run: ./Scripts/release-notes.sh validate

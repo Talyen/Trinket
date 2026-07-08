@@ -1,199 +1,184 @@
+import Testing
 import TrinketContent
 import TrinketPersistence
-import XCTest
+import TrinketTestSupport
 @testable import Trinket
 
-@MainActor
-final class AppStateTests: XCTestCase {
-    private var directoryURL: URL!
-    private var suiteName: String!
-    private var userDefaults: UserDefaults!
+@Suite @MainActor
+struct AppStateTests {
+    let context: AppTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        suiteName = "AppStateTests.\(UUID().uuidString)"
-        directoryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent(suiteName, isDirectory: true)
-        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        userDefaults = UserDefaults(suiteName: suiteName)
+    init() throws {
+        context = try AppTestContext()
     }
 
-    override func tearDown() async throws {
-        userDefaults.removePersistentDomain(forName: suiteName)
-        try? FileManager.default.removeItem(at: directoryURL)
-        try await super.tearDown()
+    @Test func defaultInitSelectsPlayTabWithFreshSave() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+
+        #expect(state.selectedTab == .play)
+        #expect(state.roster.current == .freshStart)
+        #expect(state.inventory.current == .freshStart)
     }
 
-    func testDefaultInitSelectsPlayTabWithFreshSave() {
-        let state = makeAppState(environment: makeEnvironment())
-
-        XCTAssertEqual(state.selectedTab, .play)
-        XCTAssertEqual(state.roster.current, .freshStart)
-        XCTAssertEqual(state.inventory.current, .freshStart)
-    }
-
-    func testLaunchTabOverridesDefaultTab() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-selectedTab", "homestead"])
+    @Test func launchTabOverridesDefaultTab() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"])
         )
 
-        XCTAssertEqual(state.selectedTab, .homestead)
+        #expect(state.selectedTab == .homestead)
     }
 
-    func testHeroDetailLaunchScreenDefaultsToCollectionTab() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
+    @Test func heroDetailLaunchScreenDefaultsToCollectionTab() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
         )
 
-        XCTAssertEqual(state.selectedTab, .collection)
+        #expect(state.selectedTab == .collection)
+        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection combatant presentation")
+            return
+        }
         assertCollectionDetail(
-            state.initialCollectionCombatantDetail,
+            detail,
             kind: .hero,
             combatantID: "knight"
         )
-        XCTAssertNil(state.initialCollectionItemID)
     }
 
-    func testPetDetailLaunchScreenExposesCollectionCombatantDetail() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "pet:wolf"])
+    @Test func petDetailLaunchScreenExposesCollectionCombatantDetail() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "pet:wolf"])
         )
 
-        XCTAssertEqual(state.selectedTab, .collection)
+        #expect(state.selectedTab == .collection)
+        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection combatant presentation")
+            return
+        }
         assertCollectionDetail(
-            state.initialCollectionCombatantDetail,
+            detail,
             kind: .pet,
             combatantID: "wolf"
         )
     }
 
-    func testItemDetailLaunchScreenExposesCollectionItemID() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
+    @Test func itemDetailLaunchScreenExposesCollectionItemPresentation() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
         )
 
-        XCTAssertEqual(state.selectedTab, .collection)
-        XCTAssertNil(state.initialCollectionCombatantDetail)
-        XCTAssertEqual(state.initialCollectionItemID, "shortsword-basic")
-    }
-
-    func testBattleLaunchScreenDefaultsToPlayTab() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "battle"])
-        )
-
-        XCTAssertEqual(state.selectedTab, .play)
-    }
-
-    func testBattleLaunchScreenStartsStageOneOne() throws {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "battle"])
-        )
-
-        let activeBattle = try XCTUnwrap(state.battle.activeBattle)
-        XCTAssertEqual(activeBattle.stageID, "chapter-1-stage-1")
-    }
-
-    func testSeedTestProgressPopulatesInventory() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
-        )
-
-        XCTAssertFalse(state.inventory.current.items.isEmpty)
-        XCTAssertTrue(state.inventory.current.items.contains { $0.displayName == "Longsword" })
-        XCTAssertTrue(state.inventory.current.items.contains { $0.displayName == "Wand" })
-    }
-
-    func testOptionsLaunchScreenDefaultsToOptionsTab() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-launch-screen", "options"])
-        )
-
-        XCTAssertEqual(state.selectedTab, .options)
-    }
-
-    func testCorruptSaveSetsRecoveryAlertFlag() {
-        // Obsolete: SwiftData corruptions are handled by CoreData schema migration plan.
-    }
-
-    func testAppearanceOverrideAppliesToOptionsStore() {
-        let defaults = UserDefaults.standard
-        let previousAppearance = defaults.string(forKey: "options.appearance")
-        defer {
-            if let previousAppearance {
-                defaults.set(previousAppearance, forKey: "options.appearance")
-            } else {
-                defaults.removeObject(forKey: "options.appearance")
-            }
+        #expect(state.selectedTab == .collection)
+        guard case let .collectionItem(itemID) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection item presentation")
+            return
         }
-
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-appearance", "dark"])
-        )
-
-        XCTAssertEqual(state.options.appearance, .dark)
+        #expect(itemID == "shortsword-basic")
     }
 
-    func testResetStateWipesPersistedSave() throws {
+    @Test func battleLaunchScreenDefaultsToPlayTab() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
+        )
+
+        #expect(state.selectedTab == .play)
+    }
+
+    @Test func battleLaunchScreenStartsStageOneOne() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
+        )
+
+        let activeBattle = try #require(state.battle.activeBattle)
+        #expect(activeBattle.stageID == "chapter-1-stage-1")
+    }
+
+    @Test func seedTestProgressPopulatesInventory() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
+        )
+
+        #expect(!(state.inventory.current.items.isEmpty))
+        #expect(state.inventory.current.items.contains { $0.displayName == "Longsword" })
+        #expect(state.inventory.current.items.contains { $0.displayName == "Wand" })
+    }
+
+    @Test func optionsLaunchScreenDefaultsToOptionsTab() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "options"])
+        )
+
+        #expect(state.selectedTab == .options)
+    }
+
+    @Test func appearanceOverrideAppliesToOptionsStore() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-appearance", "dark"])
+        )
+
+        #expect(state.options.appearance == .dark)
+    }
+
+    @Test func resetStateWipesPersistedSave() throws {
         var save = PlayerSave.fresh
         save.roster.gold = 99
-        let firstStore = PlayerSaveStore(
-            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+        let firstStore = try PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
             disableCloudSync: true
         )
         try firstStore.performBatchMutation { $0 = save }
 
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-reset-state"])
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-reset-state"])
         )
 
-        XCTAssertEqual(state.roster.current, .freshStart)
-        XCTAssertEqual(state.inventory.current, .freshStart)
+        #expect(state.roster.current == .freshStart)
+        #expect(state.inventory.current == .freshStart)
 
-        let reloadedStore = PlayerSaveStore(
-            storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
+        let reloadedStore = try PlayerSaveStore(
+            storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
             disableCloudSync: true
         )
-        XCTAssertEqual(reloadedStore.roster, .freshStart)
+        #expect(reloadedStore.roster == .freshStart)
     }
 
-    func testSeedTestProgressAppliesDeterministicBaseline() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-seed-test-progress"])
+    @Test func seedTestProgressAppliesDeterministicBaseline() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-seed-test-progress"])
         )
 
-        XCTAssertEqual(state.roster.current, .testSeed)
-        XCTAssertEqual(state.inventory.current, .testSeed)
+        #expect(state.roster.current == .testSeed)
+        #expect(state.inventory.current == .testSeed)
     }
 
-    func testCompletedStagesAdvanceJourneyAndMarkRewardsClaimed() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-completed-stages", "chapter-1-stage-1"])
+    @Test func completedStagesAdvanceJourneyAndMarkRewardsClaimed() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-completed-stages", "chapter-1-stage-1"])
         )
 
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(state.journey.current.claimedRewardStageIDs.contains("chapter-1-stage-1"))
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.current.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
-    func testUnknownCompletedStageIDsAreIgnored() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-completed-stages", "missing-stage"])
+    @Test func unknownCompletedStageIDsAreIgnored() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-completed-stages", "missing-stage"])
         )
 
-        XCTAssertEqual(state.journey.current, .initial)
+        #expect(state.journey.current == .initial)
     }
 
-    func testMapScrollTargetLaunchArgSetsSessionScrollFocus() {
-        let state = makeAppState(
-            environment: makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
+    @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         )
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-gate-placeholder-2")
-        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
+        #expect(state.mapScrollStageID == "chapter-gate-placeholder-2")
+        #expect(state.mapScrollFocus?.stageID == "chapter-gate-placeholder-2")
+        #expect((state.mapScrollFocus?.revision ?? 0) > 0)
     }
 
-    func testCompleteStageUpdatesStoresAndMapScrollFocus() throws {
-        let state = makeAppState(environment: makeEnvironment())
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeStageUpdatesStoresAndMapScrollFocus() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let stage = try #require(GameContent.chapters[0].stages.first)
         let initialGold = state.roster.current.gold
 
         let scrollTarget = state.completeStage(
@@ -202,45 +187,30 @@ final class AppStateTests: XCTestCase {
             pet: state.roster.activePet
         )
 
-        XCTAssertEqual(state.journey.current.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(state.journey.current.completedStageIDs.contains(stage.id))
-        XCTAssertGreaterThan(state.roster.current.gold, initialGold)
-        XCTAssertEqual(scrollTarget, "chapter-1-stage-2")
-        XCTAssertEqual(state.sessionState.mapScrollStageID, "chapter-1-stage-2")
-        XCTAssertGreaterThan(state.sessionState.mapScrollNonce, 0)
-    }
-
-    private func makeEnvironment(arguments: [String] = []) -> AppEnvironment {
-        AppEnvironment.parse(arguments: arguments, environment: [:])
-    }
-
-    private func makeAppState(
-        environment: AppEnvironment
-    ) -> AppState {
-        AppState(
-            environment: environment,
-            playerSave: PlayerSaveStore(
-                storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
-                disableCloudSync: true,
-                resetState: environment.resetState
-            ),
-            userDefaults: userDefaults
-        )
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+        #expect(state.roster.current.gold > initialGold)
+        #expect(scrollTarget == "chapter-1-stage-2")
+        #expect(state.mapScrollStageID == "chapter-1-stage-2")
+        #expect(state.mapScrollFocus?.stageID == "chapter-1-stage-2")
+        #expect((state.mapScrollFocus?.revision ?? 0) > 0)
     }
 
     private func assertCollectionDetail(
-        _ context: CombatantDetailContext?,
+        _ detail: CombatantDetailContext?,
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        file: StaticString = #file,
-        line: UInt = #line
+        location: SourceLocation = #_sourceLocation
     ) {
-        guard let context else {
-            XCTFail("Expected collection detail context", file: file, line: line)
+        guard let detail else {
+            Issue.record(
+                "Expected collection detail context",
+                sourceLocation: location
+            )
             return
         }
 
-        XCTAssertEqual(context.kind, kind, file: file, line: line)
-        XCTAssertEqual(context.combatantID, combatantID, file: file, line: line)
+        #expect(detail.kind == kind, sourceLocation: location)
+        #expect(detail.combatantID == combatantID, sourceLocation: location)
     }
 }

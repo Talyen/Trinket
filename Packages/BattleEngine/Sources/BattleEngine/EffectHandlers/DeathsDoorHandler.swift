@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public struct DeathsDoorHandler: BattleEffectHandler {
     public let kind: EffectKind = .deathsDoor

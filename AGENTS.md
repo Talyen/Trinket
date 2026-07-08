@@ -1,17 +1,48 @@
 # AGENTS.md
 
-Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
+Canonical agent guide for Trinket — use with any coding agent or harness (not tied to a specific IDE). Portrait-first iOS fantasy idle auto-battler.
+
+## Platform Baseline (read first)
+
+Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier as wrong unless the user explicitly asks for it.
+
+| Requirement | Value | Source of truth |
+|-------------|-------|-----------------|
+| Minimum OS | **iOS 26.0** | `project.yml` `deploymentTarget` |
+| Language | **Swift 6.0** | `project.yml` `SWIFT_VERSION` |
+| Toolchain | **Xcode 26+** | `README.md` |
+| Concurrency | **Strict** (`SWIFT_STRICT_CONCURRENCY: complete`) | `project.yml` |
+| UI framework | **SwiftUI** (no UIKit bridges unless unavoidable) | app target |
+| Unit tests | **Swift Testing** (`import Testing`) | `TrinketTests/`, package tests |
+| UI tests | **XCTest** (`TrinketUITests/`) | smoke/deploy plans |
+
+**Do not:**
+
+- Add `#available` / `@available` checks for iOS versions below 26 — we do not ship to older OSes.
+- Introduce `NavigationView`, `ObservableObject`, `@StateObject`, or `@Published` in new code.
+- Hand-roll materials, glass, or button styles in feature views — use `TrinketDesignSystem` (see `./Scripts/check-ui-style.sh`).
+- Assume UIKit patterns (manual layout, `UIViewRepresentable`) when SwiftUI has a first-party API.
+
+**Do:**
+
+- Use `@Observable` + `@Environment(Type.self)` + `@Bindable` for app state (see `Trinket/State/AppState.swift`, `Trinket/App/ContentView.swift`).
+- Use `NavigationStack`, modern `Tab` (including `role: .search`), sheets, `ToolbarItem`, semantic colors.
+- Use SwiftData (`@Model`) for persistence — see `TrinketPersistence`.
+- Route chrome through `TrinketDesign` / `.trinketSurface` / `.trinketMaterial` / `.trinketGlassChip` in `TrinketDesignSystem`.
+- When unsure, **grep the repo** for an existing pattern before inventing one.
+
+“Fallbacks” in design docs mean **accessibility** (Reduce Transparency / Reduce Motion), not older iOS support.
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · iOS 26 stack audit: `Docs/Platform/iOS26StackAudit.md` · iOS 26 Apple reference: `Docs/Platform/iOS26AppleReference.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
 - Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
 - `Docs/Audits/*Audit.md` files are point-in-time audit snapshots — not workflow docs. Do not treat them as active requirements unless the user cites one.
 
 ## Product & Architecture
 
 - iOS iPhone-first, portrait-only (`project.yml`). Swift 6.0 / SwiftUI; iOS 26.0. Public Apple APIs for StoreKit, GameKit, privacy, cloud, etc.; update docs with App Store/privacy implications.
-- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Local Swift packages: see `Docs/Architecture.md`.
+- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Local Swift packages: see `Docs/Architecture.md`. iOS 26 Liquid Glass and API adoption: `Docs/Platform/`.
 - **Repo map:** read `Docs/Architecture.md` first. App target under `Trinket/`; shared packages under `Packages/`; manifests at repo root (`ContentManifest/`, `ArtManifest/`, …); tests in `TrinketTests/` and `TrinketUITests/`.
 - **Product tabs vs code** (see `Docs/Architecture.md` for the full table):
 
@@ -30,11 +61,11 @@ Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
   - Music: `Trinket/Resources/Music` (via `prepare-music-assets.sh`, requires `--assets`)
   - SFX catalog: generated Swift in TrinketContent (via `prepare-sfx-assets.sh`, requires `--assets`)
   - Shared domain types: `Packages/TrinketCore/` (`CombatantProgression`, effects, enums). `Raw Assets/` is source-only.
-  - Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here). Prefer fixing violations over new `swiftlint:disable` comments; when a disable is unavoidable, keep scope minimal and treat the repo's disable count as a ratchet (do not add net-new disables without justification).
 
 ## Battle Module
 
-Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/ActiveBattleConfiguration.swift`, `BattleVictorySummary.swift`.
+Combat rules live in `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator, `Combatant`, roster/enemy catalogs). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/ActiveBattleConfiguration.swift`, `Trinket/BattleShell/BattleVictorySummary.swift`.
 
 Key patterns:
 - Effects are value-type structs conforming to `BattleEffectHandler`; lookup by `EffectKind` dictionary in `BattleState`.
@@ -44,7 +75,7 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/Design/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
+- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass. Native glass via `.glassEffect()` in `TrinketDesignSystem`; solid-surface fallback when Reduce Transparency is on. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
 - **Style Guardrail Triggers**: `./Scripts/check-ui-style.sh` flags:
   - Raw materials: `.background` or `.fill` with `.regularMaterial`, `.thinMaterial`, or `.ultraThinMaterial`.
   - Raw button/toggle styles: `.buttonStyle(.glass)`, `.buttonStyle(.glassProminent)`, `.buttonStyle(.bordered)`, `.buttonStyle(.borderedProminent)`, and `.toggleStyle(.button)`.
@@ -53,11 +84,16 @@ Key patterns:
 
 ## Git Workflow
 
-- Work on `main` unless the user explicitly requests a feature branch.
-- Commit locally when work is complete or before testing.
+Default workflow (local development and most agents):
+
+- Always work on `main`. Do not create feature branches.
+- Do not run `git checkout -b`, `git switch -c`, or similar unless the active session explicitly requires it.
+- Commit directly on `main` when work is complete or before testing.
 - Do **not** `git push` unless the user explicitly asks.
-- Do **not** create or update pull requests unless the user explicitly asks.
-- Cloud-agent environments may use feature branches and PRs when configured; follow the active session instructions when they differ from the rules above.
+- Do **not** create, update, or draft pull requests unless the user explicitly asks.
+- Do not use PR management tools unless explicitly requested.
+
+Cloud-agent or CI harnesses may override the above (e.g. feature branches and PRs) when their session instructions say so — otherwise follow the default.
 
 ## Commit Messages
 
@@ -138,25 +174,33 @@ Iteration: **unit** → **smoke class** → **exhaustive class** before merge. K
 
 ## Unit Tests
 
-Framework: **XCTest** + `@testable import Trinket`. Mirror production folders under `TrinketTests/` (`Battle/`, `Persistence/`, `State/`, etc.). SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
+Framework: **Swift Testing** (`import Testing`, `@Suite`, `@Test`, `#expect` / `#require`) for all unit and integration tests in `TrinketTests/` and package test targets. **XCTest** remains only for `TrinketUITests/` (`XCUIApplication`, performance metrics). XCTest and Swift Testing coexist in the same target during migration; unit targets must not import XCTest when migration is complete (`./Scripts/check-swift-testing-migration.sh`).
+
+Mirror production folders under `TrinketTests/` (`Battle/`, `Persistence/`, `State/`, etc.). SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
 
 ### Shared helpers
 
 | Helper | Location | Use for |
 |--------|----------|---------|
-| `SaveTestSupport` | `TrinketTests/Support/` | Temp save directories, `PlayerSaveFileStore` / `PlayerSaveStore` factories |
-| `AppTestSupport` | `TrinketTests/Support/` | `makeAppState` with injectable `sync`, `fileStore`, `userDefaults` |
+| `AppTestContext` | `TrinketTests/Support/` | Per-suite temp save dir + `UserDefaults` + `makeAppState` |
+| `PersistenceTestContext` | `TrinketPersistenceTests/Support/` | Temp directory lifecycle for store roundtrip tests |
+| `SaveTestSupport` | `TrinketTests/Support/` · `TrinketPersistenceTests/Support/` | Temp save directories and `PlayerSaveStore` factories |
+| `AppTestSupport` | `TrinketTests/Support/` | Stateless `makeAppState` when caller owns `directoryURL` |
 | `CombatantFixtures` | `TrinketTests/Support/` (app) · `Packages/BattleEngine/Tests/.../Support/` (battle) | Minimal combatants and abilities |
 | `BattleStateTestFactory` | `Packages/BattleEngine/Tests/BattleEngineTests/` | **Always** use for RNG-sensitive battle tests (`rngSeed: 0`) |
 | `BattleTestFixtures` | `Packages/BattleEngine/Tests/BattleEngineTests/Support/` | Integration tick helpers, `standardParty`, effect predicates |
 
 ### Conventions
 
-- **Naming:** `test<Behavior>When<Condition>` — e.g. `testLocalMutationSchedulesDebouncedUpload`.
+- **Naming:** `@Test func behaviorWhenCondition()` — e.g. `localMutationSchedulesDebouncedUpload`; no `test` prefix required.
+- **Assertions:** `#expect` for behavioral checks; `try #require` / `#require` to unwrap and halt; `Issue.record` for unconditional failures.
+- **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants (per-item failure isolation).
+- **Lifecycle:** prefer `@Suite struct` for stateless tests; `@Suite @MainActor struct` for app-shell tests without owned context; `@Suite @MainActor final class` with `init() throws` + `AppTestContext` / `PersistenceTestContext` when teardown is needed. New `TrinketTests` suites should migrate from `final class` to `@Suite` struct where possible (`BattleVictorySummaryTests`, `BattleSessionSimulationTests` are pilots).
+- **Main actor:** Swift Testing does not run sync tests on `@MainActor` by default — annotate suite or test when UI/layout/store isolation requires it.
 - **Battle rules:** `BattleStateTestFactory.makeBattle(...)` instead of raw `BattleState(...)`.
 - **BattleEngine ownership:** see `Packages/BattleEngine/Tests/README.md` — each mechanic has one primary test owner; integration files stay thin (3–6 tests) and only exercise full tick wiring.
 - **Handler tests:** dispatch through `EffectHandlers.all`; use BattleEngine `CombatantFixtures` for setup.
-- **Store tests:** `@MainActor` class, `SaveTestSupport.makeTempDirectory`, mutate → reload from disk → assert.
+- **Store tests:** `@Suite @MainActor final class` with `PersistenceTestContext`, mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production init params; poll in tests — never `Task.sleep` for multi-second production delays.
 - **Golden paths:** pin outcome counters (ticks, health, victory/defeat); assert event *semantics* (status kinds, milestones) rather than full log fingerprints.
 - **Ability descriptions:** `AbilityDescriptionFormatterTests` guards catalog prose; prefer focused examples over duplicating full catalog loops elsewhere.
@@ -189,14 +233,14 @@ Default smoke args (`TestLaunchArg.testLaunchArgs`): `-reset-state`, `-seed-test
 - `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` starts stage 1-1)
 - `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory` → `.collection`)
 - `-completed-stages` (comma IDs)
-- `-map-scroll-target` (Play map `ScrollViewReader` row id)
+- `-map-scroll-target` (Play map scroll row id)
 - `-battle-tick-interval` (override fast ticks; avoid with mid-battle interaction tests)
-- `-disable-audio`, `-theme` (see `AppEnvironment.parse`)
+- `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
 
 Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. Keep default launch args unless testing persistence.
 
 **UI test speed** (check hotspots with `./Scripts/test-timing.sh report --top 30` and `./Scripts/test-timing.sh report --by-class`):
-- Prefer `-launch-screen` / `-selectedTab` deep links over tab + grid navigation.
+- Prefer `-launch-screen` / `-selectedTab` deep links over tab + grid navigation; do not re-navigate to a screen the launch args already opened (e.g. skip `collection.openPetsCategory()` after `pet:wolf` deep link).
 - Avoid `assertExistsAfterScroll` for far-off Play map nodes; use `-completed-stages` or `-map-scroll-target` instead.
 - Use inventory/search field filtering (`replaceText`) instead of long grid scroll loops.
 - Mid-battle exhaustive tests should enter via Play map, not `-launch-screen battle` with very fast tick intervals.

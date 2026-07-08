@@ -1,7 +1,7 @@
-import Foundation
-import TrinketCore
-import TrinketContent
 import BattleEngine
+import Foundation
+import TrinketContent
+import TrinketCore
 
 enum LoadoutDamageClassifier {
     static func dealsEnemyDamage(_ ability: Ability) -> Bool {
@@ -9,11 +9,11 @@ enum LoadoutDamageClassifier {
     }
 }
 
-public enum AbilityLoadoutSampler {
-    public static let maxNonDamageAcrossPair = 3
-    public static let preferredDamageAcrossPair = 3
+enum AbilityLoadoutSampler {
+    static let maxNonDamageAcrossPair = 3
+    static let preferredDamageAcrossPair = 3
 
-    public static func defaultLoadout(
+    static func defaultLoadout(
         for combatant: Combatant,
         progression: CombatantProgression
     ) -> AbilityLoadout {
@@ -21,7 +21,7 @@ public enum AbilityLoadoutSampler {
         return damageBiasedLoadout(for: combatant, progression: progression, using: &rng)
     }
 
-    public static func defaultLoadoutPair(
+    static func defaultLoadoutPair(
         hero: Combatant,
         pet: Combatant,
         progression: CombatantProgression,
@@ -38,7 +38,7 @@ public enum AbilityLoadoutSampler {
         )
     }
 
-    public static func randomLoadoutPair<RNG: RandomNumberGenerator>(
+    static func randomLoadoutPair<RNG: RandomNumberGenerator>(
         hero: Combatant,
         pet: Combatant,
         progression: CombatantProgression,
@@ -55,7 +55,7 @@ public enum AbilityLoadoutSampler {
         )
     }
 
-    public static func randomLoadout<RNG: RandomNumberGenerator>(
+    static func randomLoadout<RNG: RandomNumberGenerator>(
         for combatant: Combatant,
         progression: CombatantProgression,
         using randomNumberGenerator: inout RNG
@@ -85,7 +85,7 @@ public enum AbilityLoadoutSampler {
         return AbilityLoadout(basic: basic, skill: skill, ultimate: ultimate)
     }
 
-    public static func randomLoadoutPair<RNG: RandomNumberGenerator>(
+    static func randomLoadoutPair<RNG: RandomNumberGenerator>(
         hero: Combatant,
         pet: Combatant,
         progression: CombatantProgression,
@@ -100,7 +100,7 @@ public enum AbilityLoadoutSampler {
         )
     }
 
-    public static func loadout(
+    static func loadout(
         for combatant: Combatant,
         selecting ability: Ability,
         progression: CombatantProgression
@@ -109,7 +109,7 @@ public enum AbilityLoadoutSampler {
         return base.selecting(ability).unlocked(for: progression)
     }
 
-    public static func satisfiesDamageBudget(
+    static func satisfiesDamageBudget(
         hero: AbilityLoadout,
         pet: AbilityLoadout,
         heroCombatant: Combatant,

@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Applies Burn, Poison, and Bleed stacks through a mutation context.
 package enum DoTApplicator {

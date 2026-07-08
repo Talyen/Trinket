@@ -1,116 +1,110 @@
 import SwiftData
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerSaveStoreTests: XCTestCase {
-    private var directoryURL: URL!
+@Suite @MainActor
+final class PlayerSaveStoreTests {
+    let context: PersistenceTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerSaveStoreTests")
+    init() throws {
+        context = try PersistenceTestContext()
     }
 
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        try await super.tearDown()
-    }
-
-    func testPlayerSavePersistsJourneyRosterInventoryAndHomestead() throws {
-        let storeURL = makeStoreURL()
-        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+    @Test func playerSavePersistsJourneyRosterInventoryAndHomestead() throws {
+        let storeURL = context.storeURL()
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         firstStore.advanceJourneyToStage("chapter-1-stage-2")
 
-        let secondStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
-        XCTAssertEqual(secondStore.roster.gold, 42)
-        XCTAssertEqual(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP, 20)
-        XCTAssertEqual(secondStore.homestead.resources[.wood], 14)
-        XCTAssertEqual(secondStore.homestead.resources[.crystal], 2)
-        XCTAssertNotNil(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        XCTAssertEqual(secondStore.journey.activeStageID, "chapter-1-stage-2")
+        #expect(secondStore.roster.gold == 42)
+        #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 20)
+        #expect(secondStore.homestead.resources[.wood] == 14)
+        #expect(secondStore.homestead.resources[.crystal] == 2)
+        _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
     }
 
-    func testSwiftDataGraphStoresIndependentRecords() throws {
-        let storeURL = makeStoreURL()
-        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+    @Test func swiftDataGraphStoresIndependentRecords() throws {
+        let storeURL = context.storeURL()
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         store.grantGold(5)
         store.advanceJourneyToStage("chapter-1-stage-2")
         store.grantHomestead([ResourceAmount(.wood, 3)])
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
 
         let container = try ModelContainer(
             for: PlayerSaveGraph.schema,
             configurations: ModelConfiguration(schema: PlayerSaveGraph.schema, url: storeURL, cloudKitDatabase: .none)
         )
-        let context = ModelContext(container)
+        let modelContext = ModelContext(container)
 
-        XCTAssertEqual(try context.fetch(FetchDescriptor<RosterModel>()).first?.gold, 5)
-        XCTAssertTrue(try context.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
+        #expect(try modelContext.fetch(FetchDescriptor<RosterModel>()).first?.gold == 5)
+        #expect(try modelContext.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
             $0.stageID == "chapter-1-stage-1" && $0.isCompleted
         })
-        XCTAssertTrue(try context.fetch(FetchDescriptor<InventoryItemModel>()).contains {
+        #expect(try modelContext.fetch(FetchDescriptor<InventoryItemModel>()).contains {
             $0.id == "chapter-1-stage-1-shortsword-basic"
         })
-        XCTAssertTrue(try context.fetch(FetchDescriptor<HomesteadResourceBalanceModel>()).contains {
+        #expect(try modelContext.fetch(FetchDescriptor<HomesteadResourceBalanceModel>()).contains {
             $0.resourceID == HomesteadResource.wood.rawValue && $0.quantity == 3
         })
     }
 
-    func testResetGameplayProgressRestoresFreshStart() throws {
-        let store = makeStore()
+    @Test func resetGameplayProgressRestoresFreshStart() throws {
+        let store = try context.makeSaveStore()
         store.grantGold(99)
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         store.advanceJourneyToStage("chapter-1-stage-2")
 
         try store.resetGameplayProgress()
 
-        XCTAssertEqual(store.roster, .freshStart)
-        XCTAssertEqual(store.inventory, .freshStart)
-        XCTAssertEqual(store.homestead, .freshStart)
-        XCTAssertEqual(store.journey, .initial)
-        XCTAssertEqual(store.currentSave.sessionGeneration, 1)
+        #expect(store.roster == .freshStart)
+        #expect(store.inventory == .freshStart)
+        #expect(store.homestead == .freshStart)
+        #expect(store.journey == .initial)
+        #expect(store.currentSave.sessionGeneration == 1)
     }
 
-    func testApplyTestSeedMatchesDeterministicUITestBaseline() throws {
-        let store = makeStore()
+    @Test func applyTestSeedMatchesDeterministicUITestBaseline() throws {
+        let store = try context.makeSaveStore()
         try store.applyTestSeed()
 
-        XCTAssertEqual(store.roster, .testSeed)
-        XCTAssertEqual(store.inventory, .testSeed)
-        XCTAssertEqual(store.homestead, .testSeed)
+        #expect(store.roster == .testSeed)
+        #expect(store.inventory == .testSeed)
+        #expect(store.homestead == .testSeed)
     }
 
-    func testEquipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
-        let storeURL = makeStoreURL()
-        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+    @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
+        let storeURL = context.storeURL()
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var save = PlayerSave.testSeed
-        save.roster.equipmentLoadouts["knight"] = SavedEquipmentLoadout(
-            EquipmentLoadout(itemIDsBySlot: [.weapon: "missing-item"])
+        save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
+            itemIDsBySlot: [.weapon: "missing-item"]
         )
         try firstStore.performBatchMutation { $0 = save }
 
-        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
-        XCTAssertNil(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon))
+        #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
     }
 
-    func testRosterCacheReturnsConsistentHydratedState() throws {
-        let store = makeStore()
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+    @Test func rosterCacheReturnsConsistentHydratedState() throws {
+        let store = try context.makeSaveStore()
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let item = template.rewardInstance(for: "chapter-1-stage-1")
         store.appendInventoryItem(item)
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
         var roster = store.roster
         var loadout = roster.equipmentLoadout(for: knight)
@@ -120,60 +114,102 @@ final class PlayerSaveStoreTests: XCTestCase {
 
         let firstRead = store.roster
         let secondRead = store.roster
-        XCTAssertEqual(firstRead, secondRead)
-        XCTAssertEqual(
-            firstRead.equipmentLoadout(for: knight).itemID(for: .weapon),
-            "chapter-1-stage-1-shortsword-basic"
+        #expect(firstRead == secondRead)
+        #expect(
+            firstRead.equipmentLoadout(for: knight).itemID(for: .weapon) == "chapter-1-stage-1-shortsword-basic"
         )
     }
 
-    func testLocalMutationUpdatesModifiedAt() {
-        let store = makeStore()
+    @Test func localMutationUpdatesModifiedAt() throws {
+        let store = try context.makeSaveStore()
         let beforeLocalEdit = store.currentSave.modifiedAt
         store.grantGold(1)
 
-        XCTAssertGreaterThan(store.currentSave.modifiedAt, beforeLocalEdit)
+        #expect(store.currentSave.modifiedAt > beforeLocalEdit)
     }
 
-    func testSanitizerUsesCatalogOrderForLastCompletedStage() {
+    @Test func sanitizerUsesCatalogOrderForLastCompletedStage() {
         var journey = JourneyProgressState.initial
         journey.completedStageIDs = ["chapter-1-stage-9", "chapter-1-stage-10"]
         journey.lastCompletedStageID = "chapter-1-stage-9"
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        XCTAssertEqual(sanitized.lastCompletedStageID, "chapter-1-stage-10")
+        #expect(sanitized.lastCompletedStageID == "chapter-1-stage-10")
     }
 
-    func testValidateRejectsNegativeProgressionXP() {
+    @Test func validateRejectsNegativeProgressionXP() throws {
         var save = PlayerSave.fresh
         save.roster.progressions["knight"] = CombatantProgression(level: 1, currentXP: -1, requiredXP: 100)
 
-        XCTAssertThrowsError(try PlayerSaveSanitizer.validate(save)) { error in
-            guard case let PlayerSavePersistenceError.invalidSave(message) = error else {
-                return XCTFail("Expected invalidSave, got \(error)")
-            }
-            XCTAssertTrue(message.contains("current XP"))
+        let error = try #require(throws: PlayerSavePersistenceError.self) {
+            try PlayerSaveSanitizer.validate(save)
         }
+        guard case let .invalidSave(message) = error else {
+            Issue.record("Expected invalidSave, got \(error)")
+            return
+        }
+        #expect(message.contains("current XP"))
     }
 
-    func testValidateRejectsInvalidSchemaVersion() {
+    @Test func validateRejectsInvalidSchemaVersion() throws {
         var save = PlayerSave.fresh
         save.schemaVersion = 0
 
-        XCTAssertThrowsError(try PlayerSaveSanitizer.validate(save)) { error in
-            guard case PlayerSavePersistenceError.invalidSave = error else {
-                return XCTFail("Expected invalidSave, got \(error)")
-            }
+        let error = try #require(throws: PlayerSavePersistenceError.self) {
+            try PlayerSaveSanitizer.validate(save)
+        }
+        guard case .invalidSave = error else {
+            Issue.record("Expected invalidSave, got \(error)")
+            return
         }
     }
 
-    private func makeStoreURL() -> URL {
-        SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
+    @Test func performBatchMutationPreservesStateWhenValidationFails() throws {
+        let store = try context.makeSaveStore()
+        store.grantGold(25)
+        let snapshot = store.currentSave
+
+        #expect(throws: (any Error).self) {
+            try store.performBatchMutation { save in
+                save.schemaVersion = 0
+            }
+        }
+
+        #expect(store.currentSave == snapshot)
+        #expect(store.roster.gold == 25)
+        #expect(store.lastPersistenceError == nil)
     }
 
-    private func makeStore() -> PlayerSaveStore {
-        PlayerSaveStore(storeURL: makeStoreURL(), disableCloudSync: true)
+    #if DEBUG
+    @Test func performBatchMutationRollsBackInMemoryStateWhenSaveFails() throws {
+        let store = try context.makeSaveStore()
+        store.grantGold(10)
+        store.forcesNextSaveFailure = true
+
+        let error = try #require(throws: PlayerSavePersistenceError.self) {
+            try store.performBatchMutation { save in
+                save.roster.gold += 50
+            }
+        }
+        guard case .writeFailed = error else {
+            Issue.record("Expected writeFailed, got \(error)")
+            return
+        }
+
+        #expect(store.roster.gold == 10)
+        #expect(store.lastPersistenceError == .writeFailed)
+    }
+    #endif
+    @Test func inMemoryStoreIsNotMarkedDegraded() throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true)
+        #expect(store.isPersistenceDegraded == false)
+        #expect(store.lastPersistenceError == nil)
+    }
+
+    @Test func storeUnavailableErrorIsEquatable() {
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
     }
 }
 

@@ -1,27 +1,25 @@
-import XCTest
+import Testing
 import TrinketCore
 import TrinketContent
 
-final class AbilityCatalogTests: XCTestCase {
-    func testCatalogIDsAreUnique() {
+@Suite
+struct AbilityCatalogTests {
+    @Test func catalogIDsAreUnique() {
         let ids = AbilityCatalog.all.map(\.id)
-        XCTAssertEqual(Set(ids).count, ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
+        #expect(Set(ids).count == ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
     }
 
-    func testAbilityLookupByID() {
-        for ability in AbilityCatalog.all {
-            XCTAssertEqual(AbilityCatalog.ability(id: ability.id), ability)
-        }
-        XCTAssertNil(AbilityCatalog.ability(id: "missing-ability"))
+    @Test func unknownAbilityLookupReturnsNil() {
+        #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    func testStaticReexportsMatchCatalog() {
-        XCTAssertEqual(Ability.fireball, AbilityCatalog.ability(id: Ability.fireball.id))
-        XCTAssertEqual(Ability.bloodthorn, AbilityCatalog.ability(id: Ability.bloodthorn.id))
-        XCTAssertEqual(Ability.slash, AbilityCatalog.ability(id: Ability.slash.id))
+    @Test func staticReexportsMatchCatalog() {
+        #expect(Ability.fireball == AbilityCatalog.ability(id: Ability.fireball.id))
+        #expect(Ability.bloodthorn == AbilityCatalog.ability(id: Ability.bloodthorn.id))
+        #expect(Ability.slash == AbilityCatalog.ability(id: Ability.slash.id))
     }
 
-    func testDoTPairingMatchesDamageComponents() {
+    @Test func doTPairingMatchesDamageComponents() {
         for ability in AbilityCatalog.all {
             if ["mana-berries", "pixie-dust"].contains(ability.id) {
                 continue
@@ -29,7 +27,7 @@ final class AbilityCatalogTests: XCTestCase {
             for component in ability.damageComponents where component.target == .abilityTarget {
                 switch component.keyword {
                 case .burn:
-                    XCTAssertTrue(
+                    #expect(
                         ability.effects.contains {
                             if case let .burn(potency) = $0 { return potency == component.amount }
                             return false
@@ -37,7 +35,7 @@ final class AbilityCatalogTests: XCTestCase {
                         "\(ability.id) should pair Burn damage with .burn(\(component.amount))"
                     )
                 case .poison:
-                    XCTAssertTrue(
+                    #expect(
                         ability.effects.contains {
                             if case let .poison(potency) = $0 { return potency == component.amount }
                             return false
@@ -45,7 +43,7 @@ final class AbilityCatalogTests: XCTestCase {
                         "\(ability.id) should pair Poison damage with .poison(\(component.amount))"
                     )
                 case .bleed:
-                    XCTAssertTrue(
+                    #expect(
                         ability.effects.contains {
                             if case let .bleed(potency) = $0 { return potency == component.amount }
                             return false
@@ -59,19 +57,19 @@ final class AbilityCatalogTests: XCTestCase {
         }
     }
 
-    func testBloodthornUsesDamageComponents() {
-        XCTAssertEqual(Ability.bloodthorn.damageComponents.count, 3)
-        XCTAssertEqual(Ability.bloodthorn.directDamage, 6)
-        XCTAssertEqual(Ability.fireball.directDamage, 2)
-        XCTAssertEqual(Ability.fireball.damageKeyword, .burn)
+    @Test func bloodthornUsesDamageComponents() {
+        #expect(Ability.bloodthorn.damageComponents.count == 3)
+        #expect(Ability.bloodthorn.directDamage == 6)
+        #expect(Ability.fireball.directDamage == 2)
+        #expect(Ability.fireball.damageKeyword == .burn)
     }
 
-    func testCatalogPassesValidation() {
+    @Test func catalogPassesValidation() {
         let issues = AbilityValidator.validateCatalog()
-        XCTAssertTrue(issues.isEmpty, issues.map(\.description).joined(separator: "\n"))
+        #expect(issues.isEmpty, issues.map(\.description).joined(separator: "\n"))
     }
 
-    func testAbilityBuilderMatchesDirectHitPattern() {
+    @Test func abilityBuilderMatchesDirectHitPattern() {
         let built = AbilityBuilder.directHit(
             id: "fireball",
             name: "Fireball",
@@ -79,12 +77,12 @@ final class AbilityCatalogTests: XCTestCase {
             amount: 2,
             keyword: .burn
         )
-        XCTAssertEqual(built.damageComponents, Ability.fireball.damageComponents)
-        XCTAssertEqual(built.targetedEffects, Ability.fireball.targetedEffects)
-        XCTAssertEqual(built.summary, Ability.fireball.summary)
+        #expect(built.damageComponents == Ability.fireball.damageComponents)
+        #expect(built.targetedEffects == Ability.fireball.targetedEffects)
+        #expect(built.summary == Ability.fireball.summary)
     }
 
-    func testDirectHitBuilderAddsPairedDoT() {
+    @Test func directHitBuilderAddsPairedDoT() {
         let ability = AbilityBuilder.directHit(
             id: "burn-hit",
             name: "Burn Hit",
@@ -92,22 +90,22 @@ final class AbilityCatalogTests: XCTestCase {
             amount: 3,
             keyword: .burn
         )
-        XCTAssertEqual(ability.damageComponents, [DamageComponent(3, keyword: .burn)])
-        XCTAssertTrue(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
-        XCTAssertEqual(ability.summary, "Deal 3 Burn damage and applies Burning.")
+        #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
+        #expect(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
+        #expect(ability.summary == "Deal 3 Burn damage and applies Burning.")
     }
 
-    func testBuffOnlyBuilderProducesGeneratedDescription() {
+    @Test func buffOnlyBuilderProducesGeneratedDescription() {
         let ability = AbilityBuilder.buffOnly(
             id: "block",
             name: "Block",
             tier: .basic,
             effects: [.shield(.block, 2, 6)]
         )
-        XCTAssertEqual(ability.summary, "Gain Block.")
+        #expect(ability.summary == "Gain Block.")
     }
 
-    func testMultiDamageBuilderFormatsSummary() {
+    @Test func multiDamageBuilderFormatsSummary() {
         let ability = AbilityBuilder.multiDamage(
             id: "bloodthorn",
             name: "Bloodthorn",
@@ -123,28 +121,32 @@ final class AbilityCatalogTests: XCTestCase {
                 TargetedEffect(.standardLeechBuff)
             ]
         )
-        XCTAssertEqual(
-            ability.summary,
-            "Deal 2 Nature damage, Deal 2 Bleed damage and applies Bleeding, Deal 2 Poison damage and applies Poisoned and Gain Leech."
+        #expect(
+            ability.summary == "Deal 2 Nature damage, Deal 2 Bleed damage and applies Bleeding, Deal 2 Poison damage and applies Poisoned and Gain Leech."
         )
     }
 
-    func testAbilityUsesGeneratedDescription() {
+    @Test func abilityUsesGeneratedDescription() {
         let ability = Ability.rayOfFrost
-        XCTAssertEqual(ability.summary, "Deal 1 Freeze damage.")
+        #expect(ability.summary == "Deal 1 Freeze damage.")
     }
 
-    func testAbilityHealHasNoDamage() {
-        XCTAssertEqual(Ability.heal.summary, "Costs 1 Mana, restore 3 Health.")
-        XCTAssertEqual(Ability.heal.directDamage, 0)
+    @Test func abilityHealHasNoDamage() {
+        #expect(Ability.heal.summary == "Costs 1 Mana, restore 3 Health.")
+        #expect(Ability.heal.directDamage == 0)
     }
 
-    func testDescriptionOverridesAreAllowlisted() {
+    @Test func descriptionOverridesAreAllowlisted() {
         for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
-            XCTAssertTrue(
+            #expect(
                 AbilityValidator.descriptionOverrideIDs.contains(ability.id),
                 "\(ability.id) should not carry a manual description override"
             )
         }
+    }
+
+    @Test(arguments: AbilityCatalog.all)
+    func abilityLookupByID(ability: Ability) {
+        #expect(AbilityCatalog.ability(id: ability.id) == ability)
     }
 }

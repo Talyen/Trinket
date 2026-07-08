@@ -15,26 +15,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    uses: ./.github/workflows/changes.yml
+
   gate:
-    name: Generate and style
+    uses: ./.github/workflows/gate.yml
+
+  assets-gate:
+    name: Asset codegen
+    needs: [gate, changes]
+    if: needs.changes.outputs.assets == 'true'
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-      - run: ./Scripts/generate.sh
-      - run: ./Scripts/assert-generated-output.sh
-      - run: ./Scripts/test.sh style
-      - run: ./Scripts/check-module-boundaries.sh
-      - run: ./Scripts/release-notes.sh validate
+      - run: ./Scripts/generate.sh --assets
+      - run: ./Scripts/assert-generated-output.sh --assets
+
+  build:
+    name: Build for testing
+    needs: gate
+    runs-on: macos-latest
+    timeout-minutes: 25
+    outputs:
+      build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-trinket
+
+      - name: Restore warm build cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .DerivedData
+          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+          restore-keys: |
+            build-
+
+      - name: Build for testing
+        run: ./Scripts/build-for-testing.sh
+        env:
+          SKIP_GENERATE: 1
+
+      - name: Save build cache for test jobs
+        id: save-build-cache
+        uses: actions/cache/save@v4
+        with:
+          path: .DerivedData
+          key: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
 
   unit:
     name: Unit tests - ${{ matrix.target }}
-    needs: gate
+    needs: build
     runs-on: macos-latest
     timeout-minutes: 15
-    env:
-      SKIP_GENERATE: 1
     strategy:
       fail-fast: false
       matrix:
@@ -42,105 +76,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
+      - uses: ./.github/actions/test-job
         with:
-          path: .DerivedData
-          key: deriveddata-unit-${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
-          restore-keys: |
-            deriveddata-unit-${{ runner.os }}-${{ matrix.target }}-
-
-      - name: Run unit tests
-        run: |
-          if [ "${{ matrix.target }}" = "app" ]; then
-            ./Scripts/test.sh unit TrinketTests --verbose
-          else
-            ./Scripts/test-package.sh ${{ matrix.target }} --verbose
-          fi
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: unit-test-results-${{ matrix.target }}-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
-
-      - name: Clean test results before caching
-        if: always()
-        run: rm -rf .DerivedData/TestResults/*.xcresult
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: unit-${{ matrix.target }}
+          command: |
+            if [ "${{ matrix.target }}" = "app" ]; then
+              ./Scripts/test.sh unit TrinketTests --no-build --verbose
+            else
+              ./Scripts/test-package.sh ${{ matrix.target }} --no-build --verbose
+            fi
 
   ui-smoke:
     name: UI tests - smoke
-    needs: gate
+    needs: build
     runs-on: macos-latest
     timeout-minutes: 25
-    env:
-      SKIP_GENERATE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
+      - uses: ./.github/actions/test-job
         with:
-          path: .DerivedData
-          key: deriveddata-ui-${{ runner.os }}-smoke-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
-          restore-keys: |
-            deriveddata-ui-${{ runner.os }}-smoke-
-
-      - name: Run UI tests
-        run: ./Scripts/test.sh smoke --verbose
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ui-test-results-smoke-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
-
-      - name: Clean test results before caching
-        if: always()
-        run: rm -rf .DerivedData/TestResults/*.xcresult
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: ui-smoke
+          command: ./Scripts/test.sh smoke --no-build --verbose
+          timing-mode: smoke
+          timing-budget-seconds: '900'
 
   ui-exhaustive:
     name: UI tests - ${{ matrix.shard }}
-    needs: gate
+    needs: build
     runs-on: macos-latest
     timeout-minutes: 25
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-    env:
-      SKIP_GENERATE: 1
     strategy:
       fail-fast: false
       matrix:
         include:
-          - shard: 'exhaustive-battle'
-            command: 'ui BattleFlowUITests'
-          - shard: 'exhaustive-collection'
-            command: 'ui TabNavigationUITests SearchUITests'
+          - shard: exhaustive-battle
+            command: ./Scripts/test.sh ui BattleFlowUITests --no-build --verbose
+          - shard: exhaustive-collection
+            command: ./Scripts/test.sh ui TabNavigationUITests SearchUITests --no-build --verbose
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Cache DerivedData
-        uses: actions/cache@v4
+      - uses: ./.github/actions/test-job
         with:
-          path: .DerivedData
-          key: deriveddata-ui-${{ runner.os }}-${{ matrix.shard }}-${{ hashFiles('**/*.swift', 'project.yml', 'Package.resolved') }}
-          restore-keys: |
-            deriveddata-ui-${{ runner.os }}-${{ matrix.shard }}-
-
-      - name: Run UI tests
-        run: ./Scripts/test.sh ${{ matrix.command }} --verbose
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ui-test-results-${{ matrix.shard }}-${{ github.run_id }}
-          path: .DerivedData/TestResults/
-          if-no-files-found: ignore
-
-      - name: Clean test results before caching
-        if: always()
-        run: rm -rf .DerivedData/TestResults/*.xcresult
+          cache-key: ${{ needs.build.outputs.build-cache-key }}
+          artifact-name: ui-${{ matrix.shard }}
+          command: ${{ matrix.command }}

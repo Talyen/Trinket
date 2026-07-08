@@ -6,6 +6,8 @@ import TrinketPersistence
 struct SearchView: View {
     @Environment(AppState.self) private var appState
     @State private var searchText = ""
+    @State private var selectedItem: InventoryItem?
+    @State private var selectedCombatant: CombatantDetailContext?
 
     var body: some View {
         searchContent
@@ -13,6 +15,19 @@ struct SearchView: View {
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+            .sheet(item: $selectedItem) { item in
+                NavigationStack {
+                    ItemDetailView(item: item)
+                }
+                .trinketDetailSheet()
+            }
+            .sheet(item: $selectedCombatant) { context in
+                appState.rosterCombatantDetail(
+                    kind: context.kind,
+                    combatantID: context.combatantID
+                )
+                .trinketDetailSheet()
+            }
     }
 
     @ViewBuilder
@@ -52,8 +67,8 @@ struct SearchView: View {
 
                     if !results.items.isEmpty {
                         SearchResultSection(title: "Items", items: results.items) { item in
-                            NavigationLink {
-                                ItemDetailView(item: item)
+                            Button {
+                                selectedItem = item
                             } label: {
                                 ItemCard(item: item, showsAffixCount: true)
                                     .collectionShelfCardWidth()
@@ -78,26 +93,16 @@ struct SearchView: View {
     ) -> some View {
         if !combatants.isEmpty {
             SearchResultSection(title: title, items: combatants) { combatant in
-                combatantDetailLink(for: combatant, kind: kind)
+                Button {
+                    selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
+                } label: {
+                    CombatantCard(combatant: combatant)
+                        .collectionShelfCardWidth()
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("\(combatant.name) collection card")
             }
         }
-    }
-
-    private func combatantDetailLink(
-        for combatant: Combatant,
-        kind: CombatantDetailContext.Kind
-    ) -> some View {
-        NavigationLink {
-            appState.rosterCombatantDetail(
-                kind: kind,
-                combatantID: combatant.id
-            )
-        } label: {
-            CombatantCard(combatant: combatant)
-                .collectionShelfCardWidth()
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("\(combatant.name) collection card")
     }
 
     private struct SearchResults {

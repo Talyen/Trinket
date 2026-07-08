@@ -4,33 +4,37 @@ import TrinketContent
 import TrinketPersistence
 
 extension AppState {
+    struct BootstrapDependencies {
+        let playerSave: PlayerSaveStore
+        let shellSession: PlayerShellSessionStore
+        let musicPlayer: MusicPlayer
+        let roster: PlayerRosterStore
+        let inventory: PlayerInventoryStore
+        let homestead: PlayerHomesteadStore
+        let options: OptionsStore
+        let journey: PlayerJourneyStore
+        let selectedTab: AppTab
+        let activeBattleStageID: String?
+        let mapScrollStageID: String?
+        let pendingCollectionPresentation: LaunchPresentation?
+    }
+
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
         playerSave: PlayerSaveStore?,
-        userDefaults: UserDefaults?
-    ) -> (
-        playerSave: PlayerSaveStore,
-        musicPlayer: MusicPlayer,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
-        homestead: PlayerHomesteadStore,
-        options: OptionsStore,
-        journey: PlayerJourneyStore,
-        sessionState: SessionStateStore,
-        selectedTab: AppTab,
-        initialCollectionCombatantDetail: CombatantDetailContext?,
-        initialCollectionItemID: String?
-    ) {
-        let resolvedDefaults = userDefaults ?? .standard
+        shellSessionStore: PlayerShellSessionStore?,
+        userDefaults: UserDefaults
+    ) throws -> BootstrapDependencies {
         if environment.resetState {
-            resolvedDefaults.removePersistentDomain(forName: Bundle.main.bundleIdentifier ?? "")
+            clearResetStateDefaults(from: userDefaults)
         }
 
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(
+        let resolvedPlayerSave = try playerSave ?? PlayerSaveStore(
             storeName: environment.storeName,
             disableCloudSync: environment.disableCloudSync,
             resetState: environment.resetState,
-            inMemoryOnly: environment.resetState && environment.storeName == nil
+            inMemoryOnly: environment.resetState && environment.storeName == nil,
+            persistSaveImmediately: environment.persistSaveImmediately
         )
         if environment.seedTestProgress {
             do {
@@ -42,48 +46,66 @@ extension AppState {
             }
         }
 
-        let resolvedOptions = OptionsStore(defaults: resolvedDefaults)
+        let resolvedShellSession = try shellSessionStore ?? PlayerShellSessionStore(
+            storeName: environment.storeName,
+            resetState: environment.resetState,
+            inMemoryOnly: environment.resetState && environment.storeName == nil,
+            legacyUserDefaults: userDefaults
+        )
+
+        let resolvedOptions = OptionsStore(defaults: userDefaults)
         if let appearanceOverride = environment.appearanceOverride {
             resolvedOptions.appearance = appearanceOverride
         }
 
-        let resolvedSessionState = SessionStateStore(defaults: resolvedDefaults)
         let resolvedRoster = PlayerRosterStore(saveStore: resolvedPlayerSave)
         let resolvedInventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
         let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
         let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
-        let launchCollection = launchCollectionTargets(for: environment.launchScreen)
+        let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
 
-        return (
+        return BootstrapDependencies(
             playerSave: resolvedPlayerSave,
+            shellSession: resolvedShellSession,
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             roster: resolvedRoster,
             inventory: resolvedInventory,
             homestead: resolvedHomestead,
             options: resolvedOptions,
             journey: resolvedJourney,
-            sessionState: resolvedSessionState,
-            selectedTab: selectedTab(environment: environment, sessionState: resolvedSessionState),
-            initialCollectionCombatantDetail: launchCollection.combatantDetail,
-            initialCollectionItemID: launchCollection.itemID
+            selectedTab: selectedTab(
+                environment: environment,
+                restoredTab: AppTab(shellSessionTab: resolvedShellSession.selectedTab)
+            ),
+            activeBattleStageID: resolvedShellSession.activeBattleStageID,
+            mapScrollStageID: resolvedShellSession.mapScrollStageID,
+            pendingCollectionPresentation: launchCollection
         )
     }
 
     func finishBootstrap(environment: AppEnvironment) {
         seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         if let mapScrollTarget = environment.mapScrollTarget {
-            sessionState.noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
+            noteMapScrollFocus(mapScrollTarget)
         }
         if environment.launchScreen == .battle {
             startLaunchBattle()
         }
 
         battle.onBattleStateChange = { [weak self] stageID in
-            self?.sessionState.activeBattleStageID = stageID
+            self?.activeBattleStageID = stageID
+            self?.syncBattleTickLoop()
         }
-        battle.onBattleEnded = { [weak self] in
-            self?.sessionState.activeBattleStageID = nil
-        }
+        installMemoryPressureHandling()
+        syncBattleTickLoop()
+    }
+
+    private static func clearResetStateDefaults(from defaults: UserDefaults) {
+        PlayerShellSessionStore.clearLegacyKeys(from: defaults)
+        defaults.removeObject(forKey: OptionsStore.musicVolumeKey)
+        defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
+        defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
+        defaults.removeObject(forKey: OptionsStore.appearanceKey)
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {
@@ -95,31 +117,12 @@ extension AppState {
         let stages = completedStageIDs.compactMap { stagesByID[$0] }
         guard !stages.isEmpty else { return }
 
-        let hero = roster.activeHero
-        let pet = roster.activePet
-
-        do {
-            try playerSave.performBatchMutation { save in
-                var context = save.stageCompletionContext()
-                if resetState {
-                    context.journey = .initial
-                }
-                for stage in stages {
-                    StageCompletion.complete(
-                        stage,
-                        hero: hero,
-                        pet: pet,
-                        in: GameContent.chapters,
-                        context: &context
-                    )
-                }
-                context.apply(to: &save)
-            }
-        } catch {
-            appStateLogger.error(
-                "Failed to seed journey progress: \(error.localizedDescription, privacy: .public)"
-            )
-        }
+        _ = persistStageCompletions(
+            stages,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            resetJourney: resetState
+        )
     }
 
     private func startLaunchBattle() {
@@ -131,12 +134,12 @@ extension AppState {
         guard let stage = GameContent.stage(id: stageID),
               case .battle = stage.encounter
         else {
-            sessionState.activeBattleStageID = nil
+            activeBattleStageID = nil
             return
         }
 
         guard !journey.current.hasClaimedRewards(for: stage) else {
-            sessionState.activeBattleStageID = nil
+            activeBattleStageID = nil
             return
         }
 
@@ -146,17 +149,14 @@ extension AppState {
 
     private static let launchBattleStageID = "chapter-1-stage-1"
 
-    private static func selectedTab(
-        environment: AppEnvironment,
-        sessionState: SessionStateStore
-    ) -> AppTab {
+    private static func selectedTab(environment: AppEnvironment, restoredTab: AppTab?) -> AppTab {
         if let envTab = environment.launchTab {
             return envTab
         }
         if let launchScreen = environment.launchScreen {
             return tab(for: launchScreen)
         }
-        return sessionState.selectedTab ?? .play
+        return restoredTab ?? .play
     }
 
     private static func tab(for launchScreen: LaunchScreen) -> AppTab {
@@ -170,18 +170,24 @@ extension AppState {
         }
     }
 
-    private static func launchCollectionTargets(
+    private static func launchCollectionPresentation(
         for launchScreen: LaunchScreen?
-    ) -> (combatantDetail: CombatantDetailContext?, itemID: String?) {
+    ) -> LaunchPresentation? {
         switch launchScreen {
         case let .heroDetail(id):
-            (CombatantDetailContext(kind: .hero, combatantID: id), nil)
+            return .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id))
         case let .petDetail(id):
-            (CombatantDetailContext(kind: .pet, combatantID: id), nil)
+            return .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
         case let .itemDetail(id):
-            (nil, id)
+            return .collectionItem(id)
         case .battle, .options, .none:
-            (nil, nil)
+            return nil
         }
+    }
+}
+
+private extension AppTab {
+    init?(shellSessionTab: PlayerShellSessionTab) {
+        self.init(rawValue: shellSessionTab.rawValue)
     }
 }

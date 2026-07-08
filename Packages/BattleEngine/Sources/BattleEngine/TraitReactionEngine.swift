@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Applies combatant trait reactions that fire alongside heals, cleanses, and gold gains.
 package enum TraitReactionEngine {

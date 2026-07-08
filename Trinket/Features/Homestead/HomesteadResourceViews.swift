@@ -11,16 +11,18 @@ struct HomesteadResourceWallet: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                ForEach(resources) { resource in
-                    HomesteadResourcePill(
-                        resource: resource,
-                        balance: homestead.balance(for: resource, roster: roster)
-                    )
+            GlassEffectContainer {
+                HStack(spacing: 8) {
+                    ForEach(resources) { resource in
+                        HomesteadResourcePill(
+                            resource: resource,
+                            balance: homestead.balance(for: resource, roster: roster)
+                        )
+                    }
                 }
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .scrollTargetLayout()
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .scrollTargetLayout()
         }
         .scrollTargetBehavior(.viewAligned)
         .scrollIndicators(.hidden)
@@ -50,8 +52,7 @@ struct HomesteadResourcePill: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        // UIStyleCheck: allow - Resource wallet is compact glass chrome, not a content card.
-        .background(.thinMaterial, in: Capsule(style: .continuous))
+        .trinketWalletPill()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(resource.displayName), \(balance)")
     }

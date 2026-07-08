@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Reduces the append-only `ActionEvent` stream into player-facing combat-log
 /// lines. This is the single source of truth for log formatting.

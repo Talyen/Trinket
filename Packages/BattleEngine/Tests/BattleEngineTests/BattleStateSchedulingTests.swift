@@ -1,16 +1,17 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleStateSchedulingTests: XCTestCase {
-    private lazy var wolfPet = GameContent.pets.first { $0.id == "wolf" }!
+@Suite
+struct BattleStateSchedulingTests {
+    private var wolfPet: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
 
     private func advance(_ battle: inout BattleState) -> BattleStep {
         battle.advanceOneStep()
     }
 
-    func testAdvanceOneStepReturnsEndedWhenBattleOver() {
+    @Test func advanceOneStepReturnsEndedWhenBattleOver() {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let helper = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -21,13 +22,13 @@ final class BattleStateSchedulingTests: XCTestCase {
         }
 
         if case let .ended(events) = advance(&battle) {
-            XCTAssertTrue(events.isEmpty)
+            #expect(events.isEmpty)
         } else {
-            XCTFail("Expected ended step when battle is over")
+            Issue.record("Expected ended step when battle is over")
         }
     }
 
-    func testFirstActionIsHeroOnSecondTick() {
+    @Test func firstActionIsHeroOnSecondTick() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -36,20 +37,20 @@ final class BattleStateSchedulingTests: XCTestCase {
         if case .effectsOnly = advance(&battle) {
             // tick 1: nobody acts
         } else {
-            XCTFail("Expected effects-only step on tick 1")
+            Issue.record("Expected effects-only step on tick 1")
         }
 
         if case let .acted(actor, events) = advance(&battle) {
-            XCTAssertEqual(actor.id, hero.id)
-            XCTAssertEqual(events.filter { $0.kind == .ability }.map(\.actorName), ["Hero"])
+            #expect(actor.id == hero.id)
+            #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Hero"])
         } else {
-            XCTFail("Expected hero to act on tick 2")
+            Issue.record("Expected hero to act on tick 2")
         }
 
-        XCTAssertEqual(battle.actionCount(of: battle.enemy), 0)
+        #expect(battle.actionCount(of: battle.enemy) == 0)
     }
 
-    func testPetActsOnThirdTickAfterHero() {
+    @Test func petActsOnThirdTickAfterHero() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -59,14 +60,14 @@ final class BattleStateSchedulingTests: XCTestCase {
         _ = advance(&battle)
 
         if case let .acted(actor, events) = advance(&battle) {
-            XCTAssertEqual(actor.id, pet.id)
-            XCTAssertEqual(events.filter { $0.kind == .ability }.map(\.actorName), ["Pet"])
+            #expect(actor.id == pet.id)
+            #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Pet"])
         } else {
-            XCTFail("Expected pet to act on tick 3")
+            Issue.record("Expected pet to act on tick 3")
         }
     }
 
-    func testOnlyOneActorActsPerStep() {
+    @Test func onlyOneActorActsPerStep() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -77,21 +78,21 @@ final class BattleStateSchedulingTests: XCTestCase {
         let petStep = advance(&battle)
 
         if case let .acted(heroActor, heroEvents) = heroStep {
-            XCTAssertEqual(heroActor.id, hero.id)
-            XCTAssertEqual(heroEvents.filter { $0.kind == .ability }.count, 1)
+            #expect(heroActor.id == hero.id)
+            #expect(heroEvents.filter { $0.kind == .ability }.count == 1)
         } else {
-            XCTFail("Expected hero step")
+            Issue.record("Expected hero step")
         }
 
         if case let .acted(petActor, petEvents) = petStep {
-            XCTAssertEqual(petActor.id, pet.id)
-            XCTAssertEqual(petEvents.filter { $0.kind == .ability }.count, 1)
+            #expect(petActor.id == pet.id)
+            #expect(petEvents.filter { $0.kind == .ability }.count == 1)
         } else {
-            XCTFail("Expected pet step")
+            Issue.record("Expected pet step")
         }
     }
 
-    func testEnemyAttacksOnSixthTick() {
+    @Test func enemyAttacksOnSixthTick() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 50, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 50, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -100,18 +101,18 @@ final class BattleStateSchedulingTests: XCTestCase {
         for _ in 0 ..< 5 {
             _ = advance(&battle)
         }
-        XCTAssertEqual(battle.actionCount(of: battle.enemy), 0)
+        #expect(battle.actionCount(of: battle.enemy) == 0)
 
         if case let .acted(actor, _) = advance(&battle) {
-            XCTAssertEqual(actor.id, enemy.id)
+            #expect(actor.id == enemy.id)
         } else {
-            XCTFail("Expected enemy to act on tick 6")
+            Issue.record("Expected enemy to act on tick 6")
         }
-        XCTAssertEqual(battle.actionCount(of: battle.enemy), 1)
-        XCTAssertEqual(battle.tickCount, 6)
+        #expect(battle.actionCount(of: battle.enemy) == 1)
+        #expect(battle.tickCount == 6)
     }
 
-    func testFastEnemyActsBeforePartyOnSeparateSteps() {
+    @Test func fastEnemyActsBeforePartyOnSeparateSteps() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(
@@ -125,25 +126,25 @@ final class BattleStateSchedulingTests: XCTestCase {
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case let .acted(actor, _) = advance(&battle) {
-            XCTAssertEqual(actor.id, enemy.id)
+            #expect(actor.id == enemy.id)
         } else {
-            XCTFail("Expected enemy on tick 1")
+            Issue.record("Expected enemy on tick 1")
         }
 
         if case let .acted(actor, _) = advance(&battle) {
-            XCTAssertEqual(actor.id, hero.id)
+            #expect(actor.id == hero.id)
         } else {
-            XCTFail("Expected hero on tick 2")
+            Issue.record("Expected hero on tick 2")
         }
 
         if case let .acted(actor, _) = advance(&battle) {
-            XCTAssertEqual(actor.id, pet.id)
+            #expect(actor.id == pet.id)
         } else {
-            XCTFail("Expected pet on tick 3")
+            Issue.record("Expected pet on tick 3")
         }
     }
 
-    func testBurnEffectExpiresAfterDuration() {
+    @Test func burnEffectExpiresAfterDuration() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -156,14 +157,14 @@ final class BattleStateSchedulingTests: XCTestCase {
             ]
         )
 
-        XCTAssertFalse(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
+        #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .burn }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        XCTAssertTrue(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
+        #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
     }
 
-    func testPoisonEffectExpiresAfterDuration() {
+    @Test func poisonEffectExpiresAfterDuration() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -176,39 +177,39 @@ final class BattleStateSchedulingTests: XCTestCase {
             ]
         )
 
-        XCTAssertFalse(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
+        #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .poison }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        XCTAssertTrue(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
+        #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
     }
 
-    func testEffectsOnlyStepWhenNobodyReady() {
+    @Test func effectsOnlyStepWhenNobodyReady() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case .effectsOnly = advance(&battle) {
-            XCTAssertEqual(battle.tickCount, 1)
+            #expect(battle.tickCount == 1)
         } else {
-            XCTFail("Expected passive tick before first actions")
+            Issue.record("Expected passive tick before first actions")
         }
     }
 
-    func testRangerHeroFirstActionGrantsExactGold() throws {
+    @Test func rangerHeroFirstActionGrantsExactGold() throws {
         let goldHero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.blackjack])
         var battle = BattleStateTestFactory.makeBattle(hero: goldHero, pet: wolfPet, enemy: defaultEnemy, initialGold: 10)
 
         _ = advance(&battle)
         _ = advance(&battle)
 
-        XCTAssertEqual(battle.gold, 11)
-        XCTAssertEqual(battle.earnedGold, 1)
+        #expect(battle.gold == 11)
+        #expect(battle.earnedGold == 1)
     }
 
-    func testSkillFiresOnTurn3UltimateOnTurn6() {
+    @Test func skillFiresOnTurn3UltimateOnTurn6() {
         let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "skill", name: "SkillAtk", tier: .skill, directDamage: 3, description: "Skill")
         let ultimate = Ability(id: "ultimate", name: "UltAtk", tier: .ultimate, directDamage: 6, description: "Ultimate")
@@ -243,7 +244,7 @@ final class BattleStateSchedulingTests: XCTestCase {
             if battle.isBattleOver { break }
         }
 
-        XCTAssertEqual(heroAbilityNames, ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
+        #expect(heroAbilityNames == ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
     }
 
     private var defaultEnemy: Combatant {

@@ -1,24 +1,18 @@
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerHomesteadStoreTests: XCTestCase {
-    private var directoryURL: URL!
+@Suite @MainActor
+final class PlayerHomesteadStoreTests {
+    let context: PersistenceTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerHomesteadStoreTests")
+    init() throws {
+        context = try PersistenceTestContext()
     }
 
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        try await super.tearDown()
-    }
-
-    func testBuildOrUpgradeWriteThroughToSaveStore() throws {
-        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+    @Test func buildOrUpgradeWriteThroughToSaveStore() throws {
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let homesteadStore = PlayerHomesteadStore(saveStore: saveStore)
         saveStore.homestead = PlayerHomesteadState(
@@ -28,18 +22,18 @@ final class PlayerHomesteadStoreTests: XCTestCase {
         var updatedRoster = rosterStore.current
         updatedRoster.grantGold(4)
         rosterStore.current = updatedRoster
-        let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .wheatField))
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
 
-        XCTAssertEqual(homesteadStore.buildOrUpgrade(definition, roster: rosterStore), .success)
+        #expect(homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .success)
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertEqual(reloaded.homestead.tier(for: .wheatField), 1)
-        XCTAssertEqual(reloaded.homestead.resources[.wood], 10)
-        XCTAssertEqual(reloaded.roster.gold, 4)
+        let reloaded = try context.makeSaveStore()
+        #expect(reloaded.homestead.tier(for: .wheatField) == 1)
+        #expect(reloaded.homestead.resources[.wood] == 10)
+        #expect(reloaded.roster.gold == 4)
     }
 
-    func testBuildOrUpgradeReturnsFalseWhenPrerequisitesMissing() throws {
-        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+    @Test func buildOrUpgradeReturnsFalseWhenPrerequisitesMissing() throws {
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let homesteadStore = PlayerHomesteadStore(saveStore: saveStore)
         saveStore.homestead = PlayerHomesteadState(
@@ -49,25 +43,24 @@ final class PlayerHomesteadStoreTests: XCTestCase {
         var updatedRoster = rosterStore.current
         updatedRoster.grantGold(100)
         rosterStore.current = updatedRoster
-        let definition = try XCTUnwrap(GameContent.homesteadNode(matching: .blacksmithForge))
+        let definition = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
 
-        XCTAssertEqual(
-            homesteadStore.buildOrUpgrade(definition, roster: rosterStore),
-            .insufficientResources
+        #expect(
+            homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .insufficientResources
         )
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertEqual(reloaded.homestead.tier(for: .blacksmithForge), 0)
-        XCTAssertEqual(reloaded.roster.gold, 100)
+        let reloaded = try context.makeSaveStore()
+        #expect(reloaded.homestead.tier(for: .blacksmithForge) == 0)
+        #expect(reloaded.roster.gold == 100)
     }
 
-    func testGrantResourcesWriteThroughToSaveStore() {
-        let homesteadStore = PlayerHomesteadStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+    @Test func grantResourcesWriteThroughToSaveStore() throws {
+        let homesteadStore = PlayerHomesteadStore(saveStore: try context.makeSaveStore())
 
         homesteadStore.grant([ResourceAmount(.wood, 7), ResourceAmount(.crystal, 2)])
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertEqual(reloaded.homestead.resources[.wood], 7)
-        XCTAssertEqual(reloaded.homestead.resources[.crystal], 2)
+        let reloaded = try context.makeSaveStore()
+        #expect(reloaded.homestead.resources[.wood] == 7)
+        #expect(reloaded.homestead.resources[.crystal] == 2)
     }
 }

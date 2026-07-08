@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Intrinsic battle rule: hero and pet each get one Death's Door proc per battle.
 package enum DeathsDoorEngine {

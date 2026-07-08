@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public struct HalveMitigationHandler: BattleEffectHandler {
     public let kind: EffectKind = .halveMitigation

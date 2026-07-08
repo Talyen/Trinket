@@ -1,8 +1,8 @@
 import SwiftUI
 import TrinketCore
 
-extension Keyword {
-    public struct VisualStyle: Sendable {
+public extension Keyword {
+    struct VisualStyle: Sendable {
         public let color: Color
         public let secondaryColor: Color
         public let glowColor: Color
@@ -27,23 +27,23 @@ extension Keyword {
         public static let block = VisualStyle(color: Color.blue, symbolName: "shield.fill")
         public static let armor = VisualStyle(color: Color.gray, symbolName: "shield.lefthalf.filled")
         public static let health = VisualStyle(color: Color.red, secondaryColor: Color.green, symbolName: "heart.fill")
-        public static let gold = VisualStyle(color: Color("KeywordGold", bundle: .main), symbolName: "dollarsign.circle.fill", prefersDarkForeground: true)
-        public static let holy = VisualStyle(color: Color("KeywordHoly", bundle: .main), symbolName: "sun.max.fill", prefersDarkForeground: true)
-        public static let poison = VisualStyle(color: Color("KeywordPoison", bundle: .main), symbolName: "drop.triangle.fill")
-        public static let bleed = VisualStyle(color: Color("KeywordBleed", bundle: .main), symbolName: "drop.fill")
-        public static let leech = VisualStyle(color: Color("KeywordLeech", bundle: .main), symbolName: "drop.fill")
-        public static let nature = VisualStyle(color: Color("KeywordNature", bundle: .main), symbolName: "leaf.fill")
-        public static let freeze = VisualStyle(color: Color("KeywordFreeze", bundle: .main), symbolName: "snowflake", prefersDarkForeground: true)
-        public static let dodge = VisualStyle(color: Color("KeywordDodge", bundle: .main), symbolName: "arrowshape.turn.up.left.circle.fill")
-        public static let purge = VisualStyle(color: Color("KeywordPurge", bundle: .main), symbolName: "sparkles")
-        public static let mana = VisualStyle(color: Color("KeywordMana", bundle: .main), symbolName: "star.fill")
+        public static let gold = VisualStyle(color: DesignAssetColors.named("KeywordGold"), symbolName: "dollarsign.circle.fill", prefersDarkForeground: true)
+        public static let holy = VisualStyle(color: DesignAssetColors.named("KeywordHoly"), symbolName: "sun.max.fill", prefersDarkForeground: true)
+        public static let poison = VisualStyle(color: DesignAssetColors.named("KeywordPoison"), symbolName: "drop.triangle.fill")
+        public static let bleed = VisualStyle(color: DesignAssetColors.named("KeywordBleed"), symbolName: "drop.fill")
+        public static let leech = VisualStyle(color: DesignAssetColors.named("KeywordLeech"), symbolName: "drop.fill")
+        public static let nature = VisualStyle(color: DesignAssetColors.named("KeywordNature"), symbolName: "leaf.fill")
+        public static let freeze = VisualStyle(color: DesignAssetColors.named("KeywordFreeze"), symbolName: "snowflake", prefersDarkForeground: true)
+        public static let dodge = VisualStyle(color: DesignAssetColors.named("KeywordDodge"), symbolName: "arrowshape.turn.up.left.circle.fill")
+        public static let purge = VisualStyle(color: DesignAssetColors.named("KeywordPurge"), symbolName: "sparkles")
+        public static let mana = VisualStyle(color: DesignAssetColors.named("KeywordMana"), symbolName: "star.fill")
         public static let deathsDoor = VisualStyle(
-            color: Color("KeywordDeathsDoor", bundle: .main),
+            color: DesignAssetColors.named("KeywordDeathsDoor"),
             symbolName: "heart.slash.fill"
         )
     }
 
-    public var visualStyle: VisualStyle {
+    var visualStyle: VisualStyle {
         switch self {
         case .physical: return .physical
         case .burn: return .burn

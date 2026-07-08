@@ -1,24 +1,18 @@
-import XCTest
+import Testing
 import TrinketContent
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerInventoryStoreTests: XCTestCase {
-    private var directoryURL: URL!
+@Suite @MainActor
+final class PlayerInventoryStoreTests {
+    let context: PersistenceTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerInventoryStoreTests")
+    init() throws {
+        context = try PersistenceTestContext()
     }
 
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        try await super.tearDown()
-    }
-
-    func testItemsForSlotFiltersInventory() throws {
-        let weaponBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .weapon })
-        let armorBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .armor })
+    @Test func itemsForSlotFiltersInventory() throws {
+        let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
+        let armorBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .armor })
         let weapon = InventoryItem(
             id: "weapon-item",
             templateID: "weapon-template",
@@ -35,16 +29,16 @@ final class PlayerInventoryStoreTests: XCTestCase {
             displayName: "Armor",
             affixes: []
         )
-        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let saveStore = try context.makeSaveStore()
         saveStore.inventory = PlayerInventoryState(items: [weapon, armor])
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
 
-        XCTAssertEqual(inventoryStore.current.items(for: .weapon).map(\.id), ["weapon-item"])
-        XCTAssertEqual(inventoryStore.current.items(for: .armor).map(\.id), ["armor-item"])
+        #expect(inventoryStore.current.items(for: .weapon).map(\.id) == ["weapon-item"])
+        #expect(inventoryStore.current.items(for: .armor).map(\.id) == ["armor-item"])
     }
 
-    func testItemsForSlotReflectsPersistedInventory() throws {
-        let weaponBase = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.slot == .weapon })
+    @Test func itemsForSlotReflectsPersistedInventory() throws {
+        let weaponBase = try #require(GameContent.itemBaseTypes.first { $0.slot == .weapon })
         let weapon = InventoryItem(
             id: "persisted-weapon",
             templateID: "weapon-template",
@@ -53,23 +47,23 @@ final class PlayerInventoryStoreTests: XCTestCase {
             displayName: "Weapon",
             affixes: []
         )
-        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let saveStore = try context.makeSaveStore()
         saveStore.inventory = PlayerInventoryState(items: [weapon])
 
-        let reloadedStore = PlayerInventoryStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
+        let reloadedStore = PlayerInventoryStore(saveStore: try context.makeSaveStore())
 
-        XCTAssertEqual(reloadedStore.current.items(for: .weapon).map(\.id), ["persisted-weapon"])
+        #expect(reloadedStore.current.items(for: .weapon).map(\.id) == ["persisted-weapon"])
     }
 
-    func testAddRewardItemWriteThroughToSaveStore() throws {
-        let saveStore = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+    @Test func addRewardItemWriteThroughToSaveStore() throws {
+        let saveStore = try context.makeSaveStore()
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]
 
         inventoryStore.addRewardItem(from: template, for: stage)
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertNotNil(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        let reloaded = try context.makeSaveStore()
+        _ = try #require(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
     }
 }

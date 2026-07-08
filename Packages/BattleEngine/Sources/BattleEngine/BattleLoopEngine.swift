@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Orchestrates one global battle tick. `BattleState.advanceOneStep()` is the
 /// public facade; this engine owns the tick contract shared with focused unit tests.

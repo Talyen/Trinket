@@ -1,10 +1,10 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
 import TrinketContent
+import TrinketCore
 
 enum MatchupSimulationRunner {
-    struct Result: Sendable {
+    struct Result {
         let winCount: Int
         let tickLimitCount: Int
         let runCount: Int
@@ -28,7 +28,7 @@ enum MatchupSimulationRunner {
         var completedRuns = 0
 
         for runIndex in 0 ..< runsPerMatchup {
-            let seed = baseSeed &+ UInt64(matchupIndex) &+ UInt64(runIndex) &+ 100_000
+            let seed = baseSeed &+ UInt64(matchupIndex) &+ UInt64(runIndex) &+ 100000
             let options = BalanceSweepRunner.sweepOptions(maxTicks: maxTicks, seed: seed)
             let result = BattleSimulator.run(configured, options: options)
             completedRuns += 1

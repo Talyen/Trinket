@@ -2,7 +2,7 @@ import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
     func testBattleFlowAndCombatLoops() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.05", in: TestLaunchArg.testLaunchArgs))
 
         play.assertLoaded()
         play.openStage("Stage 1-1 Node")
@@ -18,7 +18,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             assertExists("Knight collection card")
             tabBar.selectPlay()
 
-            if button("Battle Pause Button").waitForExistence(timeout: 3) {
+            if button("Battle Pause Button").waitForExistence(timeout: 2) {
                 button("Knight card").tap()
                 let knightHeader = combatantDetail.header(for: "Knight")
                 assertExists(knightHeader)
@@ -31,7 +31,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             }
         }
 
-        assertExists(victory, timeout: 120)
+        assertExists(victory, timeout: 60)
 
         assertExists("Experience")
         assertExists("Rewards")

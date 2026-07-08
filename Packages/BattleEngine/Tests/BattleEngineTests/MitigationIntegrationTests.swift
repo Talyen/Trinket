@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// Integration tests for shield, armor, and mitigation through full battle ticks.
-final class MitigationIntegrationTests: XCTestCase {
-    func testShieldAbsorbsDamageBeforeHealth() {
+@Suite
+struct MitigationIntegrationTests {
+    @Test func shieldAbsorbsDamageBeforeHealth() {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
@@ -20,10 +21,10 @@ final class MitigationIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.health(of: battle.hero), hero.maxHealth)
+        #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
-    func testArmorMitigatesIncomingDamage() {
+    @Test func armorMitigatesIncomingDamage() {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20, actionIntervalTicks: 2
         )
@@ -40,10 +41,10 @@ final class MitigationIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertEqual(battle.health(of: battle.hero), 17)
+        #expect(battle.health(of: battle.hero) == 17)
     }
 
-    func testEffectiveDamageMatchesEventAmount() {
+    @Test func effectiveDamageMatchesEventAmount() {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20, actionIntervalTicks: 2
         )
@@ -61,11 +62,11 @@ final class MitigationIntegrationTests: XCTestCase {
         let events = BattleTestFixtures.advanceTicks(6, on: &battle)
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
-        XCTAssertEqual(damageEvent?.amount, 3)
-        XCTAssertEqual(battle.health(of: battle.hero), 17)
+        #expect(damageEvent?.amount == 3)
+        #expect(battle.health(of: battle.hero) == 17)
     }
 
-    func testSunderArmorHalvesEnemyArmor() {
+    @Test func sunderArmorHalvesEnemyArmor() {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.sunderArmor])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -80,7 +81,7 @@ final class MitigationIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(3, on: &battle)
 
-        XCTAssertTrue(battle.hasEnemyEffect { effect in
+        #expect(battle.hasEnemyEffect { effect in
             if case .mitigation(.armor, 0.20, _) = effect { return true }
             return false
         })

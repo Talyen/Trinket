@@ -4,7 +4,16 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 EXPECTED_VERSION="0.61.1"
-SOURCE_DIRS=(Trinket TrinketTests TrinketUITests)
+SOURCE_DIRS=(
+  Trinket
+  TrinketTests
+  TrinketUITests
+  Packages/TrinketCore/Sources
+  Packages/TrinketContent/Sources
+  Packages/BattleEngine/Sources
+  Packages/TrinketPersistence/Sources
+  Packages/TrinketDesignSystem/Sources
+)
 
 if ! command -v swiftformat &>/dev/null; then
   echo "SwiftFormat is not installed. Install via: brew install swiftformat"

@@ -2,6 +2,10 @@
 
 Goal: Assess the full unit test suite for coverage, quality, speed, duplication, gaps, and 2026 Apple/Swift best practices — then produce a prioritized, actionable improvement plan.
 
+**Last verified: 2026-07-08.** Swift Testing migration is complete for unit targets (`TrinketTests/`, package test schemes); XCTest remains only for `TrinketUITests/`.
+
+**Last execution (2026-07-07):** Tier 1–3 improvements applied on `cursor/unit-test-audit-fixes-1c5d`. Highlights: `XCTAssertNotNil` eliminated (0 remaining); `BattleSessionTests` split into `BattleSessionAppIntegrationTests`, `BattleSessionSimulationTests`, and `BattleVictorySummaryTests`; shared `AppTestCase` base; Swift Testing parameterized catalog tests; `TrinketDesignSystem` `ExperienceBarTests` + `VisualFoundationTests`; `Task.sleep` replaced with clock polling in tick-loop tests; code coverage enabled on `TrinketTests`; `ci-locally.sh` unit timing budget gate added.
+
 You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swift 6 / SwiftUI, iOS 26, swift-tools-version 6.2, Swift 6 strict concurrency enabled). Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 
 ## Targets
@@ -61,14 +65,14 @@ Verify each module has adequate unit test coverage. Use the ownership table from
 | `TrinketCore` | Stats rules, progression formulas, effect model, keyword resolution | 8 test files |
 | `TrinketContent` | Catalog invariants, ability descriptions, item generation, encounter resolution | 15 test files |
 | `BattleEngine` | All effect handlers, pipeline steps, state transitions, simulator, integration wiring | 42 test files |
-| `TrinketPersistence` | All `Player*Store` types, save/load roundtrip, migration, sync, sanitizer | 12 test files |
-| `TrinketDesignSystem` | Theme rendering, visual style, typography, `ExperienceBar` layout, `KeywordVisualStyle` | 2 test files |
-| `Trinket` (app) | `AppState`, `BattleSession`, `OptionsStore`, `SessionStateStore`, launch args, audio routing | 14 test files |
+| `TrinketPersistence` | All `Player*Store` types, save/load roundtrip, migration, sync, sanitizer | 11 test files |
+| `TrinketDesignSystem` | Theme rendering, visual style, typography, `ExperienceBar` layout, `Keyword.visualStyle` | 2 test files |
+| `Trinket` (app) | `AppState`, `BattleSession`, `OptionsStore`, launch args, audio routing | 15 test files |
 
 **Checks:**
 
 - Identify every `public` or `package` API in each module that lacks a unit test. Focus on:
-  - `TrinketDesignSystem` (2 tests is the most glaring gap — likely missing theme application, surface chrome, keyword styling, ExperienceBar layout)
+  - `TrinketDesignSystem` (2 tests is the most glaring gap — likely missing surface chrome, keyword styling, ExperienceBar layout)
   - `TrinketCore` (8 tests — verify all `CombatantProgression` paths, `PrimaryStatsRules` edge cases, and `Keyword` resolution are covered)
 - Verify `EffectKind` registry parity: every `EffectKind` case has a test in `EffectHandlersApplyTests` or a dedicated handler test file. Grep:
 
@@ -83,7 +87,7 @@ Verify each module has adequate unit test coverage. Use the ownership table from
 
 #### Assert outcomes, not implementation
 
-- Battle tests must assert semantic events (status kinds, milestones, victory/defeat, HP deltas) — not log formatting strings or `ActorEvent` fingerprints.
+- Battle tests must assert semantic events (status kinds, milestones, victory/defeat, HP deltas) — not log formatting strings or `ActionEvent` fingerprints.
 - Use `BattleEvent` predicates from `BattleTestFixtures` rather than raw string matching on `description`.
 - Store tests must follow: mutate → reload from disk → assert. Do not assert on internal cache state or private properties.
 
@@ -97,7 +101,7 @@ Verify each module has adequate unit test coverage. Use the ownership table from
 #### Avoid silent `try?` in tests
 
 - `try?` in tests swallows errors that should cause test failure.
-- Use `XYAssertNoThrow` helpers or `XCTAssertThrowsError` for error-path coverage.
+- Use `XCTAssertNoThrow` helpers or `XCTAssertThrowsError` for error-path coverage.
 - In Swift Testing, use `#expect(throws:)`.
 
 #### Semantic event assertions over fingerprints
@@ -157,9 +161,9 @@ rg 'SWIFT_STRICT_CONCURRENCY|warning.*concurrency' --type swift -g '*Tests/*'
 
 ### 4. Swift Testing adoption assessment
 
-Swift Testing (`import Testing`) is Apple's first-party testing framework alongside XCTest. It has been generally available since Xcode 16 (2024) and was featured in WWDC26 session #267 "Migrate to Swift Testing". The project currently has **zero** Swift Testing adoption (all ~105 test files use XCTest).
+Swift Testing (`import Testing`) is Apple's first-party testing framework alongside XCTest. Migration to Swift Testing is **complete** for all unit and package test targets (`TrinketTests/`, `Packages/*/Tests/`). **XCTest remains only for `TrinketUITests/`** (`XCUIApplication`, performance metrics).
 
-Both frameworks coexist in the same target — migration can be incremental.
+Both frameworks coexist in the app test bundle during the UI-test-only XCTest retention — new unit tests must use Swift Testing.
 
 #### Evaluate migration candidates
 
@@ -227,7 +231,7 @@ Flag any test method exceeding 1 second wall time (unit tests should be sub-seco
 - Prefer `-launch-screen` / `-selectedTab` deep links over tap-based navigation.
 - Avoid `assertExistsAfterScroll` for far-off Play map nodes; use `-completed-stages` or `-map-scroll-target`.
 - Use search field `replaceText` instead of long grid scroll loops.
-- Default `UI_PARALLEL_WORKERS=3` for smoke; check `smoke` wall time stays near 3 min.
+- UI tests run with `-parallel-testing-enabled NO` in `Scripts/test.sh`; check `smoke` wall time stays near ~2 min.
 
 ### 6. Duplication and overlap
 
@@ -266,12 +270,12 @@ Patterns to watch for:
 
 | Module | Current tests | Likely gaps |
 |--------|--------------|-------------|
-| `TrinketDesignSystem` | `AppThemeTests`, `KeywordVisualStyleTests` (2 files) | Missing: theme application to SwiftUI views, surface chrome (`BackgroundSurface`, `PanelSurface`), `ExperienceBar` rendering, typography scaling, `HomesteadTint` colors, dark/light mode consistency |
+| `TrinketDesignSystem` | `PaletteTests`, `KeywordVisualStyleTests` (2 files) | Missing: surface chrome (`SurfaceRole`, `BackgroundMode`), `ExperienceBar` rendering, typography scaling, `HomesteadTint` colors, dark/light mode consistency |
 | `TrinketCore` | `CombatantProgressionTests`, `EffectModelTests`, `EffectPresentationTests`, `ExperienceScalingTests`, `KeywordCoreTests`, `PrimaryStatsModelTests`, `PrimaryStatsRulesTests`, `StatGrowthTests` (8 files) | Missing: `Effect` value semantics / equatable / Codable roundtrip; boundary cases for progression level 0, max level, negative XP; invalid stat combinations in `PrimaryStats` |
 | `TrinketContent` | 15 catalog + generator files | Likely well-covered (catalog invariants, generation). Check that every new content type (affix, item base, ability, enemy) added in the last 3 commits has a corresponding invariant test. |
 | `BattleEngine` | 42 files | Most thorough coverage. Check: new `EffectKind` not yet in `EffectHandlersApplyTests`; new mechanic leaks without integration test; `BattleSimulator` error paths |
 | `TrinketPersistence` | 12 store + roundtrip files | Check: save corruption recovery, concurrent write contention, migration from prior save versions, empty save edge case |
-| `Trinket` (app) | 14 files | Check: `BattleVictorySummary` logic, `StageEncounterResolver` edge cases, music director state machine transitions, deep-link arg parsing for all 5 tabs |
+| `Trinket` (app) | 15 files | Check: `BattleVictorySummary` logic, `EncounterLevelResolver` edge cases, music director state machine transitions, deep-link arg parsing for all 5 tabs |
 
 #### Gaps from AGENTS.md Definition of Done
 
@@ -406,30 +410,30 @@ Organize findings into three tiers. The agent executing the audit should populat
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
 | `XCTAssertNotNil` → `XCTUnwrap` | Mechanical rename; safer assertions | All test files |
-| Silent `try?` in tests | Replace with `XCTAssertNoThrow` | [BattleSessionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift), [AppStatePlayFlowTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStatePlayFlowTests.swift) |
-| Orphaned `// swiftlint:disable` | Remove or add inline reason | [BattleSessionTests.swift:8](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift#L8) |
+| Silent `try?` in tests | Replace with `XCTAssertNoThrow` | [BattleSessionTests.swift](../../TrinketTests/Battle/BattleSessionTests.swift), [AppStatePlayFlowTests.swift](../../TrinketTests/App/AppStatePlayFlowTests.swift) |
+| Orphaned `// swiftlint:disable` | Remove or add inline reason | [BattleSessionTests.swift:8](../../TrinketTests/Battle/BattleSessionTests.swift#L8) |
 | Missing `@MainActor` on store tests | Add annotation | TrinketPersistence tests |
 | `Task.sleep` in tests | Replace with injected short interval | Search results |
-| Catalog loop tests not using `@Test(arguments:)` | Migrate to Swift Testing | [EnemyCatalogTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketContent/Tests/TrinketContentTests/EnemyCatalogTests.swift), [AbilityCatalogTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketContent/Tests/TrinketContentTests/AbilityCatalogTests.swift) |
+| Catalog loop tests not using `@Test(arguments:)` | Migrate to Swift Testing | [EnemyCatalogTests.swift](../../Packages/TrinketContent/Tests/TrinketContentTests/EnemyCatalogTests.swift), [AbilityCatalogTests.swift](../../Packages/TrinketContent/Tests/TrinketContentTests/AbilityCatalogTests.swift) |
 
 #### Tier 2 — Medium impact, medium effort
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
-| `TrinketDesignSystem` test gap (2 files only) | Add tests for theme rendering, surface views, `ExperienceBar` | [Packages/TrinketDesignSystem/Tests/](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketDesignSystem/Tests/) |
-| Setup duplication across `App*Tests` | Extract shared `makeSUT` base or support | [AppStateTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStateTests.swift), [AppStatePlayFlowTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/App/AppStatePlayFlowTests.swift) |
-| `BattleSessionTests.swift` 684 lines | Split into focused test files by concern | [BattleSessionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketTests/Battle/BattleSessionTests.swift) |
+| `TrinketDesignSystem` test gap (2 files only) | Add tests for surface views, `ExperienceBar` | [Packages/TrinketDesignSystem/Tests/](../../Packages/TrinketDesignSystem/Tests/) |
+| Setup duplication across `App*Tests` | Extract shared `makeSUT` base or support | [AppStateTests.swift](../../TrinketTests/App/AppStateTests.swift), [AppStatePlayFlowTests.swift](../../TrinketTests/App/AppStatePlayFlowTests.swift) |
+| `BattleSessionTests.swift` 684 lines | Split into focused test files by concern | [BattleSessionTests.swift](../../TrinketTests/Battle/BattleSessionTests.swift) |
 | Right-size integration test files (target 3–6 tests) | Move extra tests to focused handler tests | `StatIntegrationTests`, `AbilityEffectIntegrationTests` |
-| UI test flakiness in `BattleFlowUITests` | Add retry or redesign entry path | [BattleFlowUITests.swift](file:///Users/ryanmcintire/Documents/Trinket/TrinketUITests/Battle/BattleFlowUITests.swift) |
-| `CombatPipelineTests.swift` hand-builds `BattleEngineContext` | Refactor to use `BattleStateTestFactory` | [CombatPipelineTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/BattleEngine/Tests/BattleEngineTests/CombatPipelineTests.swift) |
+| UI test flakiness in `BattleFlowUITests` | Add retry or redesign entry path | [BattleFlowUITests.swift](../../TrinketUITests/Battle/BattleFlowUITests.swift) |
+| `CombatPipelineTests.swift` hand-builds `BattleEngineContext` | Refactor to use `BattleStateTestFactory` | [CombatPipelineTests.swift](../../Packages/BattleEngine/Tests/BattleEngineTests/CombatPipelineTests.swift) |
 
 #### Tier 3 — Lower impact, higher effort (strategic)
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
 | Swift Testing incremental migration | New tests in Swift Testing; migrate catalog loops first | All modules |
-| Code coverage infra + CI gate | Enable coverage, set minimums, add to CI | [project.yml](file:///Users/ryanmcintire/Documents/Trinket/project.yml), [ci-locally.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/ci-locally.sh) |
-| `TrinketCore` edge case coverage gaps | Add boundary/zero/negative tests | [PrimaryStatsRulesTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketCore/Tests/TrinketCoreTests/PrimaryStatsRulesTests.swift), [CombatantProgressionTests.swift](file:///Users/ryanmcintire/Documents/Trinket/Packages/TrinketCore/Tests/TrinketCoreTests/CombatantProgressionTests.swift) |
+| Code coverage infra + CI gate | Enable coverage, set minimums, add to CI | [project.yml](../../project.yml), [ci-locally.sh](../../Scripts/ci-locally.sh) |
+| `TrinketCore` edge case coverage gaps | Add boundary/zero/negative tests | [PrimaryStatsRulesTests.swift](../../Packages/TrinketCore/Tests/TrinketCoreTests/PrimaryStatsRulesTests.swift), [CombatantProgressionTests.swift](../../Packages/TrinketCore/Tests/TrinketCoreTests/CombatantProgressionTests.swift) |
 | Test timing budget (target <60s unit, <3m smoke) | Profile top 10 hotspots, eliminate sleeps, parallelize package tests | Run `test-timing.sh` |
 | No AAA pattern in legacy test files | Refactor for readability during other edits (not wholesale) | Oldest test files |
 

@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public struct InstantHealHandler: BattleEffectHandler {
     public let kind: EffectKind = .instantHeal

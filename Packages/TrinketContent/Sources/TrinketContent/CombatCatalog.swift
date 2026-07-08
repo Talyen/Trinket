@@ -35,12 +35,12 @@ public struct GameContentCombatCatalog: CombatCatalog {
     }
 }
 
-extension CombatCatalog {
-    public func traitDisplayName(forCombatantID combatantID: String) -> String {
+public extension CombatCatalog {
+    func traitDisplayName(forCombatantID combatantID: String) -> String {
         trait(forCombatantID: combatantID)?.name ?? "Trait"
     }
 
-    public func enemyTraitDisplayName(for combatant: Combatant) -> String {
+    func enemyTraitDisplayName(for combatant: Combatant) -> String {
         if let enemy = enemy(matching: combatant.id),
            let positiveTrait = positiveTrait(for: enemy) {
             return positiveTrait.name

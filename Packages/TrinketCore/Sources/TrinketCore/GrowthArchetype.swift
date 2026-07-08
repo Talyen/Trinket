@@ -38,12 +38,12 @@ public struct StatGrowthDelta: Equatable, Hashable, Sendable {
     }
 }
 
-public struct EnemyGearCompensation: Equatable, Sendable {
-    public let healthMultiplier: Double
-    public let primaryStatMultiplier: Double
-    public let statDelta: StatGrowthDelta
+struct EnemyGearCompensation: Equatable {
+    let healthMultiplier: Double
+    let primaryStatMultiplier: Double
+    let statDelta: StatGrowthDelta
 
-    public static let none = EnemyGearCompensation(
+    static let none = EnemyGearCompensation(
         healthMultiplier: 1.0,
         primaryStatMultiplier: 1.0,
         statDelta: .zero
@@ -197,7 +197,7 @@ public enum StatGrowth {
 
     /// Smooth gear-compensation tuned for balance targets:
     /// fodder 90–99% / 80–90% / 70–80% and bosses-elites ~70–80% across tiers.
-    public static func enemyGearCompensation(
+    static func enemyGearCompensation(
         level: Int,
         identityStats: PrimaryStats,
         isBoss: Bool = false,
@@ -251,6 +251,62 @@ public enum StatGrowth {
             healthMultiplier: healthMultiplier,
             primaryStatMultiplier: primaryStatMultiplier,
             statDelta: statDelta
+        )
+    }
+
+    /// Applies gear-compensation scaling for enemies that do not carry player equipment.
+    public static func applyEnemyGearCompensation(
+        maxHealth: Int,
+        maxMana: Int,
+        primaryStats: PrimaryStats,
+        level: Int,
+        isBoss: Bool = false,
+        isElite: Bool = false
+    ) -> (maxHealth: Int, maxMana: Int, primaryStats: PrimaryStats) {
+        let compensation = enemyGearCompensation(
+            level: level,
+            identityStats: primaryStats,
+            isBoss: isBoss,
+            isElite: isElite
+        )
+        guard compensation != .none else {
+            return (maxHealth, maxMana, primaryStats)
+        }
+
+        let scaledHealth = max(
+            1,
+            Int((Double(maxHealth) * compensation.healthMultiplier).rounded())
+        )
+        let merged = apply(
+            maxHealth: scaledHealth,
+            maxMana: maxMana,
+            primaryStats: primaryStats,
+            growth: compensation.statDelta
+        )
+        return (
+            merged.maxHealth,
+            merged.maxMana,
+            scalePrimaryStatsForEnemyGearCompensation(
+                merged.primaryStats,
+                multiplier: compensation.primaryStatMultiplier
+            )
+        )
+    }
+
+    private static func scalePrimaryStatsForEnemyGearCompensation(
+        _ stats: PrimaryStats,
+        multiplier: Double
+    ) -> PrimaryStats {
+        guard multiplier != 1.0 else { return stats }
+        func scaled(_ value: Int) -> Int {
+            max(0, Int((Double(value) * multiplier).rounded()))
+        }
+        return PrimaryStats(
+            strength: scaled(stats.strength),
+            agility: scaled(stats.agility),
+            toughness: scaled(stats.toughness),
+            intellect: scaled(stats.intellect),
+            wisdom: scaled(stats.wisdom)
         )
     }
 

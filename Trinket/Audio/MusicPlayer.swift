@@ -26,6 +26,10 @@ final class MusicPlayer {
         self.fadeDuration = fadeDuration
     }
 
+    deinit {
+        fadeTask?.cancel()
+    }
+
     func update(route: MusicRoute, volume: Double) {
         guard !isDisabled else { return }
 
@@ -40,11 +44,20 @@ final class MusicPlayer {
     }
 
     func stop() {
-        fadeTask?.cancel()
+        cancelActiveFades()
         saveCurrentPosition()
         currentPlayer?.stop()
         currentPlayer = nil
         currentRequest = nil
+    }
+
+    func cancelActiveFades() {
+        fadeTask?.cancel()
+        fadeTask = nil
+    }
+
+    func trimMemoryFootprint() {
+        clearEncounterResumePositions()
     }
 
     func clearEncounterResumePositions() {
@@ -86,24 +99,31 @@ final class MusicPlayer {
         }
 
         let oldPlayer = currentPlayer
-        fadeTask?.cancel()
+        cancelActiveFades()
         currentPlayer = nil
         currentRequest = nil
 
-        fadeTask = Task { @MainActor in
-            await ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: fadeDuration)
+        let duration = fadeDuration
+        fadeTask = Task { @MainActor [weak self] in
+            await self?.ramp(oldPlayer: oldPlayer, newPlayer: nil, targetVolume: 0, duration: duration)
             oldPlayer?.stop()
         }
     }
 
     private func crossfade(to newPlayer: AVAudioPlayer, request: MusicPlaybackRequest, targetVolume: Float) {
         let oldPlayer = currentPlayer
-        fadeTask?.cancel()
+        cancelActiveFades()
         currentPlayer = newPlayer
         currentRequest = request
 
-        fadeTask = Task { @MainActor in
-            await ramp(oldPlayer: oldPlayer, newPlayer: newPlayer, targetVolume: targetVolume, duration: fadeDuration)
+        let duration = fadeDuration
+        fadeTask = Task { @MainActor [weak self] in
+            await self?.ramp(
+                oldPlayer: oldPlayer,
+                newPlayer: newPlayer,
+                targetVolume: targetVolume,
+                duration: duration
+            )
             oldPlayer?.stop()
         }
     }
@@ -116,15 +136,16 @@ final class MusicPlayer {
     ) async {
         let steps = 18
         let oldStartVolume = oldPlayer?.volume ?? 0
+        let clock = SuspendingClock()
+        let stepDuration = Duration.seconds(duration / Double(steps))
+        let stepTolerance = Duration.milliseconds(20)
 
         for step in 1 ... steps {
             guard !Task.isCancelled else { return }
             let progress = Float(step) / Float(steps)
             oldPlayer?.volume = oldStartVolume * (1 - progress)
             newPlayer?.volume = targetVolume * progress
-
-            let delay = UInt64((duration / Double(steps)) * Double(1000000000))
-            try? await Task.sleep(nanoseconds: delay)
+            try? await clock.sleep(for: stepDuration, tolerance: stepTolerance)
         }
 
         oldPlayer?.volume = 0
@@ -171,9 +192,9 @@ final class MusicPlayer {
             try session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
-            #if DEBUG
-            print("Unable to configure audio session: \(error.localizedDescription)")
-            #endif
+            logger.error(
+                "Unable to configure audio session: \(error.localizedDescription, privacy: .public)"
+            )
         }
         hasConfiguredSession = true
     }

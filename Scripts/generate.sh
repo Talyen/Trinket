@@ -65,7 +65,12 @@ fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
-  xcodegen generate
+  if command -v xcodegen >/dev/null 2>&1; then
+    xcodegen generate
+  else
+    echo "xcodegen not found; syncing test sources into project.pbxproj"
+    python3 Scripts/sync-xcodeproj-sources.py
+  fi
 fi
 
 echo "=== Generate complete ==="

@@ -1,10 +1,10 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
 import TrinketContent
+import TrinketCore
 
-public enum SimulationMatchupAssembler {
-    public static func assemble(
+enum SimulationMatchupAssembler {
+    static func assemble(
         hero: Combatant,
         pet: Combatant,
         enemy: Enemy,

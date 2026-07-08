@@ -1,192 +1,155 @@
-import XCTest
+import Testing
 @testable import Trinket
 
-final class AppEnvironmentTests: XCTestCase {
-    private let emptyEnvironment: [String: String] = [:]
+struct AppEnvironmentTests {
+    private static let emptyEnvironment: [String: String] = [:]
 
-    func testSelectedTabParsesKnownTabs() {
-        for tab in AppTab.allCases {
-            let env = parse(arguments: ["-selectedTab", tab.rawValue])
-            XCTAssertEqual(env.launchTab, tab)
-        }
+    @Test(arguments: AppTab.allCases)
+    func selectedTabParsesKnownTabs(tab: AppTab) {
+        let env = Self.parse(arguments: ["-selectedTab", tab.rawValue])
+        #expect(env.launchTab == tab)
     }
 
-    func testCollectionTabAliasesMapToCollection() {
-        for alias in ["heroes", "pets", "inventory", "Heroes", "PETS"] {
-            let env = parse(arguments: ["-selectedTab", alias])
-            XCTAssertEqual(env.launchTab, .collection, "Expected alias '\(alias)' to map to collection")
-        }
+    @Test(arguments: ["heroes", "pets", "inventory", "Heroes", "PETS"])
+    func collectionTabAliasesMapToCollection(alias: String) {
+        let env = Self.parse(arguments: ["-selectedTab", alias])
+        #expect(env.launchTab == .collection, "Expected alias '\(alias)' to map to collection")
     }
 
-    func testInvalidSelectedTabReturnsNil() {
-        let env = parse(arguments: ["-selectedTab", "not-a-tab"])
-        XCTAssertNil(env.launchTab)
+    @Test func invalidSelectedTabReturnsNil() {
+        let env = Self.parse(arguments: ["-selectedTab", "not-a-tab"])
+        #expect(env.launchTab == nil)
     }
 
-    func testLaunchScreenParsesHeroPetAndItemDetails() {
-        XCTAssertEqual(
-            parse(arguments: ["-launch-screen", "hero:knight"]).launchScreen,
-            .heroDetail("knight")
+    @Test func launchScreenParsesHeroPetAndItemDetails() {
+        #expect(
+            Self.parse(arguments: ["-launch-screen", "hero:knight"]).launchScreen == .heroDetail("knight")
         )
-        XCTAssertEqual(
-            parse(arguments: ["-launch-screen", "pet:bear"]).launchScreen,
-            .petDetail("bear")
+        #expect(
+            Self.parse(arguments: ["-launch-screen", "pet:bear"]).launchScreen == .petDetail("bear")
         )
-        XCTAssertEqual(
-            parse(arguments: ["-launch-screen", "item:longsword-basic"]).launchScreen,
-            .itemDetail("longsword-basic")
+        #expect(
+            Self.parse(arguments: ["-launch-screen", "item:longsword-basic"]).launchScreen
+                == .itemDetail("longsword-basic")
         )
     }
 
-    func testLaunchScreenParsesOptionsAndBattle() {
-        XCTAssertEqual(parse(arguments: ["-launch-screen", "options"]).launchScreen, .options)
-        XCTAssertEqual(parse(arguments: ["-launch-screen", "battle"]).launchScreen, .battle)
+    @Test func launchScreenParsesOptionsAndBattle() {
+        #expect(Self.parse(arguments: ["-launch-screen", "options"]).launchScreen == .options)
+        #expect(Self.parse(arguments: ["-launch-screen", "battle"]).launchScreen == .battle)
     }
 
-    func testLaunchScreenRejectsEmptyIDsAndUnknownKinds() {
-        XCTAssertNil(parse(arguments: ["-launch-screen", "hero:"]).launchScreen)
-        XCTAssertNil(parse(arguments: ["-launch-screen", "unknown:foo"]).launchScreen)
+    @Test func launchScreenRejectsEmptyIDsAndUnknownKinds() {
+        #expect(Self.parse(arguments: ["-launch-screen", "hero:"]).launchScreen == nil)
+        #expect(Self.parse(arguments: ["-launch-screen", "unknown:foo"]).launchScreen == nil)
     }
 
-    func testLaunchScreenIgnoresTrailingIDForOptions() {
-        XCTAssertEqual(parse(arguments: ["-launch-screen", "options:extra"]).launchScreen, .options)
+    @Test func launchScreenIgnoresTrailingIDForOptions() {
+        #expect(Self.parse(arguments: ["-launch-screen", "options:extra"]).launchScreen == .options)
     }
 
-    func testResetStateFlag() {
-        XCTAssertTrue(parse(arguments: ["-reset-state"]).resetState)
-        XCTAssertFalse(parse(arguments: []).resetState)
+    @Test func resetStateFlag() {
+        #expect(Self.parse(arguments: ["-reset-state"]).resetState)
+        #expect(!Self.parse(arguments: []).resetState)
     }
 
-    func testSeedTestProgressFlag() {
-        XCTAssertTrue(parse(arguments: ["-seed-test-progress"]).seedTestProgress)
-        XCTAssertFalse(parse(arguments: []).seedTestProgress)
+    @Test func seedTestProgressFlag() {
+        #expect(Self.parse(arguments: ["-seed-test-progress"]).seedTestProgress)
+        #expect(!Self.parse(arguments: []).seedTestProgress)
     }
 
-    func testDisableCloudSyncFlag() {
-        XCTAssertTrue(parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
+    @Test func disableCloudSyncFlag() {
+        #expect(Self.parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
+        #expect(!Self.parse(arguments: []).disableCloudSync)
+    }
+
+    @Test func disableAudioFlag() {
+        #expect(Self.parse(arguments: ["-disable-audio"]).disableAudio)
+        #expect(!Self.parse(arguments: []).disableAudio)
+    }
+
+    @Test func appearanceOverrideParsesKnownModes() {
+        #expect(Self.parse(arguments: ["-appearance", "system"]).appearanceOverride == .system)
+        #expect(Self.parse(arguments: ["-appearance", "Light"]).appearanceOverride == .light)
+        #expect(Self.parse(arguments: ["-appearance", "dark"]).appearanceOverride == .dark)
+    }
+
+    @Test func invalidAppearanceOverrideReturnsNil() {
+        #expect(Self.parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride == nil)
+    }
+
+    @Test func resetStateImplicitlyDisablesCloudSync() {
+        #expect(Self.parse(arguments: ["-reset-state"]).disableCloudSync)
+    }
+
+    @Test func persistSaveImmediatelyFlag() {
+        #expect(Self.parse(arguments: ["-persist-save-immediately"]).persistSaveImmediately)
+        #expect(!Self.parse(arguments: []).persistSaveImmediately)
+    }
+
+    @Test func battleTickIntervalParsesExplicitValue() {
+        let env = Self.parse(arguments: ["-battle-tick-interval", "0.25"])
+        #expect(env.battleTickInterval == 0.25)
+    }
+
+    @Test func battleTickIntervalExplicitValueIsHonored() {
+        let env = Self.parse(arguments: ["-battle-tick-interval", "0.4"])
+        #expect(env.battleTickInterval == 0.4)
+    }
+
+    @Test func invalidBattleTickIntervalIgnored() {
+        let env = Self.parse(arguments: ["-battle-tick-interval", "not-a-number"])
+        #expect(env.battleTickInterval == nil)
+    }
+
+    @Test func completedStagesParsesCommaSeparatedIDs() {
+        let env = Self.parse(arguments: ["-completed-stages", "chapter-1-stage-1,chapter-1-stage-2"])
+        #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
+    }
+
+    @Test func completedStagesFiltersEmptySegments() {
+        let env = Self.parse(arguments: ["-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,"])
+        #expect(env.completedStageIDs == ["chapter-1-stage-1", "chapter-1-stage-2"])
+    }
+
+    @Test func mapScrollTargetParsesTargetID() {
+        let env = Self.parse(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
+        #expect(env.mapScrollTarget == "chapter-gate-placeholder-2")
+    }
+
+    @Test func mapScrollTargetRejectsEmptyValue() {
+        let env = Self.parse(arguments: ["-map-scroll-target", ""])
+        #expect(env.mapScrollTarget == nil)
+    }
+
+    @Test func noFlagsYieldsDefaultEnvironment() {
+        let env = Self.parse(arguments: [])
+
+        #expect(env.launchTab == nil)
+        #expect(env.launchScreen == nil)
+        #expect(!env.resetState)
+        #expect(!env.seedTestProgress)
         #if targetEnvironment(simulator)
-        XCTAssertTrue(parse(arguments: []).disableCloudSync)
+        #expect(env.disableCloudSync)
         #else
-        XCTAssertFalse(parse(arguments: []).disableCloudSync)
+        #expect(!env.disableCloudSync)
         #endif
-    }
-
-    func testDisableAudioFlag() {
-        XCTAssertTrue(parse(arguments: ["-disable-audio"]).disableAudio)
-        XCTAssertFalse(parse(arguments: []).disableAudio)
-    }
-
-    func testAppearanceOverrideParsesKnownModes() {
-        XCTAssertEqual(parse(arguments: ["-appearance", "system"]).appearanceOverride, .system)
-        XCTAssertEqual(parse(arguments: ["-appearance", "Light"]).appearanceOverride, .light)
-        XCTAssertEqual(parse(arguments: ["-appearance", "dark"]).appearanceOverride, .dark)
-    }
-
-    func testThemeAliasParsesKnownModes() {
-        XCTAssertEqual(parse(arguments: ["-theme", "dark"]).appearanceOverride, .dark)
-        XCTAssertEqual(parse(arguments: ["-theme", "light"]).appearanceOverride, .light)
-    }
-
-    func testInvalidAppearanceOverrideReturnsNil() {
-        XCTAssertNil(parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride)
-    }
-
-    func testResetStateImplicitlyDisablesCloudSync() {
-        XCTAssertTrue(parse(arguments: ["-reset-state"]).disableCloudSync)
-    }
-
-    func testRunningUnderXCTestDisablesCloudSync() {
-        let env = parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        XCTAssertTrue(env.disableCloudSync)
-    }
-
-    func testRunningUnderXCTestDisablesAudio() {
-        let env = parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        XCTAssertTrue(env.disableAudio)
-    }
-
-    func testRunningUnderXCTestUsesFastBattleTickInterval() {
-        let env = parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        XCTAssertEqual(env.battleTickInterval, AppEnvironment.testBattleTickInterval)
-    }
-
-    func testBattleTickIntervalParsesExplicitValue() {
-        let env = parse(arguments: ["-battle-tick-interval", "0.25"])
-        XCTAssertEqual(env.battleTickInterval, 0.25)
-    }
-
-    func testBattleTickIntervalExplicitOverridesXCTestDefault() {
-        let env = parse(
-            arguments: ["-battle-tick-interval", "0.4"],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        XCTAssertEqual(env.battleTickInterval, 0.4)
-    }
-
-    func testInvalidBattleTickIntervalIgnored() {
-        let env = parse(
-            arguments: ["-battle-tick-interval", "not-a-number"],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        XCTAssertEqual(env.battleTickInterval, AppEnvironment.testBattleTickInterval)
-    }
-
-    func testCompletedStagesParsesCommaSeparatedIDs() {
-        let env = parse(arguments: ["-completed-stages", "chapter-1-stage-1,chapter-1-stage-2"])
-        XCTAssertEqual(env.completedStageIDs, ["chapter-1-stage-1", "chapter-1-stage-2"])
-    }
-
-    func testCompletedStagesFiltersEmptySegments() {
-        let env = parse(arguments: ["-completed-stages", "chapter-1-stage-1,,chapter-1-stage-2,"])
-        XCTAssertEqual(env.completedStageIDs, ["chapter-1-stage-1", "chapter-1-stage-2"])
-    }
-
-    func testMapScrollTargetParsesTargetID() {
-        let env = parse(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
-        XCTAssertEqual(env.mapScrollTarget, "chapter-gate-placeholder-2")
-    }
-
-    func testMapScrollTargetRejectsEmptyValue() {
-        let env = parse(arguments: ["-map-scroll-target", ""])
-        XCTAssertNil(env.mapScrollTarget)
-    }
-
-    func testNoFlagsYieldsDefaultEnvironment() {
-        let env = parse(arguments: [])
-
-        XCTAssertNil(env.launchTab)
-        XCTAssertNil(env.launchScreen)
-        XCTAssertFalse(env.resetState)
-        XCTAssertFalse(env.seedTestProgress)
-        #if targetEnvironment(simulator)
-        XCTAssertTrue(env.disableCloudSync)
-        #else
-        XCTAssertFalse(env.disableCloudSync)
-        #endif
-        XCTAssertFalse(env.disableAudio)
-        XCTAssertNil(env.appearanceOverride)
-        XCTAssertTrue(env.completedStageIDs.isEmpty)
-        XCTAssertNil(env.mapScrollTarget)
-        XCTAssertNil(env.battleTickInterval)
+        #expect(!env.disableAudio)
+        #expect(env.appearanceOverride == nil)
+        #expect(env.completedStageIDs.isEmpty)
+        #expect(env.mapScrollTarget == nil)
+        #expect(env.battleTickInterval == nil)
+        #expect(!env.persistSaveImmediately)
     }
 
     #if targetEnvironment(simulator)
-    func testEnableCloudSyncFlagOnSimulator() {
-        let env = parse(arguments: ["-enable-cloud-sync"])
-        XCTAssertFalse(env.disableCloudSync)
+    @Test func enableCloudSyncFlagOnSimulator() {
+        let env = Self.parse(arguments: ["-enable-cloud-sync"])
+        #expect(!env.disableCloudSync)
     }
     #endif
 
-    private func parse(
+    private static func parse(
         arguments: [String],
         environment: [String: String]? = nil
     ) -> AppEnvironment {

@@ -14,10 +14,10 @@ public enum TrinketDesign {
         public static let healthTrailingDamage = Color.red.opacity(0.35)
         public static let healthRestore = Color.green
 
-        public static let encounterBattle = Color("EncounterBattle", bundle: .main)
-        public static let encounterEvent = Color("EncounterEvent", bundle: .main)
-        public static let encounterShop = Color("EncounterShop", bundle: .main)
-        public static let encounterRest = Color("EncounterRest", bundle: .main)
+        public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
+        public static let encounterEvent = DesignAssetColors.named("EncounterEvent")
+        public static let encounterShop = DesignAssetColors.named("EncounterShop")
+        public static let encounterRest = DesignAssetColors.named("EncounterRest")
     }
 
     public enum Metrics {
@@ -46,16 +46,6 @@ public enum TrinketDesign {
     }
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
-
-    public enum AppTheme: Sendable {
-        case standard
-
-        public static let `default` = AppTheme.standard
-
-        public var palette: ThemePalette {
-            ThemePalette.apple
-        }
-    }
 
     public enum AppAppearance: CaseIterable, Identifiable, RawRepresentable, Sendable {
         case system

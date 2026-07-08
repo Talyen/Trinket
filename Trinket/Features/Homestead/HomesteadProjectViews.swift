@@ -10,46 +10,16 @@ struct HomesteadProjectCard: View {
         case compact(isRecentlyUpgraded: Bool)
     }
 
-    private struct ProjectSummaryMetrics {
-        let spacing: CGFloat
-        let titleFont: Font
-        let tierFont: Font
-        let bonusFont: Font
-        var titleForeground: Color = .primary
-        var bonusLineLimit: Int?
-        var showsFeaturedLabel = false
-        var showsInlineStatusBadge = false
-
-        static let featured = ProjectSummaryMetrics(
-            spacing: 7,
-            titleFont: .title2.weight(.bold),
-            tierFont: .subheadline.monospacedDigit().weight(.semibold),
-            bonusFont: .subheadline,
-            showsFeaturedLabel: true
-        )
-
-        static func compact(isUnlocked: Bool) -> ProjectSummaryMetrics {
-            ProjectSummaryMetrics(
-                spacing: 6,
-                titleFont: .headline,
-                tierFont: .caption.monospacedDigit().weight(.semibold),
-                bonusFont: .caption,
-                titleForeground: isUnlocked ? .primary : .secondary,
-                bonusLineLimit: 2,
-                showsInlineStatusBadge: true
-            )
-        }
-    }
-
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let style: Style
+    let onSelect: () -> Void
 
     var body: some View {
         switch style {
         case let .featured(onBuild):
             VStack(alignment: .leading, spacing: 14) {
-                projectNavigationLink(isFeatured: true, isRecentlyUpgraded: false)
+                projectDetailButton(isFeatured: true, isRecentlyUpgraded: false)
                 HomesteadProjectActionFooter(status: status, onBuild: onBuild)
             }
             .padding(14)
@@ -58,21 +28,18 @@ struct HomesteadProjectCard: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
         case let .compact(isRecentlyUpgraded):
-            projectNavigationLink(isFeatured: false, isRecentlyUpgraded: isRecentlyUpgraded)
+            projectDetailButton(isFeatured: false, isRecentlyUpgraded: isRecentlyUpgraded)
         }
     }
 
-    private func projectNavigationLink(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
-        NavigationLink {
-            HomesteadNodeDetailView(definition: definition)
-        } label: {
+    private func projectDetailButton(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
+        Button(action: onSelect) {
             if isFeatured {
                 featuredLinkContent
             } else {
                 compactLinkContent(isRecentlyUpgraded: isRecentlyUpgraded)
             }
         }
-        // UIStyleCheck: allow - Art-forward project cards should navigate without button chrome.
         .buttonStyle(.plain)
     }
 
@@ -80,7 +47,11 @@ struct HomesteadProjectCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
+                .homesteadLockedArtworkStyle(
+                    isUnlocked: status.isUnlocked,
+                    lockedSaturation: 0.16,
+                    lockedOpacity: 0.62
+                )
                 .overlay(alignment: .topLeading) {
                     HomesteadStatusBadge(status: status)
                         .padding(12)
@@ -95,7 +66,11 @@ struct HomesteadProjectCard: View {
         HStack(spacing: 12) {
             HomesteadBuildingArtwork(definition: definition)
                 .frame(width: 78, height: 78)
-                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
+                .homesteadLockedArtworkStyle(
+                    isUnlocked: status.isUnlocked,
+                    lockedSaturation: 0.12,
+                    lockedOpacity: 0.58
+                )
 
             projectSummary(.compact(isUnlocked: status.isUnlocked))
 
@@ -115,7 +90,7 @@ struct HomesteadProjectCard: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
-    private func projectSummary(_ metrics: ProjectSummaryMetrics) -> some View {
+    private func projectSummary(_ metrics: HomesteadProjectSummaryMetrics) -> some View {
         VStack(alignment: .leading, spacing: metrics.spacing) {
             if metrics.showsFeaturedLabel {
                 Text(featuredTitle)
@@ -274,6 +249,7 @@ struct HomesteadProjectSection: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     let recentUpgradeID: HomesteadNodeID?
+    let onSelect: (HomesteadNodeDefinition) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -290,7 +266,8 @@ struct HomesteadProjectSection: View {
                             homestead: homestead,
                             roster: roster
                         ),
-                        style: .compact(isRecentlyUpgraded: recentUpgradeID == definition.id)
+                        style: .compact(isRecentlyUpgraded: recentUpgradeID == definition.id),
+                        onSelect: { onSelect(definition) }
                     )
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
@@ -304,22 +281,15 @@ struct HomesteadStatusBadge: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        Group {
-            if status.isUnlocked {
-                Label(status.statusTitle, systemImage: status.statusSymbolName)
-            } else {
-                Text(status.statusTitle)
-            }
-        }
-        .font(.caption2.weight(.semibold))
-        .foregroundStyle(status.statusColor)
-        .lineLimit(1)
-        .minimumScaleFactor(0.78)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        // UIStyleCheck: allow - Status badges intentionally float as native glass chips.
-        .background(.regularMaterial, in: Capsule(style: .continuous))
-        .accessibilityLabel(status.statusTitle)
+        Label(status.statusTitle, systemImage: status.statusSymbolName)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(status.statusColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.78)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .trinketStatusBadge()
+            .accessibilityLabel(status.statusTitle)
     }
 }
 

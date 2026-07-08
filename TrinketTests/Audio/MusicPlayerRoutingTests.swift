@@ -1,10 +1,10 @@
+import Testing
 import TrinketContent
-import XCTest
 @testable import Trinket
 
-@MainActor
-final class MusicPlayerRoutingTests: XCTestCase {
-    func testMenuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
+@Suite @MainActor
+struct MusicPlayerRoutingTests {
+    @Test func menuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: nil,
@@ -14,11 +14,11 @@ final class MusicPlayerRoutingTests: XCTestCase {
         )
 
         let request = try trackRequest(from: route)
-        XCTAssertEqual(request.track.kind, .menu)
-        XCTAssertEqual(request.resumeKey.contextKind, .menu)
+        #expect(request.track.kind == .menu)
+        #expect(request.resumeKey.contextKind == .menu)
     }
 
-    func testNormalBattlePreviewPlaysBattleTrack() throws {
+    @Test func normalBattlePreviewPlaysBattleTrack() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
@@ -28,13 +28,13 @@ final class MusicPlayerRoutingTests: XCTestCase {
         )
 
         let request = try trackRequest(from: route)
-        XCTAssertEqual(request.track.kind, .battle)
-        XCTAssertEqual(request.resumeKey.contextKind, .battle)
-        XCTAssertEqual(request.resumeKey.stageID, "chapter-1-stage-1")
-        XCTAssertEqual(request.resumeKey.enemyID, "skeleton")
+        #expect(request.track.kind == .battle)
+        #expect(request.resumeKey.contextKind == .battle)
+        #expect(request.resumeKey.stageID == "chapter-1-stage-1")
+        #expect(request.resumeKey.enemyID == "skeleton")
     }
 
-    func testBossBattlePreviewPlaysBossTrack() throws {
+    @Test func bossBattlePreviewPlaysBossTrack() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
@@ -44,13 +44,13 @@ final class MusicPlayerRoutingTests: XCTestCase {
         )
 
         let request = try trackRequest(from: route)
-        XCTAssertEqual(request.track.kind, .boss)
-        XCTAssertEqual(request.track.id, "boss_blight_treant")
-        XCTAssertEqual(request.resumeKey.contextKind, .boss)
+        #expect(request.track.kind == .boss)
+        #expect(request.track.id == "boss_blight_treant")
+        #expect(request.resumeKey.contextKind == .boss)
     }
 
-    func testActiveBattleTakesPriorityOverPreview() throws {
-        let battle = ActiveBattleConfigurationTestSupport.make(
+    @Test func activeBattleTakesPriorityOverPreview() throws {
+        let battle = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: GameContent.heroes[0],
@@ -67,12 +67,12 @@ final class MusicPlayerRoutingTests: XCTestCase {
         )
 
         let request = try trackRequest(from: route)
-        XCTAssertEqual(request.track.kind, .battle)
-        XCTAssertEqual(request.resumeKey.enemyID, "skeleton")
+        #expect(request.track.kind == .battle)
+        #expect(request.resumeKey.enemyID == "skeleton")
     }
 
-    func testLeavingPlayReturnsToMenuEvenWithActiveBattle() throws {
-        let battle = ActiveBattleConfigurationTestSupport.make(
+    @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
+        let battle = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-10",
             rngSeed: 0,
             hero: GameContent.heroes[0],
@@ -89,11 +89,11 @@ final class MusicPlayerRoutingTests: XCTestCase {
         )
 
         let request = try trackRequest(from: route)
-        XCTAssertEqual(request.track.kind, .menu)
-        XCTAssertEqual(request.resumeKey.contextKind, .menu)
+        #expect(request.track.kind == .menu)
+        #expect(request.resumeKey.contextKind == .menu)
     }
 
-    func testInactiveSceneSilencesAndPreservesPosition() {
+    @Test func inactiveSceneSilencesAndPreservesPosition() {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
@@ -102,10 +102,10 @@ final class MusicPlayerRoutingTests: XCTestCase {
             musicVolume: 0.75
         )
 
-        XCTAssertEqual(route, .silence(preservingPosition: true))
+        #expect(route == .silence(preservingPosition: true))
     }
 
-    func testMutedMusicSilencesAndPreservesPosition() {
+    @Test func mutedMusicSilencesAndPreservesPosition() {
         let route = MusicRoute.resolve(
             selectedTab: .play,
             preview: BattleMusicPreview(stageID: "chapter-1-stage-1", enemyID: "skeleton"),
@@ -114,12 +114,12 @@ final class MusicPlayerRoutingTests: XCTestCase {
             musicVolume: 0
         )
 
-        XCTAssertEqual(route, .silence(preservingPosition: true))
+        #expect(route == .silence(preservingPosition: true))
     }
 
     private func trackRequest(from route: MusicRoute) throws -> MusicPlaybackRequest {
         guard case let .track(request) = route else {
-            XCTFail("Expected track route, got \(route)")
+            Issue.record("Expected track route, got \(route)")
             throw MusicPlayerRoutingTestError.expectedTrack
         }
         return request

@@ -15,11 +15,17 @@ public protocol PlayerContentCatalog: Sendable {
 public struct GameContentPlayerCatalog: PlayerContentCatalog {
     public init() {}
 
-    public var chapters: [Chapter] { GameContent.chapters }
+    public var chapters: [Chapter] {
+        GameContent.chapters
+    }
 
-    public var heroIDs: Set<String> { Set(GameContent.heroes.map(\.id)) }
+    public var heroIDs: Set<String> {
+        Set(GameContent.heroes.map(\.id))
+    }
 
-    public var petIDs: Set<String> { Set(GameContent.pets.map(\.id)) }
+    public var petIDs: Set<String> {
+        Set(GameContent.pets.map(\.id))
+    }
 
     public func stage(id: String) -> Stage? {
         GameContent.stage(id: id)

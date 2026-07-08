@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// Integration tests for healing and leech through full battle ticks.
-final class RestorationIntegrationTests: XCTestCase {
-    func testInstantHealRestoresHealth() {
+@Suite
+struct RestorationIntegrationTests {
+    @Test func instantHealRestoresHealth() {
         let heal = Ability(
             id: "heal",
             name: "Heal",
@@ -27,18 +28,18 @@ final class RestorationIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertEqual(battle.health(of: battle.hero), 8)
+        #expect(battle.health(of: battle.hero) == 8)
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.health(of: battle.hero), 10)
-        XCTAssertTrue(events.contains { event in
+        #expect(battle.health(of: battle.hero) == 10)
+        #expect(events.contains { event in
             guard event.effectKind == .instantHeal else { return false }
             return ActionEventFormatter.display(for: event).text == "+\(event.amount) Health"
         })
     }
 
-    func testLeechHealsAttackerOnDamageDealt() {
+    @Test func leechHealsAttackerOnDamageDealt() {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, actionIntervalTicks: 2, abilities: [.slash])
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
@@ -53,17 +54,17 @@ final class RestorationIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertEqual(battle.health(of: battle.hero), 8)
+        #expect(battle.health(of: battle.hero) == 8)
 
         let events = battle.advanceOneStep().events
 
-        XCTAssertEqual(battle.health(of: battle.hero), 8)
-        XCTAssertTrue(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
+        #expect(battle.health(of: battle.hero) == 8)
+        #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
     /// Verifies that an enemy `instantHeal` ability restores health when below max.
     /// Uses `activeEnemyEffects` burn to pre-damage the enemy before it acts.
-    func testEnemyInstantHealRestoresHealthWhenBelowMax() {
+    @Test func enemyInstantHealRestoresHealthWhenBelowMax() {
         let selfHeal = Ability(
             id: "self-heal",
             name: "Self Heal",
@@ -90,7 +91,7 @@ final class RestorationIntegrationTests: XCTestCase {
 
         let step = battle.advanceOneStep()
 
-        XCTAssertEqual(battle.health(of: battle.enemy), 20)
-        XCTAssertTrue(step.events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
+        #expect(battle.health(of: battle.enemy) == 20)
+        #expect(step.events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
     }
 }

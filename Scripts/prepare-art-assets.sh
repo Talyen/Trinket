@@ -204,6 +204,7 @@ cat > "$generated_swift" <<SWIFT
 import SwiftUI
 import TrinketCore
 
+// Concurrency-Safety: @unchecked Sendable — immutable value-type fields only; UnitPoint is not yet Sendable in SwiftUI.
 public struct CombatantArtReference: Hashable, @unchecked Sendable {
     public let imageName: String
     public let thumbnailImageName: String?

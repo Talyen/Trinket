@@ -30,10 +30,10 @@ struct CollectionScreen {
 
     func filterInventory(to slot: String, file: StaticString = #filePath, line: UInt = #line) {
         let filterButton = app.buttons["Inventory filter"]
-        XCTAssertTrue(filterButton.waitForExistence(timeout: 5), "Inventory filter not found", file: file, line: line)
+        XCTAssertTrue(filterButton.waitForExistence(timeout: 2), "Inventory filter not found", file: file, line: line)
         filterButton.tap()
         let option = app.buttons[slot]
-        XCTAssertTrue(option.waitForExistence(timeout: 3), "Inventory filter option '\(slot)' not found", file: file, line: line)
+        XCTAssertTrue(option.waitForExistence(timeout: 2), "Inventory filter option '\(slot)' not found", file: file, line: line)
         option.tap()
     }
 }

@@ -1,51 +1,51 @@
-import XCTest
+import Testing
 @testable import TrinketContent
 
-final class GameContentTraitCatalogTests: XCTestCase {
-    func testEveryHeroAndPetReferencesKnownTrait() {
+@Suite
+struct GameContentTraitCatalogTests {
+    @Test func everyHeroAndPetReferencesKnownTrait() {
         let traitIDs = Set(GameContent.traits.map(\.id))
         let combatantIDs = GameContent.heroes.map(\.id) + GameContent.pets.map(\.id)
 
         for combatantID in combatantIDs {
             guard let traitID = GameContent.combatantTraitIDs[combatantID] else {
-                XCTFail("Missing trait mapping for combatant \(combatantID)")
+                Issue.record("Missing trait mapping for combatant \(combatantID)")
                 continue
             }
-            XCTAssertTrue(
+            #expect(
                 traitIDs.contains(traitID),
                 "Combatant \(combatantID) references unknown trait \(traitID)"
             )
         }
     }
 
-    func testEveryCombatantHasExactlyOneTraitMapping() {
+    @Test func everyCombatantHasExactlyOneTraitMapping() {
         let combatantIDs = Set(GameContent.heroes.map(\.id) + GameContent.pets.map(\.id))
-        XCTAssertEqual(GameContent.combatantTraitIDs.count, combatantIDs.count)
-        XCTAssertEqual(Set(GameContent.combatantTraitIDs.keys), combatantIDs)
+        #expect(GameContent.combatantTraitIDs.count == combatantIDs.count)
+        #expect(Set(GameContent.combatantTraitIDs.keys) == combatantIDs)
     }
 
-    func testEveryEnemyHasPositiveAndNegativeTraits() {
+    @Test func everyEnemyHasPositiveAndNegativeTraits() {
         let traitIDs = Set(GameContent.traits.map(\.id))
         for enemy in GameContent.enemies {
-            XCTAssertTrue(traitIDs.contains(enemy.positiveTraitID), "\(enemy.name) positive trait")
-            XCTAssertTrue(traitIDs.contains(enemy.negativeTraitID), "\(enemy.name) negative trait")
-            XCTAssertNotEqual(
-                enemy.positiveTraitID,
-                enemy.negativeTraitID,
+            #expect(traitIDs.contains(enemy.positiveTraitID), "\(enemy.name) positive trait")
+            #expect(traitIDs.contains(enemy.negativeTraitID), "\(enemy.name) negative trait")
+            #expect(
+                enemy.positiveTraitID != enemy.negativeTraitID,
                 "\(enemy.name) should not reuse the same trait"
             )
         }
     }
 
-    func testTraitDescriptionsAreNonEmpty() {
+    @Test func traitDescriptionsAreNonEmpty() {
         for trait in GameContent.traits {
-            XCTAssertFalse(trait.name.isEmpty, "Trait \(trait.id) needs a name")
-            XCTAssertFalse(trait.description.isEmpty, "Trait \(trait.id) needs a description")
+            #expect(!trait.name.isEmpty, "Trait \(trait.id)) needs a name")
+            #expect(!trait.description.isEmpty, "Trait \(trait.id)) needs a description")
         }
     }
 
-    func testTraitIDsAreUnique() {
+    @Test func traitIDsAreUnique() {
         let ids = GameContent.traits.map(\.id)
-        XCTAssertEqual(ids.count, Set(ids).count)
+        #expect(ids.count == Set(ids).count)
     }
 }

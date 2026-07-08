@@ -1,13 +1,13 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Result of a combat mutation (damage, heal, leech, control meter).
 public struct CombatOutcome: Equatable {
     /// Negative when the target lost health; positive when the target gained health.
     public var healthDelta: Int
     public var events: [ActionEvent]
-    public var flags: Set<CombatFlag>
+    var flags: Set<CombatFlag>
 
     public init(
         healthDelta: Int = 0,
@@ -19,7 +19,9 @@ public struct CombatOutcome: Equatable {
         self.flags = flags
     }
 
-    public static var empty: CombatOutcome { CombatOutcome() }
+    public static var empty: CombatOutcome {
+        CombatOutcome()
+    }
 
     public var healthLost: Int {
         max(0, -healthDelta)

@@ -1,13 +1,14 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class BattleSimulatorTests: XCTestCase {
-    private lazy var defaultEnemy = GameContent.enemies.first!.combatant
-    private lazy var wolfPet = GameContent.pets.first { $0.id == "wolf" }!
+@Suite
+struct BattleSimulatorTests {
+    private var defaultEnemy: Combatant { GameContent.enemies.first!.combatant }
+    private var wolfPet: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
 
-    func testSummaryComputesWinRateAndAverages() {
+    @Test func summaryComputesWinRateAndAverages() {
         let hero = GameContent.heroes[2]
         let victory = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy)
         let watcher = Combatant(id: "watcher", name: "Watcher", role: .hero, maxHealth: 10, abilities: [])
@@ -17,15 +18,15 @@ final class BattleSimulatorTests: XCTestCase {
 
         let summary = BattleSimulationSummary.summarize([victory, tickLimit])
 
-        XCTAssertEqual(summary.runCount, 2)
-        XCTAssertEqual(summary.winCount, 1)
-        XCTAssertEqual(summary.tickLimitCount, 1)
-        XCTAssertEqual(summary.winRate, 0.5, accuracy: 0.001)
-        XCTAssertGreaterThan(summary.averageTickCount, 0)
-        XCTAssertGreaterThan(summary.averageActionCount, 0)
+        #expect(summary.runCount == 2)
+        #expect(summary.winCount == 1)
+        #expect(summary.tickLimitCount == 1)
+        #expect(abs((summary.winRate) - (0.5)) < 0.001)
+        #expect(summary.averageTickCount > 0)
+        #expect(summary.averageActionCount > 0)
     }
 
-    func testRunBatchProducesMultipleResults() {
+    @Test func runBatchProducesMultipleResults() {
         let matchup = BattleMatchup(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -36,12 +37,12 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(runCount: 3, seed: 42)
         )
 
-        XCTAssertEqual(batch.count, 1)
-        XCTAssertEqual(batch[0].results.count, 3)
-        XCTAssertEqual(batch[0].summary.runCount, 3)
+        #expect(batch.count == 1)
+        #expect(batch[0].results.count == 3)
+        #expect(batch[0].summary.runCount == 3)
     }
 
-    func testRecordsEventsDisabled() {
+    @Test func recordsEventsDisabled() {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -49,11 +50,11 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(recordsEvents: false)
         )
 
-        XCTAssertTrue(result.events.isEmpty)
-        XCTAssertFalse(result.log.isEmpty)
+        #expect(result.events.isEmpty)
+        #expect(!(result.log.isEmpty))
     }
 
-    func testRecordsLogDisabled() {
+    @Test func recordsLogDisabled() {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -61,11 +62,11 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(recordsLog: false)
         )
 
-        XCTAssertTrue(result.log.isEmpty)
-        XCTAssertFalse(result.events.isEmpty)
+        #expect(result.log.isEmpty)
+        #expect(!(result.events.isEmpty))
     }
 
-    func testZeroMaxTicksReturnsTickLimitImmediately() {
+    @Test func zeroMaxTicksReturnsTickLimitImmediately() {
         let hero = GameContent.heroes[2]
         let result = BattleSimulator.run(
             hero: hero,
@@ -74,12 +75,12 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(maxTicks: 0)
         )
 
-        XCTAssertEqual(result.outcome, .tickLimit)
-        XCTAssertEqual(result.tickCount, 0)
-        XCTAssertTrue(result.didHitTickLimit)
+        #expect(result.outcome == .tickLimit)
+        #expect(result.tickCount == 0)
+        #expect(result.didHitTickLimit)
     }
 
-    func testMetricsSplitAbilityAndStatusDamage() {
+    @Test func metricsSplitAbilityAndStatusDamage() {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -87,33 +88,32 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(seed: 42)
         )
 
-        XCTAssertGreaterThan(result.metrics.abilityDamage, 0)
-        XCTAssertGreaterThanOrEqual(result.metrics.statusDamage, 0)
-        XCTAssertEqual(
-            result.metrics.totalDamage,
-            result.metrics.abilityDamage + result.metrics.statusDamage
+        #expect(result.metrics.abilityDamage > 0)
+        #expect(result.metrics.statusDamage >= 0)
+        #expect(
+            result.metrics.totalDamage == result.metrics.abilityDamage + result.metrics.statusDamage
         )
     }
 
-    func testVictoryLogMessage() throws {
+    @Test func victoryLogMessage() throws {
         let hero = GameContent.heroes[2]
-        let pet = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
+        let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let enemy = try #require(GameContent.enemies.first?.combatant)
         let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
 
-        XCTAssertTrue(result.log.contains { $0.text.contains("is defeated.") })
+        #expect(result.log.contains { $0.text.contains("is defeated.") })
     }
 
-    func testDefeatLogMessage() {
+    @Test func defeatLogMessage() {
         let hero = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let pet = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
         let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
 
-        XCTAssertTrue(result.log.contains { $0.text.contains("Your party has been defeated") })
+        #expect(result.log.contains { $0.text.contains("Your party has been defeated") })
     }
 
-    func testDeferredLogRebuildMatchesEagerRebuild() {
+    @Test func deferredLogRebuildMatchesEagerRebuild() {
         let hero = GameContent.heroes[2]
         let options = BattleSimulationOptions(seed: 42, rebuildLogEachStep: false)
         let deferred = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy, options: options)
@@ -124,12 +124,12 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(seed: 42, rebuildLogEachStep: true)
         )
 
-        XCTAssertEqual(deferred.outcome, eager.outcome)
-        XCTAssertEqual(deferred.log.map(\.text), eager.log.map(\.text))
-        XCTAssertEqual(deferred.events.map(\.id), eager.events.map(\.id))
+        #expect(deferred.outcome == eager.outcome)
+        #expect(deferred.log.map(\.text) == eager.log.map(\.text))
+        #expect(deferred.events.map(\.id) == eager.events.map(\.id))
     }
 
-    func testLazyLogSyncMatchesTrackedLog() {
+    @Test func lazyLogSyncMatchesTrackedLog() {
         var battle = BattleState(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -142,7 +142,7 @@ final class BattleSimulatorTests: XCTestCase {
             _ = battle.advanceOneStep(rebuildLog: false)
         }
 
-        XCTAssertTrue(battle.log.isEmpty)
+        #expect(battle.log.isEmpty)
 
         battle.syncLog()
 
@@ -153,6 +153,6 @@ final class BattleSimulatorTests: XCTestCase {
             options: BattleSimulationOptions(seed: 42, recordsLog: true, rebuildLogEachStep: true)
         )
 
-        XCTAssertEqual(battle.log.map(\.text), tracked.log.map(\.text))
+        #expect(battle.log.map(\.text) == tracked.log.map(\.text))
     }
 }

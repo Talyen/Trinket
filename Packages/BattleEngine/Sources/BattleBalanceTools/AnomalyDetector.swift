@@ -1,22 +1,22 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-public enum EnemyDifficultyRole: String, Sendable, Codable, CaseIterable {
+enum EnemyDifficultyRole: String, Codable, CaseIterable {
     case fodder
     case elite
     case boss
 }
 
-public enum AnomalyDetector {
-    public struct Thresholds: Equatable, Sendable {
-        public let hardCounterWinRate: Double
-        public let timeoutRate: Double
-        public let minFightTicks: Int
-        public let maxFightTicks: Int
-        public let underpoweredAbilityWinRate: Double
-        public let overpoweredAbilityWinRate: Double
+enum AnomalyDetector {
+    struct Thresholds: Equatable {
+        let hardCounterWinRate: Double
+        let timeoutRate: Double
+        let minFightTicks: Int
+        let maxFightTicks: Int
+        let underpoweredAbilityWinRate: Double
+        let overpoweredAbilityWinRate: Double
 
-        public init(
+        init(
             hardCounterWinRate: Double = 0.25,
             timeoutRate: Double = 0.10,
             minFightTicks: Int = BalanceSweepDefaults.minFightTicks,
@@ -32,16 +32,16 @@ public enum AnomalyDetector {
             self.overpoweredAbilityWinRate = overpoweredAbilityWinRate
         }
 
-        public static let `default` = Thresholds()
+        static let `default` = Thresholds()
     }
 
-    public struct WinRateBand: Equatable, Sendable {
-        public let min: Double
-        public let max: Double
-        public let role: EnemyDifficultyRole
-        public let tier: SimulationPowerTier
+    struct WinRateBand: Equatable {
+        let min: Double
+        let max: Double
+        let role: EnemyDifficultyRole
+        let tier: SimulationPowerTier
 
-        public init(min: Double, max: Double, role: EnemyDifficultyRole, tier: SimulationPowerTier) {
+        init(min: Double, max: Double, role: EnemyDifficultyRole, tier: SimulationPowerTier) {
             self.min = min
             self.max = max
             self.role = role
@@ -49,13 +49,13 @@ public enum AnomalyDetector {
         }
     }
 
-    public static func enemyRole(for row: MatchupSweepRow) -> EnemyDifficultyRole {
+    static func enemyRole(for row: MatchupSweepRow) -> EnemyDifficultyRole {
         if row.isBoss { return .boss }
         if row.isElite { return .elite }
         return .fodder
     }
 
-    public static func enemyRole(isBoss: Bool, isElite: Bool) -> EnemyDifficultyRole {
+    static func enemyRole(isBoss: Bool, isElite: Bool) -> EnemyDifficultyRole {
         if isBoss { return .boss }
         if isElite { return .elite }
         return .fodder
@@ -68,11 +68,11 @@ public enum AnomalyDetector {
     /// | Fodder | 90–99%  | 80–90%  | 70–80%  |
     /// | Elite  | 80–90%  | 70–80%  | 60–70%  |
     /// | Boss   | 70–80%  | 60–70%  | 50–60%  |
-    public static func targetBand(for row: MatchupSweepRow) -> WinRateBand {
+    static func targetBand(for row: MatchupSweepRow) -> WinRateBand {
         targetBand(tier: row.tier, role: enemyRole(for: row))
     }
 
-    public static func targetBand(tier: SimulationPowerTier, role: EnemyDifficultyRole) -> WinRateBand {
+    static func targetBand(tier: SimulationPowerTier, role: EnemyDifficultyRole) -> WinRateBand {
         let bounds: (min: Double, max: Double)
         switch (tier, role) {
         case (.early, .fodder): bounds = (0.90, 0.99)
@@ -88,7 +88,7 @@ public enum AnomalyDetector {
         return WinRateBand(min: bounds.min, max: bounds.max, role: role, tier: tier)
     }
 
-    public static func isDurationInBand(
+    static func isDurationInBand(
         averageTickCount: Double,
         thresholds: Thresholds = .default
     ) -> Bool {
@@ -96,7 +96,8 @@ public enum AnomalyDetector {
             && averageTickCount <= Double(thresholds.maxFightTicks)
     }
 
-    public static func detect(
+    // swiftlint:disable:next function_body_length
+    static func detect(
         matchupRows: [MatchupSweepRow],
         abilityRows: [AbilityComparisonRow],
         thresholds: Thresholds = .default

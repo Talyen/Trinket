@@ -1,4 +1,5 @@
-import XCTest
+import Testing
+import TrinketTestSupport
 import BattleEngine
 import TrinketCore
 import TrinketContent
@@ -9,6 +10,44 @@ import TrinketContent
 /// Presentation strings live in `ActionEventFormatterTests` / `EffectSummaryBuilderTests`.
 /// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
 enum BattleTestFixtures {
+    /// Matches `BattleStateTestFactory` seed for reproducible dodge/crit rolls.
+    static let deterministicNonCriticalSeed: UInt64 = 1772
+
+    static func makePipelineContext(
+        targetMaxHealth: Int = 50,
+        targetPrimaryStats: PrimaryStats = PrimaryStats(),
+        targetEffects: [ActiveEffect] = [],
+        sourcePrimaryStats: PrimaryStats = PrimaryStats(),
+        seed: UInt64 = deterministicNonCriticalSeed
+    ) -> BattleEngineContext {
+        let target = CombatantFixtures.combatant(
+            id: "target", role: .enemy, maxHealth: targetMaxHealth,
+            primaryStats: targetPrimaryStats
+        )
+        let source = CombatantFixtures.combatant(
+            id: "source", role: .hero, maxHealth: 50,
+            primaryStats: sourcePrimaryStats
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let roster = BattleRoster(
+            hero: CombatantRuntime(combatant: source, initialActiveEffects: []),
+            pet: CombatantRuntime(combatant: pet),
+            enemy: CombatantRuntime(combatant: target, initialActiveEffects: targetEffects)
+        )
+        return BattleEngineContext(
+            roster: roster,
+            rng: SeededRandomNumberGenerator(seed: seed),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+    }
+
     static func passiveCombatant(
         id: String,
         name: String,
@@ -134,19 +173,17 @@ enum BattleTestFixtures {
     static func assertActionSkipConsumed(
         step: BattleStep,
         actorID: String,
-        keyword: Keyword,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        keyword: Keyword
     ) {
-        if case let .acted(actor, events) = step {
-            XCTAssertEqual(actor.id, actorID, file: file, line: line)
-            XCTAssertTrue(
-                events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == keyword },
-                file: file,
-                line: line
-            )
-        } else {
-            XCTFail("Expected action skip on turn for \(actorID)", file: file, line: line)
+        guard case let .acted(actor, events) = step else {
+            Issue.record("Expected action skip on turn for \(actorID)")
+            return
+        }
+        if actor.id != actorID {
+            Issue.record("Expected actor \(actorID), got \(actor.id)")
+        }
+        if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
+            Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
         }
     }
 

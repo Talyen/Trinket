@@ -60,6 +60,7 @@ public struct PlayerRosterState: Equatable, Sendable {
     public var highestPetLevel: Int {
         unlockedPetIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
+
     public var gold: Int = 0
     public var primaryStatOverrides: [String: PrimaryStats] = [:]
 

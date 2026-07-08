@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var statBonuses: PrimaryStats
@@ -233,7 +233,7 @@ public struct CombatBuild: Equatable, Hashable, Sendable {
 }
 
 public extension PrimaryStats {
-    public mutating func merge(_ other: PrimaryStats) {
+    mutating func merge(_ other: PrimaryStats) {
         strength += other.strength
         agility += other.agility
         toughness += other.toughness
@@ -241,7 +241,7 @@ public extension PrimaryStats {
         wisdom += other.wisdom
     }
 
-    public func merged(with other: PrimaryStats) -> PrimaryStats {
+    func merged(with other: PrimaryStats) -> PrimaryStats {
         var copy = self
         copy.merge(other)
         return copy

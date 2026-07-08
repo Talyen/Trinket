@@ -1,7 +1,7 @@
 import Foundation
 import os
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public enum BattleTurnEngine {
     private static let logger = Logger(
@@ -119,6 +119,7 @@ public enum BattleTurnEngine {
         let totalDealtToAbilityTarget: Int
     }
 
+    // swiftlint:disable:next function_body_length
     private static func applyDamageComponents(
         ability: Ability,
         actor: Combatant,

@@ -4,7 +4,6 @@ import TrinketDesignSystem
 struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
-    @State private var collectionPath = NavigationPath()
     @State private var localSelectedTab: AppTab = .play
 
     var body: some View {
@@ -12,17 +11,20 @@ struct ContentView: View {
             .preferredColorScheme(appState.options.appearance.colorScheme)
             .onAppear {
                 localSelectedTab = appState.selectedTab
-                appState.shellDidAppear(scenePhase: scenePhase)
+                appState.reconcileShellState(.appeared, scenePhase: scenePhase)
             }
             .onChange(of: localSelectedTab) { _, newTab in
                 appState.selectedTab = newTab
             }
             .onChange(of: appState.selectedTab) { _, newTab in
                 localSelectedTab = newTab
-                appState.shellDidChangeTab(to: newTab, scenePhase: scenePhase)
+                appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
             }
             .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
-                appState.shellDidChangeActiveBattle(started: newValue != nil, scenePhase: scenePhase)
+                appState.reconcileShellState(
+                    .activeBattleChanged(started: newValue != nil),
+                    scenePhase: scenePhase
+                )
             }
             .onChange(of: appState.battle.preview?.id) { _, _ in
                 appState.refreshMusic(scenePhase: scenePhase)
@@ -31,7 +33,7 @@ struct ContentView: View {
                 appState.refreshMusic(scenePhase: scenePhase)
             }
             .onChange(of: scenePhase) { _, newPhase in
-                appState.shellDidChangeScenePhase(newPhase)
+                appState.reconcileShellState(.scenePhaseChanged, scenePhase: newPhase)
             }
     }
 
@@ -44,12 +46,8 @@ struct ContentView: View {
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
-                NavigationStack(path: $collectionPath) {
-                    CollectionView(
-                        initialCombatantDetail: appState.initialCollectionCombatantDetail,
-                        initialItemID: appState.initialCollectionItemID,
-                        collectionPath: $collectionPath
-                    )
+                NavigationStack {
+                    CollectionView()
                 }
             }
             .badge(appState.collectionBadge.map { Text("\($0)") })
@@ -75,3 +73,4 @@ struct ContentView: View {
         }
     }
 }
+

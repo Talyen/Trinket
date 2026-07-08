@@ -1,9 +1,11 @@
-import XCTest
+import Testing
+import TrinketTestSupport
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class DamagePipelineTests: XCTestCase {
+@Suite
+struct DamagePipelineTests {
     private let expectedStepNames = [
         "DodgeGate",
         "CriticalGate",
@@ -43,11 +45,11 @@ final class DamagePipelineTests: XCTestCase {
         )
     }
 
-    func testRegistryCanonicalNamesMatchExpectedOrder() {
-        XCTAssertEqual(DamagePipeline.canonicalNames, expectedStepNames)
+    @Test func registryCanonicalNamesMatchExpectedOrder() {
+        #expect(DamagePipeline.canonicalNames == expectedStepNames)
     }
 
-    func testExecutedStepNamesMatchCanonicalOrderForFullHit() {
+    @Test func executedStepNamesMatchCanonicalOrderForFullHit() {
         var context = makeContext(seed: 1772)
         let executed = DamagePipeline.executedStepNames(
             for: .directAbilityHit(
@@ -58,10 +60,10 @@ final class DamagePipelineTests: XCTestCase {
             ),
             in: &context
         )
-        XCTAssertEqual(executed, expectedStepNames)
+        #expect(executed == expectedStepNames)
     }
 
-    func testExecutedStepNamesShortCircuitAfterDodge() {
+    @Test func executedStepNamesShortCircuitAfterDodge() {
         let stats = PrimaryStats(agility: 140)
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
@@ -95,15 +97,15 @@ final class DamagePipelineTests: XCTestCase {
             in: &context
         )
 
-        XCTAssertEqual(executed, ["DodgeGate"], "Seed 0 with high agility should dodge and short-circuit")
+        #expect(executed == ["DodgeGate"], "Seed 0 with high agility should dodge and short-circuit")
     }
 
-    func testStepPhasesGroupStochasticResolutionAndPost() {
+    @Test func stepPhasesGroupStochasticResolutionAndPost() {
         let phases = DamagePipeline.steps.map(\.phase)
-        XCTAssertEqual(phases.filter { $0 == .stochastic }.count, 2)
-        XCTAssertEqual(phases.filter { $0 == .resolution }.count, 9)
-        XCTAssertEqual(phases.filter { $0 == .post }.count, 3)
-        XCTAssertEqual(DamagePipeline.steps.first?.phase, .stochastic)
-        XCTAssertEqual(DamagePipeline.steps.last?.phase, .post)
+        #expect(phases.filter { $0 == .stochastic }.count == 2)
+        #expect(phases.filter { $0 == .resolution }.count == 9)
+        #expect(phases.filter { $0 == .post }.count == 3)
+        #expect(DamagePipeline.steps.first?.phase == .stochastic)
+        #expect(DamagePipeline.steps.last?.phase == .post)
     }
 }

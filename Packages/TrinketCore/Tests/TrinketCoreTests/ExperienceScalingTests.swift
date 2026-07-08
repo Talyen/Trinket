@@ -1,121 +1,110 @@
-import XCTest
+import Testing
 import TrinketCore
 
-final class ExperienceScalingTests: XCTestCase {
-    func testEqualLevelAwardsFullExperience() {
-        XCTAssertEqual(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10),
-            50
+@Suite
+struct ExperienceScalingTests {
+    @Test func equalLevelAwardsFullExperience() {
+        #expect(
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50
         )
     }
 
-    func testHigherLevelEnemyAwardsFullExperience() {
-        XCTAssertEqual(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12),
-            50
+    @Test func higherLevelEnemyAwardsFullExperience() {
+        #expect(
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50
         )
     }
 
-    func testEnemyTenOrMoreLevelsBelowAwardsNothing() {
-        XCTAssertEqual(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10),
-            0
+    @Test func enemyTenOrMoreLevelsBelowAwardsNothing() {
+        #expect(
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0
         )
-        XCTAssertEqual(
-            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 5),
-            0
+        #expect(
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 5) == 0
         )
     }
 
-    func testUnderlevelGapScalesSmoothly() {
+    @Test func underlevelGapScalesSmoothly() {
         let halfway = ExperienceScaling.adjustedAward(baseExperience: 100, playerLevel: 15, enemyLevel: 10)
-        XCTAssertGreaterThan(halfway, 0)
-        XCTAssertLessThan(halfway, 100)
+        #expect(halfway > 0)
+        #expect(halfway < 100)
 
         let nearEqual = ExperienceScaling.adjustedAward(baseExperience: 100, playerLevel: 11, enemyLevel: 10)
-        XCTAssertGreaterThan(nearEqual, halfway)
+        #expect(nearEqual > halfway)
     }
 
-    func testBaseBattleAwardTargetsEarlyBattlesPerLevel() {
+    @Test func baseBattleAwardTargetsEarlyBattlesPerLevel() {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
-        XCTAssertEqual(award, 67)
-        XCTAssertEqual(
-            Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award),
-            1.5,
-            accuracy: 0.05
+        #expect(award == 67)
+        #expect(abs((
+            Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)) - (1.5)) < 0.05
         )
     }
 
-    func testBaseBattleAwardTargetsMidBattlesPerLevel() {
+    @Test func baseBattleAwardTargetsMidBattlesPerLevel() {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 25)
-        XCTAssertEqual(
-            Double(CombatantProgression.requiredXP(forLevel: 25)) / Double(award),
-            2.5,
-            accuracy: 0.05
+        #expect(abs((
+            Double(CombatantProgression.requiredXP(forLevel: 25)) / Double(award)) - (2.5)) < 0.05
         )
     }
 
-    func testBaseBattleAwardTargetsLateBattlesPerLevel() {
+    @Test func baseBattleAwardTargetsLateBattlesPerLevel() {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 45)
-        XCTAssertEqual(
-            Double(CombatantProgression.requiredXP(forLevel: 45)) / Double(award),
-            3.5,
-            accuracy: 0.05
+        #expect(abs((
+            Double(CombatantProgression.requiredXP(forLevel: 45)) / Double(award)) - (3.5)) < 0.05
         )
     }
 
-    func testBattleAwardAppliesLevelDeltaMultiplier() {
-        XCTAssertEqual(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5), 0)
-        XCTAssertGreaterThan(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5), 0)
+    @Test func battleAwardAppliesLevelDeltaMultiplier() {
+        #expect(ExperienceScaling.battleAward(playerLevel: 20, enemyLevel: 5) == 0)
+        #expect(ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5) > 0)
     }
 
     // MARK: - Catch-up multiplier
 
-    func testCatchUpMultiplierIsOneAtNoGap() {
-        XCTAssertEqual(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10), 1.0, accuracy: 0.001)
-        XCTAssertEqual(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15), 1.0, accuracy: 0.001)
+    @Test func catchUpMultiplierIsOneAtNoGap() {
+        #expect(abs(ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 10) - 1.0) < 0.001)
+        #expect(abs(ExperienceScaling.catchUpMultiplier(for: 20, highestLevel: 15) - 1.0) < 0.001)
     }
 
-    func testCatchUpMultiplierIncreasesWithGap() {
+    @Test func catchUpMultiplierIncreasesWithGap() {
         let gap1 = ExperienceScaling.catchUpMultiplier(for: 9, highestLevel: 10)
         let gap5 = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
         let gap10 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 11)
-        XCTAssertGreaterThan(gap1, 1.0)
-        XCTAssertGreaterThan(gap5, gap1)
-        XCTAssertGreaterThan(gap10, gap5)
+        #expect(gap1 > 1.0)
+        #expect(gap5 > gap1)
+        #expect(gap10 > gap5)
     }
 
-    func testCatchUpMultiplierApproachesMax() {
+    @Test func catchUpMultiplierApproachesMax() {
         let largeGap = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 100)
-        XCTAssertLessThanOrEqual(largeGap, 2.5)
-        XCTAssertGreaterThan(largeGap, 2.4)
+        #expect(largeGap <= 2.5)
+        #expect(largeGap > 2.4)
     }
 
-    func testCatchUpMultiplierCustomMax() {
+    @Test func catchUpMultiplierCustomMax() {
         let gap5 = ExperienceScaling.catchUpMultiplier(for: 10, highestLevel: 15, maxMultiplier: 2.0)
-        XCTAssertLessThan(gap5, 2.0)
-        XCTAssertGreaterThan(gap5, 1.5)
+        #expect(gap5 < 2.0)
+        #expect(gap5 > 1.5)
 
         let gap50 = ExperienceScaling.catchUpMultiplier(for: 1, highestLevel: 51, maxMultiplier: 3.0)
-        XCTAssertLessThan(gap50, 3.0)
-        XCTAssertGreaterThan(gap50, 2.9)
+        #expect(gap50 < 3.0)
+        #expect(gap50 > 2.9)
     }
 
-    func testBattleAwardWithCatchUpReturnsZeroWhenBaseAwardIsZero() {
-        XCTAssertEqual(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25),
-            0
+    @Test func battleAwardWithCatchUpReturnsZeroWhenBaseAwardIsZero() {
+        #expect(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
         )
     }
 
-    func testBattleAwardWithCatchUpAppliesCatchUpMultiplier() {
+    @Test func battleAwardWithCatchUpAppliesCatchUpMultiplier() {
         let baseAward = ExperienceScaling.battleAward(playerLevel: 5, enemyLevel: 5)
         let catchUp = ExperienceScaling.catchUpMultiplier(for: 5, highestLevel: 10)
         let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
 
-        XCTAssertEqual(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10),
-            expected
+        #expect(
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10) == expected
         )
     }
 }

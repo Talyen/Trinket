@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// Integration tests for catalog abilities that combine damage, effects, and resources.
-final class AbilityEffectIntegrationTests: XCTestCase {
-    func testBlackjackGrantsGoldAlongsideStunDamage() {
+@Suite
+struct AbilityEffectIntegrationTests {
+    @Test func blackjackGrantsGoldAlongsideStunDamage() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -19,10 +20,10 @@ final class AbilityEffectIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        XCTAssertEqual(battle.gold, 1)
+        #expect(battle.gold == 1)
     }
 
-    func testPoisonEffectAppliesThroughTargetedEffects() {
+    @Test func poisonEffectAppliesThroughTargetedEffects() {
         let poisonAbility = Ability(
             id: "legacy",
             name: "Legacy",
@@ -38,10 +39,10 @@ final class AbilityEffectIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
-    func testBloodthornDealsComponentDamageAndAppliesDoTs() {
+    @Test func bloodthornDealsComponentDamageAndAppliesDoTs() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -54,18 +55,20 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
 
-        let step = BattleTestFixtures.advanceUntilAbility("Bloodthorn", on: &battle)
-        XCTAssertNotNil(step, "Expected Bloodthorn to resolve in battle")
+        _ = try #require(
+            BattleTestFixtures.advanceUntilAbility("Bloodthorn", on: &battle),
+            "Expected Bloodthorn to resolve in battle"
+        )
 
         // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
         // before the seeded DoTs tick.
-        XCTAssertEqual(battle.health(of: battle.enemy), 94)
-        XCTAssertTrue(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
+        #expect(battle.health(of: battle.enemy) == 94)
+        #expect(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
+        #expect(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
+        #expect(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
     }
 
-    func testPrayerCleanseRandomRemovesOneDebuffAndHeals() {
+    @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -87,13 +90,15 @@ final class AbilityEffectIntegrationTests: XCTestCase {
         )
 
         _ = battle.advanceOneStep()
-        XCTAssertLessThan(battle.health(of: battle.hero), 10)
+        #expect(battle.health(of: battle.hero) < 10)
 
         let step = BattleTestFixtures.advanceUntilAbility("Prayer", on: &battle)
         guard let step else {
-            return XCTFail("Expected Prayer to resolve in battle")
+            Issue.record("Expected Prayer to resolve in battle")
+
+            return
         }
-        XCTAssertTrue(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
-        XCTAssertEqual(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count, 1)
+        #expect(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
+        #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
     }
 }

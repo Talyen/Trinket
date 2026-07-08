@@ -1,17 +1,17 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-public struct BalanceGateThresholds: Equatable, Sendable, Codable {
+struct BalanceGateThresholds: Equatable, Codable {
     /// Maximum share of matchup rows with a 100% win rate (middle-tier fodder).
-    public let maxFodderPerfectWinRateMiddle: Double
+    let maxFodderPerfectWinRateMiddle: Double
     /// Minimum share of rows inside the win-rate target band (middle-tier fodder).
-    public let minFodderInBandRateMiddle: Double
+    let minFodderInBandRateMiddle: Double
     /// Maximum share of rows that hit the tick limit.
-    public let maxTimeoutRate: Double
+    let maxTimeoutRate: Double
     /// Maximum share of rows averaging below the minimum fight duration.
-    public let maxTooShortRate: Double
+    let maxTooShortRate: Double
 
-    public init(
+    init(
         maxFodderPerfectWinRateMiddle: Double = 0.45,
         minFodderInBandRateMiddle: Double = 0.35,
         maxTimeoutRate: Double = 0.12,
@@ -23,16 +23,16 @@ public struct BalanceGateThresholds: Equatable, Sendable, Codable {
         self.maxTooShortRate = maxTooShortRate
     }
 
-    public static let ci = BalanceGateThresholds()
+    static let ci = BalanceGateThresholds()
 }
 
-public struct BalanceGateViolation: Equatable, Sendable, Codable {
-    public let metric: String
-    public let actual: Double
-    public let limit: Double
-    public let comparison: String
+struct BalanceGateViolation: Equatable, Codable {
+    let metric: String
+    let actual: Double
+    let limit: Double
+    let comparison: String
 
-    public var detail: String {
+    var detail: String {
         "\(metric): \(formatted(actual)) \(comparison) \(formatted(limit))"
     }
 
@@ -41,8 +41,8 @@ public struct BalanceGateViolation: Equatable, Sendable, Codable {
     }
 }
 
-public enum BalanceGateEvaluator {
-    public static func evaluate(
+enum BalanceGateEvaluator {
+    static func evaluate(
         _ result: BalanceSweepResult,
         thresholds: BalanceGateThresholds = .ci
     ) -> [BalanceGateViolation] {

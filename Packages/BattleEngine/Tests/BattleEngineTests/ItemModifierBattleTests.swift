@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class ItemModifierBattleTests: XCTestCase {
-    func testEquippedPhysicalDamageAffixIncreasesDirectDamage() throws {
-        let keen = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
+@Suite
+struct ItemModifierBattleTests {
+    @Test func equippedPhysicalDamageAffixIncreasesDirectDamage() throws {
+        let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })
         let modifiers = CombatModifierProfile(modifiers: keen.basic.modifiers)
 
         let hero = Combatant(
@@ -36,11 +37,11 @@ final class ItemModifierBattleTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
+        #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 
-    func testEquippedMaximumHealthAffixIncreasesStartingHealth() throws {
-        let hale = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == "hale" })
+    @Test func equippedMaximumHealthAffixIncreasesStartingHealth() throws {
+        let hale = try #require(GameContent.itemAffixDefinitions.first { $0.id == "hale" })
         let modifiers = CombatModifierProfile(modifiers: hale.basic.modifiers)
 
         let hero = Combatant(
@@ -69,12 +70,12 @@ final class ItemModifierBattleTests: XCTestCase {
             heroModifiers: modifiers
         )
 
-        XCTAssertEqual(battle.health(of: battle.hero), 14)
+        #expect(battle.health(of: battle.hero) == 14)
     }
 
-    func testEquippedMightyAffixIncreasesStrengthBasedDamage() throws {
-        let mighty = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == "mighty" })
-        let baseType = try XCTUnwrap(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+    @Test func equippedMightyAffixIncreasesStrengthBasedDamage() throws {
+        let mighty = try #require(GameContent.itemAffixDefinitions.first { $0.id == "mighty" })
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let item = InventoryItem(
             id: "mighty-longsword",
             baseType: baseType,
@@ -108,11 +109,11 @@ final class ItemModifierBattleTests: XCTestCase {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
+        #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 
-    func testEquippedSerratedAffixIncreasesBleedDamage() throws {
-        let serrated = try XCTUnwrap(GameContent.itemAffixDefinitions.first { $0.id == "serrated" })
+    @Test func equippedSerratedAffixIncreasesBleedDamage() throws {
+        let serrated = try #require(GameContent.itemAffixDefinitions.first { $0.id == "serrated" })
         let modifiers = CombatModifierProfile(modifiers: serrated.basic.modifiers)
         let hero = Combatant(
             id: "hero",
@@ -140,6 +141,6 @@ final class ItemModifierBattleTests: XCTestCase {
 
         _ = battle.advanceOneStep()
 
-        XCTAssertEqual(100 - battle.health(of: battle.enemy), 2)
+        #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 }

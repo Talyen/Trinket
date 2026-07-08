@@ -1,10 +1,11 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
+import Synchronization
 import TrinketContent
+import TrinketCore
 
-public enum AbilityComparisonAnalyzer {
-    private struct WorkItem: Sendable {
+enum AbilityComparisonAnalyzer {
+    private struct WorkItem {
         let comparisonIndex: Int
         let tier: SimulationPowerTier
         let combatant: Combatant
@@ -15,7 +16,7 @@ public enum AbilityComparisonAnalyzer {
         let abilityB: Ability
     }
 
-    public static func analyze(request: BalanceSweepRequest) -> [AbilityComparisonRow] {
+    static func analyze(request: BalanceSweepRequest) -> [AbilityComparisonRow] {
         guard
             let representativeHero = BalanceSweepCatalog.representativeHero(id: request.representativeHeroID),
             let representativePet = BalanceSweepCatalog.representativePet(id: request.representativePetID)
@@ -33,6 +34,7 @@ public enum AbilityComparisonAnalyzer {
         let enemies = GameContent.enemies
         let collector = AbilityComparisonRowCollector(capacity: workItems.count)
 
+        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism; rows are stored via Mutex-backed collector.
         DispatchQueue.concurrentPerform(iterations: workItems.count) { index in
             let rows = evaluate(workItems[index], enemies: enemies, request: request)
             collector.store(rows, at: index)
@@ -84,6 +86,7 @@ public enum AbilityComparisonAnalyzer {
         return workItems
     }
 
+    // swiftlint:disable:next function_body_length
     private static func evaluate(
         _ workItem: WorkItem,
         enemies: [Enemy],
@@ -140,7 +143,7 @@ public enum AbilityComparisonAnalyzer {
             if tier.includesGear,
                let rarity = tier.rarity,
                let affixCount = tier.fixedAffixCount {
-                let gearSeed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 200_000
+                let gearSeed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 200000
                 var heroARNG = SeededRandomNumberGenerator(seed: gearSeed)
                 var petARNG = SeededRandomNumberGenerator(seed: gearSeed &+ 1)
                 var heroBRNG = SeededRandomNumberGenerator(seed: gearSeed &+ 2)
@@ -200,7 +203,7 @@ public enum AbilityComparisonAnalyzer {
                 seed: request.baseSeed &+ UInt64(workItem.comparisonIndex)
             )
 
-            let seed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 300_000
+            let seed = request.baseSeed &+ UInt64(workItem.comparisonIndex) &+ 300000
             let options = BalanceSweepRunner.sweepOptions(maxTicks: request.maxTicks, seed: seed)
             if BattleSimulator.run(configuredA, options: options).didWin {
                 winsA += 1
@@ -239,23 +242,22 @@ public enum AbilityComparisonAnalyzer {
     }
 }
 
-private final class AbilityComparisonRowCollector: @unchecked Sendable {
-    private let lock = NSLock()
-    private var storage: [[AbilityComparisonRow]?]
+private final class AbilityComparisonRowCollector: Sendable {
+    private let storage: Mutex<[[AbilityComparisonRow]?]>
 
     init(capacity: Int) {
-        storage = Array(repeating: nil, count: capacity)
+        storage = Mutex(Array(repeating: nil, count: capacity))
     }
 
     func store(_ rows: [AbilityComparisonRow], at index: Int) {
-        lock.lock()
-        storage[index] = rows
-        lock.unlock()
+        storage.withLock { array in
+            array[index] = rows
+        }
     }
 
     var rows: [AbilityComparisonRow] {
-        lock.lock()
-        defer { lock.unlock() }
-        return storage.compactMap { $0 }.flatMap { $0 }
+        storage.withLock { array in
+            array.compactMap(\.self).flatMap(\.self)
+        }
     }
 }

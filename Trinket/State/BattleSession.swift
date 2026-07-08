@@ -31,7 +31,6 @@ final class BattleSession {
 
     private(set) var state: BattleState?
     var onBattleStateChange: ((String?) -> Void)?
-    var onBattleEnded: (() -> Void)?
 
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]
@@ -50,7 +49,6 @@ final class BattleSession {
         activeBattle = nil
         clearAllPresentation()
         onBattleStateChange?(nil)
-        onBattleEnded?()
     }
 
     func setMusicPreview(for stage: Stage?) {
@@ -118,6 +116,13 @@ final class BattleSession {
         for eventID in expiredIDs {
             removeFeedbackEvent(eventID)
         }
+    }
+
+    func trimMemoryFootprint(releaseBattleLog: Bool) {
+        pruneExpiredFeedback()
+        guard releaseBattleLog, var state else { return }
+        state.releaseLogProjection()
+        self.state = state
     }
 
     func syncLogForDisplay() {

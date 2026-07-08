@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 private struct BattleSimulationMetricsAccumulator {
     private var abilityDamage = 0

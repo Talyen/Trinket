@@ -1,26 +1,28 @@
-import XCTest
+import Testing
+import TrinketTestSupport
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class EffectHandlersApplyTests: XCTestCase {
+@Suite
+struct EffectHandlersApplyTests {
     // MARK: - DoT handlers
 
-    func testBurnHandlerAppliesBurnEffect() {
+    @Test func burnHandlerAppliesBurnEffect() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(.burn(3), ability: CombatantFixtures.ability(), source: battle.hero, target: enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
 
-    func testBurnHandlerSkipsInitialDamageWhenPaired() throws {
+    @Test func burnHandlerSkipsInitialDamageWhenPaired() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let hero = battle.hero
         let action = ActionApplyContext(pairedDirectDamage: [(.burn, 3)])
         let outcome: EffectApplyOutcome = try battle.withEngineContext { context in
-            try XCTUnwrap(EffectHandlers.all[.burn]?.apply(
+            try #require(EffectHandlers.all[.burn]?.apply(
                 .burn(3),
                 ability: CombatantFixtures.ability(),
                 source: hero,
@@ -29,87 +31,87 @@ final class EffectHandlersApplyTests: XCTestCase {
                 in: &context
             ))
         }
-        XCTAssertTrue(outcome.didApply)
+        #expect(outcome.didApply)
         // No `events` containing a status DoT damage entry.
-        XCTAssertFalse(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
+        #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
     }
 
-    func testPoisonHandlerAppliesPoisonEffect() {
+    @Test func poisonHandlerAppliesPoisonEffect() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.poison(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
     }
 
-    func testBleedHandlerAppliesBleedEffect() {
+    @Test func bleedHandlerAppliesBleedEffect() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.bleed(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
     }
 
     // MARK: - Defensive buffs
 
-    func testShieldHandlerAddsShieldAndEmitsEvent() {
+    @Test func shieldHandlerAddsShieldAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.shield(.block, 5, 3), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { ae in
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.hero).contains { ae in
             if case .shield(.block, 5, _) = ae.effect { return true }
             return false
         })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+        #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
     }
 
-    func testMitigationHandlerAddsMitigationAndEmitsEvent() {
+    @Test func mitigationHandlerAddsMitigationAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.mitigation(.armor, 0.25, 6), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { ae in
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.hero).contains { ae in
             if case .mitigation(.armor, 0.25, _) = ae.effect { return true }
             return false
         })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
+        #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
     }
 
-    func testLeechHandlerAddsLeechEffectAndEmitsEvent() {
+    @Test func leechHandlerAddsLeechEffectAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .leechApplied })
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
+        #expect(outcome.events.contains { $0.effectKind == .leechApplied })
     }
 
-    func testLeechHandlerReplacesExistingLeechInsteadOfStacking() {
+    @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() {
         var battle = EffectHandlersTestSupport.makeBattle()
         _ = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
+        #expect(outcome.didApply)
         let leechStacks = battle.activeEffects(of: battle.hero).filter { $0.effect.keyword == .leech }
-        XCTAssertEqual(leechStacks.count, 1)
+        #expect(leechStacks.count == 1)
     }
 
-    func testCleanseWithoutDebuffsDoesNotApply() {
+    @Test func cleanseWithoutDebuffsDoesNotApply() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertFalse(outcome.didApply)
-        XCTAssertTrue(outcome.events.isEmpty)
+        #expect(!(outcome.didApply))
+        #expect(outcome.events.isEmpty)
     }
 
     // MARK: - Restoration
 
-    func testInstantHealHandlerHealsTarget() {
+    @Test func instantHealHandlerHealsTarget() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let hero = battle.hero
         _ = battle.withEngineContext { $0.applyTestDamage(30, to: hero) }
         let before = battle.health(of: battle.hero)
         let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertGreaterThan(battle.health(of: battle.hero), before)
-        XCTAssertEqual(outcome.events.first?.amount, battle.health(of: battle.hero) - before)
+        #expect(outcome.didApply)
+        #expect(battle.health(of: battle.hero) > before)
+        #expect(outcome.events.first?.amount == battle.health(of: battle.hero) - before)
     }
 
-    func testInstantHealHandlerDoesNotApplyAtFullHealth() {
+    @Test func instantHealHandlerDoesNotApplyAtFullHealth() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let hero = battle.hero
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -119,22 +121,22 @@ final class EffectHandlersApplyTests: XCTestCase {
             target: hero,
             battle: &battle
         )
-        XCTAssertFalse(outcome.didApply)
-        XCTAssertTrue(outcome.events.isEmpty)
+        #expect(!(outcome.didApply))
+        #expect(outcome.events.isEmpty)
     }
 
-    func testResourceGainHandlerAddsGold() {
+    @Test func resourceGainHandlerAddsGold() {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(resourceEffect, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertEqual(battle.gold, 13)
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
+        #expect(outcome.didApply)
+        #expect(battle.gold == 13)
+        #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
     }
 
     // MARK: - Cleanse
 
-    func testCleanseSpecificKeywordRemovesMatchingEffects() {
+    @Test func cleanseSpecificKeywordRemovesMatchingEffects() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
@@ -142,12 +144,12 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+        #expect(outcome.didApply)
+        #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        #expect(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
     }
 
-    func testCleanseAllRemovesAllDebuffs() {
+    @Test func cleanseAllRemovesAllDebuffs() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -159,13 +161,13 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(nil), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
+        #expect(outcome.didApply)
         // Debuffs gone, shield still present
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
-        XCTAssertTrue(battle.activeEffects(of: battle.hero).contains { $0.effect.isTickable && !$0.effect.isRemovableDebuff })
+        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.isTickable && !$0.effect.isRemovableDebuff })
     }
 
-    func testCleanseIsInstantAndLeavesNoActiveEffect() {
+    @Test func cleanseIsInstantAndLeavesNoActiveEffect() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
@@ -173,12 +175,12 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains { if case .cleanse = $0.effect { return true }; return false })
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        #expect(outcome.didApply)
+        #expect(!(battle.activeEffects(of: battle.hero)).contains { if case .cleanse = $0.effect { return true }; return false })
+        #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
     }
 
-    func testCleanseStunRemovesActivePrevention() {
+    @Test func cleanseStunRemovesActivePrevention() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)],
@@ -186,11 +188,11 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.stun), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isControlMeter))
+        #expect(outcome.didApply)
+        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isControlMeter))
     }
 
-    func testCleanseRandomRemovesOneDebuff() {
+    @Test func cleanseRandomRemovesOneDebuff() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -201,15 +203,15 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanseRandom, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
+        #expect(outcome.didApply)
         // Exactly one debuff removed
         let remainingDebuffs = battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff)
-        XCTAssertEqual(remainingDebuffs.count, 1)
+        #expect(remainingDebuffs.count == 1)
     }
 
     // MARK: - Purge
 
-    func testPurgeSpecificKeywordRemovesMatchingBuffs() {
+    @Test func purgeSpecificKeywordRemovesMatchingBuffs() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -220,13 +222,13 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purge(.block), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.enemy).contains { if case .shield = $0.effect { return true }; return false })
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { if case .mitigation = $0.effect { return true }; return false })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
+        #expect(outcome.didApply)
+        #expect(!(battle.activeEffects(of: battle.enemy)).contains { if case .shield = $0.effect { return true }; return false })
+        #expect(battle.activeEffects(of: battle.enemy).contains { if case .mitigation = $0.effect { return true }; return false })
+        #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
     }
 
-    func testPurgeAllRemovesBuffsButLeavesDebuffs() {
+    @Test func purgeAllRemovesBuffsButLeavesDebuffs() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -237,13 +239,13 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purge(nil), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertFalse(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableBuff))
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .purge })
+        #expect(outcome.didApply)
+        #expect(!(battle.activeEffects(of: battle.enemy)).contains(where: \.effect.isRemovableBuff))
+        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
+        #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .purge })
     }
 
-    func testPurgeRandomRemovesOneBuff() {
+    @Test func purgeRandomRemovesOneBuff() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -254,14 +256,14 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purgeRandom, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertEqual(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count, 1)
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .purgeApplied })
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count == 1)
+        #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
     }
 
     // MARK: - Debuff
 
-    func testHalveMitigationHandlerHalvesArmorAndEmitsEvent() {
+    @Test func halveMitigationHandlerHalvesArmorAndEmitsEvent() {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)],
@@ -269,15 +271,15 @@ final class EffectHandlersApplyTests: XCTestCase {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.halveMitigation(.armor), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains { ae in
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).contains { ae in
             if case .mitigation(.armor, 0.20, _) = ae.effect { return true }
             return false
         })
-        XCTAssertTrue(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
+        #expect(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
     }
 
-    func testHalveMitigationHandlerReportsNoApplyWhenArmorMissing() {
+    @Test func halveMitigationHandlerReportsNoApplyWhenArmorMissing() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .halveMitigation(.armor),
@@ -286,18 +288,18 @@ final class EffectHandlersApplyTests: XCTestCase {
             target: battle.enemy,
             battle: &battle
         )
-        XCTAssertFalse(outcome.didApply)
-        XCTAssertTrue(outcome.events.isEmpty)
+        #expect(!(outcome.didApply))
+        #expect(outcome.events.isEmpty)
     }
 
-    func testControlMeterHandlerAppliesThroughPipeline() {
+    @Test func controlMeterHandlerAppliesThroughPipeline() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.controlMeter(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        XCTAssertTrue(outcome.didApply)
-        XCTAssertTrue(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
+        #expect(outcome.didApply)
+        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
     }
 
-    func testDeathsDoorHandlerApplyIsNoOp() {
+    @Test func deathsDoorHandlerApplyIsNoOp() {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .deathsDoor,
@@ -306,7 +308,7 @@ final class EffectHandlersApplyTests: XCTestCase {
             target: battle.hero,
             battle: &battle
         )
-        XCTAssertFalse(outcome.didApply)
-        XCTAssertTrue(outcome.events.isEmpty)
+        #expect(!(outcome.didApply))
+        #expect(outcome.events.isEmpty)
     }
 }

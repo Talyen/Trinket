@@ -1,26 +1,34 @@
+import BattleEngine
 import Foundation
 import TrinketContent
-import BattleEngine
 
-public struct BalanceSweepTriple: Equatable, Hashable, Sendable {
-    public let hero: Combatant
-    public let pet: Combatant
-    public let enemy: Enemy
+struct BalanceSweepTriple: Equatable, Hashable {
+    let hero: Combatant
+    let pet: Combatant
+    let enemy: Enemy
 
-    public init(hero: Combatant, pet: Combatant, enemy: Enemy) {
-        self.hero = hero
-        self.pet = pet
-        self.enemy = enemy
+    var heroID: String {
+        hero.id
     }
 
-    public var heroID: String { hero.id }
-    public var petID: String { pet.id }
-    public var enemyID: String { enemy.id }
-    public var isBoss: Bool { enemy.isBoss }
-    public var isElite: Bool { enemy.isElite }
+    var petID: String {
+        pet.id
+    }
+
+    var enemyID: String {
+        enemy.id
+    }
+
+    var isBoss: Bool {
+        enemy.isBoss
+    }
+
+    var isElite: Bool {
+        enemy.isElite
+    }
 }
 
-public enum BalanceSweepCatalog {
+enum BalanceSweepCatalog {
     private static let earlyFodderEnemyIDs: Set<String> = [
         "skeleton",
         "goblin",
@@ -45,7 +53,7 @@ public enum BalanceSweepCatalog {
         "necromancer"
     ]
 
-    public static func journeyBattleEnemyIDs() -> Set<String> {
+    static func journeyBattleEnemyIDs() -> Set<String> {
         journeyBattleEnemyIDsCache
     }
 
@@ -61,7 +69,7 @@ public enum BalanceSweepCatalog {
         return ids
     }()
 
-    public static func enemies(
+    static func enemies(
         for tier: SimulationPowerTier,
         stageWeighted: Bool,
         allEnemies: [Enemy] = GameContent.enemies
@@ -83,7 +91,7 @@ public enum BalanceSweepCatalog {
         return allEnemies.filter { allowedIDs.contains($0.id) }
     }
 
-    public static func triples(
+    static func triples(
         for tier: SimulationPowerTier,
         stageWeighted: Bool,
         heroes: [Combatant] = GameContent.heroes,
@@ -104,7 +112,7 @@ public enum BalanceSweepCatalog {
         }
     }
 
-    public static func allTriples(
+    static func allTriples(
         heroes: [Combatant] = GameContent.heroes,
         pets: [Combatant] = GameContent.pets,
         enemies: [Enemy] = GameContent.enemies
@@ -112,14 +120,14 @@ public enum BalanceSweepCatalog {
         triples(for: .early, stageWeighted: false, heroes: heroes, pets: pets, enemies: enemies)
     }
 
-    public static func representativeHero(
+    static func representativeHero(
         id: String = BalanceSweepDefaults.representativeHeroID,
         heroes: [Combatant] = GameContent.heroes
     ) -> Combatant? {
         heroes.first { $0.id == id }
     }
 
-    public static func representativePet(
+    static func representativePet(
         id: String = BalanceSweepDefaults.representativePetID,
         pets: [Combatant] = GameContent.pets
     ) -> Combatant? {
@@ -127,12 +135,12 @@ public enum BalanceSweepCatalog {
     }
 }
 
-public enum BalanceSweepDefaults {
-    public static let representativeHeroID = "knight"
-    public static let representativePetID = "wolf"
-    public static let runsPerMatchup = 20
-    public static let loadoutSamplesPerMatchup = 5
-    public static let baseSeed: UInt64 = 42_026
-    public static let maxTicks = 100
-    public static let minFightTicks = 10
+enum BalanceSweepDefaults {
+    static let representativeHeroID = "knight"
+    static let representativePetID = "wolf"
+    static let runsPerMatchup = 20
+    static let loadoutSamplesPerMatchup = 5
+    static let baseSeed: UInt64 = 42026
+    static let maxTicks = 100
+    static let minFightTicks = 10
 }

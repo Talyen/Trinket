@@ -10,7 +10,7 @@ public extension PlayerInventoryState {
     mutating func addRewardItem<RNG: RandomNumberGenerator>(
         from template: InventoryItem,
         for stage: Stage,
-        using randomNumberGenerator: inout RNG
+        using _: inout RNG
     ) {
         let rewardItem = template.rewardInstance(for: stage.id)
         guard !items.contains(where: { $0.id == rewardItem.id }) else { return }

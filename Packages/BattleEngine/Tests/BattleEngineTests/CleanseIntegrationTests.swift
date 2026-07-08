@@ -1,11 +1,12 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
 /// Integration tests for cleanse abilities through full battle ticks.
-final class CleanseIntegrationTests: XCTestCase {
-    func testCleanseAllRemovesDebuffsWhenAbilityFires() {
+@Suite
+struct CleanseIntegrationTests {
+    @Test func cleanseAllRemovesDebuffsWhenAbilityFires() {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -27,10 +28,10 @@ final class CleanseIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        XCTAssertFalse(battle.activeEffects(of: battle.hero).contains(where: \.effect.isRemovableDebuff))
+        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
     }
 
-    func testCleanseSpecificKeywordRemovesMatchingDebuffsOnUse() {
+    @Test func cleanseSpecificKeywordRemovesMatchingDebuffsOnUse() {
         let cleansePoison = Ability(
             id: "cleanse-poison",
             name: "Cleanse Poison",
@@ -59,12 +60,12 @@ final class CleanseIntegrationTests: XCTestCase {
         _ = battle.advanceOneStep()
         let step = battle.advanceOneStep()
 
-        XCTAssertTrue(step.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
-        XCTAssertFalse(battle.hasHeroEffect { if case .poison = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
+        #expect(step.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+        #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
+        #expect(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
     }
 
-    func testCleanseAllRemovesAllDebuffsButLeavesShields() {
+    @Test func cleanseAllRemovesAllDebuffsButLeavesShields() {
         let cleanseAll = Ability(
             id: "cleanse-all",
             name: "Cleanse All",
@@ -94,13 +95,13 @@ final class CleanseIntegrationTests: XCTestCase {
         _ = battle.advanceOneStep()
         let step = battle.advanceOneStep()
 
-        XCTAssertTrue(step.events.contains { $0.effectKind == .cleanseApplied })
-        XCTAssertFalse(battle.hasHeroEffect { if case .poison = $0 { return true }; return false })
-        XCTAssertFalse(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
-        XCTAssertTrue(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
+        #expect(step.events.contains { $0.effectKind == .cleanseApplied })
+        #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
+        #expect(!(battle.hasHeroEffect { if case .burn = $0 { return true }; return false }))
+        #expect(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
     }
 
-    func testCleanseStunRemovesControlMeterBuildup() {
+    @Test func cleanseStunRemovesControlMeterBuildup() {
         let cleanseAbility = Ability(
             id: "test-cleanse",
             name: "Test Cleanse",
@@ -130,6 +131,6 @@ final class CleanseIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(1, on: &battle)
 
-        XCTAssertFalse(battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
+        #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup"))
     }
 }

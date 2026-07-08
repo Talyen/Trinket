@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// The view-facing shape of a battle event. Produced by
 /// `ActionEventFormatter.display(for:)` so the model (`ActionEvent`) stays
@@ -69,6 +69,7 @@ public enum ActionEventFormatter {
         return displayForEffectKind(effectKind, event: event)
     }
 
+    // swiftlint:disable:next cyclomatic_complexity
     private static func displayForEffectKind(_ effectKind: ActionEvent.EffectKind, event: ActionEvent) -> ActionEventDisplay {
         switch effectKind {
         case .instantHeal:
@@ -113,7 +114,7 @@ public enum ActionEventFormatter {
         }
     }
 
-    private static func deathsDoorDisplay(for event: ActionEvent) -> ActionEventDisplay {
+    private static func deathsDoorDisplay(for _: ActionEvent) -> ActionEventDisplay {
         ActionEventDisplay(
             emphasis: .deathsDoor,
             keyword: .deathsDoor,

@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Tunable damage-resolution switches for a single `DamageRequest`.
 public struct DamageOptions: Equatable, Hashable, Sendable {

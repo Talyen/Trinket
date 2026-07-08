@@ -1,10 +1,11 @@
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 
-final class CombatantModelTests: XCTestCase {
-    func testCombatantDefaultsToZeroPrimaryStats() {
+@Suite
+struct CombatantModelTests {
+    @Test func combatantDefaultsToZeroPrimaryStats() {
         let hero = Combatant(id: "h", name: "H", role: .hero, maxHealth: 10, abilities: [.slash])
-        XCTAssertEqual(hero.primaryStats, PrimaryStats())
+        #expect(hero.primaryStats == PrimaryStats())
     }
 }

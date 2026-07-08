@@ -1,6 +1,7 @@
 import BattleEngine
 import SwiftUI
 import TrinketCore
+import TrinketDesignSystem
 
 struct CombatFeedbackEventView: View {
     let event: ActionEvent
@@ -15,10 +16,14 @@ struct CombatFeedbackEventView: View {
                 .opacity(rmOpacity)
                 .offset(y: CGFloat(stackIndex) * CombatFeedbackTiming.stackSpacing)
                 .task(id: event.id) {
+                    let clock = SuspendingClock()
                     withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeIn)) {
                         rmOpacity = 1.0
                     }
-                    try? await Task.sleep(for: .seconds(CombatFeedbackTiming.reduceMotionHold))
+                    try? await clock.sleep(
+                        for: .seconds(CombatFeedbackTiming.reduceMotionHold),
+                        tolerance: .milliseconds(25)
+                    )
                     withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeOut)) {
                         rmOpacity = 0.0
                     }
@@ -70,9 +75,7 @@ struct CombatFeedbackEventView: View {
         .foregroundStyle(style.color)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        // UIStyleCheck: allow - combat feedback is transient floating battle chrome.
-        .glassEffect(.regular)
-        .clipShape(Capsule())
+        .trinketGlassChip()
     }
 }
 

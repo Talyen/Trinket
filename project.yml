@@ -19,9 +19,12 @@ packages:
     path: Packages/TrinketPersistence
   TrinketDesignSystem:
     path: Packages/TrinketDesignSystem
+  TrinketTestSupport:
+    path: Packages/TrinketTestSupport
 settings:
   base:
     SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
@@ -69,6 +72,8 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        ENABLE_CODE_COVERAGE: YES
+        CLANG_ENABLE_CODE_COVERAGE: YES
     dependencies:
       - target: Trinket
       - package: TrinketCore
@@ -76,6 +81,7 @@ targets:
       - package: BattleEngine
       - package: TrinketPersistence
       - package: TrinketDesignSystem
+      - package: TrinketTestSupport
 
 schemes:
   Trinket:

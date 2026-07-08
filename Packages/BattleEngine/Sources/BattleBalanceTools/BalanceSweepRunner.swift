@@ -1,17 +1,18 @@
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
+import Synchronization
 import TrinketContent
+import TrinketCore
 
-public enum BalanceSweepRunner {
-    private struct MatchupWorkItem: Sendable {
+enum BalanceSweepRunner {
+    private struct MatchupWorkItem {
         let matchupIndex: Int
         let sampleIndex: Int
         let tier: SimulationPowerTier
         let triple: BalanceSweepTriple
     }
 
-    public static func run(_ request: BalanceSweepRequest = .default) -> BalanceSweepResult {
+    static func run(_ request: BalanceSweepRequest = .default) -> BalanceSweepResult {
         let workItems = buildWorkItems(request: request)
         let matchupRows = runMatchups(workItems, request: request)
 
@@ -91,6 +92,7 @@ public enum BalanceSweepRunner {
 
         let collector = MatchupRowCollector(capacity: workItems.count)
 
+        // Concurrency-Safety: concurrentPerform is intentional for CLI parallelism; rows are stored via Mutex-backed collector.
         DispatchQueue.concurrentPerform(iterations: workItems.count) { index in
             let row = evaluate(workItems[index], request: request)
             collector.store(row, at: index)
@@ -100,29 +102,28 @@ public enum BalanceSweepRunner {
     }
 }
 
-private final class MatchupRowCollector: @unchecked Sendable {
-    private let lock = NSLock()
-    private var storage: [MatchupSweepRow?]
+private final class MatchupRowCollector: Sendable {
+    private let storage: Mutex<[MatchupSweepRow?]>
 
     init(capacity: Int) {
-        storage = Array(repeating: nil, count: capacity)
+        storage = Mutex(Array(repeating: nil, count: capacity))
     }
 
     func store(_ row: MatchupSweepRow, at index: Int) {
-        lock.lock()
-        storage[index] = row
-        lock.unlock()
+        storage.withLock { array in
+            array[index] = row
+        }
     }
 
     var rows: [MatchupSweepRow] {
-        lock.lock()
-        defer { lock.unlock() }
-        return storage.compactMap { $0 }
+        storage.withLock { array in
+            array.compactMap(\.self)
+        }
     }
 }
 
 extension BalanceSweepRunner {
-
+    // swiftlint:disable:next function_body_length
     private static func evaluate(
         _ workItem: MatchupWorkItem,
         request: BalanceSweepRequest
@@ -160,7 +161,7 @@ extension BalanceSweepRunner {
         if tier.includesGear,
            let rarity = tier.rarity,
            let affixCount = tier.fixedAffixCount {
-            let gearSeed = request.baseSeed &+ UInt64(workItem.matchupIndex) &+ 9_001
+            let gearSeed = request.baseSeed &+ UInt64(workItem.matchupIndex) &+ 9001
             var heroGearRNG = SeededRandomNumberGenerator(seed: gearSeed)
             var petGearRNG = SeededRandomNumberGenerator(seed: gearSeed &+ 1)
             heroGear = gearGenerator.generate(

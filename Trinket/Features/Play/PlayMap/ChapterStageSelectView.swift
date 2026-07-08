@@ -7,72 +7,72 @@ struct ChapterStageSelectView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var partyPicker: PartyPickerKind?
     @State private var heroOverscroll: CGFloat = 0
+    @State private var scrollPosition: String?
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 0) {
-                    ChapterJourneyHero(
-                        chapter: appState.playChapter,
-                        overscroll: heroOverscroll
-                    )
+        ScrollView {
+            VStack(spacing: 0) {
+                ChapterJourneyHero(
+                    chapter: appState.playChapter,
+                    overscroll: heroOverscroll
+                )
 
-                    PlayTabDashboardHeaderView()
+                PlayTabDashboardHeaderView()
 
-                    LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(journeyRows) { row in
-                            rowView(row)
-                                .id(row.id)
-                                .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
-                        }
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(journeyRows) { row in
+                        rowView(row)
+                            .id(row.id)
+                            .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
                     }
-                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .padding(.top, 18)
-                    .padding(.bottom, 28)
                 }
             }
-            .scrollIndicators(.hidden)
-            .ignoresSafeArea(edges: .top)
-            .trinketScreenBackground(.playJourney)
-            .accessibilityIdentifier(AccessibilityID.Screen.play)
-            .onScrollGeometryChange(for: CGFloat.self) { geometry in
-                HeroHeaderLayout.overscroll(
-                    contentOffsetY: geometry.contentOffset.y,
-                    topInset: geometry.contentInsets.top
-                )
-            } action: { _, overscroll in
-                heroOverscroll = overscroll
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, 18)
+            .padding(.bottom, 28)
+        }
+        .scrollPosition(id: $scrollPosition, anchor: .center)
+        .scrollIndicators(.hidden)
+        .ignoresSafeArea(edges: .top)
+        .trinketScreenBackground(.playJourney)
+        .accessibilityIdentifier(AccessibilityID.Screen.play)
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            HeroHeaderLayout.overscroll(
+                contentOffsetY: geometry.contentOffset.y,
+                topInset: geometry.contentInsets.top
+            )
+        } action: { _, overscroll in
+            heroOverscroll = overscroll
+        }
+        .onAppear {
+            if let target = resolvedScrollTargetID() {
+                applyScrollFocus(target, animated: false)
             }
-            .onAppear {
-                scrollToInitialTarget(with: proxy)
-                updateMusicPreview()
-            }
-            .onChange(of: appState.journey.current) { _, _ in
-                updateMusicPreview()
-            }
-            .onDisappear {
-                appState.battle.setMusicPreview(for: nil)
-            }
-            .onChange(of: appState.sessionState.mapScrollNonce) { _, _ in
-                guard let targetID = appState.sessionState.mapScrollStageID else { return }
-                withAnimation(scrollAnimation) {
-                    proxy.scrollTo(targetID, anchor: .center)
+            updateMusicPreview()
+        }
+        .onChange(of: appState.journey.current) { _, _ in
+            updateMusicPreview()
+        }
+        .onDisappear {
+            appState.battle.setMusicPreview(for: nil)
+        }
+        .onChange(of: appState.mapScrollFocus) { _, focus in
+            guard let focus else { return }
+            applyScrollFocus(focus.stageID, animated: true)
+        }
+        .sheet(item: $partyPicker) { picker in
+            PartyPickerSheet(
+                kind: picker,
+                combatants: combatants(for: picker),
+                onSelect: { combatant in
+                    select(combatant, for: picker)
                 }
-            }
-            .sheet(item: $partyPicker) { picker in
-                PartyPickerSheet(
-                    kind: picker,
-                    combatants: combatants(for: picker),
-                    onSelect: { combatant in
-                        select(combatant, for: picker)
-                    }
-                )
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-            }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .trinketScreenBackground(.playJourney)
         .toolbar(.hidden, for: .navigationBar)
@@ -117,18 +117,8 @@ struct ChapterStageSelectView: View {
         }
     }
 
-    private func scrollToInitialTarget(with proxy: ScrollViewProxy) {
-        guard let target = resolvedScrollTargetID() else { return }
-
-        DispatchQueue.main.async {
-            withAnimation(scrollAnimation) {
-                proxy.scrollTo(target, anchor: .center)
-            }
-        }
-    }
-
     private func resolvedScrollTargetID() -> String? {
-        if let saved = appState.sessionState.mapScrollStageID,
+        if let saved = appState.mapScrollStageID,
            AppState.shouldRestoreMapScroll(saved, journey: appState.journey.current) {
             return saved
         }
@@ -137,6 +127,25 @@ struct ChapterStageSelectView: View {
             chapter: appState.playChapter,
             chapters: GameContent.chapters
         )
+    }
+
+    private func applyScrollFocus(_ stageID: String, animated: Bool) {
+        let assignPosition = {
+            if scrollPosition == stageID {
+                scrollPosition = nil
+                Task { @MainActor in
+                    scrollPosition = stageID
+                }
+            } else {
+                scrollPosition = stageID
+            }
+        }
+
+        if animated, let scrollAnimation {
+            withAnimation(scrollAnimation, assignPosition)
+        } else {
+            assignPosition()
+        }
     }
 
     private var activeStage: Stage? {

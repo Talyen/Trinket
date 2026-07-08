@@ -1,12 +1,13 @@
-import XCTest
+import Testing
 import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-final class PlayerRosterStateTests: XCTestCase {
-    func testSetLoadoutOverridesDefaultAbilityChoices() throws {
+@Suite
+struct PlayerRosterStateTests {
+    @Test func setLoadoutOverridesDefaultAbilityChoices() throws {
         var roster = PlayerRosterState.initial
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .bash,
             skill: .smite,
@@ -16,13 +17,13 @@ final class PlayerRosterStateTests: XCTestCase {
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.configuredCombatant(knight)
 
-        XCTAssertEqual(configured.abilityLoadout.skill?.id, "smite")
-        XCTAssertEqual(configured.abilityLoadout.ultimate?.id, "blessed-aegis")
+        #expect(configured.abilityLoadout.skill?.id == "smite")
+        #expect(configured.abilityLoadout.ultimate?.id == "blessed-aegis")
     }
 
-    func testBattleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
+    @Test func battleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
         var roster = PlayerRosterState.freshStart
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .shieldBash,
             skill: .spikedShield,
@@ -32,16 +33,16 @@ final class PlayerRosterStateTests: XCTestCase {
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.battleConfiguredCombatant(knight)
 
-        XCTAssertEqual(roster.loadout(for: knight).skill?.id, "spiked-shield")
-        XCTAssertEqual(configured.abilityLoadout.basic?.id, "shield-bash")
-        XCTAssertEqual(configured.abilityLoadout.skill?.id, "spiked-shield")
-        XCTAssertNil(configured.abilityLoadout.ultimate)
-        XCTAssertEqual(configured.abilities.map(\.id), ["shield-bash", "spiked-shield"])
+        #expect(roster.loadout(for: knight).skill?.id == "spiked-shield")
+        #expect(configured.abilityLoadout.basic?.id == "shield-bash")
+        #expect(configured.abilityLoadout.skill?.id == "spiked-shield")
+        #expect(configured.abilityLoadout.ultimate == nil)
+        #expect(configured.abilities.map(\.id) == ["shield-bash", "spiked-shield"])
     }
 
-    func testBattleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
+    @Test func battleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
         var roster = PlayerRosterState.freshStart
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
             basic: .shieldBash,
             skill: .spikedShield,
@@ -50,99 +51,98 @@ final class PlayerRosterStateTests: XCTestCase {
         roster.setLoadout(customLoadout, for: knight)
 
         roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 220)
-        XCTAssertEqual(roster.battleConfiguredCombatant(knight).abilities.map(\.id), ["shield-bash", "spiked-shield"])
+        #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield"])
 
         roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
-        XCTAssertEqual(
-            roster.battleConfiguredCombatant(knight).abilities.map(\.id),
-            ["shield-bash", "spiked-shield", "plate-mail"]
+        #expect(
+            roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"]
         )
     }
 
-    func testBattleConfiguredCombatantDoesNotFilterEnemyAbilities() throws {
+    @Test func battleConfiguredCombatantDoesNotFilterEnemyAbilities() throws {
         let roster = PlayerRosterState.freshStart
-        let enemy = try XCTUnwrap(GameContent.enemies.first?.combatant)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
         let configured = roster.battleConfiguredCombatant(enemy)
 
-        XCTAssertEqual(configured.abilityLoadout.skill?.tier, .skill)
-        XCTAssertEqual(configured.abilityLoadout.ultimate?.tier, .ultimate)
+        #expect(configured.abilityLoadout.skill?.tier == .skill)
+        #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
     }
 
-    func testSetActiveHeroAndPetUpdatesIDs() throws {
+    @Test func setActiveHeroAndPetUpdatesIDs() throws {
         var roster = PlayerRosterState.initial
-        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         roster.setActiveHero(wizard)
         roster.setActivePet(wolf)
 
-        XCTAssertEqual(roster.activeHeroID, "wizard")
-        XCTAssertEqual(roster.activePetID, "wolf")
+        #expect(roster.activeHeroID == "wizard")
+        #expect(roster.activePetID == "wolf")
     }
 
-    func testSetActiveHeroIgnoresLockedCombatantOnFreshStart() throws {
+    @Test func setActiveHeroIgnoresLockedCombatantOnFreshStart() throws {
         var roster = PlayerRosterState.freshStart
-        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
 
         roster.setActiveHero(wizard)
 
-        XCTAssertEqual(roster.activeHeroID, PlayerRosterState.starterHeroID)
+        #expect(roster.activeHeroID == PlayerRosterState.starterHeroID)
     }
 
-    func testSetActivePetIgnoresLockedCombatantOnFreshStart() throws {
+    @Test func setActivePetIgnoresLockedCombatantOnFreshStart() throws {
         var roster = PlayerRosterState.freshStart
-        let wolf = try XCTUnwrap(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
 
         roster.setActivePet(wolf)
 
-        XCTAssertEqual(roster.activePetID, PlayerRosterState.starterPetID)
+        #expect(roster.activePetID == PlayerRosterState.starterPetID)
     }
 
-    func testGrantGoldIgnoresNonPositiveAmounts() {
+    @Test func grantGoldIgnoresNonPositiveAmounts() {
         var roster = PlayerRosterState.initial
         roster.gold = 25
 
         roster.grantGold(0)
         roster.grantGold(-5)
 
-        XCTAssertEqual(roster.gold, 25)
+        #expect(roster.gold == 25)
     }
 
-    func testEquippedItemResolvesFromInventoryAndLoadout() throws {
+    @Test func equippedItemResolvesFromInventoryAndLoadout() throws {
         let roster = PlayerRosterState.initial
         let inventory = PlayerInventoryState.initial
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
         let weapon = roster.equippedItem(for: .weapon, combatant: knight, inventory: inventory)
 
-        XCTAssertEqual(weapon?.id, "longsword-basic")
-        XCTAssertEqual(weapon?.baseType.slot, .weapon)
+        #expect(weapon?.id == "longsword-basic")
+        #expect(weapon?.baseType.slot == .weapon)
     }
 
-    func testEquipmentLoadoutEquipAndUnequip() throws {
-        let item = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
+    @Test func equipmentLoadoutEquipAndUnequip() throws {
+        let item = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var loadout = EquipmentLoadout()
 
         loadout.equip(item)
-        XCTAssertEqual(loadout.itemID(for: .weapon), "wand-basic")
+        #expect(loadout.itemID(for: .weapon) == "wand-basic")
 
         loadout.unequip(.weapon)
-        XCTAssertNil(loadout.itemID(for: .weapon))
+        #expect(loadout.itemID(for: .weapon) == nil)
     }
 
-    func testItemMatchingResolvesTemplateIDForRewardInstances() throws {
+    @Test func itemMatchingResolvesTemplateIDForRewardInstances() throws {
         var inventory = PlayerInventoryState(items: [])
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         inventory.addRewardItem(from: template, for: GameContent.chapters[0].stages[0])
 
-        XCTAssertNotNil(inventory.item(matching: "shortsword-basic"))
+        _ = try #require(inventory.item(matching: "shortsword-basic"))
     }
 
-    func testSetEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {
+    @Test func setEquipmentLoadoutUnequipsItemFromOtherCombatants() throws {
         var roster = PlayerRosterState.initial
-        let knight = try XCTUnwrap(GameContent.heroes.first { $0.id == "knight" })
-        let wizard = try XCTUnwrap(GameContent.heroes.first { $0.id == "wizard" })
-        let wand = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
+        let wand = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
 
         var wizardLoadout = roster.equipmentLoadout(for: wizard)
         wizardLoadout.equip(wand)
@@ -152,62 +152,62 @@ final class PlayerRosterStateTests: XCTestCase {
         knightLoadout.equip(wand)
         roster.setEquipmentLoadout(knightLoadout, for: knight)
 
-        XCTAssertEqual(roster.equipmentLoadout(for: knight).itemID(for: .weapon), wand.id)
-        XCTAssertNil(roster.equipmentLoadout(for: wizard).itemID(for: .weapon))
+        #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
+        #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }
 
-    func testInventorySlotUnlocksWhenSlotItemExists() throws {
-        let weapon = try XCTUnwrap(PlayerInventoryState.initial.item(matching: "wand-basic"))
+    @Test func inventorySlotUnlocksWhenSlotItemExists() throws {
+        let weapon = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var inventory = PlayerInventoryState.freshStart
 
-        XCTAssertFalse(inventory.hasItem(for: .weapon))
-        XCTAssertFalse(inventory.hasItem(for: .armor))
+        #expect(!(inventory.hasItem(for: .weapon)))
+        #expect(!(inventory.hasItem(for: .armor)))
 
         inventory.items.append(weapon)
 
-        XCTAssertTrue(inventory.hasItem(for: .weapon))
-        XCTAssertFalse(inventory.hasItem(for: .armor))
+        #expect(inventory.hasItem(for: .weapon))
+        #expect(!(inventory.hasItem(for: .armor)))
     }
 
-    func testHighestHeroLevelWithSingleHero() {
+    @Test func highestHeroLevelWithSingleHero() {
         var roster = PlayerRosterState.freshStart
         roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(level: 5, currentXP: 0, requiredXP: 100)
-        XCTAssertEqual(roster.highestHeroLevel, 5)
+        #expect(roster.highestHeroLevel == 5)
     }
 
-    func testHighestHeroLevelWithMultipleHeroes() {
+    @Test func highestHeroLevelWithMultipleHeroes() {
         var roster = PlayerRosterState.initial
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions["wizard"] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
-        XCTAssertEqual(roster.highestHeroLevel, 12)
+        #expect(roster.highestHeroLevel == 12)
     }
 
-    func testHighestHeroLevelFallsBackToOne() {
+    @Test func highestHeroLevelFallsBackToOne() {
         let roster = PlayerRosterState.freshStart
-        XCTAssertEqual(roster.highestHeroLevel, 1)
+        #expect(roster.highestHeroLevel == 1)
     }
 
-    func testHighestPetLevelWithMultiplePets() {
+    @Test func highestPetLevelWithMultiplePets() {
         var roster = PlayerRosterState.initial
         roster.progressions["bear"] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)
         roster.progressions["wolf"] = CombatantProgression(level: 7, currentXP: 0, requiredXP: 100)
-        XCTAssertEqual(roster.highestPetLevel, 7)
+        #expect(roster.highestPetLevel == 7)
     }
 
-    func testHighestPetLevelFallsBackToOne() {
+    @Test func highestPetLevelFallsBackToOne() {
         let roster = PlayerRosterState.freshStart
-        XCTAssertEqual(roster.highestPetLevel, 1)
+        #expect(roster.highestPetLevel == 1)
     }
 
-    func testHighestLevelsIgnoresUnrelatedIDs() {
+    @Test func highestLevelsIgnoresUnrelatedIDs() {
         var roster = PlayerRosterState.freshStart
         roster.progressions["bear"] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
-        XCTAssertEqual(roster.highestHeroLevel, 1)
-        XCTAssertEqual(roster.highestPetLevel, 15)
+        #expect(roster.highestHeroLevel == 1)
+        #expect(roster.highestPetLevel == 15)
     }
 
-    func testAddRewardItemIgnoresDuplicateID() throws {
-        let template = try XCTUnwrap(GameContent.itemTemplate(matching: "shortsword-basic"))
+    @Test func addRewardItemIgnoresDuplicateID() throws {
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]
         var inventory = PlayerInventoryState.freshStart
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
@@ -215,7 +215,7 @@ final class PlayerRosterStateTests: XCTestCase {
         inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
         inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
 
-        XCTAssertEqual(inventory.items.count, 1)
-        XCTAssertEqual(inventory.items.first?.id, "chapter-1-stage-1-shortsword-basic")
+        #expect(inventory.items.count == 1)
+        #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
     }
 }

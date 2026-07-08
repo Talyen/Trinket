@@ -17,7 +17,7 @@ Game content catalogs — heroes, pets, enemies, abilities, items, stages, homes
 | `ContentManifest/stages.tsv` | `GameContentChapters.generated.swift`, `GameContentEncounterArt.generated.swift` |
 | `ContentManifest/item_bases.tsv` | `GameContentItemBases.generated.swift` |
 | `ContentManifest/affixes.tsv` | `ItemAffixCatalog.generated.swift` |
-| `ContentManifest/homestead_nodes.tsv` | `GameContentHomesteadNodes.generated.swift` |
+| `ContentManifest/homestead_nodes.tsv` | `GameContentHomestead.generated.swift` |
 | `ArtManifest/curated-assets.tsv` | `ArtCatalog.generated.swift` |
 | `MusicManifest/music.tsv` | `MusicCatalog.generated.swift` |
 | `SoundManifest/sfx.tsv` | `SFXCatalog.generated.swift` |

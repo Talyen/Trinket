@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Builds the per-combatant effect summaries used by the detail pane and
 /// the status line. Replaces the in-line `groupedEffectSummaries` function

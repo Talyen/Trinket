@@ -1,9 +1,11 @@
-import XCTest
+import Testing
+import TrinketTestSupport
 import BattleEngine
 import TrinketCore
 import TrinketContent
 
-final class EffectTickEngineTests: XCTestCase {
+@Suite
+struct EffectTickEngineTests {
     private func makeContext(
         heroHP: Int = 50,
         enemyHP: Int = 50,
@@ -31,7 +33,7 @@ final class EffectTickEngineTests: XCTestCase {
         )
     }
 
-    func testDoTTickPreservesShieldDepletionThroughTickAll() {
+    @Test func doTTickPreservesShieldDepletionThroughTickAll() {
         let shield = ActiveEffect(
             id: 1,
             effect: .shield(.block, 5, 5),
@@ -53,11 +55,11 @@ final class EffectTickEngineTests: XCTestCase {
             guard case let .shield(_, buffer, _) = activeEffect.effect else { return nil }
             return buffer
         }
-        XCTAssertEqual(shields, [3], "Burn tick should erode the shield buffer before HP damage")
-        XCTAssertEqual(context.roster.health(for: enemy), 50)
+        #expect(shields == [3], "Burn tick should erode the shield buffer before HP damage")
+        #expect(context.roster.health(for: enemy) == 50)
     }
 
-    func testDoTTickPreservesDeathsDoorThroughTickAll() {
+    @Test func doTTickPreservesDeathsDoorThroughTickAll() {
         let burn = ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)
         var context = makeContext(heroHP: 1, enemyEffects: [])
         let hero = context.roster.hero.combatant
@@ -70,9 +72,9 @@ final class EffectTickEngineTests: XCTestCase {
         )
         context.roster.setActiveEffects(result.updated, for: hero)
 
-        XCTAssertEqual(context.roster.health(for: hero), 1)
-        XCTAssertTrue(context.roster.isDeathsDoorActive(for: hero))
-        XCTAssertTrue(
+        #expect(context.roster.health(for: hero) == 1)
+        #expect(context.roster.isDeathsDoorActive(for: hero))
+        #expect(
             context.roster.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
             "Death's Door inserted during DoT damage should survive effect-tick write-back"
         )

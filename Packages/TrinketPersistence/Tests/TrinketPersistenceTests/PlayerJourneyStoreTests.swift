@@ -1,40 +1,34 @@
-import XCTest
+import Testing
 import TrinketContent
 @testable import TrinketPersistence
 
-@MainActor
-final class PlayerJourneyStoreTests: XCTestCase {
-    private var directoryURL: URL!
+@Suite @MainActor
+final class PlayerJourneyStoreTests {
+    let context: PersistenceTestContext
 
-    override func setUp() async throws {
-        try await super.setUp()
-        directoryURL = try SaveTestSupport.makeTempDirectory(prefix: "PlayerJourneyStoreTests")
+    init() throws {
+        context = try PersistenceTestContext()
     }
 
-    override func tearDown() async throws {
-        SaveTestSupport.removeTempDirectory(directoryURL)
-        try await super.tearDown()
-    }
-
-    func testCompleteStageWriteThroughToSaveStore() throws {
-        let journeyStore = PlayerJourneyStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func completeStageWriteThroughToSaveStore() throws {
+        let journeyStore = PlayerJourneyStore(saveStore: try context.makeSaveStore())
+        let stage = try #require(GameContent.chapters[0].stages.first)
 
         journeyStore.complete(stage, in: GameContent.chapters)
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertEqual(reloaded.journey.activeStageID, "chapter-1-stage-2")
-        XCTAssertTrue(reloaded.journey.completedStageIDs.contains(stage.id))
+        let reloaded = try context.makeSaveStore()
+        #expect(reloaded.journey.activeStageID == "chapter-1-stage-2")
+        #expect(reloaded.journey.completedStageIDs.contains(stage.id))
     }
 
-    func testMarkRewardsClaimedWriteThroughToSaveStore() throws {
-        let journeyStore = PlayerJourneyStore(saveStore: SaveTestSupport.makeSaveStore(directoryURL: directoryURL))
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first)
+    @Test func markRewardsClaimedWriteThroughToSaveStore() throws {
+        let journeyStore = PlayerJourneyStore(saveStore: try context.makeSaveStore())
+        let stage = try #require(GameContent.chapters[0].stages.first)
         journeyStore.complete(stage, in: GameContent.chapters)
 
         journeyStore.markRewardsClaimed(for: stage)
 
-        let reloaded = SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        XCTAssertTrue(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
+        let reloaded = try context.makeSaveStore()
+        #expect(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
     }
 }

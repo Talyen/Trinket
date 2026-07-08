@@ -1,10 +1,10 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Healing and leech rules.
 package enum HealingEngine {
-    public static func resolveHeal(
+    static func resolveHeal(
         _ request: HealRequest,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
@@ -48,7 +48,7 @@ package enum HealingEngine {
         return CombatOutcome(healthDelta: restored, events: events, flags: [])
     }
 
-    public static func leechFromDamage(
+    static func leechFromDamage(
         _ damage: Int,
         sourceActorID: String,
         in context: inout BattleEngineContext

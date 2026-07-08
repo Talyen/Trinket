@@ -13,7 +13,7 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 ### Navigation & modal hygiene
 
-- `NavigationStack` within each tab; `TabView` is top-level only (see [AppleNativeGuidelines.md](file:///Users/ryanmcintire/Documents/Trinket/Docs/Design/AppleNativeGuidelines.md))
+- `NavigationStack` within each tab; `TabView` is top-level only (see [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md))
 - Every sheet, popover, and full-screen cover must have a clear dismiss path:
   - `toolbar` dismiss button or swipe-down for sheets
   - `Environment(\.dismiss)` for programmatic dismissal
@@ -43,7 +43,7 @@ Goal: Find bugs that types miss — broken navigation, stuck states, missing tap
 
 - Hover tooltips (if present on iPad via cursor): must show/hide cleanly; must not block taps on underlying controls
 - Homestead node tint presentation lives in `Trinket/Models/Homestead.swift` — verify tint changes are animated and readable at all Dynamic Type sizes
-- No simulated glass or ad-hoc `.buttonStyle`, materials, or capsules without `// UIStyleCheck: allow - <reason>` (enforced by [check-ui-style.sh](file:///Users/ryanmcintire/Documents/Trinket/Scripts/check-ui-style.sh), see [AGENTS.md](file:///Users/ryanmcintire/Documents/Trinket/AGENTS.md))
+- No simulated glass or ad-hoc `.buttonStyle`, materials, or capsules without `// UIStyleCheck: allow - <reason>` (enforced by [check-ui-style.sh](../../Scripts/check-ui-style.sh), see [AGENTS.md](../../AGENTS.md))
 - Use `.controlSize`, `.buttonBorderShape`, `Label`, and semantic styles from `TrinketDesignSystem` first
 
 ### Accessibility (VoiceOver, Dynamic Type, Reduce Motion)

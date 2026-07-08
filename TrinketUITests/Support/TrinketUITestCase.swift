@@ -8,7 +8,15 @@ enum TestLaunchArg {
     static let resetState = "-reset-state"
     static let seedTestProgress = "-seed-test-progress"
     static let disableCloudSync = "-disable-cloud-sync"
-    static let testLaunchArgs = [resetState, seedTestProgress, disableCloudSync, "-battle-tick-interval", "0.8"]
+    static let testLaunchArgs = [
+        resetState,
+        seedTestProgress,
+        disableCloudSync,
+        "-disable-audio",
+        "-persist-save-immediately",
+        "-battle-tick-interval",
+        "0.8"
+    ]
     static func screen(_ screen: String) -> [String] {
         ["-launch-screen", screen]
     }
@@ -39,6 +47,16 @@ enum TestLaunchArg {
             args += ["-battle-tick-interval", "0.01"]
         }
         return args
+    }
+
+    static func replacingBattleTickInterval(_ interval: String, in args: [String]) -> [String] {
+        var result = args
+        if let index = result.firstIndex(of: "-battle-tick-interval"), index + 1 < result.count {
+            result[index + 1] = interval
+        } else {
+            result += ["-battle-tick-interval", interval]
+        }
+        return result
     }
 }
 
@@ -133,6 +151,14 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
+    func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
+        do {
+            try app.performAccessibilityAudit()
+        } catch {
+            fail("Accessibility audit failed: \(error)", file: file, line: line)
+        }
+    }
+
     func assertExistsAfterScroll(_ identifier: String, maxAttempts: Int = 6, file: StaticString = #file, line: UInt = #line) {
         let element = app.descendants(matching: .any)[identifier]
         scrollUntilVisible(element, swipingUp: true, maxAttempts: maxAttempts, file: file, line: line)
@@ -144,7 +170,7 @@ class TrinketUITestCase: XCTestCase {
 
     func goBack() {
         let navBackButton = app.navigationBars.buttons.element(boundBy: 0)
-        guard navBackButton.waitForExistence(timeout: 5) else { return }
+        guard navBackButton.waitForExistence(timeout: 2) else { return }
         if navBackButton.isHittable {
             navBackButton.tap()
         } else {

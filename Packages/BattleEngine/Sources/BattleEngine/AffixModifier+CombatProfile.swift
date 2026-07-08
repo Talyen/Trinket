@@ -1,9 +1,9 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 public extension AffixModifier {
-    public func apply(to profile: inout CombatModifierProfile) {
+    func apply(to profile: inout CombatModifierProfile) {
         if applyPrimaryStat(to: &profile) { return }
         if applyMaximumStat(to: &profile) { return }
         if applyCombatBonus(to: &profile) { return }

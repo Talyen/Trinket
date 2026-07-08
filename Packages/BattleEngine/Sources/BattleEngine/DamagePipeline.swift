@@ -1,10 +1,10 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Execution phase for a damage pipeline step. Future RNG mechanics (crit,
 /// block) register in `.stochastic`; leech and CC buildup stay in `.post`.
-package enum DamagePhase: Sendable {
+package enum DamagePhase {
     /// Rolls battle RNG and may short-circuit the pipeline (dodge today).
     case stochastic
     /// Deterministic damage math and HP subtraction.
@@ -15,7 +15,7 @@ package enum DamagePhase: Sendable {
 
 /// Ordered registry and runner for damage resolution steps.
 package enum DamagePipeline {
-    package struct Step: Sendable {
+    package struct Step {
         package let name: String
         package let phase: DamagePhase
         let apply: @Sendable (inout DamageResolutionState, inout BattleEngineContext) -> Void

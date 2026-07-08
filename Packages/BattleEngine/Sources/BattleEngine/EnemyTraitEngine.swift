@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Passive enemy trait hooks that run during battle ticks and damage resolution.
 package enum EnemyTraitEngine {

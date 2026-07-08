@@ -1,74 +1,74 @@
-import Foundation
 import BattleEngine
+import Foundation
 
-public struct BalanceRoleKPI: Equatable, Sendable, Codable {
-    public let rowCount: Int
-    public let inBandCount: Int
-    public let perfectWinCount: Int
-    public let durationInBandCount: Int
+struct BalanceRoleKPI: Equatable, Codable {
+    let rowCount: Int
+    let inBandCount: Int
+    let perfectWinCount: Int
+    let durationInBandCount: Int
 
-    public var inBandRate: Double {
+    var inBandRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(inBandCount) / Double(rowCount)
     }
 
-    public var perfectWinRate: Double {
+    var perfectWinRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(perfectWinCount) / Double(rowCount)
     }
 
-    public var durationInBandRate: Double {
+    var durationInBandRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(durationInBandCount) / Double(rowCount)
     }
 }
 
-public struct BalanceTierKPI: Equatable, Sendable, Codable {
-    public let rowCount: Int
-    public let inBandCount: Int
-    public let perfectWinCount: Int
-    public let durationInBandCount: Int
-    public let byRole: [String: BalanceRoleKPI]
+struct BalanceTierKPI: Equatable, Codable {
+    let rowCount: Int
+    let inBandCount: Int
+    let perfectWinCount: Int
+    let durationInBandCount: Int
+    let byRole: [String: BalanceRoleKPI]
 
-    public var inBandRate: Double {
+    var inBandRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(inBandCount) / Double(rowCount)
     }
 
-    public var perfectWinRate: Double {
+    var perfectWinRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(perfectWinCount) / Double(rowCount)
     }
 
-    public var durationInBandRate: Double {
+    var durationInBandRate: Double {
         guard rowCount > 0 else { return 0 }
         return Double(durationInBandCount) / Double(rowCount)
     }
 }
 
-public struct BalanceSweepKPIs: Equatable, Sendable, Codable {
-    public let totalMatchupRows: Int
-    public let inBandCount: Int
-    public let perfectWinCount: Int
-    public let durationInBandCount: Int
-    public let byTier: [String: BalanceTierKPI]
+struct BalanceSweepKPIs: Equatable, Codable {
+    let totalMatchupRows: Int
+    let inBandCount: Int
+    let perfectWinCount: Int
+    let durationInBandCount: Int
+    let byTier: [String: BalanceTierKPI]
 
-    public var inBandRate: Double {
+    var inBandRate: Double {
         guard totalMatchupRows > 0 else { return 0 }
         return Double(inBandCount) / Double(totalMatchupRows)
     }
 
-    public var perfectWinRate: Double {
+    var perfectWinRate: Double {
         guard totalMatchupRows > 0 else { return 0 }
         return Double(perfectWinCount) / Double(totalMatchupRows)
     }
 
-    public var durationInBandRate: Double {
+    var durationInBandRate: Double {
         guard totalMatchupRows > 0 else { return 0 }
         return Double(durationInBandCount) / Double(totalMatchupRows)
     }
 
-    public static func compute(
+    static func compute(
         from rows: [MatchupSweepRow],
         thresholds: AnomalyDetector.Thresholds = .default
     ) -> BalanceSweepKPIs {

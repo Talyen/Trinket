@@ -30,14 +30,14 @@ public struct ItemAffix: Identifiable, Equatable, Hashable, Sendable {
 }
 
 public extension ItemAffix {
-    public static let placeholder = ItemAffix(
+    static let placeholder = ItemAffix(
         id: "placeholder",
         title: "Placeholder",
         description: "No effect yet.",
         keywords: []
     )
 
-    public var sortedKeywords: [Keyword] {
+    var sortedKeywords: [Keyword] {
         keywords.sorted { $0.rawValue < $1.rawValue }
     }
 }

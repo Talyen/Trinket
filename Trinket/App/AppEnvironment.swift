@@ -10,16 +10,16 @@ struct AppEnvironment {
     let seedTestProgress: Bool
     let disableCloudSync: Bool
     let disableAudio: Bool
+    let persistSaveImmediately: Bool
     let appearanceOverride: TrinketDesign.AppAppearance?
     let completedStageIDs: [String]
-    /// Scroll target ID for the Play map (`ScrollViewReader` row id), used by UI tests.
+    /// Scroll target ID for the Play map row id, used by UI tests.
     let mapScrollTarget: String?
     /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
     let battleTickInterval: TimeInterval?
     let storeName: String?
 
     static let defaultBattleTickInterval: TimeInterval = 0.8
-    static let testBattleTickInterval: TimeInterval = 0.05
 
     private init(
         launchTab: AppTab?,
@@ -28,6 +28,7 @@ struct AppEnvironment {
         seedTestProgress: Bool,
         disableCloudSync: Bool,
         disableAudio: Bool,
+        persistSaveImmediately: Bool,
         appearanceOverride: TrinketDesign.AppAppearance?,
         completedStageIDs: [String],
         mapScrollTarget: String?,
@@ -40,6 +41,7 @@ struct AppEnvironment {
         self.seedTestProgress = seedTestProgress
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
+        self.persistSaveImmediately = persistSaveImmediately
         self.appearanceOverride = appearanceOverride
         self.completedStageIDs = completedStageIDs
         self.mapScrollTarget = mapScrollTarget
@@ -55,26 +57,18 @@ struct AppEnvironment {
     }
 
     static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
-        let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
-
-        let disableCloudSync: Bool
-        #if targetEnvironment(simulator)
-        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests || !arguments.contains("-enable-cloud-sync")
-        #else
-        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests
-        #endif
-
-        return AppEnvironment(
+        AppEnvironment(
             launchTab: launchTab(from: arguments),
             launchScreen: launchScreen(from: arguments),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
-            disableCloudSync: disableCloudSync,
-            disableAudio: arguments.contains("-disable-audio") || isRunningTests,
+            disableCloudSync: arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state"),
+            disableAudio: arguments.contains("-disable-audio"),
+            persistSaveImmediately: arguments.contains("-persist-save-immediately"),
             appearanceOverride: appearanceOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
-            battleTickInterval: battleTickInterval(from: arguments, isRunningTests: isRunningTests),
+            battleTickInterval: battleTickInterval(from: arguments),
             storeName: arguments.firstIndex(of: "-store-name").flatMap { idx in
                 arguments.indices.contains(idx + 1) ? arguments[idx + 1] : nil
             }
@@ -111,13 +105,10 @@ struct AppEnvironment {
     }
 
     private static func appearanceOverride(from arguments: [String]) -> TrinketDesign.AppAppearance? {
-        for flag in ["-appearance", "-theme"] {
-            guard let idx = arguments.firstIndex(of: flag),
-                  arguments.indices.contains(idx + 1)
-            else { continue }
-            return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
-        }
-        return nil
+        guard let idx = arguments.firstIndex(of: "-appearance"),
+              arguments.indices.contains(idx + 1)
+        else { return nil }
+        return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {
@@ -138,19 +129,12 @@ struct AppEnvironment {
         return target.isEmpty ? nil : target
     }
 
-    private static func battleTickInterval(
-        from arguments: [String],
-        isRunningTests: Bool
-    ) -> TimeInterval? {
-        if let idx = arguments.lastIndex(of: "-battle-tick-interval"),
-           arguments.indices.contains(idx + 1),
-           let value = TimeInterval(arguments[idx + 1]),
-           value > 0 {
-            return value
-        }
-        if isRunningTests {
-            return testBattleTickInterval
-        }
-        return nil
+    private static func battleTickInterval(from arguments: [String]) -> TimeInterval? {
+        guard let idx = arguments.lastIndex(of: "-battle-tick-interval"),
+              arguments.indices.contains(idx + 1),
+              let value = TimeInterval(arguments[idx + 1]),
+              value > 0
+        else { return nil }
+        return value
     }
 }

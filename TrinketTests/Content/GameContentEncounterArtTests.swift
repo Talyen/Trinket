@@ -1,27 +1,27 @@
+import Testing
 import TrinketContent
-import XCTest
 @testable import Trinket
 
-final class GameContentEncounterArtTests: XCTestCase {
-    func testMappedEventStagesResolveEncounterArt() throws {
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-2" })
+struct GameContentEncounterArtTests {
+    @Test func mappedEventStagesResolveEncounterArt() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-2" })
 
-        XCTAssertEqual(GameContent.encounterArtID(for: stage), "mystery-sunlight-breaks-canopy")
-        XCTAssertEqual(GameContent.encounterArtTitle(for: stage), "Sunlit Trail")
-        XCTAssertNotNil(stage.encounterArtReference)
-        XCTAssertEqual(stage.encounterSubjectName, "Sunlit Trail")
+        #expect(GameContent.encounterArtID(for: stage) == "mystery-sunlight-breaks-canopy")
+        #expect(GameContent.encounterArtTitle(for: stage) == "Sunlit Trail")
+        _ = try #require(stage.encounterArtReference)
+        #expect(stage.encounterSubjectName == "Sunlit Trail")
     }
 
-    func testUnmappedBattleStageUsesEnemyArt() throws {
-        let stage = try XCTUnwrap(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
+    @Test func unmappedBattleStageUsesEnemyArt() throws {
+        let stage = try #require(GameContent.chapters[0].stages.first { $0.id == "chapter-1-stage-1" })
 
-        XCTAssertNil(GameContent.encounterArtID(for: stage))
-        XCTAssertNil(stage.encounterArtReference)
-        XCTAssertNotNil(stage.encounterCombatantArtReference)
-        XCTAssertEqual(stage.encounterSubjectName, "Skeleton")
+        #expect(GameContent.encounterArtID(for: stage) == nil)
+        #expect(stage.encounterArtReference == nil)
+        _ = try #require(stage.encounterCombatantArtReference)
+        #expect(stage.encounterSubjectName == "Skeleton")
     }
 
-    func testShopStageUsesMerchantFallbackTitle() {
+    @Test func shopStageUsesMerchantFallbackTitle() {
         let stage = Stage(
             id: "test-shop",
             chapterID: "chapter-1",
@@ -32,7 +32,7 @@ final class GameContentEncounterArtTests: XCTestCase {
             rewards: .empty
         )
 
-        XCTAssertNil(GameContent.encounterArtID(for: stage))
-        XCTAssertEqual(stage.encounterSubjectName, "Merchant")
+        #expect(GameContent.encounterArtID(for: stage) == nil)
+        #expect(stage.encounterSubjectName == "Merchant")
     }
 }

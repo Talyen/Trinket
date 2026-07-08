@@ -100,7 +100,6 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
             return "Hanging by a thread after a near-fatal blow. Heal soon or the next fatal hit will end them."
         }
     }
-
 }
 
 public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Sendable {
@@ -156,7 +155,7 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable,
 }
 
 public extension AbilityTier {
-    public var symbolName: String {
+    var symbolName: String {
         switch self {
         case .basic:
             return "circle.fill"
@@ -167,7 +166,7 @@ public extension AbilityTier {
         }
     }
 
-    public var cadenceLabel: String {
+    var cadenceLabel: String {
         switch self {
         case .basic:
             return "Every turn"

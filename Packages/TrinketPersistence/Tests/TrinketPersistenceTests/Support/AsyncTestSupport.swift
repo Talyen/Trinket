@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 
 @MainActor
 enum AsyncTestSupport {
@@ -16,6 +16,6 @@ enum AsyncTestSupport {
             }
             try? await Task.sleep(for: pollInterval)
         }
-        XCTFail("Timed out waiting for \(description)")
+        Issue.record("Timed out waiting for \(description)")
     }
 }

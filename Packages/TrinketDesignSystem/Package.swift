@@ -19,7 +19,10 @@ let package = Package(
     targets: [
         .target(
             name: "TrinketDesignSystem",
-            dependencies: ["TrinketCore"]
+            dependencies: ["TrinketCore"],
+            resources: [
+                .process("Resources"),
+            ]
         ),
         .testTarget(
             name: "TrinketDesignSystemTests",

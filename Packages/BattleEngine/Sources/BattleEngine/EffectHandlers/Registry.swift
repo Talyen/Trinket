@@ -1,6 +1,6 @@
 import Foundation
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Lookup table of every `BattleEffectHandler`, keyed by `EffectKind`.
 /// `performAction` resolves each targeted effect through this table instead

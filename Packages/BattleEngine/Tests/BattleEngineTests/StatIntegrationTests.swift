@@ -1,4 +1,4 @@
-import XCTest
+import Testing
 import BattleEngine
 import TrinketCore
 import TrinketContent
@@ -7,7 +7,8 @@ import TrinketContent
 /// Pure formula coverage lives in `TrinketCoreTests/PrimaryStatsRulesTests`.
 /// Runtime health, interval, and heal math live in `CombatantRuntimeTests`.
 /// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
-final class StatIntegrationTests: XCTestCase {
+@Suite
+struct StatIntegrationTests {
     private struct DirectDamageCase {
         let ability: Ability
         let stats: PrimaryStats
@@ -17,7 +18,7 @@ final class StatIntegrationTests: XCTestCase {
 
     // MARK: - Keyword damage
 
-    func testStatBonusAppliedToDirectDamageKeywords() {
+    @Test func statBonusAppliedToDirectDamageKeywords() throws {
         let cases: [DirectDamageCase] = [
             DirectDamageCase(ability: .slash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .physical),
             DirectDamageCase(ability: .bash, stats: PrimaryStats(strength: 10), expectedAmount: 3, keyword: .stun),
@@ -34,17 +35,19 @@ final class StatIntegrationTests: XCTestCase {
             var battle = BattleTestFixtures.statBattle(hero: hero)
 
             let step = BattleTestFixtures.advanceUntilActorActs(hero.id, on: &battle)
-            let event = step.flatMap(BattleTestFixtures.firstAbilityEvent(in:))
+            let event = try #require(
+                step.flatMap(BattleTestFixtures.firstAbilityEvent(in:)),
+                "Expected ability event for \(testCase.ability.name)"
+            )
 
-            XCTAssertNotNil(event, "Expected ability event for \(testCase.ability.name)")
-            XCTAssertEqual(event?.amount, testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
-            XCTAssertEqual(event?.keyword, testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
+            #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
+            #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
         }
     }
 
     // MARK: - Toughness
 
-    func testToughnessMitigationReducesIncomingDamage() {
+    @Test func toughnessMitigationReducesIncomingDamage() {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(toughness: 50),
@@ -72,11 +75,11 @@ final class StatIntegrationTests: XCTestCase {
         let event = BattleTestFixtures.firstAbilityEvent(in: step)
 
         let expectedTaken = Int(ceil(Double(1) * (1 - 0.5)))
-        XCTAssertEqual(event?.amount, expectedTaken)
-        XCTAssertEqual(battle.health(of: battle.hero), initial - expectedTaken)
+        #expect(event?.amount == expectedTaken)
+        #expect(battle.health(of: battle.hero) == initial - expectedTaken)
     }
 
-    func testToughnessReducesFireballAndBurnDamage() {
+    @Test func toughnessReducesFireballAndBurnDamage() {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(toughness: 50),
@@ -98,12 +101,12 @@ final class StatIntegrationTests: XCTestCase {
         _ = battle.advanceOneStep() // tick 1: fireball direct hit
         _ = battle.advanceOneStep() // tick 2: burn tick
 
-        XCTAssertEqual(initial - battle.health(of: battle.hero), 3)
+        #expect(initial - battle.health(of: battle.hero) == 3)
     }
 
     // MARK: - Wisdom
 
-    func testWisdomIncreasesHealingAmount() {
+    @Test func wisdomIncreasesHealingAmount() {
         let hero = BattleTestFixtures.statHero(
             abilities: [.heal],
             stats: PrimaryStats(wisdom: 10),
@@ -128,17 +131,17 @@ final class StatIntegrationTests: XCTestCase {
 
         BattleTestFixtures.advanceTicks(5, on: &battle)
         let beforeHeal = battle.health(of: battle.hero)
-        XCTAssertLessThanOrEqual(beforeHeal, 96)
+        #expect(beforeHeal <= 96)
 
         _ = battle.advanceOneStep() // tick 6: hero heals for 3 + 2 wisdom
 
-        XCTAssertEqual(battle.health(of: battle.hero), 100)
-        XCTAssertGreaterThan(100 - beforeHeal, 3)
+        #expect(battle.health(of: battle.hero) == 100)
+        #expect(100 - beforeHeal > 3)
     }
 
     // MARK: - Agility control meter
 
-    func testAgilityRaisesControlMeterThresholdInBattle() {
+    @Test func agilityRaisesControlMeterThresholdInBattle() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(agility: 20, toughness: 1),
@@ -168,7 +171,7 @@ final class StatIntegrationTests: XCTestCase {
             }
         }
 
-        XCTAssertNotNil(buildupValues)
-        XCTAssertEqual(buildupValues?.threshold, hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
+        let values = try #require(buildupValues)
+        #expect(values.threshold == hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
     }
 }

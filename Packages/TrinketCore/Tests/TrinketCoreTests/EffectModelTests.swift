@@ -1,96 +1,97 @@
 import TrinketCore
-import XCTest
+import Testing
 
-final class EffectModelTests: XCTestCase {
-    func testRepresentativeEffectSummariesAndProperties() {
-        XCTAssertEqual(Effect.burn(4).summary, "applies Burning")
-        XCTAssertEqual(Effect.burn(4).potencyAfterTick(), 2)
-        XCTAssertTrue(Effect.bleed(3).isBleed)
-        XCTAssertEqual(Effect.instantHeal(.health, 5).summary, "restore 5 Health")
-        XCTAssertTrue(Effect.instantHeal(.health, 5).isInstant)
-        XCTAssertEqual(Effect.cleanse(nil).summary, "cleanse all debuffs")
+@Suite
+struct EffectModelTests {
+    @Test func representativeEffectSummariesAndProperties() {
+        #expect(Effect.burn(4).summary == "applies Burning")
+        #expect(Effect.burn(4).potencyAfterTick() == 2)
+        #expect(Effect.bleed(3).isBleed)
+        #expect(Effect.instantHeal(.health, 5).summary == "restore 5 Health")
+        #expect(Effect.instantHeal(.health, 5).isInstant)
+        #expect(Effect.cleanse(nil).summary == "cleanse all debuffs")
     }
 
-    func testActiveEffectTracksRemainingTicks() {
+    @Test func activeEffectTracksRemainingTicks() {
         let effect = Effect.bleed(3)
         var active = ActiveEffect(id: 1, effect: effect, remainingTicks: 3)
-        XCTAssertEqual(active.keyword, .bleed)
-        XCTAssertEqual(active.remainingTicks, 3)
+        #expect(active.keyword == .bleed)
+        #expect(active.remainingTicks == 3)
         active.remainingTicks -= 1
-        XCTAssertEqual(active.remainingTicks, 2)
+        #expect(active.remainingTicks == 2)
     }
 
-    func testEffectKindMatchesCase() {
-        XCTAssertEqual(Effect.burn(3).kind, .burn)
-        XCTAssertEqual(Effect.poison(2).kind, .poison)
-        XCTAssertEqual(Effect.bleed(1).kind, .bleed)
-        XCTAssertEqual(Effect.controlMeter(.stun, 1, 10).kind, .controlMeter)
-        XCTAssertEqual(Effect.shield(.block, 1, 6).kind, .shield)
-        XCTAssertEqual(Effect.mitigation(.armor, 0.25, 6).kind, .mitigation)
-        XCTAssertEqual(Effect.instantHeal(.health, 1).kind, .instantHeal)
-        XCTAssertEqual(Effect.leech(.leech, 0.1, 6).kind, .leech)
-        XCTAssertEqual(Effect.resourceGain(.gold, 1).kind, .resourceGain)
-        XCTAssertEqual(Effect.resourceGain(.mana, 1).kind, .resourceGain)
-        XCTAssertEqual(Effect.cleanse(.poison).kind, .cleanse)
-        XCTAssertEqual(Effect.cleanse(nil).kind, .cleanse)
-        XCTAssertEqual(Effect.cleanseRandom.kind, .cleanseRandom)
-        XCTAssertEqual(Effect.purge(.block).kind, .purge)
-        XCTAssertEqual(Effect.purge(nil).kind, .purge)
-        XCTAssertEqual(Effect.purgeRandom.kind, .purgeRandom)
-        XCTAssertEqual(Effect.halveMitigation(.armor).kind, .halveMitigation)
-        XCTAssertEqual(Effect.haste(4).kind, .haste)
-        XCTAssertEqual(Effect.thorns(.physical, 1, 6).kind, .thorns)
-        XCTAssertEqual(Effect.marked(2, 6).kind, .marked)
-        XCTAssertEqual(Effect.criticalChanceBonus(0.1, 6).kind, .criticalChanceBonus)
-        XCTAssertEqual(Effect.restoreManaOnHit(1, 6).kind, .restoreManaOnHit)
+    @Test func effectKindMatchesCase() {
+        #expect(Effect.burn(3).kind == .burn)
+        #expect(Effect.poison(2).kind == .poison)
+        #expect(Effect.bleed(1).kind == .bleed)
+        #expect(Effect.controlMeter(.stun, 1, 10).kind == .controlMeter)
+        #expect(Effect.shield(.block, 1, 6).kind == .shield)
+        #expect(Effect.mitigation(.armor, 0.25, 6).kind == .mitigation)
+        #expect(Effect.instantHeal(.health, 1).kind == .instantHeal)
+        #expect(Effect.leech(.leech, 0.1, 6).kind == .leech)
+        #expect(Effect.resourceGain(.gold, 1).kind == .resourceGain)
+        #expect(Effect.resourceGain(.mana, 1).kind == .resourceGain)
+        #expect(Effect.cleanse(.poison).kind == .cleanse)
+        #expect(Effect.cleanse(nil).kind == .cleanse)
+        #expect(Effect.cleanseRandom.kind == .cleanseRandom)
+        #expect(Effect.purge(.block).kind == .purge)
+        #expect(Effect.purge(nil).kind == .purge)
+        #expect(Effect.purgeRandom.kind == .purgeRandom)
+        #expect(Effect.halveMitigation(.armor).kind == .halveMitigation)
+        #expect(Effect.haste(4).kind == .haste)
+        #expect(Effect.thorns(.physical, 1, 6).kind == .thorns)
+        #expect(Effect.marked(2, 6).kind == .marked)
+        #expect(Effect.criticalChanceBonus(0.1, 6).kind == .criticalChanceBonus)
+        #expect(Effect.restoreManaOnHit(1, 6).kind == .restoreManaOnHit)
     }
 
-    func testEffectKindIsUniquePerCase() {
-        XCTAssertEqual(Set(EffectKind.allCases).count, EffectKind.allCases.count)
+    @Test func effectKindIsUniquePerCase() {
+        #expect(Set(EffectKind.allCases).count == EffectKind.allCases.count)
     }
 
-    func testIsRemovableDebuffMatchesPriorDefinition() {
-        XCTAssertTrue(Effect.burn(1).isRemovableDebuff)
-        XCTAssertTrue(Effect.poison(1).isRemovableDebuff)
-        XCTAssertTrue(Effect.bleed(1).isRemovableDebuff)
-        XCTAssertTrue(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
-        XCTAssertFalse(Effect.shield(.block, 1, 6).isRemovableDebuff)
-        XCTAssertFalse(Effect.mitigation(.armor, 0.25, 6).isRemovableDebuff)
-        XCTAssertFalse(Effect.leech(.leech, 0.1, 6).isRemovableDebuff)
-        XCTAssertFalse(Effect.cleanse(.poison).isRemovableDebuff)
-        XCTAssertFalse(Effect.cleanse(nil).isRemovableDebuff)
-        XCTAssertFalse(Effect.instantHeal(.health, 1).isRemovableDebuff)
-        XCTAssertFalse(Effect.resourceGain(.gold, 1).isRemovableDebuff)
-        XCTAssertFalse(Effect.cleanseRandom.isRemovableDebuff)
-        XCTAssertFalse(Effect.purge(.block).isRemovableDebuff)
-        XCTAssertFalse(Effect.purgeRandom.isRemovableDebuff)
-        XCTAssertFalse(Effect.halveMitigation(.armor).isRemovableDebuff)
+    @Test func isRemovableDebuffMatchesPriorDefinition() {
+        #expect(Effect.burn(1).isRemovableDebuff)
+        #expect(Effect.poison(1).isRemovableDebuff)
+        #expect(Effect.bleed(1).isRemovableDebuff)
+        #expect(Effect.controlMeter(.stun, 1, 10).isRemovableDebuff)
+        #expect(!(Effect.shield(.block, 1, 6)).isRemovableDebuff)
+        #expect(!(Effect.mitigation(.armor, 0.25, 6)).isRemovableDebuff)
+        #expect(!(Effect.leech(.leech, 0.1, 6)).isRemovableDebuff)
+        #expect(!(Effect.cleanse(.poison)).isRemovableDebuff)
+        #expect(!(Effect.cleanse(nil)).isRemovableDebuff)
+        #expect(!(Effect.instantHeal(.health, 1)).isRemovableDebuff)
+        #expect(!(Effect.resourceGain(.gold, 1)).isRemovableDebuff)
+        #expect(!(Effect.cleanseRandom.isRemovableDebuff))
+        #expect(!(Effect.purge(.block)).isRemovableDebuff)
+        #expect(!(Effect.purgeRandom.isRemovableDebuff))
+        #expect(!(Effect.halveMitigation(.armor)).isRemovableDebuff)
     }
 
-    func testIsRemovableBuffMatchesDefinition() {
-        XCTAssertTrue(Effect.shield(.block, 1, 6).isRemovableBuff)
-        XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isRemovableBuff)
-        XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
-        XCTAssertFalse(Effect.burn(1).isRemovableBuff)
-        XCTAssertFalse(Effect.poison(1).isRemovableBuff)
-        XCTAssertFalse(Effect.controlMeter(.stun, 1, 10).isRemovableBuff)
+    @Test func isRemovableBuffMatchesDefinition() {
+        #expect(Effect.shield(.block, 1, 6).isRemovableBuff)
+        #expect(Effect.mitigation(.armor, 0.25, 6).isRemovableBuff)
+        #expect(Effect.leech(.leech, 0.1, 6).isRemovableBuff)
+        #expect(!(Effect.burn(1)).isRemovableBuff)
+        #expect(!(Effect.poison(1)).isRemovableBuff)
+        #expect(!(Effect.controlMeter(.stun, 1, 10)).isRemovableBuff)
     }
 
-    func testIsTickableMatchesPriorDefinition() {
-        XCTAssertTrue(Effect.burn(1).isTickable)
-        XCTAssertTrue(Effect.poison(1).isTickable)
-        XCTAssertTrue(Effect.bleed(1).isTickable)
-        XCTAssertTrue(Effect.controlMeter(.stun, 1, 10).isTickable)
-        XCTAssertTrue(Effect.shield(.block, 1, 6).isTickable)
-        XCTAssertTrue(Effect.mitigation(.armor, 0.25, 6).isTickable)
-        XCTAssertTrue(Effect.leech(.leech, 0.1, 6).isTickable)
-        XCTAssertFalse(Effect.instantHeal(.health, 1).isTickable)
-        XCTAssertFalse(Effect.resourceGain(.gold, 1).isTickable)
-        XCTAssertFalse(Effect.cleanse(.poison).isTickable)
-        XCTAssertFalse(Effect.cleanse(nil).isTickable)
-        XCTAssertFalse(Effect.cleanseRandom.isTickable)
-        XCTAssertFalse(Effect.purge(.block).isTickable)
-        XCTAssertFalse(Effect.purgeRandom.isTickable)
-        XCTAssertFalse(Effect.halveMitigation(.armor).isTickable)
+    @Test func isTickableMatchesPriorDefinition() {
+        #expect(Effect.burn(1).isTickable)
+        #expect(Effect.poison(1).isTickable)
+        #expect(Effect.bleed(1).isTickable)
+        #expect(Effect.controlMeter(.stun, 1, 10).isTickable)
+        #expect(Effect.shield(.block, 1, 6).isTickable)
+        #expect(Effect.mitigation(.armor, 0.25, 6).isTickable)
+        #expect(Effect.leech(.leech, 0.1, 6).isTickable)
+        #expect(!(Effect.instantHeal(.health, 1)).isTickable)
+        #expect(!(Effect.resourceGain(.gold, 1)).isTickable)
+        #expect(!(Effect.cleanse(.poison)).isTickable)
+        #expect(!(Effect.cleanse(nil)).isTickable)
+        #expect(!(Effect.cleanseRandom.isTickable))
+        #expect(!(Effect.purge(.block)).isTickable)
+        #expect(!(Effect.purgeRandom.isTickable))
+        #expect(!(Effect.halveMitigation(.armor)).isTickable)
     }
 }
