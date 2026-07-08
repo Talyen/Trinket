@@ -52,31 +52,31 @@ struct BattleCardGridLayoutTests {
         in containerSize: CGSize,
         fillsWidth: Bool = false,
         fillsHeight: Bool = false,
-        sourceLocation: SourceLocation = #sourceLocation
+        location: SourceLocation = #sourceLocation
     ) {
         let partyRowWidth = 2 * metrics.partySize.width + metrics.cardSpacing
         let gridHeight = metrics.enemySize.height + metrics.cardSpacing + metrics.partySize.height
         let innerWidth = containerSize.width - 2 * metrics.outerPadding
         let innerHeight = containerSize.height - 2 * metrics.outerPadding
 
-        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, sourceLocation: sourceLocation)
+        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, sourceLocation: location)
         #expect(
             abs(metrics.enemySize.width - metrics.enemySize.height) < 0.001,
-            sourceLocation: sourceLocation
+            sourceLocation: location
         )
         #expect(
             abs((metrics.partySize.width / metrics.partySize.height) - (3.0 / 4.0)) < 0.001,
-            sourceLocation: sourceLocation
+            sourceLocation: location
         )
-        #expect(partyRowWidth <= innerWidth + 0.001, sourceLocation: sourceLocation)
-        #expect(gridHeight <= innerHeight + 0.001, sourceLocation: sourceLocation)
+        #expect(partyRowWidth <= innerWidth + 0.001, sourceLocation: location)
+        #expect(gridHeight <= innerHeight + 0.001, sourceLocation: location)
 
         if fillsWidth {
-            #expect(abs(partyRowWidth - innerWidth) < 0.001, sourceLocation: sourceLocation)
+            #expect(abs(partyRowWidth - innerWidth) < 0.001, sourceLocation: location)
         }
 
         if fillsHeight {
-            #expect(abs(gridHeight - innerHeight) < 0.001, sourceLocation: sourceLocation)
+            #expect(abs(gridHeight - innerHeight) < 0.001, sourceLocation: location)
         }
     }
 }

@@ -187,17 +187,17 @@ final class AppStateTests {
         _ detail: CombatantDetailContext?,
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        sourceLocation: SourceLocation = #sourceLocation
+        location: SourceLocation = #sourceLocation
     ) {
         guard let detail else {
             Issue.record(
                 "Expected collection detail context",
-                sourceLocation: sourceLocation
+                sourceLocation: location
             )
             return
         }
 
-        #expect(detail.kind == kind, sourceLocation: sourceLocation)
-        #expect(detail.combatantID == combatantID, sourceLocation: sourceLocation)
+        #expect(detail.kind == kind, sourceLocation: location)
+        #expect(detail.combatantID == combatantID, sourceLocation: location)
     }
 }
