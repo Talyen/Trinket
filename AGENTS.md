@@ -37,17 +37,22 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 
 ### Style guardrails
 
-`./Scripts/check-ui-style.sh` flags:
+`./Scripts/check-ui-style.sh` flags raw `.regularMaterial` / `.thinMaterial` / `.ultraThinMaterial`, raw `.buttonStyle(.glass|glassProminent|bordered|borderedProminent)`, `.toggleStyle(.button)`, and fixed `.frame(width:)` / `.frame(height:)` inside text buttons. Bypass with `// UIStyleCheck: allow - <reason>` on the same or preceding line. Otherwise route reusable chrome through `Packages/TrinketDesignSystem/`. Prefer fixing SwiftLint violations over new `swiftlint:disable`. Major UI guidance: `Docs/Design/AppleNativeGuidelines.md`.
 
-- Raw materials: `.background` / `.fill` with `.regularMaterial`, `.thinMaterial`, or `.ultraThinMaterial`.
-- Raw button/toggle styles: `.buttonStyle(.glass)`, `.buttonStyle(.glassProminent)`, `.buttonStyle(.bordered)`, `.buttonStyle(.borderedProminent)`, `.toggleStyle(.button)`.
-- Fixed interactive dimensions inside buttons: `.frame(width:)` / `.frame(height:)` paired with text/fonts.
+### Module & hub boundaries
 
-Bypass with `// UIStyleCheck: allow - <reason>` on the same or preceding line. Otherwise route reusable chrome through `Packages/TrinketDesignSystem/`. Major UI guidance: `Docs/Design/AppleNativeGuidelines.md`.
+- **Packages** must not import the `Trinket` app. `TrinketDesignSystem` → `TrinketCore` only (not `BattleEngine` or `TrinketContent`).
+- **App layers:** `BattleShell/` ↛ `Features/`; `State/` ↛ feature views; `Models/` ↛ `State/` or `Features/`. Full graph: `Docs/Architecture.md`.
+- **Hub containment:** keep `BattleState` and `PlayerSaveStore` thin — put new logic in handlers/engines, `Player*Store` slices, or `BattleState+*.swift` / value-type models (Architecture “Extension policy”).
 
-### Module boundaries (one-liner)
+### Hard do-not-touch
 
-Packages must not import the `Trinket` app. `TrinketDesignSystem` → `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Full graph and app-layer import rules: `Docs/Architecture.md`.
+- Hand-edit `Generated/`, `.DerivedData/`, or `.tools/`
+- Edit processed `Trinket/Assets.xcassets` or `Trinket/Resources/Music` except via `./Scripts/generate.sh --assets`
+- Edit `CHANGELOG.md` per commit — `./Scripts/release.sh` owns it
+- Implement `Docs/Roadmap.md` (`R-###`) unless the user cites an entry
+- Treat `Docs/Audits/*Audit.md` as standing backlog, or append run results into an audit file
+- Drive-by refactors, unsolicited markdown, or scope beyond the asked task
 
 ## Task → Command Router
 
@@ -60,52 +65,57 @@ Packages must not import the `Trinket` app. `TrinketDesignSystem` → `TrinketCo
 | App orchestration (`AppState`, `BattleSession`, …) | `./Scripts/test.sh unit <Class>` |
 | Tab / screen UI | `./Scripts/test.sh ui Smoke<Area>Tests` |
 | Styling | `./Scripts/check-ui-style.sh` (+ smoke if UI changed) |
-| Pre-push | `./Scripts/ci-locally.sh` |
-| Pre-merge | `./Scripts/test-deploy.sh` |
+| Pre-push | `./Scripts/ci-locally.sh` (gate + unit + smoke) |
+| Pre-merge | `./Scripts/test-deploy.sh` (gate + unit + full UI) |
 | One-screen layout check | `./Scripts/build.sh` or `./Scripts/run-simulator.sh` |
 
 Fast iteration: `--no-build` after a fresh build; `./Scripts/test-iterate.sh <SmokeClass> [ExhaustiveClass]` for UI loops. Avoid `ci-locally.sh` / `test-deploy.sh` during active coding — prefer `build.sh` or filtered unit/smoke.
 
-**Toolchain note:** Local and CI expect **Xcode 26+**. Cloud or remote agents without that toolchain should still land correct source/docs changes; run generate/lint/boundary scripts when available, and treat `build.sh` / `test.sh` as mandatory when the simulator toolchain is present.
+### Toolchain ladder (cloud / no Xcode 26)
+
+Local and CI expect **Xcode 26+**. Without the simulator toolchain:
+
+1. Land correct source/docs changes.
+2. Run what you can: `./Scripts/generate.sh`, `./Scripts/assert-generated-output.sh`, `./Scripts/check-module-boundaries.sh`, `./Scripts/check-ui-style.sh`, `./Scripts/ci-gate.sh`.
+3. Skip `build.sh` / `test.sh` / simulator work — state that clearly in the commit/PR body.
+4. When Xcode 26 + simulator **are** present, `build.sh` / `test.sh` (or the Task Router row) are mandatory before claiming the change is verified.
 
 ## When To Read What
 
 | Need | Doc |
 |------|-----|
-| Repo map, packages, tabs, generate, persistence | `Docs/Architecture.md` |
+| Repo map, packages, tabs, generate, persistence, hubs | `Docs/Architecture.md` |
 | Setup / first run | `README.md` |
 | Gameplay vocabulary | `Docs/Design/CoreDesignConcepts.md` |
 | Apple HIG / native UI | `Docs/Design/AppleNativeGuidelines.md` |
 | Visual foundation | `Docs/Design/StyleGuide/AppVisualFoundation.md` |
-| iOS 26 APIs / stack notes | `Docs/Platform/` (`README.md`, audits, Liquid Glass plan, CloudKit checklist) |
+| iOS 26 APIs / stack notes | `Docs/Platform/` |
 | Content / art / music pipelines | `ContentManifest/README.md`, `ArtManifest/README.md`, `MusicManifest/README.md` |
-| SFX manifest | `SoundManifest/sfx.tsv` (no README yet; prepare via `generate.sh --assets`) |
+| SFX manifest | `SoundManifest/sfx.tsv` (prepare via `generate.sh --assets`) |
 | Battle test ownership | `Packages/BattleEngine/Tests/README.md` |
-| Release / changelog | `Scripts/README.md` |
-| Speculative ideas | `Docs/Roadmap.md` (`R-###`) — **do not implement** unless the user cites an entry |
-| Audits | `Docs/Audits/*Audit.md` are **re-runnable one-shot guides** (`Docs/Audits/README.md`). Run only when cited; not standing backlog. Never append run results into an audit file. |
-| Liquid Glass migration phases | `Docs/Platform/LiquidGlassMigrationPlan.md` — follow only when the user asks |
+| UI test launch args / speed | `TrinketUITests/README.md` |
+| Release / changelog / commit contract detail | `Scripts/README.md` |
+| Speculative ideas | `Docs/Roadmap.md` (`R-###`) — only when cited |
+| Audits | `Docs/Audits/README.md` — run only when cited |
+| Liquid Glass migration phases | `Docs/Platform/LiquidGlassMigrationPlan.md` — only when asked |
 
 ## Packages (quick)
 
-Six local packages under `Packages/`. Product packages with unit schemes (five): `TrinketCore`, `TrinketContent`, `BattleEngine`, `TrinketPersistence`, `TrinketDesignSystem`. **`TrinketTestSupport`** is fixtures-only (`CombatantFixtures`, `SaveTestSupport`, battle parties) — no product API and no `test-package.sh` scheme.
+Six local packages under `Packages/`. Product packages with unit schemes: `TrinketCore`, `TrinketContent`, `BattleEngine`, `TrinketPersistence`, `TrinketDesignSystem`. **`TrinketTestSupport`** is fixtures-only — no product API and no `test-package.sh` scheme.
 
 - **Battle rules:** `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/`.
-- **Generated output:** edit manifests (and custom content under `TrinketContent` when applicable), then `./Scripts/generate.sh` — never hand-edit `Generated/`, `.DerivedData/`, or build products. SFX: `SoundManifest/sfx.tsv` → `prepare-sfx-assets.sh` (via `--assets`).
-- Don't edit `.swiftlint.yml` severity without reason here. Prefer fixing violations over new `swiftlint:disable`; treat disable count as a ratchet.
+- **Generated output:** edit manifests (and custom content under `TrinketContent` when applicable), then `./Scripts/generate.sh` — never hand-edit `Generated/`.
 
-Product tabs (Play / Collection / Homestead / Search / Options) and `AppTab` mapping: `Docs/Architecture.md`. UI tests tap labels like `"Homestead"` and `"Collection"`, not enum raw values.
+Product tabs: Play → Collection → Homestead → Search → Options. **Search** is an inventory search utility, not a primary product tab (see Architecture). UI tests tap labels like `"Homestead"` and `"Collection"`, not enum raw values. Accessibility IDs: prefer `Trinket/Shared/AccessibilityID.swift` over inventing new string literals.
 
 ## Git Workflow
-
-**Harness-aware:**
 
 | Context | Branching | Push / PR |
 |---------|-----------|-----------|
 | **Local** (default) | Work on `main`. Do not create feature branches unless the session explicitly requires it. | Commit on `main`. Do **not** push or open PRs unless the user asks. |
 | **Cloud agent / CI harness** | Follow session instructions (feature branches, PR tools, push). | Allowed when the session says so. |
 
-If session instructions conflict with the local default, **session wins**.
+If session instructions conflict with the local default, **session wins**. Explicit user instructions (e.g. “push to main”) override both.
 
 ## Commit Messages
 
@@ -122,75 +132,51 @@ Breaking: <description if only applicable>
 - **Types:** `feat`, `fix`, `perf`, `refactor`, `content`, `style`, `test`, `ci`, `chore`, `docs`
 - Imperative subjects without a type prefix are acceptable.
 - **`User-Facing: yes`** when players would notice; **`no`** for CI/style/refactor/tooling.
-- Do **not** edit `CHANGELOG.md` per commit — `./Scripts/release.sh` generates it at release time.
-- See `Scripts/README.md` for the full release workflow.
-- Local hooks: `git config core.hooksPath .githooks` — `commit-msg` (advisory) + `pre-push` (format lint + generate assert). Skip once with `SKIP_TRINKET_PREPUSH=1`. Fast gate without tests: `./Scripts/ci-gate.sh`.
+- Full release workflow, hooks (`SKIP_TRINKET_PREPUSH=1`), and parsers: `Scripts/README.md`. Fast gate without tests: `./Scripts/ci-gate.sh`.
 
 ## Commands & Verification
 
-Scripts live under `./Scripts/`. Tooling: XcodeGen, `xcodebuild`, XCTest, Swift Testing, SwiftFormat, SwiftLint. `test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Timings: `.DerivedData/TestResults/timing-log.jsonl`; report with `./Scripts/test-timing.sh`. Pin format/lint with `./Scripts/ensure-ci-tools.sh` (`Scripts/tool-versions.env`).
+Scripts under `./Scripts/` (XcodeGen, `xcodebuild`, Swift Testing, XCTest, SwiftFormat, SwiftLint). `test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Pin format/lint with `./Scripts/ensure-ci-tools.sh`.
 
-**Groups** (see `Scripts/` for the full set): **Codegen** (`generate.sh`, manifest/asset preparers, assert-generated) · **Quality** (`format.sh`, `lint.sh`, `check-ui-style.sh`, `check-module-boundaries.sh`, `check-swift-testing-migration.sh`, `ci-gate.sh`, `ensure-ci-tools.sh`) · **Build/test** (`build.sh`, `test.sh`, `test-package.sh`, `test-iterate.sh`, `ci-locally.sh`, `test-deploy.sh`, …) · **Release** (`release.sh`, release-notes helpers).
-
-**Gates:**
-
-| Script / CI | Runs |
-|-------------|------|
-| `ci-gate.sh` | generate → assert-generated → boundaries → Swift Testing migration check → style → validate release notes |
-| `ci-locally.sh` | `ci-gate.sh` → unit → unit timing budget → smoke → smoke timing budget |
-| `test-deploy.sh` | generate → assert-generated → boundaries → style → validate release notes → unit → full UI |
+| Gate | Runs |
+|------|------|
+| `ci-gate.sh` | generate → assert → boundaries → Swift Testing check → style → release-notes validate |
+| `ci-locally.sh` | `ci-gate.sh` → unit → smoke (+ timing budgets) — **pre-push** |
+| `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
 | GitHub `pr.yml` | gate → unit + smoke (parallel) on `macos-26` |
 | GitHub `ci.yml` (main) | gate → unit + full UI (parallel) on `macos-26` |
 
-**Test tiers** (fast → thorough):
+| Tier | Command | When |
+|------|---------|------|
+| Unit | `test.sh unit` | Every logic change |
+| Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
+| Package unit | `test-package.sh <Package>` | Focused package logic |
+| UI smoke | `test.sh smoke` | Tab/screen edits, pre-push (`TrinketUITests/Smoke/`) |
+| Targeted UI | `test.sh ui <Class>` | Focused UI iteration |
+| Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
+| Integration | `test.sh all` | Nightly / manual |
 
-| Tier | Command | What runs | When |
-|------|---------|-----------|------|
-| Unit | `test.sh unit` | `TrinketTests` + five package schemes (sequential) | Every logic change |
-| Unit (filtered) | `test.sh unit <Class>` | App tests only (`TrinketTests/<Class>`) | Focused app logic |
-| Package unit | `test-package.sh <Package>` | One product package scheme | Focused package logic |
-| UI smoke | `test.sh smoke` | `Smoke.xctestplan` — **5** `Smoke*` classes (~2 min) | Tab/screen edits, pre-push |
-| Targeted UI | `test.sh ui <Class>` | One UI class | Focused UI iteration |
-| Full UI | `test.sh ui` | All `TrinketUITests` including exhaustive flows | Pre-merge |
-| Integration | `test.sh all` | `Integration.xctestplan` — unit + all UI | Nightly / manual |
-
-`Smoke.xctestplan` is **UI smoke only**. `Unit.xctestplan` / `FullUI.xctestplan` back `test.sh unit` / `test.sh ui`. `test-deploy.sh` runs full UI once (smoke is a subset, not rerun).
-
-Iteration before merge: **unit** → **smoke class** → **exhaustive class**. Keep diffs focused; run `ci-locally.sh` before push when the toolchain is available.
+Iteration before merge: **unit** → **smoke class** → **exhaustive class**. Keep diffs focused.
 
 ## Unit Tests
 
-**Swift Testing only** in `TrinketTests/` and package test targets (`import Testing`, `@Test`, `#expect` / `#require`). **XCTest** remains only for `TrinketUITests/`. Unit targets must not import XCTest — enforced by `./Scripts/check-swift-testing-migration.sh` (CI / `ci-locally.sh` ratchet).
+**Swift Testing only** in `TrinketTests/` and package test targets (`import Testing`). **XCTest** only in `TrinketUITests/`. Enforced by `./Scripts/check-swift-testing-migration.sh`.
 
-Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views are covered by UI smoke/deploy tests, not unit tests.
+Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views → UI smoke/deploy, not unit tests.
 
-**Ownership:** Battle rules → `Packages/BattleEngine/Tests/README.md`. Catalog invariants → `Packages/TrinketContent/Tests/`. Persistence stores → `TrinketPersistenceTests`. App shell orchestration → `TrinketTests/` only.
+**Ownership:** Battle → `Packages/BattleEngine/Tests/README.md`. Catalogs → `TrinketContentTests`. Stores → `TrinketPersistenceTests`. App shell → `TrinketTests/` only.
 
-### Shared helpers
-
-| Helper | Location | Use for |
-|--------|----------|---------|
-| `AppTestContext` | `TrinketTests/Support/` | Per-suite temp save dir + `UserDefaults` + `makeAppState` |
-| `PersistenceTestContext` | `TrinketPersistenceTests/Support/` | Temp directory lifecycle for store roundtrips |
-| `SaveTestSupport` | `Packages/TrinketTestSupport/` | Temp save dirs and `PlayerSaveStore` factories |
-| `AppTestSupport` | `TrinketTests/Support/` | Stateless `makeAppState` when caller owns `directoryURL` |
-| `CombatantFixtures` / `BattlePartyFixtures` | `Packages/TrinketTestSupport/` | Minimal combatants, abilities, parties |
-| `BattleStateTestFactory` | `Packages/BattleEngine/Tests/BattleEngineTests/` | **Always** for RNG-sensitive battle tests (`rngSeed: 0`) |
-| `BattleTestFixtures` | `Packages/BattleEngine/Tests/BattleEngineTests/Support/` | Integration tick helpers, `standardParty`, effect predicates |
-
-Prefer importing **`TrinketTestSupport`** over duplicating fixtures.
+**Fixtures:** prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle parties). App suites: `AppTestContext` / `AppTestSupport`. Persistence: `PersistenceTestContext`. Battle RNG: always `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0`; dispatch via `EffectHandlers.all`.
 
 ### Conventions
 
 - **Naming:** `@Test func behaviorWhenCondition()` — no `test` prefix required.
-- **Assertions:** `#expect` for checks; `try #require` / `#require` to unwrap and halt; `Issue.record` for unconditional failures.
+- **Assertions:** `#expect`; `try #require` / `#require` to unwrap; `Issue.record` for unconditional failures.
 - **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants.
-- **Lifecycle:** Prefer `@Suite` on package tests (existing norm). In `TrinketTests`, `struct …Tests` + `@Test` is fine; add `@Suite` when it helps discovery/grouping. Use `@MainActor` on suite or test when UI/layout/store isolation requires it. Use `final class` + `init() throws` only when teardown ownership needs a reference type (`AppTestContext` / `PersistenceTestContext`).
-- **Main actor:** Swift Testing does not run sync tests on `@MainActor` by default — annotate when needed.
-- **Battle:** `BattleStateTestFactory.makeBattle(...)`; dispatch handlers through `EffectHandlers.all`; thin integration only (see BattleEngine Tests README).
+- **Lifecycle:** Prefer `@Suite` on package tests. In `TrinketTests`, `struct …Tests` + `@Test` is fine. Use `@MainActor` when UI/layout/store isolation requires it. Use `final class` + `init() throws` only for teardown ownership (`AppTestContext` / `PersistenceTestContext`).
 - **Stores:** mutate → reload from disk → `#expect`.
 - **Async/debounce:** inject short intervals in production inits; poll in tests — never `Task.sleep` for multi-second production delays.
-- **Golden paths / events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
+- **Events:** pin outcome counters; assert event *semantics*, not full log fingerprints.
 - **Do not unit-test:** log prose (except a few representative formatter cases), `TrinketDesign` styling, AVFoundation playback, real CloudKit I/O.
 
 ### Definition of done (new features)
@@ -200,32 +186,13 @@ Prefer importing **`TrinketTestSupport`** over duplicating fixtures.
 3. New catalog content → invariant test in the matching `*CatalogTests` (`TrinketContentTests`).
 4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
 5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
-6. New user flow → `accessibilityIdentifier` + one smoke UI test.
+6. New user flow → `AccessibilityID` (or existing id) + one smoke UI test.
 7. Run `./Scripts/test.sh unit` (full, unfiltered) before commit when package code changed (toolchain permitting).
 
 ## UI Tests
 
-**Smoke** (`TrinketUITests/Smoke/`, `Smoke.xctestplan`): five classes — `SmokeBattleTests`, `SmokeCollectionTests`, `SmokeHeroDetailTests`, `SmokeHomesteadTests`, `SmokePlayTests`. Lean per-screen checks; one assertion theme per method; split at ~20 lines.
+Smoke lives in `TrinketUITests/Smoke/` (`Smoke.xctestplan`). Exhaustive journeys under `Play/`, `Collection/`, `Battle/`, `Search/` — `test.sh ui` / `test-deploy.sh` only. Page objects: `TrinketUITests/Support/Screens/`.
 
-**Exhaustive** (`TrinketUITests/Play/`, `Collection/`, `Battle/`, `Search/`): multi-step journeys in `test.sh ui` / `test-deploy.sh` only.
+Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops (`-completed-stages` / `-map-scroll-target`). Assert with `assertExists` on ids from `AccessibilityID` / existing identifiers.
 
-**Support** (`TrinketUITests/Support/Screens/`): page objects (`PlayScreen`, `TabBar`, …).
-
-**Launch args:** `TestLaunchArg` in `TrinketUITests/Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `completedStages`, `mapScrollTarget`.
-
-Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Additional:
-
-- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1)
-- `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory` → `.collection`)
-- `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
-- `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
-
-Use `.accessibilityIdentifier` values like `"Stage 1-1 Node"`, `"Battle Button"`; assert with `assertExists`. Keep default launch args unless testing persistence.
-
-**Speed:**
-
-- Prefer `-launch-screen` / `-selectedTab` deep links; do not re-navigate a screen launch args already opened.
-- Avoid long Play-map scrolls; use `-completed-stages` or `-map-scroll-target`.
-- Filter inventory/search with `replaceText` instead of grid scroll loops.
-- Mid-battle exhaustive tests: enter via Play map, not `-launch-screen battle` with very fast ticks.
-- UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.
+Full launch-arg catalog, speed rules, and mid-battle guidance: **`TrinketUITests/README.md`**.

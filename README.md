@@ -53,7 +53,7 @@ For manifest, art, music, or SFX edits:
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
 ./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
-./Scripts/ci-locally.sh            # pre-merge local: gate + unit + smoke
+./Scripts/ci-locally.sh            # pre-push: gate + unit + smoke
 ./Scripts/test-deploy.sh           # pre-merge: generate, style, unit, full UI
 ./Scripts/run-simulator.sh
 ./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)
@@ -67,6 +67,7 @@ Agent workflow and test conventions: `AGENTS.md`.
 Start with **`Docs/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
 
 - Agent workflow: `AGENTS.md`
+- UI test launch args / speed: `TrinketUITests/README.md`
 - Core design concepts: `Docs/Design/CoreDesignConcepts.md`
 - Product roadmap (scratch ideas): `Docs/Roadmap.md`
 - Content pipeline: `ContentManifest/README.md`
