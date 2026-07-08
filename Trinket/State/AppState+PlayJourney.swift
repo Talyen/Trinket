@@ -193,10 +193,87 @@ extension AppState {
             return startBattle(for: stage)
         case .mysteryEvent:
             return beginMysteryEncounter(for: stage)
-        case .event, .shop, .rest:
+        case .shop:
+            return beginShopEncounter(for: stage)
+        case .event, .rest:
             completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
             return nil
         }
+    }
+
+    @discardableResult
+    func beginShopEncounter(for stage: Stage) -> StageMapMessage? {
+        guard activeShopEncounter == nil else { return nil }
+        guard activeMysteryEncounter == nil else { return nil }
+        guard battle.activeBattle == nil else { return nil }
+        guard case .shop = stage.encounter else { return nil }
+
+        var randomNumberGenerator = SeededRandomNumberGenerator(
+            seed: ShopOfferGenerator.seed(forStageID: stage.id)
+        )
+        let offers = ShopOfferGenerator.generateOffers(
+            stageID: stage.id,
+            using: &randomNumberGenerator
+        )
+        guard !offers.isEmpty else {
+            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+            return nil
+        }
+
+        activeShopEncounter = ShopEncounterSession(stage: stage, offers: offers)
+        return nil
+    }
+
+    @discardableResult
+    func purchaseActiveShopOffer(offerID: String) -> Bool {
+        guard let session = activeShopEncounter else { return false }
+        guard !session.isPurchasing else { return false }
+        guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
+
+        session.markPurchaseStarted()
+        let purchaseOrdinal = session.purchaseCount
+        var purchasedItem: InventoryItem?
+        do {
+            try playerSave.performBatchMutation { save in
+                let result = ShopPurchaseApplier.purchase(
+                    offer: offer,
+                    purchaseOrdinal: purchaseOrdinal,
+                    stageID: session.stage.id,
+                    save: &save
+                )
+                switch result {
+                case let .success(item):
+                    purchasedItem = item
+                case .insufficientGold:
+                    break
+                }
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to purchase shop offer: \(error.localizedDescription, privacy: .public)"
+            )
+            session.markPurchaseFailed()
+            return false
+        }
+
+        if let purchasedItem {
+            session.markPurchaseFinished(itemName: purchasedItem.displayName)
+            return true
+        }
+
+        session.markPurchaseFailed()
+        return false
+    }
+
+    func finishActiveShopEncounter() {
+        guard let session = activeShopEncounter else { return }
+        let stage = session.stage
+        activeShopEncounter = nil
+        completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+    }
+
+    func dismissActiveShopEncounterWithoutCompleting() {
+        activeShopEncounter = nil
     }
 
     @discardableResult

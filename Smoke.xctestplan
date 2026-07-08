@@ -17,7 +17,8 @@
         "SmokeCollectionTests",
         "SmokeHeroDetailTests",
         "SmokeHomesteadTests",
-        "SmokePlayTests"
+        "SmokePlayTests",
+        "SmokeShopTests"
       ],
       "target" : {
         "containerPath" : "container:Trinket.xcodeproj",

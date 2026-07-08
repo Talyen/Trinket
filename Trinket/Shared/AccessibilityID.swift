@@ -39,6 +39,25 @@ enum AccessibilityID {
         }
     }
 
+    enum Shop {
+        static let encounterTitle = "Shop Encounter Title"
+        static let encounterGreeting = "Shop Encounter Greeting"
+        static let encounterArt = "Shop Encounter Art"
+        static let goldBalance = "Shop Gold Balance"
+        static let purchaseConfirmation = "Shop Purchase Confirmation"
+        static let brokeHint = "Shop Broke Hint"
+        static let leaveButton = "Shop Leave Button"
+        static let detailBuyButton = "Shop Detail Buy Button"
+
+        static func offerCard(name: String) -> String {
+            "\(name) shop offer"
+        }
+
+        static func buyButton(name: String) -> String {
+            "Buy \(name)"
+        }
+    }
+
     enum CombatantDetail {
         static let statsSection = "Combatant Stats Section"
         static let healthStat = "Combatant Health Stat"

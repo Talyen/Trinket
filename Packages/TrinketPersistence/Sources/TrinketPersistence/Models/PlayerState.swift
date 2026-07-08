@@ -273,6 +273,15 @@ public struct PlayerRosterState: Equatable, Sendable {
         gold += amount
     }
 
+    /// Deducts gold when the roster can afford `amount`. Returns `false` without mutating
+    /// when `amount` is non-positive or exceeds the current balance.
+    @discardableResult
+    public mutating func spendGold(_ amount: Int) -> Bool {
+        guard amount > 0, gold >= amount else { return false }
+        gold -= amount
+        return true
+    }
+
     public func equippedItem(
         for slot: ItemSlot,
         combatant: Combatant,

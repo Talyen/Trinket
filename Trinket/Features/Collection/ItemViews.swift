@@ -141,8 +141,27 @@ struct InventoryGridView: View {
 
 struct ItemDetailView: View {
     let item: InventoryItem
+    var purchasePrice: Int?
+    var canAfford: Bool = true
+    var isPurchaseDisabled: Bool = false
+    var onPurchase: (() -> Void)?
+
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+
+    init(
+        item: InventoryItem,
+        purchasePrice: Int? = nil,
+        canAfford: Bool = true,
+        isPurchaseDisabled: Bool = false,
+        onPurchase: (() -> Void)? = nil
+    ) {
+        self.item = item
+        self.purchasePrice = purchasePrice
+        self.canAfford = canAfford
+        self.isPurchaseDisabled = isPurchaseDisabled
+        self.onPurchase = onPurchase
+    }
 
     var body: some View {
         List {
@@ -199,6 +218,22 @@ struct ItemDetailView: View {
                 Button("Done") {
                     dismiss()
                 }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let purchasePrice, let onPurchase {
+                Button {
+                    onPurchase()
+                } label: {
+                    Text(canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold")
+                        .frame(maxWidth: .infinity)
+                }
+                .trinketPrimaryActionButton()
+                .tint(canAfford ? Keyword.gold.visualStyle.color : .secondary)
+                .disabled(!canAfford || isPurchaseDisabled)
+                .accessibilityIdentifier(AccessibilityID.Shop.detailBuyButton)
+                .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                .padding(.vertical, 12)
             }
         }
         .onAppear {

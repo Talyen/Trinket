@@ -41,4 +41,5 @@ See `ContentManifest/README.md` for TSV format details. Generated files are comm
 | `Combatant` | Hero/Pet model (stats, ability loadout) |
 | `Enemy` | Enemy model |
 | `ItemGenerator` | Random item generation from base + affix pools |
+| `ShopOfferGenerator` | Procedural Merchant's Shop shelves (rarity + gold prices) |
 | `PlayerContentCatalog` | Runtime lookup for content references |

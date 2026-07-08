@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@Suite
 struct PlayerRosterStateTests {
     @Test func setLoadoutOverridesDefaultAbilityChoices() throws {
         var roster = PlayerRosterState.initial
@@ -106,6 +105,24 @@ struct PlayerRosterStateTests {
         roster.grantGold(-5)
 
         try #expect(roster.gold == 25)
+    }
+
+    @Test func spendGoldDeductsWhenAffordable() {
+        var roster = PlayerRosterState.initial
+        roster.gold = 40
+
+        #expect(roster.spendGold(28))
+        #expect(roster.gold == 12)
+    }
+
+    @Test func spendGoldRejectsInsufficientOrNonPositiveAmounts() {
+        var roster = PlayerRosterState.initial
+        roster.gold = 10
+
+        #expect(!roster.spendGold(11))
+        #expect(!roster.spendGold(0))
+        #expect(!roster.spendGold(-3))
+        #expect(roster.gold == 10)
     }
 
     @Test func equippedItemResolvesFromInventoryAndLoadout() throws {

@@ -58,7 +58,7 @@ enum GameContentChaptersGenerated {
                     encounter: .shop,
                     rewards: StageReward(
                         gold: 5,
-                        itemTemplateIDs: ["leather_armor-basic"],
+                        itemTemplateIDs: [],
                         materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.iron, 2)]
                     )
                 ),

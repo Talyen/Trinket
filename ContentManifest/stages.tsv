@@ -2,7 +2,7 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter
 chapter-1	1	The Verdant Forest	verdantForest	1	The old forest road narrows beneath a bright green canopy.	battle	skeleton	12	shortsword-basic	wood:8|stone:3		
 chapter-1	1	The Verdant Forest	verdantForest	2	A quiet howl answers from the bend ahead.	mystery	recruit-wolf	8		food:4|herbs:2		
 chapter-1	1	The Verdant Forest	verdantForest	3	Briars close behind you as a brittle shape steps forward.	battle	skeleton	14		wood:10|stone:5		
-chapter-1	1	The Verdant Forest	verdantForest	4	A covered cart waits beside the trail, its little lantern still warm.	shop		5	leather_armor-basic	wood:6|iron:2	destination-merchant-shop	Merchant's Shop
+chapter-1	1	The Verdant Forest	verdantForest	4	A covered cart waits beside the trail, its little lantern still warm.	shop		5		wood:6|iron:2	destination-merchant-shop	Merchant's Shop
 chapter-1	1	The Verdant Forest	verdantForest	5	The ground softens underfoot, and the glade begins to move.	battle	mud_elemental	18		stone:9|herbs:3		
 chapter-1	1	The Verdant Forest	verdantForest	6	Clear water gathers in a stone basin covered in silver leaves.	rest		0		food:8|herbs:5	destination-campfire	Campfire
 chapter-1	1	The Verdant Forest	verdantForest	7	Pale lights drift between the trees, each one trailing a bitter mist.	battle	plague_doctor	22	emerald_ring-basic	herbs:7|crystal:1		

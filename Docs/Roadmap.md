@@ -107,8 +107,9 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-015 — Shop encounters
 - **Area:** Play
-- **Status:** scratch
+- **Status:** partial
 - **Idea:** Replace Shop stage placeholders with a real shopping UI: browse authored offers, spend gold, leave with items or upgrades. Stage type already exists in the journey model.
+- **Shipped:** Merchant's Shop visit UI with procedural offers (4 listings, 80% Basic / 20% Astral, 20–40g base with Astral ×2), gold spend + inventory grant, item detail Buy path, Leave completes the stage. Authored offer tables remain open.
 - **Touches:** Play encounter routing, economy, `ContentManifest`
 
 ### R-016 — Mystery Events

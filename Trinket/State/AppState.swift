@@ -46,6 +46,7 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var activeMysteryEncounter: MysteryEncounterSession?
+    var activeShopEncounter: ShopEncounterSession?
     var journey: JourneyProgressState {
         get { playerSave.journey }
         set { playerSave.journey = newValue }

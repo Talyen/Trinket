@@ -30,6 +30,18 @@ struct PlayView: View {
             ) { session in
                 MysteryEncounterView(session: session)
             }
+            .fullScreenCover(
+                item: Binding(
+                    get: { appState.activeShopEncounter },
+                    set: { newValue in
+                        if newValue == nil, appState.activeShopEncounter != nil {
+                            appState.dismissActiveShopEncounterWithoutCompleting()
+                        }
+                    }
+                )
+            ) { session in
+                ShopEncounterView(session: session)
+            }
             .alert(item: $stageMessage) { message in
                 Alert(
                     title: Text(message.title),
