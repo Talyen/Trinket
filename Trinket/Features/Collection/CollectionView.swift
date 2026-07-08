@@ -50,6 +50,7 @@ struct CollectionView: View {
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
         }
         .trinketScreenBackground(.collection)
+        .scrollEdgeEffectStyle(.soft, for: .top)
         .accessibilityIdentifier("Collection Screen")
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)

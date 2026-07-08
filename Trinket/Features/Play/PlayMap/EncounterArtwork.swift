@@ -5,6 +5,8 @@ import TrinketDesignSystem
 struct EncounterArtwork: View {
     let stage: Stage
 
+    @ScaledMetric(relativeTo: .largeTitle) private var placeholderIconSize: CGFloat = 42
+
     var body: some View {
         ZStack {
             if let combatantArt = stage.encounterCombatantArtReference {
@@ -20,7 +22,7 @@ struct EncounterArtwork: View {
             } else {
                 stage.encounter.mapTint.opacity(0.14)
                 Image(systemName: stage.encounter.symbolName)
-                    .font(.system(size: 42, weight: .semibold))
+                    .font(.system(size: placeholderIconSize, weight: .semibold))
                     .foregroundStyle(stage.encounter.mapTint)
                     .symbolRenderingMode(.hierarchical)
                     .accessibilityHidden(true)

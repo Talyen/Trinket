@@ -139,9 +139,10 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
 - **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` + `PlayerSaveStoreConfiguration` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain stores:** Thin facades — `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, `PlayerHomesteadStore` — wrap the hub (no second container). Slice getters/setters may still go through `PlayerSaveStore` properties; player actions (e.g. `PlayerHomesteadStore.buildOrUpgradeNode`) live on the domain store. Access via `playerSave.homesteadStore` etc.
-- **Options/preferences:** `OptionsStore` (appearance, volumes) and `AppState` session keys (tab/battle restoration via `UserDefaults`) intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
-- **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
+- **Options/preferences:** `OptionsStore` persists appearance, volumes, and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Session keys (tab/battle restoration) remain on the shell session store.
+- **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements (F2). Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`
+- **Audio:** `Trinket/Audio/MusicPlayer` uses ambient `AVAudioPlayer` by design — see `Trinket/Audio/README.md`.
 
 ## Extension policy (hub containment)
 

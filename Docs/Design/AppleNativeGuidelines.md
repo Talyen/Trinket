@@ -32,6 +32,8 @@ Do **not** add `#available` / `@available` checks for iOS versions below 26. We 
 | Persistence | SwiftData `@Model`, `@Observable` stores | `Packages/TrinketPersistence/` |
 | Chrome / surfaces | `TrinketDesign`, `.trinketSurface`, `.trinketMaterial` | `Packages/TrinketDesignSystem/` |
 | Glass effects | `.glassEffect()` inside design system only | `VisualFoundation.swift` → `GlassChipModifier` |
+| Haptics | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate on `OptionsStore.hapticsEnabled` |
+| Preferences | `OptionsStore` + `AppStorage` keys | `Trinket/State/OptionsStore.swift` |
 | Materials + a11y | `MaterialRoleModifier` with Reduce Transparency fallback | `VisualFoundation.swift` |
 | Typography | `.trinketTypography(_:)` semantic roles | `VisualFoundation.swift` → `TypographyRole` |
 | Unit tests | Swift Testing (`@Suite`, `@Test`, `#expect`) | `TrinketTests/App/AppStateTests.swift` |

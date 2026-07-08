@@ -61,6 +61,13 @@ struct OptionsStoreTests {
         #expect(!OptionsStore(defaults: context.userDefaults).hapticsEnabled)
     }
 
+    @Test func appStorageKeysMatchPublicConstants() {
+        #expect(OptionsStore.musicVolumeKey == "options.musicVolume")
+        #expect(OptionsStore.effectsVolumeKey == "options.effectsVolume")
+        #expect(OptionsStore.hapticsEnabledKey == "options.hapticsEnabled")
+        #expect(OptionsStore.appearanceKey == "options.appearance")
+    }
+
     @Test func appearancePersistsOnChange() {
         let store = OptionsStore(defaults: context.userDefaults)
         store.appearance = .dark

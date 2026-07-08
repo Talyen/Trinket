@@ -37,8 +37,10 @@ enum PlayerSaveStoreConfiguration {
         } else if let storeURL {
             return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
         } else if disableCloudSync {
+            // Local-only until Apple Developer Program + CloudKit container (F2).
             return (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
         } else {
+            // Requires filled Trinket.entitlements + portal container (see CloudKitPreShipChecklist).
             return (
                 ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
                 nil

@@ -2,7 +2,7 @@
 
 Implementation plan to close the remaining Apple-native gaps identified in the July 2026 stack review. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md).
 
-**Status:** Plan only — execute as stacked PRs on `main` (or cloud-agent feature branches).
+**Status:** Phases **A–E, F1, G, H** implemented (July 2026). **F2** (live CloudKit) blocked on Apple Developer Program enrollment.
 
 **Out of scope:** Toolbar background / Liquid Glass Phase 4 audit. Hidden toolbar chrome on Battle, Play map, and combatant detail is an intentional art-forward choice and is **not** scheduled for migration. Do not reintroduce that work in platform docs or follow-up PRs unless product explicitly asks.
 
@@ -35,7 +35,7 @@ Implementation plan to close the remaining Apple-native gaps identified in the J
 | Device/Simulator sync against a real `iCloud.com…` container | **Yes** |
 | TestFlight / App Store with iCloud sync | **Yes** |
 
-**Recommendation:** Complete Phases A–E and F1 (local-only CloudKit *prep*) without an account. Leave production CloudKit **disabled by default** until you enroll, create container `iCloud.com.ryanmcintire.Trinket`, and finish [CloudKitPreShipChecklist.md](../Audits/CloudKitPreShipChecklist.md). Do not claim live sync in App Review notes until F2 is done.
+**Recommendation:** Complete Phases A–E and F1 (local-only CloudKit *prep*) without an account. Leave production CloudKit **disabled by default** until you enroll, create container `iCloud.com.ryanmcintire.Trinket`, and finish [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md). Do not claim live sync in App Review notes until F2 is done.
 
 Free Apple ID + Xcode can build/run on Simulator today. Paid membership (~$99/year) is required for CloudKit containers, capability provisioning, and distribution.
 
@@ -43,19 +43,19 @@ Free Apple ID + Xcode can build/run on Simulator today. Paid membership (~$99/ye
 
 ## Phase map
 
-| Phase | Theme | Depends on | Risk |
-|-------|-------|------------|------|
-| **A** | Wire haptics → sensory feedback | — | Low |
-| **B** | Migrate Options to `AppStorage` | — | Medium (persistence of prefs) |
-| **C** | Dynamic Type for decorative icons | — | Low |
-| **D** | Adopt iOS 26 tab/scroll chrome APIs | C optional | Medium (UI smoke) |
-| **E** | Privacy manifest + Info.plist hygiene | — | Low |
-| **F1** | CloudKit local prep (no account) | E | Low |
-| **F2** | CloudKit enablement (after Developer Program) | F1 + account | High (sync) |
-| **G** | Concurrency / Foundation polish | — | Low |
-| **H** | Docs + audit refresh | A–G as landed | — |
+| Phase | Theme | Status |
+|-------|-------|--------|
+| **A** | Wire haptics → sensory feedback | ✅ Done |
+| **B** | Migrate Options to `AppStorage` | ✅ Done |
+| **C** | Dynamic Type for decorative icons | ✅ Done |
+| **D** | Adopt iOS 26 tab/scroll chrome APIs | ✅ Done |
+| **E** | Privacy manifest + Info.plist hygiene | ✅ Done |
+| **F1** | CloudKit local prep (no account) | ✅ Done |
+| **F2** | CloudKit enablement (after Developer Program) | ⏸ Blocked — no Developer Program yet |
+| **G** | Concurrency / Foundation polish | ✅ Done |
+| **H** | Docs + audit refresh | ✅ Done |
 
-Ship as **separate PRs** in order A → B → C → D → E → F1 → G → H; hold F2 until enrollment.
+Hold **F2** until Apple Developer Program enrollment. Do not re-open A–E/G unless regressions appear.
 
 ---
 
@@ -207,7 +207,7 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
 
 1. Keep runtime default: CloudKit **off** unless `-enable-cloud-sync` (already true on Simulator in `AppEnvironment`).
 2. Document in `Trinket.entitlements` / `project.yml` a **commented or docs-only** target entitlement shape — do **not** commit invalid entitlement keys that break signing for local/team builds. Prefer a short section in this plan + checklist over a broken empty-vs-fake entitlements file.
-3. Confirm SwiftData models remain CloudKit-compatible (optional relationships, defaults, no `@Attribute(.unique)`) — already required by [CloudKitPreShipChecklist.md](../Audits/CloudKitPreShipChecklist.md).
+3. Confirm SwiftData models remain CloudKit-compatible (optional relationships, defaults, no `@Attribute(.unique)`) — already required by [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md).
 4. Add/adjust unit tests that always use `disableCloudSync: true` / in-memory containers (already the norm).
 5. Soften user-facing copy that asserts iCloud deletion if sync is not actually provisioned (Options reset alert currently mentions iCloud). Gate copy on “cloud sync configured” or say “on this device” until F2.
 
@@ -222,7 +222,7 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
 1. Create App ID + CloudKit container `iCloud.com.ryanmcintire.Trinket`.
 2. Fill `Trinket/Trinket.entitlements` with iCloud / CloudKit keys matching the portal.
 3. Enable CloudKit on the production `ModelConfiguration` path when `disableCloudSync == false`.
-4. Execute [CloudKitPreShipChecklist.md](../Audits/CloudKitPreShipChecklist.md) end-to-end (two devices, offline, reset propagation).
+4. Execute [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) end-to-end (two devices, offline, reset propagation).
 5. Restore accurate iCloud wording in Options reset + privacy questionnaire.
 6. Re-enable `remote-notification` background mode only if needed for sync.
 
@@ -248,7 +248,7 @@ Update after code lands:
 | [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) | Already drops Phase 4; status = complete |
 | [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md) | Link this plan; note haptics + AppStorage patterns |
 | [Architecture.md](../Architecture.md) | Options/`AppStorage`; CloudKit gated on Developer Program |
-| [CloudKitPreShipChecklist.md](../Audits/CloudKitPreShipChecklist.md) | Split “prep without account” vs “portal required” |
+| [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Split “prep without account” vs “portal required” |
 | [Platform README](README.md) | Link this plan |
 
 ---
@@ -294,7 +294,7 @@ Update after code lands:
 - [iOS26StackAudit.md](iOS26StackAudit.md)
 - [iOS26AppleReference.md](iOS26AppleReference.md)
 - [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
-- [CloudKitPreShipChecklist.md](../Audits/CloudKitPreShipChecklist.md)
+- [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md)
 - [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md)
 - WWDC25-323 — tab minimize, background extension, scroll edge
 - [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) — glass on controls; toolbar overrides intentionally retained for art screens

@@ -1,25 +1,30 @@
 import SwiftUI
 import TrinketDesignSystem
 
+/// Local player preferences. Keys are `@AppStorage`-compatible and stay device-local
+/// (not part of `PlayerSave` / CloudKit).
 @MainActor
 @Observable
 final class OptionsStore {
-    private let defaults: UserDefaults
+    @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
+    @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
+    @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
+    @ObservationIgnored private var appearanceStorage: AppStorage<String>
 
     var musicVolume: Double {
-        didSet { defaults.set(musicVolume, forKey: Self.musicVolumeKey) }
+        didSet { musicVolumeStorage.wrappedValue = musicVolume }
     }
 
     var effectsVolume: Double {
-        didSet { defaults.set(effectsVolume, forKey: Self.effectsVolumeKey) }
+        didSet { effectsVolumeStorage.wrappedValue = effectsVolume }
     }
 
     var hapticsEnabled: Bool {
-        didSet { defaults.set(hapticsEnabled, forKey: Self.hapticsEnabledKey) }
+        didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
     }
 
     var appearance: TrinketDesign.AppAppearance {
-        didSet { defaults.set(appearance.rawValue, forKey: Self.appearanceKey) }
+        didSet { appearanceStorage.wrappedValue = appearance.rawValue }
     }
 
     static let musicVolumeKey = "options.musicVolume"
@@ -28,17 +33,32 @@ final class OptionsStore {
     static let appearanceKey = "options.appearance"
 
     init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
-        musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? Self.defaultMusicVolume
-        effectsVolume = defaults.object(forKey: Self.effectsVolumeKey) as? Double ?? 0.85
-        hapticsEnabled = defaults.object(forKey: Self.hapticsEnabledKey) as? Bool ?? true
+        musicVolumeStorage = AppStorage(
+            wrappedValue: Self.defaultMusicVolume,
+            Self.musicVolumeKey,
+            store: defaults
+        )
+        effectsVolumeStorage = AppStorage(
+            wrappedValue: 0.85,
+            Self.effectsVolumeKey,
+            store: defaults
+        )
+        hapticsEnabledStorage = AppStorage(
+            wrappedValue: true,
+            Self.hapticsEnabledKey,
+            store: defaults
+        )
+        appearanceStorage = AppStorage(
+            wrappedValue: TrinketDesign.AppAppearance.default.rawValue,
+            Self.appearanceKey,
+            store: defaults
+        )
 
-        if let raw = defaults.string(forKey: Self.appearanceKey),
-           let resolved = TrinketDesign.AppAppearance(rawValue: raw) {
-            appearance = resolved
-        } else {
-            appearance = .default
-        }
+        musicVolume = musicVolumeStorage.wrappedValue
+        effectsVolume = effectsVolumeStorage.wrappedValue
+        hapticsEnabled = hapticsEnabledStorage.wrappedValue
+        appearance = TrinketDesign.AppAppearance(rawValue: appearanceStorage.wrappedValue)
+            ?? .default
     }
 
     private static var defaultMusicVolume: Double {

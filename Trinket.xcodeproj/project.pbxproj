@@ -146,6 +146,7 @@
 		F74D4C09A330E1301583B96D /* BattleVictorySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53FCF74A03783A9AD74786D /* BattleVictorySummary.swift */; };
 		F948894FA511AB1A697900CD /* BattleCardGridLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA24FF7B7992CB9FC02F662 /* BattleCardGridLayoutTests.swift */; };
 		F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */; };
+		B2C3D4E5F60718293A4B5C6D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* PrivacyInfo.xcprivacy */; };
 		FA5C757C3D32F14239BD0F1C /* TrinketCore in Frameworks */ = {isa = PBXBuildFile; productRef = DEEACF4ECF5EFFFE57C7E6FA /* TrinketCore */; };
 		FAA47725F11C48BC843A3EFD /* OptionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B491A0A9519D754A3DAAF9 /* OptionsStore.swift */; };
 		FB3299762F0E055E1941347A /* SmokePlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C43A50775733A11230CAAA95 /* SmokePlayTests.swift */; };
@@ -206,6 +207,7 @@
 		49CA2156784DB66606AC2CD3 /* BattleSessionTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSessionTestSupport.swift; sourceTree = "<group>"; };
 		4BAFA38F7BD128814C0D8608 /* CompletedStageRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletedStageRow.swift; sourceTree = "<group>"; };
 		4C88A8ED678690BF22A8EE2B /* Trinket.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Trinket.entitlements; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4CB197DE5E70A50432760090 /* GameContentEncounterArtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameContentEncounterArtTests.swift; sourceTree = "<group>"; };
 		4DDBE5745A194C412DB428CB /* HeroHeaderLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroHeaderLayout.swift; sourceTree = "<group>"; };
 		4E7228BEE120F3F781C79005 /* ActiveStageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveStageCard.swift; sourceTree = "<group>"; };
@@ -621,6 +623,7 @@
 			children = (
 				8241DDA3B7612A6E5B8B9EDF /* Assets.xcassets */,
 				4C88A8ED678690BF22A8EE2B /* Trinket.entitlements */,
+				A1B2C3D4E5F60718293A4B5C /* PrivacyInfo.xcprivacy */,
 				BE7643485C5460654D5C3A04 /* App */,
 				E9F765A6F219C684DBE51927 /* Audio */,
 				CB4747ECD306F3FAFF3F2F52 /* BattleShell */,
@@ -1003,6 +1006,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F9D95B8C131F9E36ECEA7C11 /* Assets.xcassets in Resources */,
+				B2C3D4E5F60718293A4B5C6D /* PrivacyInfo.xcprivacy in Resources */,
 				BB33F5B0A916F9457D64396D /* music_battle_1.m4a in Resources */,
 				DAE36E734A12F7895D44B123 /* music_battle_2.m4a in Resources */,
 				8F4B05322F9DA9D389DDC505 /* music_battle_3.m4a in Resources */,
@@ -1187,7 +1191,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -1312,7 +1315,6 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;

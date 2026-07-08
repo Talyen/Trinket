@@ -2,7 +2,7 @@
 
 Point-in-time audit: **July 2026**. Compares Trinket production code against iOS 16–25-era patterns and iOS 26 Apple guidance. See [iOS26AppleReference.md](iOS26AppleReference.md) for curated WWDC and documentation links.
 
-**Verdict:** Trinket is on the modern Apple stack for state, navigation, concurrency, and tab structure. **Liquid Glass migration is complete** as of July 2026. Remaining follow-ups (haptics wiring, AppStorage, Dynamic Type icons, iOS 26 scroll chrome, privacy/CloudKit prep) live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+**Verdict:** Trinket is on the modern Apple stack for state, navigation, concurrency, and tab structure. **Liquid Glass migration is complete** as of July 2026. **Apple-native best-practices Phases A–E, F1, G, H are implemented**; only **F2 (live CloudKit)** waits on Developer Program enrollment — see [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
 **Implementation plans:** [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) (complete) · [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md)
 
@@ -22,7 +22,11 @@ Point-in-time audit: **July 2026**. Compares Trinket production code against iOS
 | Primary CTAs | ✅ `.glassProminent` | `PrimaryActionButtonModifier` migrated |
 | UI test guard | ✅ Removed | `performAccessibilityAudit()` unconditional at iOS 26 |
 | Toolbar backgrounds | ✅ Intentional | Hidden chrome retained on Battle / Play map / combatant detail for art-forward screens — not scheduled for change |
-| Dynamic Type (icons) | ⚠️ Minor | Fixed `.font(.system(size:))` on decorative glyphs — see best-practices plan Phase C |
+| Dynamic Type (icons) | ✅ `@ScaledMetric` | Decorative placeholder glyphs scale with content size |
+| Haptics | ✅ Gated | `.trinketSensoryFeedback` respects Options toggle |
+| Options prefs | ✅ `AppStorage` | `OptionsStore` uses AppStorage-backed keys |
+| Privacy manifest | ✅ Present | `Trinket/PrivacyInfo.xcprivacy` (local-only; no tracking) |
+| CloudKit | ⏸ F1 done | Local-only until Developer Program — see best-practices plan F2 |
 
 ---
 
@@ -105,27 +109,21 @@ All `.onChange(of:)` call sites use the iOS 17+ two-parameter closure (`{ _, new
 
 Implemented via `TrinketGlassBackgroundModifier` and updated `MaterialRoleStyle` role map. See git history on `VisualFoundation.swift`. Hidden toolbar backgrounds on Battle, Play map, and combatant detail are an intentional art-forward choice and are not scheduled for migration.
 
-### 2. Tab bar minimize behavior (priority: low, product decision)
+### 2. Tab bar minimize behavior ✅ Complete
 
-iOS 26 floating tab bars support `.tabBarMinimizeBehavior(.onScrollDown)` ([WWDC25-323](https://developer.apple.com/videos/play/wwdc2025/323/)). Trinket does not opt in today. Tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D.
+`.tabBarMinimizeBehavior(.onScrollDown)` on root `TabView` (`ContentView`).
 
-**Consider for:** Play map (`ChapterStageSelectView`), long Collection shelves.
+### 3. Play journey `backgroundExtensionEffect` ✅ Complete
 
-**Caution:** Battle and modal flows need predictable tab access; test smoke UI after enabling.
-
-### 3. Play journey `backgroundExtensionEffect` (priority: low)
-
-WWDC25 demonstrates hero art extending under sidebars via `.backgroundExtensionEffect()`. Trinket's chapter journey hero (`ChapterJourneyHero`) could adopt this for edge-to-edge presentation without clipping — evaluate against current `scrollTransition` treatment. Tracked in best-practices plan Phase D.
+Applied on `ChapterJourneyHero`.
 
 ### 4. Stale UI test availability guard ✅ Complete
 
 Guard removed; `performAccessibilityAudit()` runs unconditionally at iOS 26 deployment target.
 
-### 5. Fixed decorative font sizes (priority: low)
+### 5. Fixed decorative font sizes ✅ Complete
 
-Several files use `.font(.system(size: ...))` for placeholder/lock icons. These are not body text but may fail strict Dynamic Type audits. Migrate to `@ScaledMetric` or semantic icon styles — best-practices plan Phase C.
-
-Files: `EmptySlots.swift`, `CombatantArtwork.swift`, `AbilityCard.swift`, `EncounterArtwork.swift`, `ChapterGateCardView.swift`, `HomesteadDetailViews.swift`, `BattleOutcomeComponents.swift`, plus `Modifiers.swift` (locked card overlay).
+Decorative/placeholder SF Symbols use `@ScaledMetric` (best-practices plan Phase C).
 
 ### 6. Future framework adoption
 
@@ -137,7 +135,7 @@ When adding features, start with current APIs:
 | Leaderboards | Modern GameKit | Legacy GK APIs |
 | 3D content | RealityKit | SceneKit (deprecated Xcode 26) |
 
-Additional gaps (haptics gating, AppStorage options, privacy manifest, CloudKit prep) are inventoried in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+Remaining CloudKit enablement (F2) is inventoried in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) and [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md). Phases A–E, F1, G are implemented.
 
 ---
 

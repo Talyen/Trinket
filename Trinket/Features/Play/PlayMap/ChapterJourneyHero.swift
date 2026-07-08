@@ -54,6 +54,7 @@ struct ChapterJourneyHero: View {
             max(480, length * 0.70)
         }
         .clipped()
+        .backgroundExtensionEffect()
         .ignoresSafeArea(edges: .top)
         .accessibilityElement(children: .contain)
     }

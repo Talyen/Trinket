@@ -71,5 +71,6 @@ struct ContentView: View {
                 }
             }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }

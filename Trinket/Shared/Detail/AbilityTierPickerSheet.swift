@@ -7,6 +7,7 @@ struct AbilityTierPickerSheet: View {
     let combatant: Combatant
     let tier: AbilityTier
     @Binding var loadout: AbilityLoadout
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedAbilityID: String?
@@ -59,7 +60,11 @@ struct AbilityTierPickerSheet: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .sensoryFeedback(.selection, trigger: selectedAbilityID)
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectedAbilityID,
+            enabled: appState.options.hapticsEnabled
+        )
         .trinketScreenBackground(.modal)
         .navigationTitle(tier.rawValue)
         .navigationBarTitleDisplayMode(.inline)

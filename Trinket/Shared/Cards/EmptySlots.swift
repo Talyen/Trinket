@@ -6,6 +6,8 @@ struct EmptyAbilitySlotCard: View {
     let tier: AbilityTier
     var reservesLabelSpace: Bool = true
 
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+
     var body: some View {
         VStack(spacing: 8) {
             TrinketDesign.cardShape
@@ -16,7 +18,7 @@ struct EmptyAbilitySlotCard: View {
                 }
                 .overlay {
                     Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                        .font(.system(size: 38, weight: .semibold))
+                        .font(.system(size: placeholderIconSize, weight: .semibold))
                         .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                         .accessibilityHidden(true)
                 }
