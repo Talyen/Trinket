@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
+Canonical agent guide for Trinket — use with any coding agent or harness (not tied to a specific IDE). Portrait-first iOS fantasy idle auto-battler.
 
 ## Platform Baseline (read first)
 
@@ -84,11 +84,16 @@ Key patterns:
 
 ## Git Workflow
 
-- Work on `main` unless the user explicitly requests a feature branch.
-- Commit locally when work is complete or before testing.
+Default workflow (local development and most agents):
+
+- Always work on `main`. Do not create feature branches.
+- Do not run `git checkout -b`, `git switch -c`, or similar unless the active session explicitly requires it.
+- Commit directly on `main` when work is complete or before testing.
 - Do **not** `git push` unless the user explicitly asks.
-- Do **not** create or update pull requests unless the user explicitly asks.
-- Cloud-agent environments may use feature branches and PRs when configured; follow the active session instructions when they differ from the rules above.
+- Do **not** create, update, or draft pull requests unless the user explicitly asks.
+- Do not use PR management tools unless explicitly requested.
+
+Cloud-agent or CI harnesses may override the above (e.g. feature branches and PRs) when their session instructions say so — otherwise follow the default.
 
 ## Commit Messages
 
