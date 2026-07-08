@@ -52,32 +52,31 @@ struct BattleCardGridLayoutTests {
         in containerSize: CGSize,
         fillsWidth: Bool = false,
         fillsHeight: Bool = false,
-        file: StaticString = #filePath,
-        line: UInt = #line
+        sourceLocation: SourceLocation = #sourceLocation
     ) {
         let partyRowWidth = 2 * metrics.partySize.width + metrics.cardSpacing
         let gridHeight = metrics.enemySize.height + metrics.cardSpacing + metrics.partySize.height
         let innerWidth = containerSize.width - 2 * metrics.outerPadding
         let innerHeight = containerSize.height - 2 * metrics.outerPadding
 
-        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, sourceLocation: sourceLocation)
         #expect(
             abs(metrics.enemySize.width - metrics.enemySize.height) < 0.001,
-            sourceLocation: SourceLocation(fileID: file, line: line)
+            sourceLocation: sourceLocation
         )
         #expect(
             abs((metrics.partySize.width / metrics.partySize.height) - (3.0 / 4.0)) < 0.001,
-            sourceLocation: SourceLocation(fileID: file, line: line)
+            sourceLocation: sourceLocation
         )
-        #expect(partyRowWidth <= innerWidth + 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
-        #expect(gridHeight <= innerHeight + 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(partyRowWidth <= innerWidth + 0.001, sourceLocation: sourceLocation)
+        #expect(gridHeight <= innerHeight + 0.001, sourceLocation: sourceLocation)
 
         if fillsWidth {
-            #expect(abs(partyRowWidth - innerWidth) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+            #expect(abs(partyRowWidth - innerWidth) < 0.001, sourceLocation: sourceLocation)
         }
 
         if fillsHeight {
-            #expect(abs(gridHeight - innerHeight) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+            #expect(abs(gridHeight - innerHeight) < 0.001, sourceLocation: sourceLocation)
         }
     }
 }
