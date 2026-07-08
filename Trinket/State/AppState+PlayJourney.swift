@@ -94,6 +94,36 @@ extension AppState {
         }
     }
 
+    /// Beyond the seamless resume window, drop the in-memory battle while keeping the
+    /// resume card — unless a terminal victory is already pending, in which case grant
+    /// rewards so the player does not lose an unclaimed win.
+    func discardOrCompleteBattleBeyondSeamlessWindow() {
+        guard let configuration = battle.activeBattle else { return }
+
+        if battle.isShowingVictory || battle.outcome == .victory {
+            let battleGold = battle.victorySummary?.battleGold ?? battle.state?.earnedGold ?? 0
+            let materialRewards = battle.victorySummary?.materialRewards
+            completeActiveBattle(
+                configuration,
+                battleEarnedGold: battleGold,
+                materialRewards: materialRewards
+            )
+            return
+        }
+
+        if battle.isShowingDefeat {
+            battle.endBattle()
+            return
+        }
+
+        // Mid-fight: clear live battle UI/state but keep shell session stage ID for the
+        // resume card (same contract as the previous nil-callback clear).
+        let oldChange = battle.onBattleStateChange
+        battle.onBattleStateChange = nil
+        battle.endBattle()
+        battle.onBattleStateChange = oldChange
+    }
+
     @discardableResult
     func startBattle(for stage: Stage) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }

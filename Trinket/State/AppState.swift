@@ -315,12 +315,7 @@ final class AppState {
                         }
                         selectedTab = .play
                     } else {
-                        if battle.activeBattle != nil {
-                            let oldChange = battle.onBattleStateChange
-                            battle.onBattleStateChange = nil
-                            battle.activeBattle = nil
-                            battle.onBattleStateChange = oldChange
-                        }
+                        discardOrCompleteBattleBeyondSeamlessWindow()
                         selectedTab = .play
                     }
                 } else {

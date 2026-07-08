@@ -260,6 +260,47 @@ struct AppStatePlayFlowTests {
         #expect(state.selectedTab == .play)
     }
 
+    @Test func foregroundResumeBeyondSeamlessWindowCompletesPendingVictory() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        let configuration = try #require(state.battle.activeBattle)
+        let initialGold = state.roster.current.gold
+
+        state.battle.victorySummary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: try #require(state.battle.state),
+            homestead: state.homestead.current
+        )
+        state.battle.isShowingVictory = true
+        state.isColdLaunch = false
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
+
+        state.evaluateResumeRules()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(!(state.showResumeBattleCard))
+        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+        #expect(state.roster.current.gold > initialGold)
+        #expect(state.selectedTab == .play)
+    }
+
+    @Test func foregroundResumeBeyondSeamlessWindowClearsOverlayOnMidFightDiscard() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        state.battle.presentCombatantDetail(CombatantCardDetail(combatant: state.roster.activeHero))
+        #expect(state.battle.overlayCombatantDetail != nil)
+
+        state.isColdLaunch = false
+        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
+        state.evaluateResumeRules()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.battle.overlayCombatantDetail == nil)
+        #expect(state.showResumeBattleCard)
+    }
+
     @Test func foregroundResumeBeyondExpiryWindowDiscardsSave() throws {
         context.userDefaults.set(
             "chapter-1-stage-1",

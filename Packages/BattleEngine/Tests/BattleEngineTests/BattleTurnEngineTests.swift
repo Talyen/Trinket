@@ -79,4 +79,108 @@ struct BattleTurnEngineTests {
         try #expect(events.contains { $0.kind == .ability })
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
+
+    @Test func performActionSkipsCorpseTargetedEffectsAfterLethalHit() throws {
+        let killAndMark = Ability(
+            id: "kill-mark",
+            name: "Kill Mark",
+            tier: .basic,
+            directDamage: 100,
+            damageKeyword: .physical,
+            effects: [.marked(2, 4)]
+        )
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 2,
+            abilities: [killAndMark]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 5,
+            actionIntervalTicks: 100
+        )
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                pet: CombatantRuntime(combatant: pet),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 1,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+
+        let events = BattleTurnEngine.performAction(
+            actor: hero,
+            abilityTarget: enemy,
+            matchup: matchup,
+            context: &context
+        )
+
+        try #expect(context.roster.health(for: enemy) == 0)
+        try #expect(!(context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }))
+        let abilityEvent = try #require(events.first { $0.kind == .ability })
+        try #expect(!(abilityEvent.appliedEffectSummaries.contains { $0.localizedCaseInsensitiveContains("mark") }))
+    }
+
+    @Test func performActionStillGrantsGoldAfterLethalHit() throws {
+        let killAndGold = Ability(
+            id: "kill-gold",
+            name: "Kill Gold",
+            tier: .basic,
+            directDamage: 100,
+            damageKeyword: .physical,
+            effects: [.resourceGain(.gold, 3)]
+        )
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 2,
+            abilities: [killAndGold]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 5,
+            actionIntervalTicks: 100
+        )
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                pet: CombatantRuntime(combatant: pet),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 1,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+
+        _ = BattleTurnEngine.performAction(
+            actor: hero,
+            abilityTarget: enemy,
+            matchup: matchup,
+            context: &context
+        )
+
+        try #expect(context.roster.health(for: enemy) == 0)
+        try #expect(context.gold == 3)
+    }
 }

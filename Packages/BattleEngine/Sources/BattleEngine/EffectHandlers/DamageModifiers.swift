@@ -74,6 +74,10 @@ public struct ControlMeterHandler: BattleEffectHandler {
         guard case let .controlMeter(keyword, amount, _) = effect else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
+        guard amount > 0, context.roster.health(for: target) > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let effectsBefore = context.roster.activeEffects(for: target)
         let events = ControlMeterEngine.applyMeterCharge(
             amount,
             keyword: keyword,
@@ -82,6 +86,7 @@ public struct ControlMeterHandler: BattleEffectHandler {
             in: &context
         )
         _ = ability
-        return EffectApplyOutcome(events: events, didApply: amount > 0 && context.roster.health(for: target) > 0)
+        let didApply = !events.isEmpty || context.roster.activeEffects(for: target) != effectsBefore
+        return EffectApplyOutcome(events: events, didApply: didApply)
     }
 }

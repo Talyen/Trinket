@@ -106,4 +106,34 @@ struct ActiveBattleConfigurationTests {
         #expect(encounter.level == expectedLevel)
         #expect(encounter.combatant.id == stage.encounter.battleEnemyID)
     }
+
+    @Test func makePreservesJourneyScaledEnemyStats() throws {
+        let chapter = try #require(GameContent.chapters.first)
+        let battleStages = chapter.stages.filter {
+            if case .battle = $0.encounter { return true }
+            return false
+        }
+        let stage = try #require(battleStages.last)
+        let encounter = try #require(ActiveBattleConfiguration.resolvedEncounter(for: stage))
+        #expect(encounter.level > 1)
+
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let catalogEnemy = try #require(GameContent.enemy(matching: encounter.combatant.id))
+
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
+            stageID: stage.id,
+            rngSeed: 0,
+            hero: knight,
+            pet: wolf,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level
+        )
+
+        let enemy = try #require(configuration.enemy)
+        #expect(enemy.maxHealth == encounter.combatant.maxHealth)
+        #expect(enemy.maxHealth > catalogEnemy.combatant.maxHealth)
+        #expect(configuration.enemyEncounterLevel == encounter.level)
+        #expect(configuration.enemyModifiers.controlResistancePercent >= 0)
+    }
 }
