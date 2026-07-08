@@ -44,20 +44,6 @@ struct CollectionView: View {
                             .accessibilityIdentifier("\(item.displayName) item card")
                         }
                     }
-                } else {
-                    collectionCategorySection(
-                        title: "Inventory",
-                        accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        destination: InventoryGridView()
-                    ) {
-                        ContentUnavailableView(
-                            "No Items Yet",
-                            systemImage: "shippingbox",
-                            description: Text("Complete stages to earn gear for your heroes.")
-                        )
-                        .collectionShelfCardWidth()
-                        .accessibilityIdentifier(AccessibilityID.Collection.inventoryEmptyState)
-                    }
                 }
             }
             .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)

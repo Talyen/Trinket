@@ -87,7 +87,7 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists("Rogue collection card")
     }
 
-    func testFreshStartCollectionShowsInventoryEmptyState() {
+    func testFreshStartCollectionHidesInventorySection() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -96,8 +96,8 @@ final class TabNavigationUITests: TrinketUITestCase {
         ])
         assertExists("Heroes collection category")
         assertExists("Pets collection category")
-        assertExists(AccessibilityID.Collection.inventoryCategory)
-        assertExists(AccessibilityID.Collection.inventoryEmptyState)
+        XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
+        XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryEmptyState].exists)
     }
 
     func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {
