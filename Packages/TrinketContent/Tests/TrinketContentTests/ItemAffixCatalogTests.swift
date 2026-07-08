@@ -19,8 +19,14 @@ struct ItemAffixCatalogTests {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
             try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
-            try #expect(!definition.basic.modifiers.isEmpty, "\(definition.id)) basic modifiers")
-            try #expect(!definition.astral.modifiers.isEmpty, "\(definition.id)) astral modifiers")
+            try #expect(
+                !definition.basic.modifiers.isEmpty || definition.basic.triggers != CombatTraitTriggers(),
+                "\(definition.id)) basic power"
+            )
+            try #expect(
+                !definition.astral.modifiers.isEmpty || definition.astral.triggers != CombatTraitTriggers(),
+                "\(definition.id)) astral power"
+            )
         }
     }
 
@@ -65,8 +71,12 @@ struct ItemAffixCatalogTests {
             "enduring", "plated",
             "siphoning", "manabound", "beastbond", "biting", "noxious",
             "hallowed", "hoarfrost", "stormforged", "vitalis", "ashen",
+            "infected", "ashen_wake", "cauterize", "contagion", "shatter",
+            "brittle", "executioners", "riposte", "relentless", "cascading",
+            "undergird", "ablution", "aftershock", "hexmark", "packbond",
+            "symbiosis", "second_wind", "deathgrip", "frostburn",
         ]
         try #expect(expected.isSubset(of: ids))
-        try #expect(GameContent.itemAffixDefinitions.count == 70)
+        try #expect(GameContent.itemAffixDefinitions.count == 89)
     }
 }

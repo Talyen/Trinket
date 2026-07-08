@@ -10,6 +10,7 @@ struct DamagePipelineTests {
         "DodgeGate",
         "CriticalGate",
         "DamageBonus",
+        "Hexmark",
         "MarkedBonus",
         "Mitigation",
         "ItemReduction",
@@ -103,7 +104,7 @@ struct DamagePipelineTests {
     @Test func stepPhasesGroupStochasticResolutionAndPost() throws {
         let phases = DamagePipeline.steps.map(\.phase)
         try #expect(phases.filter { $0 == .stochastic }.count == 2)
-        try #expect(phases.filter { $0 == .resolution }.count == 9)
+        try #expect(phases.filter { $0 == .resolution }.count == 10)
         try #expect(phases.filter { $0 == .post }.count == 3)
         try #expect(DamagePipeline.steps.first?.phase == .stochastic)
         try #expect(DamagePipeline.steps.last?.phase == .post)

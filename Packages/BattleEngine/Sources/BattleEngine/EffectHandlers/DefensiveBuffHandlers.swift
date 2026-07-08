@@ -46,7 +46,9 @@ public struct ShieldHandler: BattleEffectHandler {
             amount: adjustedBuffer,
             keyword: adjustedKeyword
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        events.append(contentsOf: CombatReactionEngine.afterBlockGained(by: target, in: &context))
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 
@@ -94,7 +96,9 @@ public struct MitigationHandler: BattleEffectHandler {
             amount: Int(adjustedPercent * 100),
             keyword: adjustedKeyword
         )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        var events = [event]
+        events.append(contentsOf: CombatReactionEngine.afterArmorGained(by: target, in: &context))
+        return EffectApplyOutcome(events: events, didApply: true)
     }
 }
 

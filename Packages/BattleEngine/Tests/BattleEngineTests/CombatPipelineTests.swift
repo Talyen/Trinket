@@ -351,6 +351,7 @@ struct CombatPipelineTests {
             "DodgeGate",
             "CriticalGate",
             "DamageBonus",
+            "Hexmark",
             "MarkedBonus",
             "Mitigation",
             "ItemReduction",

@@ -86,6 +86,8 @@ class AffixRow:
     astral_description: str
     basic_modifiers: str
     astral_modifiers: str
+    basic_triggers: str
+    astral_triggers: str
 
 
 @dataclass
@@ -213,6 +215,8 @@ def parse_affix_rows() -> list[AffixRow]:
         "astral_description",
         "basic_modifiers",
         "astral_modifiers",
+        "basic_triggers",
+        "astral_triggers",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -500,6 +504,59 @@ def triggers_swift(raw: str) -> str:
             values["leechHealingMultiplier"] = token.split(":", 1)[1]
         elif token.startswith("hemorrhage_bleed_bonus:"):
             values["hemorrhageBleedBonus"] = token.split(":", 1)[1]
+        elif token.startswith("on_bleed_apply_poison:"):
+            values["onBleedApplyPoison"] = token.split(":", 1)[1]
+        elif token.startswith("on_burn_apply_poison:"):
+            values["onBurnApplyPoison"] = token.split(":", 1)[1]
+        elif token.startswith("on_bleed_deal_burn_damage:"):
+            values["onBleedDealBurnDamage"] = token.split(":", 1)[1]
+        elif token.startswith("every_nth_bleed_apply_poison:"):
+            _, count, potency = token.split(":", 2)
+            values["everyNthBleedApplyCount"] = count
+            values["everyNthBleedApplyPoisonPotency"] = potency
+        elif token.startswith("freeze_damage_while_frozen:"):
+            values["freezeDamageWhileFrozenBonus"] = token.split(":", 1)[1]
+        elif token.startswith("damage_while_target_frozen:"):
+            values["damageWhileTargetFrozenBonus"] = token.split(":", 1)[1]
+        elif token.startswith("damage_below_health_percent:"):
+            _, threshold, keyword, bonus = token.split(":", 3)
+            values["damageBelowHealthPercentThreshold"] = threshold
+            values["damageBelowHealthPercentKeyword"] = f".{keyword}"
+            values["damageBelowHealthPercentBonus"] = bonus
+        elif token.startswith("damage_after_dodge:"):
+            values["damageAfterDodgeBonus"] = token.split(":", 1)[1]
+        elif token.startswith("refresh_bleed_on_reapply:"):
+            values["refreshBleedOnReapply"] = token.split(":", 1)[1]
+        elif token.startswith("on_block_broken_armor:"):
+            _, percent, duration = token.split(":", 2)
+            values["blockBrokenArmorPercent"] = percent
+            values["blockBrokenArmorDurationTicks"] = duration
+        elif token.startswith("on_armor_gained_block:"):
+            values["armorGainedBlock"] = token.split(":", 1)[1]
+        elif token.startswith("on_block_gained_cleanse:"):
+            _, count, interval = token.split(":", 2)
+            values["blockGainedCleanseCount"] = count
+            values["blockGainedCleanseIntervalTicks"] = interval
+        elif token.startswith("on_enemy_stunned_haste:"):
+            values["enemyStunnedHasteDurationTicks"] = token.split(":", 1)[1]
+        elif token.startswith("first_hit_apply_marked:"):
+            values["firstHitApplyMarked"] = token.split(":", 1)[1]
+        elif token.startswith("on_pet_act_leech:"):
+            _, percent, duration = token.split(":", 2)
+            values["petActLeechPercent"] = percent
+            values["petActLeechDurationTicks"] = duration
+        elif token.startswith("pet_heal_share_percent:"):
+            values["petHealSharePercent"] = token.split(":", 1)[1]
+        elif token.startswith("once_below_health_percent_heal:"):
+            _, threshold, amount = token.split(":", 2)
+            values["onceBelowHealthPercentThreshold"] = threshold
+            values["onceBelowHealthPercentHeal"] = amount
+        elif token.startswith("block_per_action_while_deaths_door:"):
+            values["blockPerActionWhileDeathsDoor"] = token.split(":", 1)[1]
+        elif token.startswith("every_nth_burn_tick_freeze_damage:"):
+            _, count, amount = token.split(":", 2)
+            values["everyNthBurnTickCount"] = count
+            values["everyNthBurnTickFreezeDamage"] = amount
         else:
             raise ValueError(f"Unknown trigger token: {token}")
     order = [
@@ -526,6 +583,33 @@ def triggers_swift(raw: str) -> str:
         "graspingVinesHealBonus",
         "leechHealingMultiplier",
         "hemorrhageBleedBonus",
+        "onBleedApplyPoison",
+        "onBurnApplyPoison",
+        "onBleedDealBurnDamage",
+        "everyNthBleedApplyCount",
+        "everyNthBleedApplyPoisonPotency",
+        "freezeDamageWhileFrozenBonus",
+        "damageWhileTargetFrozenBonus",
+        "damageBelowHealthPercentThreshold",
+        "damageBelowHealthPercentKeyword",
+        "damageBelowHealthPercentBonus",
+        "damageAfterDodgeBonus",
+        "refreshBleedOnReapply",
+        "blockBrokenArmorPercent",
+        "blockBrokenArmorDurationTicks",
+        "armorGainedBlock",
+        "blockGainedCleanseCount",
+        "blockGainedCleanseIntervalTicks",
+        "enemyStunnedHasteDurationTicks",
+        "firstHitApplyMarked",
+        "petActLeechPercent",
+        "petActLeechDurationTicks",
+        "petHealSharePercent",
+        "onceBelowHealthPercentThreshold",
+        "onceBelowHealthPercentHeal",
+        "blockPerActionWhileDeathsDoor",
+        "everyNthBurnTickCount",
+        "everyNthBurnTickFreezeDamage",
     ]
     parts = [f"{label}: {values[label]}" for label in order if label in values]
     if not parts:
@@ -752,8 +836,8 @@ def generate_affix_catalog(rows: list[AffixRow]) -> None:
             f"            slot: .{row.slot},\n"
             f"            keywords: {parse_keywords(row.keywords)},\n"
             f"            weight: {row.weight},\n"
-            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}),\n'
-            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)})\n'
+            f'            basic: ItemAffixPower(description: "{swift_escape(row.basic_description)}", modifiers: {modifiers_swift(row.basic_modifiers)}, triggers: {triggers_swift(row.basic_triggers)}),\n'
+            f'            astral: ItemAffixPower(description: "{swift_escape(row.astral_description)}", modifiers: {modifiers_swift(row.astral_modifiers)}, triggers: {triggers_swift(row.astral_triggers)})\n'
             "        )"
         )
 
@@ -1058,6 +1142,14 @@ def _validate_kebab_id(label: str, value: str, row_id: str) -> None:
         )
 
 
+def _validate_affix_id(value: str, row_id: str) -> None:
+    if KEBAB_IDENTIFIER.match(value) or SNAKE_IDENTIFIER.match(value):
+        return
+    raise ValueError(
+        f"affix id '{value}' for {row_id} must use lowercase letters, numbers, hyphens, or underscores"
+    )
+
+
 def _validate_keywords(raw: str, row_id: str) -> None:
     if not raw:
         return
@@ -1085,7 +1177,7 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
             raise ValueError(f"Duplicate affix id: {row.id}")
         seen.add(row.id)
 
-        _validate_kebab_id("affix id", row.id, row.id)
+        _validate_affix_id(row.id, row.id)
         _require_non_empty("affix title", row.title, row.id)
         if row.slot not in VALID_SLOTS:
             raise ValueError(f"Invalid affix slot '{row.slot}' for {row.id}")
@@ -1095,6 +1187,8 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
         _require_non_empty("astral_description", row.astral_description, row.id)
         modifiers_swift(row.basic_modifiers)
         modifiers_swift(row.astral_modifiers)
+        triggers_swift(row.basic_triggers)
+        triggers_swift(row.astral_triggers)
 
 
 def validate_ability_rows(rows: list[AbilityRow]) -> None:

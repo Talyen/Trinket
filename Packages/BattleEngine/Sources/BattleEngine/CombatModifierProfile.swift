@@ -43,6 +43,33 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var graspingVinesHealBonus: Int
     public var leechHealingMultiplier: Double
     public var hemorrhageBleedBonus: Int
+    public var onBleedApplyPoison: Int
+    public var onBurnApplyPoison: Int
+    public var onBleedDealBurnDamage: Int
+    public var everyNthBleedApplyCount: Int
+    public var everyNthBleedApplyPoisonPotency: Int
+    public var freezeDamageWhileFrozenBonus: Int
+    public var damageWhileTargetFrozenBonus: Int
+    public var damageBelowHealthPercentThreshold: Double
+    public var damageBelowHealthPercentKeyword: Keyword?
+    public var damageBelowHealthPercentBonus: Int
+    public var damageAfterDodgeBonus: Int
+    public var refreshBleedOnReapply: Bool
+    public var blockBrokenArmorPercent: Double
+    public var blockBrokenArmorDurationTicks: Int
+    public var armorGainedBlock: Int
+    public var blockGainedCleanseCount: Int
+    public var blockGainedCleanseIntervalTicks: Int
+    public var enemyStunnedHasteDurationTicks: Int
+    public var firstHitApplyMarked: Bool
+    public var petActLeechPercent: Double
+    public var petActLeechDurationTicks: Int
+    public var petHealSharePercent: Double
+    public var onceBelowHealthPercentThreshold: Double
+    public var onceBelowHealthPercentHeal: Int
+    public var blockPerActionWhileDeathsDoor: Int
+    public var everyNthBurnTickCount: Int
+    public var everyNthBurnTickFreezeDamage: Int
     public var traitDisplayName: String?
 
     public static let zero = CombatModifierProfile()
@@ -88,6 +115,33 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         graspingVinesHealBonus: Int = 0,
         leechHealingMultiplier: Double = 1,
         hemorrhageBleedBonus: Int = 0,
+        onBleedApplyPoison: Int = 0,
+        onBurnApplyPoison: Int = 0,
+        onBleedDealBurnDamage: Int = 0,
+        everyNthBleedApplyCount: Int = 0,
+        everyNthBleedApplyPoisonPotency: Int = 0,
+        freezeDamageWhileFrozenBonus: Int = 0,
+        damageWhileTargetFrozenBonus: Int = 0,
+        damageBelowHealthPercentThreshold: Double = 0,
+        damageBelowHealthPercentKeyword: Keyword? = nil,
+        damageBelowHealthPercentBonus: Int = 0,
+        damageAfterDodgeBonus: Int = 0,
+        refreshBleedOnReapply: Bool = false,
+        blockBrokenArmorPercent: Double = 0,
+        blockBrokenArmorDurationTicks: Int = 0,
+        armorGainedBlock: Int = 0,
+        blockGainedCleanseCount: Int = 0,
+        blockGainedCleanseIntervalTicks: Int = 0,
+        enemyStunnedHasteDurationTicks: Int = 0,
+        firstHitApplyMarked: Bool = false,
+        petActLeechPercent: Double = 0,
+        petActLeechDurationTicks: Int = 0,
+        petHealSharePercent: Double = 0,
+        onceBelowHealthPercentThreshold: Double = 0,
+        onceBelowHealthPercentHeal: Int = 0,
+        blockPerActionWhileDeathsDoor: Int = 0,
+        everyNthBurnTickCount: Int = 0,
+        everyNthBurnTickFreezeDamage: Int = 0,
         traitDisplayName: String? = nil
     ) {
         self.statBonuses = statBonuses
@@ -130,6 +184,33 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.graspingVinesHealBonus = graspingVinesHealBonus
         self.leechHealingMultiplier = leechHealingMultiplier
         self.hemorrhageBleedBonus = hemorrhageBleedBonus
+        self.onBleedApplyPoison = onBleedApplyPoison
+        self.onBurnApplyPoison = onBurnApplyPoison
+        self.onBleedDealBurnDamage = onBleedDealBurnDamage
+        self.everyNthBleedApplyCount = everyNthBleedApplyCount
+        self.everyNthBleedApplyPoisonPotency = everyNthBleedApplyPoisonPotency
+        self.freezeDamageWhileFrozenBonus = freezeDamageWhileFrozenBonus
+        self.damageWhileTargetFrozenBonus = damageWhileTargetFrozenBonus
+        self.damageBelowHealthPercentThreshold = damageBelowHealthPercentThreshold
+        self.damageBelowHealthPercentKeyword = damageBelowHealthPercentKeyword
+        self.damageBelowHealthPercentBonus = damageBelowHealthPercentBonus
+        self.damageAfterDodgeBonus = damageAfterDodgeBonus
+        self.refreshBleedOnReapply = refreshBleedOnReapply
+        self.blockBrokenArmorPercent = blockBrokenArmorPercent
+        self.blockBrokenArmorDurationTicks = blockBrokenArmorDurationTicks
+        self.armorGainedBlock = armorGainedBlock
+        self.blockGainedCleanseCount = blockGainedCleanseCount
+        self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
+        self.enemyStunnedHasteDurationTicks = enemyStunnedHasteDurationTicks
+        self.firstHitApplyMarked = firstHitApplyMarked
+        self.petActLeechPercent = petActLeechPercent
+        self.petActLeechDurationTicks = petActLeechDurationTicks
+        self.petHealSharePercent = petHealSharePercent
+        self.onceBelowHealthPercentThreshold = onceBelowHealthPercentThreshold
+        self.onceBelowHealthPercentHeal = onceBelowHealthPercentHeal
+        self.blockPerActionWhileDeathsDoor = blockPerActionWhileDeathsDoor
+        self.everyNthBurnTickCount = everyNthBurnTickCount
+        self.everyNthBurnTickFreezeDamage = everyNthBurnTickFreezeDamage
         self.traitDisplayName = traitDisplayName
     }
 
@@ -191,6 +272,33 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         graspingVinesHealBonus += other.graspingVinesHealBonus
         leechHealingMultiplier *= other.leechHealingMultiplier
         hemorrhageBleedBonus += other.hemorrhageBleedBonus
+        onBleedApplyPoison += other.onBleedApplyPoison
+        onBurnApplyPoison += other.onBurnApplyPoison
+        onBleedDealBurnDamage += other.onBleedDealBurnDamage
+        everyNthBleedApplyCount = max(everyNthBleedApplyCount, other.everyNthBleedApplyCount)
+        everyNthBleedApplyPoisonPotency += other.everyNthBleedApplyPoisonPotency
+        freezeDamageWhileFrozenBonus += other.freezeDamageWhileFrozenBonus
+        damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
+        damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
+        if damageBelowHealthPercentKeyword == nil { damageBelowHealthPercentKeyword = other.damageBelowHealthPercentKeyword }
+        damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
+        damageAfterDodgeBonus += other.damageAfterDodgeBonus
+        refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply
+        blockBrokenArmorPercent += other.blockBrokenArmorPercent
+        blockBrokenArmorDurationTicks = max(blockBrokenArmorDurationTicks, other.blockBrokenArmorDurationTicks)
+        armorGainedBlock += other.armorGainedBlock
+        blockGainedCleanseCount += other.blockGainedCleanseCount
+        blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)
+        enemyStunnedHasteDurationTicks = max(enemyStunnedHasteDurationTicks, other.enemyStunnedHasteDurationTicks)
+        firstHitApplyMarked = firstHitApplyMarked || other.firstHitApplyMarked
+        petActLeechPercent += other.petActLeechPercent
+        petActLeechDurationTicks = max(petActLeechDurationTicks, other.petActLeechDurationTicks)
+        petHealSharePercent += other.petHealSharePercent
+        onceBelowHealthPercentThreshold = max(onceBelowHealthPercentThreshold, other.onceBelowHealthPercentThreshold)
+        onceBelowHealthPercentHeal += other.onceBelowHealthPercentHeal
+        blockPerActionWhileDeathsDoor += other.blockPerActionWhileDeathsDoor
+        everyNthBurnTickCount = max(everyNthBurnTickCount, other.everyNthBurnTickCount)
+        everyNthBurnTickFreezeDamage += other.everyNthBurnTickFreezeDamage
         if traitDisplayName == nil {
             traitDisplayName = other.traitDisplayName
         }

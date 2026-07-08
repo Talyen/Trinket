@@ -27,6 +27,7 @@ package enum DamagePipeline {
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),
         Step(name: "DamageBonus", phase: .resolution, apply: applyDamageBonus),
+        Step(name: "Hexmark", phase: .resolution, apply: applyHexmark),
         Step(name: "MarkedBonus", phase: .resolution, apply: applyMarkedBonus),
         Step(name: "Mitigation", phase: .resolution, apply: applyMitigation),
         Step(name: "ItemReduction", phase: .resolution, apply: applyItemReduction),

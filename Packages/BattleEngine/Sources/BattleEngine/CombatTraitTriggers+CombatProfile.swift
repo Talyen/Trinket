@@ -29,6 +29,50 @@ public extension CombatTraitTriggers {
         profile.graspingVinesHealBonus += graspingVinesHealBonus
         profile.leechHealingMultiplier *= leechHealingMultiplier
         profile.hemorrhageBleedBonus += hemorrhageBleedBonus
+        profile.onBleedApplyPoison += onBleedApplyPoison
+        profile.onBurnApplyPoison += onBurnApplyPoison
+        profile.onBleedDealBurnDamage += onBleedDealBurnDamage
+        profile.everyNthBleedApplyCount = max(profile.everyNthBleedApplyCount, everyNthBleedApplyCount)
+        profile.everyNthBleedApplyPoisonPotency += everyNthBleedApplyPoisonPotency
+        profile.freezeDamageWhileFrozenBonus += freezeDamageWhileFrozenBonus
+        profile.damageWhileTargetFrozenBonus += damageWhileTargetFrozenBonus
+        profile.damageBelowHealthPercentThreshold = max(
+            profile.damageBelowHealthPercentThreshold,
+            damageBelowHealthPercentThreshold
+        )
+        if profile.damageBelowHealthPercentKeyword == nil {
+            profile.damageBelowHealthPercentKeyword = damageBelowHealthPercentKeyword
+        }
+        profile.damageBelowHealthPercentBonus += damageBelowHealthPercentBonus
+        profile.damageAfterDodgeBonus += damageAfterDodgeBonus
+        profile.refreshBleedOnReapply = profile.refreshBleedOnReapply || refreshBleedOnReapply
+        profile.blockBrokenArmorPercent += blockBrokenArmorPercent
+        profile.blockBrokenArmorDurationTicks = max(
+            profile.blockBrokenArmorDurationTicks,
+            blockBrokenArmorDurationTicks
+        )
+        profile.armorGainedBlock += armorGainedBlock
+        profile.blockGainedCleanseCount += blockGainedCleanseCount
+        profile.blockGainedCleanseIntervalTicks = max(
+            profile.blockGainedCleanseIntervalTicks,
+            blockGainedCleanseIntervalTicks
+        )
+        profile.enemyStunnedHasteDurationTicks = max(
+            profile.enemyStunnedHasteDurationTicks,
+            enemyStunnedHasteDurationTicks
+        )
+        profile.firstHitApplyMarked = profile.firstHitApplyMarked || firstHitApplyMarked
+        profile.petActLeechPercent += petActLeechPercent
+        profile.petActLeechDurationTicks = max(profile.petActLeechDurationTicks, petActLeechDurationTicks)
+        profile.petHealSharePercent += petHealSharePercent
+        profile.onceBelowHealthPercentThreshold = max(
+            profile.onceBelowHealthPercentThreshold,
+            onceBelowHealthPercentThreshold
+        )
+        profile.onceBelowHealthPercentHeal += onceBelowHealthPercentHeal
+        profile.blockPerActionWhileDeathsDoor += blockPerActionWhileDeathsDoor
+        profile.everyNthBurnTickCount = max(profile.everyNthBurnTickCount, everyNthBurnTickCount)
+        profile.everyNthBurnTickFreezeDamage += everyNthBurnTickFreezeDamage
     }
 }
 

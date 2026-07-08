@@ -116,7 +116,7 @@ package enum ControlMeterEngine {
             actorName = combatant.name
         }
         let abilityName = keyword.statusAlias ?? keyword.rawValue
-        return [
+        var events = [
             context.nextEvent(
                 kind: .effect,
                 effectKind: .controlTriggered,
@@ -129,6 +129,10 @@ package enum ControlMeterEngine {
                 milestone: nil
             )
         ]
+        if keyword == .stun, combatant.id == context.roster.enemy.id {
+            events.append(contentsOf: CombatReactionEngine.afterEnemyStunned(in: &context))
+        }
+        return events
     }
 
     private struct ControlMeterUpdate {

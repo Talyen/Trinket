@@ -31,9 +31,19 @@ package extension DamagePipeline {
                     context.roster.mutateRuntime(for: actor.combatant) { $0.hasTriggeredAmbush = true }
                 }
             }
+            if state.applyItemBonus {
+                state.itemBonus += CombatReactionEngine.affixDamageBonus(for: state, in: &context)
+            }
         }
         state.remaining = state.amount + state.statBonus + state.itemBonus
         state.dealt = state.remaining
+    }
+
+    static func applyHexmark(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        CombatReactionEngine.applyHexmarkIfNeeded(to: &state, in: &context)
     }
 
     static func outgoingDamageBonus(
@@ -53,7 +63,7 @@ package extension DamagePipeline {
         in context: inout BattleEngineContext
     ) {
         guard state.sourceActorID != nil else { return }
-        let effects = context.roster.activeEffects(for: state.combatant)
+        let effects = state.activeEffects
         guard effects.contains(where: { if case .marked = $0.effect { return true }; return false }) else {
             return
         }
@@ -158,6 +168,14 @@ package extension DamagePipeline {
             effects.remove(at: index)
         }
         state.activeEffects = effects
+        if !shieldIndexes.isEmpty {
+            context.roster.setActiveEffects(effects, for: state.combatant)
+            state.damageEvents.append(contentsOf: CombatReactionEngine.afterBlockBroken(
+                on: state.combatant,
+                in: &context
+            ))
+            state.activeEffects = context.roster.activeEffects(for: state.combatant)
+        }
     }
 
     static func applyCriticalMultiply(
@@ -178,6 +196,12 @@ package extension DamagePipeline {
         var lost = 0
         context.roster.mutateRuntime(for: state.combatant) { lost = $0.takeRawDamage(state.remaining) }
         state.healthLost = lost
+        if lost > 0 {
+            state.damageEvents.append(contentsOf: CombatReactionEngine.afterHealthDropped(
+                target: state.combatant,
+                in: &context
+            ))
+        }
     }
 
     static func applyMarkedConsume(

@@ -45,10 +45,16 @@ public extension ItemAffix {
 public struct ItemAffixPower: Equatable, Hashable, Sendable {
     public let description: String
     public let modifiers: [AffixModifier]
+    public let triggers: CombatTraitTriggers
 
-    public init(description: String, modifiers: [AffixModifier]) {
+    public init(
+        description: String,
+        modifiers: [AffixModifier],
+        triggers: CombatTraitTriggers = CombatTraitTriggers()
+    ) {
         self.description = description
         self.modifiers = modifiers
+        self.triggers = triggers
     }
 }
 

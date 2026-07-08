@@ -28,6 +28,7 @@ package extension DamagePipeline {
                 milestone: nil
             ))
             state.isDodged = true
+            CombatReactionEngine.afterDodge(by: state.combatant, in: &context)
         }
     }
 

@@ -48,6 +48,24 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant's ambush trait has added its first-strike bonus.
     public var hasTriggeredAmbush: Bool
 
+    /// True after this combatant's Second Wind affix has healed once this battle.
+    public var hasTriggeredSecondWind: Bool
+
+    /// True after this combatant's Hexmark affix has marked its first target this battle.
+    public var hasTriggeredHexmark: Bool
+
+    /// Pending flat damage bonus earned by dodging and consumed by the next damage dealt.
+    public var pendingDamageAfterDodge: Int
+
+    /// Number of bleed applications this combatant has sourced this battle.
+    public var bleedApplyCount: Int
+
+    /// Number of burn ticks this combatant has sourced this battle.
+    public var burnTickCount: Int
+
+    /// Last battle tick where Ablution cleansed a debuff for this combatant.
+    public var lastAblutionTick: Int?
+
     /// Tick until which mitigation from armor effects is reduced by `mitigationShredMultiplier`.
     public var mitigationShredUntilTick: Int
 
@@ -65,6 +83,12 @@ public struct CombatantRuntime: Hashable {
         maximumManaBonus: Int = 0,
         hasConsumedDeathsDoor: Bool = false,
         hasTriggeredAmbush: Bool = false,
+        hasTriggeredSecondWind: Bool = false,
+        hasTriggeredHexmark: Bool = false,
+        pendingDamageAfterDodge: Int = 0,
+        bleedApplyCount: Int = 0,
+        burnTickCount: Int = 0,
+        lastAblutionTick: Int? = nil,
         mitigationShredUntilTick: Int = 0,
         mitigationShredMultiplier: Double = 1
     ) {
@@ -73,6 +97,12 @@ public struct CombatantRuntime: Hashable {
         self.maximumManaBonus = maximumManaBonus
         self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
         self.hasTriggeredAmbush = hasTriggeredAmbush
+        self.hasTriggeredSecondWind = hasTriggeredSecondWind
+        self.hasTriggeredHexmark = hasTriggeredHexmark
+        self.pendingDamageAfterDodge = pendingDamageAfterDodge
+        self.bleedApplyCount = bleedApplyCount
+        self.burnTickCount = burnTickCount
+        self.lastAblutionTick = lastAblutionTick
         self.mitigationShredUntilTick = mitigationShredUntilTick
         self.mitigationShredMultiplier = mitigationShredMultiplier
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)

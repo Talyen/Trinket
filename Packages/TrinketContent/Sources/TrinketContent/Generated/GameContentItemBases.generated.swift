@@ -21,7 +21,7 @@ enum GameContentItemBasesGenerated {
         ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .gold, .mana]),
         ItemBaseType(id: "staff", name: "Staff", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .block, .mana]),
         ItemBaseType(id: "wand", name: "Wand", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .poison, .mana]),
-        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.armor, .health, .poison, .leech, .bleed, .nature]),
+        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.physical, .armor, .health, .poison, .leech, .bleed, .nature]),
         ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, keywordAffinities: [.block, .armor, .health, .holy, .stun]),
         ItemBaseType(id: "emerald_amulet", name: "Emerald Amulet", slot: .trinket, keywordAffinities: [.nature, .poison, .health]),
         ItemBaseType(id: "emerald_ring", name: "Emerald Ring", slot: .trinket, keywordAffinities: [.nature, .poison, .health]),

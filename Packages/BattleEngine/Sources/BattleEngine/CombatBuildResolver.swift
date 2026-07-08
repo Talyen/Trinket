@@ -63,6 +63,7 @@ public enum CombatBuildResolver {
             }
             let power = definition.power(for: item.rarity)
             partial.merge(power.modifiers)
+            power.triggers.apply(to: &partial)
         }
     }
 }

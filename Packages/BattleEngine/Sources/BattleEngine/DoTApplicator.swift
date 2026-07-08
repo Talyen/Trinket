@@ -10,6 +10,7 @@ package enum DoTApplicator {
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool,
+        suppressAffixReactions: Bool = false,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
@@ -41,6 +42,14 @@ package enum DoTApplicator {
             )
         }
         context.roster.setActiveEffects(currentEffects, for: effectTarget)
+        if !suppressAffixReactions {
+            collected.append(contentsOf: CombatReactionEngine.afterDecayingDoTApplied(
+                keyword: keyword,
+                to: effectTarget,
+                sourceActorID: sourceActorID,
+                in: &context
+            ))
+        }
         return collected
     }
 
@@ -49,6 +58,7 @@ package enum DoTApplicator {
         to effectTarget: Combatant,
         sourceActorID: String,
         dealImmediateDamage: Bool,
+        suppressAffixReactions: Bool = false,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return [] }
@@ -64,12 +74,26 @@ package enum DoTApplicator {
             ).events)
         }
 
-        context.appendEffect(
-            .bleed(potency),
+        let didRefresh = CombatReactionEngine.refreshBleedOnReapplyIfNeeded(
             to: effectTarget,
-            sourceID: sourceActorID,
-            remainingTicks: Effect.bleedDoTTickCount + context.modifiers(for: sourceActorID).bleedDurationBonus
+            sourceActorID: sourceActorID,
+            in: &context
         )
+        if !didRefresh {
+            context.appendEffect(
+                .bleed(potency),
+                to: effectTarget,
+                sourceID: sourceActorID,
+                remainingTicks: Effect.bleedDoTTickCount + context.modifiers(for: sourceActorID).bleedDurationBonus
+            )
+        }
+        if !suppressAffixReactions {
+            collected.append(contentsOf: CombatReactionEngine.afterBleedApplied(
+                to: effectTarget,
+                sourceActorID: sourceActorID,
+                in: &context
+            ))
+        }
         return collected
     }
 

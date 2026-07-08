@@ -68,7 +68,8 @@ package extension BattleState {
         potency: Int,
         to effectTarget: Combatant,
         sourceActorID: String,
-        dealImmediateDamage: Bool
+        dealImmediateDamage: Bool,
+        suppressAffixReactions: Bool = false
     ) -> [ActionEvent] {
         DoTApplicator.applyDecayingDoT(
             keyword: keyword,
@@ -76,6 +77,7 @@ package extension BattleState {
             to: effectTarget,
             sourceActorID: sourceActorID,
             dealImmediateDamage: dealImmediateDamage,
+            suppressAffixReactions: suppressAffixReactions,
             in: &self
         )
     }

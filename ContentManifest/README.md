@@ -28,12 +28,13 @@ Trinket keeps editable game content manifests separate from generated Swift cata
 Tab-separated columns:
 
 ```text
-id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers
+id	title	slot	keywords	weight	basic_description	astral_description	basic_modifiers	astral_modifiers	basic_triggers	astral_triggers
 ```
 
 - `slot`: `weapon`, `armor`, or `trinket`.
 - `keywords`: comma-separated keyword names (e.g. `physical,bleed`).
-- `*_modifiers`: pipe-separated DSL tokens (e.g. `strength:1|damage_dealt:physical:1`).
+- `*_modifiers`: pipe-separated DSL tokens (e.g. `strength:1|damage_dealt:physical:1`). Empty when the affix is trigger-only.
+- `*_triggers`: pipe-separated combat trigger tokens (e.g. `on_bleed_apply_poison:1`, `refresh_bleed_on_reapply:true`). Empty for flat modifier affixes.
 
 ### Abilities (`ContentManifest/abilities.tsv`)
 

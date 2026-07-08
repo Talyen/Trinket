@@ -25,13 +25,20 @@ public struct DecayingDoTHandler: BattleEffectHandler {
             ? active.effect.potencyAfterTick(burnDecaySlowPercent: slowPercent)
             : active.effect.potencyAfterTick()
         if nextPotency > 0 {
-            let events = DoTDamage.resolveTick(
+            var events = DoTDamage.resolveTick(
                 basePotency: nextPotency,
                 keyword: keyword,
                 target: target,
                 sourceActorID: active.sourceActorID,
                 in: &context
             ).events
+            if keyword == .burn {
+                events.append(contentsOf: CombatReactionEngine.afterBurnTick(
+                    target: target,
+                    sourceActorID: active.sourceActorID,
+                    in: &context
+                ))
+            }
             var updated = active
             updated.effect = effectCase(potency: nextPotency)
             return EffectTickOutcome(events: events, updatedStack: updated)

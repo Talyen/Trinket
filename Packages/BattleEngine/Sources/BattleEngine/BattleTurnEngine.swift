@@ -22,15 +22,18 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
+        var events = CombatReactionEngine.atStartOfAction(by: actor, in: &context)
         if context.roster.hasPendingActionSkip(for: actor) {
-            return consumeActionSkip(for: actor, context: &context)
+            events.append(contentsOf: consumeActionSkip(for: actor, context: &context))
+            return events
         }
-        return performAction(
+        events.append(contentsOf: performAction(
             actor: actor,
             abilityTarget: abilityTarget,
             matchup: matchup,
             context: &context
-        )
+        ))
+        return events
     }
 
     public static func consumeActionSkip(
@@ -39,8 +42,7 @@ public enum BattleTurnEngine {
     ) -> [ActionEvent] {
         var currentEffects = context.roster.activeEffects(for: actor)
         guard let index = currentEffects.firstIndex(where: { $0.effect.isActionSkipPending }) else {
-            recordAction(for: actor, context: &context)
-            return []
+            return recordAction(for: actor, context: &context)
         }
 
         let effect = currentEffects[index]
@@ -57,8 +59,9 @@ public enum BattleTurnEngine {
             amount: 0,
             keyword: keyword
         )
-        recordAction(for: actor, context: &context)
-        return [event]
+        var events = [event]
+        events.append(contentsOf: recordAction(for: actor, context: &context))
+        return events
     }
 
     public static func performAction(
@@ -71,8 +74,7 @@ public enum BattleTurnEngine {
         let currentMana = context.roster.runtime(for: actor)?.currentMana ?? 0
 
         guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, currentMana: currentMana) else {
-            recordAction(for: actor, context: &context)
-            return []
+            return recordAction(for: actor, context: &context)
         }
 
         spendManaIfNeeded(for: ability, actor: actor, context: &context)
@@ -113,7 +115,7 @@ public enum BattleTurnEngine {
             )
         )
 
-        recordAction(for: actor, context: &context)
+        events.append(contentsOf: recordAction(for: actor, context: &context))
         return events
     }
 
@@ -276,12 +278,16 @@ public enum BattleTurnEngine {
     private static func recordAction(
         for actor: Combatant,
         context: inout BattleEngineContext
-    ) {
+    ) -> [ActionEvent] {
         context.actionCount += 1
-        guard var runtime = context.roster.runtime(for: actor) else { return }
+        guard var runtime = context.roster.runtime(for: actor) else { return [] }
         let activeEffects = context.roster.activeEffects(for: actor)
         runtime.markActed(atTick: context.tickCount, activeEffects: activeEffects)
         context.roster.update(runtime)
+        if actor.id == context.roster.pet.id {
+            return CombatReactionEngine.afterPetActed(in: &context)
+        }
+        return []
     }
 
     private static func resolveEffectTarget(

@@ -16,7 +16,7 @@ shortsword	Shortsword	weapon	physical,bleed
 spellbook	Spellbook	weapon	burn,freeze,holy,nature,gold,mana
 staff	Staff	weapon	burn,freeze,holy,nature,block,mana
 wand	Wand	weapon	burn,freeze,holy,poison,mana
-leather_armor	Leather Armor	armor	armor,health,poison,leech,bleed,nature
+leather_armor	Leather Armor	armor	physical,armor,health,poison,leech,bleed,nature
 plate_armor	Plate Armor	armor	block,armor,health,holy,stun
 emerald_amulet	Emerald Amulet	trinket	nature,poison,health
 emerald_ring	Emerald Ring	trinket	nature,poison,health
