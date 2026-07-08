@@ -49,13 +49,17 @@ public final class PlayerSaveStore {
     }
 
     // swiftlint:disable:next function_body_length
+    private let persistSaveImmediately: Bool
+
     public init(
         storeName: String? = nil,
         storeURL: URL? = nil,
         disableCloudSync: Bool = false,
         resetState: Bool = false,
-        inMemoryOnly: Bool = false
+        inMemoryOnly: Bool = false,
+        persistSaveImmediately: Bool = false
     ) {
+        self.persistSaveImmediately = persistSaveImmediately
         let finalURL: URL
         if let storeName {
             finalURL = URL.applicationSupportDirectory.appending(path: "\(storeName).store")
@@ -173,10 +177,6 @@ public final class PlayerSaveStore {
         }
     }
 
-    private var persistsMutationsImmediately: Bool {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }
-
     private func scheduleDeferredSave() {
         deferredSaveTask?.cancel()
         deferredSaveTask = Task(priority: .utility) { @MainActor [weak self] in
@@ -232,8 +232,8 @@ public final class PlayerSaveStore {
 
     private func mutate(_ update: (inout PlayerSave) -> Void) {
         do {
-            try performBatchMutation(update, persistImmediately: persistsMutationsImmediately)
-            if !persistsMutationsImmediately {
+            try performBatchMutation(update, persistImmediately: persistSaveImmediately)
+            if !persistSaveImmediately {
                 scheduleDeferredSave()
             }
         } catch let error as PlayerSavePersistenceError {

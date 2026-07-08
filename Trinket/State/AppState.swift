@@ -18,7 +18,9 @@ let appStateLogger = Logger(
 @MainActor
 @Observable
 final class AppState {
+    private let environment: AppEnvironment
     let playerSave: PlayerSaveStore
+    private let shellSession: PlayerShellSessionStore
     let musicPlayer: MusicPlayer
     var shellScenePhase: ScenePhase = .active
     var roster: PlayerRosterStore
@@ -27,23 +29,23 @@ final class AppState {
     var options: OptionsStore
     var battle: BattleSession
     var journey: PlayerJourneyStore
-    let initialCollectionCombatantDetail: CombatantDetailContext?
-    let initialCollectionItemID: String?
+    private(set) var pendingCollectionPresentation: LaunchPresentation?
 
     var battleTickTask: Task<Void, Never>?
 
-    private let sessionDefaults: UserDefaults
-
     var selectedTab: AppTab {
-        didSet { sessionDefaults.set(selectedTab.rawValue, forKey: Self.sessionTabKey) }
+        get { AppTab(shellSessionTab: shellSession.selectedTab) ?? .play }
+        set { shellSession.selectedTab = PlayerShellSessionTab(rawValue: newValue.rawValue) ?? .play }
     }
 
     var activeBattleStageID: String? {
-        didSet { sessionDefaults.set(activeBattleStageID, forKey: Self.activeBattleStageIDKey) }
+        get { shellSession.activeBattleStageID }
+        set { shellSession.activeBattleStageID = newValue }
     }
 
     var mapScrollStageID: String? {
-        didSet { sessionDefaults.set(mapScrollStageID, forKey: Self.mapScrollStageIDKey) }
+        get { shellSession.mapScrollStageID }
+        set { shellSession.mapScrollStageID = newValue }
     }
 
     private(set) var mapScrollNonce: UInt = 0
@@ -51,31 +53,38 @@ final class AppState {
     init(
         environment: AppEnvironment = .shared,
         playerSave: PlayerSaveStore? = nil,
+        shellSessionStore: PlayerShellSessionStore? = nil,
         userDefaults: UserDefaults? = nil
     ) {
+        self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
-        sessionDefaults = resolvedDefaults
 
         let dependencies = Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
+            shellSessionStore: shellSessionStore,
             userDefaults: resolvedDefaults
         )
 
         self.playerSave = dependencies.playerSave
+        shellSession = dependencies.shellSession
         musicPlayer = dependencies.musicPlayer
         roster = dependencies.roster
         inventory = dependencies.inventory
         homestead = dependencies.homestead
         options = dependencies.options
         journey = dependencies.journey
-        initialCollectionCombatantDetail = dependencies.initialCollectionCombatantDetail
-        initialCollectionItemID = dependencies.initialCollectionItemID
-        selectedTab = dependencies.selectedTab
-        activeBattleStageID = dependencies.activeBattleStageID
-        mapScrollStageID = dependencies.mapScrollStageID
+        pendingCollectionPresentation = dependencies.pendingCollectionPresentation
+        shellSession.selectedTab = PlayerShellSessionTab(rawValue: dependencies.selectedTab.rawValue) ?? .play
+        shellSession.activeBattleStageID = dependencies.activeBattleStageID
+        shellSession.mapScrollStageID = dependencies.mapScrollStageID
         battle = BattleSession()
         finishBootstrap(environment: environment)
+    }
+
+    func consumePendingCollectionPresentation() -> LaunchPresentation? {
+        defer { pendingCollectionPresentation = nil }
+        return pendingCollectionPresentation
     }
 
     var persistenceStatusMessage: String? {
@@ -162,8 +171,7 @@ final class AppState {
         }
         battle.endBattle()
         clearSessionBattleState()
-        sessionDefaults.removeObject(forKey: Self.sessionTabKey)
-        selectedTab = .play
+        shellSession.resetToDefaults(selectingTab: .play)
         return true
     }
 
@@ -181,14 +189,8 @@ final class AppState {
         return journey.isActive(stage)
     }
 
-    static func restoredTab(from defaults: UserDefaults) -> AppTab? {
-        guard let raw = defaults.string(forKey: sessionTabKey) else { return nil }
-        return AppTab(rawValue: raw)
-    }
-
     func clearSessionBattleState() {
-        activeBattleStageID = nil
-        mapScrollStageID = nil
+        shellSession.clearBattleState()
     }
 
     func noteMapScrollFocus(_ targetID: String, bumpEvenWhenUnchanged: Bool = false) {
@@ -391,10 +393,6 @@ final class AppState {
         }
         return resultingJourney
     }
-
-    static let sessionTabKey = "session.selectedTab"
-    static let activeBattleStageIDKey = "session.activeBattleStageID"
-    static let mapScrollStageIDKey = "session.mapScrollStageID"
 }
 
 enum ShellReconcileTrigger {

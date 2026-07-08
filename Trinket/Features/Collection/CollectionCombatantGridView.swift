@@ -64,9 +64,7 @@ struct CollectionCombatantGridView: View {
                 kind: context.kind,
                 combatantID: context.combatantID
             )
-            .presentationDetents([.large])
-            .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.visible)
+            .trinketDetailSheet()
         }
     }
 }

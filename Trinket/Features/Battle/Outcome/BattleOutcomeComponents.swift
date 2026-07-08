@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct BattleOutcomeShell<Content: View>: View {
     let symbolName: String
@@ -48,9 +49,7 @@ struct BattleOutcomeShell<Content: View>: View {
                     Text(primaryButtonTitle)
                         .frame(maxWidth: .infinity)
                 }
-                // UIStyleCheck: allow - battle outcomes use the native prominent primary action.
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .trinketPrimaryActionButton()
                 .tint(primaryButtonTint)
                 .disabled(isCompleting)
                 .accessibilityIdentifier(primaryButtonAccessibilityIdentifier)

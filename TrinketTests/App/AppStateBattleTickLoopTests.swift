@@ -12,6 +12,11 @@ final class AppStateBattleTickLoopTests {
         context = try AppTestContext()
     }
 
+    @Test func battleTickIntervalUsesInjectedEnvironment() {
+        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.15"])
+        #expect(appState.battleTickInterval == .seconds(0.15))
+    }
+
     @Test func canAdvanceBattleTicksRequiresActivePlayTabAndUnpausedBattle() throws {
         let appState = context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)

@@ -7,22 +7,6 @@ struct CollectionView: View {
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
-    private let initialItemID: String?
-
-    init(
-        initialCombatantDetail: CombatantDetailContext? = nil,
-        initialItemID: String? = nil
-    ) {
-        _selectedCombatant = State(initialValue: initialCombatantDetail)
-        if let initialItemID {
-            _selectedItem = State(
-                initialValue: GameContent.itemTemplate(matching: initialItemID)
-            )
-        } else {
-            _selectedItem = State(initialValue: nil)
-        }
-        self.initialItemID = initialItemID
-    }
 
     var body: some View {
         let inventoryState = appState.inventory.current
@@ -83,16 +67,7 @@ struct CollectionView: View {
         .accessibilityIdentifier("Collection Screen")
         .navigationTitle("Collection")
         .navigationBarTitleDisplayMode(.large)
-        .onAppear {
-            guard selectedItem == nil, let initialItemID else { return }
-            if let owned = appState.inventory.current.item(matching: initialItemID) {
-                selectedItem = owned
-            } else if let template = GameContent.itemTemplate(matching: initialItemID) {
-                selectedItem = template
-            } else {
-                showMissingItem = true
-            }
-        }
+        .onAppear(perform: presentPendingLaunchRoute)
         .alert("Item Not Found", isPresented: $showMissingItem) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -102,17 +77,31 @@ struct CollectionView: View {
             NavigationStack {
                 ItemDetailView(item: item)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .trinketDetailSheet()
         }
         .sheet(item: $selectedCombatant) { context in
             appState.rosterCombatantDetail(
                 kind: context.kind,
                 combatantID: context.combatantID
             )
-            .presentationDetents([.large])
-            .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.visible)
+            .trinketDetailSheet()
+        }
+    }
+
+    private func presentPendingLaunchRoute() {
+        guard let presentation = appState.consumePendingCollectionPresentation() else { return }
+
+        switch presentation {
+        case let .collectionCombatant(context):
+            selectedCombatant = context
+        case let .collectionItem(itemID):
+            if let owned = appState.inventory.current.item(matching: itemID) {
+                selectedItem = owned
+            } else if let template = GameContent.itemTemplate(matching: itemID) {
+                selectedItem = template
+            } else {
+                showMissingItem = true
+            }
         }
     }
 

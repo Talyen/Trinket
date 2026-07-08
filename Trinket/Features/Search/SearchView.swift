@@ -7,6 +7,7 @@ struct SearchView: View {
     @Environment(AppState.self) private var appState
     @State private var searchText = ""
     @State private var selectedItem: InventoryItem?
+    @State private var selectedCombatant: CombatantDetailContext?
 
     var body: some View {
         searchContent
@@ -18,8 +19,14 @@ struct SearchView: View {
                 NavigationStack {
                     ItemDetailView(item: item)
                 }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
+                .trinketDetailSheet()
+            }
+            .sheet(item: $selectedCombatant) { context in
+                appState.rosterCombatantDetail(
+                    kind: context.kind,
+                    combatantID: context.combatantID
+                )
+                .trinketDetailSheet()
             }
     }
 
@@ -86,27 +93,16 @@ struct SearchView: View {
     ) -> some View {
         if !combatants.isEmpty {
             SearchResultSection(title: title, items: combatants) { combatant in
-                combatantDetailLink(for: combatant, kind: kind)
+                Button {
+                    selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
+                } label: {
+                    CombatantCard(combatant: combatant)
+                        .collectionShelfCardWidth()
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("\(combatant.name) collection card")
             }
         }
-    }
-
-    private func combatantDetailLink(
-        for combatant: Combatant,
-        kind: CombatantDetailContext.Kind
-    ) -> some View {
-        NavigationLink {
-            appState.rosterCombatantDetail(
-                kind: kind,
-                combatantID: combatant.id,
-                hidesNavigationBar: false
-            )
-        } label: {
-            CombatantCard(combatant: combatant)
-                .collectionShelfCardWidth()
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("\(combatant.name) collection card")
     }
 
     private struct SearchResults {

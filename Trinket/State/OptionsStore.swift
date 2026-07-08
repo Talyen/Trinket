@@ -22,6 +22,11 @@ final class OptionsStore {
         didSet { defaults.set(appearance.rawValue, forKey: Self.appearanceKey) }
     }
 
+    static let musicVolumeKey = "options.musicVolume"
+    static let effectsVolumeKey = "options.effectsVolume"
+    static let hapticsEnabledKey = "options.hapticsEnabled"
+    static let appearanceKey = "options.appearance"
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? Self.defaultMusicVolume
@@ -35,11 +40,6 @@ final class OptionsStore {
             appearance = .default
         }
     }
-
-    private static let musicVolumeKey = "options.musicVolume"
-    private static let effectsVolumeKey = "options.effectsVolume"
-    private static let hapticsEnabledKey = "options.hapticsEnabled"
-    private static let appearanceKey = "options.appearance"
 
     private static var defaultMusicVolume: Double {
         #if targetEnvironment(simulator)

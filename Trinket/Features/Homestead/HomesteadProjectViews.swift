@@ -44,12 +44,13 @@ struct HomesteadProjectCard: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let style: Style
+    let onSelect: () -> Void
 
     var body: some View {
         switch style {
         case let .featured(onBuild):
             VStack(alignment: .leading, spacing: 14) {
-                projectNavigationLink(isFeatured: true, isRecentlyUpgraded: false)
+                projectDetailButton(isFeatured: true, isRecentlyUpgraded: false)
                 HomesteadProjectActionFooter(status: status, onBuild: onBuild)
             }
             .padding(14)
@@ -58,21 +59,18 @@ struct HomesteadProjectCard: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("\(definition.title) Featured Homestead Node")
         case let .compact(isRecentlyUpgraded):
-            projectNavigationLink(isFeatured: false, isRecentlyUpgraded: isRecentlyUpgraded)
+            projectDetailButton(isFeatured: false, isRecentlyUpgraded: isRecentlyUpgraded)
         }
     }
 
-    private func projectNavigationLink(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
-        NavigationLink {
-            HomesteadNodeDetailView(definition: definition)
-        } label: {
+    private func projectDetailButton(isFeatured: Bool, isRecentlyUpgraded: Bool) -> some View {
+        Button(action: onSelect) {
             if isFeatured {
                 featuredLinkContent
             } else {
                 compactLinkContent(isRecentlyUpgraded: isRecentlyUpgraded)
             }
         }
-        // UIStyleCheck: allow - Art-forward project cards should navigate without button chrome.
         .buttonStyle(.plain)
     }
 
@@ -282,6 +280,7 @@ struct HomesteadProjectSection: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
     let recentUpgradeID: HomesteadNodeID?
+    let onSelect: (HomesteadNodeDefinition) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -298,7 +297,8 @@ struct HomesteadProjectSection: View {
                             homestead: homestead,
                             roster: roster
                         ),
-                        style: .compact(isRecentlyUpgraded: recentUpgradeID == definition.id)
+                        style: .compact(isRecentlyUpgraded: recentUpgradeID == definition.id),
+                        onSelect: { onSelect(definition) }
                     )
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
@@ -319,8 +319,7 @@ struct HomesteadStatusBadge: View {
             .minimumScaleFactor(0.78)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            // UIStyleCheck: allow - Status badges intentionally float as native glass chips.
-            .background(.regularMaterial, in: Capsule(style: .continuous))
+            .trinketStatusBadge()
             .accessibilityLabel(status.statusTitle)
     }
 }
