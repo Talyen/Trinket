@@ -4,8 +4,8 @@ import TrinketPersistence
 import TrinketTestSupport
 @testable import Trinket
 
-@MainActor
-final class AppStatePlayFlowTests {
+@Suite @MainActor
+struct AppStatePlayFlowTests {
     let context: AppTestContext
 
     init() throws {

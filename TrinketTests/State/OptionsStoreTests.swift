@@ -2,8 +2,8 @@ import Testing
 import TrinketDesignSystem
 @testable import Trinket
 
-@MainActor
-final class OptionsStoreTests {
+@Suite @MainActor
+struct OptionsStoreTests {
     let context: AppTestContext
 
     init() throws {

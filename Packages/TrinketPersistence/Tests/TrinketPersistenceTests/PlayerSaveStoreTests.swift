@@ -201,6 +201,16 @@ final class PlayerSaveStoreTests {
         #expect(store.lastPersistenceError == .writeFailed)
     }
     #endif
+    @Test func inMemoryStoreIsNotMarkedDegraded() throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true)
+        #expect(store.isPersistenceDegraded == false)
+        #expect(store.lastPersistenceError == nil)
+    }
+
+    @Test func storeUnavailableErrorIsEquatable() {
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
+    }
 }
 
 private extension PlayerSaveStore {

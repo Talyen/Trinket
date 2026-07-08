@@ -2,8 +2,8 @@ import Testing
 import TrinketPersistence
 @testable import Trinket
 
-@MainActor
-final class AppStateSessionPersistenceTests {
+@Suite @MainActor
+struct AppStateSessionPersistenceTests {
     let context: AppTestContext
 
     init() throws {

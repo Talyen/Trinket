@@ -5,8 +5,8 @@ import TrinketPersistence
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class BattleSessionAppIntegrationTests {
+@Suite @MainActor
+struct BattleSessionAppIntegrationTests {
     let context: AppTestContext
 
     init() throws {
