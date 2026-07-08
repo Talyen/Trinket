@@ -28,4 +28,4 @@ xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # Installing a normal app bundle replaces the XCTest-installed app container, so
 # invalidate test-without-building stamps that depend on that simulator state.
 rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp(N) 2>/dev/null || true
-xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID" -- -theme dark
+xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark

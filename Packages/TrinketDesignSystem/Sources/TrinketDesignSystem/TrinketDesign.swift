@@ -47,16 +47,6 @@ public enum TrinketDesign {
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
 
-    public enum AppTheme: Sendable {
-        case standard
-
-        public static let `default` = AppTheme.standard
-
-        public var palette: ThemePalette {
-            ThemePalette.apple
-        }
-    }
-
     public enum AppAppearance: CaseIterable, Identifiable, RawRepresentable, Sendable {
         case system
         case light

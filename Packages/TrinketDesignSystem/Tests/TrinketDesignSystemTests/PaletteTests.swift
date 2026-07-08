@@ -2,15 +2,7 @@ import TrinketDesignSystem
 import Testing
 
 @Suite
-struct AppThemeTests {
-    @Test func standardThemeUsesApplePalette() {
-        let palette = TrinketDesign.AppTheme.default.palette
-        #expect(palette.appBackground != .clear)
-        #expect(palette.panelSurface != .clear)
-        #expect(palette.subtleStroke != .clear)
-        #expect(palette.accent != .clear)
-    }
-
+struct PaletteTests {
     @Test func applePaletteHasValidColors() {
         let palette = ThemePalette.apple
         #expect(palette.appBackground != .clear)

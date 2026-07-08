@@ -199,7 +199,7 @@ Default smoke args (`TestLaunchArg.testLaunchArgs`): `-reset-state`, `-seed-test
 - `-completed-stages` (comma IDs)
 - `-map-scroll-target` (Play map `ScrollViewReader` row id)
 - `-battle-tick-interval` (override fast ticks; avoid with mid-battle interaction tests)
-- `-disable-audio`, `-theme` (see `AppEnvironment.parse`)
+- `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
 
 Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. Keep default launch args unless testing persistence.
 

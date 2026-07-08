@@ -70,7 +70,7 @@ Verify each module has adequate unit test coverage. Use the ownership table from
 **Checks:**
 
 - Identify every `public` or `package` API in each module that lacks a unit test. Focus on:
-  - `TrinketDesignSystem` (2 tests is the most glaring gap — likely missing theme application, surface chrome, keyword styling, ExperienceBar layout)
+  - `TrinketDesignSystem` (2 tests is the most glaring gap — likely missing surface chrome, keyword styling, ExperienceBar layout)
   - `TrinketCore` (8 tests — verify all `CombatantProgression` paths, `PrimaryStatsRules` edge cases, and `Keyword` resolution are covered)
 - Verify `EffectKind` registry parity: every `EffectKind` case has a test in `EffectHandlersApplyTests` or a dedicated handler test file. Grep:
 
@@ -268,7 +268,7 @@ Patterns to watch for:
 
 | Module | Current tests | Likely gaps |
 |--------|--------------|-------------|
-| `TrinketDesignSystem` | `AppThemeTests`, `KeywordVisualStyleTests` (2 files) | Missing: theme application to SwiftUI views, surface chrome (`SurfaceRole`, `BackgroundMode`), `ExperienceBar` rendering, typography scaling, `HomesteadTint` colors, dark/light mode consistency |
+| `TrinketDesignSystem` | `PaletteTests`, `KeywordVisualStyleTests` (2 files) | Missing: surface chrome (`SurfaceRole`, `BackgroundMode`), `ExperienceBar` rendering, typography scaling, `HomesteadTint` colors, dark/light mode consistency |
 | `TrinketCore` | `CombatantProgressionTests`, `EffectModelTests`, `EffectPresentationTests`, `ExperienceScalingTests`, `KeywordCoreTests`, `PrimaryStatsModelTests`, `PrimaryStatsRulesTests`, `StatGrowthTests` (8 files) | Missing: `Effect` value semantics / equatable / Codable roundtrip; boundary cases for progression level 0, max level, negative XP; invalid stat combinations in `PrimaryStats` |
 | `TrinketContent` | 15 catalog + generator files | Likely well-covered (catalog invariants, generation). Check that every new content type (affix, item base, ability, enemy) added in the last 3 commits has a corresponding invariant test. |
 | `BattleEngine` | 42 files | Most thorough coverage. Check: new `EffectKind` not yet in `EffectHandlersApplyTests`; new mechanic leaks without integration test; `BattleSimulator` error paths |
@@ -418,7 +418,7 @@ Organize findings into three tiers. The agent executing the audit should populat
 
 | Issue | Expected fix | Example locations |
 |-------|-------------|-------------------|
-| `TrinketDesignSystem` test gap (2 files only) | Add tests for theme rendering, surface views, `ExperienceBar` | [Packages/TrinketDesignSystem/Tests/](../../Packages/TrinketDesignSystem/Tests/) |
+| `TrinketDesignSystem` test gap (2 files only) | Add tests for surface views, `ExperienceBar` | [Packages/TrinketDesignSystem/Tests/](../../Packages/TrinketDesignSystem/Tests/) |
 | Setup duplication across `App*Tests` | Extract shared `makeSUT` base or support | [AppStateTests.swift](../../TrinketTests/App/AppStateTests.swift), [AppStatePlayFlowTests.swift](../../TrinketTests/App/AppStatePlayFlowTests.swift) |
 | `BattleSessionTests.swift` 684 lines | Split into focused test files by concern | [BattleSessionTests.swift](../../TrinketTests/Battle/BattleSessionTests.swift) |
 | Right-size integration test files (target 3–6 tests) | Move extra tests to focused handler tests | `StatIntegrationTests`, `AbilityEffectIntegrationTests` |

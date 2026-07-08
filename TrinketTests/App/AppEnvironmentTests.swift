@@ -74,11 +74,6 @@ struct AppEnvironmentTests {
         #expect(Self.parse(arguments: ["-appearance", "dark"]).appearanceOverride == .dark)
     }
 
-    @Test func themeAliasParsesKnownModes() {
-        #expect(Self.parse(arguments: ["-theme", "dark"]).appearanceOverride == .dark)
-        #expect(Self.parse(arguments: ["-theme", "light"]).appearanceOverride == .light)
-    }
-
     @Test func invalidAppearanceOverrideReturnsNil() {
         #expect(Self.parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride == nil)
     }

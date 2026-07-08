@@ -1,23 +1,21 @@
 # TrinketDesignSystem
 
-Shared app chrome — theme presets, surfaces, typography, keyword visuals, and reusable components. Depends on `TrinketCore` only (no `BattleEngine` or `TrinketContent`).
+Shared app chrome — semantic surfaces, typography, keyword visuals, and reusable components. Depends on `TrinketCore` only (no `BattleEngine` or `TrinketContent`).
 
 ## Components
 
 | File | Role |
 |------|------|
-| `TrinketDesign.swift` | Theme preset definitions and app environment |
+| `TrinketDesign.swift` | Appearance modes, colors, metrics, and card chrome |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
 | `ExperienceBar.swift` | XP/level progress bar |
 | `HomesteadTint+Color.swift` | Homestead node tint resolution |
 
-## Theme presets
+## Appearance
 
-Default: **Graphite**. Options: Graphite, Parchment, Obsidian, Linen. Each preset defines background, surface, stroke, accent, and material preferences from Apple semantic system colors.
-
-Switch via `OptionsStore.theme` or `-theme` launch argument.
+App chrome uses Apple semantic system colors through `ThemePalette.apple`. Players choose **System**, **Light**, or **Dark** appearance via `OptionsStore.appearance` in Options. Tests can override with the `-appearance` launch argument.
 
 ## Surface roles
 

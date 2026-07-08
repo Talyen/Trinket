@@ -21,7 +21,7 @@ Packages/
   TrinketContent/           Catalogs + Generated/ content, art, music, and SFX catalogs
   BattleEngine/             Combat simulation, effect handlers, simulator
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
-  TrinketDesignSystem/      App chrome, theme presets, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
+  TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
 
 ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.tsv, …
 ArtManifest/                curated-assets.tsv
@@ -46,7 +46,7 @@ Manifests and pipelines live outside the app folder:
 | Heroes, pets, enemies, abilities, affixes, stages, item bases | `TrinketContent` | Manifest-generated catalogs + art/music/SFX runtime metadata |
 | Combat rules and simulation | `BattleEngine` | `BattleState`, effect handlers, `BattleSimulator` |
 | Player save, stores, CloudKit sync | `TrinketPersistence` | `PlayerSaveStore`, `Player*Store` |
-| Shared UI chrome | `TrinketDesignSystem` | Theme presets, backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
+| Shared UI chrome | `TrinketDesignSystem` | Backgrounds, surfaces, typography, Keyword visuals, `ExperienceBar`, `HomesteadTint` colors |
 | Tab shell, orchestration | `Trinket/App`, `Trinket/State` | `AppState`, `BattleSession`, launch args |
 | Product screens | `Trinket/Features` | One folder per tab or major flow |
 | Game-specific shared UI | `Trinket/Shared` | Cards, detail panes, keyword text; `AccessibilityID` shared with UI tests |
@@ -138,7 +138,7 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph. `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
 - **Save hub:** `PlayerSaveStore` owns a `ModelContainer` / `ModelContext`, creates the singleton root idempotently, and mutates model objects directly. Value types such as `PlayerSave`, `PlayerRosterState`, and `StageCompletionContext` are calculation snapshots, not the canonical persisted form.
 - **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, and homestead APIs observe/mutate slices through `PlayerSaveStore`.
-- **Options/preferences:** `OptionsStore` (theme, volumes) and `AppState` session keys (tab/battle restoration via `UserDefaults`) intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
+- **Options/preferences:** `OptionsStore` (appearance, volumes) and `AppState` session keys (tab/battle restoration via `UserDefaults`) intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
 - **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
 - **Pre-ship:** `Docs/Audits/CloudKitPreShipChecklist.md`
 

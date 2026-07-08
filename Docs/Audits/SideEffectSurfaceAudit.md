@@ -47,7 +47,7 @@ rg -n 'CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 - [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) is the single write-through hub; all disk/CloudKit writes route through it.
 - Domain stores (`PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`) mutate in-memory state then delegate persistence — no direct `FileManager` or `JSONEncoder` calls outside `TrinketPersistence`.
 - `UserDefaults` is intentional for:
-  - `OptionsStore` (theme, volumes, preferences)
+  - `OptionsStore` (appearance, volumes, preferences)
   - `AppState` session keys (tab, in-flight battle, map scroll restoration — not part of `PlayerSave`)
 - SwiftData manages CloudKit private database container synchronization natively. [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) selects private CloudKit vs local-only configurations during initialization (`disableCloudSync` parameter); test via `-disable-cloud-sync` to isolate.
 

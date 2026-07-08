@@ -105,13 +105,10 @@ struct AppEnvironment {
     }
 
     private static func appearanceOverride(from arguments: [String]) -> TrinketDesign.AppAppearance? {
-        for flag in ["-appearance", "-theme"] {
-            guard let idx = arguments.firstIndex(of: flag),
-                  arguments.indices.contains(idx + 1)
-            else { continue }
-            return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
-        }
-        return nil
+        guard let idx = arguments.firstIndex(of: "-appearance"),
+              arguments.indices.contains(idx + 1)
+        else { return nil }
+        return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {

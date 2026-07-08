@@ -7,7 +7,7 @@ This document turns the v2 visual reference boards into implementation guidance 
 Reference PNG boards are described in `Docs/Design/StyleGuide/VisualReferences/README.md` (including the v2 game-compatible pass). Those images are not committed to the repository; this document and `TrinketDesignSystem` source are the implementation north star. When boards are available locally, use them for taste and proportion:
 
 - `01-north-star-overview-v2.png` — overall style direction and scope.
-- `02-theme-presets-v2.png` — theme preset comparison using Trinket's Play journey skeleton.
+- `02-theme-presets-v2.png` — archived exploratory board; not part of the shipped visual system.
 - `03-surfaces-materials-v2.png` — surface roles, material rules, state treatment, and Reduce Transparency fallback.
 - `04-elemental-feedback-v2.png` — Keyword tinting, combat feedback, particles, and motion guidance.
 - `05-screen-fragments-v2.png` — representative app-screen adoption across current product flows.
@@ -25,22 +25,11 @@ The visual foundation must preserve Trinket's current product structure:
 - Rare battle actions live in native toolbar/menu chrome; do not introduce a manual skill hotbar or a Battle tab.
 - Future battle spectacle should use SwiftUI/card-art presentation: floating combat text, Keyword particles, card flash/recoil/lunge, health-bar trails, and full-screen Ultimate card-art callouts.
 
-## Theme Presets
+## Appearance
 
-Implement app chrome as theme presets, not one-off screen colors.
+App chrome uses Apple semantic system colors through a single neutral palette (`ThemePalette.apple`). Do not invent one-off screen colors in feature views.
 
-Default preset: `Graphite`.
-
-Required presets:
-
-| Preset | Intent |
-|---|---|
-| Graphite | Default. System canvas with quiet gray strokes, restrained neutral accent, and solid readable surfaces. |
-| Parchment | Warm-neutral mode. System canvas with beige/taupe strokes and a muted paper-like accent. |
-| Obsidian | High-contrast neutral mode. System canvas with charcoal/silver strokes and a cool-neutral accent, without blue or violet identity. |
-| Linen | Soft neutral mode. System canvas with stone/linen strokes and a low-saturation beige accent. |
-
-Each preset should define:
+Players choose appearance via **System**, **Light**, or **Dark** in Options (`OptionsStore.appearance`). Tests can override with the `-appearance` launch argument. The palette defines:
 
 - Base app background from Apple semantic system colors.
 - Secondary background from Apple semantic system colors.
@@ -48,15 +37,11 @@ Each preset should define:
 - Panel/card surface from Apple semantic system colors.
 - Overlay/scrim color.
 - Subtle stroke.
-- Ambient glow, if used, as a neutral value rather than a hue identity.
 - Neutral accent color.
 - Shadow behavior.
-- Texture/grain opacity, defaulting to zero unless a future asset-backed treatment is approved.
 - Default material preference.
-- Particle default.
-- Appearance support through the separate System / Light / Dark mode.
 
-Theme switching should reuse `OptionsStore.theme` and the existing `-theme` launch argument. Appearance switching should use `OptionsStore.appearance` and `-appearance`. Preserve compatibility for stored legacy values such as `System`, `Light`, `Dark`, `Dark Tabletop`, `Warm Parchment`, `Arcane Night`, and `Forest Alchemy` by mapping them to the closest neutral preset or appearance mode.
+Keyword identities and card art carry the strong hues; chrome stays color-neutral and readable in every appearance mode.
 
 ## Background Modes
 
@@ -75,7 +60,7 @@ Default composition:
 
 1. Apple semantic system background.
 2. Apple semantic system surfaces.
-3. Neutral theme strokes and accents.
+3. Neutral strokes and accents from `ThemePalette.apple`.
 4. Optional scrim for artwork or modal focus.
 5. Keyword or gameplay tint only when semantically meaningful.
 
@@ -210,7 +195,7 @@ Reduce Motion should replace movement-heavy feedback with fades, static glows, o
 
 Implement reusable types in `Packages/TrinketDesignSystem`:
 
-- Theme preset and palette models.
+- `ThemePalette` and semantic color tokens.
 - Background modes and composition modifiers.
 - Surface roles and state-aware modifiers.
 - Material roles with Reduce Transparency fallback.
@@ -218,24 +203,22 @@ Implement reusable types in `Packages/TrinketDesignSystem`:
 - Expanded Keyword visual styles.
 - Lightweight atmosphere/particle primitives that are opt-in.
 
-Add focused `TrinketDesignSystemTests` for preset completeness, legacy theme parsing, Keyword coverage, and pure-data role resolution.
+Add focused `TrinketDesignSystemTests` for palette completeness, Keyword coverage, and pure-data role resolution.
 
-### Phase 2 — Theme Wiring
+### Phase 2 — App Wiring
 
 Update app wiring:
 
-- Evolve `TrinketDesign.AppTheme` into the preset list.
-- Keep `OptionsStore.theme` persisted in `UserDefaults`.
-- Update `AppEnvironment` `-theme` parsing for the new names.
-- Update `OptionsView` to expose the presets.
-- Apply the active preset through environment/configuration at the app shell.
+- Keep `OptionsStore.appearance` persisted in `UserDefaults`.
+- Keep `AppEnvironment` `-appearance` parsing for tests and simulator launches.
+- Apply the active appearance through `preferredColorScheme` at the app shell.
 
 ### Phase 3 — Representative Adoption
 
 Migrate a first, reviewable slice:
 
 - Root app shell and tab background.
-- Options form and theme picker.
+- Options form and appearance picker.
 - Collection overview, Heroes/Pets grids, Inventory preview/cards.
 - Play journey/stage select background, active stage card, locked rows.
 - Search and Inventory dense-list surfaces.
@@ -274,4 +257,4 @@ Recommended verification for Phase 1-3:
 ./Scripts/check-ui-style.sh
 ```
 
-Also manually launch representative screens with each theme preset via `-theme`.
+Also manually launch representative screens with each appearance mode via `-appearance`.
