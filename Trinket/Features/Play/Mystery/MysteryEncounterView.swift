@@ -32,11 +32,13 @@ struct MysteryEncounterView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.background)
         .sheet(item: $selectedDetail) { context in
-            appState.rosterCombatantDetail(
-                kind: context.kind,
-                combatantID: context.combatantID,
-                hidesNavigationBar: false
-            )
+            NavigationStack {
+                appState.rosterCombatantDetail(
+                    kind: context.kind,
+                    combatantID: context.combatantID,
+                    hidesNavigationBar: false
+                )
+            }
             .trinketDetailSheet()
         }
         .onAppear {
