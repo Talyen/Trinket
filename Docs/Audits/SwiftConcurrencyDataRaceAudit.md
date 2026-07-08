@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Run five probes, triage P0–P2 first, fix up to **5** issues, verify with unit tests, commit.
+Run the probes, triage P0–P2 first, fix up to **5** issues, verify, commit.
 
 ## Hard stops
 
@@ -14,6 +14,7 @@ Run five probes, triage P0–P2 first, fix up to **5** issues, verify with unit 
 - Do not add `@unchecked Sendable` / `nonisolated(unsafe)` without a `// Concurrency-Safety:` rationale and real synchronization.
 - Do not introduce `Thread.sleep`, semaphores, or other thread-blocking calls in cooperative contexts.
 - Prefer structured `Task` over `Task.detached` unless isolation escape is required and documented.
+- Do not relocate battle simulation off `@MainActor` unless Architecture already requires it.
 
 ## Probes
 
@@ -49,7 +50,21 @@ rg -n '\bsleep\(|\busleep\(|\bThread\.sleep\(|\bData\(contentsOf:' --type swift 
 
 Replace with `Task.sleep` / async I/O off the cooperative hot path.
 
-### 5. Project concurrency configuration
+### 5. Unstructured tasks & isolation hotspots
+
+```bash
+rg -n 'Task\.detached|Task\s*\{' --type swift \
+  Trinket/State Trinket/BattleShell Packages/TrinketPersistence/Sources \
+  -g '!*Tests*' -g '!**/Generated/*' | head -80
+
+rg -n '@MainActor|@Observable' --type swift \
+  Trinket/State/AppState.swift Trinket/State/BattleSession.swift \
+  Packages/TrinketPersistence/Sources -g '!*Tests*' | head -40
+```
+
+Check: unstructured `Task { }` on `@Observable` / store types cancel on teardown; prefer structured children; document any required `Task.detached`.
+
+### 6. Project concurrency configuration
 
 ```bash
 rg -n 'SWIFT_STRICT_CONCURRENCY|SWIFT_TREAT_WARNINGS_AS_ERRORS' project.yml Packages/*/Package.swift
@@ -63,7 +78,7 @@ Expect `SWIFT_STRICT_CONCURRENCY: complete` (or equivalent package setting). Do 
 |-----|-------------|--------|
 | P0 | Unsynchronized shared mutable state on hot paths | Fix now |
 | P1 | Undocumented `@unchecked` / `nonisolated(unsafe)` | Document or refactor |
-| P2 | Blocking call on actor/main | Offload / async |
+| P2 | Blocking call on actor/main; leaking unstructured Task | Offload / async / cancel |
 | P3 | `DispatchQueue` legacy bridge | Modernize when touching |
 | P4 | Unnecessary `Task.detached` | Prefer structured Task |
 
@@ -89,13 +104,17 @@ SwiftUI `.task` is cancelled when the view goes away. Do **not** reflexively add
 ## Verification
 
 ```sh
-./Scripts/build.sh
-./Scripts/test.sh unit
 ./Scripts/check-module-boundaries.sh
 ./Scripts/lint.sh
+./Scripts/build.sh   # toolchain permitting — confirm no new Sendable/isolation errors
+# Narrow when the diff is focused:
+./Scripts/test.sh unit <FocusedClass>
+./Scripts/test-package.sh TrinketPersistence   # if stores touched
+# Broad only when cross-cutting:
+./Scripts/test.sh unit
 ```
 
-Confirm the build log has no new Sendable/isolation errors.
+If Xcode is unavailable, still fix clear probe hits and state in the commit body that build/unit verification was skipped (see [README.md](README.md) § Cloud / no-Xcode toolchain).
 
 ## Commit
 

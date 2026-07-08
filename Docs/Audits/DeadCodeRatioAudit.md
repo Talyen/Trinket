@@ -15,19 +15,29 @@ Find high-confidence dead code. Cap **one cohesive cleanup** (or ≤10 safe dele
 - Do not require Periphery or other new tools; optional if already available.
 - Orphaned-test rule is **not** 1:1 file mirroring — support helpers, catalog invariant suites, and ownership-matrix tests are valid without a twin production file.
 - Absolute “zero dead exports” is **not** the gate; high-confidence unused is.
+- `Packages/TrinketTestSupport/` fixtures are intentionally unused by product code — do not delete them for lacking app call sites.
 
 ## Probes
 
 ```bash
 ./Scripts/lint.sh 2>&1 | rg -i 'unused|dead' || true
 
-# Public API candidates — manually verify call sites outside declaring file
+# Public API candidates in packages — manually verify call sites outside declaring file
 rg -n '^public (func|struct|class|enum|actor|protocol|typealias)' \
   --type swift Packages/*/Sources -g '!**/Generated/*' | head -80
 
-# Empty or stub test files
-rg -L '@Test|func test' --type swift TrinketTests Packages/*/Tests || true
+# App-target candidates (internal types with a single defining file — verify with rg)
+rg -n '^(final )?class |^struct |^enum |^actor ' --type swift Trinket/ \
+  -g '!*Tests*' -g '!*UITests*' | head -80
+
+# Empty or stub unit/package test files (Swift Testing)
+rg -L '@Test|#expect' --type swift TrinketTests Packages/*/Tests || true
+
+# Empty UI test files (XCTest) — separate pass
+rg -L 'func test' --type swift TrinketUITests || true
 ```
+
+SwiftLint unused/dead warnings alone will not catch most dead types — always confirm with `rg` call-site proof.
 
 ## Checks
 
@@ -58,6 +68,7 @@ rg -L '@Test|func test' --type swift TrinketTests Packages/*/Tests || true
 - Delete empty / fully commented-out test files
 - Remove tests for deleted production code
 - Keep intentional cross-cutting suites (invariants, ownership matrix)
+- Keep `TrinketTestSupport` fixtures even when product code does not reference them
 
 ## Fixes
 
@@ -70,8 +81,8 @@ rg -L '@Test|func test' --type swift TrinketTests Packages/*/Tests || true
 ```sh
 ./Scripts/lint.sh
 ./Scripts/check-module-boundaries.sh
-./Scripts/build.sh
-./Scripts/test.sh unit   # if non-trivial deletions
+./Scripts/build.sh          # toolchain permitting
+./Scripts/test.sh unit      # if non-trivial deletions; toolchain permitting
 ```
 
 ## Commit

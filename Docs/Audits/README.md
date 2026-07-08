@@ -43,3 +43,28 @@ Standing test conventions live in `AGENTS.md` (not duplicated as an audit). Clou
 ## Platform baseline
 
 Audits must match current product rules: iOS 26+, Swift 6, `@Observable` / `@Environment` (not `ObservableObject` / `@EnvironmentObject`), `TrinketDesignSystem` chrome (see `./Scripts/check-ui-style.sh`), Swift Testing for unit targets, XCTest for `TrinketUITests` only.
+
+## Cloud / no-Xcode toolchain
+
+Local and CI expect **Xcode 26+**. Cloud or remote agents may lack the simulator toolchain.
+
+| Available | Run |
+|-----------|-----|
+| Always (when scripts exist) | Probes in the cited audit; `./Scripts/check-module-boundaries.sh`; `./Scripts/lint.sh`; `./Scripts/check-ui-style.sh` / `./Scripts/check-swift-testing-migration.sh` when relevant |
+| When Xcode / simulator present | `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test-package.sh` as the audit’s Verification table requires |
+| When toolchain absent | Still land correct source/docs fixes from probes; **skip** build/test steps; state in the commit/PR body which verification was skipped and why |
+
+Do not fail an audit solely because Instruments, Simulator, or `xcodebuild` is unavailable.
+
+## Suggested multi-audit order
+
+When the user asks to run several audits in one session, prefer this order (skip uncited ones):
+
+1. `ImportCouplingBoundaryAudit.md`
+2. `TypeSafetyAudit.md` / `SwiftConcurrencyDataRaceAudit.md`
+3. `SideEffectSurfaceAudit.md`
+4. `BehaviorHardeningAudit.md`
+5. `UnitTestAudit.md` / `E2ETestQualityAudit.md`
+6. `DocumentationStalenessAudit.md`
+
+Opportunistic audits (`BugHunting`, `ComplexityReduction`, `DeadCode`, `Performance`, `UIInteraction`) fit wherever their probes are needed; do not expand one cited audit into a full-repo sweep of every sibling.

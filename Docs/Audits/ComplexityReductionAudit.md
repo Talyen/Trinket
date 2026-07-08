@@ -4,6 +4,8 @@ Goal: Shrink the single worst complexity hotspot — fewer lines, fewer layers, 
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append survey results to this file.
 
+Sibling ownership (consult only if the chosen target demands it — do not run full-repo sweeps): see [README.md](README.md).
+
 ## Mission
 
 Find the single most complex, over-engineered, or bloated area *right now*, then simplify it. Deliver a meaningful reduction in LOC and cognitive complexity while preserving player-visible behavior.
@@ -21,26 +23,32 @@ Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 
 ## Workflow
 
-1. **Survey** — Score candidates with § Targets. Exclude generated output and roadmap-only ideas.
+1. **Survey** — Score candidates with § Targets and the survey commands below. Exclude generated output and roadmap-only ideas.
 2. **Select one** — Name 1–2 runner-ups in the commit body; explain why the winner is worse (3–5 bullets).
 3. **Plan** — List deletes/collapses/inlines and which tests prove behavior.
 4. **Simplify** — Smallest correct diff. Prefer deletion and inlining over new abstractions.
 5. **Verify** — Matching tier in § Verification; boundaries + lint must pass.
 6. **Commit** — Format in § Commit. Summarize in the commit body, not in this file.
 
-Consult sibling audits only when the chosen target demands it (do not run full-repo sweeps of every audit):
+## Survey commands
 
-- Dead exports → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md)
-- Import graph → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md)
-- I/O / RNG → [SideEffectSurfaceAudit.md](SideEffectSurfaceAudit.md)
-- Persistence / async → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md)
-- Test conventions → `AGENTS.md` § Unit Tests
+```bash
+# Largest app glue / shell files
+wc -l Trinket/State/*.swift Trinket/BattleShell/*.swift 2>/dev/null | sort -n | tail -20
+
+# Largest package sources (exclude Generated)
+find Packages -path '*/Sources/*' -name '*.swift' ! -path '*/Generated/*' \
+  -exec wc -l {} + | sort -n | tail -30
+
+# Recent churn on hot glue
+git log --oneline -15 -- Trinket/State Trinket/BattleShell
+```
 
 ## Targets
 
 | Signal | How to measure | Why it matters |
 |--------|----------------|----------------|
-| LOC density | `wc -l` / `cloc` on candidate files | Large files hide multiple responsibilities |
+| LOC density | `wc -l` / survey commands above | Large files hide multiple responsibilities |
 | Indirection depth | Wrappers / “forward to” methods with no logic | Maintenance tax |
 | Single-use abstractions | Types referenced from one call site | Ceremony without reuse |
 | Duplicate logic | Near-identical blocks in siblings | Copies diverge |
@@ -71,12 +79,7 @@ Tie-breakers: (1) most indirection removed, (2) hot path over rare screens, (3) 
 
 ### Architecture
 
-After edits, `./Scripts/check-module-boundaries.sh` must pass:
-
-- `TrinketDesignSystem` → `TrinketCore` only
-- `BattleEngine` ⟂ `TrinketPersistence`
-- Packages do not import app / feature views
-- `BattleShell/` does not import `Features/`; `State/` does not import feature views
+After edits, `./Scripts/check-module-boundaries.sh` must pass (see [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md)).
 
 ### Behavior preservation
 
@@ -98,11 +101,12 @@ After edits, `./Scripts/check-module-boundaries.sh` must pass:
 
 | Change shape | Minimum |
 |--------------|---------|
-| BattleEngine / TrinketCore rules | `./Scripts/test-package.sh BattleEngine` or `./Scripts/test.sh unit` |
+| BattleEngine package rules | `./Scripts/test-package.sh BattleEngine` |
+| TrinketCore package rules | `./Scripts/test-package.sh TrinketCore` |
 | TrinketPersistence | `./Scripts/test-package.sh TrinketPersistence` |
-| State / BattleShell | `./Scripts/test.sh unit <FocusedClass>` (+ full unit if multi-file) |
+| App State / BattleShell | `./Scripts/test.sh unit <FocusedClass>` (+ full unit if multi-file) |
 | Product-tab SwiftUI | `./Scripts/test.sh smoke` (affected class) |
-| Cross-cutting | `./Scripts/test.sh unit` then smoke |
+| Cross-cutting app + packages | `./Scripts/test.sh unit` then smoke |
 
 Always:
 
@@ -111,7 +115,7 @@ Always:
 ./Scripts/lint.sh
 ```
 
-If manifests changed: `./Scripts/generate.sh` (add `--assets` when art/music/SFX changed).
+If manifests changed: `./Scripts/generate.sh` (add `--assets` when art/music/SFX changed). Skip build/test when the toolchain is absent; note skips in the commit body.
 
 ## Commit
 
