@@ -123,6 +123,21 @@ package extension DamagePipeline {
         if vulnerability > 0 {
             state.remaining = Int(ceil(Double(state.remaining) * (1 + vulnerability)))
         }
+        // Provisional until CriticalMultiply finalizes post-mitigation damage.
+        state.buildupDamage = state.remaining
+    }
+
+    static func applyCriticalMultiply(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        _ = context
+        guard state.isCritical, state.remaining > 0 else {
+            state.buildupDamage = state.remaining
+            return
+        }
+        state.remaining *= 2
+        state.dealt = state.remaining
         state.buildupDamage = state.remaining
     }
 
@@ -176,16 +191,6 @@ package extension DamagePipeline {
             ))
             state.activeEffects = context.roster.activeEffects(for: state.combatant)
         }
-    }
-
-    static func applyCriticalMultiply(
-        to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
-    ) {
-        _ = context
-        guard state.isCritical, state.remaining > 0 else { return }
-        state.remaining *= 2
-        state.dealt = state.remaining
     }
 
     static func applyTakeDamage(

@@ -26,8 +26,8 @@ package struct DamageResolutionState {
     /// Total damage after stat + item bonuses, before shields and mitigation.
     public var dealt: Int = 0
 
-    /// Post-mitigation damage before shields. Retained for diagnostics; control
-    /// buildup uses `healthLost` after shields absorb damage.
+    /// Post-mitigation (and post-crit) damage before shields. Control-meter
+    /// buildup uses this value so fully blocked hits still charge stun/freeze.
     public var buildupDamage: Int = 0
 
     /// Stat and item bonus components used by the control-meter buildup step.

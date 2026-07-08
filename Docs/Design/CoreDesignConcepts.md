@@ -84,7 +84,9 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 
 `Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also build toward `Frozen`/`Stunned` control effects via `.controlMeter`; a full meter always consumes exactly one scheduled action regardless of damage amount.
 
-Stun and Freeze control-meter buildup uses damage after mitigation and item reduction, but **before** shield absorption. A fully blocked hit still adds buildup from that post-mitigation amount — shields protect health, not control meters.
+Damage resolution order (after dodge/crit rolls and bonuses): mitigation → item reduction → critical multiply → shield absorption → health. Critical hits therefore scale the post-mitigation amount before shields absorb; there is no special crit/shield interaction beyond the larger final hit.
+
+Stun and Freeze control-meter buildup uses that same post-mitigation, post-crit amount **before** shield absorption. A fully blocked hit still adds buildup — shields protect health, not control meters.
 
 `Cleanse` removes active Burn, Poison, Bleed, or control-meter instances matching the cleansed keyword (or all debuffs when unspecified).
 

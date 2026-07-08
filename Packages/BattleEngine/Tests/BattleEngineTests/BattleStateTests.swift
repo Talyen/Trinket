@@ -299,7 +299,7 @@ struct BattleStateTests {
         }
     }
 
-    @Test func simultaneousPartyAndEnemyDefeatCountsAsPartyDefeat() throws {
+    @Test func faustianBargainSelfDamageDoesNotWipePartyWhenPetSurvives() throws {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -332,6 +332,30 @@ struct BattleStateTests {
 
         try #expect(!(battle.isPartyDefeated))
         try #expect(battle.isEnemyDefeated)
+    }
+
+    @Test func rosterContextInitPreservesRngSeed() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
+        let seed: UInt64 = 42
+        let battle = BattleState(
+            roster: BattleRoster(
+                hero: CombatantRuntime(combatant: hero),
+                pet: CombatantRuntime(combatant: pet),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: seed),
+            nextEffectID: 0,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: .zero,
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        try #expect(battle.rngSeed == seed)
     }
 
     private var heroId: String {

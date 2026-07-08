@@ -102,7 +102,7 @@ public struct BattleState {
         hero = roster.hero.combatant
         pet = roster.pet.combatant
         enemy = roster.enemy.combatant
-        rngSeed = 0
+        rngSeed = rng.seed
         tracksLog = false
         cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
         self.roster = roster
