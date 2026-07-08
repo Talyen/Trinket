@@ -137,11 +137,22 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 ## Persistence overview
 
 - **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, and homestead records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, and homestead balances/tiers.
-- **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form.
-- **Domain stores:** `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, and homestead APIs observe/mutate slices through `PlayerSaveStore`.
+- **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` + `PlayerSaveStoreConfiguration` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
+- **Domain stores:** Thin facades — `PlayerRosterStore`, `PlayerInventoryStore`, `PlayerJourneyStore`, `PlayerHomesteadStore` — wrap the hub (no second container). Slice getters/setters may still go through `PlayerSaveStore` properties; player actions (e.g. `PlayerHomesteadStore.buildOrUpgradeNode`) live on the domain store. Access via `playerSave.homesteadStore` etc.
 - **Options/preferences:** `OptionsStore` (appearance, volumes) and `AppState` session keys (tab/battle restoration via `UserDefaults`) intentionally — not part of `PlayerSave` unless product requires cloud-synced settings.
 - **Sync:** OS-managed SwiftData + CloudKit sync, configured with container `iCloud.com.ryanmcintire.Trinket`. Tests and local tools pass `-disable-cloud-sync` or use explicit local/in-memory containers to avoid CloudKit network access.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`
+
+## Extension policy (hub containment)
+
+Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type bodies with feature-specific logic.
+
+| Hub | Put new code here | Not here |
+|-----|-------------------|----------|
+| `BattleState` | `EffectHandlers/`, `*Engine`, `DamagePipeline`, or `BattleState+*.swift` for shared mutation plumbing | Catalog-specific branches; app/feature call sites for engine mutations |
+| `PlayerSaveStore` | Value-type rules in `Models/`; player actions on `Player*Store`; open/config in `PlayerSaveStoreConfiguration` | Feature-specific methods on the hub class |
+
+`BattleState` public API is reads + `advanceOneStep` / log lifecycle. Engine mutations are `package` in `BattleState+*.swift`.
 
 ## Tech stack
 

@@ -38,3 +38,14 @@ not need the full battle loop, it belongs in a unit file instead.
 - Assert event semantics and HP deltas, not full log fingerprints.
 - Shared setup lives in `Support/BattleTestFixtures.swift`.
 - AGENTS.md defers exhaustive log/UI prose unit tests; keep `ActionEventFormatterTests` representative only.
+
+## Where to put new combat code
+
+Do **not** grow `BattleState.swift` with feature logic. Prefer:
+
+1. Effect-specific rules → `EffectHandlers/`
+2. Shared combat math → existing `*Engine` / `DamagePipeline` / applicator
+3. Shared mutation plumbing used by multiple engines → `BattleState+*.swift` (`package`)
+4. Never add catalog-specific branching to `BattleState`
+
+Public facade: reads + `advanceOneStep` / log lifecycle. Engine mutations are `package`.

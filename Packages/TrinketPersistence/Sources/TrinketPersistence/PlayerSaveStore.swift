@@ -4,7 +4,20 @@ import os
 import SwiftData
 import TrinketContent
 
-
+/// Write-through hub for the player SwiftData graph.
+///
+/// **Owns:** `ModelContainer` / `ModelContext`, deferred save + rollback,
+/// reset/seed, and slice property setters that sanitize then persist.
+///
+/// **Does not own:** domain player actions — use thin `Player*Store` facades
+/// (`PlayerHomesteadStore.buildOrUpgradeNode`, etc.). Pure rules stay on
+/// value types (`PlayerHomesteadState`, `PlayerRosterState`, …).
+///
+/// **Where to put new persistence code:**
+/// 1. Pure domain rules → value types under `Models/`
+/// 2. Player actions / cross-slice mutations → matching `Player*Store`
+/// 3. Container open / URL / CloudKit config → `PlayerSaveStoreConfiguration`
+/// 4. Only add methods here when they are hub infrastructure (save, rollback, reset)
 @MainActor
 @Observable
 public final class PlayerSaveStore {
@@ -53,6 +66,12 @@ public final class PlayerSaveStore {
         root.toPlayerSave()
     }
 
+    /// Domain facades — prefer these for player actions over growing this hub.
+    public var journeyStore: PlayerJourneyStore { PlayerJourneyStore(save: self) }
+    public var rosterStore: PlayerRosterStore { PlayerRosterStore(save: self) }
+    public var inventoryStore: PlayerInventoryStore { PlayerInventoryStore(save: self) }
+    public var homesteadStore: PlayerHomesteadStore { PlayerHomesteadStore(save: self) }
+
     private let persistSaveImmediately: Bool
 
     public init(
@@ -64,20 +83,21 @@ public final class PlayerSaveStore {
         persistSaveImmediately: Bool = false
     ) throws {
         self.persistSaveImmediately = persistSaveImmediately
-        let finalURL = Self.resolveStoreURL(storeName: storeName, storeURL: storeURL)
+        let finalURL = PlayerSaveStoreConfiguration.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
         if resetState, !inMemoryOnly {
-            Self.cleanStoreFiles(at: finalURL)
+            PlayerSaveStoreConfiguration.cleanStoreFiles(at: finalURL)
         }
 
         let schema = PlayerSaveGraph.schema
-        let resolved = Self.resolveConfiguration(
+        let resolved = PlayerSaveStoreConfiguration.resolveConfiguration(
             schema: schema,
             finalURL: finalURL,
             storeName: storeName,
             storeURL: storeURL,
             disableCloudSync: disableCloudSync,
-            inMemoryOnly: inMemoryOnly
+            inMemoryOnly: inMemoryOnly,
+            cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier
         )
 
         let openResult = try ModelContainerBootstrap.open(
@@ -99,10 +119,10 @@ public final class PlayerSaveStore {
         context.autosaveEnabled = false
 
         if resetState {
-            Self.clearSaveRoot(in: context, logger: logger)
+            PlayerSaveStoreConfiguration.clearSaveRoot(in: context, logger: logger)
         }
 
-        if let existingRoot = Self.fetchRoot(in: context, logger: logger) {
+        if let existingRoot = PlayerSaveStoreConfiguration.fetchRoot(in: context, logger: logger) {
             root = existingRoot
             ensureRequiredGraph()
         } else {
@@ -259,82 +279,4 @@ public final class PlayerSaveStore {
             )
         }
     }
-
-    private static func fetchRoot(in context: ModelContext, logger: Logger) -> PlayerSaveRoot? {
-        let descriptor = FetchDescriptor<PlayerSaveRoot>()
-        do {
-            return try context.fetch(descriptor).first { $0.id == "primary" }
-        } catch {
-            logger.error(
-                "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
-            )
-            return nil
-        }
-    }
-
-    private static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
-        if let storeName {
-            return URL.applicationSupportDirectory.appending(path: "\(storeName).store")
-        } else {
-            return storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
-        }
-    }
-
-    private static func cleanStoreFiles(at url: URL) {
-        let shmURL = url.deletingPathExtension().appendingPathExtension("store-shm")
-        let walURL = url.deletingPathExtension().appendingPathExtension("store-wal")
-        try? FileManager.default.removeItem(at: url)
-        try? FileManager.default.removeItem(at: shmURL)
-        try? FileManager.default.removeItem(at: walURL)
-    }
-
-    private static func resolveConfiguration(
-        schema: Schema,
-        finalURL: URL,
-        storeName: String?,
-        storeURL: URL?,
-        disableCloudSync: Bool,
-        inMemoryOnly: Bool
-    ) -> (config: ModelConfiguration, recoveryURL: URL?) {
-        if inMemoryOnly {
-            return (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
-        } else if storeName != nil {
-            return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
-        } else if let storeURL {
-            return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
-        } else if disableCloudSync {
-            return (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
-        } else {
-            return (ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)), nil)
-        }
-    }
-
-    private static func clearSaveRoot(in context: ModelContext, logger: Logger) {
-        do {
-            try context.delete(model: PlayerSaveRoot.self)
-            try context.save()
-        } catch {
-            logger.error(
-                "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-    }
-
-    public func buildOrUpgradeHomesteadNode(_ definition: HomesteadNodeDefinition) -> HomesteadBuildResult {
-        var didUpgrade = false
-        do {
-            try performBatchMutation { save in
-                var homestead = save.homestead
-                var rosterState = save.roster
-                guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
-                save.homestead = homestead
-                save.roster = rosterState
-                didUpgrade = true
-            }
-        } catch {
-            return .persistFailed
-        }
-        return didUpgrade ? .success : .insufficientResources
-    }
 }
-
