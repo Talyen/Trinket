@@ -239,8 +239,7 @@ After the foundation is stable, implement battle polish separately:
 - Keyword particles and feedback bursts.
 - Card flash/recoil/lunge states.
 - Health-bar trailing damage/heal animation.
-- Skill caster-anchored ability-art callout.
-- Ultimate full-screen cinematic overlay (art fallback, then video).
+- Skill caster-anchored ability-art callout and Ultimate cinematic overlay — see **`Docs/Design/BattleSpectaclePlan.md`** (R-008 / R-011) for motion APIs, session timing, video preload, and Options skip policy.
 
 This phase should have focused unit or presentation tests where feasible and smoke coverage for Battle flow stability.
 

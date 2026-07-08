@@ -13,8 +13,8 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 ### R-001 — SwiftUI animation vocabulary
 - **Area:** Cross-cutting
 - **Status:** scratch
-- **Idea:** Establish a shared motion language across the app: easing curves (accel/decel/duration), spring parameters (stiffness, damping, mass), named preset styles (e.g. bouncy), and scroll/drag friction with inertia. Centralize in `TrinketDesignSystem` so screens feel cohesive.
-- **Touches:** `TrinketDesignSystem`, feature transitions, collection grids
+- **Idea:** Establish a shared motion language across the app: easing curves (accel/decel/duration), spring parameters (stiffness, damping, mass), named preset styles (e.g. bouncy), and scroll/drag friction with inertia. Centralize in `TrinketDesignSystem` so screens feel cohesive. Battle spectacle (R-008 / R-011) ships a first slice as `TrinketMotion.battle.*` — see `Docs/Design/BattleSpectaclePlan.md`.
+- **Touches:** `TrinketDesignSystem`, feature transitions, collection grids, battle spectacle
 
 ### R-002 — Haptic feedback
 - **Area:** Cross-cutting
@@ -58,9 +58,10 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-008 — Skill ability art callout in combat
 - **Area:** Battle
-- **Status:** scratch
+- **Status:** planned
 - **Idea:** When a Skill fires, briefly surface that ability's art as a caster-anchored callout on the casting combatant's battle card so the player can see *which* Skill triggered and *who* used it. Soft-hold the battle clock ~0.5s for readability; Basics keep today's target-only floating chips. Ultimates use the separate cinematic path (R-011).
 - **Touches:** battle action presentation, ability catalog art refs, `BattleSession` timing
+- **Plan:** `Docs/Design/BattleSpectaclePlan.md`
 
 ### R-009 — Combined Hero + Pet portrait frame
 - **Area:** Battle
@@ -76,9 +77,10 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-011 — Ultimate cinematics
 - **Area:** Battle, Art
-- **Status:** scratch
+- **Status:** planned
 - **Idea:** Full-screen Ultimate cast cinematics for Heroes and Pets only (Omni Flash–style). Play once per Ultimate cast while combat is held, then resume with damage/effects. Skills use a short caster-anchored ability-art callout instead (see R-008), not a cinematic. Distinct from idle loops (R-010).
 - **Touches:** `ArtManifest/`, battle presentation, ability event timing, Options skip preference
+- **Plan:** `Docs/Design/BattleSpectaclePlan.md`
 
 ---
 
