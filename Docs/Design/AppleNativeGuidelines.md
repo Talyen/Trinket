@@ -2,6 +2,8 @@
 
 Trinket-specific rules for applying Apple's 2026 platform APIs. The hard platform contract lives in `AGENTS.md` § Platform Baseline; official Apple documentation remains the source of truth for API shape.
 
+**Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plan live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), and [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md).
+
 ## Platform Contract
 
 | Requirement | Value |
@@ -12,6 +14,13 @@ Trinket-specific rules for applying Apple's 2026 platform APIs. The hard platfor
 | UI | SwiftUI shell; UIKit only when SwiftUI has no viable API |
 
 Do **not** add `#available` / `@available` checks for iOS versions below 26. We do not ship to older OSes. “Fallbacks” in Trinket design docs mean **accessibility** (Reduce Transparency, Reduce Motion), not backward compatibility.
+
+## iOS 26 and Liquid Glass
+
+- [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)
+- [Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views)
+- [Build a SwiftUI app with the new design (WWDC25-323)](https://developer.apple.com/videos/play/wwdc2025/323/)
+- [WWDC26 SwiftUI guide](https://developer.apple.com/wwdc26/guides/swiftui/) — forward-looking APIs
 
 ## SwiftUI Patterns In This Repo
 

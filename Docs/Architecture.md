@@ -144,6 +144,8 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 
 ## Tech stack
 
+Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([README](Platform/README.md)).
+
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
 - Swift 6 strict concurrency enabled on all package targets

@@ -35,14 +35,14 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 
 ## When To Read What
 
-- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
+- Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · iOS 26 stack audit: `Docs/Platform/iOS26StackAudit.md` · iOS 26 Apple reference: `Docs/Platform/iOS26AppleReference.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
 - Roadmap items in `Docs/Roadmap.md` are speculative. Do not implement them unless the user explicitly asks to explore or build a cited `R-###` entry.
 - `Docs/Audits/*Audit.md` files are point-in-time audit snapshots — not workflow docs. Do not treat them as active requirements unless the user cites one.
 
 ## Product & Architecture
 
 - iOS iPhone-first, portrait-only (`project.yml`). Swift 6.0 / SwiftUI; iOS 26.0. Public Apple APIs for StoreKit, GameKit, privacy, cloud, etc.; update docs with App Store/privacy implications.
-- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Local Swift packages: see `Docs/Architecture.md`.
+- SwiftUI for shell/menus/overlays and battle presentation. Rules/state separate from rendering; small owned types; abstract after repetition. Local Swift packages: see `Docs/Architecture.md`. iOS 26 Liquid Glass and API adoption: `Docs/Platform/`.
 - **Repo map:** read `Docs/Architecture.md` first. App target under `Trinket/`; shared packages under `Packages/`; manifests at repo root (`ContentManifest/`, `ArtManifest/`, …); tests in `TrinketTests/` and `TrinketUITests/`.
 - **Product tabs vs code** (see `Docs/Architecture.md` for the full table):
 

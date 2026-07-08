@@ -90,13 +90,15 @@ Keep the existing card-radius default: `16` points. Compact controls can use `8`
 
 ## Material Rules
 
-Use SwiftUI Material intentionally:
+Use SwiftUI Material and Liquid Glass intentionally. iOS 26 guidance and Trinket audit: `Docs/Platform/iOS26AppleReference.md`, `Docs/Platform/iOS26StackAudit.md`.
 
-- Use material over artwork, modal headers, sheets, popovers, top/bottom bars, pause menus, and reward reveals.
+- Use **Liquid Glass** (`.glassEffect`) for selective custom chrome — combat feedback chips, wallet/status pills, high-value overlays — via `TrinketDesignSystem` modifiers, not raw feature-view calls.
+- Use classic **Material** or solid surfaces where glass would distract from card art and dense lists.
 - Prefer solid themed surfaces for Collection, Inventory, Search, Options, detail sections, and other dense content.
-- Avoid stacking multiple translucent materials.
-- Respect Reduce Transparency by resolving material roles to solid themed surfaces.
-- Material should support the game theme, not replace it with generic glass.
+- Avoid stacking multiple translucent materials or glass-on-glass layers.
+- Respect Reduce Transparency by resolving material roles to solid themed surfaces (see `GlassChipModifier` pattern).
+- Let system tab bars, toolbars, and sheets adopt Liquid Glass automatically; avoid custom backgrounds that fight the system material.
+- Route all glass and material styling through `TrinketDesignSystem`; `Scripts/check-ui-style.sh` enforces this.
 
 ## Typography And Spacing
 
