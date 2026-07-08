@@ -184,6 +184,7 @@ struct BattleView: View {
             maxMana: manaValues.maxMana,
             healthBarPlacement: healthBarPlacement,
             events: feedbackEvents(for: combatant, battleSession: battleSession),
+            skillCharge: battleState.skillChargeProjection(of: combatant),
             reduceMotion: reduceMotion,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
         )

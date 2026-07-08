@@ -42,4 +42,11 @@ enum AccessibilityID {
             "\(title) Homestead Detail"
         }
     }
+
+    enum Battle {
+        /// Present when a combatant pane is showing the Skill charge wipe.
+        static func skillCharge(combatantName: String) -> String {
+            "\(combatantName) skill charge"
+        }
+    }
 }

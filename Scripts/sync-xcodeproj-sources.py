@@ -227,10 +227,71 @@ def remove_missing_app_sources(text: str, phase_id: str) -> str:
     return replace_phase_files(text, phase_id, kept, names)
 
 
+def find_app_sources_phase_id(text: str) -> str:
+    """Return the Trinket app PBXSourcesBuildPhase ID (the phase that includes BattleCombatantPane)."""
+    phases = re.findall(
+        r"([0-9A-F]{24}) /\* Sources \*/ = \{\n\t\t\tisa = PBXSourcesBuildPhase;\n\t\t\tbuildActionMask = 2147483647;\n\t\t\tfiles = \((.*?)\);\n\t\t\trunOnlyForDeploymentPostprocessing = 0;\n\t\t\};",
+        text,
+        flags=re.DOTALL,
+    )
+    for phase_id, block in phases:
+        if "BattleCombatantPane.swift in Sources" in block:
+            return phase_id
+    raise SystemExit("Could not locate Trinket app Sources build phase")
+
+
+def ensure_group_membership(text: str, path: Path, file_id: str) -> str:
+    """Add a file reference to its parent PBXGroup when missing."""
+    group_name = path.parent.name
+    escaped = re.escape(group_name)
+    pattern = (
+        r"([0-9A-F]{24}) /\* "
+        + escaped
+        + r" \*/ = \{\n"
+        + r"\t\t\tisa = PBXGroup;\n"
+        + r"\t\t\tchildren = \((.*?)\);\n"
+        + r"\t\t\tpath = "
+        + escaped
+        + r";\n"
+        + r"\t\t\tsourceTree = \"<group>\";\n"
+        + r"\t\t\};"
+    )
+    match = re.search(pattern, text, flags=re.DOTALL)
+    if not match:
+        return text
+    children = match.group(2)
+    if file_id in children:
+        return text
+    name = basename(path)
+    insertion = f"\n\t\t\t\t{file_id} /* {name} */,"
+    new_children = children.rstrip() + insertion + "\n\t\t\t"
+    start, end = match.start(2), match.end(2)
+    return text[:start] + new_children + text[end:]
+
+
+def sync_app_target(text: str) -> str:
+    phase_id = find_app_sources_phase_id(text)
+    before_refs = parse_file_refs(text)
+    text = sync_target(text, "Trinket", phase_id)
+    after_refs = parse_file_refs(text)
+    for name, file_id in after_refs.items():
+        if name in before_refs:
+            continue
+        # Newly added app source — attach to its folder group when possible.
+        path = next(
+            (p for p in discover_swift_files(TARGET_ROOTS["Trinket"]) if basename(p) == name),
+            None,
+        )
+        if path is not None:
+            text = ensure_group_membership(text, path, file_id)
+    return text
+
+
 def main() -> int:
     text = read_pbx()
     text = sync_target(text, "TrinketTests", TARGET_SOURCE_PHASES["TrinketTests"])
     text = sync_target(text, "TrinketUITests", TARGET_SOURCE_PHASES["TrinketUITests"])
+    text = sync_app_target(text)
 
     stale_trinket_sources = [
         "5A443C6F3C6657CAA87B24FA /* SessionStateStore.swift in Sources */,",

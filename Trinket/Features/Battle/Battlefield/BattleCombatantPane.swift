@@ -17,6 +17,7 @@ struct BattleCombatantPane: View {
     let maxMana: Int
     let healthBarPlacement: HealthBarPlacement
     let events: [ActionEvent]
+    let skillCharge: SkillChargeProjection?
     let reduceMotion: Bool
     let onCombatantTap: () -> Void
 
@@ -27,7 +28,7 @@ struct BattleCombatantPane: View {
     var body: some View {
         Button(action: onCombatantTap) {
             ZStack {
-                CombatantArtwork(combatant: combatant, variant: .battle)
+                artworkLayer
 
                 healthScrim
 
@@ -43,13 +44,37 @@ struct BattleCombatantPane: View {
             .trinketCardSurface()
             .contentShape(TrinketDesign.cardShape)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(combatant.name) card")
+            .accessibilityLabel(accessibilityLabel)
             .accessibilityValue(healthText)
             .accessibilityHint("Shows details")
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("\(combatant.name) card")
+    }
+
+    @ViewBuilder
+    private var artworkLayer: some View {
+        if let skillCharge {
+            SkillChargeArtwork(
+                combatant: combatant,
+                skill: skillCharge.ability,
+                progress: skillCharge.progress,
+                reduceMotion: reduceMotion
+            )
+        } else {
+            CombatantArtwork(combatant: combatant, variant: .battle)
+        }
+    }
+
+    private var accessibilityLabel: String {
+        if let skillCharge {
+            if skillCharge.progress >= 1 {
+                return "\(combatant.name), \(skillCharge.ability.name) ready"
+            }
+            return "\(combatant.name), charging \(skillCharge.ability.name)"
+        }
+        return "\(combatant.name) card"
     }
 
     private var healthText: String {
