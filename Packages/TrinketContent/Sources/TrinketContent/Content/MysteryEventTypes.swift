@@ -5,7 +5,8 @@ public enum MysteryEffect: Hashable, Sendable {
     case gainGold(Int)
     case gainMaterial(HomesteadResource, Int)
     case gainExperience(Int)
-    case gainItem(itemTemplateID: String)
+    /// Procedural item: rarity is rolled 80% basic / 20% astral at grant time.
+    case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
     case chooseItem
 }
@@ -35,5 +36,12 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
         self.narrative = narrative
         self.artID = artID
         self.choices = choices
+    }
+}
+
+public enum MysteryItemRarity {
+    /// 80% basic, 20% astral.
+    public static func roll<RNG: RandomNumberGenerator>(using randomNumberGenerator: inout RNG) -> Rarity {
+        Int.random(in: 1 ... 100, using: &randomNumberGenerator) <= 80 ? .basic : .astral
     }
 }

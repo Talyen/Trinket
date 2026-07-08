@@ -1,8 +1,7 @@
-import TrinketCore
 import Testing
+import TrinketCore
 @testable import TrinketContent
 
-@Suite
 struct MysteryEventCatalogTests {
     @Test func allMysteryEventsHaveUniqueIDs() throws {
         let ids = GameContent.mysteryEvents.map(\.id)
@@ -61,5 +60,58 @@ struct MysteryEventCatalogTests {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
         try #expect(GameContent.mysteryEvents.contains(picked))
+    }
+
+    @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
+        let knownBaseIDs = Set(GameContent.itemBaseTypes.map(\.id))
+        for event in GameContent.mysteryEvents {
+            for choice in event.choices {
+                for effect in choice.effects {
+                    guard case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs) = effect else {
+                        continue
+                    }
+                    try #expect(
+                        knownBaseIDs.contains(baseTypeID),
+                        "Unknown base type \(baseTypeID) in \(event.id)/\(choice.id)"
+                    )
+                    for affixID in guaranteedAffixIDs {
+                        _ = try #require(
+                            GameContent.itemAffixDefinitions.first { $0.id == affixID },
+                            "Unknown guaranteed affix \(affixID) in \(event.id)/\(choice.id)"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Test func manaBerryHarvestGrantsHerbsAndManaboundSapphireRing() throws {
+        let event = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
+        let harvest = try #require(event.choices.first { $0.id == "harvest" })
+        try #expect(harvest.effects.contains(.gainMaterial(.herbs, 3)))
+        try #expect(
+            harvest.effects.contains(
+                .gainGeneratedItem(baseTypeID: "sapphire_ring", guaranteedAffixIDs: ["manabound"])
+            )
+        )
+    }
+
+    @Test func mysteryEffectsNeverSpendResources() throws {
+        for event in GameContent.mysteryEvents {
+            for choice in event.choices {
+                for effect in choice.effects {
+                    switch effect {
+                    case let .gainGold(amount):
+                        try #expect(amount > 0, "\(event.id)/\(choice.id)")
+                    case let .gainMaterial(_, amount):
+                        try #expect(amount > 0, "\(event.id)/\(choice.id)")
+                    case let .gainExperience(amount):
+                        try #expect(amount > 0, "\(event.id)/\(choice.id)")
+                    case .gainGeneratedItem, .gainRandomItem, .chooseItem:
+                        break
+                    }
+                }
+            }
+        }
     }
 }

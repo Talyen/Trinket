@@ -15,16 +15,27 @@ public struct ItemGenerator: Sendable {
         rarity: Rarity,
         fixedAffixCount: Int? = nil,
         keywordBias: Set<Keyword> = [],
+        guaranteedAffixIDs: [String] = [],
         using randomNumberGenerator: inout RNG
     ) -> InventoryItem {
-        let affixCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
         let eligibleAffixes = affixDefinitions.filter { definition in
             definition.slot == baseType.slot &&
                 !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
         }
-        let selectedDefinitions = Self.weightedSample(
-            eligibleAffixes,
-            count: affixCount,
+
+        let guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in
+            eligibleAffixes.first { $0.id == affixID }
+        }
+
+        let rolledCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
+        let affixCount = max(rolledCount, guaranteedDefinitions.count)
+        let remainingCount = max(0, affixCount - guaranteedDefinitions.count)
+        let remainingPool = eligibleAffixes.filter { definition in
+            !guaranteedDefinitions.contains { $0.id == definition.id }
+        }
+        let selectedDefinitions = guaranteedDefinitions + Self.weightedSample(
+            remainingPool,
+            count: remainingCount,
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )

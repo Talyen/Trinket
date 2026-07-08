@@ -2,7 +2,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-@Suite
 struct ItemGeneratorTests {
     @Test func basicItemsRollOneOrTwoAffixes() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
@@ -90,6 +89,33 @@ struct ItemGeneratorTests {
         for definition in GameContent.itemAffixDefinitions {
             try #expect(definition.basic != definition.astral, "\(definition.id)")
         }
+    }
+
+    @Test func guaranteedAffixIDsAreAlwaysIncluded() throws {
+        let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "sapphire_ring" })
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
+
+        let item = ItemGenerator().generate(
+            id: "mana-ring",
+            baseType: baseType,
+            rarity: .basic,
+            guaranteedAffixIDs: ["manabound"],
+            using: &randomNumberGenerator
+        )
+
+        try #expect(item.affixes.contains { $0.id == "manabound" })
+        try #expect(item.affixes.count >= 1)
+    }
+
+    @Test func mysteryItemRarityRollsBasicEightyPercent() throws {
+        var basicCount = 0
+        for seed in UInt64(1) ... 200 {
+            var randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+            if MysteryItemRarity.roll(using: &randomNumberGenerator) == .basic {
+                basicCount += 1
+            }
+        }
+        try #expect((140 ... 180).contains(basicCount))
     }
 
     private func generatedAffixCounts(
