@@ -191,11 +191,14 @@ final class AppStateTests {
         line: UInt = #line
     ) {
         guard let detail else {
-            Issue.record("Expected collection detail context", file: file, line: line)
+            Issue.record(
+                "Expected collection detail context",
+                sourceLocation: SourceLocation(fileID: file, line: line)
+            )
             return
         }
 
-        #expect(detail.kind == kind, file: file, line: line)
-        #expect(detail.combatantID == combatantID, file: file, line: line)
+        #expect(detail.kind == kind, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(detail.combatantID == combatantID, sourceLocation: SourceLocation(fileID: file, line: line))
     }
 }

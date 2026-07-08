@@ -2,7 +2,6 @@ import Foundation
 import TrinketPersistence
 @testable import Trinket
 
-@MainActor
 enum SaveTestSupport {
     static func makeTempDirectory(prefix: String) throws -> URL {
         let url = FileManager.default.temporaryDirectory
@@ -19,6 +18,7 @@ enum SaveTestSupport {
         directoryURL.appendingPathComponent("PlayerSave.sqlite")
     }
 
+    @MainActor
     static func makeSaveStore(directoryURL: URL) -> PlayerSaveStore {
         PlayerSaveStore(
             storeURL: makeStoreURL(directoryURL: directoryURL),

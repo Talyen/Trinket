@@ -197,8 +197,8 @@ struct BattleGoldenPathTests {
         line: UInt = #line
     ) {
         let milestones = events.filter { $0.kind == .milestone }
-        #expect(!milestones.isEmpty, file: file, line: line))
-        #expect(milestones.last?.targetID == targetID, file: file, line: line)
+        #expect(!milestones.isEmpty, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(milestones.last?.targetID == targetID, sourceLocation: SourceLocation(fileID: file, line: line))
     }
 
     private func assertContainsEvent(
@@ -211,8 +211,7 @@ struct BattleGoldenPathTests {
     ) {
         #expect(
             events.contains { $0.kind == kind && $0.keyword == keyword && $0.targetID == targetID },
-            file: file,
-            line: line
+            sourceLocation: SourceLocation(fileID: file, line: line)
         )
     }
 }

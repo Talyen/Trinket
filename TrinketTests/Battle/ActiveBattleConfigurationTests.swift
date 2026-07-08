@@ -76,9 +76,11 @@ final class ActiveBattleConfigurationTests {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
         let stage = try #require(GameContent.chapters[0].stages.first)
-        let enemy = try #require(try GameContent.enemy(matching: #require(stage.encounter.battleEnemyID))?.combatant)
+        let battleEnemyID = try #require(stage.encounter.battleEnemyID)
+        let enemy = try #require(GameContent.enemy(matching: battleEnemyID)?.combatant)
+        let itemTemplateID = try #require(stage.rewards.itemTemplateIDs.first)
         let expectedItemName = try #require(
-            GameContent.itemTemplate(matching: #require(stage.rewards.itemTemplateIDs.first))?.displayName
+            GameContent.itemTemplate(matching: itemTemplateID)?.displayName
         )
 
         let configuration = ActiveBattleConfigurationTestSupport.make(

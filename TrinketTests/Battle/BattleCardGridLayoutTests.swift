@@ -60,26 +60,24 @@ struct BattleCardGridLayoutTests {
         let innerWidth = containerSize.width - 2 * metrics.outerPadding
         let innerHeight = containerSize.height - 2 * metrics.outerPadding
 
-        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, file: file, line: line)
-        #expect(abs((
-            metrics.enemySize.width
-        ) - (metrics.enemySize.height)) < 0.001,
-        file: file,
-        line: line)
-        #expect(abs((
-            metrics.partySize.width / metrics.partySize.height
-        ) - (3.0 / 4.0)) < 0.001,
-        file: file,
-        line: line)
-        #expect(partyRowWidth <= innerWidth + 0.001, file: file, line: line)
-        #expect(gridHeight <= innerHeight + 0.001, file: file, line: line)
+        #expect(abs((metrics.enemySize.width) - partyRowWidth) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(
+            abs(metrics.enemySize.width - metrics.enemySize.height) < 0.001,
+            sourceLocation: SourceLocation(fileID: file, line: line)
+        )
+        #expect(
+            abs((metrics.partySize.width / metrics.partySize.height) - (3.0 / 4.0)) < 0.001,
+            sourceLocation: SourceLocation(fileID: file, line: line)
+        )
+        #expect(partyRowWidth <= innerWidth + 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
+        #expect(gridHeight <= innerHeight + 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
 
         if fillsWidth {
-            #expect(abs(partyRowWidth - innerWidth) < 0.001, file: file, line: line)
+            #expect(abs(partyRowWidth - innerWidth) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
         }
 
         if fillsHeight {
-            #expect(abs(gridHeight - innerHeight) < 0.001, file: file, line: line)
+            #expect(abs(gridHeight - innerHeight) < 0.001, sourceLocation: SourceLocation(fileID: file, line: line))
         }
     }
 }
