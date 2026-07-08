@@ -141,6 +141,12 @@ public final class PlayerSaveStore {
         }
     }
 
+    // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
+    // deferred save Task does not touch MainActor-isolated state from a nonisolated deinit.
+    isolated deinit {
+        deferredSaveTask?.cancel()
+    }
+
     public func performBatchMutation(
         _ update: (inout PlayerSave) -> Void,
         persistImmediately: Bool = true

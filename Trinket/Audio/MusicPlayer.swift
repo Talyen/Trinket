@@ -26,7 +26,9 @@ final class MusicPlayer {
         self.fadeDuration = fadeDuration
     }
 
-    deinit {
+    // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
+    // fade Task does not touch MainActor-isolated state from a nonisolated deinit.
+    isolated deinit {
         fadeTask?.cancel()
     }
 

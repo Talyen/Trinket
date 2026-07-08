@@ -150,6 +150,12 @@ final class AppState {
         finishBootstrap(environment: environment)
     }
 
+    // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
+    // battle tick Task does not touch MainActor-isolated state from a nonisolated deinit.
+    isolated deinit {
+        battleTickTask?.cancel()
+    }
+
     func consumePendingCollectionPresentation() -> LaunchPresentation? {
         defer { pendingCollectionPresentation = nil }
         return pendingCollectionPresentation

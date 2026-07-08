@@ -3,11 +3,26 @@
 import SwiftUI
 import TrinketCore
 
-// Concurrency-Safety: @unchecked Sendable — immutable value-type fields only; UnitPoint is not yet Sendable in SwiftUI.
-public struct CombatantArtReference: Hashable, @unchecked Sendable {
+/// Normalized art crop anchor. Kept as Doubles so the catalog stays Sendable
+/// without relying on SwiftUI `UnitPoint` Sendable conformance.
+public struct ArtFocalPoint: Hashable, Sendable {
+    public let x: Double
+    public let y: Double
+
+    public init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+
+    public var unitPoint: UnitPoint {
+        UnitPoint(x: x, y: y)
+    }
+}
+
+public struct CombatantArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let focalPoint: UnitPoint
+    public let focalPoint: ArtFocalPoint
     public let accessibilityLabel: String
 }
 
@@ -44,205 +59,205 @@ public enum ArtCatalog {
         "alchemist": CombatantArtReference(
             imageName: "hero_alchemist_card",
             thumbnailImageName: "hero_alchemist_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Alchemist hero"
         ),
         "druid": CombatantArtReference(
             imageName: "hero_druid_card",
             thumbnailImageName: "hero_druid_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Druid hero"
         ),
         "knight": CombatantArtReference(
             imageName: "hero_knight_card",
             thumbnailImageName: "hero_knight_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Knight hero"
         ),
         "ranger": CombatantArtReference(
             imageName: "hero_ranger_card",
             thumbnailImageName: "hero_ranger_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Ranger hero"
         ),
         "rogue": CombatantArtReference(
             imageName: "hero_rogue_card",
             thumbnailImageName: "hero_rogue_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.34),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.34),
             accessibilityLabel: "Full art of the Rogue hero"
         ),
         "warlock": CombatantArtReference(
             imageName: "hero_warlock_card",
             thumbnailImageName: "hero_warlock_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Warlock hero"
         ),
         "wizard": CombatantArtReference(
             imageName: "hero_wizard_card",
             thumbnailImageName: "hero_wizard_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Wizard hero"
         ),
         "wolf": CombatantArtReference(
             imageName: "pet_wolf_card",
             thumbnailImageName: "pet_wolf_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.36),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.36),
             accessibilityLabel: "Full art of the Wolf pet"
         ),
         "bear": CombatantArtReference(
             imageName: "pet_bear_card",
             thumbnailImageName: "pet_bear_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Bear pet"
         ),
         "frost_whelp": CombatantArtReference(
             imageName: "pet_frost_whelp_card",
             thumbnailImageName: "pet_frost_whelp_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Frost Whelp pet"
         ),
         "lizard_scout": CombatantArtReference(
             imageName: "pet_lizard_scout_card",
             thumbnailImageName: "pet_lizard_scout_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Lizard Scout pet"
         ),
         "panther": CombatantArtReference(
             imageName: "pet_panther_card",
             thumbnailImageName: "pet_panther_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Panther pet"
         ),
         "phoenix": CombatantArtReference(
             imageName: "pet_phoenix_card",
             thumbnailImageName: "pet_phoenix_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Phoenix pet"
         ),
         "golden_retriever": CombatantArtReference(
             imageName: "pet_golden_retriever_card",
             thumbnailImageName: "pet_golden_retriever_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Golden Retriever pet"
         ),
         "library_owl": CombatantArtReference(
             imageName: "pet_library_owl_card",
             thumbnailImageName: "pet_library_owl_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Library Owl pet"
         ),
         "risen_skeleton": CombatantArtReference(
             imageName: "pet_risen_skeleton_card",
             thumbnailImageName: "pet_risen_skeleton_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Risen Skeleton pet"
         ),
         "mana_moth": CombatantArtReference(
             imageName: "pet_mana_moth_card",
             thumbnailImageName: "pet_mana_moth_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Mana Moth pet"
         ),
         "living_armor": CombatantArtReference(
             imageName: "enemy_living_armor_card",
             thumbnailImageName: "enemy_living_armor_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Living Armor enemy"
         ),
         "mimic": CombatantArtReference(
             imageName: "enemy_mimic_card",
             thumbnailImageName: "enemy_mimic_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Mimic enemy"
         ),
         "mud_elemental": CombatantArtReference(
             imageName: "enemy_mud_elemental_card",
             thumbnailImageName: "enemy_mud_elemental_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Mud Elemental enemy"
         ),
         "necromancer": CombatantArtReference(
             imageName: "enemy_necromancer_card",
             thumbnailImageName: "enemy_necromancer_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Necromancer enemy"
         ),
         "plague_doctor": CombatantArtReference(
             imageName: "enemy_plague_doctor_card",
             thumbnailImageName: "enemy_plague_doctor_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Plague Doctor enemy"
         ),
         "skeleton": CombatantArtReference(
             imageName: "enemy_skeleton_card",
             thumbnailImageName: "enemy_skeleton_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Skeleton enemy"
         ),
         "the_blight_treant": CombatantArtReference(
             imageName: "enemy_the_blight_treant_card",
             thumbnailImageName: "enemy_the_blight_treant_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Blight Treant enemy"
         ),
         "the_forge_golem": CombatantArtReference(
             imageName: "enemy_the_forge_golem_card",
             thumbnailImageName: "enemy_the_forge_golem_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Forge Golem enemy"
         ),
         "the_frostwarden": CombatantArtReference(
             imageName: "enemy_the_frostwarden_card",
             thumbnailImageName: "enemy_the_frostwarden_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Frostwarden enemy"
         ),
         "the_iron_bear": CombatantArtReference(
             imageName: "enemy_the_iron_bear_card",
             thumbnailImageName: "enemy_the_iron_bear_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Iron Bear enemy"
         ),
         "fire_elemental": CombatantArtReference(
             imageName: "enemy_fire_elemental_card",
             thumbnailImageName: "enemy_fire_elemental_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Fire Elemental enemy"
         ),
         "frost_elemental": CombatantArtReference(
             imageName: "enemy_frost_elemental_card",
             thumbnailImageName: "enemy_frost_elemental_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Frost Elemental enemy"
         ),
         "goblin": CombatantArtReference(
             imageName: "enemy_goblin_card",
             thumbnailImageName: "enemy_goblin_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Goblin enemy"
         ),
         "slime": CombatantArtReference(
             imageName: "enemy_slime_card",
             thumbnailImageName: "enemy_slime_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Slime enemy"
         ),
         "will_o_wisp": CombatantArtReference(
             imageName: "enemy_will_o_wisp_card",
             thumbnailImageName: "enemy_will_o_wisp_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Will-o-Wisp enemy"
         ),
         "pixie": CombatantArtReference(
             imageName: "pet_pixie_card",
             thumbnailImageName: "pet_pixie_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Pixie pet"
         ),
         "shield_scarab": CombatantArtReference(
             imageName: "pet_shield_scarab_card",
             thumbnailImageName: "pet_shield_scarab_card_thumb",
-            focalPoint: UnitPoint(x: 0.50, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Full art of the Shield Scarab pet"
         ),
     ]

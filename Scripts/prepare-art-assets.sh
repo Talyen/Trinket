@@ -145,7 +145,7 @@ JSON
         "$escaped_id": CombatantArtReference(
             imageName: "$escaped_asset",
             thumbnailImageName: "$escaped_thumb",
-            focalPoint: UnitPoint(x: $focal_x, y: $focal_y),
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y),
             accessibilityLabel: "$escaped_label"
         ),
 SWIFT
@@ -204,11 +204,26 @@ cat > "$generated_swift" <<SWIFT
 import SwiftUI
 import TrinketCore
 
-// Concurrency-Safety: @unchecked Sendable — immutable value-type fields only; UnitPoint is not yet Sendable in SwiftUI.
-public struct CombatantArtReference: Hashable, @unchecked Sendable {
+/// Normalized art crop anchor. Kept as Doubles so the catalog stays Sendable
+/// without relying on SwiftUI `UnitPoint` Sendable conformance.
+public struct ArtFocalPoint: Hashable, Sendable {
+    public let x: Double
+    public let y: Double
+
+    public init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+
+    public var unitPoint: UnitPoint {
+        UnitPoint(x: x, y: y)
+    }
+}
+
+public struct CombatantArtReference: Hashable, Sendable {
     public let imageName: String
     public let thumbnailImageName: String?
-    public let focalPoint: UnitPoint
+    public let focalPoint: ArtFocalPoint
     public let accessibilityLabel: String
 }
 
