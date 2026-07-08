@@ -9,13 +9,15 @@ import TrinketContent
 /// **Owns:** `ModelContainer` / `ModelContext`, deferred save + rollback,
 /// reset/seed, and slice property setters that sanitize then persist.
 ///
-/// **Does not own:** domain player actions — use thin `Player*Store` facades
-/// (`PlayerHomesteadStore.buildOrUpgradeNode`, etc.). Pure rules stay on
-/// value types (`PlayerHomesteadState`, `PlayerRosterState`, …).
+/// **Does not own:** cross-slice player actions — use `PlayerHomesteadStore`
+/// (`homesteadStore.buildOrUpgradeNode`). Pure rules stay on value types
+/// (`PlayerHomesteadState`, `PlayerRosterState`, …). Prefer slice properties
+/// (`journey` / `roster` / `inventory` / `homestead`) for single-slice reads
+/// and writes; do not add empty pass-through facades.
 ///
 /// **Where to put new persistence code:**
 /// 1. Pure domain rules → value types under `Models/`
-/// 2. Player actions / cross-slice mutations → matching `Player*Store`
+/// 2. Cross-slice player actions → `PlayerHomesteadStore` (or a real action type)
 /// 3. Container open / URL / CloudKit config → `PlayerSaveStoreConfiguration`
 /// 4. Only add methods here when they are hub infrastructure (save, rollback, reset)
 @MainActor
@@ -66,19 +68,7 @@ public final class PlayerSaveStore {
         root.toPlayerSave()
     }
 
-    /// Domain facades — prefer these for player actions over growing this hub.
-    public var journeyStore: PlayerJourneyStore {
-        PlayerJourneyStore(save: self)
-    }
-
-    public var rosterStore: PlayerRosterStore {
-        PlayerRosterStore(save: self)
-    }
-
-    public var inventoryStore: PlayerInventoryStore {
-        PlayerInventoryStore(save: self)
-    }
-
+    /// Cross-slice homestead actions — prefer over growing this hub.
     public var homesteadStore: PlayerHomesteadStore {
         PlayerHomesteadStore(save: self)
     }
