@@ -329,7 +329,7 @@ struct CombatPipelineTests {
         try #expect(amount == 10, "50% mitigation should halve stun buildup from 20 to 10")
     }
 
-    @Test func stunBuildupDoesNotApplyWhenShieldAbsorbsAllDamage() throws {
+    @Test func stunBuildupAppliesWhenShieldAbsorbsAllDamage() throws {
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
         let (lost, _) = context.applyTestDamage(
@@ -340,8 +340,32 @@ struct CombatPipelineTests {
         )
 
         try #expect(lost == 0)
-        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
-        try #expect(buildup == nil, "Fully shielded hits should not build control meters")
+        let stunMeter = context.roster.enemy.activeEffects.first {
+            guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
+            return keyword == .stun && amount == 5
+        }
+        _ = try #require(stunMeter, "Fully shielded stun hits still charge control meters")
+    }
+
+    @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
+        var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
+        let (lost, events) = context.applyTestDamage(
+            5,
+            to: context.roster.enemy.combatant,
+            keyword: .physical,
+            sourceActorID: "source",
+            applyDodge: false,
+            abilityCriticalChanceBonus: 1.0
+        )
+
+        try #expect(events.contains { $0.effectKind == .criticalApplied })
+        try #expect(lost == 0, "Crit should multiply before shields absorb the final amount")
+        let remainingBuffer = context.roster.enemy.activeEffects.compactMap { active -> Int? in
+            guard case let .shield(_, buffer, _) = active.effect else { return nil }
+            return buffer
+        }.first
+        try #expect(remainingBuffer == 10, "5 damage crit to 10 should consume 10 shield")
     }
 
     // MARK: - Pipeline ordering
@@ -355,8 +379,8 @@ struct CombatPipelineTests {
             "MarkedBonus",
             "Mitigation",
             "ItemReduction",
-            "ShieldAbsorption",
             "CriticalMultiply",
+            "ShieldAbsorption",
             "TakeDamage",
             "MarkedConsume",
             "DeathsDoor",

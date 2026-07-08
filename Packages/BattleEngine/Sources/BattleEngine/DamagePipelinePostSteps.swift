@@ -25,13 +25,15 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
-        guard state.healthLost > 0,
+        // Buildup uses post-mitigation / post-crit damage before shields
+        // (`buildupDamage`). Shields protect health, not control meters.
+        guard state.buildupDamage > 0,
               let damageKeyword = state.damageKeyword,
               damageKeyword == .stun || damageKeyword == .freeze,
               context.roster.health(for: state.combatant) > 0
         else { return }
         state.damageEvents.append(contentsOf: ControlMeterEngine.applyMeterCharge(
-            state.healthLost,
+            state.buildupDamage,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,
