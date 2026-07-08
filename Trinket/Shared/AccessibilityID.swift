@@ -1,15 +1,27 @@
 import Foundation
-import TrinketContent
 
 enum AccessibilityID {
     enum Screen {
         static let play = "Play Screen"
         static let homestead = "Homestead Screen"
+        static let options = "Options Screen"
     }
 
     enum Play {
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"
+        }
+
+        static func stageNode(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Node"
+        }
+
+        static func enemyArt(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Enemy Art"
+        }
+
+        static func chapterLocked(number: Int) -> String {
+            "Chapter \(number) Locked"
         }
     }
 
@@ -20,12 +32,27 @@ enum AccessibilityID {
         static let traitDescription = "Combatant Trait Description"
         static let enemyTraitsSection = "Combatant Enemy Traits Section"
         static let enemyTraitDescription = "Combatant Enemy Trait Description"
+
+        static func header(name: String) -> String {
+            "\(name) detail hero header"
+        }
+
+        static func collectionCard(name: String) -> String {
+            "\(name) collection card"
+        }
+
+        static func battleCard(name: String) -> String {
+            "\(name) card"
+        }
     }
 
     enum Collection {
+        static let heroesCategory = "Heroes collection category"
+        static let petsCategory = "Pets collection category"
+        static let inventoryCategory = "Inventory collection category"
         static let inventoryEmptyState = "Inventory Empty State"
         static let inventoryNoResults = "Inventory No Results"
-        static let inventoryCategory = "Inventory collection category"
+        static let inventoryFilter = "Inventory filter"
     }
 
     enum Search {
@@ -44,9 +71,29 @@ enum AccessibilityID {
     }
 
     enum Battle {
+        static let pauseButton = "Battle Pause Button"
+        static let menu = "Battle Menu"
+        static let combatLog = "Combat Log"
+        static let retreat = "Retreat"
+        static let victory = "Victory"
+        static let experience = "Experience"
+        static let rewards = "Rewards"
+        static let continueButton = "Continue Button"
+
         /// Present when a combatant pane is showing the Skill charge wipe.
         static func skillCharge(combatantName: String) -> String {
             "\(combatantName) skill charge"
         }
+    }
+
+    enum Equipment {
+        static let weaponSlot = "Weapon item slot"
+        static let armorSlot = "Armor item slot"
+        static let trinketSlot = "Trinket item slot"
+        static let findWeaponToUnlock = "Find a Weapon to Unlock"
+        static let findArmorToUnlock = "Find Armor to Unlock"
+        static let findTrinketToUnlock = "Find a Trinket to Unlock"
+        static let equipWeapon = "Equip Weapon"
+        static let basicAbilitySlot = "Basic ability slot"
     }
 }

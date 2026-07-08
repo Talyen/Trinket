@@ -5,9 +5,7 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
         TestLaunchArg.allForTab("homestead")
     }
 
-    func testHomesteadTabAndNodeDetail() {
+    func testHomesteadTabLoads() {
         homestead.assertLoaded()
-        homestead.openNode(named: "Wheat Field")
-        homestead.assertNodeDetail(named: "Wheat Field")
     }
 }

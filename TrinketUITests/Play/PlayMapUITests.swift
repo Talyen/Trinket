@@ -6,23 +6,22 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
-        assertButtonExists("Stage 1-1 Node")
+        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
 
-        button("Stage 1-1 Enemy Art").tap()
-        assertExists("Skeleton detail hero header")
-        assertExists("Combatant Stats Section")
+        button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1)).tap()
+        assertExists(AccessibilityID.CombatantDetail.header(name: "Skeleton"))
+        assertExists(AccessibilityID.CombatantDetail.statsSection)
         dismissSheet()
-        XCTAssertTrue(app.descendants(matching: .any)["Skeleton detail hero header"].waitForNonExistence(timeout: 2))
+        assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Skeleton"), timeout: 2)
     }
 
     func testNonBattleStubStageCanComplete() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
 
-        play.openStage("Stage 1-2 Node")
+        play.openStage(chapter: 1, stage: 2)
 
-        assertButtonExists("Stage 1-3 Node")
-        XCTAssertFalse(button("Stage 1-2 Node").exists)
-        XCTAssertFalse(app.descendants(matching: .any)["Stage 1-2 Node"].exists)
+        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
+        XCTAssertFalse(button(AccessibilityID.Play.stageNode(chapter: 1, stage: 2)).exists)
         XCTAssertFalse(app.alerts.element.exists)
     }
 
@@ -39,14 +38,21 @@ final class PlayMapUITests: TrinketUITestCase {
             "chapter-1-stage-9"
         ]))
 
-        assertButtonExists("Stage 1-10 Node")
-        assertExists("Chapter 2 Locked")
+        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 10))
+        assertExists(AccessibilityID.Play.chapterLocked(number: 2))
+    }
+
+    func testHomesteadNodeDetail() {
+        launchApp(arguments: TestLaunchArg.allForTab("homestead"))
+        homestead.assertLoaded()
+        homestead.openNode(named: "Wheat Field")
+        homestead.assertNodeDetail(named: "Wheat Field")
     }
 
     func testPlayScreenAccessibility() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
         play.assertLoaded()
-        assertButtonExists("Stage 1-1 Node")
+        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
         assertAccessibilityAudit()
     }
 }

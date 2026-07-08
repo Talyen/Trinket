@@ -9,14 +9,6 @@ class SeededSmokeUITestCase: TrinketUITestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        continueAfterFailure = false
         launchApp(arguments: launchArguments)
-    }
-
-    override func tearDownWithError() throws {
-        if let app {
-            app.terminate()
-        }
-        try super.tearDownWithError()
     }
 }
