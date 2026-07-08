@@ -4,7 +4,9 @@ Goal: Improve UI smoke and exhaustive tests — speed, tier fit, duplication, as
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append improvement plans or Done tables to this file.
 
-Unit/package tests → [UnitTestAudit.md](UnitTestAudit.md). Conventions → `AGENTS.md` § UI Tests.
+Unit/package tests → [UnitTestAudit.md](UnitTestAudit.md).  
+Interaction / a11y product bugs → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md).  
+Conventions → `AGENTS.md` § UI Tests.
 
 ## Mission
 
@@ -16,8 +18,9 @@ Run UI-focused probes, triage P0–P2, implement up to **5** fixes (deep links, 
 - Do not remove `accessibilityIdentifier` values used by UI tests.
 - Do not weaken battle determinism.
 - Do not change `project.yml` schemes/test plans unless required for a fix you are implementing.
-- Do not expand into unit XCTest→Testing migration (already done; see UnitTestAudit).
+- Do not expand into unit XCTest→Testing migration (see UnitTestAudit + `./Scripts/check-swift-testing-migration.sh`).
 - Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals (per `AGENTS.md`).
+- Do not invent wall-clock budgets that conflict with `AGENTS.md` (smoke is a short UI-only plan).
 
 ## Probes
 
@@ -40,6 +43,17 @@ rg -n 'XCTAssertNotNil' --type swift TrinketUITests || true
 rg -n '//\s*func test' --type swift TrinketUITests || true
 ```
 
+### Launch args & page objects
+
+```bash
+rg -n 'reset-state|seed-test-progress|disable-cloud-sync|launch-screen|selectedTab' --type swift \
+  TrinketUITests Trinket/ || true
+rg -n 'accessibilityIdentifier' --type swift TrinketUITests/Support Trinket/ | head -80
+ls TrinketUITests/Support/Screens/
+```
+
+Default smoke args should remain `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync` unless testing persistence. Prefer page objects (`PlayScreen`, `TabBar`, …) over raw identifier strings scattered in tests.
+
 ### Smoke vs exhaustive weight
 
 ```bash
@@ -56,6 +70,8 @@ rg -n 'UserDefaults\.standard' --type swift TrinketUITests || true
 rg -n 'continueAfterFailure' --type swift TrinketUITests || true
 ```
 
+UI tests run **serially** on a single simulator by default — do not assume parallel UI execution when “fixing” flakes.
+
 ## Tier rules
 
 | Tier | Command | Belongs here |
@@ -65,8 +81,6 @@ rg -n 'continueAfterFailure' --type swift TrinketUITests || true
 | Unit | `./Scripts/test.sh unit` | Rules/state — not full-app spins |
 
 Prefer `-launch-screen` / `-selectedTab` / `-completed-stages` / `-map-scroll-target` over tab+grid navigation. Prefer `replaceText` over long grid scrolls.
-
-Reconcile timing expectations with `AGENTS.md` (smoke is a short UI-only plan). Do not invent conflicting wall-clock budgets in this file.
 
 ## Scoring
 
@@ -84,7 +98,9 @@ Reconcile timing expectations with `AGENTS.md` (smoke is a short UI-only plan). 
 - Move multi-step assertions from smoke → exhaustive
 - Replace scroll hunts with launch args
 - Use page objects / `assertExists` consistently
-- Optional: `performAccessibilityAudit()` on a primary tab — only if stable
+- Align tests with default launch-arg helpers in `TrinketUITestCase`
+
+Do **not** add `performAccessibilityAudit()` in this audit unless a screen is already known-stable in CI; product a11y gaps belong in [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md).
 
 ## Verification
 
@@ -96,7 +112,7 @@ Reconcile timing expectations with `AGENTS.md` (smoke is a short UI-only plan). 
 ./Scripts/test.sh ui <ClassName>
 ```
 
-Confirm: no identifier removals; no battle RNG changes; recommendations match `AGENTS.md` UI guidance.
+Confirm: no identifier removals; no battle RNG changes; recommendations match `AGENTS.md` UI guidance. Skip smoke/UI when the simulator toolchain is absent; note skips in the commit body.
 
 ## Commit
 

@@ -13,6 +13,7 @@ Enforce the module graph and app-layer import rules. Fix all boundary violations
 - Do not suppress `check-module-boundaries.sh` failures.
 - Do not invent new packages to “fix” a cycle without clear ownership in `Docs/Architecture.md`.
 - Generated files are exempt from hand edits.
+- Do not invent extra boundary rules beyond Architecture + the gate script.
 
 ## Primary gate
 
@@ -22,17 +23,19 @@ Enforce the module graph and app-layer import rules. Fix all boundary violations
 
 Target: **0 violations**.
 
-Optional smell (not a hard fail):
+What the script currently enforces (keep this list in sync if the script gains checks):
 
-```bash
-rg -c '^import ' --type swift -g '!*Tests*' -g '!**/Generated/*' | awk -F: '$2 > 20 {print}' | sort -t: -k2 -rn
-```
-
-Treat >20 imports as a candidate for extraction/facade — only fix if it clarifies ownership.
+| Rule | Enforced path |
+|------|----------------|
+| `BattleShell/` must not reference `Features/` | `Trinket/BattleShell` |
+| `State/` must not reference `Features/` | `Trinket/State` |
+| Packages must not `import Trinket` | `Packages/**` |
+| `TrinketDesignSystem` must not import Content / BattleEngine / Persistence | `Packages/TrinketDesignSystem/Sources` |
+| `BattleEngine` ⟂ `TrinketPersistence` | each package’s `Sources` |
 
 ## Package graph
 
-From [Architecture.md](../Architecture.md):
+From [Architecture.md](../Architecture.md) (SoT — diagram is a sketch):
 
 ```
           TrinketCore
@@ -62,6 +65,15 @@ From [Architecture.md](../Architecture.md):
 
 Use explicit `import` per package. `./Scripts/apply-explicit-imports.py` can bootstrap after refactors.
 
+## Optional smell (not a hard fail)
+
+```bash
+rg -c '^import ' --type swift -g '!*Tests*' -g '!**/Generated/*' \
+  | awk -F: '$2 > 25 {print}' | sort -t: -k2 -rn
+```
+
+Treat >25 imports as a candidate only when a **second signal** exists (god file, high churn, unclear ownership). Do not churn files solely to lower the count.
+
 ## Fixes
 
 - Break cycles by extracting shared types into the lowest common ancestor (`TrinketCore`)
@@ -73,7 +85,7 @@ Use explicit `import` per package. `./Scripts/apply-explicit-imports.py` can boo
 ```sh
 ./Scripts/check-module-boundaries.sh
 ./Scripts/lint.sh
-./Scripts/build.sh   # if imports changed across targets
+./Scripts/build.sh   # if imports changed across targets; toolchain permitting
 ```
 
 ## Commit

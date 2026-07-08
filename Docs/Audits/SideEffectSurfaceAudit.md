@@ -14,16 +14,31 @@ Run the probes, triage unexpected hits, fix the highest-value seam violations (c
 - Do not hand-edit `Generated/*`.
 - Do not weaken battle RNG determinism (`rngSeed: 0` in tests).
 - Audio `try?` + log is acceptable; do not “fix” it into crashing paths.
+- Release-shaped CloudKit checklist work belongs in `Docs/Platform/CloudKitPreShipChecklist.md` — not this audit.
+
+## Allowlisted seams
+
+| Effect | Allowed locations |
+|--------|-------------------|
+| Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling) |
+| `UserDefaults` | Options store + ephemeral `AppState` session keys — not `PlayerSave` |
+| Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
+| Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
+| Seeded RNG | `Double.random(using: &…)`, `BattleBalanceTools/`, `BalanceSweepCLI/` |
+| CloudKit / SwiftData sync | `TrinketPersistence` / `ModelConfiguration` wiring |
 
 ## Probes
 
-Run from repo root:
+Run from repo root. Use simple hit lists, then triage — do **not** rely on variable-length lookbehind (unsupported by default `rg`).
 
 ```bash
-# Unseeded randomness / clocks — expect 0 in core rule packages
-rg -n '(?<!\(using: &[^)]*)\.(random\(|randomElement\(|shuffle\()|(?<!using: &[^)]*)UUID\(\)|Date\(\)' \
-  --type swift -g '!*Tests*' -g '!**/Generated/*' -g '!**/rng*' \
+# Non-determinism candidates in core rule packages — triage each hit
+rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)' \
+  --type swift -g '!*Tests*' -g '!**/Generated/*' \
   Packages/BattleEngine/Sources/BattleEngine Packages/TrinketCore/
+
+# Ignore / accept when the call injects RNG, e.g. random(using: &context.rng)
+# Flag unseeded .random(), UUID(), Date() in BattleEngine rule paths
 
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
 rg -n 'UserDefaults' --type swift -g '!*Tests*'
@@ -37,8 +52,6 @@ rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Te
 # CloudKit symbols — expect TrinketPersistence (or none if SwiftData-only wiring)
 rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 ```
-
-Seeded RNG (`Double.random(using: &context.rng)`) and `BattleBalanceTools/` / `BalanceSweepCLI/` tooling are allowed.
 
 **CloudKit note:** OS-managed SwiftData CloudKit may not import `CloudKit` directly. Absence of `CKRecord` is not a failure if sync is configured via `ModelConfiguration` / container ID in persistence.
 
@@ -78,11 +91,13 @@ Seeded RNG (`Double.random(using: &context.rng)`) and `BattleBalanceTools/` / `B
 ```sh
 ./Scripts/check-module-boundaries.sh
 ./Scripts/lint.sh
-# If BattleEngine / Core touched:
+# If BattleEngine / Core touched (toolchain permitting):
 ./Scripts/test-package.sh BattleEngine
 # If persistence touched:
 ./Scripts/test-package.sh TrinketPersistence
 ```
+
+If Xcode is unavailable, skip package tests and note that in the commit body (see [README.md](README.md) § Cloud / no-Xcode toolchain).
 
 ## Commit
 
@@ -90,7 +105,7 @@ Seeded RNG (`Double.random(using: &context.rng)`) and `BattleBalanceTools/` / `B
 fix(<scope>): confine <effect> to <seam>
 
 - <what moved or injected>
-- <tests run>
+- <tests run or skipped>
 
 User-Facing: no
 ```

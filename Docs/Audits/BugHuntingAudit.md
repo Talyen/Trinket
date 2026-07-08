@@ -14,6 +14,8 @@ Run the probes below, triage by severity × fix confidence, fix **3–5** highes
 
 Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 
+Do **not** re-run sibling audits’ full suites — only chase hits from these probes. Defer P4/P5 to the owning audit by default.
+
 ## Hard stops
 
 - Do not read every file — probe, triage, fix.
@@ -25,14 +27,14 @@ Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 ## Confirmation policy (autonomous-friendly)
 
 - **Auto-fix** P0–P2 correctness bugs (crashes, data loss, double grants, stuck state, clear wrong behavior).
-- **Stop and ask** only for balance retunes, player-facing copy/layout design choices, or ambiguous product intent.
+- **Skip and note in the PR/commit body** for balance retunes, player-facing copy/layout design choices, or ambiguous product intent — do not block the audit waiting for answers.
 - Never ask about naming, file structure, or obvious internal guards.
 
 ## Workflow
 
 1. Probe (parallel where possible)
 2. Triage P0–P5
-3. Select 3–5 fixes
+3. Select 3–5 fixes (P0–P2 only unless a P3 is trivial)
 4. Apply smallest correct diffs
 5. Verify (§ Verification)
 6. Commit + report in commit body
@@ -70,7 +72,9 @@ rg -n '\.first!' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 rg -n 'grant|reward|completeStage|claim' --type swift -g '!*Tests*' -g '!*UITests*' -B2 -A2
 ```
 
-### 4. Test gap × churn (optional, max one fix)
+### 4. Test gap × churn (optional — skip by default)
+
+Only if a P0–P2 fix needs a regression test and no existing test covers it:
 
 ```bash
 for f in \
@@ -85,14 +89,14 @@ Only add a unit test when it would catch a real bug class UI tests miss. Do not 
 
 ## Severity
 
-| Sev | Criteria |
-|-----|----------|
-| P0 | Crash / data loss / double reward / save corruption |
-| P1 | Wrong battle/progress/UI state |
-| P2 | Degraded UX (stuck spinner, missing dismiss) |
-| P3 | Silent failure that should log |
-| P4 | Maintainability (orphaned state) — prefer DeadCode audit |
-| P5 | Future risk — prefer Concurrency audit |
+| Sev | Criteria | Default disposition |
+|-----|----------|---------------------|
+| P0 | Crash / data loss / double reward / save corruption | Fix now |
+| P1 | Wrong battle/progress/UI state | Fix now |
+| P2 | Degraded UX (stuck spinner, missing dismiss) | Fix now (within 3–5 cap) |
+| P3 | Silent failure that should log | Fix only if trivial |
+| P4 | Maintainability (orphaned state) | Defer to [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md) |
+| P5 | Future concurrency risk | Defer to [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyDataRaceAudit.md) |
 
 ## Verification
 
@@ -103,7 +107,7 @@ Only add a unit test when it would catch a real bug class UI tests miss. Do not 
 | App state / shell | `./Scripts/test.sh unit <FocusedClass>` |
 | Identifiers / flow | `./Scripts/test.sh smoke` |
 
-Always: `./Scripts/check-module-boundaries.sh` and `./Scripts/lint.sh`.
+Always: `./Scripts/check-module-boundaries.sh` and `./Scripts/lint.sh`. Skip build/test when the toolchain is absent; note skips in the commit body.
 
 ## Commit / report
 

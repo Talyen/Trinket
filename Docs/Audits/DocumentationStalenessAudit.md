@@ -6,13 +6,14 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Discover markdown from the repo (do not trust a hardcoded file count). Fix all **Critical** and **Moderate** issues found in this pass. Cap Roadmap `Status:` churn unless the user asked for a roadmap pass.
+Discover markdown from the repo (do not trust a hardcoded file count). Fix **Critical** and **Moderate** issues found in this pass, capped at a sensible blast radius (**≤15** doc files or one coherent doc area). Cap Roadmap `Status:` churn unless the user asked for a roadmap pass.
 
 ## Hard stops
 
 - Do not hand-edit `CHANGELOG.md` (owned by `./Scripts/release.sh`).
 - Do not treat dated “Last execution” / Done tables inside audits as source of truth — **delete** those tracker sections when found (audits must stay procedural).
 - Do not rewrite design prose for style-only preferences.
+- Do not turn this into a repo-wide docs rewrite — triage and cap.
 
 ## Discover targets
 
@@ -39,7 +40,7 @@ Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, 
 
 1. Survey references (paths, types, links, versions, time-sensitive language)
 2. Triage Critical / Moderate / Minor
-3. Fix Critical + Moderate
+3. Fix Critical + Moderate within the blast-radius cap
 4. Verify
 5. Commit — do not write results into this file
 
@@ -55,20 +56,21 @@ Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, 
 
 ### Code references
 
-- `test -f <path>` for every cited path
+- `test -f <path>` for every cited path (from repo root for absolute-style paths)
 - `rg -l '\bTypeName\b' --type swift` for cited types
 - Accessibility identifier strings must still exist in source
 
 ### Links
 
-- Internal `.md` links resolve (`test -f`)
+- Internal `.md` links must resolve **relative to the source file** (not only from repo root)
 - Heading anchors still exist
 - External URLs: spot-check Apple docs (expect 200/302)
 
-### Versions / counts
+### Versions / counts (sources of truth)
 
-- `AGENTS.md` / `README.md` iOS/Swift/Xcode match `project.yml` / toolchain
-- Smoke class count: `ls TrinketUITests/Smoke/Smoke*.swift | wc -l` — update docs to the **current** number (do not assume 9)
+- `AGENTS.md` / `README.md` iOS/Swift/Xcode match `project.yml` (`deploymentTarget`, `SWIFT_VERSION`) / toolchain
+- Package `swift-tools-version` in `Packages/*/Package.swift` may be newer than language “Swift 6” wording — docs should not claim a tools version that contradicts the packages
+- Smoke class count: `ls TrinketUITests/Smoke/Smoke*.swift | wc -l` — update docs to the **current** number (do not assume a fixed count)
 - `Scripts/README.md` marketing version vs `project.yml`
 
 ### Terminology
@@ -93,15 +95,39 @@ Canonical names from `Docs/Architecture.md` / source: `AppTab` cases, `BattleSes
 ## Verification
 
 ```bash
-# Resolve relative .md links from repo root (skip http)
-rg -o '\[[^\]]*\]\(([^)]+\.md)(#[^)]*)?\)' --type md -g '!.DerivedData/' -r '$1' \
-  | sort -u | while read -r link; do
-  case "$link" in http*|file:*) continue ;; esac
-  # Links are relative to their source file — spot-check Audits/Platform/Architecture manually if needed
-  test -f "$link" || echo "CHECK RELATIVE: $link"
-done
+# Resolve .md links relative to each source file (skip http)
+python3 - <<'PY'
+import os, re, sys
+root = os.getcwd()
+pat = re.compile(r'\[[^\]]*\]\(([^)]+)\)')
+broken = []
+for dirpath, _, files in os.walk(root):
+    if any(p in dirpath for p in ('/.git', '/.DerivedData', '/Raw Assets')):
+        continue
+    for name in files:
+        if not name.endswith('.md'):
+            continue
+        path = os.path.join(dirpath, name)
+        text = open(path, encoding='utf-8', errors='replace').read()
+        for m in pat.finditer(text):
+            link = m.group(1).split()[0]  # drop optional title
+            if link.startswith(('http://', 'https://', 'mailto:', '#')):
+                continue
+            target, _, _ = link.partition('#')
+            if not target:
+                continue
+            resolved = os.path.normpath(os.path.join(dirpath, target))
+            if not os.path.isfile(resolved):
+                broken.append(f"{os.path.relpath(path, root)} -> {link}")
+for b in broken[:50]:
+    print(b)
+print(f"broken_count={len(broken)}")
+sys.exit(1 if broken else 0)
+PY
 
 ls -1 TrinketUITests/Smoke/Smoke*.swift | wc -l
+rg -n 'deploymentTarget|SWIFT_VERSION' project.yml | head -20
+rg -n 'swift-tools-version' Packages/*/Package.swift
 rg -n 'iOS [0-9]|Swift [0-9]|MARKETING_VERSION' --type md -g '!.DerivedData/' | head -40
 ```
 
