@@ -1,6 +1,8 @@
 # Liquid Glass Migration Plan
 
-Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liquid Glass and removing the stale UI test availability guard. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [iOS26AppleReference.md](iOS26AppleReference.md).
+Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liquid Glass. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [iOS26AppleReference.md](iOS26AppleReference.md).
+
+**Status (July 2026):** Phases 0–3, 5–6 **complete**. Phase 4 (toolbar background audit) **deferred** — see [Phase 4 pros/cons](#phase-4--toolbar-background-audit-deferred) at end of this doc.
 
 **Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, toolbar background audit, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, or navigation structure.
 
@@ -358,3 +360,43 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 - [AppVisualFoundation.md](../Design/StyleGuide/AppVisualFoundation.md) — dense vs glass surfaces
 - [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md) — repo patterns and deprecated APIs
 - `Scripts/check-ui-style.sh` — enforcement rules
+
+---
+
+## Phase 4 — Toolbar background audit (deferred)
+
+Phase 4 was intentionally skipped during the July 2026 migration. Use this section when deciding whether to proceed.
+
+### Sites under review
+
+| File | Current behavior | Why it exists |
+|------|------------------|---------------|
+| `BattleView.swift` | `.toolbarBackgroundVisibility(.automatic)` on victory/defeat; `.hidden` during combat | Battle art should extend edge-to-edge; toolbar would obscure or clash with health scrims |
+| `ChapterStageSelectView.swift` | `.toolbarBackgroundVisibility(.hidden)` | Play map journey hero art visible through/above navigation area |
+| `CombatantDetailPane.swift` | `.toolbarBackground(.hidden)` + visibility hidden | Sheet detail over card art; minimal chrome |
+
+### Pros of removing hidden toolbar backgrounds (adopting system scroll-edge effect)
+
+1. **Automatic Liquid Glass integration** — iOS 26 toolbars get adaptive glass and scroll-edge blur/fade without custom code ([Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)).
+2. **Less maintenance** — Fewer modifiers to audit when Apple refines toolbar behavior in future SDKs.
+3. **Better legibility defaults** — System scroll-edge effect keeps bar items readable when content scrolls beneath them (WWDC25-323).
+4. **Consistency with HIG** — Apple explicitly recommends removing custom backgrounds that interfere with the scroll-edge effect.
+
+### Cons of removing hidden toolbar backgrounds
+
+1. **Art-forward screens lose immersion** — Play journey and Battle are designed around full-bleed artwork; a visible/floating glass toolbar may feel like an extra layer over the “stage.”
+2. **Visual regression risk** — Hidden bars were deliberate product choices; simulator QA is required on every affected flow before shipping.
+3. **Battle legibility is fragile** — Combat UI already uses custom scrims (`BattleHealthScrimGradient`); adding system toolbar glass might double-stack effects or reduce contrast on busy art.
+4. **Partial fix may not exist** — `.scrollEdgeEffectStyle(...)` tunes legibility but does not recreate a fully invisible bar; you may trade one compromise for another.
+5. **Sheet detail is a special case** — `CombatantDetailPane` pushes over collection art; system chrome may be appropriate, but the transition from hidden to visible bar can feel inconsistent with the rest of Collection.
+
+### Recommendation
+
+Treat Phase 4 as a **visual QA spike**, not a code migration:
+
+1. Branch off `main`, remove one override at a time on simulator.
+2. Capture screenshots for Play map (scrolled + at rest), mid-battle, victory overlay, and combatant detail sheet.
+3. Keep hidden backgrounds where art immersion wins; add `// UIStyleCheck: allow - hero/battle art requires hidden nav chrome` only if you retain overrides.
+4. Consider **targeted** adoption: e.g. Collection detail sheet → system chrome; Play map + Battle → keep hidden until product wants floating glass tabs/toolbars (could pair with `.tabBarMinimizeBehavior` separately).
+
+No code changes required until the spike confirms a net visual win.

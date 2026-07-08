@@ -277,29 +277,81 @@ public struct MaterialRoleModifier: ViewModifier {
     let shape: RoundedRectangle
 
     public func body(content: Content) -> some View {
+        switch MaterialRoleStyle(role: role) {
+        case .none:
+            content
+        case let .glass(glass, solidFill):
+            content.modifier(TrinketGlassBackgroundModifier(
+                glass: glass,
+                shape: shape,
+                solidFill: solidFill
+            ))
+        case let .solid(fill):
+            content
+                .background(fill, in: shape)
+                .overlay {
+                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                }
+        case .ultraThinMaterial:
+            if reduceTransparency {
+                content
+                    .background(ThemePalette.apple.panelSurface, in: shape)
+                    .overlay {
+                        shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                    }
+            } else {
+                content
+                    .background(.ultraThinMaterial, in: shape)
+                    .overlay {
+                        shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                    }
+            }
+        }
+    }
+}
+
+enum MaterialRoleStyle {
+    case none
+    case glass(glass: Glass, solidFill: Color)
+    case solid(fill: Color)
+    case ultraThinMaterial
+
+    init(role: MaterialRole) {
+        let palette = ThemePalette.apple
+        switch role {
+        case .toolbar:
+            self = .none
+        case .bottomBar:
+            self = .glass(glass: .regular, solidFill: palette.panelSurface)
+        case .modal:
+            self = .solid(fill: palette.panelSurface)
+        case .popover:
+            self = .glass(glass: .regular, solidFill: palette.elevatedBackground)
+        case .rewardReveal:
+            self = .glass(glass: .regular.tint(palette.accent), solidFill: palette.elevatedBackground)
+        case .subtleOverlay:
+            self = .ultraThinMaterial
+        }
+    }
+}
+
+struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    let glass: Glass
+    let shape: S
+    let solidFill: Color
+
+    func body(content: Content) -> some View {
         if reduceTransparency {
             content
-                .background(ThemePalette.apple.panelSurface, in: shape)
+                .background(solidFill, in: shape)
                 .overlay {
                     shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
                 }
         } else {
             content
-                .background(material, in: shape)
-                .overlay {
-                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
-                }
-        }
-    }
-
-    private var material: Material {
-        switch role {
-        case .toolbar, .bottomBar, .popover:
-            return .thinMaterial
-        case .modal, .rewardReveal:
-            return .regularMaterial
-        case .subtleOverlay:
-            return .ultraThinMaterial
+                .glassEffect(glass, in: shape)
         }
     }
 }
@@ -313,57 +365,32 @@ public struct TypographyModifier: ViewModifier {
 }
 
 public struct GlassChipModifier: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     public func body(content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(ThemePalette.apple.elevatedBackground, in: Capsule(style: .continuous))
-                .overlay {
-                    Capsule(style: .continuous)
-                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
-                }
-        } else {
-            content
-                .glassEffect(.regular)
-                .clipShape(Capsule(style: .continuous))
-        }
+        content.modifier(TrinketGlassBackgroundModifier(
+            glass: .regular,
+            shape: Capsule(style: .continuous),
+            solidFill: ThemePalette.apple.elevatedBackground
+        ))
     }
 }
 
 public struct StatusBadgeModifier: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     public func body(content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(ThemePalette.apple.panelSurface, in: Capsule(style: .continuous))
-                .overlay {
-                    Capsule(style: .continuous)
-                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
-                }
-        } else {
-            content
-                .background(.regularMaterial, in: Capsule(style: .continuous))
-        }
+        content.modifier(TrinketGlassBackgroundModifier(
+            glass: .regular,
+            shape: Capsule(style: .continuous),
+            solidFill: ThemePalette.apple.panelSurface
+        ))
     }
 }
 
 public struct WalletPillModifier: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-
     public func body(content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(ThemePalette.apple.secondaryBackground, in: Capsule(style: .continuous))
-                .overlay {
-                    Capsule(style: .continuous)
-                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
-                }
-        } else {
-            content
-                .background(.thinMaterial, in: Capsule(style: .continuous))
-        }
+        content.modifier(TrinketGlassBackgroundModifier(
+            glass: .regular,
+            shape: Capsule(style: .continuous),
+            solidFill: ThemePalette.apple.secondaryBackground
+        ))
     }
 }
 

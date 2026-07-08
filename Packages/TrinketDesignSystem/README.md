@@ -35,12 +35,12 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 |----------------|---------|
 | `.trinketScreenBackground(_:)` | Tab/screen background by semantic `BackgroundMode` |
 | `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
-| `.trinketMaterial(_:)` | Toolbars, bottom bars, sheets, popovers, reward reveals |
-| `.trinketGlassChip()` | Glass capsule chips via iOS 26 `.glassEffect(.regular)` |
+| `.trinketMaterial(_:)` | Bottom bars, popovers, reward reveals; modal uses solid surface; toolbar passes through |
+| `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
-| `.trinketPrimaryActionButton()` | Primary CTAs |
-| `.trinketStatusBadge()` / `.trinketWalletPill()` | Compact chips with material or solid fallback |
+| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
+| `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
 

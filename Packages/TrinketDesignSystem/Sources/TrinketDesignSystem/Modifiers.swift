@@ -69,7 +69,7 @@ public struct CardLabelSpaceModifier: ViewModifier {
 public struct PrimaryActionButtonModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.glassProminent)
             .controlSize(.large)
             .buttonBorderShape(.roundedRectangle)
     }

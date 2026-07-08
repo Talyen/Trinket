@@ -2,7 +2,7 @@
 
 Point-in-time audit: **July 2026**. Compares Trinket production code against iOS 16–25-era patterns and iOS 26 Apple guidance. See [iOS26AppleReference.md](iOS26AppleReference.md) for curated WWDC and documentation links.
 
-**Verdict:** Trinket is already on the modern Apple stack for state, navigation, concurrency, and tab structure. The main gap is **partial Liquid Glass adoption** in `TrinketDesignSystem` and a few **low-priority polish items**.
+**Verdict:** Trinket is on the modern Apple stack for state, navigation, concurrency, and tab structure. **Liquid Glass migration (Phases 0–3, 5–6) is complete** as of July 2026. Remaining optional work: Phase 4 toolbar background audit, decorative icon Dynamic Type pass.
 
 **Implementation plan:** [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
 
@@ -18,9 +18,10 @@ Point-in-time audit: **July 2026**. Compares Trinket production code against iOS
 | Navigation | ✅ `NavigationStack` + modern `Tab` API | Zero `NavigationView` |
 | `onChange` | ✅ Two-parameter form everywhere | 11 call sites |
 | StoreKit / UIKit legacy | ✅ Clean | No `SKPayment*`, `UIWebView`, `UIScreen.main` |
-| Liquid Glass | ⚠️ Partial | `GlassChipModifier` only; other modifiers still use `Material` |
-| Primary CTAs | ⚠️ `.borderedProminent` | Consider `.glassProminent` via design system |
-| UI test guard | ⚠️ Stale | `#available(iOS 17.0)` in accessibility audit helper |
+| Liquid Glass | ✅ Complete | Shared `TrinketGlassBackgroundModifier`; badge/wallet/bottomBar glass; `GlassEffectContainer` on wallet row |
+| Primary CTAs | ✅ `.glassProminent` | `PrimaryActionButtonModifier` migrated |
+| UI test guard | ✅ Removed | `performAccessibilityAudit()` unconditional at iOS 26 |
+| Toolbar backgrounds | ⏸ Deferred | Phase 4 audit — see migration plan |
 | Dynamic Type (icons) | ⚠️ Minor | 7 files use fixed `.font(.system(size:))` for decorative glyphs |
 
 ---
@@ -100,32 +101,11 @@ All `.onChange(of:)` call sites use the iOS 17+ two-parameter closure (`{ _, new
 
 ## Gaps and recommended improvements
 
-### 1. Liquid Glass — partial design-system migration (priority: medium)
+### 1. Liquid Glass — design-system migration ✅ Complete (July 2026)
 
-**Current state** in `Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift`:
+Implemented via `TrinketGlassBackgroundModifier` and updated `MaterialRoleStyle` role map. See git history on `VisualFoundation.swift`.
 
-| Modifier | Material approach |
-|----------|-------------------|
-| `GlassChipModifier` | ✅ `.glassEffect(.regular)` + Reduce Transparency fallback |
-| `StatusBadgeModifier` | ⚠️ `.background(.regularMaterial, ...)` |
-| `WalletPillModifier` | ⚠️ `.background(.thinMaterial, ...)` |
-| `MaterialRoleModifier` | ⚠️ `.thinMaterial` / `.regularMaterial` / `.ultraThinMaterial` |
-
-Apple's [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) recommends `.glassEffect` and `.buttonStyle(.glass*)` for custom functional chrome, while **avoiding overuse** on content-heavy surfaces.
-
-**Trinket policy** (from `AppVisualFoundation.md`):
-
-- Glass: navigation chrome, combat feedback chips, wallet/status pills, modal headers
-- Solid surfaces: Collection grids, Inventory rows, Search, Options forms
-
-**Suggested rollout:**
-
-1. Migrate `StatusBadgeModifier` and `WalletPillModifier` to `.glassEffect` (mirror `GlassChipModifier` fallback pattern).
-2. Evaluate `MaterialRoleModifier` toolbar/bottom-bar roles — system tab/toolbar chrome may already provide glass; custom `.toolbarBackgroundVisibility(.hidden)` sites should be audited for scroll-edge conflicts.
-3. Update `PrimaryActionButtonModifier` in `Modifiers.swift` from `.borderedProminent` to `.glassProminent` when design review approves.
-4. Group related glass chips in `GlassEffectContainer` where multiple badges appear together (Homestead wallet row).
-
-`Scripts/check-ui-style.sh` already restricts raw `.glassEffect` / `.buttonStyle(.glass*)` to `TrinketDesignSystem` — extend modifiers there, not in feature views.
+**Deferred:** Phase 4 toolbar background audit (Play, Battle, combatant detail).
 
 ### 2. Tab bar minimize behavior (priority: low, product decision)
 
@@ -139,13 +119,9 @@ iOS 26 floating tab bars support `.tabBarMinimizeBehavior(.onScrollDown)` ([WWDC
 
 WWDC25 demonstrates hero art extending under sidebars via `.backgroundExtensionEffect()`. Trinket's chapter journey hero (`ChapterJourneyHero`) could adopt this for edge-to-edge presentation without clipping — evaluate against current `scrollTransition` treatment.
 
-### 4. Stale UI test availability guard (priority: low)
+### 4. Stale UI test availability guard ✅ Complete
 
-```155:155:TrinketUITests/Support/TrinketUITestCase.swift
-        guard #available(iOS 17.0, *) else { return }
-```
-
-Deployment target is iOS 26.0; this guard is dead code. Remove and call `performAccessibilityAudit()` unconditionally.
+Guard removed; `performAccessibilityAudit()` runs unconditionally at iOS 26 deployment target.
 
 ### 5. Fixed decorative font sizes (priority: low)
 

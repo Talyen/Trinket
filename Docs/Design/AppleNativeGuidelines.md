@@ -64,7 +64,7 @@ Route recurring chrome through `Packages/TrinketDesignSystem`. Feature views sho
 | `.trinketGlassChip()` | Glass capsule chips (iOS 26 `.glassEffect`) |
 | `.trinketTypography(_:)` | Scalable text hierarchy |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
-| `.trinketPrimaryActionButton()` | Primary CTAs |
+| `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 
 Bypass only with `// UIStyleCheck: allow - <reason>` or inside approved design-system files. See `Packages/TrinketDesignSystem/README.md` for the full API inventory.
 
