@@ -66,9 +66,9 @@ Enemy detail views use the shared combatant detail pattern and can show active c
 
 Abilities are the main source of combat actions and Keywords. Keep Abilities as rows inside combatant details for now. Do not create standalone Ability card detail screens until abilities need independent inspection, upgrades, or collection behavior.
 
-Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Battles remain idle on a shared tick clock. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
+Heroes, Pets, and Enemies have Basic, Skill, and Ultimate Abilities. Battles remain idle on a shared tick clock where **one tick equals one second**. Each **step** advances the clock once, runs passive effects, and resolves **at most one** combatant action. When multiple combatants are due, the one who has been ready longest acts first; on ties, slower intervals act before faster ones, then Hero, Pet, Enemy. Party members due on the same tick therefore act on consecutive steps, not in parallel. The selected Basic, Skill, or Ultimate fires automatically based on that combatant's own action count cadence.
 
-Default action intervals: Hero and Pet every 2 ticks; Enemy every 6 ticks. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed ticks can fire on steps where nobody acts.
+Default action intervals: Hero and Pet every 2 seconds; Enemy every 6 seconds. First action occurs on the tick equal to the combatant's interval. Burn, Poison, and Bleed can fire on steps where nobody acts.
 
 Implemented ability rules span the full `Effect` model (direct damage, Burn/Poison/Bleed, control meters, shields, mitigation, healing, leech, gold, cleanse). Ability copy uses player-facing descriptions such as `Deal 3 Freeze damage and applies Frozen.` without tick or action language. Status aliases (`Frozen`, `Stunned`, `Burning`, `Poisoned`, `Bleeding`) share keyword color and emphasis in `KeywordDescriptionText`.
 
@@ -80,7 +80,7 @@ These three keywords share a pattern: when an ability pairs direct damage with a
 |---|---|---|---|---|
 | `Burn` | Deal potency (unless paired direct hit already dealt it) | Deal `floor(potency / 2)`, then set potency to that value | Merge into one stack per target | Respected |
 | `Poison` | Deal potency (unless paired direct hit already dealt it) | Deal `potency - max(1, floor(potency × 0.25))`, then set potency to that value | Merge into one stack per target | Respected |
-| `Bleed` | Deal potency (unless paired direct hit already dealt it) | Deal the same potency again; expire after 3 post-apply ticks | Separate instances per application (UI may consolidate) | Respected |
+| `Bleed` | Deal potency (unless paired direct hit already dealt it) | Deal the same potency again; expire after 3 post-apply seconds | Separate instances per application (UI may consolidate) | Respected |
 
 `Nature`, `Freeze`, and `Stun` are direct damage types. `Freeze`/`Stun` also build toward `Frozen`/`Stunned` control effects via `.controlMeter`; a full meter always consumes exactly one scheduled action regardless of damage amount.
 
@@ -132,7 +132,7 @@ Used as `damageKeyword` on abilities. Direct damage is applied as the ability's 
 | `Physical` | orange | `bolt.fill` | Direct weapon or body damage. |
 | `Burn` | red | `flame.fill` | Deals potency immediately, then decays by halving each step-start tick. Stacks merge. |
 | `Poison` | dark green | `drop.triangle.fill` | Deals potency immediately, then decays by 25% (minimum 1) each step-start tick. Stacks merge. |
-| `Bleed` | dark red | `drop.fill` | Deals potency immediately, then repeats the same damage for 3 step-start ticks. Each application is tracked separately. |
+| `Bleed` | dark red | `drop.fill` | Deals potency immediately, then repeats the same damage for 3 seconds. Each application is tracked separately. |
 | `Holy` | pale gold | `sun.max.fill` | Radiant holy damage type. |
 | `Nature` | emerald | `leaf.fill` | Nature damage type. |
 | `Freeze` | light blue | `snowflake` | Freeze damage type. Also builds toward `Frozen` (one skipped action). |
@@ -154,7 +154,7 @@ Status aliases share parent keyword styling: `Frozen` (Freeze), `Stunned` (Stun)
 | Keyword | Color | SF Symbol | Rules |
 |---|---|---|---|
 | `Health` | red | `heart.fill` | Instant health restoration via `.instantHeal`. Clamped to max health. |
-| `Leech` | magenta | `drop.fill` | Ongoing buff via `.leech`: restores 10% of damage dealt (any source, including DoTs) for 6 ticks. Standard value: `Effect.standardLeechBuff`. |
+| `Leech` | magenta | `drop.fill` | Ongoing buff via `.leech`: restores 10% of damage dealt (any source, including DoTs) for 6 seconds. Standard value: `Effect.standardLeechBuff`. |
 | `Death's Door` | dark red | `heart.slash.fill` | Survival buff via `.deathsDoor`. While active, prevents lethal damage once. Expires after its duration if not triggered. |
 
 ### Resource (Keyword.category = .resource)
@@ -175,7 +175,7 @@ All keyword effects are represented by the `Effect` tagged union and applied thr
 - `.shield(keyword, buffer, durationTicks)` — absorbs `buffer` damage before health
 - `.mitigation(keyword, percent, durationTicks)` — reduces incoming damage by `percent`
 - `.instantHeal(keyword, amount)` — immediately restores `amount` health (clamped to max)
-- `.leech(keyword, percent, durationTicks)` — ongoing buff; restores `percent * damage dealt` to the source combatant for `durationTicks` (standard: 10% for 6 ticks)
+- `.leech(keyword, percent, durationTicks)` — ongoing buff; restores `percent * damage dealt` to the source combatant for `durationTicks` (standard: 10% for 6 seconds)
 - `.dealDamage(keyword, amount)` — typed direct damage hit
 - `.cleanseRandom` — removes one random debuff (Burn, Poison, Bleed, Stun, Freeze)
 - `.halveMitigation(keyword)` — halves existing mitigation % on the target

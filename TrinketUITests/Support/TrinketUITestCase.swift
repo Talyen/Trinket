@@ -15,7 +15,7 @@ enum TestLaunchArg {
         "-disable-audio",
         "-persist-save-immediately",
         "-battle-tick-interval",
-        "0.8"
+        "1.0"
     ]
     static func screen(_ screen: String) -> [String] {
         ["-launch-screen", screen]

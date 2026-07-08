@@ -11,7 +11,7 @@ public struct HasteHandler: BattleEffectHandler {
             return nil
         }
         guard maxTicks > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Hasted: acts sooner, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "Hasted: acts sooner, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(
@@ -52,7 +52,7 @@ public struct ThornsHandler: BattleEffectHandler {
             if case let .thorns(_, _, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Thorns: \(total) damage, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "Thorns: \(total) damage, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(
@@ -135,7 +135,7 @@ public struct CriticalChanceBonusHandler: BattleEffectHandler {
             if case let .criticalChanceBonus(_, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(
@@ -176,7 +176,7 @@ public struct RestoreManaOnHitHandler: BattleEffectHandler {
             if case let .restoreManaOnHit(_, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(

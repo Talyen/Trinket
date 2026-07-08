@@ -15,7 +15,7 @@ public struct ShieldHandler: BattleEffectHandler {
             if case let .shield(_, _, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) buffer, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(total) buffer, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(
@@ -63,7 +63,7 @@ public struct MitigationHandler: BattleEffectHandler {
             if case let .mitigation(_, _, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(totalPct * 100))% mitigation, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(totalPct * 100))% mitigation, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(
@@ -111,7 +111,7 @@ public struct LeechHandler: BattleEffectHandler {
             if case let .leech(_, _, duration) = effect { return duration }
             return nil
         }
-        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(maxTicks) ticks left.")
+        return EffectSummary(keyword: keyword, text: "\(keyword.rawValue): \(Int(percent * 100))% leech, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
     }
 
     public func apply(

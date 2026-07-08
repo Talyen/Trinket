@@ -15,11 +15,12 @@ struct AppEnvironment {
     let completedStageIDs: [String]
     /// Scroll target ID for the Play map row id, used by UI tests.
     let mapScrollTarget: String?
-    /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
+    /// When set, overrides the default 1s battle tick interval in `BattleView`.
+    /// One battle tick equals one second of player-facing duration.
     let battleTickInterval: TimeInterval?
     let storeName: String?
 
-    static let defaultBattleTickInterval: TimeInterval = 0.8
+    static let defaultBattleTickInterval: TimeInterval = 1.0
 
     private init(
         launchTab: AppTab?,

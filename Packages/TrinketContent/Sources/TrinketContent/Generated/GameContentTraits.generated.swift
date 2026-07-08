@@ -217,7 +217,7 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "heartwood_renewal",
             name: "Heartwood Renewal",
-            description: "Restore 1 Health every 6 ticks. Grasping Vines restores 1 extra Health.",
+            description: "Restore 1 Health every 6 seconds. Grasping Vines restores 1 extra Health.",
             modifiers: [],
             triggers: CombatTraitTriggers(regenerationAmount: 1, regenerationIntervalTicks: 6, graspingVinesHealBonus: 1)
         ),

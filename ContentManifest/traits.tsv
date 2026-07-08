@@ -29,7 +29,7 @@ animated_plate	Animated Plate	Increases Block gained by 2 and Armor gained by 10
 ambush	Ambush	First damaging hit each battle deals 2 bonus damage.		ambush_bonus:2
 grave_power	Grave Power	Leech healing is 50% stronger. Hemorrhage applies 1 extra Bleed potency.		leech_healing_multiplier:1.50|hemorrhage_bleed_bonus:1
 miasma	Miasma	Decreases Poison damage taken by 25%.	damage_taken_percent:poison:0.25	
-heartwood_renewal	Heartwood Renewal	Restore 1 Health every 6 ticks. Grasping Vines restores 1 extra Health.		regeneration:1:6|grasping_vines_heal_bonus:1
+heartwood_renewal	Heartwood Renewal	Restore 1 Health every 6 seconds. Grasping Vines restores 1 extra Health.		regeneration:1:6|grasping_vines_heal_bonus:1
 living_furnace	Living Furnace	Decreases Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.	damage_taken_percent:burn:0.50|damage_dealt:burn:2	thorns_percent:0.15
 absolute_zero	Absolute Zero	Decreases Freeze damage taken by 50%. Increases Freeze damage dealt by 2.	damage_taken_percent:freeze:0.50|damage_dealt:freeze:2	
 ironhide	Ironhide	Passive 15% Armor. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_armor:0.15
