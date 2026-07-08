@@ -3,7 +3,7 @@ import Observation
 import TrinketContent
 import TrinketPersistence
 
-enum MysteryEncounterPhase: Equatable, Sendable {
+enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
 }
@@ -11,7 +11,9 @@ enum MysteryEncounterPhase: Equatable, Sendable {
 @MainActor
 @Observable
 final class MysteryEncounterSession: Identifiable {
-    var id: String { stage.id }
+    var id: String {
+        stage.id
+    }
 
     let stage: Stage
     let event: MysteryEvent

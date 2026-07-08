@@ -470,8 +470,9 @@ struct AppStatePlayFlowTests {
 
     @Test func alreadyUnlockedRecruitStageAutoCompletesWhenNoSubstitutesRemain() throws {
         let state = try context.makeAppState(arguments: ["-reset-state", "-seed-test-progress"])
+        let completedStage = try #require(GameContent.stage(id: "chapter-1-stage-1"))
         #expect(state.persistStageCompletions(
-            [try #require(GameContent.stage(id: "chapter-1-stage-1"))],
+            [completedStage],
             hero: state.roster.activeHero,
             pet: state.roster.activePet
         ) != nil)
