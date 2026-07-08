@@ -182,7 +182,7 @@ struct AppStateAttentionTests {
         state.homestead.current = homestead
 
         #expect(state.homesteadActionableCount >= 1)
-        #expect(state.homesteadBadge == "")
+        #expect(state.homesteadBadge?.isEmpty == true)
 
         state.selectedTab = .homestead
         #expect(state.homesteadBadge == nil)
@@ -195,7 +195,7 @@ struct AppStateAttentionTests {
         homestead.resources[.wood] = 10
         homestead.resources[.stone] = 4
         state.homestead.current = homestead
-        #expect(state.homesteadBadge == "")
+        #expect(state.homesteadBadge?.isEmpty == true)
 
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let result = state.playerSave.homesteadStore.buildOrUpgradeNode(definition)
