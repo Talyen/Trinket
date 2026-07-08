@@ -1,98 +1,71 @@
-# Performance, Memory & Battery Audit
+# Performance, Memory & Energy Audit
 
-Goal: Optimize application performance, prevent memory leaks, manage SwiftData thread limits, and reduce battery consumption to ensure a smooth, stable, and energy-efficient experience.
+Goal: Catch static performance/memory/energy hazards agents can fix; leave Instruments deep-dives as optional human follow-up.
 
-## Targets
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-- `rg -n '\bAnyView\b' --type swift -g '!*Tests*' .` — target trending to 0; `AnyView` disables SwiftUI layout optimizations and causes unnecessary redraws.
-- `rg -n 'var\s+\w+Delegate\s*:\s*(any\s+)?\w+' --type swift -g '!*Tests*' .` — audit delegates to ensure they are marked `weak` (using `weak var delegate: (any Delegate)?`) to avoid retain cycles.
-- `rg -n 'NotificationCenter\.default\.addObserver|notifications\(named:\)' --type swift -g '!*Tests*' .` — verify observers or AsyncSequence notification streams are unregistered, invalidated, or cancelled to prevent memory retention.
-- `rg -n 'Timer\.scheduledTimer|Timer\.publish' --type swift -g '!*Tests*' .` — check timer frequencies; prefer modern Swift Clocks (`ContinuousClock` / `SuspendingClock`) with `Task.sleep` for periodic logic.
-- `rg -n 'ModelContext\b|@Model\b' --type swift -g '!*Tests*' .` — ensure SwiftData models are not shared across concurrency boundaries, and context mutations are offloaded to background actors or tasks.
-- Audit battle tick interval values (`BattleSession.swift`) to ensure background states do not spin at excessive rates.
+## Mission
 
-## Checks
+Run static probes, fix up to **3** high-confidence issues (retain cycles, `AnyView`, background tick not pausing). Do **not** relocate battle simulation off `@MainActor` unless architecture docs already require it — easy to introduce races.
 
-### 1. Memory Management & Leak Prevention
+## Hard stops
 
-#### Retain Cycles in Closures
-* **Bad**:
-  ```swift
-  someService.fetchData { data in
-      self.updateUI(with: data) // Retains self
-  }
-  ```
-* **Good**:
-  ```swift
-  someService.fetchData { [weak self] data in
-      guard let self else { return }
-      self.updateUI(with: data)
-  }
-  ```
+- No speculative MainActor offloading of `BattleEngine` / session ticks.
+- No broad `[weak self]` rewrites without a proven cycle (see [BugHuntingAudit.md](BugHuntingAudit.md)).
+- Instruments recipes are optional and may be unavailable in cloud agents — skip without failing the audit.
 
-#### Strong Delegate References
-* **Bad**:
-  ```swift
-  protocol BattleDelegate: AnyObject, Sendable { ... }
-  class BattleSimulator {
-      var delegate: (any BattleDelegate)? // Strong reference and missing existential keyword
-  }
-  ```
-* **Good**:
-  ```swift
-  class BattleSimulator {
-      weak var delegate: (any BattleDelegate)?
-  }
-  ```
+## Part A — Static probes (required)
 
-#### SwiftData Concurrency & Context Confining
-* **Bad**: Passing a `@Model` object across Task/Actor boundaries.
-  ```swift
-  Task.detached {
-      let name = heroModel.name // Crash or Data Race (heroModel is not Sendable)
-  }
-  ```
-* **Good**: Query model properties on the isolated context, or pass the model's identifier:
-  ```swift
-  let heroID = heroModel.persistentIdentifier
-  Task.detached {
-      // Query hero inside isolated background ModelContext using heroID
-  }
-  ```
+```bash
+rg -n '\bAnyView\b' --type swift -g '!*Tests*' -g '!**/Generated/*'
+rg -n 'var\s+\w+Delegate\s*:' --type swift -g '!*Tests*'
+rg -n 'NotificationCenter\.default\.addObserver|notifications\(named:\)' --type swift -g '!*Tests*'
+rg -n 'Timer\.scheduledTimer|Timer\.publish' --type swift -g '!*Tests*'
+rg -n 'scenePhase|ScenePhase|\.background' --type swift -g '!*Tests*' Trinket/
+rg -n 'TimelineView' --type swift -g '!*Tests*'
+```
 
-### 2. Rendering & SwiftUI Performance
-- **Avoid AnyView**: Prefer `@ViewBuilder`, standard conditionals, or generics to keep view hierarchies statically typed and eligible for fast diffing.
-- **Minimizing State Changes**: Group states to prevent parent view updates from triggering redundant redraws in deep descendant hierarchies.
-- **Main Thread Offloading**: Ensure disk decoding/encoding of saves (`PlayerSaveStore`), game content parsing (`GameContent`), and pathfinding or simulation calculations happen off the `@MainActor`.
-- **Decoupled Game Loop**: Ensure core simulation ticks do not rely on SwiftUI rendering frames (e.g. avoid `TimelineView` for business logic). Move loop processing to background tasks.
+### Checks
 
-### 3. Energy & Battery Optimization
-- **Background Pause**: Verify that all battle ticks, UI animations, and active timers are paused or throttled when the app enters `ScenePhase.background`.
-- **Modern Clock Coalescing**: Use `SuspendingClock` for timers that should halt when the device is asleep. Apply `tolerance` to Task sleep operations (`try? await Task.sleep(for: .seconds(1), tolerance: .milliseconds(100), clock: .suspending)`) to conserve CPU wakeups.
-- **Resource Deallocation**: Confirm that temporary assets, loaded images, and heavy caches are evicted on `didReceiveMemoryWarningNotification` or during phase transitions.
+- Prefer `@ViewBuilder` / generics over `AnyView`
+- Delegates: `weak` when `AnyObject`
+- Observers / notification streams cancelled or removed
+- Prefer `ContinuousClock` / `SuspendingClock` + `Task.sleep(tolerance:)` over repeating `Timer` for app logic
+- Battle / animation work pauses or throttles on `ScenePhase.background`
+- Do not drive business logic solely from `TimelineView` frames
+
+## Part B — Instruments (optional human)
+
+Only when Xcode + device/Simulator profiling is available:
+
+1. **Leaks** — tab switch + battle start/end; watch retain cycles
+2. **Time Profiler** — battle + fast tab switches; watch main-thread save I/O
+3. **Energy** — start battle, background app; energy should drop (loop paused)
+
+Document optional findings in the PR body — not in this file.
 
 ## Fixes
 
-- Refactor strong closures (`self`) to use weak captures (`[weak self]`).
-- Clean up SwiftUI hierarchies by replacing `AnyView` wrapper returns with generic views or `@ViewBuilder` decorators.
-- Relocate synchronous disk I/O and CPU-bound simulation loops to background dispatch queues or non-isolated Tasks.
-- Validate that timers and notification observers are properly invalidated and cleared during object deinitialization.
-- Convert legacy `Timer` instances to modern structured concurrent `Task` loop blocks with `Clock` sleep intervals.
+- Replace `AnyView` with typed builders
+- Weak delegates; cancel tasks/observers on teardown
+- Pause battle ticks on background
+- Add tolerance to periodic sleeps where appropriate
 
-## Profiling Recipes
+## Verification
 
-### 1. Checking for Memory Leaks & Retain Cycles
-1. Open Trinket in Xcode.
-2. Press `⌘+I` to open **Product > Profile**.
-3. Select the **Leaks** template in Instruments.
-4. Interact with the tabs (Homestead ⇄ Play ⇄ Collection), start/end battles, and examine the lifecycle graph for red leak markers.
+```sh
+./Scripts/lint.sh
+./Scripts/build.sh
+./Scripts/test.sh unit <FocusedClass>   # if session/tick logic changed
+```
 
-### 2. Investigating Main Thread Hangs
-1. Select the **Time Profiler** template in Instruments.
-2. Record active battles and fast tab switches.
-3. Check the **Thread Joins** or **Hang Detector** lane to see if the main thread is blocked by save persistence writes (`PlayerSaveStore`).
+## Commit
 
-### 3. Battery & Energy Profiling
-1. Select the **Energy Log** template in Instruments.
-2. Start a battle, then press the device lock button or push the app into the background.
-3. Verify that the energy usage drops immediately to near-zero (confirming battle loop is paused).
+```
+perf(<scope>): <imperative fix>
+
+- <static probe addressed>
+- <verification>
+
+User-Facing: no
+```

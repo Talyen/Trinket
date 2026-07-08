@@ -1,59 +1,86 @@
 # Dead Code Ratio Audit
 
-Goal: Zero dead exports, imports, types, files, and orphaned generated artifacts.
+Goal: Remove clearly unused internal symbols, demote unnecessary `public` APIs, and delete orphaned files — without deleting live API by mistake.
 
-## Targets
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-- `swiftlint --strict --config .swiftlint.yml 2>&1 | grep -E 'unused|dead'` — catch unused imports and parameters
-- Manual review per package `public` API — every public symbol should have at least one call site outside its declaring file
-- `rg -c '^import ' --type swift Packages/TrinketContent/Sources/TrinketContent/Generated/` — flag generated files that import nothing or import stale modules
-- Verify no orphaned test files: each file in `TrinketTests/` and `Packages/*/Tests/` should map to a production source module
+## Mission
+
+Find high-confidence dead code. Cap **one cohesive cleanup** (or ≤10 safe deletions). Prefer demoting `public` → `internal` over deleting package API.
+
+## Hard stops
+
+- Do not delete symbols referenced from UI tests, manifests, or generated output without regenerating first.
+- Do not hand-edit `Generated/*` — remove unused entries from manifests and run `./Scripts/generate.sh`.
+- Do not require Periphery or other new tools; optional if already available.
+- Orphaned-test rule is **not** 1:1 file mirroring — support helpers, catalog invariant suites, and ownership-matrix tests are valid without a twin production file.
+- Absolute “zero dead exports” is **not** the gate; high-confidence unused is.
+
+## Probes
+
+```bash
+./Scripts/lint.sh 2>&1 | rg -i 'unused|dead' || true
+
+# Public API candidates — manually verify call sites outside declaring file
+rg -n '^public (func|struct|class|enum|actor|protocol|typealias)' \
+  --type swift Packages/*/Sources -g '!**/Generated/*' | head -80
+
+# Empty or stub test files
+rg -L '@Test|func test' --type swift TrinketTests Packages/*/Tests || true
+```
 
 ## Checks
 
-### Dead exports in packages
+### Exports
 
-- Every `public` symbol in `Packages/TrinketCore/`, `Packages/TrinketContent/`, `Packages/BattleEngine/`, `Packages/TrinketPersistence/`, `Packages/TrinketDesignSystem/` should be referenced by at least one consumer (another package or the app target)
-- Remove `public` from symbols that are only used within the same module — prefer `internal` by default
-- Barrel files (`public enum X { }` with no cases, `public typealias` re-exports) — verify each re-export has callers
-- Generated catalogs (`ArtCatalog.generated.swift`, `MusicCatalog.generated.swift`, `SFXCatalog.generated.swift`) — if a manifest entry is deleted but the generated code still references it, re-run `./Scripts/generate.sh --assets`
+- Same-module-only symbols should be `internal` (default)
+- Barrel / re-export types need at least one external caller
+- Unused generated catalog entries → delete from manifest + regenerate
 
-### Dead imports in app target
+### Imports
 
-- Every `import TrinketCore`, `import TrinketContent`, `import BattleEngine`, `import TrinketPersistence`, `import TrinketDesignSystem` should be used — remove unused imports
-- `./Scripts/apply-explicit-imports.py` can help bootstrap, but audit should confirm no stray imports remain
-- SwiftUI imports in `Models/` and `State/` files — verify the file actually uses SwiftUI types (not just `import SwiftUI` because a neighboring file did)
+- Remove unused package imports in the app target
+- `Models/` / `State/` should not import SwiftUI unless they use SwiftUI types
 
-### Dead types and files
+### Types / files
 
-- Any source file that has zero references outside its own module and is not an entry point should be deleted.
-- Consider utilizing automated Swift dead code analyzers (such as `Periphery`) or strict Swift compiler unused declarations warnings to detect stale symbols.
-- One-use helpers: prefer inlining where it reduces total LOC; do not extract a helper used only once unless it meaningfully improves readability.
-- Deleted feature? Delete its test file, its feature folder, and its entry in `project.yml` (then run [generate.sh](../../Scripts/generate.sh))
-- Deleted model type? Remove its coded conformance, its test fixtures, and any serialization glue.
+- Delete source with zero references outside its file when it is not an entry point
+- Inline single-use helpers when it reduces total LOC
+- Deleted feature → delete tests, feature folder, and `project.yml` entries, then `./Scripts/generate.sh`
 
-### Unused assets and resources
+### Assets
 
-- Audit [Assets.xcassets](../../Trinket/Assets.xcassets) and raw asset resource directories for images, sound effects (`.wav`, `.mp3`), and fonts that are stored in the bundle but never referenced by code.
-- If a manifest entry is deleted, ensure the matching resource asset files are cleaned up to control application package/bundle size.
+- After manifest deletions, clean unused bundled assets (size control)
+- Never delete assets still referenced by manifests/codegen
 
-### Generated code drift
+### Tests
 
-- After editing `ContentManifest/`, `ArtManifest/`, `MusicManifest/`, or `SoundManifest/`, run [generate.sh](../../Scripts/generate.sh) to regenerate catalogs.
-- If a manifest entry is removed, the regenerated Swift should no longer reference it — if a stale reference remains in non-generated code, remove it.
-- [assert-generated-output.sh](../../Scripts/assert-generated-output.sh) (CI gate) catches drift before commit — do not bypass.
-- Generated files themselves must not be hand-edited; if a generated symbol is unused, remove it from the manifest, not from the Swift file.
+- Delete empty / fully commented-out test files
+- Remove tests for deleted production code
+- Keep intentional cross-cutting suites (invariants, ownership matrix)
 
-### Orphaned test files
+## Fixes
 
-- `TrinketTests/` mirrors app production folders — a test file with no corresponding production source is orphaned.
-- `Packages/*/Tests/` mirrors the package source — same rule.
-- No test files that only contain `import XCTest` or `import Testing` with no test methods and no test class/suite.
-- No test files that are outright commented out; delete them.
+- Delete or demote with `rg` proof of no callers
+- Run `./Scripts/generate.sh` (and `--assets` when needed) before claiming generated symbols unused
+- Address SwiftLint `unused_import` via `./Scripts/lint.sh`
 
-### Fixes
+## Verification
 
-- Delete unused exports, types, and files outright
-- Inline single-use helpers where inlining reduces total LOC
-- Do not delete symbols referenced only from generated files without running `./Scripts/generate.sh --assets` first
-- For dead imports: SwiftLint's `unused_import` rule catches most; run `./Scripts/lint.sh` and address
+```sh
+./Scripts/lint.sh
+./Scripts/check-module-boundaries.sh
+./Scripts/build.sh
+./Scripts/test.sh unit   # if non-trivial deletions
+```
+
+## Commit
+
+```
+chore(<scope>): remove unused <symbol-or-file>
+
+- <what deleted or demoted>
+- call-site proof via rg; generate.sh if manifests touched
+
+User-Facing: no
+```

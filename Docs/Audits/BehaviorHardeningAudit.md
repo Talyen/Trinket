@@ -1,52 +1,100 @@
 # Behavior Hardening Audit
 
-Goal: Strengthen correctness at module boundaries — Swift concurrency, persistence, state machines, and error handling.
+Goal: Strengthen correctness at persistence, state-machine, and error-handling boundaries.
 
-## Targets
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-- `rg -n 'async|await|Task\.|ContinuousClock|SuspendingClock|withTaskGroup|withDiscardingTaskGroup|async\s+let' --type swift -g '!*Tests*' -g '!**/Generated/*'` — flag every async and timing boundary
-- `rg -n 'try!|try?' --type swift -g '!*Tests*'` — target 0 in non-test, non-generated source
-- `rg -n 'fatalError|precondition|assertionFailure' --type swift -g '!*Tests*' -g '!**/Generated/*'` — review each; target near 0 outside package inits
-- `rg -n 'modifiedAt|lastSynced|merge|reconcile|cloudKitContainerIdentifier' --type swift -g '!*Tests*'` — CloudKit and local save state boundaries
+Concurrency / Sendable → [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyDataRaceAudit.md).  
+Force casts / unwraps → [TypeSafetyAudit.md](TypeSafetyAudit.md).
+
+## Mission
+
+Probe persistence and orchestration boundaries, triage by user impact, fix up to **5** high-confidence issues (idempotency, silent save failure, corrupt-save handling), verify, commit.
+
+## Hard stops
+
+- Do not retune rewards/balance without an explicit user ask.
+- Do not change `accessibilityIdentifier` strings unless removing the control.
+- Do not weaken battle test determinism.
+- Audio playback `try?` + log is acceptable.
+
+## Probes
+
+```bash
+# Timing / async orchestration (review; deep concurrency owned elsewhere)
+rg -n 'Task\s*\{|ContinuousClock|SuspendingClock|withTaskGroup' --type swift -g '!*Tests*' -g '!**/Generated/*'
+
+# Error escapes — review orchestration/save paths (not a hard zero)
+rg -n 'try!|try\?' --type swift -g '!*Tests*' -g '!**/Generated/*'
+
+# Hard failures — review each; prefer near-zero outside package inits
+rg -n 'fatalError|preconditionFailure|assertionFailure' --type swift -g '!*Tests*' -g '!**/Generated/*'
+
+# Save / sync seams
+rg -n 'modifiedAt|lastSynced|lastPersistenceError|disableCloudSync|cloudKitContainer' --type swift -g '!*Tests*'
+```
 
 ## Checks
 
-### Null/empty/optional paths at module boundaries
+### Persistence & decode
 
-- Every `init?(from:)` decoder validates required keys; do not rely on implicit defaults for critical save fields
-- `Codable` structs with optional fields — verify that nil is a valid semantic state, not a forgotten migration path
-- `as?` + `guard`/`if let` for all downcasts (see [TypeSafetyAudit.md](TypeSafetyAudit.md)); target zero `as!`
-- At persistence boundaries, validate decoded values (range-check IDs, stage numbers, counts) — a corrupt save should fail decode, not silently produce invalid game state
-- UI test launch args (`-completed-stages`, `-launch-screen`) parse through [AppEnvironment.swift](../../Trinket/App/AppEnvironment.swift) — invalid args should fall back to defaults gracefully, not crash
+- Critical save fields validated; nil optionals must be semantic, not forgotten migrations
+- Corrupt / invalid saves fail cleanly or fall back to safe defaults with logging — not silent invalid game state
+- `PlayerSaveStore` surfaces write failures (`lastPersistenceError`); silent save failure is data loss
+- Mutations update `modifiedAt` and sanitize via `PlayerSaveSanitizer` where applicable
+- Debounced writes coalesce without duplicate/stale/out-of-order persistence
 
-### State transitions are idempotent
+### Idempotent transitions
 
-- [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — SwiftData automatic synchronization merges and replicates fields natively. Verify mutations to the model graph always update `modifiedAt` cleanly and sanitize inputs using [PlayerSaveSanitizer.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveSanitizer.swift).
-- [BattleSession.swift](../../Trinket/State/BattleSession.swift) — stage completion should be idempotent: tapping "Continue" twice must not double-grant rewards.
-- `PlayerHomesteadState.adjustedMaterialRewards` — multiple calls with the same stage data must return the same result.
-- Debounced save writes in [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) — rapid mutations should coalesce correctly without producing duplicate, stale, or out-of-order writes.
-- SwiftUI `task` modifiers — ensure cancellation and re-entrance: a view that appears, disappears, and reappears must not leak concurrent operations.
+- `BattleSession` stage completion / reward grant: double “Continue” must not double-grant
+- `PlayerHomesteadState.adjustedMaterialRewards` is pure for the same inputs
+- SwiftUI `.task` re-entrance: appear/disappear/reappear must not leak duplicate work
 
-### No swallowed errors
+### Swallowed errors
 
-- `Task { … }` blocks at the UI layer should at minimum log failures; silent `try?` in orchestration code (state transitions, battle outcome, save) is suspect
-- [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) writes — failure must surface (sets `lastPersistenceError`); silent failure on save is data loss
-- CloudKit sync replication — watch diagnostics in output when debugging sync; SwiftData-managed CloudKit integration errors should be surfaced or handled gracefully (offline fallback)
-- `AVFoundation` playback errors — `try?` is acceptable in audio (playback failure is non-fatal), but should log
-- Store loading failures — if a save store is corrupt, fall back to default/in-memory state cleanly rather than crashing; log the original error
+- Suspect: silent `try?` on save, sync, battle outcome, or state transitions
+- Acceptable: non-fatal audio; log when practical
+- Store load failure → default/in-memory recovery + log, not crash
 
-### Architectural invariants in changed code
+### Architecture (verify, don’t re-audit imports)
 
-- Packages must not import `Trinket` app code (verified by [check-module-boundaries.sh](../../Scripts/check-module-boundaries.sh))
-- `TrinketDesignSystem` must not import `BattleEngine` or `TrinketContent` (depends on `TrinketCore` only)
-- `BattleEngine` and `TrinketPersistence` are siblings — must not import each other
-- `Effects` are value-type structs conforming to `BattleEffectHandler`; verify new effect kinds are registered in `EffectHandlers.all`
-- UI tests: `accessibilityIdentifier` like `"Stage 1-1 Node"`, not localized strings or enum raw values
+- `./Scripts/check-module-boundaries.sh` clean
+- New `EffectKind` registered in `EffectHandlers.all`
+- UI tests use stable `accessibilityIdentifier`s
 
-### Edge cases covered by existing tests
+### Tests
 
-- Before adding new tests, check if an existing test already covers the edge case (especially in `BattleEngineTests` and `TrinketPersistenceTests`)
-- Add tests only when fixing a gap — prefer strong existing tests over many weak new ones
-- Use `BattleStateTestFactory.makeBattle(seed: 0)` for deterministic battle edge cases
-- Store test edge cases: empty save, partial save (migration), concurrent read/write, corrupted JSON
+- Prefer existing coverage; add a focused test only when fixing a gap
+- Battle edges: `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`
+- Store edges: empty save, migration/partial, concurrent mutate, corrupt payload recovery
 
+## Triage
+
+| Priority | Examples |
+|----------|----------|
+| P0 | Double reward grant, silent save failure, crash on corrupt save |
+| P1 | Non-idempotent completion, lost persistence error |
+| P2 | Missing log on recoverable failure |
+| P3 | Style-only error handling churn |
+
+Fix P0–P1 first; cap at 5 fixes.
+
+## Verification
+
+```sh
+./Scripts/check-module-boundaries.sh
+./Scripts/lint.sh
+./Scripts/test-package.sh TrinketPersistence   # if stores touched
+./Scripts/test.sh unit <FocusedClass>          # if AppState / BattleSession touched
+```
+
+## Commit
+
+```
+fix(<scope>): harden <boundary> against <failure mode>
+
+- <fix>
+- <test added or reused>
+
+User-Facing: no
+```

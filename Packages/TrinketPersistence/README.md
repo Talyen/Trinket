@@ -18,7 +18,7 @@ Player save model, SwiftData stores, and CloudKit sync.
 
 ## CloudKit
 
-Configured with container `iCloud.com.ryanmcintire.Trinket`. OS-managed SwiftData + CloudKit sync. See `Docs/Audits/CloudKitPreShipChecklist.md`.
+Configured with container `iCloud.com.ryanmcintire.Trinket`. OS-managed SwiftData + CloudKit sync. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 
 ## Testing
 

@@ -1,190 +1,111 @@
 # Documentation Staleness Audit
 
-Goal: Zero documentation that misleads — every `.md` file matches actual code, architecture, workflow, and project state. Fix or flag every stale reference, broken link, wrong assumption, and outdated claim.
+Goal: Fix misleading docs — stale paths, broken links, wrong versions, outdated claims.
 
-You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swift 6 / SwiftUI, iOS 26). Read `AGENTS.md` and `Docs/Architecture.md` first.
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-## Targets
+## Mission
 
-All 37 markdown files in the repository:
+Discover markdown from the repo (do not trust a hardcoded file count). Fix all **Critical** and **Moderate** issues found in this pass. Cap Roadmap `Status:` churn unless the user asked for a roadmap pass.
 
-| Group | Files |
-|-------|-------|
-| Root | `README.md` `AGENTS.md` `CHANGELOG.md` `LICENSE.md` |
-| Docs | `Docs/Architecture.md` `Docs/Roadmap.md` |
-| Docs/Design | `Docs/Design/CoreDesignConcepts.md` `Docs/Design/AppleNativeGuidelines.md` `Docs/Design/StyleGuide/AppVisualFoundation.md` `Docs/Design/StyleGuide/VisualReferences/README.md` |
-| Docs/Audits | `Docs/Audits/BehaviorHardeningAudit.md` `Docs/Audits/BugHuntingAudit.md` `Docs/Audits/CloudKitPreShipChecklist.md` `Docs/Audits/ComplexityReductionAudit.md` `Docs/Audits/DeadCodeRatioAudit.md` `Docs/Audits/E2ETestQualityAudit.md` `Docs/Audits/ImportCouplingBoundaryAudit.md` `Docs/Audits/PerformanceMemoryEnergyAudit.md` `Docs/Audits/SideEffectSurfaceAudit.md` `Docs/Audits/SwiftConcurrencyDataRaceAudit.md` `Docs/Audits/TestQualityAudit.md` `Docs/Audits/TypeSafetyAudit.md` `Docs/Audits/UIInteractionFeedbackAudit.md` `Docs/Audits/UnitTestAudit.md` `Docs/Audits/DocumentationStalenessAudit.md` |
-| Packages | `Packages/TrinketCore/README.md` `Packages/TrinketContent/README.md` `Packages/BattleEngine/README.md` `Packages/TrinketPersistence/README.md` `Packages/TrinketDesignSystem/README.md` |
-| Package tests | `Packages/BattleEngine/Tests/README.md` `Packages/TrinketContent/Tests/README.md` `Packages/TrinketPersistence/Tests/README.md` |
-| Manifests | `ContentManifest/README.md` `ArtManifest/README.md` `MusicManifest/README.md` |
-| Scripts | `Scripts/README.md` |
+## Hard stops
 
-**Script probes:**
+- Do not hand-edit `CHANGELOG.md` (owned by `./Scripts/release.sh`).
+- Do not treat dated “Last execution” / Done tables inside audits as source of truth — **delete** those tracker sections when found (audits must stay procedural).
+- Do not rewrite design prose for style-only preferences.
+
+## Discover targets
 
 ```bash
-# Find all file-path references in markdown
-rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/)' --type md -g '!.DerivedData/'
+# Authoritative inventory — update nothing by hand-counting
+find . -name '*.md' \
+  -not -path './.DerivedData/*' \
+  -not -path './.git/*' \
+  -not -path './Raw Assets/*' \
+  | sort
 
-# Find all internal cross-doc links
+# Probes
+rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/|SoundManifest/)' --type md -g '!.DerivedData/'
 rg -n '\([^)]*\.md[#)]' --type md -g '!.DerivedData/'
-
-# Find all external URLs
 rg -n 'https?://' --type md -g '!.DerivedData/'
-
-# Find all version numbers
-rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)[: ]*[0-9]' --type md
-
-# Find time-sensitive language
+rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)' --type md
 rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this point|phase \d|soon|upcoming|planned|scratch|parked)' --type md -i
-
-# Find roadmap status fields
-rg -n '(Status:|R-\d{3})' --type md
+rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md
 ```
+
+Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Roadmap, Design, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
 
 ## Workflow
 
-1. **Survey** — Process all 37 `.md` files. For each file, catalog every:
-   - Code reference: file path, type name, function signature, enum case, property, test class
-   - Internal cross-reference: both linked `[text](path.md)` and plain-text "see X.md"
-   - External URL
-   - Version number or version-dependent claim (iOS, Swift, Xcode, tools-version, marketing version)
-   - Time-sensitive statement (`currently`, `not yet`, `in progress`, `eventually`, `phase`)
-   - Status field (roadmap `R-NNN` entries, `Status:` tags)
-   - Accessibility identifier string value
-   - Hardcoded count or timing estimate
+1. Survey references (paths, types, links, versions, time-sensitive language)
+2. Triage Critical / Moderate / Minor
+3. Fix Critical + Moderate
+4. Verify
+5. Commit — do not write results into this file
 
-2. **Triage** — Classify each issue by severity:
+## Severity
 
-   | Severity | Criteria |
-   |----------|----------|
-   | 🔴 Critical | Wrong API name, deleted file path, stale architecture assumption, broken link, wrong version constraint |
-   | 🟡 Moderate | Stale version number, inaccurate count, "in progress" for completed work, roadmap status not updated |
-   | 🔵 Minor | Typo, formatting, stale "see also" to a still-reachable doc, missing language tag on code block |
-
-3. **Fix** — Address all 🔴 and 🟡 issues per § Fixes.
-
-4. **Verify** — Run verification from § Verification.
+| Level | Criteria |
+|-------|----------|
+| Critical | Wrong API/path, broken link, stale architecture assumption, wrong version constraint |
+| Moderate | Wrong count, “in progress” for finished work, inconsistent terminology |
+| Minor | Typo, formatting, missing code-fence language |
 
 ## Checks
 
-### 1. Stale code references
+### Code references
 
-For every file path, type name, function/method signature, enum case, property name, test class, and script name mentioned in prose:
+- `test -f <path>` for every cited path
+- `rg -l '\bTypeName\b' --type swift` for cited types
+- Accessibility identifier strings must still exist in source
 
-- `ls <path>` or `git ls-tree HEAD -r --name-only | grep <path>` — confirm the file path still exists
-- `rg -l '\b<TypeName>\b' --type swift -g '!*Tests*' -g '!**/Generated/*'` — confirm the type still exists in source
-- `rg -l '\b<ScriptName>\b' --type sh` — confirm the script still exists
-- `rg '<enumCase>' --type swift -g '!*Tests*' -g '!**/Generated/*'` — confirm enum case not removed or renamed
-- `rg -l '\b<AccessibilityID>\b' --type swift` — confirm accessibility identifier values match source
+### Links
 
-### 2. Broken internal cross-links
+- Internal `.md` links resolve (`test -f`)
+- Heading anchors still exist
+- External URLs: spot-check Apple docs (expect 200/302)
 
-For every `[text](relative/path.md)` and every plain-text reference like "see `Docs/Architecture.md`":
+### Versions / counts
 
-- `test -f <resolved-path>` — confirm the target file exists
-- If the link has a heading anchor (`#section-name`), use `rg '^#+.*section-name' <file>` to confirm the heading still exists
-- For cross-references between audit files, confirm the referenced section still exists
+- `AGENTS.md` / `README.md` iOS/Swift/Xcode match `project.yml` / toolchain
+- Smoke class count: `ls TrinketUITests/Smoke/Smoke*.swift | wc -l` — update docs to the **current** number (do not assume 9)
+- `Scripts/README.md` marketing version vs `project.yml`
 
-### 3. Broken external URLs
+### Terminology
 
-For all external URLs across the repo:
+Canonical names from `Docs/Architecture.md` / source: `AppTab` cases, `BattleSession` / `ActiveBattleConfiguration` / `BattleVictorySummary`, store names, manifest directory names (`SoundManifest/` included).
 
-- `curl -o /dev/null -s -w '%{http_code}' <url>` — should return 200 or 302, not 404/410/5xx
-- Apple HIG links (`developer.apple.com/design/human-interface-guidelines/...`) — Apple occasionally reorganizes; manually verify redirect targets are valid
-- `https://github.com/yonaskolb/XcodeGen` — confirm the repo is not archived or deleted
+### Audit hygiene
 
-### 4. Outdated version / platform / status information
-
-Check these file-by-file:
-
-- **`AGENTS.md`**: `iOS 26.0` / `Swift 6.0` — match against current `project.yml` and `Package.swift`; "9 Smoke* UI classes only (~2 min)" — count actual `Smoke*.swift` files with `ls TrinketUITests/Smoke/Smoke*.swift | wc -l`; UI parallelization — match `Scripts/test.sh` (`-parallel-testing-enabled NO` for unit/smoke/ui)
-- **`README.md`**: `Xcode 26+` / `Swift 6.0` — match current toolchain; `sudo xcode-select --switch` path — verify it is still correct
-- **`Docs/Architecture.md`**: `iOS 26.0, Swift 6.0` / `swift-tools-version: 6.2` — match current; `SpriteKit is not in use yet` — confirm this is still true; ✅ checklist items — verify each is truly completed
-- **`Scripts/README.md`**: `MARKETING_VERSION: "0.1.0"` — match against `project.yml`; `Phase 3: TestFlight / App Store automation` — update if any part has been implemented
-- **`Docs/Roadmap.md`**: All 25 `R-NNN` entries — update each `Status:` field to current (`shipped`, `parked`, `scratch`, `planned`, `exploring`)
-
-### 5. Wrong assumptions / time-sensitive language
-
-Every instance of these phrases needs evaluation:
-
-- `currently` — is it still current?
-- `not yet` / `yet` — has the referenced item since landed?
-- `in progress` — completed, cancelled, or still active?
-- `eventually` / `future work` / `planned` — still an accurate intent, or stale?
-- `at this point` / `so far` / `right now` — evaluate for staleness
-- `after the ... migration` — is the migration complete?
-- `before their full systems exist` — have the systems since landed?
-
-### 6. Inconsistent terminology across docs
-
-Cross-doc naming audit — each concept should use the same name everywhere:
-
-- Collection tab surface: `PlayerRosterState` / `PlayerInventoryState` / Heroes / Pets / Inventory — verify consistent across `AGENTS.md`, `CoreDesignConcepts.md`, `Architecture.md`
-- Tab enum: `AppTab` case names — verify `README.md`, `AGENTS.md`, and `Docs/Architecture.md` all agree (`.play`, `.collection`, `.homestead`, `.search`, `.options`)
-- Battle orchestration: `BattleSession` / `ActiveBattleConfiguration` / `BattleVictorySummary` — verify consistent use across all docs
-- Store names: `PlayerSaveStore` / `PlayerRosterStore` / `PlayerInventoryStore` / `PlayerJourneyStore` — verify names match current source
-- Manifest terminology: `ContentManifest/` vs `ArtManifest/` vs `MusicManifest/` vs `SoundManifest/` — verify references match actual directory names
-
-### 7. Markdown rendering issues
-
-- Every code block specifies a language (````swift`, ````sh`, ````text`, ````bash`) — no orphaned ` ``` `
-- All tables are well-formed with matching column counts in header and body rows
-- Lists are consistently indented with the same marker style throughout a file (no mixed `-` and `*`)
-- Headings follow a proper hierarchy (`#` → `##` → `###`, no level jumps)
-- No broken inline code spans (backticks are properly matched)
-
-### 8. Stale generated output / manifest references
-
-- `Generated/` file paths referenced in docs — run `./Scripts/generate.sh` and confirm the referenced files are still produced
-- Manifest paths (`ContentManifest/stages.tsv`, `ArtManifest/curated-assets.tsv`, `MusicManifest/music.tsv`, `SoundManifest/sfx.tsv`) — confirm each manifest file still exists
-- Pipeline descriptions in `Docs/Architecture.md` data-flow boxes — confirm each step's script path and output path still match reality
+- If an audit contains embedded run logs, Done tables, or “Last execution” trackers, remove them as part of this pass (restore procedural guide shape per [README.md](README.md)).
 
 ## Fixes
 
-| Issue type | Fix |
-|------------|-----|
-| Deleted or renamed file path | Update to current path; delete the paragraph if the referenced concept no longer exists |
-| Wrong type, enum, or function name | Update to current name from source |
-| Broken internal link | Update link target or remove the reference |
-| Broken external URL | Replace with updated Apple URL; remove dead links that have no replacement |
-| Stale version number | Bump to current value from `project.yml` / `Package.swift` |
-| Stale roadmap status | Update `Status:` field: `shipped` for completed, `parked` for abandoned, `planned` for active work |
-| Time-sensitive language | Replace with factual present-tense statement or remove the paragraph |
-| Inconsistent terminology | Pick the canonical name (check `Docs/Architecture.md` or source) and apply everywhere |
-| Hardcoded count or estimate | Update to exact current count; delete timing estimates |
-| Markdown formatting error | Fix language tag, table alignment, list consistency, heading hierarchy |
-| Stale generated path | Re-run `./Scripts/generate.sh --assets` if manifest changed; otherwise update the doc path |
-| Missing or aspirational feature | Add note linking to the corresponding roadmap item; delete aspirational prose from non-roadmap docs |
-| Roadmap shipped item | Move the completed item's prose from `Docs/Roadmap.md` into the relevant design doc; update `Status: shipped` |
-
-Do **not** hand-edit `CHANGELOG.md` — that file is maintained by `./Scripts/release.sh`.
+| Issue | Action |
+|-------|--------|
+| Deleted path / type | Update or delete the paragraph |
+| Broken link | Fix target or remove |
+| Stale version / count | Match source of truth |
+| Time-sensitive language | Present-tense fact or remove |
+| Inconsistent term | Prefer Architecture.md / source |
+| Tracker residue in audits | Delete residue; keep probes/workflow |
 
 ## Verification
 
 ```bash
-# Internal links — confirm every .md link resolves (using standard, portable grep/rg)
-rg -o '\([^)]+\.md[#)]' --type md -g '!.DerivedData/' | \
-  sed -e 's/^[^(]*(//' -e 's/[)#].*//' | sort -u | while read -r link; do
-  # Skip absolute file:/// links or web URLs
-  if [[ "$link" =~ ^(file:|http:|https:) ]]; then continue; fi
-  test -f "$link" || echo "MISSING: $link"
+# Resolve relative .md links from repo root (skip http)
+rg -o '\[[^\]]*\]\(([^)]+\.md)(#[^)]*)?\)' --type md -g '!.DerivedData/' -r '$1' \
+  | sort -u | while read -r link; do
+  case "$link" in http*|file:*) continue ;; esac
+  # Links are relative to their source file — spot-check Audits/Platform/Architecture manually if needed
+  test -f "$link" || echo "CHECK RELATIVE: $link"
 done
 
-# External URLs — quick HTTP check (manual spot-check for Apple docs)
-# Version consistency — grep all version references and cross-check
-grep -rn 'iOS [0-9]' --type md -g '!.DerivedData/' -h
-grep -rn 'Swift [0-9]' --type md -g '!.DerivedData/' -h
-grep -rn 'MARKETING_VERSION' --type md -g '!.DerivedData/' -h
-# Manually verify all match current project.yml / Package.swift
-
-# Count validation
 ls -1 TrinketUITests/Smoke/Smoke*.swift | wc -l
-# Update AGENTS.md if the count differs from "9 Smoke* UI classes"
+rg -n 'iOS [0-9]|Swift [0-9]|MARKETING_VERSION' --type md -g '!.DerivedData/' | head -40
 ```
 
-*Note: For long-term documentation health, consider setting up a link-validation build phase script (e.g. `Scripts/validate-markdown-links.sh`) or a git pre-commit hook to catch broken internal links automatically.*
-
-Commit with this format:
+## Commit
 
 ```
 docs(<scope>): <imperative subject>
@@ -194,11 +115,3 @@ docs(<scope>): <imperative subject>
 
 User-Facing: no
 ```
-
-## Reference audits
-
-Consult these sibling audits when their concern overlaps with a fix:
-
-- `Docs/Audits/TypeSafetyAudit.md` — if changing code references to type-safe alternatives
-- `Docs/Audits/DeadCodeRatioAudit.md` — if deleting orphaned doc references to dead code
-- `Docs/Audits/BehaviorHardeningAudit.md` — if updating doc references to store/sync APIs

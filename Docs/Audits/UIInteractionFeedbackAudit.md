@@ -1,69 +1,90 @@
 # UI Interaction & Feedback Audit
 
-Goal: Find bugs that types miss — broken navigation, stuck states, missing tap feedback, accessibility gaps, and Apple HIG violations in a portrait-first SwiftUI game.
+Goal: Find interaction bugs types miss — broken navigation, stuck states, missing feedback, accessibility gaps, HIG / DesignSystem violations.
 
-## Targets
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-- Manual pass through every product tab: Play, Collection (Heroes/Pets/Inventory), Homestead, Options, Search
-- `rg -n 'sheet|popover|fullScreenCover|alert|confirmationDialog|menu|contextMenu' --type swift -g '!*Tests*'` — all overlay/modal boundaries
-- `rg -n 'onTapGesture|onLongPressGesture|DragGesture|magnificationGesture' --type swift -g '!*Tests*'` — all gesture handlers
-- `rg -n '.accessibilityIdentifier' --type swift` — UI test anchors; verify each is unique and descriptive
+## Mission
+
+1. Run code probes
+2. Optionally exercise tabs in Simulator if available
+3. Fix up to **5** clear issues
+4. Verify style gate + smoke as needed
+5. Commit
+
+## Hard stops
+
+- Do not restyle unrelated chrome.
+- Do not change `accessibilityIdentifier` strings unless removing the control.
+- Do not hand-roll materials/button styles — use `TrinketDesignSystem` (`./Scripts/check-ui-style.sh`).
+- iPhone portrait-first; skip iPad-only hover work unless product scope expands.
+
+## Probes
+
+```bash
+rg -n 'sheet|popover|fullScreenCover|alert|confirmationDialog|menu|contextMenu' --type swift -g '!*Tests*'
+rg -n 'onTapGesture|onLongPressGesture|DragGesture|magnificationGesture' --type swift -g '!*Tests*'
+rg -n '\.accessibilityIdentifier' --type swift
+./Scripts/check-ui-style.sh
+```
+
+Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Homestead, Search, Options — plus one battle start/victory dismiss path.
 
 ## Checks
 
-### Navigation & modal hygiene
+### Navigation & modals
 
-- `NavigationStack` within each tab; `TabView` is top-level only (see [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md))
-- Every sheet, popover, and full-screen cover must have a clear dismiss path:
-  - `toolbar` dismiss button or swipe-down for sheets
-  - `Environment(\.dismiss)` for programmatic dismissal
-  - Backdrop tap dismiss for popovers (or disable with `dismissBehavior: .interactive`)
-- Confirm dialogs for destructive actions (delete save, reset progress, purchase restore) — with working cancel/backdrop dismiss
-- No two overlayers (sheet + alert + modal) visible simultaneously unless explicitly designed
-- `confirmationDialog` for multi-choice destructive actions; prefer `.cancel` button always present
+- `TabView` top-level only; `NavigationStack` per tab
+- Every sheet/cover has a dismiss path (`toolbar`, swipe, `Environment(\.dismiss)`)
+- Destructive actions use confirmation + cancel
+- No accidental stacked sheet+alert unless designed
 
-### Gesture & interaction state
+### Gestures
 
-- One clear interaction mode at a time: scrolling, dragging, targeting, and modal should not fight
-- Battle presentation: tap targets must be tappable — no gesture conflicts between unit selection, ability targeting, and scrolling the timeline
-- `DragGesture` in Play map or Collection grid — ensure `.updating` state resets on cancel and drag end; no "stuck scroll" after gesture interruption
-- Long-press context menus (if used on collection items) — verify they trigger on `.onLongPressGesture(minimumDuration:)` and do not interfere with tap navigation
-- `TabView` selection changes must feel instant — no stutter when switching tabs
+- Scroll / drag / modal modes must not fight
+- `DragGesture` `.updating` resets on cancel/end
+- Long-press must not block tap navigation
 
-### Tap feedback
+### Tap feedback & loading
 
-- Every interactive element (button, row, card, node) must give visible feedback on tap:
-  - System buttons: `.buttonStyle(.borderedProminent)` or `.buttonStyle(.plain)` with highlight — handled by SwiftUI
-  - Custom tappable views (map nodes, inventory cards, homestead slots): wrap in `Button` (preferred) or add `onTapGesture` with `withAnimation` feedback
-  - Destructive actions: red tint + confirmation dialog before execution
-- Loading/saving states: show `ProgressView` or skeleton — do not leave the UI frozen while `Task { … }` runs
-- Battle victory/defeat: clear visual outcome with a dismiss path — no dead-end screens
+- Interactive elements are `Button`s (preferred) or gestures with visible feedback
+- Route chrome through DesignSystem — **not** raw `.buttonStyle(.borderedProminent)` / `.glass` (flagged by `check-ui-style.sh`)
+- Long `Task` work shows progress; victory/defeat screens always dismissible
 
-### Overlays & popovers
+### Accessibility
 
-- Hover tooltips (if present on iPad via cursor): must show/hide cleanly; must not block taps on underlying controls
-- Homestead node tint presentation lives in `Trinket/Models/Homestead.swift` — verify tint changes are animated and readable at all Dynamic Type sizes
-- No simulated glass or ad-hoc `.buttonStyle`, materials, or capsules without `// UIStyleCheck: allow - <reason>` (enforced by [check-ui-style.sh](../../Scripts/check-ui-style.sh), see [AGENTS.md](../../AGENTS.md))
-- Use `.controlSize`, `.buttonBorderShape`, `Label`, and semantic styles from `TrinketDesignSystem` first
+- Interactive controls have `accessibilityLabel` and/or `accessibilityIdentifier`
+- Dynamic Type reflows without truncation
+- Reduce Motion: respect `AccessibilityReduceMotion` / SwiftUI transaction disabling — **not** UIKit `UIView.animate` bridges
+- Semantic colors from DesignSystem; no hardcoded text-on-background hex
 
-### Accessibility (VoiceOver, Dynamic Type, Reduce Motion)
+### Portrait layout
 
-- Every interactive element must have an `accessibilityLabel` or `accessibilityIdentifier`
-- `TabView` labels are derived from the tab item label text — verify they make sense in VoiceOver context
-- Dynamic Type: text must reflow without truncation at all content size categories — test `.accessibilityTextContentType` where appropriate
-- Reduce Motion: replace `withAnimation` with `.transaction { $0.animation = nil }` or use `UIView.animate` with `prefersReducedMotion` check; avoid parallax/scrolling background effects when Reduce Motion is on
-- Contrast: semantic colors from `TrinketDesignSystem`; never hardcode hex values for text-on-background — use `primary`, `secondary`, `.background`, `.tertiaryBackground` etc.
-
-### Portrait-first layout
-
-- All screens must work in portrait orientation only (`project.yml` enforces this); verify no layout breaks on iPhone 16 Pro Max and iPhone SE (3rd gen)
-- Thumb-reachable zones: primary actions in the lower half of the screen; navigation controls in the toolbar (top) or tab bar (bottom)
-- Battle timeline (if scrollable) should not require a thumb stretch — consider vertical list layout
-- `List` and `LazyVGrid` should respect safe areas; no content behind the tab bar or Dynamic Island
+- Works on large and small iPhones; primary actions thumb-reachable
+- Lists/grids respect safe areas (tab bar / Dynamic Island)
 
 ### Edge cases
 
-- Rapid tapping: a button that triggers a `Task { … }` should disable or debounce to prevent duplicate work (e.g., stage start, forge craft, reward claim)
-- Background/foreground: battle paused on `scenePhase` change; homestead timer should resume correctly
-- Keyboard dismiss: search fields (Collection, Search tab) must dismiss the keyboard on drag scroll (using `.scrollDismissesKeyboard(.immediately)`) or tap-away gesture to prevent blocking layout views.
-- Empty states: Collection with no heroes, Inventory with no items, Homestead with no upgrades — each should show a helpful empty-state message, not a blank grid
+- Rapid tap debounce on stage start / craft / reward claim
+- Battle pauses on `scenePhase` background
+- Search fields: `.scrollDismissesKeyboard(.immediately)` or equivalent
+- Empty states for empty collection/inventory/homestead
+
+## Verification
+
+```sh
+./Scripts/check-ui-style.sh
+./Scripts/lint.sh
+./Scripts/test.sh smoke   # if identifiers or tab flows changed
+```
+
+## Commit
+
+```
+fix(ui): <imperative interaction fix>
+
+- <what>
+- check-ui-style + smoke as needed
+
+User-Facing: yes
+```

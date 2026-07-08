@@ -1,139 +1,119 @@
 # Complexity Reduction Audit
 
-Goal: Shrink the single worst complexity hotspot in the codebase — fewer lines, fewer layers, same player-visible behavior, easier to change safely.
+Goal: Shrink the single worst complexity hotspot — fewer lines, fewer layers, same player-visible behavior.
 
-You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swift 6 / SwiftUI, iOS 26). Read `AGENTS.md` and `Docs/Architecture.md` before editing.
+Re-runnable one-shot guide. See [README.md](README.md). Do **not** append survey results to this file.
 
-**Mission:** Find the single most complex, over-engineered, or bloated area of the codebase *right now*, then simplify it. Deliver a meaningful reduction in lines of code and cognitive complexity while preserving player-visible behavior and improving maintainability, readability, and reliability.
+## Mission
 
-**Workflow**
+Find the single most complex, over-engineered, or bloated area *right now*, then simplify it. Deliver a meaningful reduction in LOC and cognitive complexity while preserving player-visible behavior.
 
-1. **Survey** — Score candidate areas using the signals in § Targets. Exclude generated output, build artifacts, and roadmap-only ideas.
-2. **Select one target** — Choose exactly one cohesive module, type cluster, coordinator, or feature slice. In your summary, name 1–2 runner-ups and explain in 3–5 bullets why the winner is worse (LOC, indirection, duplication, test pain, or boundary smell).
-3. **Plan briefly** — Before large deletes, list what you will remove, collapse, or inline and which tests prove the behavior still holds. Prefer deletion and inlining over new abstractions.
-4. **Simplify** — Execute the smallest correct diff: delete dead paths, collapse pass-through layers, merge duplicate logic, replace factories used once, narrow `public` APIs. Do not add third-party dependencies or new packages.
-5. **Preserve contracts** — Keep save/load and battle semantics stable. Retain `accessibilityIdentifier` values referenced by `TrinketUITests`. Do not hand-edit `Generated/`, `.DerivedData/`, or `Assets.xcassets`.
-6. **Verify** — Run the tier from § Verification that matches your edit. `./Scripts/check-module-boundaries.sh` and `./Scripts/lint.sh` must pass.
-7. **Deliver** — Commit with the format from § Fixes. Report approximate net LOC change, what was removed, and any behavior you intentionally left unchanged.
+Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 
-**Hard stops**
+## Hard stops
 
-- Do not implement `Docs/Roadmap.md` items unless this task explicitly names one.
-- Do not spread one simplification across unrelated modules — one target, one focused diff.
-- Do not do rename-only or format-only churn without structural simplification.
-- Do not weaken battle test determinism (`BattleStateTestFactory.makeBattle(..., rngSeed: 0)`).
-- Do not bypass `// UIStyleCheck: allow` rules by restyling unrelated UI.
+- Do not implement `Docs/Roadmap.md` items unless this task names one.
+- One target, one focused diff — do not spread across unrelated modules.
+- No rename-only or format-only churn without structural simplification.
+- Do not weaken `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`.
+- Do not bypass `// UIStyleCheck: allow` by restyling unrelated UI.
+- Do not hand-edit `Generated/`, `.DerivedData/`, or `Assets.xcassets`.
 
-**Reference audits** (consult when your target touches these concerns; do not run full-repo sweeps unless the target demands it):
+## Workflow
 
-- `Docs/Audits/DeadCodeRatioAudit.md` — unused exports and orphaned files
-- `Docs/Audits/ImportCouplingBoundaryAudit.md` — package graph and layer imports
-- `Docs/Audits/SideEffectSurfaceAudit.md` — I/O and RNG seams
-- `Docs/Audits/BehaviorHardeningAudit.md` — persistence, async, idempotency
-- `Docs/Audits/TestQualityAudit.md` — assertion style and fixture reuse
+1. **Survey** — Score candidates with § Targets. Exclude generated output and roadmap-only ideas.
+2. **Select one** — Name 1–2 runner-ups in the commit body; explain why the winner is worse (3–5 bullets).
+3. **Plan** — List deletes/collapses/inlines and which tests prove behavior.
+4. **Simplify** — Smallest correct diff. Prefer deletion and inlining over new abstractions.
+5. **Verify** — Matching tier in § Verification; boundaries + lint must pass.
+6. **Commit** — Format in § Commit. Summarize in the commit body, not in this file.
+
+Consult sibling audits only when the chosen target demands it (do not run full-repo sweeps of every audit):
+
+- Dead exports → [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md)
+- Import graph → [ImportCouplingBoundaryAudit.md](ImportCouplingBoundaryAudit.md)
+- I/O / RNG → [SideEffectSurfaceAudit.md](SideEffectSurfaceAudit.md)
+- Persistence / async → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md)
+- Test conventions → `AGENTS.md` § Unit Tests
 
 ## Targets
 
-Score candidate areas using these signals. The winner should score high on several rows, not just raw file size.
-
 | Signal | How to measure | Why it matters |
 |--------|----------------|----------------|
-| LOC density | `wc -l` on target files or code line count using `cloc` | Large files often hide multiple responsibilities |
-| Indirection depth | Count wrappers, coordinators, and "forward to" methods with no added logic | Layers that only delegate are maintenance tax |
-| Single-use abstractions | Types or protocols referenced from one call site | Abstraction without reuse adds ceremony |
-| Duplicate logic | `rg` for near-identical blocks in sibling files | Two copies will diverge |
-| Import fan-out | Files with many `import` lines or cross-layer violations | Coupling makes refactors risky |
-| Test friction | Tests that need huge setup, log fingerprints, or sleeps | Complexity leaks into `*Tests/` |
-| Churn history | `git log --oneline -20 -- <path>` | Frequent patch stacks suggest the design fights change |
-| Generated adjacency | Logic that re-implements or shadows codegen | Hand-rolled catalogs belong in manifests |
+| LOC density | `wc -l` / `cloc` on candidate files | Large files hide multiple responsibilities |
+| Indirection depth | Wrappers / “forward to” methods with no logic | Maintenance tax |
+| Single-use abstractions | Types referenced from one call site | Ceremony without reuse |
+| Duplicate logic | Near-identical blocks in siblings | Copies diverge |
+| Import fan-out | Many `import` lines or layer violations | Risky refactors |
+| Test friction | Huge setup, log fingerprints, sleeps | Complexity leaks into tests |
+| Churn | `git log --oneline -20 -- <path>` | Design fights change |
 
-Exclude these from consideration:
+Exclude: `Generated/*`, assets/music build products, `.DerivedData/`, entire packages/tabs in one pass.
 
-- `Packages/TrinketContent/Sources/TrinketContent/Generated/*` — edit manifests, run `./Scripts/generate.sh`
-- `Trinket/Assets.xcassets`, `Trinket/Resources/Music`, `.DerivedData/`, build products
-- `Docs/Roadmap.md` speculative features
-- Entire packages or tabs in one pass — pick a slice inside an owner from `Docs/Architecture.md` § Module ownership
-
-When two candidates score similarly, apply tie-breakers in this order:
-
-1. Prefer the target whose simplification removes the most *indirection*, not just whitespace.
-2. Prefer code on the hot path (battle tick, save write, tab shell) over rarely opened screens.
-3. Prefer app `State/` or `BattleShell/` glue over stable package rules — unless the package type is clearly a god-object.
-4. Prefer deleting code over rewriting it in a new style.
+Tie-breakers: (1) most indirection removed, (2) hot path over rare screens, (3) `State/` / `BattleShell/` glue over stable package rules unless a package god-object, (4) delete over rewrite.
 
 ## Checks
 
-### Target scoping
+### Scoping
 
-- Name your target in one sentence ("`PlayFlowCoordinator` + its three pass-through helpers", not "the whole app").
-- Expect net LOC to drop by at least ~10% in the target cluster, or a full file/type is removed.
-- Confirm at least two complexity signals from § Targets apply.
-- Leave `ContentManifest/` unchanged unless you are deleting unused manifest-driven content.
-- Document runner-ups so the next audit pass can pick a different winner.
+- Name the target in one sentence.
+- Expect net LOC drop **or** a full file/type removed (prefer collapsing a real layer over whitespace).
+- At least two complexity signals from § Targets.
+- Leave `ContentManifest/` alone unless deleting unused manifest-driven content.
 
-### Simplification patterns
+### Simplification order
 
-Apply in this order:
+1. Delete unreachable / commented / unused / duplicate
+2. Inline single-use helpers and forward-only wrappers
+3. Collapse sibling types with the same owner
+4. Narrow `public` → `internal` when same-module
+5. Extract shared helpers only at 3+ call sites
 
-1. **Delete** — unreachable branches, commented-out code, unused types, duplicate helpers, orphaned tests
-2. **Inline** — single-use private helpers, one-case enums, wrappers that only forward
-3. **Collapse** — merge sibling types with the same owner; replace coordinator chains with direct calls on the owning store/session
-4. **Narrow API** — `public` → `internal` when callers are same-module; remove re-export barrels
-5. **Extract only when duplicated** — shared helper is justified at 3+ call sites, not 2
+### Architecture
 
-### Architecture guardrails
-
-Enforce these dependency rules after edits (verify with `./Scripts/check-module-boundaries.sh`):
+After edits, `./Scripts/check-module-boundaries.sh` must pass:
 
 - `TrinketDesignSystem` → `TrinketCore` only
-- `BattleEngine` and `TrinketPersistence` do not import each other
-- Packages do not import `Trinket` app code or feature views
-- `BattleShell/` does not import `Features/`
-- `State/` does not import feature views
+- `BattleEngine` ⟂ `TrinketPersistence`
+- Packages do not import app / feature views
+- `BattleShell/` does not import `Features/`; `State/` does not import feature views
 
 ### Behavior preservation
 
-- **Battle rules** — outcome semantics unchanged; existing `BattleEngineTests` still pass; use `BattleStateTestFactory` for any new battle tests
-- **Persistence** — mutate → reload → assert for store changes; no silent save failures
-- **UI flows** — smoke `accessibilityIdentifier`s unchanged unless the control is removed; update `TrinketUITests` only when the flow truly changed. Verify visual/layout invariants (such as view padding, alignment, and native spacing elements) are preserved when refactoring or inlining UI view code.
-- **Launch args** — `AppEnvironment` parsing stays backward-compatible for `TestLaunchArg` helpers
-- **Player-visible copy and balance** — do not retune numbers or rename player-facing strings unless removing dead UI
+- Battle semantics unchanged; use `BattleStateTestFactory` for new battle tests
+- Persistence: mutate → reload → assert
+- Keep `accessibilityIdentifier`s unless the control is removed
+- Launch-arg parsing stays compatible with `TestLaunchArg`
+- No balance retunes or player-facing copy renames unless removing dead UI
 
 ### Anti-patterns
 
-Do not "simplify" into these:
-
-- New generic protocols or "framework" base classes to replace one concrete type
-- Moving logic into SwiftUI views that belongs in `State/`, stores, or `BattleEngine`
-- Splitting one bloated file into many small files without reducing total LOC or coupling
-- Replacing explicit code with clever metaprogramming or heavy `@resultBuilder` chains
-- Deleting tests that still protect behavior, or asserting less to make tests pass
-- Broad `// swiftlint:disable` or `// UIStyleCheck: allow` to avoid fixing real issues
+- New generic protocols / framework bases for one concrete type
+- Moving domain logic into SwiftUI views
+- Splitting one file into many without reducing LOC or coupling
+- Deleting tests that still protect behavior
+- Broad `swiftlint:disable` / `UIStyleCheck: allow`
 
 ## Verification
 
-Match verification tier to the shape of your edit:
+| Change shape | Minimum |
+|--------------|---------|
+| BattleEngine / TrinketCore rules | `./Scripts/test-package.sh BattleEngine` or `./Scripts/test.sh unit` |
+| TrinketPersistence | `./Scripts/test-package.sh TrinketPersistence` |
+| State / BattleShell | `./Scripts/test.sh unit <FocusedClass>` (+ full unit if multi-file) |
+| Product-tab SwiftUI | `./Scripts/test.sh smoke` (affected class) |
+| Cross-cutting | `./Scripts/test.sh unit` then smoke |
 
-| Change shape | Minimum verification |
-|--------------|----------------------|
-| `Packages/BattleEngine/` or `TrinketCore/` rules | `./Scripts/test-package.sh BattleEngine` or full `./Scripts/test.sh unit` |
-| `TrinketPersistence/` stores or save model | `./Scripts/test-package.sh TrinketPersistence` + any touched `TrinketTests` persistence tests |
-| `Trinket/State/`, `BattleShell/`, app orchestration | `./Scripts/test.sh unit <FocusedClass>` then full `./Scripts/test.sh unit` if multiple files changed |
-| SwiftUI layout / identifiers in a product tab | `./Scripts/test.sh smoke` for the affected smoke class |
-| Cross-cutting refactor in app + package | `./Scripts/test.sh unit` then `./Scripts/test.sh smoke` |
-
-Always run:
+Always:
 
 ```sh
 ./Scripts/check-module-boundaries.sh
 ./Scripts/lint.sh
 ```
 
-If manifests changed: run `./Scripts/generate.sh` (or `--assets` when art/music/SFX manifests changed) and commit regenerated output.
+If manifests changed: `./Scripts/generate.sh` (add `--assets` when art/music/SFX changed).
 
-## Fixes
-
-Commit with this format:
+## Commit
 
 ```
 refactor(<scope>): collapse <target> pass-through layer
@@ -144,10 +124,4 @@ refactor(<scope>): collapse <target> pass-through layer
 User-Facing: no
 ```
 
-Include in the commit body:
-
-- **Target:** path(s) simplified and why they won
-- **Removed:** types, files, layers, or duplicate logic deleted
-- **LOC:** approximate net line change (e.g. `git diff --stat`)
-- **Unchanged:** player-visible behavior explicitly left alone
-- **Follow-ups:** optional next targets surfaced during survey (no need to implement)
+Commit body: **Target**, **Removed**, **LOC** (`git diff --stat`), **Unchanged**, optional **Follow-ups** (do not implement).
