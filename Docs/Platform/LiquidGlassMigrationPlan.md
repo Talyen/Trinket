@@ -4,7 +4,7 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 **Status (July 2026):** Phases 0–3, 5–6 **complete**. Liquid Glass design-system migration is done. Toolbar background overrides on Battle / Play map / combatant detail are **retained intentionally** (art-forward chrome) and are not part of this plan. Remaining Apple-native follow-ups live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
-**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, toolbar background audit, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, or navigation structure.
+**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, navigation structure, or art-forward toolbar visibility overrides.
 
 **Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Search, Options forms) per `AppVisualFoundation.md`.
 
