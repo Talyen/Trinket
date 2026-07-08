@@ -50,8 +50,11 @@ public struct ActionEvent: Identifiable, Equatable {
     public let id: Int
     public let kind: Kind
     public let effectKind: EffectKind?
+    public let actorID: String
     public let actorName: String
+    public let abilityID: String
     public let abilityName: String
+    public let abilityTier: AbilityTier?
     public let targetID: String
     public let targetName: String
     public let amount: Int
@@ -63,8 +66,11 @@ public struct ActionEvent: Identifiable, Equatable {
         id: Int,
         kind: Kind,
         effectKind: EffectKind? = nil,
+        actorID: String = "",
         actorName: String,
+        abilityID: String = "",
         abilityName: String,
+        abilityTier: AbilityTier? = nil,
         targetID: String,
         targetName: String,
         amount: Int,
@@ -75,8 +81,11 @@ public struct ActionEvent: Identifiable, Equatable {
         self.id = id
         self.kind = kind
         self.effectKind = effectKind
+        self.actorID = actorID
         self.actorName = actorName
+        self.abilityID = abilityID
         self.abilityName = abilityName
+        self.abilityTier = abilityTier
         self.targetID = targetID
         self.targetName = targetName
         self.amount = amount

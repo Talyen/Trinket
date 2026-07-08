@@ -94,6 +94,8 @@ extension AppState {
         defaults.removeObject(forKey: OptionsStore.effectsVolumeKey)
         defaults.removeObject(forKey: OptionsStore.hapticsEnabledKey)
         defaults.removeObject(forKey: OptionsStore.appearanceKey)
+        defaults.removeObject(forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
+        defaults.removeObject(forKey: OptionsStore.seenUltimateCinematicsKey)
     }
 
     private func seedJourneyProgress(completedStageIDs: [String], resetState: Bool) {

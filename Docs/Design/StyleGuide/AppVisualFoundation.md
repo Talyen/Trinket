@@ -23,7 +23,7 @@ The visual foundation must preserve Trinket's current product structure:
 - Play owns Chapter Journey, Stage Select, active encounter actions, and Battle entry.
 - Battle is idle, automatic, and 2D card-art based: Enemy, Hero, and Pet art regions with anchored health bars.
 - Rare battle actions live in native toolbar/menu chrome; do not introduce a manual skill hotbar or a Battle tab.
-- Future battle spectacle should use SwiftUI/card-art presentation: floating combat text, Keyword particles, card flash/recoil/lunge, health-bar trails, and full-screen Ultimate card-art callouts.
+- Future battle spectacle should use SwiftUI/card-art presentation: floating combat text, Keyword particles, card flash/recoil/lunge, health-bar trails, Skill ability-art callouts on the caster, and full-screen Hero/Pet Ultimate cinematics (video when available, ability-art fallback otherwise).
 
 ## Appearance
 
@@ -176,9 +176,11 @@ Recommended VFX:
 - Low-count Keyword particles around the affected card.
 - Card flash, lunge, recoil, or shake.
 - Health-bar fill and trailing damage/heal animation.
-- Full-screen Ultimate callout that uses existing card art for roughly four seconds, then returns to battle.
+- Skill cast: short caster-anchored ability-art callout (~0.5s soft-hold), with hit chips still on the target.
+- Ultimate cast (Hero/Pet only): full-screen cinematic while combat is held; prefer preloaded 9:16 video (source assets may vary; crop to 9:16 for display), fall back to ability card art until video exists; on dismiss, immediately resume combat and show damage/effects. Enemy Ultimates do not take over the screen.
+- Options preference controls whether Ultimate cinematics can be skipped (always / never / show once per battle for each of Hero and Pet).
 
-Reduce Motion should replace movement-heavy feedback with fades, static glows, or lower-count effects. Do not use 3D models or a 3D battle scene for these effects.
+Reduce Motion should replace movement-heavy feedback with fades, static glows, or lower-count effects, and should prefer the static Ultimate art fallback over video. Do not use 3D models or a 3D battle scene for these effects.
 
 ## Accessibility Rules
 
@@ -237,7 +239,7 @@ After the foundation is stable, implement battle polish separately:
 - Keyword particles and feedback bursts.
 - Card flash/recoil/lunge states.
 - Health-bar trailing damage/heal animation.
-- Ultimate full-screen card-art callout.
+- Skill caster-anchored ability-art callout and Ultimate cinematic overlay — see **`Docs/Design/BattleSpectaclePlan.md`** (R-008 / R-011) for motion APIs, session timing, video preload, and Options skip policy.
 
 This phase should have focused unit or presentation tests where feasible and smoke coverage for Battle flow stability.
 

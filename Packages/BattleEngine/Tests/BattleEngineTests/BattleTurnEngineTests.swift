@@ -80,6 +80,19 @@ struct BattleTurnEngineTests {
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 
+    @Test func abilityEventIncludesActorAbilityAndTier() throws {
+        var (context, matchup) = makeContext()
+        let enemy = context.roster.enemy.combatant
+
+        let events = BattleTurnEngine.act(actor: enemy, matchup: matchup, context: &context)
+        let abilityEvent = try #require(events.first { $0.kind == .ability })
+
+        #expect(abilityEvent.actorID == enemy.id)
+        #expect(abilityEvent.abilityID == Ability.slash.id)
+        #expect(abilityEvent.abilityName == Ability.slash.name)
+        #expect(abilityEvent.abilityTier == Ability.slash.tier)
+    }
+
     @Test func performActionSkipsCorpseTargetedEffectsAfterLethalHit() throws {
         let killAndMark = Ability(
             id: "kill-mark",

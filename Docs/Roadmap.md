@@ -13,8 +13,8 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 ### R-001 — SwiftUI animation vocabulary
 - **Area:** Cross-cutting
 - **Status:** scratch
-- **Idea:** Establish a shared motion language across the app: easing curves (accel/decel/duration), spring parameters (stiffness, damping, mass), named preset styles (e.g. bouncy), and scroll/drag friction with inertia. Centralize in `TrinketDesignSystem` so screens feel cohesive.
-- **Touches:** `TrinketDesignSystem`, feature transitions, collection grids
+- **Idea:** Establish a shared motion language across the app: easing curves (accel/decel/duration), spring parameters (stiffness, damping, mass), named preset styles (e.g. bouncy), and scroll/drag friction with inertia. Centralize in `TrinketDesignSystem` so screens feel cohesive. Battle spectacle (R-008 / R-011) ships a first slice as `TrinketMotion.battle.*` — see `Docs/Design/BattleSpectaclePlan.md`.
+- **Touches:** `TrinketDesignSystem`, feature transitions, collection grids, battle spectacle
 
 ### R-002 — Haptic feedback
 - **Area:** Cross-cutting
@@ -56,11 +56,12 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Idea:** Layer combat sound effects on top of the existing music director — ability casts, hits, blocks, status applies — keyed by damage type or keyword where practical.
 - **Touches:** `SoundManifest`, `Trinket/Audio`, battle UI event hooks
 
-### R-008 — Ability art callout in combat
+### R-008 — Skill ability art callout in combat
 - **Area:** Battle
-- **Status:** scratch
-- **Idea:** Briefly surface the casting combatant's ability art when an action fires so the player can see *which* ability triggered and *who* used it, without pausing the idle tick loop.
-- **Touches:** battle action presentation, ability catalog art refs
+- **Status:** planned
+- **Idea:** When a Skill fires, briefly surface that ability's art as a caster-anchored callout on the casting combatant's battle card so the player can see *which* Skill triggered and *who* used it. Soft-hold the battle clock ~0.5s for readability; Basics keep today's target-only floating chips. Ultimates use the separate cinematic path (R-011).
+- **Touches:** battle action presentation, ability catalog art refs, `BattleSession` timing
+- **Plan:** `Docs/Design/BattleSpectaclePlan.md`
 
 ### R-009 — Combined Hero + Pet portrait frame
 - **Area:** Battle
@@ -74,11 +75,12 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 - **Idea:** Replace static battle portraits with short looping idle clips per Hero, Pet, and Enemy. Pipeline: generate with Veo (or similar), crop to combatant aspect ratio, loop on an end-frame hold. One loop per catalog entry.
 - **Touches:** `ArtManifest/`, `Raw Assets/`, battle card views
 
-### R-011 — Skill and Ultimate cinematics
+### R-011 — Ultimate cinematics
 - **Area:** Battle, Art
-- **Status:** scratch
-- **Idea:** Full-screen or flash-frame cinematics for Skills and Ultimates on Heroes and Pets (Omni Flash–style), plus shorter Skill animations for Enemies. Distinct from idle loops (R-010) — these play once per cast.
-- **Touches:** `ArtManifest/`, battle presentation, ability event timing
+- **Status:** planned
+- **Idea:** Full-screen Ultimate cast cinematics for Heroes and Pets only (Omni Flash–style). Play once per Ultimate cast while combat is held, then resume with damage/effects. Skills use a short caster-anchored ability-art callout instead (see R-008), not a cinematic. Distinct from idle loops (R-010).
+- **Touches:** `ArtManifest/`, battle presentation, ability event timing, Options skip preference
+- **Plan:** `Docs/Design/BattleSpectaclePlan.md`
 
 ---
 

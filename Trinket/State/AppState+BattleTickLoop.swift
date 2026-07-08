@@ -27,7 +27,7 @@ extension AppState {
     }
 
     var canAdvanceBattleTicks: Bool {
-        guard battle.canAutoAdvanceTick() else { return false }
+        guard battle.canAutoAdvanceTick(at: .now) else { return false }
         guard shellScenePhase == .active, selectedTab == .play else { return false }
         return true
     }
