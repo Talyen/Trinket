@@ -65,6 +65,7 @@ struct InventoryGridView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .trinketScreenBackground(.collection)
+        .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $searchText, prompt: "Search items")

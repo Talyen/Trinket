@@ -98,4 +98,13 @@ public extension View {
     func trinketPrimaryActionButton() -> some View {
         modifier(PrimaryActionButtonModifier())
     }
+
+    /// Gates system sensory feedback on the Options haptics toggle.
+    func trinketSensoryFeedback<T: Equatable>(
+        _ feedback: SensoryFeedback,
+        trigger: T,
+        enabled: Bool
+    ) -> some View {
+        sensoryFeedback(feedback, trigger: trigger) { _, _ in enabled }
+    }
 }

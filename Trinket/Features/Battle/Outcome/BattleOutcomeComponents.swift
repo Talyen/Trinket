@@ -15,12 +15,13 @@ struct BattleOutcomeShell<Content: View>: View {
 
     @State private var symbolAnimationCount = 0
     @State private var isCompleting = false
+    @ScaledMetric(relativeTo: .largeTitle) private var outcomeSymbolSize: CGFloat = 56
 
     var body: some View {
         ScrollView {
             VStack(spacing: 22) {
                 Image(systemName: symbolName)
-                    .font(.system(size: 56, weight: .semibold))
+                    .font(.system(size: outcomeSymbolSize, weight: .semibold))
                     .foregroundStyle(symbolColor)
                     .accessibilityHidden(true)
                     .symbolEffect(.bounce, value: symbolAnimationCount)

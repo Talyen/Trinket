@@ -78,7 +78,11 @@ struct HomesteadView: View {
         .navigationTitle("Homestead")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
-        .sensoryFeedback(.success, trigger: build.upgradeEventCount)
+        .trinketSensoryFeedback(
+            .success,
+            trigger: build.upgradeEventCount,
+            enabled: appState.options.hapticsEnabled
+        )
         .homesteadBuildErrorAlert(build: $build)
         .sheet(item: $selectedHomesteadNode) { definition in
             NavigationStack {

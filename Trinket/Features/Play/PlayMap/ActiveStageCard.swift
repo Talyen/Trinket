@@ -3,6 +3,8 @@ import TrinketContent
 import TrinketDesignSystem
 
 struct ActiveStageCard: View {
+    @Environment(AppState.self) private var appState
+
     let stage: Stage
     let activeHero: Combatant
     let activePet: Combatant
@@ -44,7 +46,11 @@ struct ActiveStageCard: View {
             .tint(stage.encounter.mapTint)
             .accessibilityIdentifier(StageMapID.stageNode(for: stage))
             .accessibilityLabel("\(stage.mapLabel), active \(stage.encounter.title)")
-            .sensoryFeedback(.selection, trigger: actionFeedbackTrigger)
+            .trinketSensoryFeedback(
+                .selection,
+                trigger: actionFeedbackTrigger,
+                enabled: appState.options.hapticsEnabled
+            )
         }
         .trinketSurface(.selected)
     }

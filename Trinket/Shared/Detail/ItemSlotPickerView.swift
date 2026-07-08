@@ -8,6 +8,7 @@ struct ItemSlotPickerView: View {
     let slot: ItemSlot
     @Binding var equipmentLoadout: EquipmentLoadout
     @Binding var inventoryState: PlayerInventoryState
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var itemOrder: [String] = []
     @State private var selectedItemID: String?
@@ -62,7 +63,11 @@ struct ItemSlotPickerView: View {
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .sensoryFeedback(.selection, trigger: selectedItemID)
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: selectedItemID,
+            enabled: appState.options.hapticsEnabled
+        )
         .trinketScreenBackground(.modal)
         .navigationTitle("Equip \(slot.displayName)")
         .navigationBarTitleDisplayMode(.inline)

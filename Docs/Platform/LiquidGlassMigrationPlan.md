@@ -2,9 +2,9 @@
 
 Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liquid Glass. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [iOS26AppleReference.md](iOS26AppleReference.md).
 
-**Status (July 2026):** Phases 0–3, 5–6 **complete**. Phase 4 (toolbar background audit) **deferred** — see [Phase 4 pros/cons](#phase-4--toolbar-background-audit-deferred) at end of this doc.
+**Status (July 2026):** Phases 0–3, 5–6 **complete**. Liquid Glass design-system migration is done. Toolbar background overrides on Battle / Play map / combatant detail are **retained intentionally** (art-forward chrome) and are not part of this plan. Remaining Apple-native follow-ups live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
-**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, toolbar background audit, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, or navigation structure.
+**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, navigation structure, or art-forward toolbar visibility overrides.
 
 **Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Search, Options forms) per `AppVisualFoundation.md`.
 
@@ -55,15 +55,15 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 .buttonStyle(.glassProminent)
 ```
 
-### Toolbar background overrides (visual QA required)
+### Toolbar background overrides (retained)
 
-| File | Modifier | Risk |
-|------|----------|------|
-| `BattleView.swift:30` | `.toolbarBackgroundVisibility(...)` | May fight system scroll-edge effect |
-| `ChapterStageSelectView.swift:77` | `.toolbarBackgroundVisibility(.hidden)` | Play map hero under nav |
-| `CombatantDetailPane.swift:168-169` | `.toolbarBackground(.hidden)` + visibility | Sheet detail |
+| File | Modifier | Notes |
+|------|----------|-------|
+| `BattleView.swift` | `.toolbarBackgroundVisibility(...)` | Art-forward combat chrome — keep |
+| `ChapterStageSelectView.swift` | `.toolbarBackgroundVisibility(.hidden)` | Journey hero under nav — keep |
+| `CombatantDetailPane.swift` | `.toolbarBackground(.clear)` + visibility hidden | Sheet over card art — keep |
 
-Apple guidance ([Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)): remove custom backgrounds behind bars when they interfere with the system scroll-edge effect. Audit in Phase 4 — do not delete blindly.
+These are product choices for full-bleed artwork, not outstanding Liquid Glass debt. Do not remove them as part of this migration. Optional iOS 26 scroll APIs (tab minimize, `backgroundExtensionEffect`, `scrollEdgeEffectStyle`) are tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D.
 
 ### UI test guard
 
@@ -241,34 +241,6 @@ Define per-role behavior — not all roles should become glass:
 
 ---
 
-### Phase 4 — Toolbar background audit (Play + Battle)
-
-**Effort:** Medium. **Risk:** Medium (art-forward screens).
-
-**Do not implement blindly.** This phase is an audit + targeted edits after simulator review.
-
-1. Run app on iOS 26 simulator with Play map, Battle, and combatant detail sheet.
-2. For each `toolbarBackgroundVisibility(.hidden)` site, check:
-   - Does content scroll under the bar?
-   - Is text/icon legibility worse with system scroll-edge effect vs hidden background?
-3. **If system effect suffices:** remove `.toolbarBackground(.hidden)` and `.toolbarBackgroundVisibility(.hidden)`.
-4. **If custom art requires hidden bar:** keep hidden visibility but add `.scrollEdgeEffectStyle(...)` if content scrolls beneath (WWDC25-323).
-
-Files to review:
-
-- `BattleView.swift`
-- `ChapterStageSelectView.swift`
-- `CombatantDetailPane.swift`
-
-**Optional (product decision, separate PR):**
-
-- `.tabBarMinimizeBehavior(.onScrollDown)` on `ContentView` TabView for Play/Collection long scroll.
-- `.backgroundExtensionEffect()` on `ChapterJourneyHero` for edge-to-edge journey art.
-
-Document decisions in a short comment at each retained override: `// UIStyleCheck: allow - hero art requires hidden nav chrome`.
-
----
-
 ### Phase 5 — Remove stale UI test guard
 
 **Effort:** Trivial. **Risk:** Low.
@@ -315,7 +287,6 @@ func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
 | 1 | `test.sh smoke` | Homestead + Reduce Transparency |
 | 2 | `SmokePlayTests`, battle smoke | Light/Dark/Increase Contrast on CTAs |
 | 3 | `test.sh smoke`, `build.sh` | Homestead detail bottom bar, sheets |
-| 4 | `test.sh smoke` | Play map scroll, Battle toolbar legibility |
 | 5 | `SmokePlayTests`, `SmokeCollectionTests` | — |
 | 6 | — | Doc review |
 
@@ -336,8 +307,7 @@ Ship as **stacked PRs** or **sequential commits on main** to keep review focused
 | 1 | 0 + 1 | `refactor(design): extract glass helper; migrate badge/wallet` |
 | 2 | 2 | `style(design): glassProminent primary action buttons` |
 | 3 | 3 | `style(design): MaterialRole glass role map` |
-| 4 | 4 | `style(play): toolbar background audit for Liquid Glass` |
-| 5 | 5 | `test(ui): remove stale iOS 17 accessibility guard` |
+| 4 | 5 | `test(ui): remove stale iOS 17 accessibility guard` |
 
 Phase 5 (UI test guard) can land **independently at any time** — recommend doing it in PR 1 or as a standalone chore before visual changes so smoke tests exercise audits throughout migration.
 
@@ -347,7 +317,8 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 
 - Card surfaces (`.trinketSurface(.card)`) — stay solid; card art is the hero.
 - Collection / Inventory / Search / Options list rows — stay solid (`denseList` background mode).
-- `LockedCardEffectModifier` fixed font sizes — separate Dynamic Type pass (see audit § decorative icons).
+- Toolbar background visibility on Battle / Play map / combatant detail — intentional art-forward chrome; not migrated.
+- `LockedCardEffectModifier` fixed font sizes — Dynamic Type pass in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase C.
 - StoreKit, GameKit, RealityKit — not applicable today.
 - App icon layer composition for Liquid Glass — track via App Store prep checklist.
 
@@ -357,46 +328,7 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 
 - [iOS26AppleReference.md](iOS26AppleReference.md) — WWDC links and API table
 - [iOS26StackAudit.md](iOS26StackAudit.md) — point-in-time findings
+- [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) — follow-up Apple-native migrations
 - [AppVisualFoundation.md](../Design/StyleGuide/AppVisualFoundation.md) — dense vs glass surfaces
 - [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md) — repo patterns and deprecated APIs
 - `Scripts/check-ui-style.sh` — enforcement rules
-
----
-
-## Phase 4 — Toolbar background audit (deferred)
-
-Phase 4 was intentionally skipped during the July 2026 migration. Use this section when deciding whether to proceed.
-
-### Sites under review
-
-| File | Current behavior | Why it exists |
-|------|------------------|---------------|
-| `BattleView.swift` | `.toolbarBackgroundVisibility(.automatic)` on victory/defeat; `.hidden` during combat | Battle art should extend edge-to-edge; toolbar would obscure or clash with health scrims |
-| `ChapterStageSelectView.swift` | `.toolbarBackgroundVisibility(.hidden)` | Play map journey hero art visible through/above navigation area |
-| `CombatantDetailPane.swift` | `.toolbarBackground(.hidden)` + visibility hidden | Sheet detail over card art; minimal chrome |
-
-### Pros of removing hidden toolbar backgrounds (adopting system scroll-edge effect)
-
-1. **Automatic Liquid Glass integration** — iOS 26 toolbars get adaptive glass and scroll-edge blur/fade without custom code ([Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)).
-2. **Less maintenance** — Fewer modifiers to audit when Apple refines toolbar behavior in future SDKs.
-3. **Better legibility defaults** — System scroll-edge effect keeps bar items readable when content scrolls beneath them (WWDC25-323).
-4. **Consistency with HIG** — Apple explicitly recommends removing custom backgrounds that interfere with the scroll-edge effect.
-
-### Cons of removing hidden toolbar backgrounds
-
-1. **Art-forward screens lose immersion** — Play journey and Battle are designed around full-bleed artwork; a visible/floating glass toolbar may feel like an extra layer over the “stage.”
-2. **Visual regression risk** — Hidden bars were deliberate product choices; simulator QA is required on every affected flow before shipping.
-3. **Battle legibility is fragile** — Combat UI already uses custom scrims (`BattleHealthScrimGradient`); adding system toolbar glass might double-stack effects or reduce contrast on busy art.
-4. **Partial fix may not exist** — `.scrollEdgeEffectStyle(...)` tunes legibility but does not recreate a fully invisible bar; you may trade one compromise for another.
-5. **Sheet detail is a special case** — `CombatantDetailPane` pushes over collection art; system chrome may be appropriate, but the transition from hidden to visible bar can feel inconsistent with the rest of Collection.
-
-### Recommendation
-
-Treat Phase 4 as a **visual QA spike**, not a code migration:
-
-1. Branch off `main`, remove one override at a time on simulator.
-2. Capture screenshots for Play map (scrolled + at rest), mid-battle, victory overlay, and combatant detail sheet.
-3. Keep hidden backgrounds where art immersion wins; add `// UIStyleCheck: allow - hero/battle art requires hidden nav chrome` only if you retain overrides.
-4. Consider **targeted** adoption: e.g. Collection detail sheet → system chrome; Play map + Battle → keep hidden until product wants floating glass tabs/toolbars (could pair with `.tabBarMinimizeBehavior` separately).
-
-No code changes required until the spike confirms a net visual win.

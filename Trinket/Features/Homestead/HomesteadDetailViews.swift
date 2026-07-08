@@ -74,7 +74,11 @@ struct HomesteadNodeDetailView: View {
             .trinketMaterial(.bottomBar, cornerRadius: 0)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
-        .sensoryFeedback(.success, trigger: build.upgradeEventCount)
+        .trinketSensoryFeedback(
+            .success,
+            trigger: build.upgradeEventCount,
+            enabled: appState.options.hapticsEnabled
+        )
         .homesteadBuildErrorAlert(build: $build)
     }
 
@@ -222,6 +226,8 @@ struct HomesteadRequirementList: View {
 struct HomesteadBuildingArtwork: View {
     let definition: HomesteadNodeDefinition
 
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 36
+
     var body: some View {
         ZStack {
             if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
@@ -242,7 +248,7 @@ struct HomesteadBuildingArtwork: View {
                         )
                     )
                 Image(systemName: definition.symbolName)
-                    .font(.system(size: 36, weight: .semibold))
+                    .font(.system(size: placeholderIconSize, weight: .semibold))
                     .foregroundStyle(definition.tint)
             }
         }

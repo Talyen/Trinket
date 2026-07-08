@@ -61,6 +61,7 @@ struct OptionsView: View {
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground(.denseList)
+        .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Options")
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier("Options Screen")
@@ -75,7 +76,7 @@ struct OptionsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This permanently deletes journey, roster, and inventory progress on this device and iCloud. Settings are kept.")
+            Text("This permanently deletes journey, roster, and inventory progress on this device. Settings are kept.")
         }
         .alert(
             "Reset Failed",

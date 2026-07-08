@@ -41,6 +41,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketCardSurface()` | 3:4 card identity tiles |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
+| `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
 

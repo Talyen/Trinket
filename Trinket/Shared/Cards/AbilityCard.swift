@@ -8,6 +8,8 @@ struct AbilityChoiceCard: View {
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
 
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
+
     private var isLocked: Bool {
         lockLabel != nil
     }
@@ -28,7 +30,7 @@ struct AbilityChoiceCard: View {
                             TrinketDesign.cardShape
                                 .fill(TrinketDesign.CardPlaceholderStyle.ability.color.opacity(0.18))
                             Image(systemName: TrinketDesign.CardPlaceholderStyle.ability.symbolName)
-                                .font(.system(size: 38, weight: .semibold))
+                                .font(.system(size: placeholderIconSize, weight: .semibold))
                                 .foregroundStyle(TrinketDesign.CardPlaceholderStyle.ability.color)
                                 .accessibilityHidden(true)
                         }

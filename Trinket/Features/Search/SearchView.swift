@@ -12,6 +12,7 @@ struct SearchView: View {
     var body: some View {
         searchContent
             .trinketScreenBackground(.denseList)
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.large)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")

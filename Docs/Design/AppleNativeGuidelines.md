@@ -2,7 +2,7 @@
 
 Trinket-specific rules for applying Apple's 2026 platform APIs. The hard platform contract lives in `AGENTS.md` § Platform Baseline; official Apple documentation remains the source of truth for API shape.
 
-**Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plan live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), and [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md).
+**Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plans live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md), and [AppleNativeBestPracticesPlan.md](../Platform/AppleNativeBestPracticesPlan.md).
 
 ## Platform Contract
 
@@ -32,6 +32,8 @@ Do **not** add `#available` / `@available` checks for iOS versions below 26. We 
 | Persistence | SwiftData `@Model`, `@Observable` stores | `Packages/TrinketPersistence/` |
 | Chrome / surfaces | `TrinketDesign`, `.trinketSurface`, `.trinketMaterial` | `Packages/TrinketDesignSystem/` |
 | Glass effects | `.glassEffect()` inside design system only | `VisualFoundation.swift` → `GlassChipModifier` |
+| Haptics | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate on `OptionsStore.hapticsEnabled` |
+| Preferences | `OptionsStore` + `AppStorage` keys | `Trinket/State/OptionsStore.swift` |
 | Materials + a11y | `MaterialRoleModifier` with Reduce Transparency fallback | `VisualFoundation.swift` |
 | Typography | `.trinketTypography(_:)` semantic roles | `VisualFoundation.swift` → `TypographyRole` |
 | Unit tests | Swift Testing (`@Suite`, `@Test`, `#expect`) | `TrinketTests/App/AppStateTests.swift` |

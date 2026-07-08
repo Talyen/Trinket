@@ -30,14 +30,14 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 
 | API | Use in Trinket |
 |-----|----------------|
-| `.tabBarMinimizeBehavior(.onScrollDown)` | Optional: recede tab bar on Play map / long scroll surfaces |
+| `.tabBarMinimizeBehavior(.onScrollDown)` | Optional: recede tab bar on Play map / long scroll surfaces — [best-practices plan](AppleNativeBestPracticesPlan.md) Phase D |
 | `.tabViewBottomAccessory { }` | Optional: persistent mini-player or battle status above tab bar |
-| `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome |
-| `.toolbarBackgroundVisibility(.hidden)` | Already used in Battle and Play; audit for conflicts with system scroll-edge effect |
+| `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome — best-practices plan Phase D |
+| `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / Play map / combatant detail for art-forward chrome (not scheduled for removal) |
 | `ToolbarSpacer` | Group related toolbar actions (e.g. battle menus) |
 | `.sharedBackgroundVisibility(.hidden)` | Separate avatar or status items from grouped toolbar chrome |
 | `.badge()` | Notification or milestone indicators on toolbar items |
-| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Search) |
+| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Search) — best-practices plan Phase D |
 | `.searchToolbarBehavior` | Search tab already uses `Tab(..., role: .search)` |
 | `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (see `check-ui-style.sh`) |
 | `.glassEffectID(_:in:)` + `@Namespace` | Morphing transitions between related glass chips |
@@ -46,12 +46,12 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 
 From [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass):
 
-1. **Let system chrome adopt glass automatically** — remove custom backgrounds on tab bars, toolbars, and sheets that fight the system material.
+1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle, Play map, and combatant detail by product choice.
 2. **Use glass sparingly on custom controls** — limit `.glassEffect` to high-value functional elements (combat feedback chips, wallet pills), not every card surface.
 3. **Respect accessibility** — Liquid Glass adapts to Reduce Transparency and Reduce Motion; keep solid fallbacks (already patterned in `GlassChipModifier`).
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
-Trinket's dense Collection / Inventory / Search surfaces should stay on **solid themed surfaces** per `AppVisualFoundation.md`; glass belongs on navigation chrome and selective overlays.
+Trinket's dense Collection / Inventory / Search surfaces should stay on **solid themed surfaces** per `AppVisualFoundation.md`; glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
 ---
 

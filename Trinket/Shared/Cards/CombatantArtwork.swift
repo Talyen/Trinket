@@ -12,6 +12,9 @@ struct CombatantArtwork: View {
     let combatant: Combatant
     var variant: Variant = .hero
 
+    @ScaledMetric(relativeTo: .title) private var cardHeroIconSize: CGFloat = 38
+    @ScaledMetric(relativeTo: .largeTitle) private var battleIconSize: CGFloat = 48
+
     var body: some View {
         Group {
             if let artReference = combatant.artReference {
@@ -62,9 +65,9 @@ struct CombatantArtwork: View {
     private var placeholderIconSize: CGFloat {
         switch variant {
         case .card, .hero:
-            return 38
+            return cardHeroIconSize
         case .battle:
-            return 48
+            return battleIconSize
         }
     }
 }
