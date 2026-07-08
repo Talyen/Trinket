@@ -52,7 +52,7 @@ struct BattleCardGridLayoutTests {
         in containerSize: CGSize,
         fillsWidth: Bool = false,
         fillsHeight: Bool = false,
-        location: SourceLocation = #sourceLocation
+        location: SourceLocation = #_sourceLocation
     ) {
         let partyRowWidth = 2 * metrics.partySize.width + metrics.cardSpacing
         let gridHeight = metrics.enemySize.height + metrics.cardSpacing + metrics.partySize.height

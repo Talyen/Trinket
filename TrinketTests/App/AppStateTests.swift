@@ -187,7 +187,7 @@ final class AppStateTests {
         _ detail: CombatantDetailContext?,
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        location: SourceLocation = #sourceLocation
+        location: SourceLocation = #_sourceLocation
     ) {
         guard let detail else {
             Issue.record(
