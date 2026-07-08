@@ -90,7 +90,7 @@ final class JourneyProgressTests {
         try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
     }
 
-    @Test func journeyStorePersistsProgress() throws {
+    @Test func journeyPersistsProgress() throws {
         let directoryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("JourneyProgressTests.\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)

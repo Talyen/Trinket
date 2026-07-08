@@ -75,12 +75,9 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
         "TrinketPersistence",
         [
             r"\bPlayerSaveStore\b",
-            r"\bPlayerRosterStore\b",
-            r"\bPlayerInventoryStore\b",
             r"\bPlayerInventoryState\b",
             r"\bPlayerRosterState\b",
             r"\bPlayerHomesteadStore\b",
-            r"\bPlayerJourneyStore\b",
             r"\bPlayerSaveSyncCoordinator\b",
             r"\bPlayerSaveSyncing\b",
             r"\bSavedRosterState\b",
