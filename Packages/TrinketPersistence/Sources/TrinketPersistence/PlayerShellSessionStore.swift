@@ -71,21 +71,14 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    public var viewedCombatantIDs: Set<String> {
-        get { Set(record.viewedCombatantIDs) }
-        set {
-            record.viewedCombatantIDs = Array(newValue)
-            record.updatedAt = .now
-            saveContext()
-        }
+    /// Stored (not SwiftData-backed computed) so `@Observable` invalidates tab badges / NEW markers.
+    public var viewedCombatantIDs: Set<String> = [] {
+        didSet { persistViewedCombatantIDs() }
     }
 
     public func markCombatantAsViewed(id: String) {
-        if !record.viewedCombatantIDs.contains(id) {
-            record.viewedCombatantIDs.append(id)
-            record.updatedAt = .now
-            saveContext()
-        }
+        guard !viewedCombatantIDs.contains(id) else { return }
+        viewedCombatantIDs.insert(id)
     }
 
     public init(
@@ -126,6 +119,7 @@ public final class PlayerShellSessionStore {
         selectedTab = Self.tab(from: record.selectedTabRaw) ?? .play
         activeBattleStageID = record.activeBattleStageID
         mapScrollStageID = record.mapScrollStageID
+        viewedCombatantIDs = Set(record.viewedCombatantIDs)
 
         if loadResult.needsInitialSave {
             saveContext()
@@ -238,6 +232,12 @@ public final class PlayerShellSessionStore {
 
     private func persistSelectedTab() {
         record.selectedTabRaw = selectedTab.rawValue
+        record.updatedAt = .now
+        saveContext()
+    }
+
+    private func persistViewedCombatantIDs() {
+        record.viewedCombatantIDs = Array(viewedCombatantIDs)
         record.updatedAt = .now
         saveContext()
     }

@@ -84,6 +84,20 @@ final class AppState {
         shellSession.markCombatantAsViewed(id: id)
     }
 
+    /// Starters are granted at install — they are not "new" discoveries.
+    func seedStarterCombatantsAsViewedIfNeeded() {
+        markCombatantAsViewed(id: PlayerRosterState.starterHeroID)
+        markCombatantAsViewed(id: PlayerRosterState.starterPetID)
+    }
+
+    func showsCollectionNewMarker(for combatantID: String) -> Bool {
+        let rosterState = roster.current
+        let isUnlocked = rosterState.unlockedHeroIDs.contains(combatantID)
+            || rosterState.unlockedPetIDs.contains(combatantID)
+        guard isUnlocked else { return false }
+        return !shellSession.viewedCombatantIDs.contains(combatantID)
+    }
+
     var collectionActionableCount: Int {
         let unlockedHeroes = roster.current.unlockedHeroIDs
         let unlockedPets = roster.current.unlockedPetIDs
@@ -194,6 +208,7 @@ final class AppState {
         activeMysteryEncounter = nil
         clearSessionBattleState()
         shellSession.resetToDefaults(selectingTab: .play)
+        seedStarterCombatantsAsViewedIfNeeded()
         return true
     }
 

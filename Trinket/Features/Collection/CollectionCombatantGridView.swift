@@ -43,7 +43,8 @@ struct CollectionCombatantGridView: View {
                             CollectionCombatantButton(
                                 combatant: combatant,
                                 isLocked: !appState.roster.current.isUnlocked(combatant),
-                                cardWidth: nil
+                                cardWidth: nil,
+                                showsNewMarker: appState.showsCollectionNewMarker(for: combatant.id)
                             ) {
                                 selectedCombatant = CombatantDetailContext(
                                     kind: kind,

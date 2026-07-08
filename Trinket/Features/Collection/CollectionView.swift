@@ -108,7 +108,8 @@ struct CollectionView: View {
                     combatant: combatant,
                     isLocked: !appState.roster.current.isUnlocked(combatant),
                     cardWidth: nil,
-                    showsName: false
+                    showsName: false,
+                    showsNewMarker: appState.showsCollectionNewMarker(for: combatant.id)
                 ) {
                     selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
                 }

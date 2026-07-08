@@ -67,6 +67,10 @@ enum AccessibilityID {
         static let inventoryEmptyState = "Inventory Empty State"
         static let inventoryNoResults = "Inventory No Results"
         static let inventoryFilter = "Inventory filter"
+
+        static func newMarker(combatantName: String) -> String {
+            "\(combatantName) collection new marker"
+        }
     }
 
     enum Search {

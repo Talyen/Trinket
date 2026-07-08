@@ -72,6 +72,7 @@ extension AppState {
     }
 
     func finishBootstrap(environment: AppEnvironment) {
+        seedStarterCombatantsAsViewedIfNeeded()
         seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         if let mapScrollTarget = environment.mapScrollTarget {
             noteMapScrollFocus(mapScrollTarget)
