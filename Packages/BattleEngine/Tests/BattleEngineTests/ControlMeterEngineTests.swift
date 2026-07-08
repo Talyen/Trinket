@@ -137,7 +137,7 @@ struct ControlMeterEngineTests {
             context.roster.activeEffects(for: target).first {
                 guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
                 return amount < threshold
-            } != nil,
+            } == nil,
             "Partial build-up should be consumed on trigger"
         )
         try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))

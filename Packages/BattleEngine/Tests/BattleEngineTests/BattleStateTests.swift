@@ -264,7 +264,7 @@ struct BattleStateTests {
         try #expect(outcome.didApply)
         let ids = battle.activeEffects(of: battle.enemy).map(\.id)
         try #expect(Set(ids).count == ids.count)
-        try #expect(!(ids.contains(1)) && ids.filter { $0 == 1 }.count > 1)
+        try #expect(!(ids.contains(1) && ids.filter { $0 == 1 }.count > 1))
         try #expect(ids.contains(2))
     }
 
