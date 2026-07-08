@@ -21,6 +21,7 @@ struct OptionsStoreTests {
         #expect(abs((store.effectsVolume) - 0.85) < 0.001)
         #expect(store.hapticsEnabled)
         #expect(store.appearance == .system)
+        #expect(store.ultimateCinematicSkipPolicy == .always)
     }
 
     @Test func loadsPreviouslyStoredValues() {
@@ -28,6 +29,10 @@ struct OptionsStoreTests {
         context.userDefaults.set(0.6, forKey: "options.effectsVolume")
         context.userDefaults.set(false, forKey: "options.hapticsEnabled")
         context.userDefaults.set(TrinketDesign.AppAppearance.dark.rawValue, forKey: "options.appearance")
+        context.userDefaults.set(
+            UltimateCinematicSkipPolicy.never.rawValue,
+            forKey: OptionsStore.ultimateCinematicSkipPolicyKey
+        )
 
         let store = OptionsStore(defaults: context.userDefaults)
 
@@ -35,6 +40,7 @@ struct OptionsStoreTests {
         #expect(abs((store.effectsVolume) - 0.6) < 0.001)
         #expect(!(store.hapticsEnabled))
         #expect(store.appearance == .dark)
+        #expect(store.ultimateCinematicSkipPolicy == .never)
     }
 
     @Test func musicVolumePersistsOnChange() {
@@ -66,6 +72,8 @@ struct OptionsStoreTests {
         #expect(OptionsStore.effectsVolumeKey == "options.effectsVolume")
         #expect(OptionsStore.hapticsEnabledKey == "options.hapticsEnabled")
         #expect(OptionsStore.appearanceKey == "options.appearance")
+        #expect(OptionsStore.ultimateCinematicSkipPolicyKey == "options.ultimateCinematicSkipPolicy")
+        #expect(OptionsStore.seenUltimateCinematicsKey == "options.seenUltimateCinematics")
     }
 
     @Test func appearancePersistsOnChange() {

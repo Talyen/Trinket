@@ -17,7 +17,9 @@ struct BattleCombatantPane: View {
     let maxMana: Int
     let healthBarPlacement: HealthBarPlacement
     let events: [ActionEvent]
+    let skillCallout: SkillCalloutPresentation?
     let reduceMotion: Bool
+    let cinematicNamespace: Namespace.ID
     let onCombatantTap: () -> Void
 
     private var hasMana: Bool {
@@ -38,6 +40,22 @@ struct BattleCombatantPane: View {
                     reduceMotion: reduceMotion
                 )
                 .padding(.horizontal, 8)
+
+                if let skillCallout {
+                    SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                        .padding(10)
+                        .allowsHitTesting(false)
+                }
+
+                // Invisible source for Ultimate matched-geometry expand from this card.
+                Color.clear
+                    .frame(width: 1, height: 1)
+                    .matchedGeometryEffect(
+                        id: "ultimate-source-\(combatant.id)",
+                        in: cinematicNamespace,
+                        isSource: true
+                    )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketCardSurface()

@@ -7,6 +7,7 @@ import TrinketDesignSystem
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var isShowingBattleLog = false
+    @Namespace private var cinematicNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let configuration: ActiveBattleConfiguration
@@ -140,31 +141,57 @@ struct BattleView: View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
-            BattlefieldView(
-                layout: layout,
-                enemyPane: combatantPane(
-                    for: battleState.enemy,
-                    health: battleState.health(of: battleState.enemy),
-                    healthBarPlacement: .bottom,
-                    battleState: battleState,
-                    battleSession: battleSession
-                ),
-                heroPane: combatantPane(
-                    for: battleState.hero,
-                    health: battleState.health(of: battleState.hero),
-                    healthBarPlacement: .top,
-                    battleState: battleState,
-                    battleSession: battleSession
-                ),
-                petPane: combatantPane(
-                    for: battleState.pet,
-                    health: battleState.health(of: battleState.pet),
-                    healthBarPlacement: .top,
-                    battleState: battleState,
-                    battleSession: battleSession
+            ZStack {
+                BattlefieldView(
+                    layout: layout,
+                    enemyPane: combatantPane(
+                        for: battleState.enemy,
+                        health: battleState.health(of: battleState.enemy),
+                        healthBarPlacement: .bottom,
+                        battleState: battleState,
+                        battleSession: battleSession
+                    ),
+                    heroPane: combatantPane(
+                        for: battleState.hero,
+                        health: battleState.health(of: battleState.hero),
+                        healthBarPlacement: .top,
+                        battleState: battleState,
+                        battleSession: battleSession
+                    ),
+                    petPane: combatantPane(
+                        for: battleState.pet,
+                        health: battleState.health(of: battleState.pet),
+                        healthBarPlacement: .top,
+                        battleState: battleState,
+                        battleSession: battleSession
+                    )
                 )
-            )
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+
+                if let cinematic = battleSession.activeCinematic {
+                    UltimateCinematicOverlay(
+                        cinematic: cinematic,
+                        reduceMotion: reduceMotion,
+                        canSkip: appState.options.canSkipUltimateCinematic(abilityID: cinematic.abilityID),
+                        namespace: cinematicNamespace,
+                        onPlaying: {
+                            battleSession.markCinematicPlaying()
+                        },
+                        onRequestSkip: {
+                            battleSession.requestSkipCinematic()
+                        },
+                        onAutoFinish: {
+                            battleSession.beginCinematicCollapse()
+                        },
+                        onCollapseFinished: {
+                            battleSession.completeCinematicCollapse()
+                        }
+                    )
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .transition(.opacity)
+                    .zIndex(10)
+                }
+            }
         }
     }
 
@@ -184,7 +211,9 @@ struct BattleView: View {
             maxMana: manaValues.maxMana,
             healthBarPlacement: healthBarPlacement,
             events: feedbackEvents(for: combatant, battleSession: battleSession),
+            skillCallout: battleSession.skillCallout(for: combatant.id),
             reduceMotion: reduceMotion,
+            cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
         )
     }

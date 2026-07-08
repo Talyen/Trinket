@@ -52,6 +52,15 @@ struct OptionsView: View {
                 .accessibilityIdentifier("Haptics Toggle")
             }
 
+            Section("Battle") {
+                Picker("Skip Ultimate Animations", selection: $options.ultimateCinematicSkipPolicy) {
+                    ForEach(UltimateCinematicSkipPolicy.allCases) { policy in
+                        Text(policy.displayName).tag(policy)
+                    }
+                }
+                .accessibilityIdentifier("Ultimate Skip Policy Picker")
+            }
+
             Section("Game Data") {
                 Button("Reset Game Progress", role: .destructive) {
                     isResetConfirmationPresented = true

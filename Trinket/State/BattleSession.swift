@@ -3,10 +3,11 @@ import Foundation
 import Observation
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 import TrinketPersistence
 
 /// Owns battle simulation state and UI-facing presentation: overlays, outcome screens,
-/// feedback, and music preview.
+/// feedback, spectacle (Skill callouts / Ultimate cinematics), and music preview.
 @MainActor
 @Observable
 final class BattleSession {
@@ -17,6 +18,12 @@ final class BattleSession {
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
     var activeFeedbackEvents: [ActionEvent] = []
+    var activeSkillCallout: SkillCalloutPresentation?
+    var activeCinematic: BattleCinematicPresentation?
+
+    /// Optional Options store for Ultimate skip policy. Injected by AppState when available.
+    @ObservationIgnored
+    var options: OptionsStore?
 
     var activeBattle: ActiveBattleConfiguration? {
         didSet {
@@ -36,6 +43,11 @@ final class BattleSession {
     private var feedbackDisplayedAt: [Int: Date] = [:]
     private var overlayPauseDepth = 0
     private var pauseStateBeforeOverlay: Bool?
+    private var softHoldUntil: Date?
+    private var deferredFeedbackEvents: [ActionEvent] = []
+    private var cinematicPauseDepth = 0
+    private var pauseStateBeforeCinematic: Bool?
+    private var nextSpectacleID = 0
 
     var outcome: BattleSimulationOutcome? {
         guard let state else { return nil }
@@ -43,6 +55,10 @@ final class BattleSession {
             isPartyDefeated: state.isPartyDefeated,
             isEnemyDefeated: state.isEnemyDefeated
         )
+    }
+
+    var isCinematicActive: Bool {
+        activeCinematic != nil
     }
 
     func endBattle() {
@@ -80,6 +96,11 @@ final class BattleSession {
             pauseStateBeforeOverlay = nil
             return
         }
+        // Keep paused if a cinematic still owns the clock.
+        if cinematicPauseDepth > 0 {
+            pauseStateBeforeOverlay = nil
+            return
+        }
         isPaused = pauseStateBeforeOverlay ?? false
         pauseStateBeforeOverlay = nil
     }
@@ -101,6 +122,11 @@ final class BattleSession {
         feedbackEventsByTargetID[targetID] ?? []
     }
 
+    func skillCallout(for actorID: String) -> SkillCalloutPresentation? {
+        guard let activeSkillCallout, activeSkillCallout.actorID == actorID else { return nil }
+        return activeSkillCallout
+    }
+
     func removeFeedbackEvent(_ id: Int) {
         if let event = activeFeedbackEvents.first(where: { $0.id == id }) {
             feedbackEventsByTargetID[event.targetID]?.removeAll { $0.id == id }
@@ -116,6 +142,8 @@ final class BattleSession {
         for eventID in expiredIDs {
             removeFeedbackEvent(eventID)
         }
+        pruneExpiredSkillCallout(at: date)
+        pruneSoftHold(at: date)
     }
 
     func trimMemoryFootprint(releaseBattleLog: Bool) {
@@ -131,9 +159,14 @@ final class BattleSession {
         self.state = state
     }
 
-    func canAutoAdvanceTick() -> Bool {
+    func canAutoAdvanceTick(at date: Date = .now) -> Bool {
+        pruneSoftHold(at: date)
+        pruneExpiredSkillCallout(at: date)
         guard let state, !state.isBattleOver, !isPaused else { return false }
-        return !isShowingVictory && !isShowingDefeat
+        guard !isShowingVictory, !isShowingDefeat else { return false }
+        guard activeCinematic == nil else { return false }
+        if let softHoldUntil, date < softHoldUntil { return false }
+        return true
     }
 
     /// Advances one battle tick when unpaused. Returns earned gold when an already-claimed stage
@@ -145,10 +178,10 @@ final class BattleSession {
         homestead: PlayerHomesteadState
     ) -> Int? {
         pruneExpiredFeedback(at: date)
-        guard canAutoAdvanceTick(),
+        guard canAutoAdvanceTick(at: date),
               let configuration = activeBattle else { return nil }
 
-        advanceOneStep()
+        advanceOneStep(at: date)
 
         switch outcome {
         case .victory:
@@ -184,15 +217,132 @@ final class BattleSession {
     }
 
     @discardableResult
-    func advanceOneStep() -> BattleStep? {
+    func advanceOneStep(at date: Date = .now) -> BattleStep? {
         guard var state else { return nil }
         let step = state.advanceOneStep(rebuildLog: false)
         self.state = state
-        recordFeedbackEvents(
-            step.events.filter { $0.kind != .milestone },
-            at: .now
-        )
+
+        let nonMilestone = step.events.filter { $0.kind != .milestone }
+        let heroID = state.hero.id
+        let petID = state.pet.id
+
+        if let ultimate = nonMilestone.first(where: {
+            BattleSpectaclePolicy.shouldPresentUltimateCinematic(
+                for: $0,
+                heroID: heroID,
+                petID: petID
+            )
+        }) {
+            deferredFeedbackEvents = nonMilestone
+            beginCinematic(from: ultimate, at: date)
+            return step
+        }
+
+        recordFeedbackEvents(nonMilestone, at: date)
+        presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
         return step
+    }
+
+    func markCinematicPlaying() {
+        guard var cinematic = activeCinematic, cinematic.phase == .expanding else { return }
+        cinematic.phase = .playing
+        activeCinematic = cinematic
+    }
+
+    func requestSkipCinematic(at date: Date = .now) {
+        guard let cinematic = activeCinematic else { return }
+        guard date >= cinematic.skipArmedAt else { return }
+        guard options?.canSkipUltimateCinematic(abilityID: cinematic.abilityID) ?? true else { return }
+        beginCinematicCollapse()
+    }
+
+    func completeCinematicCollapse(at date: Date = .now) {
+        guard activeCinematic != nil else { return }
+        let abilityID = activeCinematic?.abilityID
+        activeCinematic = nil
+        restorePauseAfterCinematic()
+        let deferred = deferredFeedbackEvents
+        deferredFeedbackEvents = []
+        recordFeedbackEvents(deferred, at: date)
+        if let abilityID {
+            options?.markUltimateCinematicSeen(abilityID: abilityID)
+        }
+    }
+
+    func beginCinematicCollapse() {
+        guard var cinematic = activeCinematic, cinematic.phase != .collapsing else { return }
+        cinematic.phase = .collapsing
+        activeCinematic = cinematic
+    }
+
+    private func beginCinematic(from event: ActionEvent, at date: Date) {
+        nextSpectacleID += 1
+        pauseForCinematic()
+        activeCinematic = BattleCinematicPresentation(
+            id: nextSpectacleID,
+            actorID: event.actorID,
+            actorName: event.actorName,
+            abilityID: event.abilityID,
+            abilityName: event.abilityName,
+            keyword: event.keyword,
+            phase: .expanding,
+            startedAt: date,
+            skipArmedAt: date.addingTimeInterval(TrinketMotion.Battle.ultimateSkipLockout)
+        )
+        BattleCinematicPlayer.shared.warm(abilityID: event.abilityID)
+    }
+
+    private func presentCallouts(
+        from events: [ActionEvent],
+        heroID: String,
+        petID: String,
+        at date: Date
+    ) {
+        let calloutEvent = events.first {
+            BattleSpectaclePolicy.shouldPresentSkillCallout(for: $0)
+                || BattleSpectaclePolicy.shouldPresentEnemyUltimateAsCallout(
+                    for: $0,
+                    heroID: heroID,
+                    petID: petID
+                )
+        }
+        guard let calloutEvent else { return }
+        nextSpectacleID += 1
+        let hold = TrinketMotion.Battle.skillSoftHold
+        softHoldUntil = date.addingTimeInterval(hold)
+        activeSkillCallout = SkillCalloutPresentation(
+            id: nextSpectacleID,
+            actorID: calloutEvent.actorID,
+            abilityID: calloutEvent.abilityID,
+            abilityName: calloutEvent.abilityName,
+            keyword: calloutEvent.keyword,
+            expiresAt: date.addingTimeInterval(max(hold, TrinketMotion.Battle.skillCalloutTotal))
+        )
+    }
+
+    private func pauseForCinematic() {
+        guard activeBattle != nil else { return }
+        if cinematicPauseDepth == 0 {
+            pauseStateBeforeCinematic = isPaused
+        }
+        cinematicPauseDepth += 1
+        isPaused = true
+    }
+
+    private func restorePauseAfterCinematic() {
+        guard cinematicPauseDepth > 0 else { return }
+        cinematicPauseDepth -= 1
+        guard cinematicPauseDepth == 0 else { return }
+        guard activeBattle != nil else {
+            pauseStateBeforeCinematic = nil
+            return
+        }
+        if overlayPauseDepth > 0 {
+            pauseStateBeforeCinematic = nil
+            return
+        }
+        isPaused = pauseStateBeforeCinematic ?? false
+        pauseStateBeforeCinematic = nil
     }
 
     private func clearAllPresentation() {
@@ -201,8 +351,11 @@ final class BattleSession {
         preview = nil
         overlayCombatantDetail = nil
         clearFeedback()
+        clearSpectacle()
         overlayPauseDepth = 0
         pauseStateBeforeOverlay = nil
+        cinematicPauseDepth = 0
+        pauseStateBeforeCinematic = nil
     }
 
     private func recordFeedbackEvents(_ events: [ActionEvent], at date: Date = .now) {
@@ -219,6 +372,24 @@ final class BattleSession {
         feedbackDisplayedAt = [:]
     }
 
+    private func clearSpectacle() {
+        activeSkillCallout = nil
+        activeCinematic = nil
+        deferredFeedbackEvents = []
+        softHoldUntil = nil
+        BattleCinematicPlayer.shared.releaseAll()
+    }
+
+    private func pruneExpiredSkillCallout(at date: Date) {
+        guard let activeSkillCallout, date >= activeSkillCallout.expiresAt else { return }
+        self.activeSkillCallout = nil
+    }
+
+    private func pruneSoftHold(at date: Date) {
+        guard let softHoldUntil, date >= softHoldUntil else { return }
+        self.softHoldUntil = nil
+    }
+
     private func resetRun(from configuration: ActiveBattleConfiguration) {
         state = BattleState(
             hero: configuration.hero.combatant,
@@ -231,14 +402,20 @@ final class BattleSession {
             tracksLog: false
         )
         clearFeedback()
+        clearSpectacle()
         clearOutcomePresentation()
         isPaused = false
         overlayCombatantDetail = nil
+        BattleCinematicPlayer.shared.warmLoadout(
+            heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
+            petUltimateID: configuration.pet.combatant.abilityLoadout.ultimate?.id
+        )
     }
 
     private func clearRunState() {
         state = nil
         clearFeedback()
+        clearSpectacle()
         clearOutcomePresentation()
     }
 }

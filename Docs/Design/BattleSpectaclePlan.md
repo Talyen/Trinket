@@ -2,7 +2,8 @@
 
 Implementation plan for battle cast presentation. Design lock: Skill caster-anchored ability art + Hero/Pet Ultimate full-screen cinematics. Roadmap anchors: **R-008**, **R-011** (Ultimate-only). Complements `AppVisualFoundation.md` §Battle Feedback And Motion.
 
-**Status:** planned — awaiting implementation kickoff  
+**Status:** implementing — Phases 0–5 landed (art-fallback Ultimate path; video catalog stubbed until assets exist)  
+
 **Out of scope:** Skill full-screen cinematics, enemy Ultimate full-screen, keyword particles / card lunge (R-006), battle SFX (R-007), idle portrait loops (R-010)
 
 ---

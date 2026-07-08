@@ -147,6 +147,7 @@ final class AppState {
             shellSession.mapScrollStageID = dependencies.mapScrollStageID
         }
         battle = BattleSession()
+        battle.options = options
         finishBootstrap(environment: environment)
     }
 

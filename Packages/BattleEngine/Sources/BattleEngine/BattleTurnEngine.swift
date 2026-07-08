@@ -100,8 +100,11 @@ public enum BattleTurnEngine {
             context.nextEvent(
                 kind: .ability,
                 effectKind: nil,
+                actorID: actor.id,
                 actorName: actor.name,
+                abilityID: ability.id,
                 abilityName: ability.name,
+                abilityTier: ability.tier,
                 target: abilityTarget,
                 amount: damageOutcome.totalDealtToAbilityTarget,
                 keyword: ability.logDamageKeyword,
