@@ -33,7 +33,7 @@ struct DeathsDoorEngineTests {
         )
     }
 
-    @Test func triggerOnFirstLethalHit() {
+    @Test func triggerOnFirstLethalHit() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         let (_, events) = context.applyTestDamage(
@@ -44,16 +44,16 @@ struct DeathsDoorEngineTests {
             applyDodge: false
         )
 
-        #expect(context.roster.health(for: hero) == 1)
-        #expect(context.roster.hasConsumedDeathsDoor(for: hero))
-        #expect(context.roster.isDeathsDoorActive(for: hero))
-        #expect(
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        try #expect(context.roster.isDeathsDoorActive(for: hero))
+        try #expect(
             context.roster.activeEffects(for: hero).first?.remainingTicks == BattleTiming.deathsDoorDurationTicks
         )
-        #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        try #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
-    @Test func enemyNeverTriggers() {
+    @Test func enemyNeverTriggers() throws {
         var context = makeContext(enemyHP: 5)
         let enemy = context.roster.enemy.combatant
         _ = context.applyTestDamage(
@@ -64,21 +64,21 @@ struct DeathsDoorEngineTests {
             applyDodge: false
         )
 
-        #expect(context.roster.health(for: enemy) == 0)
-        #expect(!(context.roster.isDeathsDoorActive(for: enemy)))
+        try #expect(context.roster.health(for: enemy) == 0)
+        try #expect(!(context.roster.isDeathsDoorActive(for: enemy)))
     }
 
-    @Test func protectionClampsToOneWhileActive() {
+    @Test func protectionClampsToOneWhileActive() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         _ = context.applyTestDamage(20, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        #expect(context.roster.health(for: hero) == 1)
-        #expect(context.roster.isDeathsDoorActive(for: hero))
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.isDeathsDoorActive(for: hero))
     }
 
-    @Test func secondLethalAfterExpiryKills() {
+    @Test func secondLethalAfterExpiryKills() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
@@ -90,13 +90,13 @@ struct DeathsDoorEngineTests {
         }
         context.roster.setActiveEffects(effects, for: hero)
 
-        #expect(!(context.roster.isDeathsDoorActive(for: hero)))
+        try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
-        #expect(context.roster.health(for: hero) == 0)
-        #expect(!(context.roster.hero.isAlive))
+        try #expect(context.roster.health(for: hero) == 0)
+        try #expect(!(context.roster.hero.isAlive))
     }
 
-    @Test func heroAndPetProcIndependently() {
+    @Test func heroAndPetProcIndependently() throws {
         var context = makeContext(heroHP: 3, petHP: 3)
         let hero = context.roster.hero.combatant
         let pet = context.roster.pet.combatant
@@ -104,13 +104,13 @@ struct DeathsDoorEngineTests {
         _ = context.applyTestDamage(3, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         _ = context.applyTestDamage(3, to: pet, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
-        #expect(context.roster.hasConsumedDeathsDoor(for: hero))
-        #expect(context.roster.hasConsumedDeathsDoor(for: pet))
-        #expect(context.roster.isDeathsDoorActive(for: hero))
-        #expect(context.roster.isDeathsDoorActive(for: pet))
+        try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        try #expect(context.roster.hasConsumedDeathsDoor(for: pet))
+        try #expect(context.roster.isDeathsDoorActive(for: hero))
+        try #expect(context.roster.isDeathsDoorActive(for: pet))
     }
 
-    @Test func effectInsertedAtFrontOfActiveEffects() {
+    @Test func effectInsertedAtFrontOfActiveEffects() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         context.roster.setActiveEffects(
@@ -121,11 +121,11 @@ struct DeathsDoorEngineTests {
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
 
         let effects = context.roster.activeEffects(for: hero)
-        #expect(effects.count == 2)
-        #expect(effects.first?.effect.kind == .deathsDoor)
+        try #expect(effects.count == 2)
+        try #expect(effects.first?.effect.kind == .deathsDoor)
     }
 
-    @Test func doTTickTriggersDeathsDoor() {
+    @Test func doTTickTriggersDeathsDoor() throws {
         var context = makeContext(heroHP: 3)
         let hero = context.roster.hero.combatant
         let outcome = context.resolveDoTTick(
@@ -135,12 +135,12 @@ struct DeathsDoorEngineTests {
             sourceActorID: "enemy"
         )
 
-        #expect(outcome.healthLost > 0)
-        #expect(context.roster.health(for: hero) == 1)
-        #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        try #expect(outcome.healthLost > 0)
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(outcome.events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
     }
 
-    @Test func overkillShowsActualHPLost() {
+    @Test func overkillShowsActualHPLost() throws {
         var context = makeContext(heroHP: 5)
         let hero = context.roster.hero.combatant
         let (lost, _) = context.applyTestDamage(
@@ -151,7 +151,7 @@ struct DeathsDoorEngineTests {
             applyDodge: false
         )
 
-        #expect(lost == 5)
-        #expect(context.roster.health(for: hero) == 1)
+        try #expect(lost == 5)
+        try #expect(context.roster.health(for: hero) == 1)
     }
 }

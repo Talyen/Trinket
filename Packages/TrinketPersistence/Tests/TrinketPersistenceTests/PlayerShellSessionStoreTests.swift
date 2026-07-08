@@ -21,7 +21,7 @@ final class PlayerShellSessionStoreTests {
         store.selectedTab = .options
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        #expect(reloaded.selectedTab == .options)
+        try #expect(reloaded.selectedTab == .options)
     }
 
     @Test func migratesLegacyUserDefaultsOnFirstLaunch() throws {
@@ -32,9 +32,9 @@ final class PlayerShellSessionStoreTests {
         let storeURL = directoryURL.appending(path: "migrate-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL, legacyUserDefaults: defaults)
 
-        #expect(store.selectedTab == .homestead)
-        #expect(store.activeBattleStageID == "chapter-1-stage-2")
-        #expect(defaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
+        try #expect(store.selectedTab == .homestead)
+        try #expect(store.activeBattleStageID == "chapter-1-stage-2")
+        try #expect(defaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
     }
 
     @Test func clearBattleStateRemovesBattleAndScrollTargets() throws {
@@ -46,8 +46,8 @@ final class PlayerShellSessionStoreTests {
         store.clearBattleState()
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        #expect(reloaded.activeBattleStageID == nil)
-        #expect(reloaded.mapScrollStageID == nil)
-        #expect(reloaded.selectedTab == store.selectedTab)
+        try #expect(reloaded.activeBattleStageID == nil)
+        try #expect(reloaded.mapScrollStageID == nil)
+        try #expect(reloaded.selectedTab == store.selectedTab)
     }
 }

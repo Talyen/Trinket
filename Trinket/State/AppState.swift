@@ -18,9 +18,9 @@ let appStateLogger = Logger(
 @MainActor
 @Observable
 final class AppState {
-    private let environment: AppEnvironment
+    let environment: AppEnvironment
     let playerSave: PlayerSaveStore
-    private let shellSession: PlayerShellSessionStore
+    let shellSession: PlayerShellSessionStore
     let musicPlayer: MusicPlayer
     var shellScenePhase: ScenePhase = .active
     var roster: PlayerRosterStore
@@ -41,6 +41,10 @@ final class AppState {
     var activeBattleStageID: String? {
         get { shellSession.activeBattleStageID }
         set { shellSession.activeBattleStageID = newValue }
+    }
+
+    var activeBattleSavedAt: Date? {
+        shellSession.activeBattleSavedAt
     }
 
     var mapScrollStageID: String? {
@@ -89,6 +93,10 @@ final class AppState {
 
     func abandonSavedBattle() {
         shellSession.clearBattleState()
+    }
+
+    func markCombatantAsViewed(id: String) {
+        shellSession.markCombatantAsViewed(id: id)
     }
 
     var collectionActionableCount: Int {
@@ -146,9 +154,17 @@ final class AppState {
         options = dependencies.options
         journey = dependencies.journey
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
-        shellSession.selectedTab = PlayerShellSessionTab(rawValue: dependencies.selectedTab.rawValue) ?? .play
-        shellSession.activeBattleStageID = dependencies.activeBattleStageID
-        shellSession.mapScrollStageID = dependencies.mapScrollStageID
+        let desiredTab = PlayerShellSessionTab(rawValue: dependencies.selectedTab.rawValue) ?? .play
+        if shellSession.selectedTab != desiredTab {
+            shellSession.selectedTab = desiredTab
+        }
+        // Only reassign if changed to avoid re-triggering didSet side effects (e.g. activeBattleSavedAt reset)
+        if shellSession.activeBattleStageID != dependencies.activeBattleStageID {
+            shellSession.activeBattleStageID = dependencies.activeBattleStageID
+        }
+        if shellSession.mapScrollStageID != dependencies.mapScrollStageID {
+            shellSession.mapScrollStageID = dependencies.mapScrollStageID
+        }
         battle = BattleSession()
         finishBootstrap(environment: environment)
     }
@@ -381,7 +397,7 @@ final class AppState {
     func installMemoryPressureHandling() {
         #if canImport(UIKit)
         memoryPressureObserver = NotificationCenter.default.observe(
-            forName: UIApplication.didReceiveMemoryWarningNotification,
+            name: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in

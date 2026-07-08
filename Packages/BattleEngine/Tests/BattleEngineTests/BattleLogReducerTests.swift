@@ -5,7 +5,7 @@ import TrinketContent
 
 @Suite
 struct BattleLogReducerTests {
-    @Test func noDamageNoEffectsFallsBackToShortForm() {
+    @Test func noDamageNoEffectsFallsBackToShortForm() throws {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Block",
@@ -14,10 +14,10 @@ struct BattleLogReducerTests {
             targetName: "Enemy",
             appliedEffectSummaries: []
         )
-        #expect(line == "Hero uses Block.")
+        try #expect(line == "Hero uses Block.")
     }
 
-    @Test func damageOnlyShowsDamageForm() {
+    @Test func damageOnlyShowsDamageForm() throws {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Slash",
@@ -26,10 +26,10 @@ struct BattleLogReducerTests {
             targetName: "Enemy",
             appliedEffectSummaries: []
         )
-        #expect(line == "Hero uses Slash for 3 Physical damage to Enemy.")
+        try #expect(line == "Hero uses Slash for 3 Physical damage to Enemy.")
     }
 
-    @Test func effectsOnlyShowsOnForm() {
+    @Test func effectsOnlyShowsOnForm() throws {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Smite",
@@ -38,10 +38,10 @@ struct BattleLogReducerTests {
             targetName: "Hero",
             appliedEffectSummaries: ["restore 3 Health"]
         )
-        #expect(line == "Hero uses Smite on Hero and restore 3 Health.")
+        try #expect(line == "Hero uses Smite on Hero and restore 3 Health.")
     }
 
-    @Test func damageAndEffectsCombines() {
+    @Test func damageAndEffectsCombines() throws {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Fireball",
@@ -50,10 +50,10 @@ struct BattleLogReducerTests {
             targetName: "Enemy",
             appliedEffectSummaries: ["applies Burning"]
         )
-        #expect(line == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.")
+        try #expect(line == "Hero uses Fireball for 3 Burn damage to Enemy and applies Burning.")
     }
 
-    @Test func multipleEffectsJoinedByComma() {
+    @Test func multipleEffectsJoinedByComma() throws {
         let line = BattleLogReducer.lineForAction(
             actorName: "Hero",
             abilityName: "Heat Wave",
@@ -62,10 +62,10 @@ struct BattleLogReducerTests {
             targetName: "Enemy",
             appliedEffectSummaries: ["applies Burning", "gain Block"]
         )
-        #expect(line == "Hero uses Heat Wave on Enemy and applies Burning, gain Block.")
+        try #expect(line == "Hero uses Heat Wave on Enemy and applies Burning, gain Block.")
     }
 
-    @Test func entriesReduceMilestonesStatusAndAbilityEvents() {
+    @Test func entriesReduceMilestonesStatusAndAbilityEvents() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
@@ -117,7 +117,7 @@ struct BattleLogReducerTests {
         ]
 
         let entries = BattleLogReducer.entries(from: events, matchup: matchup)
-        #expect(entries.map(\.text) == [
+        try #expect(entries.map(\.text) == [
             "Hero and Pet face Enemy.",
             "Hero uses Slash for 3 Physical damage to Enemy.",
             "Enemy takes 2 Burn damage.",
@@ -125,7 +125,7 @@ struct BattleLogReducerTests {
         ])
     }
 
-    @Test func incrementalEntriesMatchFullRebuild() {
+    @Test func incrementalEntriesMatchFullRebuild() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
@@ -168,10 +168,10 @@ struct BattleLogReducerTests {
         let full = BattleLogReducer.entries(from: events, matchup: matchup)
         let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0, matchup: matchup)
         let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
-        #expect(firstBatch + secondBatch == full)
+        try #expect(firstBatch + secondBatch == full)
     }
 
-    @Test func logProjectionIncrementalSyncMatchesFullReduce() {
+    @Test func logProjectionIncrementalSyncMatchesFullReduce() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 20, abilities: [])
@@ -204,10 +204,10 @@ struct BattleLogReducerTests {
         projection.sync(events: [events[0]], matchup: matchup)
         projection.sync(events: events, matchup: matchup)
 
-        #expect(projection.entries == BattleLogProjection.entries(from: events, matchup: matchup))
+        try #expect(projection.entries == BattleLogProjection.entries(from: events, matchup: matchup))
     }
 
-    @Test func deathsDoorTriggeredLogLine() {
+    @Test func deathsDoorTriggeredLogLine() throws {
         let event = ActionEvent(
             id: 1,
             kind: .effect,
@@ -219,10 +219,10 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero is on Death's Door.")
+        try #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero is on Death's Door.")
     }
 
-    @Test func deathsDoorExpiredLogLine() {
+    @Test func deathsDoorExpiredLogLine() throws {
         let event = ActionEvent(
             id: 1,
             kind: .effect,
@@ -234,7 +234,7 @@ struct BattleLogReducerTests {
             amount: 0,
             keyword: .deathsDoor
         )
-        #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero's Death's Door fades.")
+        try #expect(BattleLogReducer.line(for: event, matchup: sampleMatchup()) == "Hero's Death's Door fades.")
     }
 
     private func sampleMatchup() -> BattleMatchup {

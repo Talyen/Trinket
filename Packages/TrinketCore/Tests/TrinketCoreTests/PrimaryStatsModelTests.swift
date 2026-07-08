@@ -4,19 +4,19 @@ import Testing
 
 @Suite
 struct PrimaryStatsModelTests {
-    @Test func defaultStatsEqualZero() {
+    @Test func defaultStatsEqualZero() throws {
         let stats = PrimaryStats()
-        #expect(stats.strength == 0)
-        #expect(stats.agility == 0)
-        #expect(stats.toughness == 0)
-        #expect(stats.intellect == 0)
-        #expect(stats.wisdom == 0)
+        try #expect(stats.strength == 0)
+        try #expect(stats.agility == 0)
+        try #expect(stats.toughness == 0)
+        try #expect(stats.intellect == 0)
+        try #expect(stats.wisdom == 0)
     }
 
     @Test func primaryStatsCodable() throws {
         let stats = PrimaryStats(strength: 1, agility: 2, toughness: 3, intellect: 4, wisdom: 5)
         let data = try JSONEncoder().encode(stats)
         let decoded = try JSONDecoder().decode(PrimaryStats.self, from: data)
-        #expect(decoded == stats)
+        try #expect(decoded == stats)
     }
 }

@@ -8,7 +8,7 @@ struct BattleSimulatorTests {
     private var defaultEnemy: Combatant { GameContent.enemies.first!.combatant }
     private var wolfPet: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
 
-    @Test func summaryComputesWinRateAndAverages() {
+    @Test func summaryComputesWinRateAndAverages() throws {
         let hero = GameContent.heroes[2]
         let victory = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy)
         let watcher = Combatant(id: "watcher", name: "Watcher", role: .hero, maxHealth: 10, abilities: [])
@@ -18,15 +18,15 @@ struct BattleSimulatorTests {
 
         let summary = BattleSimulationSummary.summarize([victory, tickLimit])
 
-        #expect(summary.runCount == 2)
-        #expect(summary.winCount == 1)
-        #expect(summary.tickLimitCount == 1)
-        #expect(abs((summary.winRate) - (0.5)) < 0.001)
-        #expect(summary.averageTickCount > 0)
-        #expect(summary.averageActionCount > 0)
+        try #expect(summary.runCount == 2)
+        try #expect(summary.winCount == 1)
+        try #expect(summary.tickLimitCount == 1)
+        try #expect(abs((summary.winRate) - (0.5)) < 0.001)
+        try #expect(summary.averageTickCount > 0)
+        try #expect(summary.averageActionCount > 0)
     }
 
-    @Test func runBatchProducesMultipleResults() {
+    @Test func runBatchProducesMultipleResults() throws {
         let matchup = BattleMatchup(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -37,12 +37,12 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(runCount: 3, seed: 42)
         )
 
-        #expect(batch.count == 1)
-        #expect(batch[0].results.count == 3)
-        #expect(batch[0].summary.runCount == 3)
+        try #expect(batch.count == 1)
+        try #expect(batch[0].results.count == 3)
+        try #expect(batch[0].summary.runCount == 3)
     }
 
-    @Test func recordsEventsDisabled() {
+    @Test func recordsEventsDisabled() throws {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -50,11 +50,11 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(recordsEvents: false)
         )
 
-        #expect(result.events.isEmpty)
-        #expect(!(result.log.isEmpty))
+        try #expect(result.events.isEmpty)
+        try #expect(!(result.log.isEmpty))
     }
 
-    @Test func recordsLogDisabled() {
+    @Test func recordsLogDisabled() throws {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -62,11 +62,11 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(recordsLog: false)
         )
 
-        #expect(result.log.isEmpty)
-        #expect(!(result.events.isEmpty))
+        try #expect(result.log.isEmpty)
+        try #expect(!(result.events.isEmpty))
     }
 
-    @Test func zeroMaxTicksReturnsTickLimitImmediately() {
+    @Test func zeroMaxTicksReturnsTickLimitImmediately() throws {
         let hero = GameContent.heroes[2]
         let result = BattleSimulator.run(
             hero: hero,
@@ -75,12 +75,12 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(maxTicks: 0)
         )
 
-        #expect(result.outcome == .tickLimit)
-        #expect(result.tickCount == 0)
-        #expect(result.didHitTickLimit)
+        try #expect(result.outcome == .tickLimit)
+        try #expect(result.tickCount == 0)
+        try #expect(result.didHitTickLimit)
     }
 
-    @Test func metricsSplitAbilityAndStatusDamage() {
+    @Test func metricsSplitAbilityAndStatusDamage() throws {
         let result = BattleSimulator.run(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -88,9 +88,9 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(seed: 42)
         )
 
-        #expect(result.metrics.abilityDamage > 0)
-        #expect(result.metrics.statusDamage >= 0)
-        #expect(
+        try #expect(result.metrics.abilityDamage > 0)
+        try #expect(result.metrics.statusDamage >= 0)
+        try #expect(
             result.metrics.totalDamage == result.metrics.abilityDamage + result.metrics.statusDamage
         )
     }
@@ -101,19 +101,19 @@ struct BattleSimulatorTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
 
-        #expect(result.log.contains { $0.text.contains("is defeated.") })
+        try #expect(result.log.contains { $0.text.contains("is defeated.") })
     }
 
-    @Test func defeatLogMessage() {
+    @Test func defeatLogMessage() throws {
         let hero = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let pet = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
         let result = BattleSimulator.run(hero: hero, pet: pet, enemy: enemy)
 
-        #expect(result.log.contains { $0.text.contains("Your party has been defeated") })
+        try #expect(result.log.contains { $0.text.contains("Your party has been defeated") })
     }
 
-    @Test func deferredLogRebuildMatchesEagerRebuild() {
+    @Test func deferredLogRebuildMatchesEagerRebuild() throws {
         let hero = GameContent.heroes[2]
         let options = BattleSimulationOptions(seed: 42, rebuildLogEachStep: false)
         let deferred = BattleSimulator.run(hero: hero, pet: wolfPet, enemy: defaultEnemy, options: options)
@@ -124,12 +124,12 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(seed: 42, rebuildLogEachStep: true)
         )
 
-        #expect(deferred.outcome == eager.outcome)
-        #expect(deferred.log.map(\.text) == eager.log.map(\.text))
-        #expect(deferred.events.map(\.id) == eager.events.map(\.id))
+        try #expect(deferred.outcome == eager.outcome)
+        try #expect(deferred.log.map(\.text) == eager.log.map(\.text))
+        try #expect(deferred.events.map(\.id) == eager.events.map(\.id))
     }
 
-    @Test func lazyLogSyncMatchesTrackedLog() {
+    @Test func lazyLogSyncMatchesTrackedLog() throws {
         var battle = BattleState(
             hero: GameContent.heroes[2],
             pet: wolfPet,
@@ -142,7 +142,7 @@ struct BattleSimulatorTests {
             _ = battle.advanceOneStep(rebuildLog: false)
         }
 
-        #expect(battle.log.isEmpty)
+        try #expect(battle.log.isEmpty)
 
         battle.syncLog()
 
@@ -153,6 +153,6 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(seed: 42, recordsLog: true, rebuildLogEachStep: true)
         )
 
-        #expect(battle.log.map(\.text) == tracked.log.map(\.text))
+        try #expect(battle.log.map(\.text) == tracked.log.map(\.text))
     }
 }

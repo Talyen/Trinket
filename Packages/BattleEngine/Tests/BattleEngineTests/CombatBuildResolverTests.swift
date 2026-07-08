@@ -27,8 +27,8 @@ struct CombatBuildResolverTests {
             inventory: [item]
         )
 
-        #expect(build.combatant.primaryStats.strength == knight.primaryStats.strength + 1)
-        #expect(build.modifiers.damageDealtBonus(for: .physical) == 0)
+        try #expect(build.combatant.primaryStats.strength == knight.primaryStats.strength + 1)
+        try #expect(build.modifiers.damageDealtBonus(for: .physical) == 0)
     }
 
     @Test func equippedDamageAffixesAggregateIntoModifierProfile() throws {
@@ -54,8 +54,8 @@ struct CombatBuildResolverTests {
             inventory: [item]
         )
 
-        #expect(build.modifiers.damageDealtBonus[.physical] == 3)
-        #expect(build.modifiers.damageDealtBonus[.bleed] == 2)
+        try #expect(build.modifiers.damageDealtBonus[.physical] == 3)
+        try #expect(build.modifiers.damageDealtBonus[.bleed] == 2)
     }
 
     @Test func multipleEquippedItemsStackModifiers() throws {
@@ -90,9 +90,9 @@ struct CombatBuildResolverTests {
             inventory: [weapon, armor]
         )
 
-        #expect(build.modifiers.maximumHealthBonus == 4)
-        #expect(build.modifiers.blockGainedBonus == 3)
-        #expect(build.effectiveMaxHealth == knight.maxHealth + knight.primaryStats.toughness + 4)
+        try #expect(build.modifiers.maximumHealthBonus == 4)
+        try #expect(build.modifiers.blockGainedBonus == 3)
+        try #expect(build.effectiveMaxHealth == knight.maxHealth + knight.primaryStats.toughness + 4)
     }
 
     @Test func traitModifiersMergeIntoBuildProfile() throws {
@@ -103,7 +103,7 @@ struct CombatBuildResolverTests {
             inventory: []
         )
 
-        #expect(build.modifiers.blockGainedBonus == 1)
-        #expect(build.modifiers.traitDisplayName == "Oathbound")
+        try #expect(build.modifiers.blockGainedBonus == 1)
+        try #expect(build.modifiers.traitDisplayName == "Oathbound")
     }
 }

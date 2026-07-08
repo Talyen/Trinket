@@ -11,7 +11,7 @@ struct BattleStateSchedulingTests {
         battle.advanceOneStep()
     }
 
-    @Test func advanceOneStepReturnsEndedWhenBattleOver() {
+    @Test func advanceOneStepReturnsEndedWhenBattleOver() throws {
         let fragile = Combatant(id: "fragile", name: "Fragile", role: .hero, maxHealth: 1, abilities: [])
         let helper = Combatant(id: "helper", name: "Helper", role: .pet, maxHealth: 1, abilities: [])
         let enemy = Combatant(id: "strong", name: "Strong", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -22,13 +22,13 @@ struct BattleStateSchedulingTests {
         }
 
         if case let .ended(events) = advance(&battle) {
-            #expect(events.isEmpty)
+            try #expect(events.isEmpty)
         } else {
             Issue.record("Expected ended step when battle is over")
         }
     }
 
-    @Test func firstActionIsHeroOnSecondTick() {
+    @Test func firstActionIsHeroOnSecondTick() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -41,16 +41,16 @@ struct BattleStateSchedulingTests {
         }
 
         if case let .acted(actor, events) = advance(&battle) {
-            #expect(actor.id == hero.id)
-            #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Hero"])
+            try #expect(actor.id == hero.id)
+            try #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Hero"])
         } else {
             Issue.record("Expected hero to act on tick 2")
         }
 
-        #expect(battle.actionCount(of: battle.enemy) == 0)
+        try #expect(battle.actionCount(of: battle.enemy) == 0)
     }
 
-    @Test func petActsOnThirdTickAfterHero() {
+    @Test func petActsOnThirdTickAfterHero() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -60,14 +60,14 @@ struct BattleStateSchedulingTests {
         _ = advance(&battle)
 
         if case let .acted(actor, events) = advance(&battle) {
-            #expect(actor.id == pet.id)
-            #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Pet"])
+            try #expect(actor.id == pet.id)
+            try #expect(events.filter { $0.kind == .ability }.map(\.actorName) == ["Pet"])
         } else {
             Issue.record("Expected pet to act on tick 3")
         }
     }
 
-    @Test func onlyOneActorActsPerStep() {
+    @Test func onlyOneActorActsPerStep() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -78,21 +78,21 @@ struct BattleStateSchedulingTests {
         let petStep = advance(&battle)
 
         if case let .acted(heroActor, heroEvents) = heroStep {
-            #expect(heroActor.id == hero.id)
-            #expect(heroEvents.filter { $0.kind == .ability }.count == 1)
+            try #expect(heroActor.id == hero.id)
+            try #expect(heroEvents.filter { $0.kind == .ability }.count == 1)
         } else {
             Issue.record("Expected hero step")
         }
 
         if case let .acted(petActor, petEvents) = petStep {
-            #expect(petActor.id == pet.id)
-            #expect(petEvents.filter { $0.kind == .ability }.count == 1)
+            try #expect(petActor.id == pet.id)
+            try #expect(petEvents.filter { $0.kind == .ability }.count == 1)
         } else {
             Issue.record("Expected pet step")
         }
     }
 
-    @Test func enemyAttacksOnSixthTick() {
+    @Test func enemyAttacksOnSixthTick() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 50, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 50, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -101,18 +101,18 @@ struct BattleStateSchedulingTests {
         for _ in 0 ..< 5 {
             _ = advance(&battle)
         }
-        #expect(battle.actionCount(of: battle.enemy) == 0)
+        try #expect(battle.actionCount(of: battle.enemy) == 0)
 
         if case let .acted(actor, _) = advance(&battle) {
-            #expect(actor.id == enemy.id)
+            try #expect(actor.id == enemy.id)
         } else {
             Issue.record("Expected enemy to act on tick 6")
         }
-        #expect(battle.actionCount(of: battle.enemy) == 1)
-        #expect(battle.tickCount == 6)
+        try #expect(battle.actionCount(of: battle.enemy) == 1)
+        try #expect(battle.tickCount == 6)
     }
 
-    @Test func fastEnemyActsBeforePartyOnSeparateSteps() {
+    @Test func fastEnemyActsBeforePartyOnSeparateSteps() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(
@@ -126,25 +126,25 @@ struct BattleStateSchedulingTests {
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case let .acted(actor, _) = advance(&battle) {
-            #expect(actor.id == enemy.id)
+            try #expect(actor.id == enemy.id)
         } else {
             Issue.record("Expected enemy on tick 1")
         }
 
         if case let .acted(actor, _) = advance(&battle) {
-            #expect(actor.id == hero.id)
+            try #expect(actor.id == hero.id)
         } else {
             Issue.record("Expected hero on tick 2")
         }
 
         if case let .acted(actor, _) = advance(&battle) {
-            #expect(actor.id == pet.id)
+            try #expect(actor.id == pet.id)
         } else {
             Issue.record("Expected pet on tick 3")
         }
     }
 
-    @Test func burnEffectExpiresAfterDuration() {
+    @Test func burnEffectExpiresAfterDuration() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -157,14 +157,14 @@ struct BattleStateSchedulingTests {
             ]
         )
 
-        #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .burn }.isEmpty)
+        try #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .burn }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
+        try #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .burn }.isEmpty)
     }
 
-    @Test func poisonEffectExpiresAfterDuration() {
+    @Test func poisonEffectExpiresAfterDuration() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -177,22 +177,22 @@ struct BattleStateSchedulingTests {
             ]
         )
 
-        #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .poison }.isEmpty)
+        try #expect(!(battle.effectSummaries(of: battle.enemy)).filter { $0.keyword == .poison }.isEmpty)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
         _ = advance(&battle)
-        #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
+        try #expect(battle.effectSummaries(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
     }
 
-    @Test func effectsOnlyStepWhenNobodyReady() {
+    @Test func effectsOnlyStepWhenNobodyReady() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
         var battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: enemy)
 
         if case .effectsOnly = advance(&battle) {
-            #expect(battle.tickCount == 1)
+            try #expect(battle.tickCount == 1)
         } else {
             Issue.record("Expected passive tick before first actions")
         }
@@ -205,11 +205,11 @@ struct BattleStateSchedulingTests {
         _ = advance(&battle)
         _ = advance(&battle)
 
-        #expect(battle.gold == 11)
-        #expect(battle.earnedGold == 1)
+        try #expect(battle.gold == 11)
+        try #expect(battle.earnedGold == 1)
     }
 
-    @Test func skillFiresOnTurn3UltimateOnTurn6() {
+    @Test func skillFiresOnTurn3UltimateOnTurn6() throws {
         let basic = Ability(id: "basic", name: "BasicAtk", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "skill", name: "SkillAtk", tier: .skill, directDamage: 3, description: "Skill")
         let ultimate = Ability(id: "ultimate", name: "UltAtk", tier: .ultimate, directDamage: 6, description: "Ultimate")
@@ -244,7 +244,7 @@ struct BattleStateSchedulingTests {
             if battle.isBattleOver { break }
         }
 
-        #expect(heroAbilityNames == ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
+        try #expect(heroAbilityNames == ["BasicAtk", "BasicAtk", "SkillAtk", "BasicAtk", "BasicAtk", "UltAtk"])
     }
 
     private var defaultEnemy: Combatant {

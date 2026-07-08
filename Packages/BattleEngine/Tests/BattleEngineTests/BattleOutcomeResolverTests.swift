@@ -5,26 +5,26 @@ import TrinketContent
 
 @Suite
 struct BattleOutcomeResolverTests {
-    @Test func simultaneousDefeatResolvesAsVictory() {
-        #expect(
+    @Test func simultaneousDefeatResolvesAsVictory() throws {
+        try #expect(
             BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: true) == .victory
         )
     }
 
-    @Test func partyDefeatResolvesAsDefeat() {
-        #expect(
+    @Test func partyDefeatResolvesAsDefeat() throws {
+        try #expect(
             BattleSimulationOutcome.resolve(isPartyDefeated: true, isEnemyDefeated: false) == .defeat
         )
     }
 
-    @Test func enemyDefeatResolvesAsVictory() {
-        #expect(
+    @Test func enemyDefeatResolvesAsVictory() throws {
+        try #expect(
             BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: true) == .victory
         )
     }
 
-    @Test func ongoingBattleReturnsNil() {
-        #expect(
+    @Test func ongoingBattleReturnsNil() throws {
+        try #expect(
             BattleSimulationOutcome.resolve(isPartyDefeated: false, isEnemyDefeated: false) == nil
         )
     }

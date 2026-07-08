@@ -57,12 +57,20 @@ struct AppEnvironment {
     }
 
     static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
-        AppEnvironment(
+        let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
+        let disableCloudSync: Bool
+        #if targetEnvironment(simulator)
+        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests || !arguments.contains("-enable-cloud-sync")
+        #else
+        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests
+        #endif
+
+        return AppEnvironment(
             launchTab: launchTab(from: arguments),
             launchScreen: launchScreen(from: arguments),
             resetState: arguments.contains("-reset-state"),
             seedTestProgress: arguments.contains("-seed-test-progress"),
-            disableCloudSync: arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state"),
+            disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),
             appearanceOverride: appearanceOverride(from: arguments),

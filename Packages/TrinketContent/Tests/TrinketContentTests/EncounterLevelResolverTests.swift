@@ -11,16 +11,16 @@ struct EncounterLevelResolverTests {
         }
 
         let levels = battleStages.map { EncounterLevelResolver.journeyEnemyLevel(for: $0, in: chapter) }
-        #expect(levels.first == 1)
-        #expect(levels.last == 5)
-        #expect(levels == levels.sorted())
-        #expect(Set(levels).count >= 4)
+        try #expect(levels.first == 1)
+        try #expect(levels.last == 5)
+        try #expect(levels == levels.sorted())
+        try #expect(Set(levels).count >= 4)
     }
 
     @Test func nonBattleStagesReturnChapterBaseLevel() throws {
         let chapter = try #require(GameContent.chapters.first)
         let eventStage = try #require(chapter.stages.first { if case .event = $0.encounter { return true } else { return false } })
 
-        #expect(EncounterLevelResolver.journeyEnemyLevel(for: eventStage, in: chapter) == 1)
+        try #expect(EncounterLevelResolver.journeyEnemyLevel(for: eventStage, in: chapter) == 1)
     }
 }

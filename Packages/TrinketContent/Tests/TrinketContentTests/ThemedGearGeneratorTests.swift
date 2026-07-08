@@ -17,14 +17,14 @@ struct ThemedGearGeneratorTests {
             using: &rng
         )
 
-        #expect(build.inventory.count == knight.role.equipmentSlots.count)
-        #expect(build.inventory.allSatisfy { $0.affixes.count == 1 })
-        #expect(build.loadout.itemIDsBySlot.count == knight.role.equipmentSlots.count)
+        try #expect(build.inventory.count == knight.role.equipmentSlots.count)
+        try #expect(build.inventory.allSatisfy { $0.affixes.count == 1 })
+        try #expect(build.loadout.itemIDsBySlot.count == knight.role.equipmentSlots.count)
     }
 
     @Test func keywordProfileIncludesAbilityKeywords() throws {
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
-        #expect(wizard.keywordProfile.contains(.burn))
+        try #expect(wizard.keywordProfile.contains(.burn))
     }
 
     @Test func fixedAffixCountOverrideInItemGenerator() throws {
@@ -40,6 +40,6 @@ struct ThemedGearGeneratorTests {
             using: &rng
         )
 
-        #expect(item.affixes.count == 1)
+        try #expect(item.affixes.count == 1)
     }
 }

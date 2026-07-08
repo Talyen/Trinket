@@ -25,7 +25,7 @@ struct ResumeBattleCardView: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        if let stageID = appState.sessionState.activeBattleStageID,
+        if let stageID = appState.activeBattleStageID,
            let stage = GameContent.stage(id: stageID) {
             VStack(spacing: 14) {
                 HStack(alignment: .top, spacing: 14) {
@@ -106,7 +106,7 @@ struct ResumeBattleCardView: View {
     }
 
     private var elapsedText: String? {
-        guard let savedAt = appState.sessionState.activeBattleSavedAt else { return nil }
+        guard let savedAt = appState.activeBattleSavedAt else { return nil }
         let elapsedSeconds = Date.now.timeIntervalSince(savedAt)
         let minutes = Int(elapsedSeconds / 60)
         if minutes < 1 {

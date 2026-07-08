@@ -1,22 +1,22 @@
 import SwiftUI
-import TrinketDesignSystem
+@testable import TrinketDesignSystem
 import Testing
 
 @Suite
 struct VisualFoundationTests {
-    @Test func backgroundModeDisplayNamesAreNonEmpty() {
+    @Test func backgroundModeDisplayNamesAreNonEmpty() throws {
         for mode in BackgroundMode.allCases {
-            #expect(!(mode.displayName.isEmpty))
-            #expect(mode.id == mode)
+            try #expect(!(mode.displayName.isEmpty))
+            try #expect(mode.id == mode)
         }
     }
 
-    @Test func typographyRolesProvideFonts() {
-        #expect(TypographyRole.button.font != TypographyRole.body.font)
-        #expect(TypographyRole.statValue.font != TypographyRole.tooltip.font)
+    @Test func typographyRolesProvideFonts() throws {
+        try #expect(TypographyRole.button.font != TypographyRole.body.font)
+        try #expect(TypographyRole.statValue.font != TypographyRole.tooltip.font)
     }
 
-    @Test func materialRoleStylesMatchLiquidGlassPlan() {
+    @Test func materialRoleStylesMatchLiquidGlassPlan() throws {
         let palette = ThemePalette.apple
 
         if case .none = MaterialRoleStyle(role: .toolbar) {} else {
@@ -24,25 +24,25 @@ struct VisualFoundationTests {
         }
 
         if case let .glass(_, solidFill) = MaterialRoleStyle(role: .bottomBar) {
-            #expect(solidFill == palette.panelSurface)
+            try #expect(solidFill == palette.panelSurface)
         } else {
             Issue.record("bottomBar should use glass")
         }
 
         if case let .solid(fill) = MaterialRoleStyle(role: .modal) {
-            #expect(fill == palette.panelSurface)
+            try #expect(fill == palette.panelSurface)
         } else {
             Issue.record("modal should use solid surface")
         }
 
         if case let .glass(_, solidFill) = MaterialRoleStyle(role: .popover) {
-            #expect(solidFill == palette.elevatedBackground)
+            try #expect(solidFill == palette.elevatedBackground)
         } else {
             Issue.record("popover should use glass")
         }
 
         if case let .glass(_, solidFill) = MaterialRoleStyle(role: .rewardReveal) {
-            #expect(solidFill == palette.elevatedBackground)
+            try #expect(solidFill == palette.elevatedBackground)
         } else {
             Issue.record("rewardReveal should use tinted glass")
         }
@@ -52,9 +52,9 @@ struct VisualFoundationTests {
         }
     }
 
-    @Test func glassChromeSolidFillsAreDistinct() {
+    @Test func glassChromeSolidFillsAreDistinct() throws {
         let palette = ThemePalette.apple
-        #expect(palette.elevatedBackground != palette.panelSurface)
-        #expect(palette.panelSurface != palette.secondaryBackground)
+        try #expect(palette.elevatedBackground != palette.panelSurface)
+        try #expect(palette.panelSurface != palette.secondaryBackground)
     }
 }

@@ -27,10 +27,10 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeInventory(inventory)
 
-        #expect(sanitized.items.map(\.id) == ["shared-id", "unique-id"])
+        try #expect(sanitized.items.map(\.id) == ["shared-id", "unique-id"])
     }
 
-    @Test func sanitizeJourneyClampsInvalidStageAndChapterIDs() {
+    @Test func sanitizeJourneyClampsInvalidStageAndChapterIDs() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "missing-chapter"
         journey.activeStageID = "missing-stage"
@@ -39,13 +39,13 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        #expect(sanitized.activeChapterID == "chapter-1")
-        #expect(sanitized.activeStageID == "chapter-1-stage-2")
-        #expect(sanitized.completedStageIDs == ["chapter-1-stage-1"])
-        #expect(sanitized.claimedRewardStageIDs.isEmpty)
+        try #expect(sanitized.activeChapterID == "chapter-1")
+        try #expect(sanitized.activeStageID == "chapter-1-stage-2")
+        try #expect(sanitized.completedStageIDs == ["chapter-1-stage-1"])
+        try #expect(sanitized.claimedRewardStageIDs.isEmpty)
     }
 
-    @Test func sanitizeJourneyAlignsActiveChapterWithActiveStage() {
+    @Test func sanitizeJourneyAlignsActiveChapterWithActiveStage() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "chapter-2"
         journey.activeStageID = "chapter-1-stage-2"
@@ -53,21 +53,21 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        #expect(sanitized.activeStageID == "chapter-1-stage-2")
-        #expect(sanitized.activeChapterID == "chapter-1")
+        try #expect(sanitized.activeStageID == "chapter-1-stage-2")
+        try #expect(sanitized.activeChapterID == "chapter-1")
     }
 
-    @Test func sanitizeJourneyMarksClaimedStagesAsCompleted() {
+    @Test func sanitizeJourneyMarksClaimedStagesAsCompleted() throws {
         var journey = JourneyProgressState.initial
         journey.claimedRewardStageIDs.insert("chapter-1-stage-1")
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        #expect(sanitized.completedStageIDs.contains("chapter-1-stage-1"))
-        #expect(sanitized.claimedRewardStageIDs.contains("chapter-1-stage-1"))
+        try #expect(sanitized.completedStageIDs.contains("chapter-1-stage-1"))
+        try #expect(sanitized.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
-    @Test func sanitizeRosterFiltersInvalidUnlockIDs() {
+    @Test func sanitizeRosterFiltersInvalidUnlockIDs() throws {
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
@@ -81,11 +81,11 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
-        #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
-        #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
+        try #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
+        try #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
     }
 
-    @Test func sanitizeRosterFallsBackToStartersWhenUnlocksEmpty() {
+    @Test func sanitizeRosterFallsBackToStartersWhenUnlocksEmpty() throws {
         let roster = PlayerRosterState(
             activeHeroID: "wizard",
             activePetID: "wolf",
@@ -99,16 +99,18 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
-        #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
-        #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
-        #expect(sanitized.activeHeroID == PlayerRosterState.starterHeroID)
-        #expect(sanitized.activePetID == PlayerRosterState.starterPetID)
+        try #expect(sanitized.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
+        try #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
+        try #expect(sanitized.activeHeroID == PlayerRosterState.starterHeroID)
+        try #expect(sanitized.activePetID == PlayerRosterState.starterPetID)
     }
 
     @Test func sanitizeRosterStripsUnknownCombatantAbilityLoadouts() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var unknownLoadout = knight.abilityLoadout
-        unknownLoadout.skill = knight.abilityChoices.abilities(for: .skill).first
+        if let skill = knight.abilityChoices.abilities(for: .skill).first {
+            unknownLoadout = unknownLoadout.selecting(skill)
+        }
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
@@ -125,18 +127,19 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
-        #expect(Set(sanitized.abilityLoadouts.keys) == ["knight"])
+        try #expect(Set(sanitized.abilityLoadouts.keys) == ["knight"])
     }
 
     @Test func sanitizeRosterResolvesInvalidAbilityIDs() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         var invalidLoadout = knight.abilityLoadout
-        invalidLoadout.skill = Ability(
+        let missingAbility = Ability(
             id: "missing-ability",
             name: "Missing",
             tier: .skill,
             description: "Missing"
         )
+        invalidLoadout = invalidLoadout.selecting(missingAbility)
         let roster = PlayerRosterState(
             activeHeroID: PlayerRosterState.starterHeroID,
             activePetID: PlayerRosterState.starterPetID,
@@ -150,7 +153,7 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
 
-        #expect(
+        try #expect(
             sanitized.loadout(for: knight).skill?.id == knight.abilityLoadout.skill?.id
         )
     }
@@ -184,8 +187,8 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
 
-        #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
-        #expect(sanitized.inventory.items.map(\.id) == ["weapon-id"])
+        try #expect(sanitized.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
+        try #expect(sanitized.inventory.items.map(\.id) == ["weapon-id"])
     }
 
     @Test func sanitizeRosterStripsWeaponSlotFromPets() throws {
@@ -230,8 +233,8 @@ final class PlayerSaveSanitizerTests {
         let sanitized = PlayerSaveSanitizer.sanitize(save)
         let loadout = sanitized.roster.equipmentLoadout(for: bear)
 
-        #expect(loadout.itemID(for: .weapon) == nil)
-        #expect(loadout.itemID(for: .trinket) == trinket.id)
+        try #expect(loadout.itemID(for: .weapon) == nil)
+        try #expect(loadout.itemID(for: .trinket) == trinket.id)
     }
 
     @Test func sanitizeFullPipelineCombinesInventoryAndRoster() throws {
@@ -250,7 +253,7 @@ final class PlayerSaveSanitizerTests {
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
 
-        #expect(sanitized.inventory.items.map(\.id) == ["item-id"])
-        #expect(sanitized.roster.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
+        try #expect(sanitized.inventory.items.map(\.id) == ["item-id"])
+        try #expect(sanitized.roster.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
     }
 }

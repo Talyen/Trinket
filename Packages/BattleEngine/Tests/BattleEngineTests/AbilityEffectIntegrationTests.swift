@@ -6,7 +6,7 @@ import TrinketContent
 /// Integration tests for catalog abilities that combine damage, effects, and resources.
 @Suite
 struct AbilityEffectIntegrationTests {
-    @Test func blackjackGrantsGoldAlongsideStunDamage() {
+    @Test func blackjackGrantsGoldAlongsideStunDamage() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -20,10 +20,10 @@ struct AbilityEffectIntegrationTests {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        #expect(battle.gold == 1)
+        try #expect(battle.gold == 1)
     }
 
-    @Test func poisonEffectAppliesThroughTargetedEffects() {
+    @Test func poisonEffectAppliesThroughTargetedEffects() throws {
         let poisonAbility = Ability(
             id: "legacy",
             name: "Legacy",
@@ -39,7 +39,7 @@ struct AbilityEffectIntegrationTests {
 
         BattleTestFixtures.advanceTicks(2, on: &battle)
 
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
+        try #expect(battle.activeEffects(of: battle.enemy).contains { $0.keyword == .poison })
     }
 
     @Test func bloodthornDealsComponentDamageAndAppliesDoTs() throws {
@@ -62,13 +62,13 @@ struct AbilityEffectIntegrationTests {
 
         // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
         // before the seeded DoTs tick.
-        #expect(battle.health(of: battle.enemy) == 94)
-        #expect(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
-        #expect(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
-        #expect(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
+        try #expect(battle.health(of: battle.enemy) == 94)
+        try #expect(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
+        try #expect(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
+        try #expect(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
     }
 
-    @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() {
+    @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -90,7 +90,7 @@ struct AbilityEffectIntegrationTests {
         )
 
         _ = battle.advanceOneStep()
-        #expect(battle.health(of: battle.hero) < 10)
+        try #expect(battle.health(of: battle.hero) < 10)
 
         let step = BattleTestFixtures.advanceUntilAbility("Prayer", on: &battle)
         guard let step else {
@@ -98,7 +98,7 @@ struct AbilityEffectIntegrationTests {
 
             return
         }
-        #expect(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
-        #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
+        try #expect(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
+        try #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
     }
 }

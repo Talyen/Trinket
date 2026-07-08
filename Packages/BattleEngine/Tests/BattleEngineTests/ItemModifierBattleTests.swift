@@ -37,7 +37,7 @@ struct ItemModifierBattleTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        #expect(100 - battle.health(of: battle.enemy) == 2)
+        try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 
     @Test func equippedMaximumHealthAffixIncreasesStartingHealth() throws {
@@ -70,7 +70,7 @@ struct ItemModifierBattleTests {
             heroModifiers: modifiers
         )
 
-        #expect(battle.health(of: battle.hero) == 14)
+        try #expect(battle.health(of: battle.hero) == 14)
     }
 
     @Test func equippedMightyAffixIncreasesStrengthBasedDamage() throws {
@@ -109,7 +109,7 @@ struct ItemModifierBattleTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        #expect(100 - battle.health(of: battle.enemy) == 2)
+        try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 
     @Test func equippedSerratedAffixIncreasesBleedDamage() throws {
@@ -141,6 +141,6 @@ struct ItemModifierBattleTests {
 
         _ = battle.advanceOneStep()
 
-        #expect(100 - battle.health(of: battle.enemy) == 2)
+        try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
 }

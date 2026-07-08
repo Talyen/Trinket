@@ -41,7 +41,7 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.gold == firstStage.rewards.gold + 4)
+        try #expect(context.roster.gold == firstStage.rewards.gold + 4)
     }
 
     @Test func completingStageGrantsGoldXPAndItems() throws {
@@ -57,7 +57,7 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.gold == firstStage.rewards.gold)
+        try #expect(context.roster.gold == firstStage.rewards.gold)
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let petLevel = PlayerRosterState.initial.progression(for: pet).level
@@ -75,14 +75,14 @@ struct StageRewardTests {
                 highestLevel: PlayerRosterState.initial.highestPetLevel
             )
         )
-        #expect(context.roster.progression(for: hero) == expectedHeroProgression)
-        #expect(context.roster.progression(for: pet) == expectedPetProgression)
+        try #expect(context.roster.progression(for: hero) == expectedHeroProgression)
+        try #expect(context.roster.progression(for: pet) == expectedPetProgression)
         _ = try #require(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        #expect(context.homestead.resources[.wood] == 8)
-        #expect(context.homestead.resources[.stone] == 3)
-        #expect(context.journey.hasClaimedRewards(for: firstStage))
-        #expect(context.journey.isCompleted(firstStage))
-        #expect(context.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(context.homestead.resources[.wood] == 8)
+        try #expect(context.homestead.resources[.stone] == 3)
+        try #expect(context.journey.hasClaimedRewards(for: firstStage))
+        try #expect(context.journey.isCompleted(firstStage))
+        try #expect(context.journey.activeStageID == "chapter-1-stage-2")
     }
 
     @Test func homesteadBonusesAdjustMaterialRewards() throws {
@@ -102,8 +102,8 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.homestead.resources[.wood] == 9)
-        #expect(context.homestead.resources[.stone] == 4)
+        try #expect(context.homestead.resources[.wood] == 9)
+        try #expect(context.homestead.resources[.stone] == 4)
     }
 
     @Test func homesteadFoodBonusesStackFromMultipleBuildings() throws {
@@ -136,7 +136,7 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.homestead.resources[.food] == 6)
+        try #expect(context.homestead.resources[.food] == 6)
     }
 
     @Test func completingStageTwiceDoesNotDoubleRewards() throws {
@@ -162,9 +162,9 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.gold == goldAfterFirst)
-        #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirst)
-        #expect(context.inventory.items.count == itemCountAfterFirst)
+        try #expect(context.roster.gold == goldAfterFirst)
+        try #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirst)
+        try #expect(context.inventory.items.count == itemCountAfterFirst)
     }
 
     @Test func completingStageTwiceDoesNotAdvanceJourney() throws {
@@ -189,7 +189,7 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.journey.activeStageID == activeStageAfterFirst)
+        try #expect(context.journey.activeStageID == activeStageAfterFirst)
     }
 
     @Test func completingStageAdvancesJourney() throws {
@@ -205,8 +205,8 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.journey.isActive(chapter.stages[1]))
-        #expect(!(context.journey.isActive(firstStage)))
+        try #expect(context.journey.isActive(chapter.stages[1]))
+        try #expect(!(context.journey.isActive(firstStage)))
     }
 
     @Test func missingItemTemplateSkipsGracefully() throws {
@@ -232,10 +232,10 @@ struct StageRewardTests {
             resolveTemplate: { _ in nil }
         )
 
-        #expect(context.roster.gold == 10)
-        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
-        #expect(context.inventory.items.isEmpty)
-        #expect(context.journey.hasClaimedRewards(for: stageWithBadTemplate))
+        try #expect(context.roster.gold == 10)
+        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(context.inventory.items.isEmpty)
+        try #expect(context.journey.hasClaimedRewards(for: stageWithBadTemplate))
     }
 
     @Test func nonBattleStagesGrantNoExperience() throws {
@@ -252,7 +252,7 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
     }
 
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
@@ -270,8 +270,8 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
-        #expect(context.roster.progression(for: pet).currentXP > 0)
+        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(context.roster.progression(for: pet).currentXP > 0)
     }
 
     @Test func claimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
@@ -298,10 +298,10 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.roster.gold == goldAfterFirstClaim)
-        #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
-        #expect(context.inventory.items.count == itemCountAfterFirstClaim)
-        #expect(context.journey.hasClaimedRewards(for: firstStage))
+        try #expect(context.roster.gold == goldAfterFirstClaim)
+        try #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
+        try #expect(context.inventory.items.count == itemCountAfterFirstClaim)
+        try #expect(context.journey.hasClaimedRewards(for: firstStage))
     }
 
     @Test func rewardItemPreservesCatalogAffixes() throws {
@@ -312,7 +312,7 @@ struct StageRewardTests {
         inventory.addRewardItem(from: template, for: firstStage, using: &randomNumberGenerator)
 
         let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        #expect(rewardItem.affixes == template.affixes)
+        try #expect(rewardItem.affixes == template.affixes)
     }
 
     @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
@@ -334,6 +334,6 @@ struct StageRewardTests {
             context: &context
         )
 
-        #expect(context.homestead.resources[.food] == 4)
+        try #expect(context.homestead.resources[.food] == 4)
     }
 }

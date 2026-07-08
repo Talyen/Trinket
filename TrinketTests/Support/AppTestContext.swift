@@ -57,7 +57,7 @@ final class AppTestContext {
         )
         return try AppState(
             environment: parsed,
-            playerSave: playerSave ?? try PlayerSaveStore(
+            playerSave: try playerSave ?? PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
                 disableCloudSync: true,
                 resetState: parsed.resetState,

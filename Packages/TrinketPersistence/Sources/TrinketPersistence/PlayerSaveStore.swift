@@ -82,7 +82,7 @@ public final class PlayerSaveStore {
         let config: ModelConfiguration
         let recoveryURL: URL?
         if inMemoryOnly {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
             recoveryURL = nil
         } else if storeName != nil {
             config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)

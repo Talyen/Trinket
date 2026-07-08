@@ -11,7 +11,7 @@ public final class PlayerShellSession {
     public var activeBattleSchemaVersion: Int?
     public var lastBackgroundedTime: Date?
     public var viewedCombatantIDs: [String] = []
-    public var updatedAt: Date = .now
+    public var updatedAt: Date = Date()
 
     public init(id: String = "current") {
         self.id = id

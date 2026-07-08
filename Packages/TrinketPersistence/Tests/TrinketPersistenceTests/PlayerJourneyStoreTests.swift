@@ -17,8 +17,8 @@ final class PlayerJourneyStoreTests {
         journeyStore.complete(stage, in: GameContent.chapters)
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.journey.activeStageID == "chapter-1-stage-2")
-        #expect(reloaded.journey.completedStageIDs.contains(stage.id))
+        try #expect(reloaded.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(reloaded.journey.completedStageIDs.contains(stage.id))
     }
 
     @Test func markRewardsClaimedWriteThroughToSaveStore() throws {
@@ -29,6 +29,6 @@ final class PlayerJourneyStoreTests {
         journeyStore.markRewardsClaimed(for: stage)
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
+        try #expect(reloaded.journey.claimedRewardStageIDs.contains(stage.id))
     }
 }

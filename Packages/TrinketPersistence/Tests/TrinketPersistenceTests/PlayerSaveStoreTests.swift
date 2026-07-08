@@ -14,7 +14,7 @@ final class PlayerSaveStoreTests {
 
     @Test func playerSavePersistsJourneyRosterInventoryAndHomestead() throws {
         let storeURL = context.storeURL()
-        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
@@ -24,17 +24,17 @@ final class PlayerSaveStoreTests {
 
         let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
-        #expect(secondStore.roster.gold == 42)
-        #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 20)
-        #expect(secondStore.homestead.resources[.wood] == 14)
-        #expect(secondStore.homestead.resources[.crystal] == 2)
+        try #expect(secondStore.roster.gold == 42)
+        try #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 20)
+        try #expect(secondStore.homestead.resources[.wood] == 14)
+        try #expect(secondStore.homestead.resources[.crystal] == 2)
         _ = try #require(secondStore.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(secondStore.journey.activeStageID == "chapter-1-stage-2")
     }
 
     @Test func swiftDataGraphStoresIndependentRecords() throws {
         let storeURL = context.storeURL()
-        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true, persistSaveImmediately: true)
         store.grantGold(5)
         store.advanceJourneyToStage("chapter-1-stage-2")
         store.grantHomestead([ResourceAmount(.wood, 3)])
@@ -47,14 +47,14 @@ final class PlayerSaveStoreTests {
         )
         let modelContext = ModelContext(container)
 
-        #expect(try modelContext.fetch(FetchDescriptor<RosterModel>()).first?.gold == 5)
-        #expect(try modelContext.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
+        try #expect(try modelContext.fetch(FetchDescriptor<RosterModel>()).first?.gold == 5)
+        try #expect(try modelContext.fetch(FetchDescriptor<JourneyStageProgressModel>()).contains {
             $0.stageID == "chapter-1-stage-1" && $0.isCompleted
         })
-        #expect(try modelContext.fetch(FetchDescriptor<InventoryItemModel>()).contains {
+        try #expect(try modelContext.fetch(FetchDescriptor<InventoryItemModel>()).contains {
             $0.id == "chapter-1-stage-1-shortsword-basic"
         })
-        #expect(try modelContext.fetch(FetchDescriptor<HomesteadResourceBalanceModel>()).contains {
+        try #expect(try modelContext.fetch(FetchDescriptor<HomesteadResourceBalanceModel>()).contains {
             $0.resourceID == HomesteadResource.wood.rawValue && $0.quantity == 3
         })
     }
@@ -68,20 +68,20 @@ final class PlayerSaveStoreTests {
 
         try store.resetGameplayProgress()
 
-        #expect(store.roster == .freshStart)
-        #expect(store.inventory == .freshStart)
-        #expect(store.homestead == .freshStart)
-        #expect(store.journey == .initial)
-        #expect(store.currentSave.sessionGeneration == 1)
+        try #expect(store.roster == .freshStart)
+        try #expect(store.inventory == .freshStart)
+        try #expect(store.homestead == .freshStart)
+        try #expect(store.journey == .initial)
+        try #expect(store.currentSave.sessionGeneration == 1)
     }
 
     @Test func applyTestSeedMatchesDeterministicUITestBaseline() throws {
         let store = try context.makeSaveStore()
         try store.applyTestSeed()
 
-        #expect(store.roster == .testSeed)
-        #expect(store.inventory == .testSeed)
-        #expect(store.homestead == .testSeed)
+        try #expect(store.roster == .testSeed)
+        try #expect(store.inventory == .testSeed)
+        try #expect(store.homestead == .testSeed)
     }
 
     @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
@@ -96,7 +96,7 @@ final class PlayerSaveStoreTests {
         let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
-        #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
+        try #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
     }
 
     @Test func rosterCacheReturnsConsistentHydratedState() throws {
@@ -114,8 +114,8 @@ final class PlayerSaveStoreTests {
 
         let firstRead = store.roster
         let secondRead = store.roster
-        #expect(firstRead == secondRead)
-        #expect(
+        try #expect(firstRead == secondRead)
+        try #expect(
             firstRead.equipmentLoadout(for: knight).itemID(for: .weapon) == "chapter-1-stage-1-shortsword-basic"
         )
     }
@@ -125,17 +125,17 @@ final class PlayerSaveStoreTests {
         let beforeLocalEdit = store.currentSave.modifiedAt
         store.grantGold(1)
 
-        #expect(store.currentSave.modifiedAt > beforeLocalEdit)
+        try #expect(store.currentSave.modifiedAt > beforeLocalEdit)
     }
 
-    @Test func sanitizerUsesCatalogOrderForLastCompletedStage() {
+    @Test func sanitizerUsesCatalogOrderForLastCompletedStage() throws {
         var journey = JourneyProgressState.initial
         journey.completedStageIDs = ["chapter-1-stage-9", "chapter-1-stage-10"]
         journey.lastCompletedStageID = "chapter-1-stage-9"
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        #expect(sanitized.lastCompletedStageID == "chapter-1-stage-10")
+        try #expect(sanitized.lastCompletedStageID == "chapter-1-stage-10")
     }
 
     @Test func validateRejectsNegativeProgressionXP() throws {
@@ -149,7 +149,7 @@ final class PlayerSaveStoreTests {
             Issue.record("Expected invalidSave, got \(error)")
             return
         }
-        #expect(message.contains("current XP"))
+        try #expect(message.contains("current XP"))
     }
 
     @Test func validateRejectsInvalidSchemaVersion() throws {
@@ -170,15 +170,15 @@ final class PlayerSaveStoreTests {
         store.grantGold(25)
         let snapshot = store.currentSave
 
-        #expect(throws: (any Error).self) {
+        try #expect(throws: (any Error).self) {
             try store.performBatchMutation { save in
                 save.schemaVersion = 0
             }
         }
 
-        #expect(store.currentSave == snapshot)
-        #expect(store.roster.gold == 25)
-        #expect(store.lastPersistenceError == nil)
+        try #expect(store.currentSave == snapshot)
+        try #expect(store.roster.gold == 25)
+        try #expect(store.lastPersistenceError == nil)
     }
 
     #if DEBUG
@@ -197,19 +197,19 @@ final class PlayerSaveStoreTests {
             return
         }
 
-        #expect(store.roster.gold == 10)
-        #expect(store.lastPersistenceError == .writeFailed)
+        try #expect(store.roster.gold == 10)
+        try #expect(store.lastPersistenceError == .writeFailed)
     }
     #endif
     @Test func inMemoryStoreIsNotMarkedDegraded() throws {
         let store = try PlayerSaveStore(inMemoryOnly: true)
-        #expect(store.isPersistenceDegraded == false)
-        #expect(store.lastPersistenceError == nil)
+        try #expect(store.isPersistenceDegraded == false)
+        try #expect(store.lastPersistenceError == nil)
     }
 
-    @Test func storeUnavailableErrorIsEquatable() {
-        #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
-        #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
+    @Test func storeUnavailableErrorIsEquatable() throws {
+        try #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
+        try #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
     }
 }
 

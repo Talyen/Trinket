@@ -19,7 +19,7 @@ struct AbilityLoadoutSamplerTests {
                 using: &rng
             )
 
-            #expect(
+            try #expect(
                 AbilityLoadoutSampler.satisfiesDamageBudget(
                     hero: heroLoadout,
                     pet: petLoadout,
@@ -42,7 +42,7 @@ struct AbilityLoadoutSamplerTests {
             progression: progression
         )
 
-        #expect(
+        try #expect(
             AbilityLoadoutSampler.satisfiesDamageBudget(
                 hero: heroLoadout,
                 pet: petLoadout,
@@ -51,7 +51,7 @@ struct AbilityLoadoutSamplerTests {
                 progression: progression
             )
         )
-        #expect(
+        try #expect(
             (heroLoadout.abilities + petLoadout.abilities).filter { $0.directDamage > 0 }.count >= 2
         )
     }

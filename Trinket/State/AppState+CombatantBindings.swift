@@ -47,7 +47,7 @@ extension AppState {
                 hidesNavigationBar: hidesNavigationBar
             )
             .onAppear {
-                self.sessionState.markCombatantAsViewed(id: combatantID)
+                self.markCombatantAsViewed(id: combatantID)
             }
         } else {
             ContentUnavailableView(

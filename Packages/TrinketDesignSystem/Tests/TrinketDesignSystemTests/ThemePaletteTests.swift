@@ -4,19 +4,19 @@ import Testing
 
 @Suite
 struct ThemePaletteTests {
-    @Test func themePaletteAppleUsesSemanticColors() {
+    @Test func themePaletteAppleUsesSemanticColors() throws {
         let palette = ThemePalette.apple
-        #expect(palette.appBackground != .clear)
-        #expect(palette.secondaryBackground != .clear)
-        #expect(palette.elevatedBackground != .clear)
-        #expect(palette.panelSurface != .clear)
-        #expect(palette.subtleStroke != .clear)
-        #expect(palette.accent != .clear)
+        try #expect(palette.appBackground != .clear)
+        try #expect(palette.secondaryBackground != .clear)
+        try #expect(palette.elevatedBackground != .clear)
+        try #expect(palette.panelSurface != .clear)
+        try #expect(palette.subtleStroke != .clear)
+        try #expect(palette.accent != .clear)
     }
 
-    @Test func shadowStylesHaveExpectedRadii() {
-        #expect(ShadowStyle.none.radius == 0)
-        #expect(ShadowStyle.subtle.radius > 0)
-        #expect(ShadowStyle.elevated.radius > ShadowStyle.subtle.radius)
+    @Test func shadowStylesHaveExpectedRadii() throws {
+        try #expect(ShadowStyle.none.radius == 0)
+        try #expect(ShadowStyle.subtle.radius > 0)
+        try #expect(ShadowStyle.elevated.radius > ShadowStyle.subtle.radius)
     }
 }

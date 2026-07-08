@@ -28,7 +28,7 @@ struct CombatOutcomeTests {
         )
     }
 
-    @Test func resolveDamageReturnsCombatOutcome() {
+    @Test func resolveDamageReturnsCombatOutcome() throws {
         var context = makeContext(seed: 1772)
         let outcome = context.resolveDamage(
             .directAbilityHit(
@@ -38,12 +38,12 @@ struct CombatOutcomeTests {
                 sourceActorID: "source"
             )
         )
-        #expect(outcome.healthLost == 10)
-        #expect(outcome.healthDelta == -10)
-        #expect(context.roster.enemy.currentHealth == 40)
+        try #expect(outcome.healthLost == 10)
+        try #expect(outcome.healthDelta == -10)
+        try #expect(context.roster.enemy.currentHealth == 40)
     }
 
-    @Test func resolveDamageSetsDodgedFlag() {
+    @Test func resolveDamageSetsDodgedFlag() throws {
         let stats = PrimaryStats(agility: 140)
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
@@ -75,11 +75,11 @@ struct CombatOutcomeTests {
             )
         )
         if outcome.healthLost == 0 {
-            #expect(outcome.flags.contains(.dodged))
+            try #expect(outcome.flags.contains(.dodged))
         }
     }
 
-    @Test func resolveDamageSetsLeechedFlag() {
+    @Test func resolveDamageSetsLeechedFlag() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)
         context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
@@ -92,41 +92,41 @@ struct CombatOutcomeTests {
                 sourceActorID: "source"
             )
         )
-        #expect(outcome.flags.contains(.leeched))
-        #expect(outcome.events.contains { $0.effectKind == .leechHeal })
+        try #expect(outcome.flags.contains(.leeched))
+        try #expect(outcome.events.contains { $0.effectKind == .leechHeal })
     }
 
-    @Test func damageRequestDoTTickPresetAppliesBonusesWithoutDodge() {
+    @Test func damageRequestDoTTickPresetAppliesBonusesWithoutDodge() throws {
         let preset = DamageRequest.doTTick(
             amount: 10,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .burn,
             sourceActorID: "source"
         )
-        #expect(preset.options.applyStatBonus)
-        #expect(!(preset.options.applyDodge))
-        #expect(preset.options.applyItemBonus)
+        try #expect(preset.options.applyStatBonus)
+        try #expect(!(preset.options.applyDodge))
+        try #expect(preset.options.applyItemBonus)
     }
 
-    @Test func damageRequestDirectAbilityHitUsesDefaultOptions() {
+    @Test func damageRequestDirectAbilityHitUsesDefaultOptions() throws {
         let preset = DamageRequest.directAbilityHit(
             amount: 5,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .physical,
             sourceActorID: "source"
         )
-        #expect(preset.options == .directAbilityHit)
+        try #expect(preset.options == .directAbilityHit)
     }
 
-    @Test func resolveHealReturnsRestoredAmount() {
+    @Test func resolveHealReturnsRestoredAmount() throws {
         var context = makeContext(seed: 1772)
         _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let before = context.roster.enemy.currentHealth
         let outcome = context.resolveHeal(
             HealRequest(amount: 5, target: context.roster.enemy.combatant)
         )
-        #expect(outcome.healthRestored == context.roster.enemy.currentHealth - before)
-        #expect(outcome.healthRestored > 0)
-        #expect(outcome.healthDelta == outcome.healthRestored)
+        try #expect(outcome.healthRestored == context.roster.enemy.currentHealth - before)
+        try #expect(outcome.healthRestored > 0)
+        try #expect(outcome.healthDelta == outcome.healthRestored)
     }
 }

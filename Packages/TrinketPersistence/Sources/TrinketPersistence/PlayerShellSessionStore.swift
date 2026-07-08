@@ -17,21 +17,21 @@ public final class PlayerShellSessionStore {
     public static let currentSchemaVersion = 1
 
     private let context: ModelContext
-    private var record: PlayerShellSession
-    private let logger = Logger(
+    private var record: PlayerShellSession!
+    private static let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerShellSession"
     )
 
-    public var selectedTab: PlayerShellSessionTab {
+    public var selectedTab: PlayerShellSessionTab = .play {
         didSet { persistSelectedTab() }
     }
 
-    public var activeBattleStageID: String? {
+    public var activeBattleStageID: String? = nil {
         didSet {
             persistBattleStageID()
             if activeBattleStageID != nil {
-                activeBattleSavedAt = .now
+                activeBattleSavedAt = Date.now
                 activeBattleSchemaVersion = Self.currentSchemaVersion
             } else {
                 activeBattleSavedAt = nil
@@ -40,7 +40,7 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    public var mapScrollStageID: String? {
+    public var mapScrollStageID: String? = nil {
         didSet { persistMapScrollStageID() }
     }
 
@@ -115,7 +115,7 @@ public final class PlayerShellSessionStore {
         let schema = Schema([PlayerShellSession.self])
         let config: ModelConfiguration
         if inMemoryOnly {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
         } else {
             config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
         }
@@ -123,7 +123,7 @@ public final class PlayerShellSessionStore {
         let openResult = try ModelContainerBootstrap.open(
             schema: schema,
             primaryConfiguration: config,
-            logger: logger,
+            logger: Self.logger,
             logLabel: "shell session",
             storeURLForRecovery: inMemoryOnly ? nil : finalURL,
             deleteStoreOnFailure: !inMemoryOnly
@@ -138,24 +138,36 @@ public final class PlayerShellSessionStore {
                 try context.delete(model: PlayerShellSession.self)
                 try context.save()
             } catch {
-                logger.error(
+                Self.logger.error(
                     "Failed to clear shell session during reset: \(error.localizedDescription, privacy: .public)"
                 )
             }
         }
 
+        let finalRecord: PlayerShellSession
+        let needsInitialSave: Bool
         if let existing = Self.fetchRecord(in: context) {
-            record = existing
+            finalRecord = existing
+            needsInitialSave = false
         } else {
             let newRecord = PlayerShellSession()
             context.insert(newRecord)
-            record = newRecord
-            saveContext()
+            finalRecord = newRecord
+            needsInitialSave = true
         }
 
-        selectedTab = Self.tab(from: record.selectedTabRaw) ?? .play
-        activeBattleStageID = record.activeBattleStageID
-        mapScrollStageID = record.mapScrollStageID
+        let initialTab = Self.tab(from: finalRecord.selectedTabRaw) ?? .play
+        let initialBattleStage = finalRecord.activeBattleStageID
+        let initialMapScrollStage = finalRecord.mapScrollStageID
+
+        self.record = finalRecord
+        self.selectedTab = initialTab
+        self.activeBattleStageID = initialBattleStage
+        self.mapScrollStageID = initialMapScrollStage
+
+        if needsInitialSave {
+            saveContext()
+        }
 
         if let legacyUserDefaults {
             migrateLegacyUserDefaultsIfNeeded(from: legacyUserDefaults)
@@ -244,7 +256,7 @@ public final class PlayerShellSessionStore {
         do {
             try context.save()
         } catch {
-            logger.error(
+            Self.logger.error(
                 "Failed to save shell session: \(error.localizedDescription, privacy: .public)"
             )
         }

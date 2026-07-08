@@ -14,12 +14,12 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 4
 
-        #expect(homestead.buildOrUpgrade(definition, roster: &roster))
+        try #expect(homestead.buildOrUpgrade(definition, roster: &roster))
 
-        #expect(homestead.tier(for: .wheatField) == 1)
-        #expect(homestead.resources[.wood] == 10)
-        #expect(homestead.resources[.stone] == 6)
-        #expect(roster.gold == 4)
+        try #expect(homestead.tier(for: .wheatField) == 1)
+        try #expect(homestead.resources[.wood] == 10)
+        try #expect(homestead.resources[.stone] == 6)
+        try #expect(roster.gold == 4)
     }
 
     @Test func buildOrUpgradeSpendsGoldWhenCostRequiresIt() throws {
@@ -31,12 +31,12 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 10
 
-        #expect(homestead.buildOrUpgrade(definition, roster: &roster))
+        try #expect(homestead.buildOrUpgrade(definition, roster: &roster))
 
-        #expect(homestead.tier(for: .herbGarden) == 1)
-        #expect(homestead.resources[.wood] == 0)
-        #expect(homestead.resources[.food] == 0)
-        #expect(roster.gold == 0)
+        try #expect(homestead.tier(for: .herbGarden) == 1)
+        try #expect(homestead.resources[.wood] == 0)
+        try #expect(homestead.resources[.food] == 0)
+        try #expect(roster.gold == 0)
     }
 
     @Test func lockedNodeCannotUpgradeBeforePrerequisites() throws {
@@ -48,11 +48,11 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 100
 
-        #expect(!(homestead.buildOrUpgrade(definition, roster: &roster)))
-        #expect(homestead.tier(for: .blacksmithForge) == 0)
+        try #expect(!(homestead.buildOrUpgrade(definition, roster: &roster)))
+        try #expect(homestead.tier(for: .blacksmithForge) == 0)
     }
 
-    @Test func adjustedMaterialRewardsAddsGranaryBonusForAllMaterials() {
+    @Test func adjustedMaterialRewardsAddsGranaryBonusForAllMaterials() throws {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 3]
@@ -63,11 +63,11 @@ struct HomesteadStateTests {
             ResourceAmount(.stone, 3)
         ])
 
-        #expect(adjusted.first { $0.resource == .wood }?.quantity == 9)
-        #expect(adjusted.first { $0.resource == .stone }?.quantity == 4)
+        try #expect(adjusted.first { $0.resource == .wood }?.quantity == 9)
+        try #expect(adjusted.first { $0.resource == .stone }?.quantity == 4)
     }
 
-    @Test func adjustedMaterialRewardsAddsFoodBonusFromChickenCoop() {
+    @Test func adjustedMaterialRewardsAddsFoodBonusFromChickenCoop() throws {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.chickenCoop: 2]
@@ -75,10 +75,10 @@ struct HomesteadStateTests {
 
         let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 5)])
 
-        #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
+        try #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
     }
 
-    @Test func adjustedMaterialRewardsAddsHerbBonusFromHerbGarden() {
+    @Test func adjustedMaterialRewardsAddsHerbBonusFromHerbGarden() throws {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.herbGarden: 2]
@@ -86,10 +86,10 @@ struct HomesteadStateTests {
 
         let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.herbs, 2)])
 
-        #expect(adjusted.first { $0.resource == .herbs }?.quantity == 3)
+        try #expect(adjusted.first { $0.resource == .herbs }?.quantity == 3)
     }
 
-    @Test func adjustedMaterialRewardsStacksFoodBonusesFromMultipleBuildings() {
+    @Test func adjustedMaterialRewardsStacksFoodBonusesFromMultipleBuildings() throws {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 2, .chickenCoop: 2]
@@ -97,10 +97,10 @@ struct HomesteadStateTests {
 
         let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 4)])
 
-        #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
+        try #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
     }
 
-    @Test func adjustedMaterialRewardsIgnoresGoldMaterials() {
+    @Test func adjustedMaterialRewardsIgnoresGoldMaterials() throws {
         let homestead = PlayerHomesteadState(
             resources: [:],
             nodeTiers: [.wheatField: 3]
@@ -108,6 +108,6 @@ struct HomesteadStateTests {
 
         let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.gold, 10)])
 
-        #expect(adjusted.isEmpty)
+        try #expect(adjusted.isEmpty)
     }
 }

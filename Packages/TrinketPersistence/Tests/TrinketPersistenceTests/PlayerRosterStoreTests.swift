@@ -11,12 +11,12 @@ final class PlayerRosterStoreTests {
     }
 
     @Test func heroesFiltersByUnlock() throws {
-        let rosterStore = makeRosterStore()
+        let rosterStore = try makeRosterStore()
 
-        #expect(rosterStore.heroes.map(\.id) == [PlayerRosterState.starterHeroID])
-        #expect(rosterStore.pets.map(\.id) == [PlayerRosterState.starterPetID])
-        #expect(rosterStore.collectionHeroes.count == GameContent.heroes.count)
-        #expect(rosterStore.collectionPets.count == GameContent.pets.count)
+        try #expect(rosterStore.heroes.map(\.id) == [PlayerRosterState.starterHeroID])
+        try #expect(rosterStore.pets.map(\.id) == [PlayerRosterState.starterPetID])
+        try #expect(rosterStore.collectionHeroes.count == GameContent.heroes.count)
+        try #expect(rosterStore.collectionPets.count == GameContent.pets.count)
     }
 
     @Test func grantGoldWriteThroughToSaveStore() throws {
@@ -28,7 +28,7 @@ final class PlayerRosterStoreTests {
         rosterStore.current = updated
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.roster.gold == 50)
+        try #expect(reloaded.roster.gold == 50)
     }
 
     @Test func grantExperienceWriteThroughToSaveStore() throws {
@@ -41,7 +41,7 @@ final class PlayerRosterStoreTests {
         rosterStore.current = updated
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.roster.progression(for: knight).currentXP == 25)
+        try #expect(reloaded.roster.progression(for: knight).currentXP == 25)
     }
 
     @Test func setActiveHeroWriteThroughToSaveStore() throws {
@@ -55,14 +55,14 @@ final class PlayerRosterStoreTests {
         rosterStore.current = updated
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.roster.activeHeroID == "wizard")
+        try #expect(reloaded.roster.activeHeroID == "wizard")
     }
 
     @Test func activeHeroAndPetUseSelectedIDs() throws {
-        let rosterStore = makeRosterStore()
+        let rosterStore = try makeRosterStore()
 
-        #expect(rosterStore.activeHero.id == PlayerRosterState.starterHeroID)
-        #expect(rosterStore.activePet.id == PlayerRosterState.starterPetID)
+        try #expect(rosterStore.activeHero.id == PlayerRosterState.starterHeroID)
+        try #expect(rosterStore.activePet.id == PlayerRosterState.starterPetID)
     }
 
     @Test func setLoadoutWriteThroughToSaveStore() throws {
@@ -80,10 +80,10 @@ final class PlayerRosterStoreTests {
         rosterStore.current = updated
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.roster.loadout(for: knight) == customLoadout)
+        try #expect(reloaded.roster.loadout(for: knight) == customLoadout)
     }
 
-    private func makeRosterStore() -> PlayerRosterStore {
+    private func makeRosterStore() throws -> PlayerRosterStore {
         PlayerRosterStore(saveStore: try context.makeSaveStore())
     }
 }

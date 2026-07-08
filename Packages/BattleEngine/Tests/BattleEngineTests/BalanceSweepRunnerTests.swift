@@ -7,7 +7,7 @@ import TrinketContent
 
 @Suite
 struct BalanceSweepRunnerTests {
-    @Test func smokeBalanceSweep() {
+    @Test func smokeBalanceSweep() throws {
         let hero = GameContent.heroes.first { $0.id == "wizard" }!
         let pet = GameContent.pets.first { $0.id == "wolf" }!
         let enemies = Array(GameContent.enemies.prefix(2))
@@ -23,10 +23,10 @@ struct BalanceSweepRunnerTests {
 
         let result = BalanceSweepRunner.run(request)
 
-        #expect(result.matchupRows.count == 2)
-        #expect(result.abilityRows.isEmpty)
-        #expect(!(result.matchupRows.contains { $0.runCount != 2 }))
-        #expect(result.kpis.totalMatchupRows == 2)
+        try #expect(result.matchupRows.count == 2)
+        try #expect(result.abilityRows.isEmpty)
+        try #expect(!(result.matchupRows.contains { $0.runCount != 2 }))
+        try #expect(result.kpis.totalMatchupRows == 2)
     }
 
     @Test func generateBalanceReport() throws {
@@ -48,16 +48,16 @@ struct BalanceSweepRunnerTests {
         let html = BalanceReportRenderer.renderHTML(result)
         let json = try BalanceReportRenderer.renderJSON(result)
 
-        #expect(!(result.matchupRows.isEmpty))
-        #expect(html.contains("Balance Sweep Report"))
-        #expect(html.contains("KPIs"))
-        #expect(!(json.isEmpty))
+        try #expect(!(result.matchupRows.isEmpty))
+        try #expect(html.contains("Balance Sweep Report"))
+        try #expect(html.contains("KPIs"))
+        try #expect(!(json.isEmpty))
     }
 }
 
 @Suite
 struct BalanceSweepKPIsTests {
-    @Test func computeTracksInBandPerfectWinAndDuration() {
+    @Test func computeTracksInBandPerfectWinAndDuration() throws {
         let rows = [
             MatchupSweepRow(
                 tier: .middle,
@@ -90,16 +90,16 @@ struct BalanceSweepKPIsTests {
         ]
 
         let kpis = BalanceSweepKPIs.compute(from: rows)
-        #expect(kpis.totalMatchupRows == 2)
-        #expect(kpis.inBandCount == 0)
-        #expect(kpis.perfectWinCount == 1)
-        #expect(kpis.durationInBandCount == 1)
+        try #expect(kpis.totalMatchupRows == 2)
+        try #expect(kpis.inBandCount == 0)
+        try #expect(kpis.perfectWinCount == 1)
+        try #expect(kpis.durationInBandCount == 1)
     }
 }
 
 @Suite
 struct BalanceGateEvaluatorTests {
-    @Test func flagsFodderPerfectWinRateViolation() {
+    @Test func flagsFodderPerfectWinRateViolation() throws {
         let request = BalanceSweepRequest(tiers: [.middle])
         let rows = (0 ..< 10).map { index in
             MatchupSweepRow(
@@ -128,7 +128,7 @@ struct BalanceGateEvaluatorTests {
         )
 
         let violations = BalanceGateEvaluator.evaluate(result)
-        #expect(violations.contains { $0.metric == "middle.fodder.perfectWinRate" })
+        try #expect(violations.contains { $0.metric == "middle.fodder.perfectWinRate" })
     }
 }
 
@@ -165,26 +165,26 @@ struct SimulationMatchupAssemblerTests {
             petGear: nil
         )
 
-        #expect(configured.hero.maxHealth > hero.maxHealth)
-        #expect(configured.enemy.maxHealth > earlyEnemy.maxHealth)
-        #expect(!(configured.heroModifiers == .zero))
-        #expect(configured.context.tier == .middle)
+        try #expect(configured.hero.maxHealth > hero.maxHealth)
+        try #expect(configured.enemy.maxHealth > earlyEnemy.maxHealth)
+        try #expect(!(configured.heroModifiers == .zero))
+        try #expect(configured.context.tier == .middle)
     }
 }
 
 @Suite
 struct AnomalyDetectorTests {
-    @Test func targetBandsByRoleAndTier() {
+    @Test func targetBandsByRoleAndTier() throws {
         let earlyFodder = AnomalyDetector.targetBand(tier: .early, role: .fodder)
-        #expect(earlyFodder.min == 0.90)
-        #expect(earlyFodder.max == 0.99)
+        try #expect(earlyFodder.min == 0.90)
+        try #expect(earlyFodder.max == 0.99)
 
         let lateBoss = AnomalyDetector.targetBand(tier: .lateGame, role: .boss)
-        #expect(lateBoss.min == 0.50)
-        #expect(lateBoss.max == 0.60)
+        try #expect(lateBoss.min == 0.50)
+        try #expect(lateBoss.max == 0.60)
     }
 
-    @Test func detectsHardCounterTimeoutTooShortAndUnderpoweredAbility() {
+    @Test func detectsHardCounterTimeoutTooShortAndUnderpoweredAbility() throws {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .early,
@@ -246,13 +246,13 @@ struct AnomalyDetectorTests {
 
         let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: abilityRows)
 
-        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
-        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
-        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.tooShort })
-        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
+        try #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.hardCounter })
+        try #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.timeout })
+        try #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.tooShort })
+        try #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.underpoweredAbility })
     }
 
-    @Test func detectsAboveTargetForPerfectFodderWin() {
+    @Test func detectsAboveTargetForPerfectFodderWin() throws {
         let matchupRows = [
             MatchupSweepRow(
                 tier: .middle,
@@ -271,6 +271,6 @@ struct AnomalyDetectorTests {
         ]
 
         let anomalies = AnomalyDetector.detect(matchupRows: matchupRows, abilityRows: [])
-        #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.aboveTarget })
+        try #expect(anomalies.contains { $0.kind == BalanceAnomaly.Kind.aboveTarget })
     }
 }

@@ -4,8 +4,8 @@ import TrinketCore
 
 @Suite
 struct CombatantModelTests {
-    @Test func combatantDefaultsToZeroPrimaryStats() {
+    @Test func combatantDefaultsToZeroPrimaryStats() throws {
         let hero = Combatant(id: "h", name: "H", role: .hero, maxHealth: 10, abilities: [.slash])
-        #expect(hero.primaryStats == PrimaryStats())
+        try #expect(hero.primaryStats == PrimaryStats())
     }
 }

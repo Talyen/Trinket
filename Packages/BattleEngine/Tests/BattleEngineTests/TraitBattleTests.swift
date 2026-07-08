@@ -79,7 +79,7 @@ struct TraitBattleTests {
             .directAbilityHit(amount: 1, target: enemy, keyword: .physical, sourceActorID: wolf.id)
         )
 
-        #expect(outcome.healthLost == 3)
+        try #expect(outcome.healthLost == 3)
     }
 
     @Test func purifyingWisdomHealsAfterCleanse() throws {
@@ -111,8 +111,8 @@ struct TraitBattleTests {
             in: &context
         )
 
-        #expect(outcome.didApply)
-        #expect(context.roster.health(for: hero) == 11)
+        try #expect(outcome.didApply)
+        try #expect(context.roster.health(for: hero) == 11)
     }
 
     @Test func faeFortuneHealsWhenGainingGold() throws {
@@ -142,7 +142,7 @@ struct TraitBattleTests {
             in: &context
         )
 
-        #expect(
+        try #expect(
             context.roster.health(for: pixieBuild.combatant) == pixieBuild.effectiveMaxHealth
         )
     }
@@ -173,6 +173,6 @@ struct TraitBattleTests {
             in: &context
         )
 
-        #expect(context.roster.health(for: hero) == 13)
+        try #expect(context.roster.health(for: hero) == 13)
     }
 }

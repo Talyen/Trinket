@@ -19,17 +19,17 @@ struct JourneyContentTests {
         }
     }
 
-    @Test func chapterOneHasTenSequentialStages() {
-        #expect(chapter.stages.count == 10)
+    @Test func chapterOneHasTenSequentialStages() throws {
+        try #expect(chapter.stages.count == 10)
 
         for (index, stage) in chapter.stages.enumerated() {
-            #expect(stage.stageNumber == index + 1, stage.id)
-            #expect(stage.chapterNumber == 1, stage.id)
-            #expect(stage.chapterID == chapter.id, stage.id)
+            try #expect(stage.stageNumber == index + 1, "\(stage.id)")
+            try #expect(stage.chapterNumber == 1, "\(stage.id)")
+            try #expect(stage.chapterID == chapter.id, "\(stage.id)")
         }
 
         let stageIDs = chapter.stages.map(\.id)
-        #expect(Set(stageIDs).count == stageIDs.count, "Stage IDs must be unique")
+        try #expect(Set(stageIDs).count == stageIDs.count, "Stage IDs must be unique")
     }
 
     @Test func finalStageIsBossEncounter() throws {
@@ -37,26 +37,26 @@ struct JourneyContentTests {
         let enemyID = try #require(finalStage.encounter.battleEnemyID)
         let enemy = try #require(GameContent.enemy(matching: enemyID))
 
-        #expect(enemyID == "the_blight_treant")
-        #expect(enemy.isBoss)
+        try #expect(enemyID == "the_blight_treant")
+        try #expect(enemy.isBoss)
     }
 
     @Test func nextStageReturnsNilAfterFinalStage() throws {
         let finalStage = try #require(chapter.stages.last)
 
-        #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
+        try #expect(JourneyProgressState.nextStage(after: finalStage, in: GameContent.chapters) == nil)
     }
 
-    @Test func isLastCompletedReflectsLastCompletedStageID() {
+    @Test func isLastCompletedReflectsLastCompletedStageID() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
 
-        #expect(!(progress.isLastCompleted(firstStage)))
+        try #expect(!(progress.isLastCompleted(firstStage)))
 
         progress.complete(firstStage, in: GameContent.chapters)
 
-        #expect(progress.isLastCompleted(firstStage))
-        #expect(!(progress.isLastCompleted(secondStage)))
+        try #expect(progress.isLastCompleted(firstStage))
+        try #expect(!(progress.isLastCompleted(secondStage)))
     }
 }

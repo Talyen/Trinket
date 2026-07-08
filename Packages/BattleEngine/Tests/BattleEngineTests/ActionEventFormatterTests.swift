@@ -29,32 +29,32 @@ struct ActionEventFormatterTests {
         )
     }
 
-    @Test func abilityDamageFormatsAsNegativeAmount() {
+    @Test func abilityDamageFormatsAsNegativeAmount() throws {
         let display = ActionEventFormatter.display(
             for: event(kind: .ability, amount: 3, keyword: .physical)
         )
-        #expect(display.text == "-3")
-        #expect(display.emphasis == .damage)
-        #expect(display.keyword == .physical)
+        try #expect(display.text == "-3")
+        try #expect(display.emphasis == .damage)
+        try #expect(display.keyword == .physical)
     }
 
-    @Test func instantHealFormatsAsPositiveWithKeyword() {
+    @Test func instantHealFormatsAsPositiveWithKeyword() throws {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .instantHeal, amount: 3, keyword: .health)
         )
-        #expect(display.text == "+3 Health")
-        #expect(display.emphasis == .heal)
+        try #expect(display.text == "+3 Health")
+        try #expect(display.emphasis == .heal)
     }
 
-    @Test func controlTriggeredUsesStatusAlias() {
+    @Test func controlTriggeredUsesStatusAlias() throws {
         let display = ActionEventFormatter.display(
             for: event(kind: .effect, effectKind: .controlTriggered, keyword: .stun)
         )
-        #expect(display.text == "Stunned!")
-        #expect(display.emphasis == .control)
+        try #expect(display.text == "Stunned!")
+        try #expect(display.emphasis == .control)
     }
 
-    @Test func secondaryTextIsAlwaysNil() {
+    @Test func secondaryTextIsAlwaysNil() throws {
         let cases: [ActionEvent] = [
             event(kind: .ability, amount: 3, keyword: .physical),
             event(kind: .status, amount: 1, keyword: .burn),
@@ -62,7 +62,7 @@ struct ActionEventFormatterTests {
             event(kind: .effect, effectKind: .dodgeApplied, keyword: .dodge)
         ]
         for event in cases {
-            #expect(
+            try #expect(
                 ActionEventFormatter.display(for: event).secondaryText == nil,
                 "secondaryText should be nil for \(event)"
             )

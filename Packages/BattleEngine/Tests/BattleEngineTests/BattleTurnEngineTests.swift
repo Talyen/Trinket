@@ -43,7 +43,7 @@ struct BattleTurnEngineTests {
         return (context, BattleMatchup(hero: hero, pet: pet, enemy: enemy))
     }
 
-    @Test func consumeActionSkipEmitsControlActionSkippedAndRemovesEffect() {
+    @Test func consumeActionSkipEmitsControlActionSkippedAndRemovesEffect() throws {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
@@ -51,10 +51,10 @@ struct BattleTurnEngineTests {
 
         let events = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        #expect(events.count == 1)
-        #expect(events[0].effectKind == .controlActionSkipped)
-        #expect(events[0].keyword == .stun)
-        #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
+        try #expect(events.count == 1)
+        try #expect(events[0].effectKind == .controlActionSkipped)
+        try #expect(events[0].keyword == .stun)
+        try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
     }
 
     @Test func consumeActionSkipRecordsActionForScheduling() throws {
@@ -66,17 +66,17 @@ struct BattleTurnEngineTests {
 
         _ = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
-        #expect(context.actionCount == 1)
+        try #expect(try #require(context.roster.runtime(for: enemy)?.actionCount) == before + 1)
+        try #expect(context.actionCount == 1)
     }
 
-    @Test func actPerformsAbilityWhenNoSkipPending() {
+    @Test func actPerformsAbilityWhenNoSkipPending() throws {
         var (context, matchup) = makeContext()
         let enemy = context.roster.enemy.combatant
 
         let events = BattleTurnEngine.act(actor: enemy, matchup: matchup, context: &context)
 
-        #expect(events.contains { $0.kind == .ability })
-        #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
+        try #expect(events.contains { $0.kind == .ability })
+        try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 }

@@ -3,34 +3,34 @@ import TrinketContent
 
 @Suite
 struct ItemAffixCatalogTests {
-    @Test func affixIDsAreUnique() {
+    @Test func affixIDsAreUnique() throws {
         let ids = GameContent.itemAffixDefinitions.map(\.id)
-        #expect(Set(ids).count == ids.count)
+        try #expect(Set(ids).count == ids.count)
     }
 
-    @Test func eachAffixHasPositiveWeightAndKeywords() {
+    @Test func eachAffixHasPositiveWeightAndKeywords() throws {
         for definition in GameContent.itemAffixDefinitions {
-            #expect(definition.weight > 0, "\(definition.id) should have positive weight")
-            #expect(!definition.keywords.isEmpty, "\(definition.id)) should declare keywords")
+            try #expect(definition.weight > 0, "\(definition.id) should have positive weight")
+            try #expect(!definition.keywords.isEmpty, "\(definition.id)) should declare keywords")
         }
     }
 
-    @Test func eachAffixDefinesBasicAndAstralPowers() {
+    @Test func eachAffixDefinesBasicAndAstralPowers() throws {
         for definition in GameContent.itemAffixDefinitions {
-            #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
-            #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
-            #expect(!definition.basic.modifiers.isEmpty, "\(definition.id)) basic modifiers")
-            #expect(!definition.astral.modifiers.isEmpty, "\(definition.id)) astral modifiers")
+            try #expect(!definition.basic.description.isEmpty, "\(definition.id)) basic description")
+            try #expect(!definition.astral.description.isEmpty, "\(definition.id)) astral description")
+            try #expect(!definition.basic.modifiers.isEmpty, "\(definition.id)) basic modifiers")
+            try #expect(!definition.astral.modifiers.isEmpty, "\(definition.id)) astral modifiers")
         }
     }
 
-    @Test func eachItemBaseTypeHasEligibleAffixPool() {
+    @Test func eachItemBaseTypeHasEligibleAffixPool() throws {
         for baseType in GameContent.itemBaseTypes {
             let eligible = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
                     !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
             }
-            #expect(!eligible.isEmpty, "\(baseType.id)) should have at least one eligible affix")
+            try #expect(!eligible.isEmpty, "\(baseType.id)) should have at least one eligible affix")
         }
     }
 }

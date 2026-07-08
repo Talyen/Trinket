@@ -5,37 +5,37 @@ import TrinketContent
 /// Ability loadout selection and tier-unlock filtering.
 @Suite
 struct AbilityLoadoutTests {
-    @Test func selectingReplacesAbilityInMatchingTier() {
+    @Test func selectingReplacesAbilityInMatchingTier() throws {
         let loadout = AbilityLoadout(basic: .bash, skill: .smite, ultimate: .blessedAegis)
 
         let updated = loadout.selecting(.shieldBash)
 
-        #expect(updated.basic?.id == "shield-bash")
-        #expect(updated.skill?.id == "smite")
-        #expect(updated.ultimate?.id == "blessed-aegis")
+        try #expect(updated.basic?.id == "shield-bash")
+        try #expect(updated.skill?.id == "smite")
+        try #expect(updated.ultimate?.id == "blessed-aegis")
     }
 
-    @Test func unlockedFiltersTiersByProgressionLevel() {
+    @Test func unlockedFiltersTiersByProgressionLevel() throws {
         let loadout = AbilityLoadout(basic: .shieldBash, skill: .spikedShield, ultimate: .plateMail)
         let levelOne = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
 
         let unlocked = loadout.unlocked(for: levelOne)
 
-        #expect(unlocked.basic?.id == "shield-bash")
-        #expect(unlocked.skill?.id == "spiked-shield")
-        #expect(unlocked.ultimate == nil)
+        try #expect(unlocked.basic?.id == "shield-bash")
+        try #expect(unlocked.skill?.id == "spiked-shield")
+        try #expect(unlocked.ultimate == nil)
     }
 
-    @Test func unlockedRestoresUltimateAtLevelSix() {
+    @Test func unlockedRestoresUltimateAtLevelSix() throws {
         let loadout = AbilityLoadout(basic: .shieldBash, skill: .spikedShield, ultimate: .plateMail)
         let levelSix = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
 
         let unlocked = loadout.unlocked(for: levelSix)
 
-        #expect(unlocked.abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"])
+        try #expect(unlocked.abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"])
     }
 
-    @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() {
+    @Test func abilityChoicesFallsBackWhenSelectedAbilityMissingFromPool() throws {
         let choices = AbilityChoices(
             basics: [.bash, .shieldBash],
             skills: [.smite, .spikedShield],
@@ -47,6 +47,6 @@ struct AbilityLoadoutTests {
             )
         )
 
-        #expect(choices.selected.skill?.id == "smite")
+        try #expect(choices.selected.skill?.id == "smite")
     }
 }

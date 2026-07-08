@@ -6,7 +6,7 @@ import TrinketContent
 /// Integration tests for shield, armor, and mitigation through full battle ticks.
 @Suite
 struct MitigationIntegrationTests {
-    @Test func shieldAbsorbsDamageBeforeHealth() {
+    @Test func shieldAbsorbsDamageBeforeHealth() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
         let enemy = BattleTestFixtures.attackingEnemy(abilities: [.slash])
@@ -21,10 +21,10 @@ struct MitigationIntegrationTests {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        #expect(battle.health(of: battle.hero) == hero.maxHealth)
+        try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
 
-    @Test func armorMitigatesIncomingDamage() {
+    @Test func armorMitigatesIncomingDamage() throws {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20, actionIntervalTicks: 2
         )
@@ -41,10 +41,10 @@ struct MitigationIntegrationTests {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        #expect(battle.health(of: battle.hero) == 17)
+        try #expect(battle.health(of: battle.hero) == 17)
     }
 
-    @Test func effectiveDamageMatchesEventAmount() {
+    @Test func effectiveDamageMatchesEventAmount() throws {
         let hero = BattleTestFixtures.passiveCombatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20, actionIntervalTicks: 2
         )
@@ -62,11 +62,11 @@ struct MitigationIntegrationTests {
         let events = BattleTestFixtures.advanceTicks(6, on: &battle)
         let damageEvent = events.first { $0.kind == .ability && $0.actorName == "Enemy" }
 
-        #expect(damageEvent?.amount == 3)
-        #expect(battle.health(of: battle.hero) == 17)
+        try #expect(damageEvent?.amount == 3)
+        try #expect(battle.health(of: battle.hero) == 17)
     }
 
-    @Test func sunderArmorHalvesEnemyArmor() {
+    @Test func sunderArmorHalvesEnemyArmor() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.sunderArmor])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [])
@@ -81,7 +81,7 @@ struct MitigationIntegrationTests {
 
         BattleTestFixtures.advanceTicks(3, on: &battle)
 
-        #expect(battle.hasEnemyEffect { effect in
+        try #expect(battle.hasEnemyEffect { effect in
             if case .mitigation(.armor, 0.20, _) = effect { return true }
             return false
         })

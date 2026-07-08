@@ -34,7 +34,7 @@ struct ControlMeterEngineTests {
         )
     }
 
-    @Test func applyBuildupTriggersControlAtThreshold() {
+    @Test func applyBuildupTriggersControlAtThreshold() throws {
         var context = makeContext(seed: 1772)
         let events = ControlMeterEngine.applyMeterCharge(
             15,
@@ -43,10 +43,10 @@ struct ControlMeterEngineTests {
             sourceActorID: "source",
             in: &context
         )
-        #expect(events.contains { $0.effectKind == .controlTriggered })
+        try #expect(events.contains { $0.effectKind == .controlTriggered })
     }
 
-    @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() {
+    @Test func applyBuildupNoDuplicateWhenSameKeywordSkipPending() throws {
         var context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
@@ -60,7 +60,7 @@ struct ControlMeterEngineTests {
             sourceActorID: "source",
             in: &context
         )
-        #expect(events.isEmpty)
+        try #expect(events.isEmpty)
     }
 
     @Test func applyBuildupAccumulatesOtherKeywordWhileSkipPending() throws {
@@ -80,17 +80,17 @@ struct ControlMeterEngineTests {
             in: &context
         )
 
-        #expect(events.isEmpty)
+        try #expect(events.isEmpty)
         let freezeMeter = context.roster.activeEffects(for: target).first {
             guard case let .controlMeter(keyword, amount, _) = $0.effect else { return false }
             return keyword == .freeze && amount == 3
         }
         _ = try #require(freezeMeter)
-        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
-        #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .freeze)))
+        try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        try #expect(!(context.roster.hasPendingActionSkip(for: target, keyword: .freeze)))
     }
 
-    @Test func stunAndFreezeMetersCoexistOnSameTarget() {
+    @Test func stunAndFreezeMetersCoexistOnSameTarget() throws {
         let context = makeContext(
             targetEffects: [
                 ActiveEffect(id: 1, effect: .controlMeter(.stun, 4, 10), remainingTicks: 0),
@@ -100,10 +100,10 @@ struct ControlMeterEngineTests {
         )
         let target = context.roster.enemy.combatant
         let meters = context.roster.activeEffects(for: target).compactMap(\.effect.controlMeterValues)
-        #expect(meters.count == 2)
+        try #expect(meters.count == 2)
     }
 
-    @Test func contextControlMeterDelegatesToControlMeterEngine() {
+    @Test func contextControlMeterDelegatesToControlMeterEngine() throws {
         var contextContext = makeContext(seed: 1772)
         var engineContext = makeContext(seed: 1772)
         let target = contextContext.roster.enemy.combatant
@@ -115,12 +115,12 @@ struct ControlMeterEngineTests {
             15, keyword: .stun, to: target, sourceActorID: "source", in: &engineContext
         )
 
-        #expect(
+        try #expect(
             contextEvents.map(\.effectKind) == engineEvents.map(\.effectKind)
         )
     }
 
-    @Test func overflowChargeIsConsumedOnTrigger() {
+    @Test func overflowChargeIsConsumedOnTrigger() throws {
         var context = makeContext(targetMaxHealth: 100, seed: 1772)
         let target = context.roster.enemy.combatant
 
@@ -132,14 +132,14 @@ struct ControlMeterEngineTests {
             in: &context
         )
 
-        #expect(events.contains { $0.effectKind == .controlTriggered })
-        #expect(
+        try #expect(events.contains { $0.effectKind == .controlTriggered })
+        try #expect(
             context.roster.activeEffects(for: target).first {
                 guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
                 return amount < threshold
             } != nil,
             "Partial build-up should be consumed on trigger"
         )
-        #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
+        try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))
     }
 }

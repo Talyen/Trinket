@@ -33,7 +33,7 @@ struct EffectTickEngineTests {
         )
     }
 
-    @Test func doTTickPreservesShieldDepletionThroughTickAll() {
+    @Test func doTTickPreservesShieldDepletionThroughTickAll() throws {
         let shield = ActiveEffect(
             id: 1,
             effect: .shield(.block, 5, 5),
@@ -55,11 +55,11 @@ struct EffectTickEngineTests {
             guard case let .shield(_, buffer, _) = activeEffect.effect else { return nil }
             return buffer
         }
-        #expect(shields == [3], "Burn tick should erode the shield buffer before HP damage")
-        #expect(context.roster.health(for: enemy) == 50)
+        try #expect(shields == [3], "Burn tick should erode the shield buffer before HP damage")
+        try #expect(context.roster.health(for: enemy) == 50)
     }
 
-    @Test func doTTickPreservesDeathsDoorThroughTickAll() {
+    @Test func doTTickPreservesDeathsDoorThroughTickAll() throws {
         let burn = ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)
         var context = makeContext(heroHP: 1, enemyEffects: [])
         let hero = context.roster.hero.combatant
@@ -72,9 +72,9 @@ struct EffectTickEngineTests {
         )
         context.roster.setActiveEffects(result.updated, for: hero)
 
-        #expect(context.roster.health(for: hero) == 1)
-        #expect(context.roster.isDeathsDoorActive(for: hero))
-        #expect(
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.isDeathsDoorActive(for: hero))
+        try #expect(
             context.roster.activeEffects(for: hero).contains { $0.effect.kind == .deathsDoor },
             "Death's Door inserted during DoT damage should survive effect-tick write-back"
         )

@@ -8,18 +8,18 @@ struct ItemGeneratorTests {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
         let counts = generatedAffixCounts(baseType: baseType, rarity: .basic, seedRange: 1 ... 120)
 
-        #expect(counts.allSatisfy { (1 ... 2).contains($0) })
-        #expect(counts.contains(1))
-        #expect(counts.contains(2))
+        try #expect(counts.allSatisfy { (1 ... 2).contains($0) })
+        try #expect(counts.contains(1))
+        try #expect(counts.contains(2))
     }
 
     @Test func astralItemsRollThreeOrFourAffixes() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first { $0.id == "ruby_ring" })
         let counts = generatedAffixCounts(baseType: baseType, rarity: .astral, seedRange: 1 ... 120)
 
-        #expect(counts.allSatisfy { (3 ... 4).contains($0) })
-        #expect(counts.contains(3))
-        #expect(counts.contains(4))
+        try #expect(counts.allSatisfy { (3 ... 4).contains($0) })
+        try #expect(counts.contains(3))
+        try #expect(counts.contains(4))
     }
 
     @Test func generatedItemsDoNotDuplicateAffixes() throws {
@@ -33,7 +33,7 @@ struct ItemGeneratorTests {
             using: &randomNumberGenerator
         )
 
-        #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
+        try #expect(Set(item.affixes.map(\.id)).count == item.affixes.count)
     }
 
     @Test func generatedAffixesMatchSlotAndAnyKeywordAffinity() throws {
@@ -49,19 +49,19 @@ struct ItemGeneratorTests {
 
         for affix in item.affixes {
             let definition = try #require(GameContent.itemAffixDefinitions.first { $0.id == affix.id })
-            #expect(definition.slot == baseType.slot)
-            #expect(!(definition.keywords.isDisjoint(with: baseType.keywordAffinities)))
+            try #expect(definition.slot == baseType.slot)
+            try #expect(!(definition.keywords.isDisjoint(with: baseType.keywordAffinities)))
         }
     }
 
-    @Test func everyBaseTypeHasEnoughEligibleAffixesForAstralMaximum() {
+    @Test func everyBaseTypeHasEnoughEligibleAffixesForAstralMaximum() throws {
         for baseType in GameContent.itemBaseTypes {
             let eligibleAffixes = GameContent.itemAffixDefinitions.filter { definition in
                 definition.slot == baseType.slot &&
                     !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
             }
 
-            #expect(eligibleAffixes.count >= 4, baseType.id)
+            try #expect(eligibleAffixes.count >= 4, "\(baseType.id)")
         }
     }
 
@@ -83,12 +83,12 @@ struct ItemGeneratorTests {
             using: &secondRandomNumberGenerator
         )
 
-        #expect(firstItem == secondItem)
+        try #expect(firstItem == secondItem)
     }
 
-    @Test func astralAffixesResolveStrongerThanBasicAffixes() {
+    @Test func astralAffixesResolveStrongerThanBasicAffixes() throws {
         for definition in GameContent.itemAffixDefinitions {
-            #expect(definition.basic != definition.astral, definition.id)
+            try #expect(definition.basic != definition.astral, "\(definition.id)")
         }
     }
 

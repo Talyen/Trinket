@@ -34,7 +34,7 @@ struct DoTDamageTests {
         )
     }
 
-    @Test func resolveTickStoresBasePotencyOnStack() {
+    @Test func resolveTickStoresBasePotencyOnStack() throws {
         var context = makeContext()
         _ = DoTApplicator.applyDecayingDoT(
             keyword: .burn,
@@ -45,10 +45,10 @@ struct DoTDamageTests {
             in: &context
         )
         let potency = context.roster.enemy.activeEffects.first { $0.keyword == .burn }?.effect.potency
-        #expect(potency == 4)
+        try #expect(potency == 4)
     }
 
-    @Test func resolveTickAppliesStatBonusAtDamageTime() {
+    @Test func resolveTickAppliesStatBonusAtDamageTime() throws {
         let stats = PrimaryStats(intellect: 20) // +4 burn
         var context = makeContext(sourceStats: stats)
         let outcome = DoTDamage.resolveTick(
@@ -58,11 +58,11 @@ struct DoTDamageTests {
             sourceActorID: "source",
             in: &context
         )
-        #expect(outcome.healthLost == 8)
-        #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
+        try #expect(outcome.healthLost == 8)
+        try #expect(outcome.events.contains { $0.kind == .status && $0.amount == 8 })
     }
 
-    @Test func resolveTickAppliesItemDamageDealtBonus() {
+    @Test func resolveTickAppliesItemDamageDealtBonus() throws {
         var modifiers = CombatModifierProfile.zero
         modifiers.damageDealtBonus[.burn] = 3
         var context = makeContext(heroModifiers: modifiers)
@@ -73,10 +73,10 @@ struct DoTDamageTests {
             sourceActorID: "source",
             in: &context
         )
-        #expect(outcome.healthLost == 7)
+        try #expect(outcome.healthLost == 7)
     }
 
-    @Test func resolveTickIncludesStatusEventWhenDamageDealt() {
+    @Test func resolveTickIncludesStatusEventWhenDamageDealt() throws {
         var context = makeContext()
         let outcome = DoTDamage.resolveTick(
             basePotency: 5,
@@ -85,6 +85,6 @@ struct DoTDamageTests {
             sourceActorID: "source",
             in: &context
         )
-        #expect(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
+        try #expect(outcome.events.contains { $0.kind == .status && $0.keyword == .burn })
     }
 }

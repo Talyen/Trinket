@@ -85,7 +85,7 @@ struct ChapterStageSelectView: View {
             chapter: appState.playChapter,
             progress: appState.journey.current
         )
-        if appState.showResumeBattleCard, let activeStageID = appState.sessionState.activeBattleStageID {
+        if appState.showResumeBattleCard, let activeStageID = appState.activeBattleStageID {
             return rows.filter { row in
                 switch row {
                 case let .stage(stage, _):

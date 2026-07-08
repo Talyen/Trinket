@@ -52,30 +52,30 @@ struct DoTMechanicsTests {
         battle.activeEffects(of: battle.enemy).first { $0.effect.isDecayingDoT && $0.keyword == .burn }?.effect.potency
     }
 
-    @Test func burnFourDealsFourThenTwoThenOne() {
+    @Test func burnFourDealsFourThenTwoThenOne() throws {
         var battle = isolatedBattle(heroAbilities: [burnAbility(potency: 4)])
 
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
         let applyStep = battle.advanceOneStep()
-        #expect(statusAmounts(from: applyStep.events, keyword: .burn) == [4])
-        #expect(burnPotency(on: battle) == 4)
+        try #expect(statusAmounts(from: applyStep.events, keyword: .burn) == [4])
+        try #expect(burnPotency(on: battle) == 4)
 
         let tickOne = battle.advanceOneStep()
-        #expect(statusAmounts(from: tickOne.events, keyword: .burn) == [2])
-        #expect(burnPotency(on: battle) == 2)
+        try #expect(statusAmounts(from: tickOne.events, keyword: .burn) == [2])
+        try #expect(burnPotency(on: battle) == 2)
 
         let tickTwo = battle.advanceOneStep()
-        #expect(statusAmounts(from: tickTwo.events, keyword: .burn) == [1])
-        #expect(burnPotency(on: battle) == 1)
+        try #expect(statusAmounts(from: tickTwo.events, keyword: .burn) == [1])
+        try #expect(burnPotency(on: battle) == 1)
 
         let tickThree = battle.advanceOneStep()
-        #expect(statusAmounts(from: tickThree.events, keyword: .burn).isEmpty)
-        #expect(burnPotency(on: battle) == nil)
+        try #expect(statusAmounts(from: tickThree.events, keyword: .burn).isEmpty)
+        try #expect(burnPotency(on: battle) == nil)
     }
 
-    @Test func burnStacksMergeAndDecayTogether() {
+    @Test func burnStacksMergeAndDecayTogether() throws {
         var battle = isolatedBattle(
             heroAbilities: [burnAbility(potency: 2)],
             enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)],
@@ -83,16 +83,16 @@ struct DoTMechanicsTests {
         )
 
         _ = battle.advanceOneStep()
-        #expect(burnPotency(on: battle) == 2)
+        try #expect(burnPotency(on: battle) == 2)
 
         _ = battle.advanceOneStep()
-        #expect(burnPotency(on: battle) == 3)
+        try #expect(burnPotency(on: battle) == 3)
 
         _ = battle.advanceOneStep()
-        #expect(burnPotency(on: battle) == 1)
+        try #expect(burnPotency(on: battle) == 1)
     }
 
-    @Test func poisonEightDecaysToZero() {
+    @Test func poisonEightDecaysToZero() throws {
         var battle = isolatedBattle(
             enemyEffects: [ActiveEffect(id: 1, effect: .poison(8), remainingTicks: 0)]
         )
@@ -106,11 +106,11 @@ struct DoTMechanicsTests {
             }
         }
 
-        #expect(amounts == [6, 5, 4, 3, 2, 1])
-        #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
+        try #expect(amounts == [6, 5, 4, 3, 2, 1])
+        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .poison }.isEmpty)
     }
 
-    @Test func poisonAppliesInitialDamage() {
+    @Test func poisonAppliesInitialDamage() throws {
         var battle = isolatedBattle(heroAbilities: [poisonAbility(potency: 8)])
 
         _ = battle.advanceOneStep()
@@ -118,13 +118,13 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         let applyStep = battle.advanceOneStep()
 
-        #expect(statusAmounts(from: applyStep.events, keyword: .poison) == [8])
-        #expect(
+        try #expect(statusAmounts(from: applyStep.events, keyword: .poison) == [8])
+        try #expect(
             battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8
         )
     }
 
-    @Test func bleedFourInstancesDealSixteenTotal() {
+    @Test func bleedFourInstancesDealSixteenTotal() throws {
         var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 4)])
 
         _ = battle.advanceOneStep()
@@ -138,12 +138,12 @@ struct DoTMechanicsTests {
             amounts.append(contentsOf: statusAmounts(from: step.events, keyword: .bleed))
         }
 
-        #expect(amounts == [4, 4, 4])
-        #expect(battle.health(of: battle.enemy) == 84)
-        #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.isEmpty)
+        try #expect(amounts == [4, 4, 4])
+        try #expect(battle.health(of: battle.enemy) == 84)
+        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.isEmpty)
     }
 
-    @Test func bleedInstancesTrackIndependently() {
+    @Test func bleedInstancesTrackIndependently() throws {
         var battle = isolatedBattle(
             heroAbilities: [bleedAbility(potency: 6)],
             heroActionIntervalTicks: 2
@@ -154,10 +154,10 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count == 2)
+        try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count == 2)
     }
 
-    @Test func burnRespectsBlockAndArmor() {
+    @Test func burnRespectsBlockAndArmor() throws {
         var battle = BattleStateTestFactory.makeBattle(
             hero: Combatant(
                 id: "hero",
@@ -178,10 +178,10 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        #expect(battle.health(of: battle.enemy) == 100)
+        try #expect(battle.health(of: battle.enemy) == 100)
     }
 
-    @Test func cleanseRemovesMergedPoisonStack() {
+    @Test func cleanseRemovesMergedPoisonStack() throws {
         let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison)])
         var battle = isolatedBattle(
             heroAbilities: [cleanse],
@@ -192,7 +192,7 @@ struct DoTMechanicsTests {
         _ = battle.advanceOneStep()
         _ = battle.advanceOneStep()
 
-        #expect(!(battle.activeEffects(of: battle.hero)).contains {
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains {
             if case .poison = $0.effect { return true }
             return false
         })

@@ -37,12 +37,12 @@ enum ModelContainerBootstrap {
                 }
             }
 
-            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
             do {
                 let container = try ModelContainer(for: schema, configurations: fallbackConfig)
                 logger.notice("\(logLabel, privacy: .public) store opened in-memory fallback.")
                 return OpenResult(container: container, usedInMemoryFallback: true, recoveredAfterStoreDeletion: false)
-            } catch fallbackError {
+            } catch let fallbackError {
                 logger.fault(
                     "Failed to open in-memory fallback for \(logLabel, privacy: .public): \(fallbackError.localizedDescription, privacy: .public)"
                 )

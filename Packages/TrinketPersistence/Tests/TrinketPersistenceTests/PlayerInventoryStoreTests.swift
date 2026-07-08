@@ -33,8 +33,8 @@ final class PlayerInventoryStoreTests {
         saveStore.inventory = PlayerInventoryState(items: [weapon, armor])
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
 
-        #expect(inventoryStore.current.items(for: .weapon).map(\.id) == ["weapon-item"])
-        #expect(inventoryStore.current.items(for: .armor).map(\.id) == ["armor-item"])
+        try #expect(inventoryStore.current.items(for: .weapon).map(\.id) == ["weapon-item"])
+        try #expect(inventoryStore.current.items(for: .armor).map(\.id) == ["armor-item"])
     }
 
     @Test func itemsForSlotReflectsPersistedInventory() throws {
@@ -52,7 +52,7 @@ final class PlayerInventoryStoreTests {
 
         let reloadedStore = PlayerInventoryStore(saveStore: try context.makeSaveStore())
 
-        #expect(reloadedStore.current.items(for: .weapon).map(\.id) == ["persisted-weapon"])
+        try #expect(reloadedStore.current.items(for: .weapon).map(\.id) == ["persisted-weapon"])
     }
 
     @Test func addRewardItemWriteThroughToSaveStore() throws {

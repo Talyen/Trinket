@@ -12,11 +12,11 @@ struct ArtCatalogIntegrationTests {
         }
     }
 
-    @Test func artCatalogOnlyReferencesKnownAbilities() {
+    @Test func artCatalogOnlyReferencesKnownAbilities() throws {
         let catalogIDs = Set(AbilityCatalog.all.map(\.id))
         let artIDs = Set(ArtCatalog.abilityArtByID.keys)
         let unknownArtIDs = artIDs.subtracting(catalogIDs)
-        #expect(
+        try #expect(
             unknownArtIDs.isEmpty,
             "Art catalog references unknown ability IDs: \(unknownArtIDs.sorted())"
         )

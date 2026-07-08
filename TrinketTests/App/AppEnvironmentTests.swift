@@ -60,7 +60,12 @@ struct AppEnvironmentTests {
 
     @Test func disableCloudSyncFlag() {
         #expect(Self.parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
+        #if targetEnvironment(simulator)
+        // On simulator, CloudKit is disabled by default unless -enable-cloud-sync is passed
+        #expect(Self.parse(arguments: []).disableCloudSync)
+        #else
         #expect(!Self.parse(arguments: []).disableCloudSync)
+        #endif
     }
 
     @Test func disableAudioFlag() {

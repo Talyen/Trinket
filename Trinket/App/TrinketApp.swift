@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketPersistence
 
 @main
 struct TrinketApp: App {

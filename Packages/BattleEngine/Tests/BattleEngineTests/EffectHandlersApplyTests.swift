@@ -8,12 +8,12 @@ import TrinketContent
 struct EffectHandlersApplyTests {
     // MARK: - DoT handlers
 
-    @Test func burnHandlerAppliesBurnEffect() {
+    @Test func burnHandlerAppliesBurnEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let enemy = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(.burn(3), ability: CombatantFixtures.ability(), source: battle.hero, target: enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .burn })
     }
 
     @Test func burnHandlerSkipsInitialDamageWhenPaired() throws {
@@ -31,87 +31,87 @@ struct EffectHandlersApplyTests {
                 in: &context
             ))
         }
-        #expect(outcome.didApply)
+        try #expect(outcome.didApply)
         // No `events` containing a status DoT damage entry.
-        #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
+        try #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
     }
 
-    @Test func poisonHandlerAppliesPoisonEffect() {
+    @Test func poisonHandlerAppliesPoisonEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.poison(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
     }
 
-    @Test func bleedHandlerAppliesBleedEffect() {
+    @Test func bleedHandlerAppliesBleedEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.bleed(2), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isBleed))
     }
 
     // MARK: - Defensive buffs
 
-    @Test func shieldHandlerAddsShieldAndEmitsEvent() {
+    @Test func shieldHandlerAddsShieldAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.shield(.block, 5, 3), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.hero).contains { ae in
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
             if case .shield(.block, 5, _) = ae.effect { return true }
             return false
         })
-        #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+        try #expect(outcome.events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
     }
 
-    @Test func mitigationHandlerAddsMitigationAndEmitsEvent() {
+    @Test func mitigationHandlerAddsMitigationAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.mitigation(.armor, 0.25, 6), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.hero).contains { ae in
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { ae in
             if case .mitigation(.armor, 0.25, _) = ae.effect { return true }
             return false
         })
-        #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
+        try #expect(outcome.events.contains { $0.effectKind == .mitigationApplied && $0.amount == 25 })
     }
 
-    @Test func leechHandlerAddsLeechEffectAndEmitsEvent() {
+    @Test func leechHandlerAddsLeechEffectAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
-        #expect(outcome.events.contains { $0.effectKind == .leechApplied })
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.keyword == .leech && !$0.effect.isInstant })
+        try #expect(outcome.events.contains { $0.effectKind == .leechApplied })
     }
 
-    @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() {
+    @Test func leechHandlerReplacesExistingLeechInsteadOfStacking() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         _ = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
         let outcome = EffectHandlersTestSupport.dispatch(.standardLeechBuff, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
+        try #expect(outcome.didApply)
         let leechStacks = battle.activeEffects(of: battle.hero).filter { $0.effect.keyword == .leech }
-        #expect(leechStacks.count == 1)
+        try #expect(leechStacks.count == 1)
     }
 
-    @Test func cleanseWithoutDebuffsDoesNotApply() {
+    @Test func cleanseWithoutDebuffsDoesNotApply() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(!(outcome.didApply))
-        #expect(outcome.events.isEmpty)
+        try #expect(!(outcome.didApply))
+        try #expect(outcome.events.isEmpty)
     }
 
     // MARK: - Restoration
 
-    @Test func instantHealHandlerHealsTarget() {
+    @Test func instantHealHandlerHealsTarget() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let hero = battle.hero
         _ = battle.withEngineContext { $0.applyTestDamage(30, to: hero) }
         let before = battle.health(of: battle.hero)
         let outcome = EffectHandlersTestSupport.dispatch(.instantHeal(.health, 5), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.health(of: battle.hero) > before)
-        #expect(outcome.events.first?.amount == battle.health(of: battle.hero) - before)
+        try #expect(outcome.didApply)
+        try #expect(battle.health(of: battle.hero) > before)
+        try #expect(outcome.events.first?.amount == battle.health(of: battle.hero) - before)
     }
 
-    @Test func instantHealHandlerDoesNotApplyAtFullHealth() {
+    @Test func instantHealHandlerDoesNotApplyAtFullHealth() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let hero = battle.hero
         let outcome = EffectHandlersTestSupport.dispatch(
@@ -121,22 +121,22 @@ struct EffectHandlersApplyTests {
             target: hero,
             battle: &battle
         )
-        #expect(!(outcome.didApply))
-        #expect(outcome.events.isEmpty)
+        try #expect(!(outcome.didApply))
+        try #expect(outcome.events.isEmpty)
     }
 
-    @Test func resourceGainHandlerAddsGold() {
+    @Test func resourceGainHandlerAddsGold() throws {
         var battle = EffectHandlersTestSupport.makeBattle(initialGold: 10)
         let resourceEffect: Effect = .resourceGain(.gold, 3)
         let outcome = EffectHandlersTestSupport.dispatch(resourceEffect, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.gold == 13)
-        #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
+        try #expect(outcome.didApply)
+        try #expect(battle.gold == 13)
+        try #expect(outcome.events.contains { $0.effectKind == .resourceGain && $0.amount == 3 })
     }
 
     // MARK: - Cleanse
 
-    @Test func cleanseSpecificKeywordRemovesMatchingEffects() {
+    @Test func cleanseSpecificKeywordRemovesMatchingEffects() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
@@ -144,12 +144,12 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
-        #expect(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+        try #expect(outcome.didApply)
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        try #expect(outcome.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
     }
 
-    @Test func cleanseAllRemovesAllDebuffs() {
+    @Test func cleanseAllRemovesAllDebuffs() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -161,13 +161,13 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(nil), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
+        try #expect(outcome.didApply)
         // Debuffs gone, shield still present
-        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
-        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.isTickable && !$0.effect.isRemovableDebuff })
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
+        try #expect(battle.activeEffects(of: battle.hero).contains { $0.effect.isTickable && !$0.effect.isRemovableDebuff })
     }
 
-    @Test func cleanseIsInstantAndLeavesNoActiveEffect() {
+    @Test func cleanseIsInstantAndLeavesNoActiveEffect() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .poison(4), remainingTicks: 0)],
@@ -175,12 +175,12 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(!(battle.activeEffects(of: battle.hero)).contains { if case .cleanse = $0.effect { return true }; return false })
-        #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
+        try #expect(outcome.didApply)
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains { if case .cleanse = $0.effect { return true }; return false })
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains { $0.effect.isDecayingDoT && $0.keyword == .poison })
     }
 
-    @Test func cleanseStunRemovesActivePrevention() {
+    @Test func cleanseStunRemovesActivePrevention() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .controlMeter(.stun, 5, 10), remainingTicks: 0)],
@@ -188,11 +188,11 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.stun), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isControlMeter))
+        try #expect(outcome.didApply)
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isControlMeter))
     }
 
-    @Test func cleanseRandomRemovesOneDebuff() {
+    @Test func cleanseRandomRemovesOneDebuff() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -203,15 +203,15 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.cleanseRandom, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)
-        #expect(outcome.didApply)
+        try #expect(outcome.didApply)
         // Exactly one debuff removed
         let remainingDebuffs = battle.activeEffects(of: battle.hero).filter(\.effect.isRemovableDebuff)
-        #expect(remainingDebuffs.count == 1)
+        try #expect(remainingDebuffs.count == 1)
     }
 
     // MARK: - Purge
 
-    @Test func purgeSpecificKeywordRemovesMatchingBuffs() {
+    @Test func purgeSpecificKeywordRemovesMatchingBuffs() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -222,13 +222,13 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purge(.block), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(!(battle.activeEffects(of: battle.enemy)).contains { if case .shield = $0.effect { return true }; return false })
-        #expect(battle.activeEffects(of: battle.enemy).contains { if case .mitigation = $0.effect { return true }; return false })
-        #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
+        try #expect(outcome.didApply)
+        try #expect(!(battle.activeEffects(of: battle.enemy)).contains { if case .shield = $0.effect { return true }; return false })
+        try #expect(battle.activeEffects(of: battle.enemy).contains { if case .mitigation = $0.effect { return true }; return false })
+        try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .block })
     }
 
-    @Test func purgeAllRemovesBuffsButLeavesDebuffs() {
+    @Test func purgeAllRemovesBuffsButLeavesDebuffs() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -239,13 +239,13 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purge(nil), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(!(battle.activeEffects(of: battle.enemy)).contains(where: \.effect.isRemovableBuff))
-        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
-        #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .purge })
+        try #expect(outcome.didApply)
+        try #expect(!(battle.activeEffects(of: battle.enemy)).contains(where: \.effect.isRemovableBuff))
+        try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isRemovableDebuff))
+        try #expect(outcome.events.contains { $0.effectKind == .purgeApplied && $0.keyword == .purge })
     }
 
-    @Test func purgeRandomRemovesOneBuff() {
+    @Test func purgeRandomRemovesOneBuff() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [
@@ -256,14 +256,14 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.purgeRandom, ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count == 1)
-        #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).filter(\.effect.isRemovableBuff).count == 1)
+        try #expect(outcome.events.contains { $0.effectKind == .purgeApplied })
     }
 
     // MARK: - Debuff
 
-    @Test func halveMitigationHandlerHalvesArmorAndEmitsEvent() {
+    @Test func halveMitigationHandlerHalvesArmorAndEmitsEvent() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         BattleStateTestFactory.seedActiveEffects(
             [ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)],
@@ -271,15 +271,15 @@ struct EffectHandlersApplyTests {
             on: &battle
         )
         let outcome = EffectHandlersTestSupport.dispatch(.halveMitigation(.armor), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).contains { ae in
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).contains { ae in
             if case .mitigation(.armor, 0.20, _) = ae.effect { return true }
             return false
         })
-        #expect(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
+        try #expect(outcome.events.contains { $0.effectKind == .mitigationHalved && $0.keyword == .armor })
     }
 
-    @Test func halveMitigationHandlerReportsNoApplyWhenArmorMissing() {
+    @Test func halveMitigationHandlerReportsNoApplyWhenArmorMissing() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .halveMitigation(.armor),
@@ -288,18 +288,18 @@ struct EffectHandlersApplyTests {
             target: battle.enemy,
             battle: &battle
         )
-        #expect(!(outcome.didApply))
-        #expect(outcome.events.isEmpty)
+        try #expect(!(outcome.didApply))
+        try #expect(outcome.events.isEmpty)
     }
 
-    @Test func controlMeterHandlerAppliesThroughPipeline() {
+    @Test func controlMeterHandlerAppliesThroughPipeline() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.controlMeter(.stun, 1, 10), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.enemy, battle: &battle)
-        #expect(outcome.didApply)
-        #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isControlMeter))
     }
 
-    @Test func deathsDoorHandlerApplyIsNoOp() {
+    @Test func deathsDoorHandlerApplyIsNoOp() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(
             .deathsDoor,
@@ -308,7 +308,7 @@ struct EffectHandlersApplyTests {
             target: battle.hero,
             battle: &battle
         )
-        #expect(!(outcome.didApply))
-        #expect(outcome.events.isEmpty)
+        try #expect(!(outcome.didApply))
+        try #expect(outcome.events.isEmpty)
     }
 }

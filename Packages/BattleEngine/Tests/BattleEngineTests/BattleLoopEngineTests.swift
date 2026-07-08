@@ -5,7 +5,7 @@ import TrinketContent
 
 @Suite
 struct BattleLoopEngineTests {
-    @Test func advanceOneStepMatchesBattleStateFacade() {
+    @Test func advanceOneStepMatchesBattleStateFacade() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: [.slash])
@@ -21,10 +21,10 @@ struct BattleLoopEngineTests {
 
             let facadeStep = facade.advanceOneStep()
 
-            #expect(step == facadeStep)
-            #expect(direct.events == facade.events)
-            #expect(direct.actionCount == facade.actionCount)
-            #expect(direct.health(of: direct.enemy) == facade.health(of: facade.enemy))
+            try #expect(step == facadeStep)
+            try #expect(direct.events == facade.events)
+            try #expect(direct.actionCount == facade.actionCount)
+            try #expect(direct.health(of: direct.enemy) == facade.health(of: facade.enemy))
 
             if direct.isBattleOver {
                 break

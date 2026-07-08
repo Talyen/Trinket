@@ -45,11 +45,11 @@ struct DamagePipelineTests {
         )
     }
 
-    @Test func registryCanonicalNamesMatchExpectedOrder() {
-        #expect(DamagePipeline.canonicalNames == expectedStepNames)
+    @Test func registryCanonicalNamesMatchExpectedOrder() throws {
+        try #expect(DamagePipeline.canonicalNames == expectedStepNames)
     }
 
-    @Test func executedStepNamesMatchCanonicalOrderForFullHit() {
+    @Test func executedStepNamesMatchCanonicalOrderForFullHit() throws {
         var context = makeContext(seed: 1772)
         let executed = DamagePipeline.executedStepNames(
             for: .directAbilityHit(
@@ -60,10 +60,10 @@ struct DamagePipelineTests {
             ),
             in: &context
         )
-        #expect(executed == expectedStepNames)
+        try #expect(executed == expectedStepNames)
     }
 
-    @Test func executedStepNamesShortCircuitAfterDodge() {
+    @Test func executedStepNamesShortCircuitAfterDodge() throws {
         let stats = PrimaryStats(agility: 140)
         let target = CombatantFixtures.combatant(
             id: "target", role: .enemy, maxHealth: 50, primaryStats: stats
@@ -97,15 +97,15 @@ struct DamagePipelineTests {
             in: &context
         )
 
-        #expect(executed == ["DodgeGate"], "Seed 0 with high agility should dodge and short-circuit")
+        try #expect(executed == ["DodgeGate"], "Seed 0 with high agility should dodge and short-circuit")
     }
 
-    @Test func stepPhasesGroupStochasticResolutionAndPost() {
+    @Test func stepPhasesGroupStochasticResolutionAndPost() throws {
         let phases = DamagePipeline.steps.map(\.phase)
-        #expect(phases.filter { $0 == .stochastic }.count == 2)
-        #expect(phases.filter { $0 == .resolution }.count == 9)
-        #expect(phases.filter { $0 == .post }.count == 3)
-        #expect(DamagePipeline.steps.first?.phase == .stochastic)
-        #expect(DamagePipeline.steps.last?.phase == .post)
+        try #expect(phases.filter { $0 == .stochastic }.count == 2)
+        try #expect(phases.filter { $0 == .resolution }.count == 9)
+        try #expect(phases.filter { $0 == .post }.count == 3)
+        try #expect(DamagePipeline.steps.first?.phase == .stochastic)
+        try #expect(DamagePipeline.steps.last?.phase == .post)
     }
 }

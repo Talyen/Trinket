@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 import TrinketContent
 import TrinketPersistence
 import TrinketTestSupport

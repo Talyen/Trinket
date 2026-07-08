@@ -186,7 +186,7 @@ extension AppState {
     }
 }
 
-private extension AppTab {
+extension AppTab {
     init?(shellSessionTab: PlayerShellSessionTab) {
         self.init(rawValue: shellSessionTab.rawValue)
     }

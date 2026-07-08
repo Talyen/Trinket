@@ -6,7 +6,7 @@ import TrinketContent
 
 @Suite
 struct BattleConditionEvaluatorTests {
-    @Test func lowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() {
+    @Test func lowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -35,10 +35,10 @@ struct BattleConditionEvaluatorTests {
             context: context
         )
 
-        #expect(target.id == pet.id)
+        try #expect(target.id == pet.id)
     }
 
-    @Test func enemyBleedingRequiresActiveBleedStack() {
+    @Test func enemyBleedingRequiresActiveBleedStack() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
@@ -60,7 +60,7 @@ struct BattleConditionEvaluatorTests {
             enemyModifiers: .zero
         )
 
-        #expect(!BattleConditionEvaluator.isMet(
+        try #expect(!BattleConditionEvaluator.isMet(
                 .enemyBleeding,
                 actor: hero,
                 enemy: enemy,

@@ -26,110 +26,110 @@ struct CombatantRuntimeTests {
 
     // MARK: - Initialization
 
-    @Test func initialHealthAccountsForToughness() {
+    @Test func initialHealthAccountsForToughness() throws {
         let combatant = makeCombatant(maxHealth: 10, toughness: 5)
         let runtime = CombatantRuntime(combatant: combatant)
-        #expect(runtime.currentHealth == 15)
-        #expect(runtime.maxHealth == 15)
+        try #expect(runtime.currentHealth == 15)
+        try #expect(runtime.maxHealth == 15)
     }
 
-    @Test func initialHealthUsesProvidedOverride() {
+    @Test func initialHealthUsesProvidedOverride() throws {
         let combatant = makeCombatant(maxHealth: 20, toughness: 0)
         let runtime = CombatantRuntime(combatant: combatant, initialHealth: 7)
-        #expect(runtime.currentHealth == 7)
+        try #expect(runtime.currentHealth == 7)
     }
 
-    @Test func initialActiveEffectsAreStored() {
+    @Test func initialActiveEffectsAreStored() throws {
         let combatant = makeCombatant()
         let initial = [ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0)]
         let runtime = CombatantRuntime(combatant: combatant, initialActiveEffects: initial)
-        #expect(runtime.activeEffects == initial)
+        try #expect(runtime.activeEffects == initial)
     }
 
-    @Test func actionSpeedAppliesAgilityModifier() {
+    @Test func actionSpeedAppliesAgilityModifier() throws {
         let combatant = makeCombatant(actionIntervalTicks: 10, agility: 25)
         let runtime = CombatantRuntime(combatant: combatant)
         // intervalModifier = -agility / 5 = -5 → effectiveInterval = max(1, 10-5) = 5
-        #expect(runtime.actionSpeed.effectiveInterval == 5)
+        try #expect(runtime.actionSpeed.effectiveInterval == 5)
     }
 
-    @Test func nextReadyAtTickDefaultsToEffectiveInterval() {
+    @Test func nextReadyAtTickDefaultsToEffectiveInterval() throws {
         let combatant = makeCombatant(actionIntervalTicks: 3)
         let runtime = CombatantRuntime(combatant: combatant)
-        #expect(runtime.nextReadyAtTick == 3)
+        try #expect(runtime.nextReadyAtTick == 3)
     }
 
     // MARK: - Role defaults
 
-    @Test func defaultActionSpeedUsesRoleBaselineWhenNoOverride() {
+    @Test func defaultActionSpeedUsesRoleBaselineWhenNoOverride() throws {
         let hero = makeCombatant(role: .hero, actionIntervalTicks: nil)
         let pet = makeCombatant(role: .pet, actionIntervalTicks: nil)
         let enemy = makeCombatant(role: .enemy, actionIntervalTicks: nil)
 
         // Baseline intervals from BattleState: hero 2, pet 2, enemy 6
-        #expect(CombatantRuntime(combatant: hero).actionSpeed.effectiveInterval == 2)
-        #expect(CombatantRuntime(combatant: pet).actionSpeed.effectiveInterval == 2)
-        #expect(CombatantRuntime(combatant: enemy).actionSpeed.effectiveInterval == 6)
+        try #expect(CombatantRuntime(combatant: hero).actionSpeed.effectiveInterval == 2)
+        try #expect(CombatantRuntime(combatant: pet).actionSpeed.effectiveInterval == 2)
+        try #expect(CombatantRuntime(combatant: enemy).actionSpeed.effectiveInterval == 6)
     }
 
     // MARK: - isReady
 
-    @Test func isReadyRequiresAliveAndOnOrAfterReadyTick() {
+    @Test func isReadyRequiresAliveAndOnOrAfterReadyTick() throws {
         let combatant = makeCombatant(actionIntervalTicks: 4)
         var runtime = CombatantRuntime(combatant: combatant)
-        #expect(!(runtime.isReady(atTick: 0)))
-        #expect(!(runtime.isReady(atTick: 3)))
-        #expect(runtime.isReady(atTick: 4))
-        #expect(runtime.isReady(atTick: 100))
+        try #expect(!(runtime.isReady(atTick: 0)))
+        try #expect(!(runtime.isReady(atTick: 3)))
+        try #expect(runtime.isReady(atTick: 4))
+        try #expect(runtime.isReady(atTick: 100))
     }
 
-    @Test func isReadyReturnsFalseForDefeatedCombatant() {
+    @Test func isReadyReturnsFalseForDefeatedCombatant() throws {
         let combatant = makeCombatant(actionIntervalTicks: 4)
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.takeRawDamage(99)
-        #expect(!(runtime.isReady(atTick: 100)))
+        try #expect(!(runtime.isReady(atTick: 100)))
     }
 
     // MARK: - takeRawDamage
 
-    @Test func takeRawDamageSubtractsAndClampsAtZero() {
+    @Test func takeRawDamageSubtractsAndClampsAtZero() throws {
         let combatant = makeCombatant(maxHealth: 10, toughness: 0)
         var runtime = CombatantRuntime(combatant: combatant)
         let lost = runtime.takeRawDamage(3)
-        #expect(lost == 3)
-        #expect(runtime.currentHealth == 7)
+        try #expect(lost == 3)
+        try #expect(runtime.currentHealth == 7)
     }
 
-    @Test func takeRawDamageOverkillReturnsActualAmount() {
+    @Test func takeRawDamageOverkillReturnsActualAmount() throws {
         let combatant = makeCombatant(maxHealth: 5, toughness: 0)
         var runtime = CombatantRuntime(combatant: combatant)
         let lost = runtime.takeRawDamage(100)
-        #expect(lost == 5)
-        #expect(runtime.currentHealth == 0)
-        #expect(!(runtime.isAlive))
+        try #expect(lost == 5)
+        try #expect(runtime.currentHealth == 0)
+        try #expect(!(runtime.isAlive))
     }
 
     // MARK: - heal
 
-    @Test func healRestoresUpToMax() {
+    @Test func healRestoresUpToMax() throws {
         let combatant = makeCombatant(maxHealth: 10, toughness: 0)
         var runtime = CombatantRuntime(combatant: combatant)
         _ = runtime.takeRawDamage(8)
         let restored = runtime.heal(5)
-        #expect(restored == 5)
-        #expect(runtime.currentHealth == 7)
+        try #expect(restored == 5)
+        try #expect(runtime.currentHealth == 7)
     }
 
-    @Test func healCapsAtMaxHealth() {
+    @Test func healCapsAtMaxHealth() throws {
         let combatant = makeCombatant(maxHealth: 10, toughness: 0)
         var runtime = CombatantRuntime(combatant: combatant)
         _ = runtime.takeRawDamage(5)
         let restored = runtime.heal(100)
-        #expect(restored == 5)
-        #expect(runtime.currentHealth == 10)
+        try #expect(restored == 5)
+        try #expect(runtime.currentHealth == 10)
     }
 
-    @Test func healIncludesWisdomBonus() {
+    @Test func healIncludesWisdomBonus() throws {
         let combatant = makeCombatant(maxHealth: 20, toughness: 0)
         // Combatant has no wisdom by default; bump it explicitly.
         let wisCombatant = Combatant(
@@ -144,48 +144,48 @@ struct CombatantRuntimeTests {
         _ = runtime.takeRawDamage(15)
         // Heal 3 + wisdom 10/5 = 2 → 5
         let restored = runtime.heal(3)
-        #expect(restored == 5)
-        #expect(runtime.currentHealth == 10)
+        try #expect(restored == 5)
+        try #expect(runtime.currentHealth == 10)
     }
 
-    @Test func healAtFullHealthReturnsZero() {
+    @Test func healAtFullHealthReturnsZero() throws {
         let combatant = makeCombatant(maxHealth: 10, toughness: 0)
         var runtime = CombatantRuntime(combatant: combatant)
         let restored = runtime.heal(5)
-        #expect(restored == 0)
-        #expect(runtime.currentHealth == 10)
+        try #expect(restored == 0)
+        try #expect(runtime.currentHealth == 10)
     }
 
     // MARK: - markActed
 
-    @Test func markActedAdvancesScheduleAndIncrementsCount() {
+    @Test func markActedAdvancesScheduleAndIncrementsCount() throws {
         let combatant = makeCombatant(actionIntervalTicks: 4)
         var runtime = CombatantRuntime(combatant: combatant)
-        #expect(runtime.actionCount == 0)
-        #expect(runtime.nextReadyAtTick == 4)
+        try #expect(runtime.actionCount == 0)
+        try #expect(runtime.nextReadyAtTick == 4)
 
         runtime.markActed(atTick: 4)
-        #expect(runtime.actionCount == 1)
-        #expect(runtime.nextReadyAtTick == 8)
+        try #expect(runtime.actionCount == 1)
+        try #expect(runtime.nextReadyAtTick == 8)
 
         runtime.markActed(atTick: 8)
-        #expect(runtime.actionCount == 2)
-        #expect(runtime.nextReadyAtTick == 12)
+        try #expect(runtime.actionCount == 2)
+        try #expect(runtime.nextReadyAtTick == 12)
     }
 
     // MARK: - Effect storage
 
-    @Test func setEffectsReplacesEntireArray() {
+    @Test func setEffectsReplacesEntireArray() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
             ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0),
             ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0)
         ])
-        #expect(runtime.activeEffects.count == 2)
+        try #expect(runtime.activeEffects.count == 2)
     }
 
-    @Test func removeEffectsFiltersByPredicate() {
+    @Test func removeEffectsFiltersByPredicate() throws {
         let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         runtime.setEffects([
@@ -194,18 +194,18 @@ struct CombatantRuntimeTests {
             ActiveEffect(id: 3, effect: .shield(.block, 5, 6), remainingTicks: 6)
         ])
         runtime.removeEffects { $0.effect.isDecayingDoT }
-        #expect(runtime.activeEffects.count == 1)
-        #expect(runtime.activeEffects.first?.effect.keyword == .block)
+        try #expect(runtime.activeEffects.count == 1)
+        try #expect(runtime.activeEffects.first?.effect.keyword == .block)
     }
 
     // MARK: - Identity passthrough
 
-    @Test func identityPassthrough() {
+    @Test func identityPassthrough() throws {
         let combatant = makeCombatant(id: "alice", role: .hero, maxHealth: 12, toughness: 3)
         let runtime = CombatantRuntime(combatant: combatant)
-        #expect(runtime.id == "alice")
-        #expect(runtime.name == "Alice")
-        #expect(runtime.role == .hero)
-        #expect(runtime.maxHealth == 15)
+        try #expect(runtime.id == "alice")
+        try #expect(runtime.name == "Alice")
+        try #expect(runtime.role == .hero)
+        try #expect(runtime.maxHealth == 15)
     }
 }

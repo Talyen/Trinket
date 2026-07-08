@@ -24,12 +24,12 @@ final class PlayerHomesteadStoreTests {
         rosterStore.current = updatedRoster
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
 
-        #expect(homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .success)
+        try #expect(homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .success)
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.homestead.tier(for: .wheatField) == 1)
-        #expect(reloaded.homestead.resources[.wood] == 10)
-        #expect(reloaded.roster.gold == 4)
+        try #expect(reloaded.homestead.tier(for: .wheatField) == 1)
+        try #expect(reloaded.homestead.resources[.wood] == 10)
+        try #expect(reloaded.roster.gold == 4)
     }
 
     @Test func buildOrUpgradeReturnsFalseWhenPrerequisitesMissing() throws {
@@ -45,13 +45,13 @@ final class PlayerHomesteadStoreTests {
         rosterStore.current = updatedRoster
         let definition = try #require(GameContent.homesteadNode(matching: .blacksmithForge))
 
-        #expect(
+        try #expect(
             homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .insufficientResources
         )
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.homestead.tier(for: .blacksmithForge) == 0)
-        #expect(reloaded.roster.gold == 100)
+        try #expect(reloaded.homestead.tier(for: .blacksmithForge) == 0)
+        try #expect(reloaded.roster.gold == 100)
     }
 
     @Test func grantResourcesWriteThroughToSaveStore() throws {
@@ -60,7 +60,7 @@ final class PlayerHomesteadStoreTests {
         homesteadStore.grant([ResourceAmount(.wood, 7), ResourceAmount(.crystal, 2)])
 
         let reloaded = try context.makeSaveStore()
-        #expect(reloaded.homestead.resources[.wood] == 7)
-        #expect(reloaded.homestead.resources[.crystal] == 2)
+        try #expect(reloaded.homestead.resources[.wood] == 7)
+        try #expect(reloaded.homestead.resources[.crystal] == 2)
     }
 }

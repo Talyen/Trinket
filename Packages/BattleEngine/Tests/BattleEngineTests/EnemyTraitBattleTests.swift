@@ -48,14 +48,14 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 10, target: skeleton.combatant, keyword: .holy, sourceActorID: hero.id)
         )
 
-        #expect(physical.healthLost == 10)
-        #expect(holy.healthLost == 13)
+        try #expect(physical.healthLost == 10)
+        try #expect(holy.healthLost == 13)
     }
 
     @Test func goblinNimbleDodgeAndScrawnyVulnerability() throws {
         let goblin = try enemyBuild(id: "goblin")
-        #expect(goblin.modifiers.dodgeChanceBonus > 0)
-        #expect(goblin.modifiers.damageTakenVulnerability(for: .physical) > 0)
+        try #expect(goblin.modifiers.dodgeChanceBonus > 0)
+        try #expect(goblin.modifiers.damageTakenVulnerability(for: .physical) > 0)
     }
 
     @Test func mimicAmbushAddsFirstStrikeDamage() throws {
@@ -71,13 +71,13 @@ struct EnemyTraitBattleTests {
             .directAbilityHit(amount: 2, target: hero, keyword: .physical, sourceActorID: mimic.combatant.id)
         )
 
-        #expect(first.healthLost == 5)
-        #expect(second.healthLost == 3)
+        try #expect(first.healthLost == 5)
+        try #expect(second.healthLost == 3)
     }
 
     @Test func livingArmorCannotBeHealed() throws {
         let livingArmor = try enemyBuild(id: "living_armor")
-        #expect(livingArmor.modifiers.cannotBeHealed)
+        try #expect(livingArmor.modifiers.cannotBeHealed)
     }
 
     @Test func hemorrhageWithGravePowerDoesNotDoubleImmediateBleed() throws {
@@ -99,6 +99,6 @@ struct EnemyTraitBattleTests {
             context: &context
         )
 
-        #expect(context.roster.health(for: hero) == heroHealthBefore - 7)
+        try #expect(context.roster.health(for: hero) == heroHealthBefore - 7)
     }
 }

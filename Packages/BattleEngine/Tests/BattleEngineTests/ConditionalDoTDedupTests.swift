@@ -5,9 +5,9 @@ import TrinketContent
 
 @Suite
 struct ConditionalDoTDedupTests {
-    @Test func shouldSkipImmediateDoTWhenKeywordMatchesRegardlessOfPotency() {
+    @Test func shouldSkipImmediateDoTWhenKeywordMatchesRegardlessOfPotency() throws {
         let action = ActionApplyContext(pairedDirectDamage: [(.burn, 9)])
-        #expect(action.shouldSkipImmediateDoT(keyword: .burn))
+        try #expect(action.shouldSkipImmediateDoT(keyword: .burn))
     }
 
     @Test func burnHandlerSkipsImmediateDamageWhenBoostedPairedBurnExists() throws {
@@ -25,8 +25,8 @@ struct ConditionalDoTDedupTests {
                 in: &context
             ))
         }
-        #expect(outcome.didApply)
-        #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
+        try #expect(outcome.didApply)
+        try #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .burn }))
     }
 
     @Test func poisonHandlerSkipsImmediateDamageWhenBoostedPairedPoisonExists() throws {
@@ -44,7 +44,7 @@ struct ConditionalDoTDedupTests {
                 in: &context
             ))
         }
-        #expect(outcome.didApply)
-        #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .poison }))
+        try #expect(outcome.didApply)
+        try #expect(!(outcome.events.contains { $0.kind == .status && $0.keyword == .poison }))
     }
 }

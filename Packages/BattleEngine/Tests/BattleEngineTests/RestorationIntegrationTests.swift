@@ -6,7 +6,7 @@ import TrinketContent
 /// Integration tests for healing and leech through full battle ticks.
 @Suite
 struct RestorationIntegrationTests {
-    @Test func instantHealRestoresHealth() {
+    @Test func instantHealRestoresHealth() throws {
         let heal = Ability(
             id: "heal",
             name: "Heal",
@@ -28,18 +28,18 @@ struct RestorationIntegrationTests {
         )
 
         _ = battle.advanceOneStep()
-        #expect(battle.health(of: battle.hero) == 8)
+        try #expect(battle.health(of: battle.hero) == 8)
 
         let events = battle.advanceOneStep().events
 
-        #expect(battle.health(of: battle.hero) == 10)
-        #expect(events.contains { event in
+        try #expect(battle.health(of: battle.hero) == 10)
+        try #expect(events.contains { event in
             guard event.effectKind == .instantHeal else { return false }
             return ActionEventFormatter.display(for: event).text == "+\(event.amount) Health"
         })
     }
 
-    @Test func leechHealsAttackerOnDamageDealt() {
+    @Test func leechHealsAttackerOnDamageDealt() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, actionIntervalTicks: 2, abilities: [.slash])
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
@@ -54,17 +54,17 @@ struct RestorationIntegrationTests {
         )
 
         _ = battle.advanceOneStep()
-        #expect(battle.health(of: battle.hero) == 8)
+        try #expect(battle.health(of: battle.hero) == 8)
 
         let events = battle.advanceOneStep().events
 
-        #expect(battle.health(of: battle.hero) == 8)
-        #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
+        try #expect(battle.health(of: battle.hero) == 8)
+        try #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }
 
     /// Verifies that an enemy `instantHeal` ability restores health when below max.
     /// Uses `activeEnemyEffects` burn to pre-damage the enemy before it acts.
-    @Test func enemyInstantHealRestoresHealthWhenBelowMax() {
+    @Test func enemyInstantHealRestoresHealthWhenBelowMax() throws {
         let selfHeal = Ability(
             id: "self-heal",
             name: "Self Heal",
@@ -91,7 +91,7 @@ struct RestorationIntegrationTests {
 
         let step = battle.advanceOneStep()
 
-        #expect(battle.health(of: battle.enemy) == 20)
-        #expect(step.events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
+        try #expect(battle.health(of: battle.enemy) == 20)
+        try #expect(step.events.contains { $0.effectKind == .instantHeal && $0.amount > 0 })
     }
 }

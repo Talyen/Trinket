@@ -15,6 +15,7 @@ struct CLIOptions {
     var loadoutMode: LoadoutSamplingMode = .realistic
 }
 
+@main
 enum BalanceSweepCLI {
     static func main() throws {
         let options = try parseOptions()
@@ -212,8 +213,6 @@ enum BalanceSweepCLI {
         """)
     }
 }
-
-try BalanceSweepCLI.main()
 
 enum CLIError: Error, CustomStringConvertible {
     case help

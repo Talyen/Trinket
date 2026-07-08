@@ -11,7 +11,7 @@ final class JourneyProgressTests {
         GameContent.chapters[0]
     }
 
-    @Test func completingStageUnlocksExactlyNextStage() {
+    @Test func completingStageUnlocksExactlyNextStage() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
@@ -19,13 +19,13 @@ final class JourneyProgressTests {
 
         progress.complete(firstStage, in: GameContent.chapters)
 
-        #expect(progress.isCompleted(firstStage))
-        #expect(progress.isActive(secondStage))
-        #expect(!(progress.isActive(firstStage)))
-        #expect(!(progress.isActive(thirdStage)))
+        try #expect(progress.isCompleted(firstStage))
+        try #expect(progress.isActive(secondStage))
+        try #expect(!(progress.isActive(firstStage)))
+        try #expect(!(progress.isActive(thirdStage)))
     }
 
-    @Test func completedAndFutureStagesAreNotActive() {
+    @Test func completedAndFutureStagesAreNotActive() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
@@ -33,25 +33,25 @@ final class JourneyProgressTests {
 
         progress.complete(firstStage, in: GameContent.chapters)
 
-        #expect(progress.isCompleted(firstStage))
-        #expect(!(progress.isActive(firstStage)))
-        #expect(progress.isActive(secondStage))
-        #expect(!(progress.isActive(finalStage)))
+        try #expect(progress.isCompleted(firstStage))
+        try #expect(!(progress.isActive(firstStage)))
+        try #expect(progress.isActive(secondStage))
+        try #expect(!(progress.isActive(finalStage)))
     }
 
-    @Test func rewardsCanOnlyBeClaimedOncePerStage() {
+    @Test func rewardsCanOnlyBeClaimedOncePerStage() throws {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
 
-        #expect(!(progress.hasClaimedRewards(for: firstStage)))
+        try #expect(!(progress.hasClaimedRewards(for: firstStage)))
         progress.markRewardsClaimed(for: firstStage)
         progress.markRewardsClaimed(for: firstStage)
 
-        #expect(progress.hasClaimedRewards(for: firstStage))
-        #expect(progress.claimedRewardStageIDs.count == 1)
+        try #expect(progress.hasClaimedRewards(for: firstStage))
+        try #expect(progress.claimedRewardStageIDs.count == 1)
     }
 
-    @Test func experienceAppliesToActiveParty() {
+    @Test func experienceAppliesToActiveParty() throws {
         var roster = PlayerRosterState.initial
         let hero = GameContent.heroes[0]
         let pet = GameContent.pets[0]
@@ -61,8 +61,8 @@ final class JourneyProgressTests {
         roster.grantExperience(20, to: hero)
         roster.grantExperience(20, to: pet)
 
-        #expect(roster.progression(for: hero).currentXP == heroBefore + 20)
-        #expect(roster.progression(for: pet).currentXP == petBefore + 20)
+        try #expect(roster.progression(for: hero).currentXP == heroBefore + 20)
+        try #expect(roster.progression(for: pet).currentXP == petBefore + 20)
     }
 
     @Test func itemRewardCreatesUniqueInstance() throws {
@@ -74,20 +74,20 @@ final class JourneyProgressTests {
         inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
 
         let rewardItem = try #require(inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        #expect(rewardItem.templateID == "shortsword-basic")
-        #expect(rewardItem.id != rewardItem.templateID)
-        #expect((1 ... 2).contains(rewardItem.affixes.count))
+        try #expect(rewardItem.templateID == "shortsword-basic")
+        try #expect(rewardItem.id != rewardItem.templateID)
+        try #expect((1 ... 2).contains(rewardItem.affixes.count))
     }
 
-    @Test func chapterCompletionExposesLockedNextChapterState() {
+    @Test func chapterCompletionExposesLockedNextChapterState() throws {
         var progress = JourneyProgressState.initial
 
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        #expect(progress.activeStageID == nil)
-        #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
+        try #expect(progress.activeStageID == nil)
+        try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
     }
 
     @Test func journeyStorePersistsProgress() throws {
@@ -97,14 +97,13 @@ final class JourneyProgressTests {
         defer { try? FileManager.default.removeItem(at: directoryURL) }
 
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
-        let saveStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        let firstStore = PlayerJourneyStore(saveStore: saveStore)
+        let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let firstStore = PlayerJourneyStore(saveStore: firstSaveStore)
         firstStore.complete(chapter.stages[0], in: GameContent.chapters)
 
-        let secondStore = PlayerJourneyStore(
-            saveStore: try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
-        )
-        #expect(secondStore.current.activeStageID == "chapter-1-stage-2")
-        #expect(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))
+        let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+        let secondStore = PlayerJourneyStore(saveStore: secondSaveStore)
+        try #expect(secondStore.current.activeStageID == "chapter-1-stage-2")
+        try #expect(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))
     }
 }

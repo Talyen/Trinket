@@ -18,10 +18,11 @@ public enum SaveTestSupport {
     }
 
     @MainActor
-    public static func makeSaveStore(directoryURL: URL) throws -> PlayerSaveStore {
+    public static func makeSaveStore(directoryURL: URL, persistImmediately: Bool = true) throws -> PlayerSaveStore {
         try PlayerSaveStore(
             storeURL: makeStoreURL(directoryURL: directoryURL),
-            disableCloudSync: true
+            disableCloudSync: true,
+            persistSaveImmediately: persistImmediately
         )
     }
 

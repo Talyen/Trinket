@@ -17,8 +17,8 @@ struct PlayerRosterStateTests {
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.configuredCombatant(knight)
 
-        #expect(configured.abilityLoadout.skill?.id == "smite")
-        #expect(configured.abilityLoadout.ultimate?.id == "blessed-aegis")
+        try #expect(configured.abilityLoadout.skill?.id == "smite")
+        try #expect(configured.abilityLoadout.ultimate?.id == "blessed-aegis")
     }
 
     @Test func battleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
@@ -33,11 +33,11 @@ struct PlayerRosterStateTests {
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.battleConfiguredCombatant(knight)
 
-        #expect(roster.loadout(for: knight).skill?.id == "spiked-shield")
-        #expect(configured.abilityLoadout.basic?.id == "shield-bash")
-        #expect(configured.abilityLoadout.skill?.id == "spiked-shield")
-        #expect(configured.abilityLoadout.ultimate == nil)
-        #expect(configured.abilities.map(\.id) == ["shield-bash", "spiked-shield"])
+        try #expect(roster.loadout(for: knight).skill?.id == "spiked-shield")
+        try #expect(configured.abilityLoadout.basic?.id == "shield-bash")
+        try #expect(configured.abilityLoadout.skill?.id == "spiked-shield")
+        try #expect(configured.abilityLoadout.ultimate == nil)
+        try #expect(configured.abilities.map(\.id) == ["shield-bash", "spiked-shield"])
     }
 
     @Test func battleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
@@ -51,10 +51,10 @@ struct PlayerRosterStateTests {
         roster.setLoadout(customLoadout, for: knight)
 
         roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 220)
-        #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield"])
+        try #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield"])
 
         roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
-        #expect(
+        try #expect(
             roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"]
         )
     }
@@ -64,8 +64,8 @@ struct PlayerRosterStateTests {
         let enemy = try #require(GameContent.enemies.first?.combatant)
         let configured = roster.battleConfiguredCombatant(enemy)
 
-        #expect(configured.abilityLoadout.skill?.tier == .skill)
-        #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
+        try #expect(configured.abilityLoadout.skill?.tier == .skill)
+        try #expect(configured.abilityLoadout.ultimate?.tier == .ultimate)
     }
 
     @Test func setActiveHeroAndPetUpdatesIDs() throws {
@@ -76,8 +76,8 @@ struct PlayerRosterStateTests {
         roster.setActiveHero(wizard)
         roster.setActivePet(wolf)
 
-        #expect(roster.activeHeroID == "wizard")
-        #expect(roster.activePetID == "wolf")
+        try #expect(roster.activeHeroID == "wizard")
+        try #expect(roster.activePetID == "wolf")
     }
 
     @Test func setActiveHeroIgnoresLockedCombatantOnFreshStart() throws {
@@ -86,7 +86,7 @@ struct PlayerRosterStateTests {
 
         roster.setActiveHero(wizard)
 
-        #expect(roster.activeHeroID == PlayerRosterState.starterHeroID)
+        try #expect(roster.activeHeroID == PlayerRosterState.starterHeroID)
     }
 
     @Test func setActivePetIgnoresLockedCombatantOnFreshStart() throws {
@@ -95,17 +95,17 @@ struct PlayerRosterStateTests {
 
         roster.setActivePet(wolf)
 
-        #expect(roster.activePetID == PlayerRosterState.starterPetID)
+        try #expect(roster.activePetID == PlayerRosterState.starterPetID)
     }
 
-    @Test func grantGoldIgnoresNonPositiveAmounts() {
+    @Test func grantGoldIgnoresNonPositiveAmounts() throws {
         var roster = PlayerRosterState.initial
         roster.gold = 25
 
         roster.grantGold(0)
         roster.grantGold(-5)
 
-        #expect(roster.gold == 25)
+        try #expect(roster.gold == 25)
     }
 
     @Test func equippedItemResolvesFromInventoryAndLoadout() throws {
@@ -115,8 +115,8 @@ struct PlayerRosterStateTests {
 
         let weapon = roster.equippedItem(for: .weapon, combatant: knight, inventory: inventory)
 
-        #expect(weapon?.id == "longsword-basic")
-        #expect(weapon?.baseType.slot == .weapon)
+        try #expect(weapon?.id == "longsword-basic")
+        try #expect(weapon?.baseType.slot == .weapon)
     }
 
     @Test func equipmentLoadoutEquipAndUnequip() throws {
@@ -124,10 +124,10 @@ struct PlayerRosterStateTests {
         var loadout = EquipmentLoadout()
 
         loadout.equip(item)
-        #expect(loadout.itemID(for: .weapon) == "wand-basic")
+        try #expect(loadout.itemID(for: .weapon) == "wand-basic")
 
         loadout.unequip(.weapon)
-        #expect(loadout.itemID(for: .weapon) == nil)
+        try #expect(loadout.itemID(for: .weapon) == nil)
     }
 
     @Test func itemMatchingResolvesTemplateIDForRewardInstances() throws {
@@ -152,58 +152,58 @@ struct PlayerRosterStateTests {
         knightLoadout.equip(wand)
         roster.setEquipmentLoadout(knightLoadout, for: knight)
 
-        #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
-        #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
+        try #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
+        try #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
     }
 
     @Test func inventorySlotUnlocksWhenSlotItemExists() throws {
         let weapon = try #require(PlayerInventoryState.initial.item(matching: "wand-basic"))
         var inventory = PlayerInventoryState.freshStart
 
-        #expect(!(inventory.hasItem(for: .weapon)))
-        #expect(!(inventory.hasItem(for: .armor)))
+        try #expect(!(inventory.hasItem(for: .weapon)))
+        try #expect(!(inventory.hasItem(for: .armor)))
 
         inventory.items.append(weapon)
 
-        #expect(inventory.hasItem(for: .weapon))
-        #expect(!(inventory.hasItem(for: .armor)))
+        try #expect(inventory.hasItem(for: .weapon))
+        try #expect(!(inventory.hasItem(for: .armor)))
     }
 
-    @Test func highestHeroLevelWithSingleHero() {
+    @Test func highestHeroLevelWithSingleHero() throws {
         var roster = PlayerRosterState.freshStart
         roster.progressions[PlayerRosterState.starterHeroID] = CombatantProgression(level: 5, currentXP: 0, requiredXP: 100)
-        #expect(roster.highestHeroLevel == 5)
+        try #expect(roster.highestHeroLevel == 5)
     }
 
-    @Test func highestHeroLevelWithMultipleHeroes() {
+    @Test func highestHeroLevelWithMultipleHeroes() throws {
         var roster = PlayerRosterState.initial
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
         roster.progressions["wizard"] = CombatantProgression(level: 12, currentXP: 0, requiredXP: 100)
-        #expect(roster.highestHeroLevel == 12)
+        try #expect(roster.highestHeroLevel == 12)
     }
 
-    @Test func highestHeroLevelFallsBackToOne() {
+    @Test func highestHeroLevelFallsBackToOne() throws {
         let roster = PlayerRosterState.freshStart
-        #expect(roster.highestHeroLevel == 1)
+        try #expect(roster.highestHeroLevel == 1)
     }
 
-    @Test func highestPetLevelWithMultiplePets() {
+    @Test func highestPetLevelWithMultiplePets() throws {
         var roster = PlayerRosterState.initial
         roster.progressions["bear"] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 100)
         roster.progressions["wolf"] = CombatantProgression(level: 7, currentXP: 0, requiredXP: 100)
-        #expect(roster.highestPetLevel == 7)
+        try #expect(roster.highestPetLevel == 7)
     }
 
-    @Test func highestPetLevelFallsBackToOne() {
+    @Test func highestPetLevelFallsBackToOne() throws {
         let roster = PlayerRosterState.freshStart
-        #expect(roster.highestPetLevel == 1)
+        try #expect(roster.highestPetLevel == 1)
     }
 
-    @Test func highestLevelsIgnoresUnrelatedIDs() {
+    @Test func highestLevelsIgnoresUnrelatedIDs() throws {
         var roster = PlayerRosterState.freshStart
         roster.progressions["bear"] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
-        #expect(roster.highestHeroLevel == 1)
-        #expect(roster.highestPetLevel == 15)
+        try #expect(roster.highestHeroLevel == 1)
+        try #expect(roster.highestPetLevel == 15)
     }
 
     @Test func addRewardItemIgnoresDuplicateID() throws {
@@ -215,7 +215,7 @@ struct PlayerRosterStateTests {
         inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
         inventory.addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
 
-        #expect(inventory.items.count == 1)
-        #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
+        try #expect(inventory.items.count == 1)
+        try #expect(inventory.items.first?.id == "chapter-1-stage-1-shortsword-basic")
     }
 }

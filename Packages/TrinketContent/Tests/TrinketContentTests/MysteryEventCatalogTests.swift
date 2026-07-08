@@ -4,34 +4,34 @@ import Testing
 
 @Suite
 struct MysteryEventCatalogTests {
-    @Test func allMysteryEventsHaveUniqueIDs() {
+    @Test func allMysteryEventsHaveUniqueIDs() throws {
         let ids = GameContent.mysteryEvents.map(\.id)
-        #expect(ids.count == Set(ids).count)
+        try #expect(ids.count == Set(ids).count)
     }
 
-    @Test func allMysteryEventsHaveTwoChoices() {
+    @Test func allMysteryEventsHaveTwoChoices() throws {
         for event in GameContent.mysteryEvents {
-            #expect(
+            try #expect(
                 event.choices.count == 2,
                 "Mystery event \(event.id) should have exactly 2 choices"
             )
         }
     }
 
-    @Test func allMysteryEventsHaveUniqueChoiceIDs() {
+    @Test func allMysteryEventsHaveUniqueChoiceIDs() throws {
         for event in GameContent.mysteryEvents {
             let choiceIDs = event.choices.map(\.id)
-            #expect(
+            try #expect(
                 choiceIDs.count == Set(choiceIDs).count,
                 "Mystery event \(event.id) has duplicate choice IDs"
             )
         }
     }
 
-    @Test func allMysteryEventsHaveAtLeastOneEffectPerChoice() {
+    @Test func allMysteryEventsHaveAtLeastOneEffectPerChoice() throws {
         for event in GameContent.mysteryEvents {
             for choice in event.choices {
-                #expect(!choice.effects.isEmpty, "Choice \(choice.id)) in event \(event.id) has no effects")
+                try #expect(!choice.effects.isEmpty, "Choice \(choice.id)) in event \(event.id) has no effects")
             }
         }
     }
@@ -49,17 +49,17 @@ struct MysteryEventCatalogTests {
     @Test func mysteryEventLookup() throws {
         for event in GameContent.mysteryEvents {
             let lookedUp = try #require(GameContent.mysteryEvent(matching: event.id))
-            #expect(lookedUp.id == event.id)
+            try #expect(lookedUp.id == event.id)
         }
     }
 
-    @Test func unknownMysteryEventReturnsNil() {
-        #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
+    @Test func unknownMysteryEventReturnsNil() throws {
+        try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
-    @Test func pickMysteryEventReturnsValidEvent() {
+    @Test func pickMysteryEventReturnsValidEvent() throws {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
-        #expect(GameContent.mysteryEvents.contains(picked))
+        try #expect(GameContent.mysteryEvents.contains(picked))
     }
 }

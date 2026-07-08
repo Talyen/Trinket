@@ -6,7 +6,7 @@ import TrinketContent
 /// Integration tests for cleanse abilities through full battle ticks.
 @Suite
 struct CleanseIntegrationTests {
-    @Test func cleanseAllRemovesDebuffsWhenAbilityFires() {
+    @Test func cleanseAllRemovesDebuffsWhenAbilityFires() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -28,10 +28,10 @@ struct CleanseIntegrationTests {
 
         BattleTestFixtures.advanceTicks(6, on: &battle)
 
-        #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
+        try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
     }
 
-    @Test func cleanseSpecificKeywordRemovesMatchingDebuffsOnUse() {
+    @Test func cleanseSpecificKeywordRemovesMatchingDebuffsOnUse() throws {
         let cleansePoison = Ability(
             id: "cleanse-poison",
             name: "Cleanse Poison",
@@ -60,12 +60,12 @@ struct CleanseIntegrationTests {
         _ = battle.advanceOneStep()
         let step = battle.advanceOneStep()
 
-        #expect(step.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
-        #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
-        #expect(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
+        try #expect(step.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+        try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
+        try #expect(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
     }
 
-    @Test func cleanseAllRemovesAllDebuffsButLeavesShields() {
+    @Test func cleanseAllRemovesAllDebuffsButLeavesShields() throws {
         let cleanseAll = Ability(
             id: "cleanse-all",
             name: "Cleanse All",
@@ -95,13 +95,13 @@ struct CleanseIntegrationTests {
         _ = battle.advanceOneStep()
         let step = battle.advanceOneStep()
 
-        #expect(step.events.contains { $0.effectKind == .cleanseApplied })
-        #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
-        #expect(!(battle.hasHeroEffect { if case .burn = $0 { return true }; return false }))
-        #expect(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
+        try #expect(step.events.contains { $0.effectKind == .cleanseApplied })
+        try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
+        try #expect(!(battle.hasHeroEffect { if case .burn = $0 { return true }; return false }))
+        try #expect(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
     }
 
-    @Test func cleanseStunRemovesControlMeterBuildup() {
+    @Test func cleanseStunRemovesControlMeterBuildup() throws {
         let cleanseAbility = Ability(
             id: "test-cleanse",
             name: "Test Cleanse",
@@ -131,6 +131,6 @@ struct CleanseIntegrationTests {
 
         BattleTestFixtures.advanceTicks(1, on: &battle)
 
-        #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup"))
+        try #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
     }
 }

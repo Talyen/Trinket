@@ -40,7 +40,7 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func markedBonusAddsDamageAndConsumesMark() {
+    @Test func markedBonusAddsDamageAndConsumesMark() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
@@ -55,8 +55,8 @@ struct BattleMechanicsTests {
             .directAbilityHit(amount: 3, target: enemy, keyword: .physical, sourceActorID: hero.id)
         )
 
-        #expect(outcome.healthLost == 5)
-        #expect(
+        try #expect(outcome.healthLost == 5)
+        try #expect(
             !context.roster.activeEffects(for: enemy).contains {
                 if case .marked = $0.effect { return true }
                 return false
@@ -64,7 +64,7 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func insufficientManaFallsBackToBasic() {
+    @Test func insufficientManaFallsBackToBasic() throws {
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
         let skill = Ability(id: "mana-skill", name: "Mana Skill", tier: .skill, directDamage: 5, description: "Skill", manaCost: 3)
         let wizard = Combatant(
@@ -81,7 +81,7 @@ struct BattleMechanicsTests {
 
         let ability = selectedAbilityForTests(actor: wizard, turnNumber: 3, context: context)
 
-        #expect(ability?.id == wizard.abilityLoadout.basic?.id)
+        try #expect(ability?.id == wizard.abilityLoadout.basic?.id)
     }
 
     @Test func predatorsHasteAppliesHasteBuff() throws {
@@ -108,7 +108,7 @@ struct BattleMechanicsTests {
             context: &context
         )
 
-        #expect(
+        try #expect(
             context.roster.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
         )
     }

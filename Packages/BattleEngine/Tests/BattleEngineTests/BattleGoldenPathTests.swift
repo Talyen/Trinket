@@ -18,24 +18,24 @@ struct BattleGoldenPathTests {
         )
     }
 
-    @Test func goldenPathOutcomeAndCounters() {
+    @Test func goldenPathOutcomeAndCounters() throws {
         let result = runGoldenBattle()
 
-        #expect(result.outcome == .victory)
-        #expect(result.tickCount == 5)
-        #expect(result.actionCount == 5)
-        #expect(result.finalEnemyHealth == 0)
-        #expect(result.finalHeroHealth == 17)
-        #expect(result.finalPetHealth == 19)
+        try #expect(result.outcome == .victory)
+        try #expect(result.tickCount == 5)
+        try #expect(result.actionCount == 5)
+        try #expect(result.finalEnemyHealth == 0)
+        try #expect(result.finalHeroHealth == 17)
+        try #expect(result.finalPetHealth == 19)
     }
 
-    @Test func goldenPathEventSemantics() {
+    @Test func goldenPathEventSemantics() throws {
         let result = runGoldenBattle()
         let events = result.events
 
         assertEndsWithVictoryMilestone(on: "goblin", events: events)
-        #expect(events.contains { $0.kind == .ability && $0.keyword == .burn })
-        #expect(events.contains { $0.kind == .ability && $0.keyword == .bleed })
+        try #expect(events.contains { $0.kind == .ability && $0.keyword == .burn })
+        try #expect(events.contains { $0.kind == .ability && $0.keyword == .bleed })
     }
 
     // MARK: - Party defeat
@@ -56,18 +56,18 @@ struct BattleGoldenPathTests {
         )
     }
 
-    @Test func partyDefeatGoldenPath() {
+    @Test func partyDefeatGoldenPath() throws {
         let result = runPartyDefeatBattle()
 
-        #expect(result.outcome == .defeat)
-        #expect(result.tickCount == 36)
-        #expect(result.actionCount == 29)
-        #expect(result.finalHeroHealth == 0)
-        #expect(result.finalPetHealth == 0)
-        #expect(result.finalEnemyHealth == 100)
+        try #expect(result.outcome == .defeat)
+        try #expect(result.tickCount == 36)
+        try #expect(result.actionCount == 29)
+        try #expect(result.finalHeroHealth == 0)
+        try #expect(result.finalPetHealth == 0)
+        try #expect(result.finalEnemyHealth == 100)
         assertEndsWithVictoryMilestone(on: "strong", events: result.events)
-        #expect(result.events.contains { $0.kind == .ability && $0.keyword == .physical })
-        #expect(result.log.contains { $0.text == "Your party has been defeated by Strong." })
+        try #expect(result.events.contains { $0.kind == .ability && $0.keyword == .physical })
+        try #expect(result.log.contains { $0.text == "Your party has been defeated by Strong." })
     }
 
     // MARK: - Stun threshold
@@ -98,17 +98,17 @@ struct BattleGoldenPathTests {
         )
     }
 
-    @Test func stunThresholdGoldenPath() {
+    @Test func stunThresholdGoldenPath() throws {
         let result = runStunThresholdBattle()
 
-        #expect(result.outcome == .victory)
-        #expect(result.tickCount == 9)
-        #expect(result.actionCount == 9)
-        #expect(result.finalEnemyHealth == 0)
+        try #expect(result.outcome == .victory)
+        try #expect(result.tickCount == 9)
+        try #expect(result.actionCount == 9)
+        try #expect(result.finalEnemyHealth == 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: result.events)
-        #expect(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
-        #expect(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == .stun })
-        #expect(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
+        try #expect(result.events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
+        try #expect(result.events.contains { $0.effectKind == .controlTriggered && $0.keyword == .stun })
+        try #expect(result.events.contains { $0.kind == .ability && $0.keyword == .stun })
     }
 
     // MARK: - Item modifier (Keen)
@@ -143,17 +143,17 @@ struct BattleGoldenPathTests {
         )
     }
 
-    @Test func keenAffixGoldenPath() {
+    @Test func keenAffixGoldenPath() throws {
         let result = runKeenAffixBattle()
         let damagingHits = result.events.filter {
             $0.kind == .ability && $0.keyword == .physical && $0.amount > 0
         }
 
-        #expect(result.outcome == .victory)
-        #expect(result.tickCount == 102)
-        #expect(result.actionCount == 52)
-        #expect(!(damagingHits.isEmpty))
-        #expect(damagingHits.allSatisfy { $0.amount == 2 })
+        try #expect(result.outcome == .victory)
+        try #expect(result.tickCount == 102)
+        try #expect(result.actionCount == 52)
+        try #expect(!(damagingHits.isEmpty))
+        try #expect(damagingHits.allSatisfy { $0.amount == 2 })
     }
 
     // MARK: - Poison-heavy
@@ -175,17 +175,17 @@ struct BattleGoldenPathTests {
         )
     }
 
-    @Test func poisonHeavyGoldenPath() {
+    @Test func poisonHeavyGoldenPath() throws {
         let result = runPoisonHeavyBattle()
         let events = result.events
 
-        #expect(result.outcome == .victory)
-        #expect(result.tickCount == 6)
-        #expect(result.actionCount == 5)
-        #expect(result.finalEnemyHealth == 0)
+        try #expect(result.outcome == .victory)
+        try #expect(result.tickCount == 6)
+        try #expect(result.actionCount == 5)
+        try #expect(result.finalEnemyHealth == 0)
         assertEndsWithVictoryMilestone(on: "enemy", events: events)
-        #expect(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)
-        #expect(events.contains { $0.kind == .status && $0.keyword == .poison && $0.targetID == "enemy" })
+        try #expect(events.filter { $0.kind == .ability && $0.keyword == .poison }.count >= 4)
+        try #expect(events.contains { $0.kind == .status && $0.keyword == .poison && $0.targetID == "enemy" })
     }
 
     // MARK: - Semantic helpers
@@ -196,8 +196,8 @@ struct BattleGoldenPathTests {
         location: SourceLocation = #_sourceLocation
     ) {
         let milestones = events.filter { $0.kind == .milestone }
-        #expect(!milestones.isEmpty, sourceLocation: location)
-        #expect(milestones.last?.targetID == targetID, sourceLocation: location)
+        try #expect(!milestones.isEmpty, sourceLocation: location)
+        try #expect(milestones.last?.targetID == targetID, sourceLocation: location)
     }
 
     private func assertContainsEvent(
@@ -207,7 +207,7 @@ struct BattleGoldenPathTests {
         in events: [ActionEvent],
         location: SourceLocation = #_sourceLocation
     ) {
-        #expect(
+        try #expect(
             events.contains { $0.kind == kind && $0.keyword == keyword && $0.targetID == targetID },
             sourceLocation: location
         )

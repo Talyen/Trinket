@@ -26,7 +26,6 @@ let package = Package(
         .testTarget(
             name: "TrinketPersistenceTests",
             dependencies: [
-                "TrinketPersistence",
                 "TrinketCore",
                 "TrinketContent",
                 .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),

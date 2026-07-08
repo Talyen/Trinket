@@ -4,22 +4,22 @@ import TrinketContent
 
 @Suite
 struct AbilityCatalogTests {
-    @Test func catalogIDsAreUnique() {
+    @Test func catalogIDsAreUnique() throws {
         let ids = AbilityCatalog.all.map(\.id)
-        #expect(Set(ids).count == ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
+        try #expect(Set(ids).count == ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
     }
 
-    @Test func unknownAbilityLookupReturnsNil() {
-        #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
+    @Test func unknownAbilityLookupReturnsNil() throws {
+        try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
-    @Test func staticReexportsMatchCatalog() {
-        #expect(Ability.fireball == AbilityCatalog.ability(id: Ability.fireball.id))
-        #expect(Ability.bloodthorn == AbilityCatalog.ability(id: Ability.bloodthorn.id))
-        #expect(Ability.slash == AbilityCatalog.ability(id: Ability.slash.id))
+    @Test func staticReexportsMatchCatalog() throws {
+        try #expect(Ability.fireball == AbilityCatalog.ability(id: Ability.fireball.id))
+        try #expect(Ability.bloodthorn == AbilityCatalog.ability(id: Ability.bloodthorn.id))
+        try #expect(Ability.slash == AbilityCatalog.ability(id: Ability.slash.id))
     }
 
-    @Test func doTPairingMatchesDamageComponents() {
+    @Test func doTPairingMatchesDamageComponents() throws {
         for ability in AbilityCatalog.all {
             if ["mana-berries", "pixie-dust"].contains(ability.id) {
                 continue
@@ -27,7 +27,7 @@ struct AbilityCatalogTests {
             for component in ability.damageComponents where component.target == .abilityTarget {
                 switch component.keyword {
                 case .burn:
-                    #expect(
+                    try #expect(
                         ability.effects.contains {
                             if case let .burn(potency) = $0 { return potency == component.amount }
                             return false
@@ -35,7 +35,7 @@ struct AbilityCatalogTests {
                         "\(ability.id) should pair Burn damage with .burn(\(component.amount))"
                     )
                 case .poison:
-                    #expect(
+                    try #expect(
                         ability.effects.contains {
                             if case let .poison(potency) = $0 { return potency == component.amount }
                             return false
@@ -43,7 +43,7 @@ struct AbilityCatalogTests {
                         "\(ability.id) should pair Poison damage with .poison(\(component.amount))"
                     )
                 case .bleed:
-                    #expect(
+                    try #expect(
                         ability.effects.contains {
                             if case let .bleed(potency) = $0 { return potency == component.amount }
                             return false
@@ -57,19 +57,19 @@ struct AbilityCatalogTests {
         }
     }
 
-    @Test func bloodthornUsesDamageComponents() {
-        #expect(Ability.bloodthorn.damageComponents.count == 3)
-        #expect(Ability.bloodthorn.directDamage == 6)
-        #expect(Ability.fireball.directDamage == 2)
-        #expect(Ability.fireball.damageKeyword == .burn)
+    @Test func bloodthornUsesDamageComponents() throws {
+        try #expect(Ability.bloodthorn.damageComponents.count == 3)
+        try #expect(Ability.bloodthorn.directDamage == 6)
+        try #expect(Ability.fireball.directDamage == 2)
+        try #expect(Ability.fireball.damageKeyword == .burn)
     }
 
-    @Test func catalogPassesValidation() {
+    @Test func catalogPassesValidation() throws {
         let issues = AbilityValidator.validateCatalog()
-        #expect(issues.isEmpty, issues.map(\.description).joined(separator: "\n"))
+        try #expect(issues.isEmpty, "\(issues.map(\.description).joined(separator: "\n"))")
     }
 
-    @Test func abilityBuilderMatchesDirectHitPattern() {
+    @Test func abilityBuilderMatchesDirectHitPattern() throws {
         let built = AbilityBuilder.directHit(
             id: "fireball",
             name: "Fireball",
@@ -77,12 +77,12 @@ struct AbilityCatalogTests {
             amount: 2,
             keyword: .burn
         )
-        #expect(built.damageComponents == Ability.fireball.damageComponents)
-        #expect(built.targetedEffects == Ability.fireball.targetedEffects)
-        #expect(built.summary == Ability.fireball.summary)
+        try #expect(built.damageComponents == Ability.fireball.damageComponents)
+        try #expect(built.targetedEffects == Ability.fireball.targetedEffects)
+        try #expect(built.summary == Ability.fireball.summary)
     }
 
-    @Test func directHitBuilderAddsPairedDoT() {
+    @Test func directHitBuilderAddsPairedDoT() throws {
         let ability = AbilityBuilder.directHit(
             id: "burn-hit",
             name: "Burn Hit",
@@ -90,22 +90,22 @@ struct AbilityCatalogTests {
             amount: 3,
             keyword: .burn
         )
-        #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
-        #expect(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
-        #expect(ability.summary == "Deal 3 Burn damage and applies Burning.")
+        try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
+        try #expect(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
+        try #expect(ability.summary == "Deal 3 Burn damage and applies Burning.")
     }
 
-    @Test func buffOnlyBuilderProducesGeneratedDescription() {
+    @Test func buffOnlyBuilderProducesGeneratedDescription() throws {
         let ability = AbilityBuilder.buffOnly(
             id: "block",
             name: "Block",
             tier: .basic,
             effects: [.shield(.block, 2, 6)]
         )
-        #expect(ability.summary == "Gain Block.")
+        try #expect(ability.summary == "Gain Block.")
     }
 
-    @Test func multiDamageBuilderFormatsSummary() {
+    @Test func multiDamageBuilderFormatsSummary() throws {
         let ability = AbilityBuilder.multiDamage(
             id: "bloodthorn",
             name: "Bloodthorn",
@@ -121,24 +121,24 @@ struct AbilityCatalogTests {
                 TargetedEffect(.standardLeechBuff)
             ]
         )
-        #expect(
+        try #expect(
             ability.summary == "Deal 2 Nature damage, Deal 2 Bleed damage and applies Bleeding, Deal 2 Poison damage and applies Poisoned and Gain Leech."
         )
     }
 
-    @Test func abilityUsesGeneratedDescription() {
+    @Test func abilityUsesGeneratedDescription() throws {
         let ability = Ability.rayOfFrost
-        #expect(ability.summary == "Deal 1 Freeze damage.")
+        try #expect(ability.summary == "Deal 1 Freeze damage.")
     }
 
-    @Test func abilityHealHasNoDamage() {
-        #expect(Ability.heal.summary == "Costs 1 Mana, restore 3 Health.")
-        #expect(Ability.heal.directDamage == 0)
+    @Test func abilityHealHasNoDamage() throws {
+        try #expect(Ability.heal.summary == "Costs 1 Mana, restore 3 Health.")
+        try #expect(Ability.heal.directDamage == 0)
     }
 
-    @Test func descriptionOverridesAreAllowlisted() {
+    @Test func descriptionOverridesAreAllowlisted() throws {
         for ability in AbilityCatalog.all where ability.descriptionOverride != nil {
-            #expect(
+            try #expect(
                 AbilityValidator.descriptionOverrideIDs.contains(ability.id),
                 "\(ability.id) should not carry a manual description override"
             )
@@ -146,7 +146,7 @@ struct AbilityCatalogTests {
     }
 
     @Test(arguments: AbilityCatalog.all)
-    func abilityLookupByID(ability: Ability) {
-        #expect(AbilityCatalog.ability(id: ability.id) == ability)
+    func abilityLookupByID(ability: Ability) throws {
+        try #expect(AbilityCatalog.ability(id: ability.id) == ability)
     }
 }

@@ -1,4 +1,5 @@
 import Testing
+import Foundation
 import BattleEngine
 import TrinketCore
 import TrinketContent
@@ -40,14 +41,14 @@ struct StatIntegrationTests {
                 "Expected ability event for \(testCase.ability.name)"
             )
 
-            #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
-            #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
+            try #expect(event.amount == testCase.expectedAmount, "Wrong damage for \(testCase.ability.name)")
+            try #expect(event.keyword == testCase.keyword, "Wrong keyword for \(testCase.ability.name)")
         }
     }
 
     // MARK: - Toughness
 
-    @Test func toughnessMitigationReducesIncomingDamage() {
+    @Test func toughnessMitigationReducesIncomingDamage() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(toughness: 50),
@@ -75,11 +76,11 @@ struct StatIntegrationTests {
         let event = BattleTestFixtures.firstAbilityEvent(in: step)
 
         let expectedTaken = Int(ceil(Double(1) * (1 - 0.5)))
-        #expect(event?.amount == expectedTaken)
-        #expect(battle.health(of: battle.hero) == initial - expectedTaken)
+        try #expect(event?.amount == expectedTaken)
+        try #expect(battle.health(of: battle.hero) == initial - expectedTaken)
     }
 
-    @Test func toughnessReducesFireballAndBurnDamage() {
+    @Test func toughnessReducesFireballAndBurnDamage() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [],
             stats: PrimaryStats(toughness: 50),
@@ -101,12 +102,12 @@ struct StatIntegrationTests {
         _ = battle.advanceOneStep() // tick 1: fireball direct hit
         _ = battle.advanceOneStep() // tick 2: burn tick
 
-        #expect(initial - battle.health(of: battle.hero) == 3)
+        try #expect(initial - battle.health(of: battle.hero) == 3)
     }
 
     // MARK: - Wisdom
 
-    @Test func wisdomIncreasesHealingAmount() {
+    @Test func wisdomIncreasesHealingAmount() throws {
         let hero = BattleTestFixtures.statHero(
             abilities: [.heal],
             stats: PrimaryStats(wisdom: 10),
@@ -131,12 +132,12 @@ struct StatIntegrationTests {
 
         BattleTestFixtures.advanceTicks(5, on: &battle)
         let beforeHeal = battle.health(of: battle.hero)
-        #expect(beforeHeal <= 96)
+        try #expect(beforeHeal <= 96)
 
         _ = battle.advanceOneStep() // tick 6: hero heals for 3 + 2 wisdom
 
-        #expect(battle.health(of: battle.hero) == 100)
-        #expect(100 - beforeHeal > 3)
+        try #expect(battle.health(of: battle.hero) == 100)
+        try #expect(100 - beforeHeal > 3)
     }
 
     // MARK: - Agility control meter
@@ -172,6 +173,6 @@ struct StatIntegrationTests {
         }
 
         let values = try #require(buildupValues)
-        #expect(values.threshold == hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
+        try #expect(values.threshold == hero.primaryStats.controlMeterThreshold(baseMaxHealth: 101))
     }
 }

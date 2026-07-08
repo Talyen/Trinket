@@ -4,14 +4,14 @@ import TrinketCore
 
 @Suite
 struct CombatantEquipmentTests {
-    @Test func petEquipmentSlotsUseTwoTrinketsAndArmor() {
-        #expect(
+    @Test func petEquipmentSlotsUseTwoTrinketsAndArmor() throws {
+        try #expect(
             Combatant.Role.pet.equipmentSlots == [.trinket, .armor, .secondaryTrinket]
         )
     }
 
-    @Test func heroEquipmentSlotsKeepWeaponArmorTrinket() {
-        #expect(
+    @Test func heroEquipmentSlotsKeepWeaponArmorTrinket() throws {
+        try #expect(
             Combatant.Role.hero.equipmentSlots == [.weapon, .armor, .trinket]
         )
     }
@@ -33,8 +33,8 @@ struct CombatantEquipmentTests {
 
         let sanitized = loadout.sanitized(for: bear, inventory: [trinket])
 
-        #expect(sanitized.itemID(for: .trinket) == "ring-a")
-        #expect(sanitized.itemID(for: .secondaryTrinket) == "ring-a")
-        #expect(sanitized.itemID(for: .weapon) == nil)
+        try #expect(sanitized.itemID(for: .trinket) == "ring-a")
+        try #expect(sanitized.itemID(for: .secondaryTrinket) == "ring-a")
+        try #expect(sanitized.itemID(for: .weapon) == nil)
     }
 }

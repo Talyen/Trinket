@@ -31,7 +31,7 @@ public struct ThemePalette: Sendable {
         appBackground: Color(.systemBackground),
         secondaryBackground: Color(.secondarySystemBackground),
         elevatedBackground: Color(.tertiarySystemBackground),
-        panelSurface: Color(.secondarySystemBackground),
+        panelSurface: Color(.secondarySystemGroupedBackground),
         subtleStroke: Color(.separator),
         accent: Color.accentColor,
         shadow: .elevated
