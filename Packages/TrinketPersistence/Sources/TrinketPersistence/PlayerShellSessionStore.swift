@@ -117,12 +117,16 @@ public final class PlayerShellSessionStore {
 
         let loadResult = Self.loadOrCreateRecord(in: context)
         record = loadResult.record
-        selectedTab = Self.tab(from: record.selectedTabRaw) ?? .play
+        let resolvedTab = Self.tab(from: record.selectedTabRaw) ?? .play
+        selectedTab = resolvedTab
         activeBattleStageID = record.activeBattleStageID
         mapScrollStageID = record.mapScrollStageID
         viewedCombatantIDs = Set(record.viewedCombatantIDs)
 
-        if loadResult.needsInitialSave {
+        // Property observers do not run during init; rewrite remapped legacy tabs
+        // (e.g. "search" → collection) and first-create records explicitly.
+        if loadResult.needsInitialSave || record.selectedTabRaw != resolvedTab.rawValue {
+            record.selectedTabRaw = resolvedTab.rawValue
             saveContext()
         }
 
@@ -275,6 +279,9 @@ public final class PlayerShellSessionStore {
     }
 
     private static func tab(from rawValue: String) -> PlayerShellSessionTab? {
-        PlayerShellSessionTab(rawValue: rawValue)
+        if rawValue == "search" {
+            return .collection
+        }
+        return PlayerShellSessionTab(rawValue: rawValue)
     }
 }

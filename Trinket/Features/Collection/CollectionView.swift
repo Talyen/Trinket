@@ -4,14 +4,67 @@ import TrinketDesignSystem
 
 struct CollectionView: View {
     @Environment(AppState.self) private var appState
+    @State private var searchText = ""
     @State private var selectedItem: InventoryItem?
     @State private var selectedCombatant: CombatantDetailContext?
     @State private var showMissingItem = false
 
+    private var trimmedQuery: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isSearching: Bool {
+        !trimmedQuery.isEmpty
+    }
+
     var body: some View {
+        Group {
+            if isSearching {
+                CollectionSearchResultsView(
+                    query: trimmedQuery,
+                    results: CollectionSearch.results(
+                        for: trimmedQuery,
+                        rosterState: appState.roster.current,
+                        inventoryState: appState.inventory.current
+                    ),
+                    onSelectItem: { selectedItem = $0 },
+                    onSelectCombatant: { selectedCombatant = $0 }
+                )
+            } else {
+                collectionBrowseContent
+            }
+        }
+        .trinketScreenBackground(isSearching ? .denseList : .collection)
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .accessibilityIdentifier("Collection Screen")
+        .navigationTitle("Collection")
+        .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, prompt: "Search collection")
+        .onAppear(perform: presentPendingLaunchRoute)
+        .alert("Item Not Found", isPresented: $showMissingItem) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("That item isn't in your collection.")
+        }
+        .sheet(item: $selectedItem) { item in
+            NavigationStack {
+                ItemDetailView(item: item)
+            }
+            .trinketDetailSheet()
+        }
+        .sheet(item: $selectedCombatant) { context in
+            appState.rosterCombatantDetail(
+                kind: context.kind,
+                combatantID: context.combatantID
+            )
+            .trinketDetailSheet()
+        }
+    }
+
+    private var collectionBrowseContent: some View {
         let inventoryState = appState.inventory.current
 
-        ScrollView {
+        return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 combatantCategorySection(
                     title: "Heroes",
@@ -53,30 +106,6 @@ struct CollectionView: View {
             }
             .padding(.top, TrinketDesign.Metrics.compactContentTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.sectionSpacing)
-        }
-        .trinketScreenBackground(.collection)
-        .scrollEdgeEffectStyle(.soft, for: .top)
-        .accessibilityIdentifier("Collection Screen")
-        .navigationTitle("Collection")
-        .navigationBarTitleDisplayMode(.large)
-        .onAppear(perform: presentPendingLaunchRoute)
-        .alert("Item Not Found", isPresented: $showMissingItem) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("That item isn't in your collection.")
-        }
-        .sheet(item: $selectedItem) { item in
-            NavigationStack {
-                ItemDetailView(item: item)
-            }
-            .trinketDetailSheet()
-        }
-        .sheet(item: $selectedCombatant) { context in
-            appState.rosterCombatantDetail(
-                kind: context.kind,
-                combatantID: context.combatantID
-            )
-            .trinketDetailSheet()
         }
     }
 

@@ -22,6 +22,5 @@ public enum PlayerShellSessionTab: String, CaseIterable, Sendable {
     case play
     case collection
     case homestead
-    case search
     case options
 }

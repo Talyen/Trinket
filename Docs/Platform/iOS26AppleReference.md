@@ -38,7 +38,7 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 | `.sharedBackgroundVisibility(.hidden)` | Separate avatar or status items from grouped toolbar chrome |
 | `.badge()` | Notification or milestone indicators on toolbar items |
 | `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Search) — best-practices plan Phase D |
-| `.searchToolbarBehavior` | Search tab already uses `Tab(..., role: .search)` |
+| `.searchable` | Collection-scoped search on `CollectionView` (not a Search tab) |
 | `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (see `check-ui-style.sh`) |
 | `.glassEffectID(_:in:)` + `@Namespace` | Morphing transitions between related glass chips |
 

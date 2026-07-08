@@ -46,7 +46,7 @@ CI_FINGERPRINTS=(
   smoke
   ui
   ui_BattleFlowUITests
-  ui_TabNavigationUITests_SearchUITests
+  ui_TabNavigationUITests_CollectionSearchUITests
   all
 )
 

@@ -148,8 +148,8 @@ struct CombatantDetailPane: View {
                 titleOpacity = min(max((metrics.offsetY - threshold) / 20, 0), 1)
             }
             // Sub-picker navigation — declared here so they land at the root of whichever
-            // NavigationStack contains this pane (the sheet's own stack for Collection,
-            // or the tab stack for Search). This keeps all presentation at the stack root.
+            // NavigationStack contains this pane (typically the Collection detail sheet).
+            // This keeps all presentation at the stack root.
             .navigationDestination(item: $selectedItemSlot) { slot in
                 ItemSlotPickerView(
                     slot: slot,

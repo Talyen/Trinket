@@ -28,7 +28,7 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 **Do:**
 
 - Use `@Observable` + `@Environment(Type.self)` + `@Bindable` for app state (`Trinket/State/AppState.swift`, `Trinket/App/ContentView.swift`).
-- Use `NavigationStack`, modern `Tab` (including `role: .search`), sheets, `ToolbarItem`, semantic colors.
+- Use `NavigationStack`, modern `Tab`, sheets, `ToolbarItem`, semantic colors.
 - Use SwiftData (`@Model`) for persistence — see `TrinketPersistence`.
 - Route chrome through `TrinketDesign` / `.trinketSurface` / `.trinketMaterial` / `.trinketGlassChip` in `TrinketDesignSystem`.
 - When unsure, **grep the repo** before inventing a pattern: app state → `AppState`; chrome → `TrinketDesignSystem`; battle rules → `BattleEngine`; catalogs → `TrinketContent` / manifests.
@@ -106,7 +106,7 @@ Six local packages under `Packages/`. Product packages with unit schemes: `Trink
 - **Battle rules:** `Packages/BattleEngine/` (`BattleState`, effect handlers, simulator). App shell: `Trinket/State/BattleSession.swift`, `Trinket/BattleShell/`.
 - **Generated output:** edit manifests (and custom content under `TrinketContent` when applicable), then `./Scripts/generate.sh` — never hand-edit `Generated/`.
 
-Product tabs: Play → Collection → Homestead → Search → Options. **Search** is an inventory search utility, not a primary product tab (see Architecture). UI tests tap labels like `"Homestead"` and `"Collection"`, not enum raw values. Accessibility IDs: prefer `Trinket/Shared/AccessibilityID.swift` over inventing new string literals.
+Product tabs: Play → Collection → Homestead → Options. Collection owns in-tab `.searchable` for Heroes/Pets/Items (see Architecture). UI tests tap labels like `"Homestead"` and `"Collection"`, not enum raw values. Accessibility IDs: prefer `Trinket/Shared/AccessibilityID.swift` over inventing new string literals.
 
 ## Git Workflow
 
@@ -191,7 +191,7 @@ Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views → 
 
 ## UI Tests
 
-Smoke lives in `TrinketUITests/Smoke/` (`Smoke.xctestplan`). Exhaustive journeys under `Play/`, `Collection/`, `Battle/`, `Search/` — `test.sh ui` / `test-deploy.sh` only. Page objects: `TrinketUITests/Support/Screens/`.
+Smoke lives in `TrinketUITests/Smoke/` (`Smoke.xctestplan`). Exhaustive journeys under `Play/`, `Collection/`, `Battle/` — `test.sh ui` / `test-deploy.sh` only. Page objects: `TrinketUITests/Support/Screens/`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops (`-completed-stages` / `-map-scroll-target`). Assert with `assertExists` on ids from `AccessibilityID` / existing identifiers.
 

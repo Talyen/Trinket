@@ -18,7 +18,7 @@ Durable implementation guidance lives in `Docs/Design/StyleGuide/AppVisualFounda
 
 The `v2/` folder refines the first pass against Trinket's current product structure and near-term presentation goals:
 
-- Bottom tabs are Play, Collection, Homestead, Search, and Options.
+- Bottom tabs are Play, Collection, Homestead, and Options.
 - Collection owns Heroes, Pets, and Inventory examples.
 - Battle examples are 2D card-art based, with Enemy/Hero/Pet surfaces, anchored health bars, SwiftUI feedback, and no 3D battlefield or manual ability hotbar.
 - Ultimate examples are full-screen Hero/Pet cast cinematics (9:16 video when available, card-art fallback otherwise), not 3D battle scenes. Skills use caster-anchored ability-art callouts, not full-screen cinematics.

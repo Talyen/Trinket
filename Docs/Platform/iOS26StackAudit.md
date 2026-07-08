@@ -45,25 +45,19 @@ Root injection uses `.environment(appState)` and `@Environment(AppState.self)` �
 
 ### Navigation and tabs
 
-```37:67:Trinket/App/ContentView.swift
+```40:66:Trinket/App/ContentView.swift
         TabView(selection: selection) {
             Tab(AppTab.play.displayName, systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 NavigationStack {
                     PlayView()
                 }
             }
-            // ... collection, homestead ...
-            Tab(value: AppTab.search, role: .search) {
-                NavigationStack {
-                    SearchView()
-                }
-            }
-            // ...
+            // ... collection, homestead, options ...
         }
 ```
 
 - Modern `Tab(...)` initializer (not legacy `.tabItem`)
-- Search tab uses `role: .search` (WWDC25 bottom-search pattern)
+- Product tabs only (Play / Collection / Homestead / Options); Collection owns `.searchable`
 - Per-tab `NavigationStack` (no `NavigationView`)
 
 ### Change observation
@@ -79,7 +73,7 @@ All `.onChange(of:)` call sites use the iOS 17+ two-parameter closure (`{ _, new
 ### Scroll and layout (iOS 17–18 APIs in active use)
 
 - `scrollPosition(id:anchor:)` — Play map
-- `scrollTargetLayout()` / `scrollTargetBehavior(.viewAligned)` — Collection shelves, Search
+- `scrollTargetLayout()` / `scrollTargetBehavior(.viewAligned)` — Collection shelves and search results
 - `scrollTransition(.interactive)` — journey hero
 - `ContentUnavailableView` — empty states
 - `sensoryFeedback`, `symbolEffect`, `contentTransition(.numericText)`

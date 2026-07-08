@@ -10,7 +10,7 @@ struct AppEnvironmentTests {
         #expect(env.launchTab == tab)
     }
 
-    @Test(arguments: ["heroes", "pets", "inventory", "Heroes", "PETS"])
+    @Test(arguments: ["heroes", "pets", "inventory", "search", "Heroes", "PETS", "SEARCH"])
     func collectionTabAliasesMapToCollection(alias: String) {
         let env = Self.parse(arguments: ["-selectedTab", alias])
         #expect(env.launchTab == .collection, "Expected alias '\(alias)' to map to collection")

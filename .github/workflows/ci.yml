@@ -116,7 +116,7 @@ jobs:
           - shard: exhaustive-battle
             command: ./Scripts/test.sh ui BattleFlowUITests --no-build --verbose
           - shard: exhaustive-collection
-            command: ./Scripts/test.sh ui TabNavigationUITests SearchUITests --no-build --verbose
+            command: ./Scripts/test.sh ui TabNavigationUITests CollectionSearchUITests --no-build --verbose
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket

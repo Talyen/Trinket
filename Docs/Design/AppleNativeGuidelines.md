@@ -28,7 +28,8 @@ Do **not** add `#available` / `@available` checks for iOS versions below 26. We 
 |---------|-----|-------------------|
 | App state | `@Observable`, `@Environment`, `@Bindable` | `Trinket/State/AppState.swift`, `Trinket/App/ContentView.swift` |
 | Navigation | `NavigationStack`, `navigationDestination`, sheets | `Trinket/Features/Collection/CollectionView.swift` |
-| Tab shell | `TabView` + `Tab(..., value:)` + `role: .search` | `Trinket/App/ContentView.swift` |
+| Tab shell | `TabView` + `Tab(..., value:)` | `Trinket/App/ContentView.swift` |
+| Collection search | `.searchable` on Collection root | `Trinket/Features/Collection/CollectionView.swift` |
 | Persistence | SwiftData `@Model`, `@Observable` stores | `Packages/TrinketPersistence/` |
 | Chrome / surfaces | `TrinketDesign`, `.trinketSurface`, `.trinketMaterial` | `Packages/TrinketDesignSystem/` |
 | Glass effects | `.glassEffect()` inside design system only | `VisualFoundation.swift` → `GlassChipModifier` |

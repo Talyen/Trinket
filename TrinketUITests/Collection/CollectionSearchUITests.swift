@@ -1,11 +1,11 @@
 import XCTest
 
-final class SearchUITests: TrinketUITestCase {
-    func testSearchFlow() {
-        launchApp(arguments: TestLaunchArg.allForTab("search"))
-        search.assertEmptyState()
+final class CollectionSearchUITests: TrinketUITestCase {
+    func testCollectionSearchFlow() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        collection.assertLoaded()
 
-        let searchField = search.searchField
+        let searchField = collection.searchField
         assertExists(searchField)
         searchField.tap()
         searchField.typeText("Knight")
@@ -23,6 +23,6 @@ final class SearchUITests: TrinketUITestCase {
         assertItemCardExists("Wand")
 
         replaceText(in: searchField, with: "xyz123")
-        search.assertNoResults()
+        collection.assertSearchNoResults()
     }
 }

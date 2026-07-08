@@ -7,7 +7,7 @@ UI test conventions for Trinket. Agent workflow overview: `AGENTS.md`. Accessibi
 | Area | Path | When |
 |------|------|------|
 | Smoke | `Smoke/`, `Smoke.xctestplan` | Tab/screen edits, pre-push (`test.sh smoke`) |
-| Exhaustive | `Play/`, `Collection/`, `Battle/`, `Search/` | Pre-merge (`test.sh ui` / `test-deploy.sh`) |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Pre-merge (`test.sh ui` / `test-deploy.sh`) |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
 Smoke classes are lean per-screen checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here.
@@ -21,7 +21,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 **Additional:**
 
 - `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1)
-- `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory` → `.collection`)
+- `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`pets`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
 

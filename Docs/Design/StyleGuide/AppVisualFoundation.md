@@ -18,7 +18,7 @@ The first-pass boards in `Docs/Design/StyleGuide/VisualReferences/` are explorat
 
 The visual foundation must preserve Trinket's current product structure:
 
-- Persistent tabs: Play, Collection, Homestead, Search, Options.
+- Persistent tabs: Play, Collection, Homestead, Options.
 - Collection owns Heroes, Pets, and Inventory.
 - Play owns Chapter Journey, Stage Select, active encounter actions, and Battle entry.
 - Battle is idle, automatic, and 2D card-art based: Enemy, Hero, and Pet art regions with anchored health bars.

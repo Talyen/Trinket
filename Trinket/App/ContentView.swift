@@ -59,12 +59,6 @@ struct ContentView: View {
             }
             .badge(appState.homesteadBadge.map { Text($0) })
 
-            Tab(value: AppTab.search, role: .search) {
-                NavigationStack {
-                    SearchView()
-                }
-            }
-
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
                     OptionsView()

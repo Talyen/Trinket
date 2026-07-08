@@ -86,10 +86,6 @@ class TrinketUITestCase: XCTestCase {
         HomesteadScreen(app: app)
     }
 
-    var search: SearchScreen {
-        SearchScreen(app: app)
-    }
-
     var options: OptionsScreen {
         OptionsScreen(app: app)
     }

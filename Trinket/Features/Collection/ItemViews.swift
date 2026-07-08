@@ -103,15 +103,7 @@ struct InventoryGridView: View {
             let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             let matchesSearch = query.isEmpty
-                || item.displayName.localizedCaseInsensitiveContains(query)
-                || item.baseType.name.localizedCaseInsensitiveContains(query)
-                || item.affixes.contains { affix in
-                    affix.title.localizedCaseInsensitiveContains(query)
-                        || affix.description.localizedCaseInsensitiveContains(query)
-                        || affix.keywords.contains { keyword in
-                            keyword.rawValue.localizedCaseInsensitiveContains(query)
-                        }
-                }
+                || CollectionSearch.matchesItem(item, query: query, includeAffixes: true)
 
             return matchesSlot && matchesSearch
         }

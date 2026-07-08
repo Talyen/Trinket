@@ -89,7 +89,7 @@ struct AppEnvironment {
               arguments.indices.contains(idx + 1)
         else { return nil }
         let val = arguments[idx + 1].lowercased()
-        if val == "heroes" || val == "pets" || val == "inventory" {
+        if val == "heroes" || val == "pets" || val == "inventory" || val == "search" {
             return .collection
         }
         return AppTab(rawValue: val)

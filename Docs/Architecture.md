@@ -58,7 +58,7 @@ Manifests and pipelines live outside the app folder:
 Persistent player-facing tabs (`Docs/Design/CoreDesignConcepts.md`):
 
 ```text
-Play → Collection → Homestead → Search → Options
+Play → Collection → Homestead → Options
 ```
 
 Code mapping:
@@ -66,10 +66,9 @@ Code mapping:
 | UI label | `AppTab` | Feature folder |
 |----------|----------|----------------|
 | Play | `.play` | `Features/Play` |
-| Collection | `.collection` | `Features/Collection` — Heroes, Pets, and Inventory |
+| Collection | `.collection` | `Features/Collection` — Heroes, Pets, Inventory, and in-tab `.searchable` |
 | Homestead | `.homestead` | `Features/Homestead` |
 | Options | `.options` | `Features/Options` |
-| Search | `.search` | `Features/Search` — **inventory search utility**; not a primary product tab |
 
 ## Generate workflow
 

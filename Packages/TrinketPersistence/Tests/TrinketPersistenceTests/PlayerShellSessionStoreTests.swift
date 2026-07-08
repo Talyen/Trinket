@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 import TrinketPersistence
 import TrinketTestSupport
@@ -110,7 +111,7 @@ final class PlayerShellSessionStoreTests {
         let storeURL = directoryURL.appending(path: "migrate-extended-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL, legacyUserDefaults: defaults)
 
-        try #expect(store.selectedTab == .search)
+        try #expect(store.selectedTab == .collection)
         try #expect(store.activeBattleStageID == "chapter-1-stage-4")
         try #expect(store.mapScrollStageID == "chapter-1-stage-5")
         try #expect(store.activeBattleSavedAt == savedAt)
@@ -119,5 +120,23 @@ final class PlayerShellSessionStoreTests {
         try #expect(store.viewedCombatantIDs == Set(["hero-knight", "pet-panther"]))
         try #expect(defaults.string(forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey) == nil)
         try #expect(defaults.object(forKey: PlayerShellSessionStore.legacyViewedCombatantIDsKey) == nil)
+    }
+
+    @Test func remapsPersistedLegacySearchTabToCollection() throws {
+        let storeURL = directoryURL.appending(path: "remap-search-tab.store")
+        let schema = Schema([PlayerShellSession.self])
+        let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        let record = PlayerShellSession()
+        record.selectedTabRaw = "search"
+        context.insert(record)
+        try context.save()
+
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(store.selectedTab == .collection)
+
+        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(reloaded.selectedTab == .collection)
     }
 }
