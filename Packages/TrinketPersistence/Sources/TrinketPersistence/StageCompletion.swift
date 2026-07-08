@@ -2,32 +2,6 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-public struct StageCompletionContext: Sendable {
-    public var roster: PlayerRosterState
-    public var inventory: PlayerInventoryState
-    public var homestead: PlayerHomesteadState
-    public var journey: JourneyProgressState
-
-    public init(
-        roster: PlayerRosterState,
-        inventory: PlayerInventoryState,
-        homestead: PlayerHomesteadState,
-        journey: JourneyProgressState
-    ) {
-        self.roster = roster
-        self.inventory = inventory
-        self.homestead = homestead
-        self.journey = journey
-    }
-
-    public mutating func apply(to save: inout PlayerSave) {
-        save.roster = roster
-        save.inventory = inventory
-        save.homestead = homestead
-        save.journey = journey
-    }
-}
-
 public enum StageCompletion {
     public static func battleExperienceAward(
         playerLevel: Int,
@@ -63,7 +37,7 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         in chapters: [Chapter],
-        context: inout StageCompletionContext,
+        save: inout PlayerSave,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
         claimRewardsIfNeeded(
@@ -73,11 +47,11 @@ public enum StageCompletion {
             battleEarnedGold: battleEarnedGold,
             materialRewards: materialRewards,
             enemyEncounterLevel: resolvedEncounterLevel(for: stage, in: chapters),
-            context: &context,
+            save: &save,
             resolveTemplate: resolveTemplate
         )
-        if !context.journey.isCompleted(stage) {
-            context.journey.complete(stage, in: chapters)
+        if !save.journey.isCompleted(stage) {
+            save.journey.complete(stage, in: chapters)
         }
     }
 
@@ -88,60 +62,60 @@ public enum StageCompletion {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         enemyEncounterLevel: Int? = nil,
-        context: inout StageCompletionContext,
+        save: inout PlayerSave,
         resolveTemplate: (String) -> InventoryItem? = GameContent.itemTemplate(matching:)
     ) {
-        guard !context.journey.hasClaimedRewards(for: stage) else {
+        guard !save.journey.hasClaimedRewards(for: stage) else {
             return
         }
 
         let encounterLevel = enemyEncounterLevel
             ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
 
-        context.roster.grantGold(stage.rewards.gold + battleEarnedGold)
+        save.roster.grantGold(stage.rewards.gold + battleEarnedGold)
         if case .battle = stage.encounter {
-            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &context.roster)
-            grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &context.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &save.roster)
         }
         let resolvedMaterialRewards = resolvedMaterialRewards(
             stageReward: stage.rewards,
-            homestead: context.homestead,
+            homestead: save.homestead,
             override: materialRewards
         )
-        context.homestead.grant(resolvedMaterialRewards)
+        save.homestead.grant(resolvedMaterialRewards)
 
         for templateID in stage.rewards.itemTemplateIDs {
             guard let template = resolveTemplate(templateID) else { continue }
-            context.inventory.addRewardItem(from: template, for: stage)
+            save.inventory.addRewardItem(from: template, for: stage)
         }
 
-        context.journey.markRewardsClaimed(for: stage)
+        save.journey.markRewardsClaimed(for: stage)
     }
 
-    /// Whether `context` already reflects the rewards that `baseline` would gain from `stage`.
+    /// Whether `save` already reflects the rewards that `baseline` would gain from `stage`.
     public static func rewardsReflected(
         for stage: Stage,
-        baseline: StageCompletionContext,
-        in context: StageCompletionContext,
+        baseline: PlayerSave,
+        in save: PlayerSave,
         hero: Combatant,
         pet: Combatant,
         in chapters: [Chapter] = GameContent.chapters
     ) -> Bool {
         for templateID in stage.rewards.itemTemplateIDs {
             let itemID = "\(stage.id)-\(templateID)"
-            if context.inventory.item(matching: itemID) == nil {
+            if save.inventory.item(matching: itemID) == nil {
                 return false
             }
         }
 
         let expectedMinGold = baseline.roster.gold + stage.rewards.gold
-        if context.roster.gold < expectedMinGold {
+        if save.roster.gold < expectedMinGold {
             return false
         }
 
-        for reward in context.homestead.adjustedMaterialRewards(stage.rewards.materialRewards) {
+        for reward in save.homestead.adjustedMaterialRewards(stage.rewards.materialRewards) {
             let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
-            if context.homestead.resources[reward.resource, default: 0] < baselineQuantity + reward.quantity {
+            if save.homestead.resources[reward.resource, default: 0] < baselineQuantity + reward.quantity {
                 return false
             }
         }
@@ -156,7 +130,7 @@ public enum StageCompletion {
         )
         if !experienceAwardReflected(
             baseline: baseline.roster.progression(for: hero),
-            current: context.roster.progression(for: hero),
+            current: save.roster.progression(for: hero),
             award: heroAward
         ) {
             return false
@@ -169,7 +143,7 @@ public enum StageCompletion {
         )
         return experienceAwardReflected(
             baseline: baseline.roster.progression(for: pet),
-            current: context.roster.progression(for: pet),
+            current: save.roster.progression(for: pet),
             award: petAward
         )
     }

@@ -2,6 +2,7 @@ import Testing
 import TrinketCore
 import TrinketContent
 @testable import TrinketPersistence
+import Foundation
 
 @Suite
 struct StageRewardTests {
@@ -13,22 +14,25 @@ struct StageRewardTests {
         chapter.stages[0]
     }
 
-    private func makeContext(
+    private func makeSave(
         roster: PlayerRosterState = .initial,
         inventory: PlayerInventoryState = PlayerInventoryState(items: []),
         homestead: PlayerHomesteadState = .freshStart,
         journey: JourneyProgressState = .initial
-    ) -> StageCompletionContext {
-        StageCompletionContext(
+    ) -> PlayerSave {
+        PlayerSave(
+            schemaVersion: PlayerSave.currentSchemaVersion,
+            modifiedAt: Date(),
+            sessionGeneration: 0,
+            journey: journey,
             roster: roster,
             inventory: inventory,
-            homestead: homestead,
-            journey: journey
+            homestead: homestead
         )
     }
 
     @Test func completingStageGrantsBattleGoldWithStageRewards() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
@@ -38,26 +42,26 @@ struct StageRewardTests {
             pet: pet,
             battleEarnedGold: 4,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.gold == firstStage.rewards.gold + 4)
+        try #expect(save.roster.gold == firstStage.rewards.gold + 4)
     }
 
     @Test func completingStageGrantsGoldXPAndItems() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        var context = makeContext()
+        var save = makeSave()
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.gold == firstStage.rewards.gold)
+        try #expect(save.roster.gold == firstStage.rewards.gold)
         let encounterLevel = EncounterLevelResolver.journeyEnemyLevel(for: firstStage, in: chapter)
         let heroLevel = PlayerRosterState.initial.progression(for: hero).level
         let petLevel = PlayerRosterState.initial.progression(for: pet).level
@@ -75,18 +79,18 @@ struct StageRewardTests {
                 highestLevel: PlayerRosterState.initial.highestPetLevel
             )
         )
-        try #expect(context.roster.progression(for: hero) == expectedHeroProgression)
-        try #expect(context.roster.progression(for: pet) == expectedPetProgression)
-        _ = try #require(context.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
-        try #expect(context.homestead.resources[.wood] == 8)
-        try #expect(context.homestead.resources[.stone] == 3)
-        try #expect(context.journey.hasClaimedRewards(for: firstStage))
-        try #expect(context.journey.isCompleted(firstStage))
-        try #expect(context.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(save.roster.progression(for: hero) == expectedHeroProgression)
+        try #expect(save.roster.progression(for: pet) == expectedPetProgression)
+        _ = try #require(save.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
+        try #expect(save.homestead.resources[.wood] == 8)
+        try #expect(save.homestead.resources[.stone] == 3)
+        try #expect(save.journey.hasClaimedRewards(for: firstStage))
+        try #expect(save.journey.isCompleted(firstStage))
+        try #expect(save.journey.activeStageID == "chapter-1-stage-2")
     }
 
     @Test func homesteadBonusesAdjustMaterialRewards() throws {
-        var context = makeContext(
+        var save = makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 3]
@@ -99,15 +103,15 @@ struct StageRewardTests {
             for: firstStage,
             hero: hero,
             pet: pet,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.homestead.resources[.wood] == 9)
-        try #expect(context.homestead.resources[.stone] == 4)
+        try #expect(save.homestead.resources[.wood] == 9)
+        try #expect(save.homestead.resources[.stone] == 4)
     }
 
     @Test func homesteadFoodBonusesStackFromMultipleBuildings() throws {
-        var context = makeContext(
+        var save = makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 2, .chickenCoop: 2]
@@ -133,14 +137,14 @@ struct StageRewardTests {
             for: foodStage,
             hero: hero,
             pet: pet,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.homestead.resources[.food] == 6)
+        try #expect(save.homestead.resources[.food] == 6)
     }
 
     @Test func completingStageTwiceDoesNotDoubleRewards() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
@@ -149,26 +153,26 @@ struct StageRewardTests {
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
-        let goldAfterFirst = context.roster.gold
-        let heroXPAfterFirst = context.roster.progression(for: hero).currentXP
-        let itemCountAfterFirst = context.inventory.items.count
+        let goldAfterFirst = save.roster.gold
+        let heroXPAfterFirst = save.roster.progression(for: hero).currentXP
+        let itemCountAfterFirst = save.inventory.items.count
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             pet: pet,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.gold == goldAfterFirst)
-        try #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirst)
-        try #expect(context.inventory.items.count == itemCountAfterFirst)
+        try #expect(save.roster.gold == goldAfterFirst)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirst)
+        try #expect(save.inventory.items.count == itemCountAfterFirst)
     }
 
     @Test func completingStageTwiceDoesNotAdvanceJourney() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
@@ -177,23 +181,23 @@ struct StageRewardTests {
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
-        let activeStageAfterFirst = context.journey.activeStageID
+        let activeStageAfterFirst = save.journey.activeStageID
 
         StageCompletion.complete(
             firstStage,
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.journey.activeStageID == activeStageAfterFirst)
+        try #expect(save.journey.activeStageID == activeStageAfterFirst)
     }
 
     @Test func completingStageAdvancesJourney() throws {
-        var context = makeContext(inventory: .initial)
+        var save = makeSave(inventory: .initial)
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
@@ -202,18 +206,18 @@ struct StageRewardTests {
             hero: hero,
             pet: pet,
             in: GameContent.chapters,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.journey.isActive(chapter.stages[1]))
-        try #expect(!(context.journey.isActive(firstStage)))
+        try #expect(save.journey.isActive(chapter.stages[1]))
+        try #expect(!(save.journey.isActive(firstStage)))
     }
 
     @Test func missingItemTemplateSkipsGracefully() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        let heroXPBefore = context.roster.progression(for: hero).currentXP
+        let heroXPBefore = save.roster.progression(for: hero).currentXP
         let stageWithBadTemplate = Stage(
             id: "test-stage",
             chapterID: "chapter-1",
@@ -228,54 +232,54 @@ struct StageRewardTests {
             for: stageWithBadTemplate,
             hero: hero,
             pet: pet,
-            context: &context,
+            save: &save,
             resolveTemplate: { _ in nil }
         )
 
-        try #expect(context.roster.gold == 10)
-        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
-        try #expect(context.inventory.items.isEmpty)
-        try #expect(context.journey.hasClaimedRewards(for: stageWithBadTemplate))
+        try #expect(save.roster.gold == 10)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(save.inventory.items.isEmpty)
+        try #expect(save.journey.hasClaimedRewards(for: stageWithBadTemplate))
     }
 
     @Test func nonBattleStagesGrantNoExperience() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        let heroXPBefore = context.roster.progression(for: hero).currentXP
+        let heroXPBefore = save.roster.progression(for: hero).currentXP
         let eventStage = chapter.stages[1]
 
         StageCompletion.claimRewardsIfNeeded(
             for: eventStage,
             hero: hero,
             pet: pet,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
     }
 
     @Test func scaledExperienceGrantsNothingWhenEnemyIsFarBelowPlayer() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        context.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
-        let heroXPBefore = context.roster.progression(for: hero).currentXP
+        save.roster.progressions[hero.id] = CombatantProgression(level: 20, currentXP: 0, requiredXP: 500)
+        let heroXPBefore = save.roster.progression(for: hero).currentXP
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             pet: pet,
             enemyEncounterLevel: 5,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.progression(for: hero).currentXP == heroXPBefore)
-        try #expect(context.roster.progression(for: pet).currentXP > 0)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPBefore)
+        try #expect(save.roster.progression(for: pet).currentXP > 0)
     }
 
     @Test func claimRewardsIfNeededIsIdempotentWhenCalledTwice() throws {
-        var context = makeContext()
+        var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
 
@@ -284,24 +288,24 @@ struct StageRewardTests {
             hero: hero,
             pet: pet,
             battleEarnedGold: 9,
-            context: &context
+            save: &save
         )
-        let goldAfterFirstClaim = context.roster.gold
-        let heroXPAfterFirstClaim = context.roster.progression(for: hero).currentXP
-        let itemCountAfterFirstClaim = context.inventory.items.count
+        let goldAfterFirstClaim = save.roster.gold
+        let heroXPAfterFirstClaim = save.roster.progression(for: hero).currentXP
+        let itemCountAfterFirstClaim = save.inventory.items.count
 
         StageCompletion.claimRewardsIfNeeded(
             for: firstStage,
             hero: hero,
             pet: pet,
             battleEarnedGold: 9,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.roster.gold == goldAfterFirstClaim)
-        try #expect(context.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
-        try #expect(context.inventory.items.count == itemCountAfterFirstClaim)
-        try #expect(context.journey.hasClaimedRewards(for: firstStage))
+        try #expect(save.roster.gold == goldAfterFirstClaim)
+        try #expect(save.roster.progression(for: hero).currentXP == heroXPAfterFirstClaim)
+        try #expect(save.inventory.items.count == itemCountAfterFirstClaim)
+        try #expect(save.journey.hasClaimedRewards(for: firstStage))
     }
 
     @Test func rewardItemPreservesCatalogAffixes() throws {
@@ -316,7 +320,7 @@ struct StageRewardTests {
     }
 
     @Test func claimRewardsUsesPrecomputedMaterialRewards() throws {
-        var context = makeContext(
+        var save = makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
                 nodeTiers: [.wheatField: 2, .chickenCoop: 2]
@@ -331,9 +335,9 @@ struct StageRewardTests {
             hero: hero,
             pet: pet,
             materialRewards: snapshot,
-            context: &context
+            save: &save
         )
 
-        try #expect(context.homestead.resources[.food] == 4)
+        try #expect(save.homestead.resources[.food] == 4)
     }
 }

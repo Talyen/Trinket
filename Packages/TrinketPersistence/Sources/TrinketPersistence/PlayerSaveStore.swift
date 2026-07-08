@@ -53,7 +53,6 @@ public final class PlayerSaveStore {
         root.toPlayerSave()
     }
 
-    // swiftlint:disable:next function_body_length
     private let persistSaveImmediately: Bool
 
     public init(
@@ -65,50 +64,28 @@ public final class PlayerSaveStore {
         persistSaveImmediately: Bool = false
     ) throws {
         self.persistSaveImmediately = persistSaveImmediately
-        let finalURL: URL
-        if let storeName {
-            finalURL = URL.applicationSupportDirectory.appending(path: "\(storeName).store")
-        } else {
-            finalURL = storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
-        }
+        let finalURL = Self.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
         if resetState, !inMemoryOnly {
-            let shmURL = finalURL.deletingPathExtension().appendingPathExtension("store-shm")
-            let walURL = finalURL.deletingPathExtension().appendingPathExtension("store-wal")
-            try? FileManager.default.removeItem(at: finalURL)
-            try? FileManager.default.removeItem(at: shmURL)
-            try? FileManager.default.removeItem(at: walURL)
+            Self.cleanStoreFiles(at: finalURL)
         }
 
         let schema = PlayerSaveGraph.schema
-        let config: ModelConfiguration
-        let recoveryURL: URL?
-        if inMemoryOnly {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-            recoveryURL = nil
-        } else if storeName != nil {
-            config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
-            recoveryURL = finalURL
-        } else if let storeURL {
-            config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
-            recoveryURL = storeURL
-        } else if disableCloudSync {
-            config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            recoveryURL = nil
-        } else {
-            config = ModelConfiguration(
-                schema: schema,
-                cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
-            )
-            recoveryURL = nil
-        }
+        let resolved = Self.resolveConfiguration(
+            schema: schema,
+            finalURL: finalURL,
+            storeName: storeName,
+            storeURL: storeURL,
+            disableCloudSync: disableCloudSync,
+            inMemoryOnly: inMemoryOnly
+        )
 
         let openResult = try ModelContainerBootstrap.open(
             schema: schema,
-            primaryConfiguration: config,
+            primaryConfiguration: resolved.config,
             logger: logger,
             logLabel: "player save",
-            storeURLForRecovery: recoveryURL,
+            storeURLForRecovery: resolved.recoveryURL,
             deleteStoreOnFailure: !inMemoryOnly
         )
         container = openResult.container
@@ -122,14 +99,7 @@ public final class PlayerSaveStore {
         context.autosaveEnabled = false
 
         if resetState {
-            do {
-                try context.delete(model: PlayerSaveRoot.self)
-                try context.save()
-            } catch {
-                logger.error(
-                    "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
-                )
-            }
+            Self.clearSaveRoot(in: context, logger: logger)
         }
 
         if let existingRoot = Self.fetchRoot(in: context, logger: logger) {
@@ -299,6 +269,54 @@ public final class PlayerSaveStore {
                 "Failed to fetch player save root: \(error.localizedDescription, privacy: .public)"
             )
             return nil
+        }
+    }
+
+    private static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
+        if let storeName {
+            return URL.applicationSupportDirectory.appending(path: "\(storeName).store")
+        } else {
+            return storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
+        }
+    }
+
+    private static func cleanStoreFiles(at url: URL) {
+        let shmURL = url.deletingPathExtension().appendingPathExtension("store-shm")
+        let walURL = url.deletingPathExtension().appendingPathExtension("store-wal")
+        try? FileManager.default.removeItem(at: url)
+        try? FileManager.default.removeItem(at: shmURL)
+        try? FileManager.default.removeItem(at: walURL)
+    }
+
+    private static func resolveConfiguration(
+        schema: Schema,
+        finalURL: URL,
+        storeName: String?,
+        storeURL: URL?,
+        disableCloudSync: Bool,
+        inMemoryOnly: Bool
+    ) -> (config: ModelConfiguration, recoveryURL: URL?) {
+        if inMemoryOnly {
+            return (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
+        } else if storeName != nil {
+            return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
+        } else if let storeURL {
+            return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
+        } else if disableCloudSync {
+            return (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
+        } else {
+            return (ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)), nil)
+        }
+    }
+
+    private static func clearSaveRoot(in context: ModelContext, logger: Logger) {
+        do {
+            try context.delete(model: PlayerSaveRoot.self)
+            try context.save()
+        } catch {
+            logger.error(
+                "Failed to clear player save during reset: \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 

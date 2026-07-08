@@ -95,30 +95,16 @@ public final class PlayerShellSessionStore {
         inMemoryOnly: Bool = false,
         legacyUserDefaults: UserDefaults? = nil
     ) throws {
-        let finalURL: URL
-        if let storeName {
-            finalURL = URL.applicationSupportDirectory.appending(path: "\(storeName)-shell.store")
-        } else if let storeURL {
-            finalURL = storeURL
-        } else {
-            finalURL = URL.applicationSupportDirectory.appending(path: "shell-session.store")
-        }
+        let finalURL = Self.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
         if resetState, !inMemoryOnly {
-            let shmURL = finalURL.deletingPathExtension().appendingPathExtension("store-shm")
-            let walURL = finalURL.deletingPathExtension().appendingPathExtension("store-wal")
-            try? FileManager.default.removeItem(at: finalURL)
-            try? FileManager.default.removeItem(at: shmURL)
-            try? FileManager.default.removeItem(at: walURL)
+            Self.cleanStoreFiles(at: finalURL)
         }
 
         let schema = Schema([PlayerShellSession.self])
-        let config: ModelConfiguration
-        if inMemoryOnly {
-            config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
-        } else {
-            config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
-        }
+        let config = inMemoryOnly
+            ? ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
+            : ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
 
         let openResult = try ModelContainerBootstrap.open(
             schema: schema,
@@ -128,49 +114,64 @@ public final class PlayerShellSessionStore {
             storeURLForRecovery: inMemoryOnly ? nil : finalURL,
             deleteStoreOnFailure: !inMemoryOnly
         )
-        let container = openResult.container
-
-        context = ModelContext(container)
+        context = ModelContext(openResult.container)
         context.autosaveEnabled = false
 
         if resetState {
-            do {
-                try context.delete(model: PlayerShellSession.self)
-                try context.save()
-            } catch {
-                Self.logger.error(
-                    "Failed to clear shell session during reset: \(error.localizedDescription, privacy: .public)"
-                )
-            }
+            Self.clearShellSession(in: context)
         }
 
-        let finalRecord: PlayerShellSession
-        let needsInitialSave: Bool
-        if let existing = Self.fetchRecord(in: context) {
-            finalRecord = existing
-            needsInitialSave = false
-        } else {
-            let newRecord = PlayerShellSession()
-            context.insert(newRecord)
-            finalRecord = newRecord
-            needsInitialSave = true
-        }
+        let loadResult = Self.loadOrCreateRecord(in: context)
+        record = loadResult.record
+        selectedTab = Self.tab(from: record.selectedTabRaw) ?? .play
+        activeBattleStageID = record.activeBattleStageID
+        mapScrollStageID = record.mapScrollStageID
 
-        let initialTab = Self.tab(from: finalRecord.selectedTabRaw) ?? .play
-        let initialBattleStage = finalRecord.activeBattleStageID
-        let initialMapScrollStage = finalRecord.mapScrollStageID
-
-        record = finalRecord
-        selectedTab = initialTab
-        activeBattleStageID = initialBattleStage
-        mapScrollStageID = initialMapScrollStage
-
-        if needsInitialSave {
+        if loadResult.needsInitialSave {
             saveContext()
         }
 
         if let legacyUserDefaults {
             migrateLegacyUserDefaultsIfNeeded(from: legacyUserDefaults)
+        }
+    }
+
+    private static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
+        if let storeName {
+            return URL.applicationSupportDirectory.appending(path: "\(storeName)-shell.store")
+        } else if let storeURL {
+            return storeURL
+        } else {
+            return URL.applicationSupportDirectory.appending(path: "shell-session.store")
+        }
+    }
+
+    private static func cleanStoreFiles(at url: URL) {
+        let shmURL = url.deletingPathExtension().appendingPathExtension("store-shm")
+        let walURL = url.deletingPathExtension().appendingPathExtension("store-wal")
+        try? FileManager.default.removeItem(at: url)
+        try? FileManager.default.removeItem(at: shmURL)
+        try? FileManager.default.removeItem(at: walURL)
+    }
+
+    private static func clearShellSession(in context: ModelContext) {
+        do {
+            try context.delete(model: PlayerShellSession.self)
+            try context.save()
+        } catch {
+            Self.logger.error(
+                "Failed to clear shell session during reset: \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
+
+    private static func loadOrCreateRecord(in context: ModelContext) -> (record: PlayerShellSession, needsInitialSave: Bool) {
+        if let existing = fetchRecord(in: context) {
+            return (existing, false)
+        } else {
+            let newRecord = PlayerShellSession()
+            context.insert(newRecord)
+            return (newRecord, true)
         }
     }
 

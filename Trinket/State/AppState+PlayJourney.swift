@@ -181,9 +181,8 @@ extension AppState {
         var resultingJourney = journey.current
         do {
             try playerSave.performBatchMutation { save in
-                var context = save.stageCompletionContext()
                 if resetJourney {
-                    context.journey = .initial
+                    save.journey = .initial
                 }
                 for (index, stage) in stages.enumerated() {
                     let isLast = index == stages.count - 1
@@ -194,11 +193,10 @@ extension AppState {
                         battleEarnedGold: isLast ? battleEarnedGold : 0,
                         materialRewards: isLast ? materialRewards : nil,
                         in: GameContent.chapters,
-                        context: &context
+                        save: &save
                     )
                 }
-                context.apply(to: &save)
-                resultingJourney = context.journey
+                resultingJourney = save.journey
             }
         } catch {
             appStateLogger.error(

@@ -53,14 +53,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.homestead = homestead
     }
 
-    public func stageCompletionContext() -> StageCompletionContext {
-        StageCompletionContext(
-            roster: roster,
-            inventory: inventory,
-            homestead: homestead,
-            journey: journey
-        )
-    }
+
 
     public func markedLocalMutation(at date: Date = Date()) -> PlayerSave {
         var updated = self
