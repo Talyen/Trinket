@@ -19,7 +19,7 @@ struct HomesteadBuildControl {
         isBuilding = true
         defer { isBuilding = false }
 
-        switch saveStore.buildOrUpgradeHomesteadNode(definition) {
+        switch saveStore.homesteadStore.buildOrUpgradeNode(definition) {
         case .success:
             upgradeEventCount += 1
             onSuccess(definition.id)
