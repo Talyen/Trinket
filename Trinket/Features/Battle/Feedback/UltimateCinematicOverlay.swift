@@ -77,7 +77,6 @@ struct UltimateCinematicOverlay: View {
         }
     }
 
-    @ViewBuilder
     private var cinematicContent: some View {
         GeometryReader { geometry in
             let frame = Self.portraitFrame(in: geometry.size)
@@ -221,23 +220,28 @@ struct UltimateCinematicOverlay: View {
 struct CinematicVideoView: UIViewRepresentable {
     let player: AVPlayer
 
-    func makeUIView(context: Context) -> PlayerLayerView {
+    func makeUIView(context _: Context) -> PlayerLayerView {
         let view = PlayerLayerView()
         view.playerLayer.player = player
         view.playerLayer.videoGravity = .resizeAspectFill
         return view
     }
 
-    func updateUIView(_ uiView: PlayerLayerView, context: Context) {
+    func updateUIView(_ uiView: PlayerLayerView, context _: Context) {
         uiView.playerLayer.player = player
     }
 }
 
 final class PlayerLayerView: UIView {
-    override class var layerClass: AnyClass { AVPlayerLayer.self }
+    // UIKit requires `class` (not `static`) for `layerClass` overrides.
+    // swiftlint:disable:next static_over_final_class
+    override class var layerClass: AnyClass {
+        AVPlayerLayer.self
+    }
 
     var playerLayer: AVPlayerLayer {
         // UIStyleCheck: allow - AVPlayerLayer host requires UIView subclass cast
+        // swiftlint:disable:next force_cast
         layer as! AVPlayerLayer
     }
 }

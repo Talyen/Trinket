@@ -252,7 +252,9 @@ final class BattleSession {
         presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
         return step
     }
+}
 
+extension BattleSession {
     func markCinematicPlaying() {
         guard var cinematic = activeCinematic, cinematic.phase == .expanding else { return }
         cinematic.phase = .playing

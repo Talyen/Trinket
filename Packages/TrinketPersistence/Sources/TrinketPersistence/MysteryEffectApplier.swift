@@ -54,94 +54,24 @@ public enum MysteryEffectApplier {
         var result = MysteryEffectApplyResult()
         var materialTotals: [HomesteadResource: Int] = [:]
         var itemOrdinal = 0
+        let itemContext = GeneratedItemContext(
+            stageID: stageID,
+            choiceID: choiceID,
+            itemGenerator: itemGenerator,
+            baseTypes: baseTypes
+        )
 
         for effect in effects {
-            switch effect {
-            case let .gainGold(amount):
-                guard amount > 0 else { continue }
-                save.roster.grantGold(amount)
-                result.grantedGold += amount
-
-            case let .gainMaterial(resource, amount):
-                guard amount > 0, resource != .gold else { continue }
-                materialTotals[resource, default: 0] += amount
-
-            case let .gainExperience(amount):
-                guard amount > 0 else { continue }
-                save.roster.grantExperience(amount, to: hero)
-                result.grantedExperience += amount
-
-            case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
-                guard let item = makeGeneratedItem(
-                    baseTypeID: baseTypeID,
-                    guaranteedAffixIDs: guaranteedAffixIDs,
-                    stageID: stageID,
-                    choiceID: choiceID,
-                    ordinal: itemOrdinal,
-                    itemGenerator: itemGenerator,
-                    baseTypes: baseTypes,
-                    using: &randomNumberGenerator
-                ) else {
-                    continue
-                }
-                itemOrdinal += 1
-                appendItem(item, to: &save, result: &result)
-
-            case .gainRandomItem:
-                guard let baseType = baseTypes.randomElement(using: &randomNumberGenerator) else {
-                    continue
-                }
-                guard let item = makeGeneratedItem(
-                    baseTypeID: baseType.id,
-                    guaranteedAffixIDs: [],
-                    stageID: stageID,
-                    choiceID: choiceID,
-                    ordinal: itemOrdinal,
-                    itemGenerator: itemGenerator,
-                    baseTypes: baseTypes,
-                    using: &randomNumberGenerator
-                ) else {
-                    continue
-                }
-                itemOrdinal += 1
-                appendItem(item, to: &save, result: &result)
-
-            case .chooseItem:
-                var candidates: [InventoryItem] = []
-                for candidateIndex in 0 ..< chooseItemCandidateCount {
-                    guard let baseType = baseTypes.randomElement(using: &randomNumberGenerator) else {
-                        continue
-                    }
-                    guard let item = makeGeneratedItem(
-                        baseTypeID: baseType.id,
-                        guaranteedAffixIDs: [],
-                        stageID: stageID,
-                        choiceID: choiceID,
-                        ordinal: itemOrdinal + candidateIndex,
-                        idSuffix: "choice-\(candidateIndex)",
-                        itemGenerator: itemGenerator,
-                        baseTypes: baseTypes,
-                        using: &randomNumberGenerator
-                    ) else {
-                        continue
-                    }
-                    candidates.append(item)
-                }
-                result.chooseItemCandidates = candidates
-
-            case let .unlockCombatant(combatantID):
-                let didUnlock: Bool
-                if GameContent.heroes.contains(where: { $0.id == combatantID }) {
-                    didUnlock = save.roster.unlockHero(id: combatantID)
-                } else if GameContent.pets.contains(where: { $0.id == combatantID }) {
-                    didUnlock = save.roster.unlockPet(id: combatantID)
-                } else {
-                    didUnlock = false
-                }
-                if didUnlock {
-                    result.unlockedCombatantIDs.append(combatantID)
-                }
-            }
+            apply(
+                effect,
+                hero: hero,
+                save: &save,
+                result: &result,
+                materialTotals: &materialTotals,
+                itemOrdinal: &itemOrdinal,
+                itemContext: itemContext,
+                using: &randomNumberGenerator
+            )
         }
 
         let materials = materialTotals.map { ResourceAmount($0.key, $0.value) }
@@ -162,6 +92,122 @@ public enum MysteryEffectApplier {
         save.inventory.items.append(item)
     }
 
+    private struct GeneratedItemContext {
+        let stageID: String
+        let choiceID: String
+        let itemGenerator: ItemGenerator
+        let baseTypes: [ItemBaseType]
+    }
+
+    private static func apply<RNG: RandomNumberGenerator>(
+        _ effect: MysteryEffect,
+        hero: Combatant,
+        save: inout PlayerSave,
+        result: inout MysteryEffectApplyResult,
+        materialTotals: inout [HomesteadResource: Int],
+        itemOrdinal: inout Int,
+        itemContext: GeneratedItemContext,
+        using randomNumberGenerator: inout RNG
+    ) {
+        switch effect {
+        case let .gainGold(amount):
+            guard amount > 0 else { return }
+            save.roster.grantGold(amount)
+            result.grantedGold += amount
+
+        case let .gainMaterial(resource, amount):
+            guard amount > 0, resource != .gold else { return }
+            materialTotals[resource, default: 0] += amount
+
+        case let .gainExperience(amount):
+            guard amount > 0 else { return }
+            save.roster.grantExperience(amount, to: hero)
+            result.grantedExperience += amount
+
+        case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
+            guard let item = makeGeneratedItem(
+                baseTypeID: baseTypeID,
+                guaranteedAffixIDs: guaranteedAffixIDs,
+                ordinal: itemOrdinal,
+                context: itemContext,
+                using: &randomNumberGenerator
+            ) else {
+                return
+            }
+            itemOrdinal += 1
+            appendItem(item, to: &save, result: &result)
+
+        case .gainRandomItem:
+            guard let baseType = itemContext.baseTypes.randomElement(using: &randomNumberGenerator) else {
+                return
+            }
+            guard let item = makeGeneratedItem(
+                baseTypeID: baseType.id,
+                guaranteedAffixIDs: [],
+                ordinal: itemOrdinal,
+                context: itemContext,
+                using: &randomNumberGenerator
+            ) else {
+                return
+            }
+            itemOrdinal += 1
+            appendItem(item, to: &save, result: &result)
+
+        case .chooseItem:
+            result.chooseItemCandidates = makeChooseItemCandidates(
+                startingOrdinal: itemOrdinal,
+                context: itemContext,
+                using: &randomNumberGenerator
+            )
+
+        case let .unlockCombatant(combatantID):
+            applyUnlock(combatantID, save: &save, result: &result)
+        }
+    }
+
+    private static func applyUnlock(
+        _ combatantID: String,
+        save: inout PlayerSave,
+        result: inout MysteryEffectApplyResult
+    ) {
+        let didUnlock: Bool
+        if GameContent.heroes.contains(where: { $0.id == combatantID }) {
+            didUnlock = save.roster.unlockHero(id: combatantID)
+        } else if GameContent.pets.contains(where: { $0.id == combatantID }) {
+            didUnlock = save.roster.unlockPet(id: combatantID)
+        } else {
+            didUnlock = false
+        }
+        if didUnlock {
+            result.unlockedCombatantIDs.append(combatantID)
+        }
+    }
+
+    private static func makeChooseItemCandidates<RNG: RandomNumberGenerator>(
+        startingOrdinal: Int,
+        context: GeneratedItemContext,
+        using randomNumberGenerator: inout RNG
+    ) -> [InventoryItem] {
+        var candidates: [InventoryItem] = []
+        for candidateIndex in 0 ..< chooseItemCandidateCount {
+            guard let baseType = context.baseTypes.randomElement(using: &randomNumberGenerator) else {
+                continue
+            }
+            guard let item = makeGeneratedItem(
+                baseTypeID: baseType.id,
+                guaranteedAffixIDs: [],
+                ordinal: startingOrdinal + candidateIndex,
+                idSuffix: "choice-\(candidateIndex)",
+                context: context,
+                using: &randomNumberGenerator
+            ) else {
+                continue
+            }
+            candidates.append(item)
+        }
+        return candidates
+    }
+
     private static func appendItem(
         _ item: InventoryItem,
         to save: inout PlayerSave,
@@ -175,21 +221,19 @@ public enum MysteryEffectApplier {
     private static func makeGeneratedItem<RNG: RandomNumberGenerator>(
         baseTypeID: String,
         guaranteedAffixIDs: [String],
-        stageID: String,
-        choiceID: String,
         ordinal: Int,
         idSuffix: String? = nil,
-        itemGenerator: ItemGenerator,
-        baseTypes: [ItemBaseType],
+        context: GeneratedItemContext,
         using randomNumberGenerator: inout RNG
     ) -> InventoryItem? {
-        guard let baseType = baseTypes.first(where: { $0.id == baseTypeID }) else {
+        guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
             return nil
         }
         let rarity = MysteryItemRarity.roll(using: &randomNumberGenerator)
         let suffix = idSuffix.map { "-\($0)" } ?? ""
-        let itemID = "\(stageID)-\(choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)\(suffix)"
-        return itemGenerator.generate(
+        let itemID =
+            "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)\(suffix)"
+        return context.itemGenerator.generate(
             id: itemID,
             templateID: "\(baseTypeID)-\(rarity.rawValue)",
             baseType: baseType,

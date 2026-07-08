@@ -74,6 +74,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
 
     public static let zero = CombatModifierProfile()
 
+    // Memberwise init mirrors the large profile surface; keep assignments colocated.
+    // swiftlint:disable:next function_body_length
     public init(
         statBonuses: PrimaryStats = PrimaryStats(),
         maximumHealthBonus: Int = 0,
@@ -225,6 +227,8 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         }
     }
 
+    // Profile merge is intentionally exhaustive over every stacked combat field.
+    // swiftlint:disable:next function_body_length
     public mutating func merge(_ other: CombatModifierProfile) {
         statBonuses.merge(other.statBonuses)
         maximumHealthBonus += other.maximumHealthBonus

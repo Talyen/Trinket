@@ -2,6 +2,8 @@ import Foundation
 import TrinketContent
 
 public extension CombatTraitTriggers {
+    // Trait trigger application mirrors the full CombatModifierProfile trigger surface.
+    // swiftlint:disable:next function_body_length
     func apply(to profile: inout CombatModifierProfile) {
         profile.cleanseBonusHeal += cleanseBonusHeal
         profile.gainGoldBonusHealSelf += gainGoldBonusHealSelf

@@ -124,8 +124,10 @@ package enum CombatReactionEngine {
             in: &context
         ).events
     }
+}
 
-    package static func affixDamageBonus(
+package extension CombatReactionEngine {
+    static func affixDamageBonus(
         for state: DamageResolutionState,
         in context: inout BattleEngineContext
     ) -> Int {
@@ -165,7 +167,7 @@ package enum CombatReactionEngine {
         return bonus
     }
 
-    package static func applyHexmarkIfNeeded(
+    static func applyHexmarkIfNeeded(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
@@ -199,7 +201,7 @@ package enum CombatReactionEngine {
         ))
     }
 
-    package static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) {
+    static func afterDodge(by combatant: Combatant, in context: inout BattleEngineContext) {
         let bonus = context.modifiers(for: combatant.id).damageAfterDodgeBonus
         guard bonus > 0 else { return }
         context.roster.mutateRuntime(for: combatant) { runtime in
@@ -207,7 +209,7 @@ package enum CombatReactionEngine {
         }
     }
 
-    package static func afterBlockBroken(
+    static func afterBlockBroken(
         on target: Combatant,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -233,7 +235,7 @@ package enum CombatReactionEngine {
         )]
     }
 
-    package static func afterArmorGained(
+    static func afterArmorGained(
         by target: Combatant,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -249,7 +251,7 @@ package enum CombatReactionEngine {
         )
     }
 
-    package static func afterBlockGained(
+    static func afterBlockGained(
         by target: Combatant,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -286,7 +288,7 @@ package enum CombatReactionEngine {
         return events
     }
 
-    package static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterEnemyStunned(in context: inout BattleEngineContext) -> [ActionEvent] {
         let duration = context.heroModifiers.enemyStunnedHasteDurationTicks
         guard duration > 0, context.roster.hero.isAlive else { return [] }
         let hero = context.roster.hero.combatant
@@ -302,7 +304,7 @@ package enum CombatReactionEngine {
         )]
     }
 
-    package static func afterPetActed(in context: inout BattleEngineContext) -> [ActionEvent] {
+    static func afterPetActed(in context: inout BattleEngineContext) -> [ActionEvent] {
         let profile = context.heroModifiers
         guard profile.petActLeechPercent > 0,
               profile.petActLeechDurationTicks > 0,
@@ -330,7 +332,7 @@ package enum CombatReactionEngine {
         )]
     }
 
-    package static func shareHeroHealWithPet(
+    static func shareHeroHealWithPet(
         restored: Int,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -357,7 +359,7 @@ package enum CombatReactionEngine {
         ).events
     }
 
-    package static func afterHealthDropped(
+    static func afterHealthDropped(
         target: Combatant,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
@@ -388,7 +390,7 @@ package enum CombatReactionEngine {
         ).events
     }
 
-    package static func atStartOfAction(
+    static func atStartOfAction(
         by actor: Combatant,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {

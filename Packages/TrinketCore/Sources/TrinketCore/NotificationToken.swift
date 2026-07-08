@@ -2,8 +2,9 @@ import Foundation
 
 /// RAII wrapper for block-based `NotificationCenter` observers.
 /// Removes the observer when deallocated (Apple-recommended lifecycle pattern).
-// Concurrency-Safety: @unchecked Sendable — immutable after init; only the owning
-// `@MainActor` client retains the token, and `deinit` solely unregisters the observer.
+///
+/// Concurrency-Safety: `@unchecked Sendable` — immutable after init; only the owning
+/// `@MainActor` client retains the token, and `deinit` solely unregisters the observer.
 public final class NotificationToken: @unchecked Sendable {
     private let center: NotificationCenter
     private let token: any NSObjectProtocol

@@ -60,7 +60,7 @@ package extension DamagePipeline {
 
     static func applyMarkedBonus(
         to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
+        in _: inout BattleEngineContext
     ) {
         guard state.sourceActorID != nil else { return }
         let effects = state.activeEffects

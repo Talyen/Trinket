@@ -4,8 +4,8 @@ import Testing
 
 @MainActor
 struct OptionsUltimateSkipPolicyTests {
-    @Test func oncePerBattleAutoSkipsAfterActorPresented() {
-        let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)")!
+    @Test func oncePerBattleAutoSkipsAfterActorPresented() throws {
+        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicSkipPolicy = .oncePerBattle
 
@@ -30,15 +30,15 @@ struct OptionsUltimateSkipPolicyTests {
         )
     }
 
-    @Test func migratesLegacyAfterFirstViewToOncePerBattle() {
-        let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.legacy.\(UUID().uuidString)")!
+    @Test func migratesLegacyAfterFirstViewToOncePerBattle() throws {
+        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.legacy.\(UUID().uuidString)"))
         defaults.set(UltimateCinematicSkipPolicy.afterFirstView.rawValue, forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
         let options = OptionsStore(defaults: defaults)
         #expect(options.ultimateCinematicSkipPolicy == .oncePerBattle)
     }
 
-    @Test func neverPolicyBlocksSkip() {
-        let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.never.\(UUID().uuidString)")!
+    @Test func neverPolicyBlocksSkip() throws {
+        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.never.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicSkipPolicy = .never
         #expect(options.canSkipUltimateCinematic() == false)
@@ -50,8 +50,8 @@ struct OptionsUltimateSkipPolicyTests {
         )
     }
 
-    @Test func alwaysPolicyAllowsSkipAndNeverAutoSkips() {
-        let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.always.\(UUID().uuidString)")!
+    @Test func alwaysPolicyAllowsSkipAndNeverAutoSkips() throws {
+        let defaults = try #require(UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.always.\(UUID().uuidString)"))
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicSkipPolicy = .always
         #expect(options.canSkipUltimateCinematic())

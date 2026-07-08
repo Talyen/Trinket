@@ -61,12 +61,12 @@ struct BattleSpectacleSessionTests {
                 abilities: []
             )
         )
-        let options = OptionsStore(defaults: UserDefaults(suiteName: "BattleSpectacleSessionTests.\(UUID().uuidString)")!)
+        let options = try OptionsStore(defaults: #require(UserDefaults(suiteName: "BattleSpectacleSessionTests.\(UUID().uuidString)")))
         options.ultimateCinematicSkipPolicy = .always
         session.options = options
 
         // Turns 1–5: basics/skills; turn 6: ultimate
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             _ = session.advanceOneStep()
         }
         let beforeFeedbackCount = session.activeFeedbackEvents.count
@@ -107,14 +107,14 @@ struct BattleSpectacleSessionTests {
                 abilities: []
             )
         )
-        let options = OptionsStore(
-            defaults: UserDefaults(suiteName: "BattleSpectacleOncePerBattle.\(UUID().uuidString)")!
+        let options = try OptionsStore(
+            defaults: #require(UserDefaults(suiteName: "BattleSpectacleOncePerBattle.\(UUID().uuidString)"))
         )
         options.ultimateCinematicSkipPolicy = .oncePerBattle
         session.options = options
 
         // First Ultimate (turn 6)
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             _ = session.advanceOneStep()
         }
         let firstUltimateAt = Date()
@@ -125,7 +125,7 @@ struct BattleSpectacleSessionTests {
         session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
 
         // Next Ultimate for same hero (turn 12) should auto-skip cinematic
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             _ = session.advanceOneStep()
         }
         let secondUltimateAt = Date()
@@ -150,7 +150,7 @@ struct BattleSpectacleSessionTests {
             enemy: enemy
         )
 
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             _ = session.advanceOneStep()
         }
         _ = session.advanceOneStep()

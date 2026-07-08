@@ -163,7 +163,11 @@
 		A7C44D4A3DCE64A3D4B87935 /* SmokeMysteryRecruitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFF7A07C8E438EA39C22FF1 /* SmokeMysteryRecruitTests.swift */; };
 		3B96613C9B5AB1D74A992BAA /* MysteryEncounterSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */; };
 		27F872B27AC4B69B5639C9CC /* MysteryEncounterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57EB0A75D23F98B5FF356CC /* MysteryEncounterView.swift */; };
+<<<<<<< HEAD
 		F88564CC00D5623953F487E1 /* AppStateAttentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3200DD5234D602C4725715DB /* AppStateAttentionTests.swift */; };
+=======
+		15EF7047F50D150A3BDB1BD0 /* AppStateMysteryRecruitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BF8DFBECA9D603876EA2AB /* AppStateMysteryRecruitTests.swift */; };
+>>>>>>> 0dc7889 (fix(ci): clear SwiftFormat and SwiftLint gate failures)
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -342,7 +346,11 @@
 		7CFF7A07C8E438EA39C22FF1 /* SmokeMysteryRecruitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeMysteryRecruitTests.swift; sourceTree = "<group>"; };
 		F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysteryEncounterSession.swift; sourceTree = "<group>"; };
 		C57EB0A75D23F98B5FF356CC /* MysteryEncounterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysteryEncounterView.swift; sourceTree = "<group>"; };
+<<<<<<< HEAD
 		3200DD5234D602C4725715DB /* AppStateAttentionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateAttentionTests.swift; sourceTree = "<group>"; };
+=======
+		39BF8DFBECA9D603876EA2AB /* AppStateMysteryRecruitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateMysteryRecruitTests.swift; sourceTree = "<group>"; };
+>>>>>>> 0dc7889 (fix(ci): clear SwiftFormat and SwiftLint gate failures)
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1181,6 +1189,7 @@
 				EDAD432E3C0C8DF72E264E46 /* BattleSpectacleSessionTests.swift in Sources */,
 				6D1BCBB52EB1BA5A72534E96 /* OptionsUltimateSkipPolicyTests.swift in Sources */,
 				F88564CC00D5623953F487E1 /* AppStateAttentionTests.swift in Sources */,
+				15EF7047F50D150A3BDB1BD0 /* AppStateMysteryRecruitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

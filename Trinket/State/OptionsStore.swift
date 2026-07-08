@@ -3,7 +3,7 @@ import SwiftUI
 import TrinketDesignSystem
 
 /// How Ultimate cinematics may be dismissed or limited.
-enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable, Sendable {
+enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
     case always
     case never
     /// Show each of Hero and Pet's Ultimate cinematic once per battle; later casts auto-skip.
@@ -11,7 +11,9 @@ enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable, Sendable {
     /// Legacy raw value from an earlier Options label; migrated to `oncePerBattle` on load.
     case afterFirstView
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var displayName: String {
         switch self {

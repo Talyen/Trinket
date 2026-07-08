@@ -76,7 +76,7 @@ final class BattleCinematicPlayer {
 /// Catalog bridge for Ultimate cinematic videos.
 /// Returns nil until video assets are authored; battle uses ability-art fallback.
 enum UltimateCinematicCatalog {
-    struct Reference: Equatable, Sendable {
+    struct Reference: Equatable {
         let abilityID: String
         let videoName: String?
         let hasAudio: Bool
