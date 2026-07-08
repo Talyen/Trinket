@@ -7,14 +7,14 @@ enum AsyncTestSupport {
         timeout: Duration = .seconds(1),
         pollInterval: Duration = .milliseconds(5),
         condition: () async -> Bool
-    ) async {
+    ) async throws {
         let clock = ContinuousClock()
         let deadline = clock.now + timeout
         while clock.now < deadline {
             if await condition() {
                 return
             }
-            try? await Task.sleep(for: pollInterval)
+            try await Task.sleep(for: pollInterval)
         }
         Issue.record("Timed out waiting for \(description)")
     }
