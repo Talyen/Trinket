@@ -51,9 +51,7 @@ public enum MysteryEffectApplier {
         itemGenerator: ItemGenerator = ItemGenerator(),
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
     ) -> MysteryEffectApplyResult {
-        var result = MysteryEffectApplyResult()
-        var materialTotals: [HomesteadResource: Int] = [:]
-        var itemOrdinal = 0
+        var state = ApplyState()
         let itemContext = GeneratedItemContext(
             stageID: stageID,
             choiceID: choiceID,
@@ -66,22 +64,20 @@ public enum MysteryEffectApplier {
                 effect,
                 hero: hero,
                 save: &save,
-                result: &result,
-                materialTotals: &materialTotals,
-                itemOrdinal: &itemOrdinal,
+                state: &state,
                 itemContext: itemContext,
                 using: &randomNumberGenerator
             )
         }
 
-        let materials = materialTotals.map { ResourceAmount($0.key, $0.value) }
+        let materials = state.materialTotals.map { ResourceAmount($0.key, $0.value) }
             .sorted { $0.resource.rawValue < $1.resource.rawValue }
         if !materials.isEmpty {
             save.homestead.grant(materials)
-            result.grantedMaterials = materials
+            state.result.grantedMaterials = materials
         }
 
-        return result
+        return state.result
     }
 
     public static func grantChosenItem(
@@ -99,13 +95,17 @@ public enum MysteryEffectApplier {
         let baseTypes: [ItemBaseType]
     }
 
+    private struct ApplyState {
+        var result = MysteryEffectApplyResult()
+        var materialTotals: [HomesteadResource: Int] = [:]
+        var itemOrdinal = 0
+    }
+
     private static func apply<RNG: RandomNumberGenerator>(
         _ effect: MysteryEffect,
         hero: Combatant,
         save: inout PlayerSave,
-        result: inout MysteryEffectApplyResult,
-        materialTotals: inout [HomesteadResource: Int],
-        itemOrdinal: inout Int,
+        state: inout ApplyState,
         itemContext: GeneratedItemContext,
         using randomNumberGenerator: inout RNG
     ) {
@@ -113,29 +113,29 @@ public enum MysteryEffectApplier {
         case let .gainGold(amount):
             guard amount > 0 else { return }
             save.roster.grantGold(amount)
-            result.grantedGold += amount
+            state.result.grantedGold += amount
 
         case let .gainMaterial(resource, amount):
             guard amount > 0, resource != .gold else { return }
-            materialTotals[resource, default: 0] += amount
+            state.materialTotals[resource, default: 0] += amount
 
         case let .gainExperience(amount):
             guard amount > 0 else { return }
             save.roster.grantExperience(amount, to: hero)
-            result.grantedExperience += amount
+            state.result.grantedExperience += amount
 
         case let .gainGeneratedItem(baseTypeID, guaranteedAffixIDs):
             guard let item = makeGeneratedItem(
                 baseTypeID: baseTypeID,
                 guaranteedAffixIDs: guaranteedAffixIDs,
-                ordinal: itemOrdinal,
+                ordinal: state.itemOrdinal,
                 context: itemContext,
                 using: &randomNumberGenerator
             ) else {
                 return
             }
-            itemOrdinal += 1
-            appendItem(item, to: &save, result: &result)
+            state.itemOrdinal += 1
+            appendItem(item, to: &save, result: &state.result)
 
         case .gainRandomItem:
             guard let baseType = itemContext.baseTypes.randomElement(using: &randomNumberGenerator) else {
@@ -144,24 +144,24 @@ public enum MysteryEffectApplier {
             guard let item = makeGeneratedItem(
                 baseTypeID: baseType.id,
                 guaranteedAffixIDs: [],
-                ordinal: itemOrdinal,
+                ordinal: state.itemOrdinal,
                 context: itemContext,
                 using: &randomNumberGenerator
             ) else {
                 return
             }
-            itemOrdinal += 1
-            appendItem(item, to: &save, result: &result)
+            state.itemOrdinal += 1
+            appendItem(item, to: &save, result: &state.result)
 
         case .chooseItem:
-            result.chooseItemCandidates = makeChooseItemCandidates(
-                startingOrdinal: itemOrdinal,
+            state.result.chooseItemCandidates = makeChooseItemCandidates(
+                startingOrdinal: state.itemOrdinal,
                 context: itemContext,
                 using: &randomNumberGenerator
             )
 
         case let .unlockCombatant(combatantID):
-            applyUnlock(combatantID, save: &save, result: &result)
+            applyUnlock(combatantID, save: &save, result: &state.result)
         }
     }
 
