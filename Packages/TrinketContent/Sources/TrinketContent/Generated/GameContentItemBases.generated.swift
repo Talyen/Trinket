@@ -18,19 +18,19 @@ enum GameContentItemBasesGenerated {
         ItemBaseType(id: "recurve_bow", name: "Recurve Bow", slot: .weapon, keywordAffinities: [.physical, .bleed, .nature]),
         ItemBaseType(id: "shortbow", name: "Shortbow", slot: .weapon, keywordAffinities: [.physical, .bleed, .poison]),
         ItemBaseType(id: "shortsword", name: "Shortsword", slot: .weapon, keywordAffinities: [.physical, .bleed]),
-        ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .gold]),
-        ItemBaseType(id: "staff", name: "Staff", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .block]),
-        ItemBaseType(id: "wand", name: "Wand", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .poison]),
-        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.armor, .health, .poison, .leech]),
-        ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, keywordAffinities: [.block, .armor, .health, .holy]),
+        ItemBaseType(id: "spellbook", name: "Spellbook", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .gold, .mana]),
+        ItemBaseType(id: "staff", name: "Staff", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .nature, .block, .mana]),
+        ItemBaseType(id: "wand", name: "Wand", slot: .weapon, keywordAffinities: [.burn, .freeze, .holy, .poison, .mana]),
+        ItemBaseType(id: "leather_armor", name: "Leather Armor", slot: .armor, keywordAffinities: [.armor, .health, .poison, .leech, .bleed, .nature]),
+        ItemBaseType(id: "plate_armor", name: "Plate Armor", slot: .armor, keywordAffinities: [.block, .armor, .health, .holy, .stun]),
         ItemBaseType(id: "emerald_amulet", name: "Emerald Amulet", slot: .trinket, keywordAffinities: [.nature, .poison, .health]),
         ItemBaseType(id: "emerald_ring", name: "Emerald Ring", slot: .trinket, keywordAffinities: [.nature, .poison, .health]),
-        ItemBaseType(id: "ruby_amulet", name: "Ruby Amulet", slot: .trinket, keywordAffinities: [.burn, .health, .leech]),
-        ItemBaseType(id: "ruby_ring", name: "Ruby Ring", slot: .trinket, keywordAffinities: [.burn, .health, .leech]),
-        ItemBaseType(id: "sapphire_amulet", name: "Sapphire Amulet", slot: .trinket, keywordAffinities: [.freeze, .block, .armor]),
-        ItemBaseType(id: "sapphire_ring", name: "Sapphire Ring", slot: .trinket, keywordAffinities: [.freeze, .block, .armor]),
-        ItemBaseType(id: "topaz_amulet", name: "Topaz Amulet", slot: .trinket, keywordAffinities: [.holy, .gold, .stun]),
-        ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .trinket, keywordAffinities: [.holy, .gold, .stun])
+        ItemBaseType(id: "ruby_amulet", name: "Ruby Amulet", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]),
+        ItemBaseType(id: "ruby_ring", name: "Ruby Ring", slot: .trinket, keywordAffinities: [.burn, .health, .leech, .bleed]),
+        ItemBaseType(id: "sapphire_amulet", name: "Sapphire Amulet", slot: .trinket, keywordAffinities: [.freeze, .block, .armor, .mana]),
+        ItemBaseType(id: "sapphire_ring", name: "Sapphire Ring", slot: .trinket, keywordAffinities: [.freeze, .block, .armor, .mana]),
+        ItemBaseType(id: "topaz_amulet", name: "Topaz Amulet", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block]),
+        ItemBaseType(id: "topaz_ring", name: "Topaz Ring", slot: .trinket, keywordAffinities: [.holy, .gold, .stun, .block])
     ]
 }
 

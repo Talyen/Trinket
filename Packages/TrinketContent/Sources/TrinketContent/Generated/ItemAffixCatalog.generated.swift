@@ -167,6 +167,87 @@ enum ItemAffixCatalogGenerated {
             astral: ItemAffixPower(description: "Increases Block gained by 2 and Armor gained by 15%", modifiers: [.blockGained(2), .armorGainedPercent(0.15)])
         ),
         ItemAffixCatalogSupport.affix(
+            id: "venomancers",
+            title: "Venomancer's",
+            slot: .weapon,
+            keywords: [.poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Wisdom by 1 and Poison damage dealt by 1", modifiers: [.wisdom(1), .damageDealt(.poison, 1)]),
+            astral: ItemAffixPower(description: "Increases Wisdom by 2 and Poison damage dealt by 2", modifiers: [.wisdom(2), .damageDealt(.poison, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "cryomancers",
+            title: "Cryomancer's",
+            slot: .weapon,
+            keywords: [.freeze],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Intellect by 1 and Freeze damage dealt by 1", modifiers: [.intellect(1), .damageDealt(.freeze, 1)]),
+            astral: ItemAffixPower(description: "Increases Intellect by 2 and Freeze damage dealt by 2", modifiers: [.intellect(2), .damageDealt(.freeze, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "thunderers",
+            title: "Thunderer's",
+            slot: .weapon,
+            keywords: [.stun, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Strength by 1 and Stun damage dealt by 1", modifiers: [.strength(1), .damageDealt(.stun, 1)]),
+            astral: ItemAffixPower(description: "Increases Strength by 2 and Stun damage dealt by 2", modifiers: [.strength(2), .damageDealt(.stun, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "druids",
+            title: "Druid's",
+            slot: .weapon,
+            keywords: [.nature],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Wisdom by 1 and Nature damage dealt by 1", modifiers: [.wisdom(1), .damageDealt(.nature, 1)]),
+            astral: ItemAffixPower(description: "Increases Wisdom by 2 and Nature damage dealt by 2", modifiers: [.wisdom(2), .damageDealt(.nature, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "leeching",
+            title: "Leeching",
+            slot: .weapon,
+            keywords: [.leech],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Leech gained by 5%", modifiers: [.leechGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Leech gained by 10%", modifiers: [.leechGainedPercent(0.10)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "sapping",
+            title: "Sapping",
+            slot: .weapon,
+            keywords: [.leech, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Bleed damage dealt by 1 and Leech healing by 1", modifiers: [.damageDealt(.bleed, 1), .leechHealing(1)]),
+            astral: ItemAffixPower(description: "Increases Bleed damage dealt by 2 and Leech healing by 2", modifiers: [.damageDealt(.bleed, 2), .leechHealing(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "caustic",
+            title: "Caustic",
+            slot: .weapon,
+            keywords: [.poison, .burn],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Poison damage dealt by 1 and Burn damage dealt by 1", modifiers: [.damageDealt(.poison, 1), .damageDealt(.burn, 1)]),
+            astral: ItemAffixPower(description: "Increases Poison damage dealt by 2 and Burn damage dealt by 2", modifiers: [.damageDealt(.poison, 2), .damageDealt(.burn, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "persistent",
+            title: "Persistent",
+            slot: .weapon,
+            keywords: [.poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Poison damage dealt by 1", modifiers: [.damageDealt(.poison, 1)]),
+            astral: ItemAffixPower(description: "Increases Poison damage dealt by 2", modifiers: [.damageDealt(.poison, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "scorching",
+            title: "Scorching",
+            slot: .weapon,
+            keywords: [.burn, .physical],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Physical damage dealt by 1 and Burn damage dealt by 1", modifiers: [.damageDealt(.physical, 1), .damageDealt(.burn, 1)]),
+            astral: ItemAffixPower(description: "Increases Physical damage dealt by 2 and Burn damage dealt by 2", modifiers: [.damageDealt(.physical, 2), .damageDealt(.burn, 2)])
+        ),
+        ItemAffixCatalogSupport.affix(
             id: "stalwart",
             title: "Stalwart",
             slot: .armor,
@@ -262,8 +343,8 @@ enum ItemAffixCatalogGenerated {
             slot: .armor,
             keywords: [.leech, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Health restored by 1", modifiers: [.healthRestored(1)]),
-            astral: ItemAffixPower(description: "Increases Health restored by 3", modifiers: [.healthRestored(3)])
+            basic: ItemAffixPower(description: "Increases Leech healing by 1", modifiers: [.leechHealing(1)]),
+            astral: ItemAffixPower(description: "Increases Leech healing by 3", modifiers: [.leechHealing(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "guardians",
@@ -273,6 +354,69 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increases Toughness by 1 and Block gained by 1", modifiers: [.toughness(1), .blockGained(1)]),
             astral: ItemAffixPower(description: "Increases Toughness by 2 and Block gained by 2", modifiers: [.toughness(2), .blockGained(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "rimed",
+            title: "Rimed",
+            slot: .armor,
+            keywords: [.freeze, .armor],
+            weight: 8,
+            basic: ItemAffixPower(description: "Decreases Freeze damage taken by 10%", modifiers: [.damageTakenPercent(.freeze, 0.10)]),
+            astral: ItemAffixPower(description: "Decreases Freeze damage taken by 25%", modifiers: [.damageTakenPercent(.freeze, 0.25)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "insulated",
+            title: "Insulated",
+            slot: .armor,
+            keywords: [.stun, .armor],
+            weight: 8,
+            basic: ItemAffixPower(description: "Decreases Stun damage taken by 10%", modifiers: [.damageTakenPercent(.stun, 0.10)]),
+            astral: ItemAffixPower(description: "Decreases Stun damage taken by 25%", modifiers: [.damageTakenPercent(.stun, 0.25)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "sanctified",
+            title: "Sanctified",
+            slot: .armor,
+            keywords: [.holy, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Wisdom by 1 and Health restored by 1", modifiers: [.wisdom(1), .healthRestored(1)]),
+            astral: ItemAffixPower(description: "Increases Wisdom by 2 and Health restored by 2", modifiers: [.wisdom(2), .healthRestored(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "thorned",
+            title: "Thorned",
+            slot: .armor,
+            keywords: [.nature, .armor],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1 and Armor gained by 5%", modifiers: [.damageDealt(.nature, 1), .armorGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Nature damage dealt by 2 and Armor gained by 15%", modifiers: [.damageDealt(.nature, 2), .armorGainedPercent(0.15)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "bloodbound",
+            title: "Bloodbound",
+            slot: .armor,
+            keywords: [.leech, .bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Leech healing by 1", modifiers: [.leechHealing(1)]),
+            astral: ItemAffixPower(description: "Increases Leech healing by 3", modifiers: [.leechHealing(3)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "enduring",
+            title: "Enduring",
+            slot: .armor,
+            keywords: [.health, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Maximum Health by 2 and Block duration by 1", modifiers: [.maximumHealth(2), .blockDuration(1)]),
+            astral: ItemAffixPower(description: "Increases Maximum Health by 6 and Block duration by 2", modifiers: [.maximumHealth(6), .blockDuration(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "plated",
+            title: "Plated",
+            slot: .armor,
+            keywords: [.armor, .stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Toughness by 1 and Stun damage dealt by 1", modifiers: [.toughness(1), .damageDealt(.stun, 1)]),
+            astral: ItemAffixPower(description: "Increases Toughness by 2 and Stun damage dealt by 2", modifiers: [.toughness(2), .damageDealt(.stun, 2)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "hale",
@@ -307,8 +451,8 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.leech, .health],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases health restored from Leech by 1", modifiers: [.leechHealing(1)]),
-            astral: ItemAffixPower(description: "Increases health restored from Leech by 3", modifiers: [.leechHealing(3)])
+            basic: ItemAffixPower(description: "Increases Leech healing by 1", modifiers: [.leechHealing(1)]),
+            astral: ItemAffixPower(description: "Increases Leech healing by 3", modifiers: [.leechHealing(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "verdant",
@@ -316,17 +460,17 @@ enum ItemAffixCatalogGenerated {
             slot: .trinket,
             keywords: [.nature, .health],
             weight: 10,
-            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1", modifiers: [.damageDealt(.nature, 1)]),
-            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3", modifiers: [.damageDealt(.nature, 3)])
+            basic: ItemAffixPower(description: "Increases Nature damage dealt by 1 and Health restored by 1", modifiers: [.damageDealt(.nature, 1), .healthRestored(1)]),
+            astral: ItemAffixPower(description: "Increases Nature damage dealt by 3 and Health restored by 3", modifiers: [.damageDealt(.nature, 3), .healthRestored(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "sparkling",
             title: "Sparkling",
             slot: .trinket,
-            keywords: [.holy],
+            keywords: [.holy, .block],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Holy damage dealt by 1", modifiers: [.damageDealt(.holy, 1)]),
-            astral: ItemAffixPower(description: "Increases Holy damage dealt by 3", modifiers: [.damageDealt(.holy, 3)])
+            basic: ItemAffixPower(description: "Increases Holy damage dealt by 1 and Block gained by 1", modifiers: [.damageDealt(.holy, 1), .blockGained(1)]),
+            astral: ItemAffixPower(description: "Increases Holy damage dealt by 3 and Block gained by 3", modifiers: [.damageDealt(.holy, 3), .blockGained(3)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "steadfast",
@@ -386,10 +530,10 @@ enum ItemAffixCatalogGenerated {
             id: "gilded",
             title: "Gilded",
             slot: .trinket,
-            keywords: [.gold],
+            keywords: [.gold, .stun],
             weight: 8,
-            basic: ItemAffixPower(description: "Increases Gold gained by 1", modifiers: [.goldGained(1)]),
-            astral: ItemAffixPower(description: "Increases Gold gained by 2", modifiers: [.goldGained(2)])
+            basic: ItemAffixPower(description: "Increases Gold gained by 1 and Stun damage dealt by 1", modifiers: [.goldGained(1), .damageDealt(.stun, 1)]),
+            astral: ItemAffixPower(description: "Increases Gold gained by 2 and Stun damage dealt by 2", modifiers: [.goldGained(2), .damageDealt(.stun, 2)])
         ),
         ItemAffixCatalogSupport.affix(
             id: "heartward",
@@ -399,6 +543,96 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increases Health restored by 1 and Maximum Health by 2", modifiers: [.healthRestored(1), .maximumHealth(2)]),
             astral: ItemAffixPower(description: "Increases Health restored by 3 and Maximum Health by 6", modifiers: [.healthRestored(3), .maximumHealth(6)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "siphoning",
+            title: "Siphoning",
+            slot: .trinket,
+            keywords: [.leech],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Leech duration by 1", modifiers: [.leechDuration(1)]),
+            astral: ItemAffixPower(description: "Increases Leech duration by 2", modifiers: [.leechDuration(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "manabound",
+            title: "Manabound",
+            slot: .trinket,
+            keywords: [.mana, .burn, .freeze],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Maximum Mana by 2", modifiers: [.maximumMana(2)]),
+            astral: ItemAffixPower(description: "Increases Maximum Mana by 6", modifiers: [.maximumMana(6)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "beastbond",
+            title: "Beastbond",
+            slot: .trinket,
+            keywords: [.health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Pet damage dealt by 1", modifiers: [.petDamageDealt(1)]),
+            astral: ItemAffixPower(description: "Increases Pet damage dealt by 3", modifiers: [.petDamageDealt(3)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "biting",
+            title: "Biting",
+            slot: .trinket,
+            keywords: [.bleed, .leech],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Bleed duration by 1", modifiers: [.bleedDuration(1)]),
+            astral: ItemAffixPower(description: "Increases Bleed duration by 2", modifiers: [.bleedDuration(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "noxious",
+            title: "Noxious",
+            slot: .trinket,
+            keywords: [.poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Poison damage dealt by 1 and Gold gained by 1", modifiers: [.damageDealt(.poison, 1), .goldGained(1)]),
+            astral: ItemAffixPower(description: "Increases Poison damage dealt by 2 and Gold gained by 2", modifiers: [.damageDealt(.poison, 2), .goldGained(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "hallowed",
+            title: "Hallowed",
+            slot: .trinket,
+            keywords: [.holy, .health],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Holy damage dealt by 1 and Health restored by 1", modifiers: [.damageDealt(.holy, 1), .healthRestored(1)]),
+            astral: ItemAffixPower(description: "Increases Holy damage dealt by 3 and Health restored by 3", modifiers: [.damageDealt(.holy, 3), .healthRestored(3)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "hoarfrost",
+            title: "Hoarfrost",
+            slot: .trinket,
+            keywords: [.freeze, .block],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Freeze damage dealt by 1 and Block gained by 1", modifiers: [.damageDealt(.freeze, 1), .blockGained(1)]),
+            astral: ItemAffixPower(description: "Increases Freeze damage dealt by 2 and Block gained by 3", modifiers: [.damageDealt(.freeze, 2), .blockGained(3)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "stormforged",
+            title: "Stormforged",
+            slot: .trinket,
+            keywords: [.stun, .gold],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Stun damage dealt by 1 and Gold gained by 1", modifiers: [.damageDealt(.stun, 1), .goldGained(1)]),
+            astral: ItemAffixPower(description: "Increases Stun damage dealt by 2 and Gold gained by 2", modifiers: [.damageDealt(.stun, 2), .goldGained(2)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "vitalis",
+            title: "Vitalis",
+            slot: .trinket,
+            keywords: [.health, .nature],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Maximum Health by 2 and Nature damage dealt by 1", modifiers: [.maximumHealth(2), .damageDealt(.nature, 1)]),
+            astral: ItemAffixPower(description: "Increases Maximum Health by 6 and Nature damage dealt by 3", modifiers: [.maximumHealth(6), .damageDealt(.nature, 3)])
+        ),
+        ItemAffixCatalogSupport.affix(
+            id: "ashen",
+            title: "Ashen",
+            slot: .trinket,
+            keywords: [.burn, .leech],
+            weight: 8,
+            basic: ItemAffixPower(description: "Increases Burn damage dealt by 1 and Leech gained by 5%", modifiers: [.damageDealt(.burn, 1), .leechGainedPercent(0.05)]),
+            astral: ItemAffixPower(description: "Increases Burn damage dealt by 2 and Leech gained by 10%", modifiers: [.damageDealt(.burn, 2), .leechGainedPercent(0.10)])
         ),
     ]
 }

@@ -13,16 +13,16 @@ maul	Maul	weapon	physical,stun,armor
 recurve_bow	Recurve Bow	weapon	physical,bleed,nature
 shortbow	Shortbow	weapon	physical,bleed,poison
 shortsword	Shortsword	weapon	physical,bleed
-spellbook	Spellbook	weapon	burn,freeze,holy,nature,gold
-staff	Staff	weapon	burn,freeze,holy,nature,block
-wand	Wand	weapon	burn,freeze,holy,poison
-leather_armor	Leather Armor	armor	armor,health,poison,leech
-plate_armor	Plate Armor	armor	block,armor,health,holy
+spellbook	Spellbook	weapon	burn,freeze,holy,nature,gold,mana
+staff	Staff	weapon	burn,freeze,holy,nature,block,mana
+wand	Wand	weapon	burn,freeze,holy,poison,mana
+leather_armor	Leather Armor	armor	armor,health,poison,leech,bleed,nature
+plate_armor	Plate Armor	armor	block,armor,health,holy,stun
 emerald_amulet	Emerald Amulet	trinket	nature,poison,health
 emerald_ring	Emerald Ring	trinket	nature,poison,health
-ruby_amulet	Ruby Amulet	trinket	burn,health,leech
-ruby_ring	Ruby Ring	trinket	burn,health,leech
-sapphire_amulet	Sapphire Amulet	trinket	freeze,block,armor
-sapphire_ring	Sapphire Ring	trinket	freeze,block,armor
-topaz_amulet	Topaz Amulet	trinket	holy,gold,stun
-topaz_ring	Topaz Ring	trinket	holy,gold,stun
+ruby_amulet	Ruby Amulet	trinket	burn,health,leech,bleed
+ruby_ring	Ruby Ring	trinket	burn,health,leech,bleed
+sapphire_amulet	Sapphire Amulet	trinket	freeze,block,armor,mana
+sapphire_ring	Sapphire Ring	trinket	freeze,block,armor,mana
+topaz_amulet	Topaz Amulet	trinket	holy,gold,stun,block
+topaz_ring	Topaz Ring	trinket	holy,gold,stun,block
