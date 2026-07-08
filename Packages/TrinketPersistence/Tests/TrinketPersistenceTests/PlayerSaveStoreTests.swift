@@ -14,7 +14,7 @@ final class PlayerSaveStoreTests {
 
     @Test func playerSavePersistsJourneyRosterInventoryAndHomestead() throws {
         let storeURL = context.storeURL()
-        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         firstStore.grantGold(42)
         firstStore.grantExperience(20, to: GameContent.heroes[0])
         firstStore.grantHomestead([ResourceAmount(.wood, 14), ResourceAmount(.crystal, 2)])
@@ -22,7 +22,7 @@ final class PlayerSaveStoreTests {
         firstStore.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
         firstStore.advanceJourneyToStage("chapter-1-stage-2")
 
-        let secondStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
 
         #expect(secondStore.roster.gold == 42)
         #expect(secondStore.roster.progression(for: GameContent.heroes[0]).currentXP == 20)
@@ -34,7 +34,7 @@ final class PlayerSaveStoreTests {
 
     @Test func swiftDataGraphStoresIndependentRecords() throws {
         let storeURL = context.storeURL()
-        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         store.grantGold(5)
         store.advanceJourneyToStage("chapter-1-stage-2")
         store.grantHomestead([ResourceAmount(.wood, 3)])
@@ -60,7 +60,7 @@ final class PlayerSaveStoreTests {
     }
 
     @Test func resetGameplayProgressRestoresFreshStart() throws {
-        let store = context.makeSaveStore()
+        let store = try context.makeSaveStore()
         store.grantGold(99)
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         store.appendInventoryItem(template.rewardInstance(for: "chapter-1-stage-1"))
@@ -76,7 +76,7 @@ final class PlayerSaveStoreTests {
     }
 
     @Test func applyTestSeedMatchesDeterministicUITestBaseline() throws {
-        let store = context.makeSaveStore()
+        let store = try context.makeSaveStore()
         try store.applyTestSeed()
 
         #expect(store.roster == .testSeed)
@@ -86,21 +86,21 @@ final class PlayerSaveStoreTests {
 
     @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {
         let storeURL = context.storeURL()
-        let firstStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let firstStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         var save = PlayerSave.testSeed
         save.roster.equipmentLoadouts["knight"] = EquipmentLoadout(
             itemIDsBySlot: [.weapon: "missing-item"]
         )
         try firstStore.performBatchMutation { $0 = save }
 
-        let store = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let store = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
 
         #expect(store.roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
     }
 
     @Test func rosterCacheReturnsConsistentHydratedState() throws {
-        let store = context.makeSaveStore()
+        let store = try context.makeSaveStore()
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let item = template.rewardInstance(for: "chapter-1-stage-1")
         store.appendInventoryItem(item)
@@ -120,8 +120,8 @@ final class PlayerSaveStoreTests {
         )
     }
 
-    @Test func localMutationUpdatesModifiedAt() {
-        let store = context.makeSaveStore()
+    @Test func localMutationUpdatesModifiedAt() throws {
+        let store = try context.makeSaveStore()
         let beforeLocalEdit = store.currentSave.modifiedAt
         store.grantGold(1)
 
@@ -166,7 +166,7 @@ final class PlayerSaveStoreTests {
     }
 
     @Test func performBatchMutationPreservesStateWhenValidationFails() throws {
-        let store = context.makeSaveStore()
+        let store = try context.makeSaveStore()
         store.grantGold(25)
         let snapshot = store.currentSave
 
@@ -183,7 +183,7 @@ final class PlayerSaveStoreTests {
 
     #if DEBUG
     @Test func performBatchMutationRollsBackInMemoryStateWhenSaveFails() throws {
-        let store = context.makeSaveStore()
+        let store = try context.makeSaveStore()
         store.grantGold(10)
         store.forcesNextSaveFailure = true
 
@@ -201,6 +201,16 @@ final class PlayerSaveStoreTests {
         #expect(store.lastPersistenceError == .writeFailed)
     }
     #endif
+    @Test func inMemoryStoreIsNotMarkedDegraded() throws {
+        let store = try PlayerSaveStore(inMemoryOnly: true)
+        #expect(store.isPersistenceDegraded == false)
+        #expect(store.lastPersistenceError == nil)
+    }
+
+    @Test func storeUnavailableErrorIsEquatable() {
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") == .storeUnavailable("a"))
+        #expect(PlayerSavePersistenceError.storeUnavailable("a") != .storeUnavailable("b"))
+    }
 }
 
 private extension PlayerSaveStore {

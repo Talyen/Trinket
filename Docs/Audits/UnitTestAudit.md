@@ -2,6 +2,8 @@
 
 Goal: Assess the full unit test suite for coverage, quality, speed, duplication, gaps, and 2026 Apple/Swift best practices — then produce a prioritized, actionable improvement plan.
 
+**Last verified: 2026-07-08.** Swift Testing migration is complete for unit targets (`TrinketTests/`, package test schemes); XCTest remains only for `TrinketUITests/`.
+
 **Last execution (2026-07-07):** Tier 1–3 improvements applied on `cursor/unit-test-audit-fixes-1c5d`. Highlights: `XCTAssertNotNil` eliminated (0 remaining); `BattleSessionTests` split into `BattleSessionAppIntegrationTests`, `BattleSessionSimulationTests`, and `BattleVictorySummaryTests`; shared `AppTestCase` base; Swift Testing parameterized catalog tests; `TrinketDesignSystem` `ExperienceBarTests` + `VisualFoundationTests`; `Task.sleep` replaced with clock polling in tick-loop tests; code coverage enabled on `TrinketTests`; `ci-locally.sh` unit timing budget gate added.
 
 You are working on Trinket, a portrait-first iOS fantasy idle auto-battler (Swift 6 / SwiftUI, iOS 26, swift-tools-version 6.2, Swift 6 strict concurrency enabled). Read `AGENTS.md` and `Docs/Architecture.md` before editing.

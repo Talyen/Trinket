@@ -1,4 +1,5 @@
 import Testing
+import TrinketTestSupport
 @testable import BattleEngine
 import TrinketCore
 import TrinketContent

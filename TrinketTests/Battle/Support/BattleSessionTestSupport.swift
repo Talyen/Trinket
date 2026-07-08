@@ -1,6 +1,7 @@
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import TrinketTestSupport
 @testable import BattleEngine
 @testable import Trinket
 
@@ -11,7 +12,7 @@ enum BattleSessionTestSupport {
         hero: Combatant? = nil,
         pet: Combatant? = nil,
         enemy: Combatant? = nil
-    ) -> BattleSession {
+    ) throws -> BattleSession {
         let resolvedHero = hero ?? CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -32,7 +33,7 @@ enum BattleSessionTestSupport {
             abilities: []
         )
         let session = BattleSession()
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: rngSeed,
             hero: resolvedHero,
             pet: resolvedPet,

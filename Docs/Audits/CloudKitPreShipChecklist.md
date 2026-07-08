@@ -37,7 +37,7 @@ Use this checklist before enabling CloudKit sync in production or submitting Tri
 
 ## CI & Automated Tests
 
-- [ ] Unit/UI tests run with **`-disable-cloud-sync`** (see `TestLaunchArg.testLaunchArgs` in [AppTypes.swift](../../Trinket/App/AppTypes.swift) and parsed in [AppEnvironment.swift](../../Trinket/App/AppEnvironment.swift))
+- [x] Unit/UI tests run with **`-disable-cloud-sync`** (see `TestLaunchArg.testLaunchArgs` in [AppTypes.swift](../../Trinket/App/AppTypes.swift) and parsed in [AppEnvironment.swift](../../Trinket/App/AppEnvironment.swift))
 - [ ] No CI job depends on iCloud credentials or CloudKit network access
 - [ ] Verify all unit/integration tests for persistence configure in-memory databases (e.g., `ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)`) in [PlayerSaveStore.swift](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore.swift) to avoid generating SQLite file artifacts or leaking persistent state across test runs
 - [ ] SwiftData persistence tests cover root creation, reset, test seed, relaunch from the same SQLite URL, and graph record mutations

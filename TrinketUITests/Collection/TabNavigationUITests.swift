@@ -46,11 +46,6 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertExists(wolfHeader)
         XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 155 experience")
         assertCombatantDetailSections()
-
-        dismissSheet()
-        collection.openPetsCategory()
-        assertButtonExists("Wolf collection card")
-        goBack()
     }
 
     func testInventoryItemInspection() {

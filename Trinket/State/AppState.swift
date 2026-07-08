@@ -55,11 +55,11 @@ final class AppState {
         playerSave: PlayerSaveStore? = nil,
         shellSessionStore: PlayerShellSessionStore? = nil,
         userDefaults: UserDefaults? = nil
-    ) {
+    ) throws {
         self.environment = environment
         let resolvedDefaults = userDefaults ?? .standard
 
-        let dependencies = Self.makeBootstrapDependencies(
+        let dependencies = try Self.makeBootstrapDependencies(
             environment: environment,
             playerSave: playerSave,
             shellSessionStore: shellSessionStore,
@@ -92,6 +92,8 @@ final class AppState {
         case .writeFailed:
             return "Couldn't save progress to this device. Your latest changes may be lost if the app closes."
         case let .invalidSave(message):
+            return message
+        case let .storeUnavailable(message):
             return message
         case .none:
             return nil
@@ -303,9 +305,11 @@ final class AppState {
         syncBattleTickLoop()
     }
 
+    private var memoryPressureObserver: NotificationToken?
+
     func installMemoryPressureHandling() {
         #if canImport(UIKit)
-        NotificationCenter.default.addObserver(
+        memoryPressureObserver = NotificationCenter.default.observe(
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main

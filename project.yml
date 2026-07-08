@@ -19,6 +19,8 @@ packages:
     path: Packages/TrinketPersistence
   TrinketDesignSystem:
     path: Packages/TrinketDesignSystem
+  TrinketTestSupport:
+    path: Packages/TrinketTestSupport
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -79,6 +81,7 @@ targets:
       - package: BattleEngine
       - package: TrinketPersistence
       - package: TrinketDesignSystem
+      - package: TrinketTestSupport
 
 schemes:
   Trinket:

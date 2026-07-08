@@ -2,11 +2,12 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import TrinketTestSupport
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class BattleVictorySummaryTests {
+@Suite @MainActor
+struct BattleVictorySummaryTests {
     @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
@@ -14,7 +15,7 @@ final class BattleVictorySummaryTests {
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
@@ -57,7 +58,7 @@ final class BattleVictorySummaryTests {
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             pet: pet,
@@ -96,7 +97,7 @@ final class BattleVictorySummaryTests {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: hero,
@@ -132,7 +133,7 @@ final class BattleVictorySummaryTests {
         )
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
             pet: pet,

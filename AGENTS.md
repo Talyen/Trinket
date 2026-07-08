@@ -61,7 +61,7 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
   - Music: `Trinket/Resources/Music` (via `prepare-music-assets.sh`, requires `--assets`)
   - SFX catalog: generated Swift in TrinketContent (via `prepare-sfx-assets.sh`, requires `--assets`)
   - Shared domain types: `Packages/TrinketCore/` (`CombatantProgression`, effects, enums). `Raw Assets/` is source-only.
-  - Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here).
+- Don't hand-edit generated output, `.DerivedData/`, build products, or `.swiftlint.yml` severity (without reason here). Prefer fixing violations over new `swiftlint:disable` comments; when a disable is unavoidable, keep scope minimal and treat the repo's disable count as a ratchet (do not add net-new disables without justification).
 
 ## Battle Module
 
@@ -195,7 +195,7 @@ Mirror production folders under `TrinketTests/` (`Battle/`, `Persistence/`, `Sta
 - **Naming:** `@Test func behaviorWhenCondition()` — e.g. `localMutationSchedulesDebouncedUpload`; no `test` prefix required.
 - **Assertions:** `#expect` for behavioral checks; `try #require` / `#require` to unwrap and halt; `Issue.record` for unconditional failures.
 - **Parameterization:** `@Test(arguments:)` for catalog loops and symmetric keyword variants (per-item failure isolation).
-- **Lifecycle:** prefer `@Suite struct` for stateless tests; `@Suite @MainActor final class` with `init() throws` + `AppTestContext` / `PersistenceTestContext` when teardown is needed.
+- **Lifecycle:** prefer `@Suite struct` for stateless tests; `@Suite @MainActor struct` for app-shell tests without owned context; `@Suite @MainActor final class` with `init() throws` + `AppTestContext` / `PersistenceTestContext` when teardown is needed. New `TrinketTests` suites should migrate from `final class` to `@Suite` struct where possible (`BattleVictorySummaryTests`, `BattleSessionSimulationTests` are pilots).
 - **Main actor:** Swift Testing does not run sync tests on `@MainActor` by default — annotate suite or test when UI/layout/store isolation requires it.
 - **Battle rules:** `BattleStateTestFactory.makeBattle(...)` instead of raw `BattleState(...)`.
 - **BattleEngine ownership:** see `Packages/BattleEngine/Tests/README.md` — each mechanic has one primary test owner; integration files stay thin (3–6 tests) and only exercise full tick wiring.
@@ -240,7 +240,7 @@ Default smoke args (`TestLaunchArg.testLaunchArgs`): `-reset-state`, `-seed-test
 Smoke classes `Smoke*` (files match class names). `.accessibilityIdentifier` like `"Stage 1-1 Node"`, `"Battle Button"`; use `assertExists`. Keep default launch args unless testing persistence.
 
 **UI test speed** (check hotspots with `./Scripts/test-timing.sh report --top 30` and `./Scripts/test-timing.sh report --by-class`):
-- Prefer `-launch-screen` / `-selectedTab` deep links over tab + grid navigation.
+- Prefer `-launch-screen` / `-selectedTab` deep links over tab + grid navigation; do not re-navigate to a screen the launch args already opened (e.g. skip `collection.openPetsCategory()` after `pet:wolf` deep link).
 - Avoid `assertExistsAfterScroll` for far-off Play map nodes; use `-completed-stages` or `-map-scroll-target` instead.
 - Use inventory/search field filtering (`replaceText`) instead of long grid scroll loops.
 - Mid-battle exhaustive tests should enter via Play map, not `-launch-screen battle` with very fast tick intervals.

@@ -21,6 +21,7 @@ let package = Package(
     dependencies: [
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
+        .package(path: "../TrinketTestSupport"),
     ],
     targets: [
         .target(
@@ -34,7 +35,13 @@ let package = Package(
         ),
         .testTarget(
             name: "BattleEngineTests",
-            dependencies: ["BattleEngine", "BalanceSweepCLI", "TrinketCore", "TrinketContent"]
+            dependencies: [
+                "BattleEngine",
+                "BalanceSweepCLI",
+                "TrinketCore",
+                "TrinketContent",
+                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
+            ]
         ),
     ]
 )

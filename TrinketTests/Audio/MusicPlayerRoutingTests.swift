@@ -2,8 +2,8 @@ import Testing
 import TrinketContent
 @testable import Trinket
 
-@MainActor
-final class MusicPlayerRoutingTests {
+@Suite @MainActor
+struct MusicPlayerRoutingTests {
     @Test func menuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
@@ -50,7 +50,7 @@ final class MusicPlayerRoutingTests {
     }
 
     @Test func activeBattleTakesPriorityOverPreview() throws {
-        let battle = ActiveBattleConfigurationTestSupport.make(
+        let battle = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
             hero: GameContent.heroes[0],
@@ -72,7 +72,7 @@ final class MusicPlayerRoutingTests {
     }
 
     @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
-        let battle = ActiveBattleConfigurationTestSupport.make(
+        let battle = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-10",
             rngSeed: 0,
             hero: GameContent.heroes[0],

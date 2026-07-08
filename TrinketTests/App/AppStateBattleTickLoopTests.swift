@@ -4,21 +4,21 @@ import TrinketPersistence
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class AppStateBattleTickLoopTests {
+@Suite @MainActor
+struct AppStateBattleTickLoopTests {
     let context: AppTestContext
 
     init() throws {
         context = try AppTestContext()
     }
 
-    @Test func battleTickIntervalUsesInjectedEnvironment() {
-        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.15"])
+    @Test func battleTickIntervalUsesInjectedEnvironment() throws {
+        let appState = try context.makeAppState(arguments: ["-battle-tick-interval", "0.15"])
         #expect(appState.battleTickInterval == .seconds(0.15))
     }
 
     @Test func canAdvanceBattleTicksRequiresActivePlayTabAndUnpausedBattle() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
@@ -41,7 +41,7 @@ final class AppStateBattleTickLoopTests {
     }
 
     @Test func battleTickLoopAdvancesSimulationWhenEligible() async throws {
-        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let appState = try context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
@@ -59,7 +59,7 @@ final class AppStateBattleTickLoopTests {
     }
 
     @Test func battleTickLoopStopsWhileInBackground() async throws {
-        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let appState = try context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
@@ -83,7 +83,7 @@ final class AppStateBattleTickLoopTests {
     }
 
     @Test func battleTickLoopDoesNotAdvanceWhilePaused() async throws {
-        let appState = context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
+        let appState = try context.makeAppState(arguments: ["-battle-tick-interval", "0.01"])
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
@@ -96,9 +96,9 @@ final class AppStateBattleTickLoopTests {
         try await assertTickCountRemainsStable(tickCount, for: appState)
     }
 
-    @Test func trimMemoryFootprintReleasesBattleLogProjection() {
+    @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
         let session = BattleSession()
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: GameContent.heroes[0],
             pet: GameContent.pets[0],

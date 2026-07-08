@@ -1,4 +1,5 @@
 import Foundation
+import TrinketTestSupport
 @testable import TrinketPersistence
 
 @MainActor
@@ -17,7 +18,7 @@ final class PersistenceTestContext {
         SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
     }
 
-    func makeSaveStore() -> PlayerSaveStore {
-        SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
+    func makeSaveStore() throws -> PlayerSaveStore {
+        try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
     }
 }

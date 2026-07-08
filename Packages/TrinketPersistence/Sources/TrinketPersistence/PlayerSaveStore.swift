@@ -20,6 +20,9 @@ public final class PlayerSaveStore {
 
     public private(set) var lastPersistenceError: PlayerSavePersistenceError?
 
+    /// `true` when disk store failed and an in-memory fallback container is active.
+    public private(set) var isPersistenceDegraded = false
+
     #if DEBUG
     var forcesNextSaveFailure = false
     #endif
@@ -58,7 +61,7 @@ public final class PlayerSaveStore {
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
         persistSaveImmediately: Bool = false
-    ) {
+    ) throws {
         self.persistSaveImmediately = persistSaveImmediately
         let finalURL: URL
         if let storeName {
@@ -77,31 +80,41 @@ public final class PlayerSaveStore {
 
         let schema = PlayerSaveGraph.schema
         let config: ModelConfiguration
+        let recoveryURL: URL?
         if inMemoryOnly {
             config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            recoveryURL = nil
         } else if storeName != nil {
             config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
+            recoveryURL = finalURL
         } else if let storeURL {
             config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
+            recoveryURL = storeURL
         } else if disableCloudSync {
             config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+            recoveryURL = nil
         } else {
             config = ModelConfiguration(
                 schema: schema,
                 cloudKitDatabase: .private(Self.cloudKitContainerIdentifier)
             )
+            recoveryURL = nil
         }
 
-        do {
-            container = try ModelContainer(for: schema, configurations: config)
-        } catch {
-            logger.error("Failed to open SwiftData player store: \(error.localizedDescription, privacy: .public)")
-            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            do {
-                container = try ModelContainer(for: schema, configurations: fallbackConfig)
-            } catch {
-                fatalError("Failed to open fallback in-memory SwiftData store: \(error.localizedDescription)")
-            }
+        let openResult = try ModelContainerBootstrap.open(
+            schema: schema,
+            primaryConfiguration: config,
+            logger: logger,
+            logLabel: "player save",
+            storeURLForRecovery: recoveryURL,
+            deleteStoreOnFailure: !inMemoryOnly
+        )
+        container = openResult.container
+        if openResult.usedInMemoryFallback {
+            isPersistenceDegraded = true
+            lastPersistenceError = .storeUnavailable(
+                "Couldn't open on-device save storage. Progress is kept in memory until you restart after freeing space."
+            )
         }
         context = ModelContext(container)
         context.autosaveEnabled = false

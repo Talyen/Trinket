@@ -1,34 +1,35 @@
 import Testing
 import TrinketContent
 import TrinketPersistence
+import TrinketTestSupport
 @testable import Trinket
 
-@MainActor
-final class AppStateTests {
+@Suite @MainActor
+struct AppStateTests {
     let context: AppTestContext
 
     init() throws {
         context = try AppTestContext()
     }
 
-    @Test func defaultInitSelectsPlayTabWithFreshSave() {
-        let state = context.makeAppState(environment: context.makeEnvironment())
+    @Test func defaultInitSelectsPlayTabWithFreshSave() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
 
         #expect(state.selectedTab == .play)
         #expect(state.roster.current == .freshStart)
         #expect(state.inventory.current == .freshStart)
     }
 
-    @Test func launchTabOverridesDefaultTab() {
-        let state = context.makeAppState(
+    @Test func launchTabOverridesDefaultTab() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-selectedTab", "homestead"])
         )
 
         #expect(state.selectedTab == .homestead)
     }
 
-    @Test func heroDetailLaunchScreenDefaultsToCollectionTab() {
-        let state = context.makeAppState(
+    @Test func heroDetailLaunchScreenDefaultsToCollectionTab() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "hero:knight"])
         )
 
@@ -44,8 +45,8 @@ final class AppStateTests {
         )
     }
 
-    @Test func petDetailLaunchScreenExposesCollectionCombatantDetail() {
-        let state = context.makeAppState(
+    @Test func petDetailLaunchScreenExposesCollectionCombatantDetail() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "pet:wolf"])
         )
 
@@ -61,8 +62,8 @@ final class AppStateTests {
         )
     }
 
-    @Test func itemDetailLaunchScreenExposesCollectionItemPresentation() {
-        let state = context.makeAppState(
+    @Test func itemDetailLaunchScreenExposesCollectionItemPresentation() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
         )
 
@@ -74,8 +75,8 @@ final class AppStateTests {
         #expect(itemID == "shortsword-basic")
     }
 
-    @Test func battleLaunchScreenDefaultsToPlayTab() {
-        let state = context.makeAppState(
+    @Test func battleLaunchScreenDefaultsToPlayTab() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
         )
 
@@ -83,7 +84,7 @@ final class AppStateTests {
     }
 
     @Test func battleLaunchScreenStartsStageOneOne() throws {
-        let state = context.makeAppState(
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "battle"])
         )
 
@@ -91,8 +92,8 @@ final class AppStateTests {
         #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
 
-    @Test func seedTestProgressPopulatesInventory() {
-        let state = context.makeAppState(
+    @Test func seedTestProgressPopulatesInventory() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
         )
 
@@ -101,16 +102,16 @@ final class AppStateTests {
         #expect(state.inventory.current.items.contains { $0.displayName == "Wand" })
     }
 
-    @Test func optionsLaunchScreenDefaultsToOptionsTab() {
-        let state = context.makeAppState(
+    @Test func optionsLaunchScreenDefaultsToOptionsTab() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "options"])
         )
 
         #expect(state.selectedTab == .options)
     }
 
-    @Test func appearanceOverrideAppliesToOptionsStore() {
-        let state = context.makeAppState(
+    @Test func appearanceOverrideAppliesToOptionsStore() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-appearance", "dark"])
         )
 
@@ -120,28 +121,28 @@ final class AppStateTests {
     @Test func resetStateWipesPersistedSave() throws {
         var save = PlayerSave.fresh
         save.roster.gold = 99
-        let firstStore = PlayerSaveStore(
+        let firstStore = try PlayerSaveStore(
             storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
             disableCloudSync: true
         )
         try firstStore.performBatchMutation { $0 = save }
 
-        let state = context.makeAppState(
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-reset-state"])
         )
 
         #expect(state.roster.current == .freshStart)
         #expect(state.inventory.current == .freshStart)
 
-        let reloadedStore = PlayerSaveStore(
+        let reloadedStore = try PlayerSaveStore(
             storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
             disableCloudSync: true
         )
         #expect(reloadedStore.roster == .freshStart)
     }
 
-    @Test func seedTestProgressAppliesDeterministicBaseline() {
-        let state = context.makeAppState(
+    @Test func seedTestProgressAppliesDeterministicBaseline() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-seed-test-progress"])
         )
 
@@ -149,8 +150,8 @@ final class AppStateTests {
         #expect(state.inventory.current == .testSeed)
     }
 
-    @Test func completedStagesAdvanceJourneyAndMarkRewardsClaimed() {
-        let state = context.makeAppState(
+    @Test func completedStagesAdvanceJourneyAndMarkRewardsClaimed() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-completed-stages", "chapter-1-stage-1"])
         )
 
@@ -158,16 +159,16 @@ final class AppStateTests {
         #expect(state.journey.current.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
-    @Test func unknownCompletedStageIDsAreIgnored() {
-        let state = context.makeAppState(
+    @Test func unknownCompletedStageIDsAreIgnored() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-completed-stages", "missing-stage"])
         )
 
         #expect(state.journey.current == .initial)
     }
 
-    @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() {
-        let state = context.makeAppState(
+    @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() throws {
+        let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         )
         #expect(state.mapScrollStageID == "chapter-gate-placeholder-2")
@@ -176,7 +177,7 @@ final class AppStateTests {
     }
 
     @Test func completeStageUpdatesStoresAndMapScrollFocus() throws {
-        let state = context.makeAppState(environment: context.makeEnvironment())
+        let state = try context.makeAppState(environment: context.makeEnvironment())
         let stage = try #require(GameContent.chapters[0].stages.first)
         let initialGold = state.roster.current.gold
 

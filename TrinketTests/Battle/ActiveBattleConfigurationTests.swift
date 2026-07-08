@@ -3,14 +3,14 @@ import TrinketContent
 import TrinketPersistence
 @testable import Trinket
 
-@MainActor
-final class ActiveBattleConfigurationTests {
+@Suite @MainActor
+struct ActiveBattleConfigurationTests {
     @Test func makeWithoutEquipmentUsesTraitOnlyModifiers() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
         let enemy = try #require(GameContent.enemies.first?.combatant)
 
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
@@ -43,7 +43,7 @@ final class ActiveBattleConfigurationTests {
         loadout.equip(item)
         rosterState.setEquipmentLoadout(loadout, for: knight)
 
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
@@ -61,7 +61,7 @@ final class ActiveBattleConfigurationTests {
         let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
         let skeleton = try #require(GameContent.enemy(matching: "skeleton"))
 
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: knight,
             pet: wolf,
@@ -83,7 +83,7 @@ final class ActiveBattleConfigurationTests {
             GameContent.itemTemplate(matching: itemTemplateID)?.displayName
         )
 
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
             rngSeed: 0,
             hero: knight,
