@@ -4,6 +4,8 @@ Point-in-time audit: **July 2026**. Compares Trinket production code against iOS
 
 **Verdict:** Trinket is already on the modern Apple stack for state, navigation, concurrency, and tab structure. The main gap is **partial Liquid Glass adoption** in `TrinketDesignSystem` and a few **low-priority polish items**.
 
+**Implementation plan:** [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
+
 ---
 
 ## Summary
