@@ -51,6 +51,13 @@ pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components
 
 Custom abilities with unusual targeting, multi-step combos, or description overrides stay in the hand-written tier Swift files.
 
+### Ability authoring decision tree
+
+1. **Simple abilities** (single pattern, manifest DSL covers effects/damage): add a row to `ContentManifest/abilities.tsv`, then run `./Scripts/generate.sh`.
+2. **Complex abilities** (custom targeting, multi-step combos, prose overrides, or logic that does not map to `direct_hit` / `buff_only` / `multi_damage`): implement in `Packages/TrinketContent/Sources/TrinketContent/Content/AbilityCatalog{Basic,Skill,Ultimate}.swift`, then run `./Scripts/generate.sh` to refresh shorthand and catalogs.
+
+When unsure, start with `abilities.tsv`; move to the tier Swift files only when generation or tests show the manifest pattern is insufficient.
+
 ### Stages (`ContentManifest/stages.tsv`)
 
 Tab-separated columns:

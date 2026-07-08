@@ -12,7 +12,7 @@ final class PlayerHomesteadStoreTests {
     }
 
     @Test func buildOrUpgradeWriteThroughToSaveStore() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let homesteadStore = PlayerHomesteadStore(saveStore: saveStore)
         saveStore.homestead = PlayerHomesteadState(
@@ -26,14 +26,14 @@ final class PlayerHomesteadStoreTests {
 
         #expect(homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .success)
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.homestead.tier(for: .wheatField) == 1)
         #expect(reloaded.homestead.resources[.wood] == 10)
         #expect(reloaded.roster.gold == 4)
     }
 
     @Test func buildOrUpgradeReturnsFalseWhenPrerequisitesMissing() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let homesteadStore = PlayerHomesteadStore(saveStore: saveStore)
         saveStore.homestead = PlayerHomesteadState(
@@ -49,17 +49,17 @@ final class PlayerHomesteadStoreTests {
             homesteadStore.buildOrUpgrade(definition, roster: rosterStore) == .insufficientResources
         )
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.homestead.tier(for: .blacksmithForge) == 0)
         #expect(reloaded.roster.gold == 100)
     }
 
-    @Test func grantResourcesWriteThroughToSaveStore() {
-        let homesteadStore = PlayerHomesteadStore(saveStore: context.makeSaveStore())
+    @Test func grantResourcesWriteThroughToSaveStore() throws {
+        let homesteadStore = PlayerHomesteadStore(saveStore: try context.makeSaveStore())
 
         homesteadStore.grant([ResourceAmount(.wood, 7), ResourceAmount(.crystal, 2)])
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.homestead.resources[.wood] == 7)
         #expect(reloaded.homestead.resources[.crystal] == 2)
     }

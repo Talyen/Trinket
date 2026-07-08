@@ -3,6 +3,7 @@ import Testing
 import TrinketCore
 import TrinketContent
 @testable import TrinketPersistence
+import TrinketTestSupport
 
 @Suite @MainActor
 final class JourneyProgressTests {
@@ -96,12 +97,12 @@ final class JourneyProgressTests {
         defer { try? FileManager.default.removeItem(at: directoryURL) }
 
         let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
-        let saveStore = PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+        let saveStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         let firstStore = PlayerJourneyStore(saveStore: saveStore)
         firstStore.complete(chapter.stages[0], in: GameContent.chapters)
 
         let secondStore = PlayerJourneyStore(
-            saveStore: PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
+            saveStore: try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         )
         #expect(secondStore.current.activeStageID == "chapter-1-stage-2")
         #expect(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))

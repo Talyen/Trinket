@@ -35,7 +35,7 @@ public final class PlayerShellSessionStore {
         resetState: Bool = false,
         inMemoryOnly: Bool = false,
         legacyUserDefaults: UserDefaults? = nil
-    ) {
+    ) throws {
         let finalURL: URL
         if let storeName {
             finalURL = URL.applicationSupportDirectory.appending(path: "\(storeName)-shell.store")
@@ -61,22 +61,15 @@ public final class PlayerShellSessionStore {
             config = ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none)
         }
 
-        let container: ModelContainer
-        do {
-            container = try ModelContainer(for: schema, configurations: config)
-        } catch {
-            logger.error(
-                "Failed to open shell session store: \(error.localizedDescription, privacy: .public)"
-            )
-            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-            do {
-                container = try ModelContainer(for: schema, configurations: fallbackConfig)
-            } catch {
-                fatalError(
-                    "Failed to open fallback in-memory shell session store: \(error.localizedDescription)"
-                )
-            }
-        }
+        let openResult = try ModelContainerBootstrap.open(
+            schema: schema,
+            primaryConfiguration: config,
+            logger: logger,
+            logLabel: "shell session",
+            storeURLForRecovery: inMemoryOnly ? nil : finalURL,
+            deleteStoreOnFailure: !inMemoryOnly
+        )
+        let container = openResult.container
 
         context = ModelContext(container)
         context.autosaveEnabled = false

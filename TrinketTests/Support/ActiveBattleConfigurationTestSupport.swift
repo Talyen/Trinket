@@ -8,8 +8,8 @@ enum ActiveBattleConfigurationTestSupport {
     static func makeStores(
         roster: PlayerRosterState = .initial,
         inventory: PlayerInventoryState = .initial
-    ) -> (roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
-        let saveStore = PlayerSaveStore(inMemoryOnly: true)
+    ) throws -> (roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
+        let saveStore = try PlayerSaveStore(inMemoryOnly: true)
         saveStore.inventory = inventory
         saveStore.roster = roster
         return (
@@ -28,8 +28,8 @@ enum ActiveBattleConfigurationTestSupport {
         roster: PlayerRosterState = .initial,
         inventory: PlayerInventoryState = .initial,
         stageReward: StageReward? = nil
-    ) -> ActiveBattleConfiguration {
-        let stores = makeStores(roster: roster, inventory: inventory)
+    ) throws -> ActiveBattleConfiguration {
+        let stores = try makeStores(roster: roster, inventory: inventory)
         return ActiveBattleConfiguration.make(
             stageID: stageID,
             rngSeed: rngSeed,

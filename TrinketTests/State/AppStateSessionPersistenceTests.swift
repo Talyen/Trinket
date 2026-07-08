@@ -11,65 +11,65 @@ final class AppStateSessionPersistenceTests {
     }
 
     private func makeState() -> AppState {
-        context.makeAppState()
+        try context.makeAppState()
     }
 
-    @Test func defaultsWhenNoStoredValues() {
-        let state = makeState()
+    @Test func defaultsWhenNoStoredValues() throws {
+        let state = try makeState()
 
         #expect(state.selectedTab == .play)
         #expect(state.activeBattleStageID == nil)
         #expect(state.mapScrollStageID == nil)
     }
 
-    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaults() {
+    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaults() throws {
         context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
 
-        let state = makeState()
+        let state = try makeState()
 
         #expect(state.selectedTab == .homestead)
         #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
     }
 
-    @Test func migratesPreviouslyStoredBattleStageIDFromLegacyUserDefaults() {
+    @Test func migratesPreviouslyStoredBattleStageIDFromLegacyUserDefaults() throws {
         context.userDefaults.set("chapter-1-stage-3", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
 
-        let state = makeState()
+        let state = try makeState()
 
         #expect(state.activeBattleStageID == "chapter-1-stage-3")
     }
 
-    @Test func migratesPreviouslyStoredMapScrollStageIDFromLegacyUserDefaults() {
+    @Test func migratesPreviouslyStoredMapScrollStageIDFromLegacyUserDefaults() throws {
         context.userDefaults.set("chapter-2-stage-1", forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
-        let state = makeState()
+        let state = try makeState()
 
         #expect(state.mapScrollStageID == "chapter-2-stage-1")
     }
 
-    @Test func selectedTabPersistsOnChange() {
-        let state = makeState()
+    @Test func selectedTabPersistsOnChange() throws {
+        let state = try makeState()
         state.selectedTab = .options
 
-        #expect(makeState().selectedTab == .options)
+        #expect(try makeState().selectedTab == .options)
     }
 
-    @Test func activeBattleStageIDPersistsOnChange() {
-        let state = makeState()
+    @Test func activeBattleStageIDPersistsOnChange() throws {
+        let state = try makeState()
         state.activeBattleStageID = "chapter-1-stage-5"
 
-        #expect(makeState().activeBattleStageID == "chapter-1-stage-5")
+        #expect(try makeState().activeBattleStageID == "chapter-1-stage-5")
     }
 
-    @Test func mapScrollStageIDPersistsOnChange() {
-        let state = makeState()
+    @Test func mapScrollStageIDPersistsOnChange() throws {
+        let state = try makeState()
         state.mapScrollStageID = "chapter-3-gate"
 
-        #expect(makeState().mapScrollStageID == "chapter-3-gate")
+        #expect(try makeState().mapScrollStageID == "chapter-3-gate")
     }
 
-    @Test func clearSessionBattleStateClearsBothBattleAndScrollKeys() {
-        let state = makeState()
+    @Test func clearSessionBattleStateClearsBothBattleAndScrollKeys() throws {
+        let state = try makeState()
         state.activeBattleStageID = "chapter-1-stage-1"
         state.mapScrollStageID = "chapter-1-stage-2"
 
@@ -79,8 +79,8 @@ final class AppStateSessionPersistenceTests {
         #expect(state.mapScrollStageID == nil)
     }
 
-    @Test func clearSessionBattleStateLeavesTabIntact() {
-        let state = makeState()
+    @Test func clearSessionBattleStateLeavesTabIntact() throws {
+        let state = try makeState()
         state.selectedTab = .homestead
         state.activeBattleStageID = "chapter-1-stage-1"
 
@@ -90,18 +90,18 @@ final class AppStateSessionPersistenceTests {
         #expect(state.activeBattleStageID == nil)
     }
 
-    @Test func noteMapScrollFocusPersistsTargetAndBumpsNonce() {
-        let state = makeState()
+    @Test func noteMapScrollFocusPersistsTargetAndBumpsNonce() throws {
+        let state = try makeState()
 
         state.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
         #expect(state.mapScrollNonce == 1)
-        #expect(makeState().mapScrollStageID == "chapter-1-stage-2")
+        #expect(try makeState().mapScrollStageID == "chapter-1-stage-2")
     }
 
-    @Test func noteMapScrollFocusCanForceNonceWhenTargetUnchanged() {
-        let state = makeState()
+    @Test func noteMapScrollFocusCanForceNonceWhenTargetUnchanged() throws {
+        let state = try makeState()
         state.noteMapScrollFocus("chapter-1-stage-2")
 
         state.noteMapScrollFocus("chapter-1-stage-2", bumpEvenWhenUnchanged: true)

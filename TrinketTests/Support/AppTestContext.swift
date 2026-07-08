@@ -1,5 +1,6 @@
 import Foundation
 import TrinketPersistence
+import TrinketTestSupport
 @testable import Trinket
 
 final class AppTestContext {
@@ -36,8 +37,8 @@ final class AppTestContext {
     }
 
     @MainActor
-    func makeShellSessionStore(environment: AppEnvironment) -> PlayerShellSessionStore {
-        PlayerShellSessionStore(
+    func makeShellSessionStore(environment: AppEnvironment) throws -> PlayerShellSessionStore {
+        try PlayerShellSessionStore(
             storeURL: shellSessionURL,
             resetState: environment.resetState,
             legacyUserDefaults: userDefaults
@@ -49,35 +50,35 @@ final class AppTestContext {
         arguments: [String] = [],
         environment: [String: String] = [:],
         playerSave: PlayerSaveStore? = nil
-    ) -> AppState {
+    ) throws -> AppState {
         let parsed = AppEnvironment.parse(
             arguments: Self.defaultTestArguments + arguments,
             environment: environment
         )
-        return AppState(
+        return try AppState(
             environment: parsed,
-            playerSave: playerSave ?? PlayerSaveStore(
+            playerSave: playerSave ?? try PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
                 disableCloudSync: true,
                 resetState: parsed.resetState,
                 persistSaveImmediately: parsed.persistSaveImmediately
             ),
-            shellSessionStore: makeShellSessionStore(environment: parsed),
+            shellSessionStore: try makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults
         )
     }
 
     @MainActor
-    func makeAppState(environment: AppEnvironment) -> AppState {
-        AppState(
+    func makeAppState(environment: AppEnvironment) throws -> AppState {
+        try AppState(
             environment: environment,
-            playerSave: PlayerSaveStore(
+            playerSave: try PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
                 disableCloudSync: true,
                 resetState: environment.resetState,
                 persistSaveImmediately: environment.persistSaveImmediately
             ),
-            shellSessionStore: makeShellSessionStore(environment: environment),
+            shellSessionStore: try makeShellSessionStore(environment: environment),
             userDefaults: userDefaults
         )
     }

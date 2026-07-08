@@ -1,10 +1,9 @@
-import BattleEngine
-import TrinketCore
+import Foundation
 import TrinketContent
+import TrinketCore
 
-
-enum CombatantFixtures {
-    static func combatant(
+public enum CombatantFixtures {
+    public static func combatant(
         id: String,
         role: Combatant.Role,
         maxHealth: Int = 50,
@@ -23,7 +22,7 @@ enum CombatantFixtures {
         )
     }
 
-    static func ability(
+    public static func ability(
         id: String = "test",
         name: String = "Test",
         tier: AbilityTier = .basic,

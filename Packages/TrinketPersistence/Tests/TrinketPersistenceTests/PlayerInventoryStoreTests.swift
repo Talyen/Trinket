@@ -29,7 +29,7 @@ final class PlayerInventoryStoreTests {
             displayName: "Armor",
             affixes: []
         )
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         saveStore.inventory = PlayerInventoryState(items: [weapon, armor])
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
 
@@ -47,23 +47,23 @@ final class PlayerInventoryStoreTests {
             displayName: "Weapon",
             affixes: []
         )
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         saveStore.inventory = PlayerInventoryState(items: [weapon])
 
-        let reloadedStore = PlayerInventoryStore(saveStore: context.makeSaveStore())
+        let reloadedStore = PlayerInventoryStore(saveStore: try context.makeSaveStore())
 
         #expect(reloadedStore.current.items(for: .weapon).map(\.id) == ["persisted-weapon"])
     }
 
     @Test func addRewardItemWriteThroughToSaveStore() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         let inventoryStore = PlayerInventoryStore(saveStore: saveStore)
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]
 
         inventoryStore.addRewardItem(from: template, for: stage)
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         _ = try #require(reloaded.inventory.item(matching: "chapter-1-stage-1-shortsword-basic"))
     }
 }

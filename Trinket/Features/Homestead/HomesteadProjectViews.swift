@@ -10,37 +10,6 @@ struct HomesteadProjectCard: View {
         case compact(isRecentlyUpgraded: Bool)
     }
 
-    private struct ProjectSummaryMetrics {
-        let spacing: CGFloat
-        let titleFont: Font
-        let tierFont: Font
-        let bonusFont: Font
-        var titleForeground: Color = .primary
-        var bonusLineLimit: Int?
-        var showsFeaturedLabel = false
-        var showsInlineStatusBadge = false
-
-        static let featured = ProjectSummaryMetrics(
-            spacing: 7,
-            titleFont: .title2.weight(.bold),
-            tierFont: .subheadline.monospacedDigit().weight(.semibold),
-            bonusFont: .subheadline,
-            showsFeaturedLabel: true
-        )
-
-        static func compact(isUnlocked: Bool) -> ProjectSummaryMetrics {
-            ProjectSummaryMetrics(
-                spacing: 6,
-                titleFont: .headline,
-                tierFont: .caption.monospacedDigit().weight(.semibold),
-                bonusFont: .caption,
-                titleForeground: isUnlocked ? .primary : .secondary,
-                bonusLineLimit: 2,
-                showsInlineStatusBadge: true
-            )
-        }
-    }
-
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let style: Style
@@ -121,7 +90,7 @@ struct HomesteadProjectCard: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
-    private func projectSummary(_ metrics: ProjectSummaryMetrics) -> some View {
+    private func projectSummary(_ metrics: HomesteadProjectSummaryMetrics) -> some View {
         VStack(alignment: .leading, spacing: metrics.spacing) {
             if metrics.showsFeaturedLabel {
                 Text(featuredTitle)

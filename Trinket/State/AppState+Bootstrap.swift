@@ -24,12 +24,12 @@ extension AppState {
         playerSave: PlayerSaveStore?,
         shellSessionStore: PlayerShellSessionStore?,
         userDefaults: UserDefaults
-    ) -> BootstrapDependencies {
+    ) throws -> BootstrapDependencies {
         if environment.resetState {
             clearResetStateDefaults(from: userDefaults)
         }
 
-        let resolvedPlayerSave = playerSave ?? PlayerSaveStore(
+        let resolvedPlayerSave = try playerSave ?? PlayerSaveStore(
             storeName: environment.storeName,
             disableCloudSync: environment.disableCloudSync,
             resetState: environment.resetState,
@@ -46,7 +46,7 @@ extension AppState {
             }
         }
 
-        let resolvedShellSession = shellSessionStore ?? PlayerShellSessionStore(
+        let resolvedShellSession = try shellSessionStore ?? PlayerShellSessionStore(
             storeName: environment.storeName,
             resetState: environment.resetState,
             inMemoryOnly: environment.resetState && environment.storeName == nil,

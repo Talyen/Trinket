@@ -10,7 +10,7 @@ final class PlayerRosterStoreTests {
         context = try PersistenceTestContext()
     }
 
-    @Test func heroesFiltersByUnlock() {
+    @Test func heroesFiltersByUnlock() throws {
         let rosterStore = makeRosterStore()
 
         #expect(rosterStore.heroes.map(\.id) == [PlayerRosterState.starterHeroID])
@@ -19,20 +19,20 @@ final class PlayerRosterStoreTests {
         #expect(rosterStore.collectionPets.count == GameContent.pets.count)
     }
 
-    @Test func grantGoldWriteThroughToSaveStore() {
-        let saveStore = context.makeSaveStore()
+    @Test func grantGoldWriteThroughToSaveStore() throws {
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
 
         var updated = rosterStore.current
         updated.grantGold(50)
         rosterStore.current = updated
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.roster.gold == 50)
     }
 
     @Test func grantExperienceWriteThroughToSaveStore() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let knight = try #require(GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID })
 
@@ -40,12 +40,12 @@ final class PlayerRosterStoreTests {
         updated.grantExperience(25, to: knight)
         rosterStore.current = updated
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.roster.progression(for: knight).currentXP == 25)
     }
 
     @Test func setActiveHeroWriteThroughToSaveStore() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         try saveStore.applyTestSeed()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let wizard = try #require(GameContent.heroes.first { $0.id == "wizard" })
@@ -54,11 +54,11 @@ final class PlayerRosterStoreTests {
         updated.setActiveHero(wizard)
         rosterStore.current = updated
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.roster.activeHeroID == "wizard")
     }
 
-    @Test func activeHeroAndPetUseSelectedIDs() {
+    @Test func activeHeroAndPetUseSelectedIDs() throws {
         let rosterStore = makeRosterStore()
 
         #expect(rosterStore.activeHero.id == PlayerRosterState.starterHeroID)
@@ -66,7 +66,7 @@ final class PlayerRosterStoreTests {
     }
 
     @Test func setLoadoutWriteThroughToSaveStore() throws {
-        let saveStore = context.makeSaveStore()
+        let saveStore = try context.makeSaveStore()
         let rosterStore = PlayerRosterStore(saveStore: saveStore)
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
@@ -79,11 +79,11 @@ final class PlayerRosterStoreTests {
         updated.setLoadout(customLoadout, for: knight)
         rosterStore.current = updated
 
-        let reloaded = context.makeSaveStore()
+        let reloaded = try context.makeSaveStore()
         #expect(reloaded.roster.loadout(for: knight) == customLoadout)
     }
 
     private func makeRosterStore() -> PlayerRosterStore {
-        PlayerRosterStore(saveStore: context.makeSaveStore())
+        PlayerRosterStore(saveStore: try context.makeSaveStore())
     }
 }

@@ -14,7 +14,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func startBattleConfiguresActiveBattleWhenStageIsValid() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
 
         let message = appState.startBattle(for: stage)
@@ -26,7 +26,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func startBattleIgnoresRequestWhenBattleAlreadyActive() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         let firstBattleID = try #require(appState.battle.activeBattle?.id)
@@ -38,7 +38,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func setMusicPreviewUsesBattleEncounterWhenStageHasBattle() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
 
         appState.battle.setMusicPreview(for: stage)
@@ -48,7 +48,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func pauseForOverlayRestoresPreviousPauseStateWhenOverlayDismissed() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = false
@@ -61,7 +61,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func restartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
 
@@ -76,7 +76,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func presentCombatantDetailWithoutActiveBattleDoesNotPauseSession() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let enemy = try #require(GameContent.enemy(matching: "skeleton")?.combatant)
 
         appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
@@ -86,7 +86,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func endBattleClearsSessionStateWhenBattleEnds() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = true
@@ -100,8 +100,8 @@ final class BattleSessionAppIntegrationTests {
         #expect(appState.battle.overlayCombatantDetail == nil)
     }
 
-    @Test func startBattleReturnsMessageWhenEnemyMissing() {
-        let appState = context.makeAppState()
+    @Test func startBattleReturnsMessageWhenEnemyMissing() throws {
+        let appState = try context.makeAppState()
         let brokenStage = Stage(
             id: "test-missing-enemy",
             chapterID: "chapter-1",
@@ -119,7 +119,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func restartBattleRebuildsActiveConfigurationWhenBattleActive() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         let original = try #require(appState.battle.activeBattle)
@@ -133,7 +133,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func presentCombatantDetailPausesBattleAndSetsOverlayWhenBattleActive() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = false
@@ -146,7 +146,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func restorePauseAfterOverlayPreservesPriorPausedStateWhenAlreadyPaused() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
         appState.battle.isPaused = true
@@ -158,7 +158,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func setMusicPreviewClearsWhenBattleActive() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         appState.battle.setMusicPreview(for: stage)
         _ = appState.startBattle(for: stage)
@@ -169,7 +169,7 @@ final class BattleSessionAppIntegrationTests {
     }
 
     @Test func setMusicPreviewClearsForNonBattleStage() throws {
-        let appState = context.makeAppState()
+        let appState = try context.makeAppState()
         let shopStage = try #require(GameContent.chapters[0].stages.first { $0.encounter == .shop })
 
         appState.battle.setMusicPreview(for: shopStage)

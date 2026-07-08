@@ -1,6 +1,7 @@
 import Testing
 import TrinketContent
 import TrinketPersistence
+import TrinketTestSupport
 @testable import Trinket
 
 @MainActor
@@ -12,7 +13,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleWithStageCompletesJourneyAndEndsBattle() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -27,7 +28,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -42,9 +43,9 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
@@ -62,9 +63,9 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleWithoutStageIgnoresZeroGold() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: state.roster.activeHero,
             pet: state.roster.activePet,
@@ -79,8 +80,8 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleAdvancesJourneyWhenPersistFails() throws {
-        let playerSave = SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
-        let state = context.makeAppState(playerSave: playerSave)
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(playerSave: playerSave)
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
@@ -91,14 +92,14 @@ final class AppStatePlayFlowTests {
         #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
     }
 
-    @Test func mapScrollFocusIDReturnsActiveStageWhenInProgress() {
-        let state = context.makeAppState()
+    @Test func mapScrollFocusIDReturnsActiveStageWhenInProgress() throws {
+        let state = try context.makeAppState()
 
         #expect(JourneyMapPresentation.scrollFocusID(for: .initial) == "chapter-1-stage-1")
     }
 
-    @Test func mapScrollFocusIDReturnsChapterGateWhenChapterComplete() {
-        let state = context.makeAppState()
+    @Test func mapScrollFocusIDReturnsChapterGateWhenChapterComplete() throws {
+        let state = try context.makeAppState()
         var progress = JourneyProgressState.initial
         for stage in GameContent.chapters[0].stages {
             progress.complete(stage, in: GameContent.chapters)
@@ -119,7 +120,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func resetGameplayProgressClearsBattleAndMapScroll() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         state.noteMapScrollFocus("chapter-1-stage-2")
@@ -135,7 +136,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func completeStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         let hero = state.roster.activeHero
         let pet = state.roster.activePet
@@ -149,30 +150,30 @@ final class AppStatePlayFlowTests {
 
     // MARK: - Session state restoration
 
-    @Test func sessionTabRestored() {
+    @Test func sessionTabRestored() throws {
         context.userDefaults.set(
             AppTab.homestead.rawValue,
             forKey: PlayerShellSessionStore.legacySessionTabKey
         )
 
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
 
         #expect(state.selectedTab == .homestead)
     }
 
-    @Test func sessionTabOverriddenByEnv() {
+    @Test func sessionTabOverriddenByEnv() throws {
         context.userDefaults.set(
             AppTab.homestead.rawValue,
             forKey: PlayerShellSessionStore.legacySessionTabKey
         )
 
-        let state = context.makeAppState(arguments: ["-selectedTab", "options"])
+        let state = try context.makeAppState(arguments: ["-selectedTab", "options"])
 
         #expect(state.selectedTab == .options)
     }
 
-    @Test func sessionTabDefaultWhenNoSavedState() {
-        let state = context.makeAppState()
+    @Test func sessionTabDefaultWhenNoSavedState() throws {
+        let state = try context.makeAppState()
 
         #expect(state.selectedTab == .play)
     }
@@ -183,27 +184,27 @@ final class AppStatePlayFlowTests {
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
 
         let activeBattle = try #require(state.battle.activeBattle)
         #expect(activeBattle.stageID == "chapter-1-stage-1")
         #expect(state.selectedTab == .play)
     }
 
-    @Test func sessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
+    @Test func sessionBattleNotRestoredWhenRewardsAlreadyClaimed() throws {
         context.userDefaults.set(
             "chapter-1-stage-1",
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
-        let state = context.makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
+        let state = try context.makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.activeBattleStageID == nil)
     }
 
     @Test func completeStageUpdatesSessionMapScrollTarget() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         context.userDefaults.set(stage.id, forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
@@ -226,20 +227,20 @@ final class AppStatePlayFlowTests {
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
-        let state = context.makeAppState(arguments: ["-launch-screen", "battle"])
+        let state = try context.makeAppState(arguments: ["-launch-screen", "battle"])
 
         // launch-screen battle uses the hardcoded stage, not the session one
         let activeBattle = try #require(state.battle.activeBattle)
         #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
 
-    @Test func sessionStaleStageIDIgnored() {
+    @Test func sessionStaleStageIDIgnored() throws {
         context.userDefaults.set(
             "nonexistent-stage",
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.activeBattleStageID == nil)
@@ -251,7 +252,7 @@ final class AppStatePlayFlowTests {
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
         )
 
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         _ = try #require(state.battle.activeBattle)
 
         state.battle.endBattle()
@@ -261,7 +262,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func resetGameplayProgressClearsSessionBattleState() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         state.mapScrollStageID = "chapter-1-stage-2"
@@ -274,7 +275,7 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionBattleStageIDSetOnStartBattle() throws {
-        let state = context.makeAppState()
+        let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(state.activeBattleStageID == nil)
 

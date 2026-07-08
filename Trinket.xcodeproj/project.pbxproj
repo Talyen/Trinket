@@ -1109,13 +1109,11 @@
 				9115E55D5F1686AEA7305794 /* BattleSessionSimulationTests.swift in Sources */,
 				ECE7CA2B800C24575535F6F2 /* BattleSessionTestSupport.swift in Sources */,
 				883C251C38C7EB8CE234EB98 /* BattleVictorySummaryTests.swift in Sources */,
-				5699485F54690CFC73CB24D5 /* CombatantFixtures.swift in Sources */,
 				2C2733EFB9063B1ABE5AEE67 /* GameContentEncounterArtTests.swift in Sources */,
 				CF563346E449A54767ACC2CC /* HeroHeaderLayoutTests.swift in Sources */,
 				67D2671D474172DD541CE613 /* JourneyMapPresentationTests.swift in Sources */,
 				767377A714B22B79EF3D7A59 /* MusicPlayerRoutingTests.swift in Sources */,
 				A9F9536D95E742703E1E2F3D /* OptionsStoreTests.swift in Sources */,
-				D77DC069021AFAADD69A8460 /* SaveTestSupport.swift in Sources */,
 				C751A1A56C507A7C2911B53E /* StageMapPresentationTests.swift in Sources */,
 				26E0FCCA99C4139921A8624E /* TrinketTestTags.swift in Sources */,
 			);
@@ -1125,7 +1123,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13151290F25256C1AE196F9B /* AccessibilityID.swift in Sources */,
+				62BBFCDC2D75667482B9AEB9 /* AccessibilityID.swift in Sources */,
 				5FF44064C8DFDB57EDCED7E5 /* BattleFlowUITests.swift in Sources */,
 				6EE46B612F3E5A1AD54A72C9 /* CollectionScreen.swift in Sources */,
 				74B5D8902C7B3F0E7447C14D /* CombatantDetailScreen.swift in Sources */,

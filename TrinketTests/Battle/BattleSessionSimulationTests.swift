@@ -3,22 +3,21 @@ import Testing
 import TrinketContent
 import TrinketCore
 import TrinketPersistence
+import TrinketTestSupport
 @testable import BattleEngine
 @testable import Trinket
 
-@MainActor
-final class BattleSessionSimulationTests {
+@Suite @MainActor
+struct BattleSessionSimulationTests {
     @Test func advanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession()
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: party.hero,
+            pet: party.pet,
+            enemy: party.enemy
+        )
 
         while session.outcome == nil {
             _ = session.advanceAutoTick(journey: .initial, homestead: .freshStart)
@@ -30,24 +29,17 @@ final class BattleSessionSimulationTests {
     }
 
     @Test func advanceAutoTickCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
         journey.markRewardsClaimed(for: stage)
         let session = BattleSession()
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             stageID: stage.id,
             rngSeed: 0,
-            hero: hero,
-            pet: pet,
-            enemy: enemy
+            hero: party.hero,
+            pet: party.pet,
+            enemy: party.enemy
         )
 
         var earnedGold: Int?
@@ -61,17 +53,15 @@ final class BattleSessionSimulationTests {
         #expect(session.victorySummary == nil)
     }
 
-    @Test func advanceAutoTickDoesNotAdvanceWhenBattlePaused() {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: [])
+    @Test func advanceAutoTickDoesNotAdvanceWhenBattlePaused() throws {
+        let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
         let session = BattleSession()
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: party.hero,
+            pet: party.pet,
+            enemy: party.enemy
+        )
         session.isPaused = true
         let tickBefore = session.state?.tickCount ?? 0
 
@@ -106,8 +96,8 @@ final class BattleSessionSimulationTests {
         #expect(session.victorySummary == nil)
     }
 
-    @Test func advanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
+    @Test func advanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
 
@@ -115,7 +105,7 @@ final class BattleSessionSimulationTests {
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    @Test func advanceOneStepExcludesMilestonesWhenBattleEnds() {
+    @Test func advanceOneStepExcludesMilestonesWhenBattleEnds() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -125,7 +115,7 @@ final class BattleSessionSimulationTests {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         while !(session.state?.isBattleOver ?? true) {
             _ = session.advanceOneStep()
@@ -135,42 +125,33 @@ final class BattleSessionSimulationTests {
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    @Test func resetClearsFeedbackAndRebuildsStateWhenResetCalled() {
-        let hero = CombatantFixtures.combatant(
-            id: "hero",
-            role: .hero,
-            actionIntervalTicks: 1,
-            abilities: [.slash]
+    @Test func resetClearsFeedbackAndRebuildsStateWhenResetCalled() throws {
+        let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: party.hero,
+            pet: party.pet,
+            enemy: party.enemy
         )
-        let pet = CombatantFixtures.combatant(
-            id: "pet",
-            role: .pet,
-            actionIntervalTicks: 100,
-            abilities: []
-        )
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 100,
-            actionIntervalTicks: 100,
-            abilities: []
-        )
-        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         _ = session.advanceOneStep()
         _ = session.advanceOneStep()
         #expect(!(session.activeFeedbackEvents.isEmpty))
-        #expect(session.state?.health(of: session.state?.enemy ?? enemy) ?? 0 < 100)
+        #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) ?? 0 < 100)
 
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(rngSeed: 0, hero: hero, pet: pet, enemy: enemy)
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
+            rngSeed: 0,
+            hero: party.hero,
+            pet: party.pet,
+            enemy: party.enemy
+        )
 
         #expect(session.activeFeedbackEvents.isEmpty)
-        #expect(session.state?.health(of: session.state?.enemy ?? enemy) == 100)
-        #expect(session.state?.health(of: session.state?.hero ?? hero) == hero.maxHealth)
+        #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) == 100)
+        #expect(session.state?.health(of: session.state?.hero ?? party.hero) == party.hero.maxHealth)
     }
 
     @Test func removeFeedbackEventRemovesByIDWhenMatchingID() throws {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
         let eventID = try #require(session.activeFeedbackEvents.first?.id)
@@ -181,7 +162,7 @@ final class BattleSessionSimulationTests {
     }
 
     @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
         let eventID = try #require(session.activeFeedbackEvents.first?.id)
@@ -196,17 +177,17 @@ final class BattleSessionSimulationTests {
         #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    @Test func outcomeReportsOngoingWhenBattleInProgress() {
-        let session = BattleSessionTestSupport.makeConfiguredSession()
+    @Test func outcomeReportsOngoingWhenBattleInProgress() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
 
         #expect(session.outcome == nil)
     }
 
-    @Test func outcomeReportsVictoryWhenEnemyDefeated() {
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
-        let session = BattleSessionTestSupport.makeConfiguredSession(enemy: enemy)
+    @Test func outcomeReportsVictoryWhenEnemyDefeated() throws {
+        let party = BattlePartyFixtures.quickWinParty()
+        let session = try BattleSessionTestSupport.makeConfiguredSession(enemy: party.enemy)
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -215,7 +196,7 @@ final class BattleSessionSimulationTests {
         #expect(session.outcome == .victory)
     }
 
-    @Test func outcomeReportsDefeatWhenPartyDefeated() {
+    @Test func outcomeReportsDefeatWhenPartyDefeated() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
@@ -225,7 +206,7 @@ final class BattleSessionSimulationTests {
             actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -234,7 +215,7 @@ final class BattleSessionSimulationTests {
         #expect(session.outcome == .defeat)
     }
 
-    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() {
+    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndPetSurvives() throws {
         let hero = Combatant(
             id: "warlock",
             name: "Warlock",
@@ -259,7 +240,7 @@ final class BattleSessionSimulationTests {
             actionIntervalTicks: 100,
             abilities: []
         )
-        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         while session.outcome == nil {
             _ = session.advanceOneStep()
@@ -270,11 +251,11 @@ final class BattleSessionSimulationTests {
         #expect(session.state?.isEnemyDefeated ?? false)
     }
 
-    @Test func outcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() {
+    @Test func outcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         #expect(session.state?.isPartyDefeated ?? false)
         #expect(session.state?.isEnemyDefeated ?? false)
@@ -283,7 +264,7 @@ final class BattleSessionSimulationTests {
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {
         let enemy = try #require(GameContent.enemy(matching: "skeleton"))
-        let configuration = ActiveBattleConfigurationTestSupport.make(
+        let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),
@@ -292,7 +273,7 @@ final class BattleSessionSimulationTests {
         let session = BattleSession()
         session.activeBattle = configuration
 
-        session.activeBattle = ActiveBattleConfigurationTestSupport.make(
+        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 1,
             hero: CombatantFixtures.combatant(id: "hero", role: .hero),
             pet: CombatantFixtures.combatant(id: "pet", role: .pet),

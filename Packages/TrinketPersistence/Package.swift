@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(path: "../TrinketCore"),
         .package(path: "../TrinketContent"),
+        .package(path: "../TrinketTestSupport"),
     ],
     targets: [
         .target(
@@ -24,7 +25,12 @@ let package = Package(
         ),
         .testTarget(
             name: "TrinketPersistenceTests",
-            dependencies: ["TrinketPersistence", "TrinketCore", "TrinketContent"]
+            dependencies: [
+                "TrinketPersistence",
+                "TrinketCore",
+                "TrinketContent",
+                .product(name: "TrinketTestSupport", package: "TrinketTestSupport"),
+            ]
         ),
     ]
 )
