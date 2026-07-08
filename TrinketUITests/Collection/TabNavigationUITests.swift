@@ -60,6 +60,14 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertItemCardExists("Crossbow")
     }
 
+    func testCollectionScreenAccessibility() {
+        launchApp(arguments: TestLaunchArg.allForTab("collection"))
+        assertExists("Heroes collection category")
+        assertExists("Pets collection category")
+        assertExists(AccessibilityID.Collection.inventoryCategory)
+        assertAccessibilityAudit()
+    }
+
     private func firstEquipOption() -> XCUIElement {
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'Equip ' AND identifier != 'Equip Weapon'")).firstMatch
     }

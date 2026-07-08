@@ -6,6 +6,5 @@ final class SmokePlayTests: TrinketUITestCase {
 
         play.assertLoaded()
         assertButtonExists("Stage 1-1 Node")
-        assertAccessibilityAudit()
     }
 }

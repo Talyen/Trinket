@@ -42,4 +42,11 @@ final class PlayMapUITests: TrinketUITestCase {
         assertButtonExists("Stage 1-10 Node")
         assertExists("Chapter 2 Locked")
     }
+
+    func testPlayScreenAccessibility() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+        play.assertLoaded()
+        assertButtonExists("Stage 1-1 Node")
+        assertAccessibilityAudit()
+    }
 }
