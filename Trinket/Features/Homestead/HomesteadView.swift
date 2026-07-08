@@ -102,7 +102,6 @@ struct HomesteadView: View {
         )
     }
 
-
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
         HomesteadProgression.visibleDefinitions(
             in: category,

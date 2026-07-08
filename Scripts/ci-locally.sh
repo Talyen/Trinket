@@ -3,28 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "=== Generating Xcode project ==="
-./Scripts/generate.sh
-
-echo ""
-echo "=== Assert generated output is committed ==="
-./Scripts/assert-generated-output.sh
-
-echo ""
-echo "=== Module boundary check ==="
-./Scripts/check-module-boundaries.sh
-
-echo ""
-echo "=== Swift Testing migration gate ==="
-./Scripts/check-swift-testing-migration.sh
-
-echo ""
-echo "=== Style check ==="
-./Scripts/test.sh style
-
-echo ""
-echo "=== Validate release notes config ==="
-./Scripts/release-notes.sh validate
+echo "=== Gate (generate, style, boundaries) ==="
+./Scripts/ci-gate.sh
 
 echo ""
 echo "=== Unit tests ==="
@@ -37,6 +17,10 @@ echo "=== Unit timing budget ==="
 echo ""
 echo "=== Smoke UI tests ==="
 ./Scripts/test.sh smoke
+
+echo ""
+echo "=== Smoke timing budget ==="
+./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 360 --skip-if-missing
 
 echo ""
 echo "=== All checks passed ==="

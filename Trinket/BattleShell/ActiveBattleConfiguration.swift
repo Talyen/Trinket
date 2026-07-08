@@ -84,7 +84,6 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
-
     private static func partyMember(
         combatant: Combatant,
         rosterState: PlayerRosterState,

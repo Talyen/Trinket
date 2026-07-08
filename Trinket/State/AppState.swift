@@ -23,26 +23,29 @@ final class AppState {
     let shellSession: PlayerShellSessionStore
     let musicPlayer: MusicPlayer
     var shellScenePhase: ScenePhase = .active
-    public var roster: PlayerRosterState {
+    var roster: PlayerRosterState {
         get { playerSave.roster }
         set { playerSave.roster = newValue }
     }
-    public var inventory: PlayerInventoryState {
+
+    var inventory: PlayerInventoryState {
         get { playerSave.inventory }
         set { playerSave.inventory = newValue }
     }
-    public var homestead: PlayerHomesteadState {
+
+    var homestead: PlayerHomesteadState {
         get { playerSave.homestead }
         set { playerSave.homestead = newValue }
     }
+
     var options: OptionsStore
     var battle: BattleSession
-    public var journey: JourneyProgressState {
+    var journey: JourneyProgressState {
         get { playerSave.journey }
         set { playerSave.journey = newValue }
     }
-    private(set) var pendingCollectionPresentation: LaunchPresentation?
 
+    private(set) var pendingCollectionPresentation: LaunchPresentation?
 
     var battleTickTask: Task<Void, Never>?
 
@@ -75,8 +78,6 @@ final class AppState {
     var showResumeBattleCard: Bool {
         isSavedBattleValid()
     }
-
-
 
     func markCombatantAsViewed(id: String) {
         shellSession.markCombatantAsViewed(id: id)
@@ -171,8 +172,6 @@ final class AppState {
         GameContent.chapter(id: journey.current.activeChapterID) ?? GameContent.chapters[0]
     }
 
-
-
     @discardableResult
     func resetGameplayProgress() -> Bool {
         do {
@@ -212,8 +211,6 @@ final class AppState {
         let nextRevision = (mapScrollFocus?.revision ?? 0) + 1
         mapScrollFocus = MapScrollFocus(stageID: targetID, revision: nextRevision)
     }
-
-
 
     func reconcileShellState(_ trigger: ShellReconcileTrigger, scenePhase: ScenePhase) {
         shellScenePhase = scenePhase
@@ -361,8 +358,6 @@ final class AppState {
             break
         }
     }
-
-
 }
 
 enum ShellReconcileTrigger {

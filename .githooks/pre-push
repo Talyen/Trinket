@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Pre-push gate: format lint + generated-output assert.
+# Install with: git config core.hooksPath .githooks
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+if [[ "${SKIP_TRINKET_PREPUSH:-}" == "1" ]]; then
+  echo "Skipping Trinket pre-push gate (SKIP_TRINKET_PREPUSH=1)."
+  exit 0
+fi
+
+echo "=== Pre-push: ensure pinned format/lint tools ==="
+./Scripts/ensure-ci-tools.sh
+
+echo "=== Pre-push: SwiftFormat lint ==="
+./Scripts/format.sh --lint
+
+echo "=== Pre-push: regenerate content catalogs ==="
+# Prefer full generate when XcodeGen is available so pbxproj stays in sync.
+# Without XcodeGen, only regenerate catalogs (avoid Linux sync UUID churn).
+if command -v xcodegen >/dev/null 2>&1; then
+  ./Scripts/generate.sh
+  echo "=== Pre-push: assert generated output ==="
+  ./Scripts/assert-generated-output.sh
+else
+  ./Scripts/generate.sh --skip-xcodegen
+  echo "=== Pre-push: assert content catalogs (XcodeGen unavailable) ==="
+  # Assert catalogs only; pbxproj requires XcodeGen on macOS/CI.
+  TRACKED=(
+    Packages/TrinketContent/Sources/TrinketContent/Generated/ItemAffixCatalog.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogBasic.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogSkill.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityCatalogUltimate.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/AbilityShorthand.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentChapters.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEnemies.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentHomestead.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentItemBases.generated.swift
+    Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentEncounterArt.generated.swift
+  )
+  if ! git diff --quiet -- "${TRACKED[@]}"; then
+    echo "ERROR: Generated content catalogs drifted. Commit the Generated/*.swift updates." >&2
+    git diff -- "${TRACKED[@]}" >&2 || true
+    exit 1
+  fi
+  echo "Content catalogs match manifests (pbxproj assert deferred to CI/XcodeGen)."
+fi
+
+echo "=== Pre-push gate passed ==="
+echo "Tip: run ./Scripts/ci-gate.sh (or ./Scripts/ci-locally.sh) before merge."

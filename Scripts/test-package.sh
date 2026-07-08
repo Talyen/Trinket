@@ -2,8 +2,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+# Must match Scripts/build-for-testing.sh so CI --no-build restores the same products.
 DERIVED_DATA_PATH="$PWD/.DerivedData"
-PKG_DERIVED_DATA_PATH="$PWD/.DerivedData/PackageBuilds"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
 
@@ -109,7 +109,7 @@ for package in "${PACKAGES[@]}"; do
         -scheme "$scheme" \
         -sdk iphonesimulator \
         -destination "$DESTINATION" \
-        -derivedDataPath "$PKG_DERIVED_DATA_PATH" \
+        -derivedDataPath "$DERIVED_DATA_PATH" \
         -resultBundlePath "$result_bundle"
     ) > "$log_file" 2>&1 || package_status=$?
   elif command -v xcbeautify &>/dev/null; then
@@ -120,7 +120,7 @@ for package in "${PACKAGES[@]}"; do
         -scheme "$scheme" \
         -sdk iphonesimulator \
         -destination "$DESTINATION" \
-        -derivedDataPath "$PKG_DERIVED_DATA_PATH" \
+        -derivedDataPath "$DERIVED_DATA_PATH" \
         -resultBundlePath "$result_bundle"
     ) | xcbeautify || package_status=${PIPESTATUS[0]}
   else
@@ -131,7 +131,7 @@ for package in "${PACKAGES[@]}"; do
         -scheme "$scheme" \
         -sdk iphonesimulator \
         -destination "$DESTINATION" \
-        -derivedDataPath "$PKG_DERIVED_DATA_PATH" \
+        -derivedDataPath "$DERIVED_DATA_PATH" \
         -resultBundlePath "$result_bundle"
     ) || package_status=$?
   fi

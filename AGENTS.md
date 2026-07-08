@@ -114,7 +114,7 @@ Breaking: <description if only applicable>
 - Set **`User-Facing: yes`** when players would notice; **`User-Facing: no`** for CI/style/refactor/tooling.
 - Do **not** edit `CHANGELOG.md` per commit — `./Scripts/release.sh` generates it at release time.
 - See `Scripts/README.md` for the full release workflow.
-- Optional local hook: `git config core.hooksPath .githooks` (advisory warnings via `./Scripts/validate-commit-msg.sh`).
+- Local hooks: `git config core.hooksPath .githooks` — `commit-msg` (advisory) + `pre-push` (format lint + generate assert). Skip once with `SKIP_TRINKET_PREPUSH=1`. Fast gate without tests: `./Scripts/ci-gate.sh`.
 
 ## Commands & Verification
 
@@ -125,7 +125,7 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 | Group | Scripts |
 |-------|---------|
 | Codegen | `generate.sh`, `validate-manifests.sh`, `assert-generated-output.sh`, `prepare-art-assets.sh`, `prepare-music-assets.sh`, `prepare-sfx-assets.sh`, `generate-content-catalogs.sh`, `generate-ability-shorthand.sh` |
-| Quality | `format.sh`, `lint.sh`, `check-ui-style.sh` (`test.sh style`), `check-module-boundaries.sh` |
+| Quality | `format.sh`, `lint.sh`, `check-ui-style.sh` (`test.sh style`), `check-module-boundaries.sh`, `ci-gate.sh`, `ensure-ci-tools.sh` |
 | Build/test | `build.sh`, `build-for-testing.sh`, `test.sh`, `test-package.sh`, `test-iterate.sh`, `test-deploy.sh`, `ci-locally.sh`, `test-timing.sh`, `run-simulator.sh`, `capture-screenshot.sh`, `balance-sweep.sh` |
 | Release | `release.sh`, `release-notes.sh`, `release-notes-user.sh`, `validate-commit-msg.sh` |
 
@@ -135,8 +135,8 @@ Scripts live under `./Scripts/`. `test.sh` records per-run timings to `.DerivedD
 |--------|------|
 | `ci-locally.sh` | generate → assert-generated-output → module boundaries → style → unit → smoke |
 | `test-deploy.sh` | generate → assert-generated-output → module boundaries → style → validate release notes → unit → full UI |
-| GitHub CI (`pr.yml`, PRs) | gate → unit + smoke (parallel) |
-| GitHub CI (`ci.yml`, main) | gate → unit + full UI (parallel) |
+| GitHub CI (`pr.yml`, PRs) | gate → unit + smoke (parallel) on `macos-26` |
+| GitHub CI (`ci.yml`, main) | gate → unit + full UI (parallel) on `macos-26` |
 
 | Change | Check |
 |--------|-------|

@@ -6,13 +6,18 @@ on:
 jobs:
   gate:
     name: Generate and style
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh
-      - run: ./Scripts/assert-generated-output.sh
+      - name: Assert generated output is committed
+        run: |
+          if ! ./Scripts/assert-generated-output.sh; then
+            echo "::error::Generated output drifted. Run ./Scripts/generate.sh and commit Trinket.xcodeproj + Generated catalogs."
+            exit 1
+          fi
       - run: ./Scripts/test.sh style
       - run: ./Scripts/check-module-boundaries.sh
       - run: ./Scripts/check-swift-testing-migration.sh

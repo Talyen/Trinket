@@ -96,7 +96,6 @@ struct HomesteadNodeDetailView: View {
     }
 }
 
-
 struct HomesteadDetailHeader: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus

@@ -158,5 +158,9 @@ Install locally for advisory warnings:
 git config core.hooksPath .githooks
 ```
 
-The repo includes `.githooks/commit-msg` calling `./Scripts/validate-commit-msg.sh`.
-Warnings are advisory and do not block commits.
+The repo includes:
+
+- `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
+- `.githooks/pre-push` → format lint + generate/assert (blocks push on drift)
+
+Install pinned SwiftFormat/SwiftLint with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. For the full local CI gate without unit/smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

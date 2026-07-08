@@ -4,7 +4,6 @@ import os
 import SwiftData
 import TrinketContent
 
-
 @MainActor
 @Observable
 public final class PlayerSaveStore {
@@ -337,4 +336,3 @@ public final class PlayerSaveStore {
         return didUpgrade ? .success : .insufficientResources
     }
 }
-

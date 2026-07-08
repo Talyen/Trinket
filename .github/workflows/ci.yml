@@ -25,7 +25,7 @@ jobs:
     name: Asset codegen
     needs: [gate, changes]
     if: needs.changes.outputs.assets == 'true'
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
   build:
     name: Build for testing
     needs: gate
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     outputs:
       build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
@@ -67,7 +67,7 @@ jobs:
   unit:
     name: Unit tests - ${{ matrix.target }}
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -90,7 +90,7 @@ jobs:
   ui-smoke:
     name: UI tests - smoke
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -101,12 +101,12 @@ jobs:
           artifact-name: ui-smoke
           command: ./Scripts/test.sh smoke --no-build --verbose
           timing-mode: smoke
-          timing-budget-seconds: '900'
+          timing-budget-seconds: '360'
 
   ui-exhaustive:
     name: UI tests - ${{ matrix.shard }}
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
     strategy:

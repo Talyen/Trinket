@@ -19,7 +19,7 @@ jobs:
     name: Asset codegen
     needs: [gate, changes]
     if: needs.changes.outputs.assets == 'true'
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
     name: Build for testing
     needs: [gate, changes]
     if: needs.changes.outputs.code == 'true'
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     outputs:
       build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
@@ -62,10 +62,10 @@ jobs:
   unit:
     name: Unit tests - ${{ matrix.target }}
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 15
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         target: [app, TrinketCore, TrinketContent, BattleEngine, TrinketPersistence, TrinketDesignSystem]
     steps:
@@ -85,7 +85,7 @@ jobs:
   smoke:
     name: Smoke UI tests
     needs: build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -96,4 +96,4 @@ jobs:
           artifact-name: pr-smoke
           command: ./Scripts/test.sh smoke --no-build --verbose
           timing-mode: smoke
-          timing-budget-seconds: '900'
+          timing-budget-seconds: '360'

@@ -2,16 +2,35 @@ name: Sync Xcode Project
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'project.yml'
+      - 'Trinket/**/*.swift'
+      - 'TrinketTests/**/*.swift'
+      - 'TrinketUITests/**/*.swift'
+      - 'Packages/TrinketTestSupport/**'
+
+concurrency:
+  group: sync-xcode-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sync:
-    runs-on: macos-latest
+    name: Assert XcodeGen output
+    runs-on: macos-26
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh
+      - name: Fail if project.pbxproj drifted
+        run: |
+          if ! ./Scripts/assert-generated-output.sh; then
+            echo "::error::Xcode project drifted from sources/project.yml. Run ./Scripts/generate.sh and commit the result."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
+        if: failure()
         with:
-          name: project-pbxproj
+          name: project-pbxproj-drift
           path: Trinket.xcodeproj/project.pbxproj

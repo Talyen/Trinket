@@ -37,7 +37,13 @@ jobs:
               - '*.xctestplan'
               - '.swiftlint.yml'
               - '.swiftformat'
-              - '.github/**'
+              # Workflow/action changes that affect build/test behavior.
+              - '.github/actions/**'
+              - '.github/workflows/ci.yml'
+              - '.github/workflows/pr.yml'
+              - '.github/workflows/gate.yml'
+              - '.github/workflows/nightly.yml'
+              - '.github/workflows/changes.yml'
             assets:
               - 'ArtManifest/**'
               - 'MusicManifest/**'
