@@ -58,6 +58,9 @@ public struct DecayingDoTHandler: BattleEffectHandler {
         guard let potency = effect.potency, matches(effect) else {
             return EffectApplyOutcome(events: [], didApply: false)
         }
+        guard context.roster.health(for: target) > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: keyword)
         let events = context.applyDecayingDoT(
             keyword: keyword,
@@ -128,6 +131,9 @@ public struct BleedHandler: BattleEffectHandler {
         in context: inout BattleEngineContext
     ) -> EffectApplyOutcome {
         guard case let .bleed(potency) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        guard context.roster.health(for: target) > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
         let bonus = EnemyTraitEngine.bonusBleedPotency(ability: ability, sourceID: source.id, in: context)
         let adjustedPotency = potency + bonus
         let skipImmediate = action.shouldSkipImmediateDoT(keyword: .bleed)

@@ -240,5 +240,9 @@ final class BattleSession {
         state = nil
         clearFeedback()
         clearOutcomePresentation()
+        overlayCombatantDetail = nil
+        overlayPauseDepth = 0
+        pauseStateBeforeOverlay = nil
+        isPaused = false
     }
 }

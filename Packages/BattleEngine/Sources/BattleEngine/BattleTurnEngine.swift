@@ -230,6 +230,12 @@ public enum BattleTurnEngine {
                 context: context
             )
 
+            // Resource gains (gold/mana) and self-buffs on the actor may still apply after a
+            // lethal hit; skip only corpse-targeted combat effects.
+            if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context) {
+                continue
+            }
+
             guard let handler = EffectHandlers.all[effect.kind] else {
                 logger.error("Missing effect handler for \(String(describing: effect.kind), privacy: .public)")
                 continue
@@ -248,6 +254,19 @@ public enum BattleTurnEngine {
             }
         }
         return appliedEffectLogs
+    }
+
+    private static func shouldSkipEffectOnDefeatedTarget(
+        _ effect: Effect,
+        target: Combatant,
+        actor _: Combatant,
+        context: BattleEngineContext
+    ) -> Bool {
+        guard context.roster.health(for: target) <= 0 else { return false }
+        // Gold is party currency and must still grant on a killing blow even when the
+        // effect's declared target is the defeated combatant.
+        if case .resourceGain(.gold, _) = effect { return false }
+        return true
     }
 
     private static func recordAction(

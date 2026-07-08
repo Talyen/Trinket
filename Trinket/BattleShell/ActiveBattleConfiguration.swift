@@ -110,11 +110,17 @@ struct ActiveBattleConfiguration: Identifiable {
     private static func resolvedEnemyBuild(
         enemy: Combatant?
     ) -> CombatBuild {
-        if let enemy,
-           let catalogEnemy = GameContent.enemy(matching: enemy.id) {
-            return CombatBuildResolver.build(enemy: catalogEnemy)
+        guard let enemy else {
+            return CombatBuild(combatant: Enemy.fallbackCombatant, modifiers: .zero)
         }
-        return CombatBuild(combatant: enemy ?? Enemy.fallbackCombatant, modifiers: .zero)
+        // Preserve the encounter combatant (already journey-scaled by `resolvedEncounter`).
+        // Only resolve trait modifiers from the catalog entry — do not replace scaled stats
+        // with the catalog base combatant.
+        if let catalogEnemy = GameContent.enemy(matching: enemy.id) {
+            let catalogBuild = CombatBuildResolver.build(enemy: catalogEnemy)
+            return CombatBuild(combatant: enemy, modifiers: catalogBuild.modifiers)
+        }
+        return CombatBuild(combatant: enemy, modifiers: .zero)
     }
 
     private static func rewardItemNames(for stageReward: StageReward?) -> [String] {
