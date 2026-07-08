@@ -222,8 +222,9 @@ public final class PlayerShellSessionStore {
         if let savedAtVal = defaults.object(forKey: Self.legacyActiveBattleSavedAtKey) as? Double {
             activeBattleSavedAt = Date(timeIntervalSince1970: savedAtVal)
         }
-        if let schemaVer = defaults.object(forKey: Self.legacyActiveBattleSchemaVersionKey) as? Int {
-            activeBattleSchemaVersion = schemaVer
+        if defaults.object(forKey: Self.legacyActiveBattleSchemaVersionKey) != nil {
+            // `integer(forKey:)` bridges NSNumber; `as? Int` on `object(forKey:)` does not.
+            activeBattleSchemaVersion = defaults.integer(forKey: Self.legacyActiveBattleSchemaVersionKey)
         }
         if let lastBgVal = defaults.object(forKey: Self.legacyLastBackgroundedTimeKey) as? Double {
             lastBackgroundedTime = Date(timeIntervalSince1970: lastBgVal)

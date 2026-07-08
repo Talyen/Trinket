@@ -289,11 +289,12 @@ struct BattleStateTests {
         }
 
         let petStep = advance(&battle)
-        if case .ended = petStep {
-            try #expect(true)
-        } else if case let .acted(actor, _) = petStep {
+        switch petStep {
+        case .ended:
+            break
+        case let .acted(actor, _):
             Issue.record("Pet should not act after enemy defeat, got \(actor.name)")
-        } else {
+        default:
             try #expect(battle.isBattleOver)
         }
     }

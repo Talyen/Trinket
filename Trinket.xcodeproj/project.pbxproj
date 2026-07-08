@@ -154,6 +154,11 @@
 		FC89C4C57E58A816112E33A3 /* BattleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8582E665966D926FE0BE2 /* BattleLogSheet.swift */; };
 		EDAD432E3C0C8DF72E264E46 /* BattleSpectacleSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21128041015AB119D8516D24 /* BattleSpectacleSessionTests.swift */; };
 		6D1BCBB52EB1BA5A72534E96 /* OptionsUltimateSkipPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 124434B7D2BDE9F1B66CA28D /* OptionsUltimateSkipPolicyTests.swift */; };
+		EE218D09AC723B5B70B84FF4 /* SkillChargeArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AAF57614153B6A7052C6D06 /* SkillChargeArtwork.swift */; };
+		CB7A3A5F47BEC1F6F4573F27 /* BattleCinematicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629511A1C422BD680C0AE9D4 /* BattleCinematicPlayer.swift */; };
+		3F2874E10A069FBE6A728986 /* BattleSpectacleModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6AB9883576D1098077D401 /* BattleSpectacleModels.swift */; };
+		128CD72830944A4FA55590DB /* SkillCalloutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497C5005ECB6688F561E1EB0 /* SkillCalloutView.swift */; };
+		4588C56FDFB193A4B7C3CF25 /* UltimateCinematicOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29955D64F95AEBC038A54E45 /* UltimateCinematicOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -323,6 +328,11 @@
 		FB61792D31788FD010058036 /* CollectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionScreen.swift; sourceTree = "<group>"; };
 		21128041015AB119D8516D24 /* BattleSpectacleSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSpectacleSessionTests.swift; sourceTree = "<group>"; };
 		124434B7D2BDE9F1B66CA28D /* OptionsUltimateSkipPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsUltimateSkipPolicyTests.swift; sourceTree = "<group>"; };
+		8AAF57614153B6A7052C6D06 /* SkillChargeArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillChargeArtwork.swift; sourceTree = "<group>"; };
+		629511A1C422BD680C0AE9D4 /* BattleCinematicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleCinematicPlayer.swift; sourceTree = "<group>"; };
+		4F6AB9883576D1098077D401 /* BattleSpectacleModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleSpectacleModels.swift; sourceTree = "<group>"; };
+		497C5005ECB6688F561E1EB0 /* SkillCalloutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillCalloutView.swift; sourceTree = "<group>"; };
+		29955D64F95AEBC038A54E45 /* UltimateCinematicOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UltimateCinematicOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -444,6 +454,8 @@
 				AED3E3C65770BA6F16E1E209 /* CombatFeedbackEventView.swift */,
 				975DBB6CA426A4239669E977 /* CombatFeedbackOverlay.swift */,
 				30C469B158F06F3016AB05EC /* CombatFeedbackTiming.swift */,
+				497C5005ECB6688F561E1EB0 /* SkillCalloutView.swift */,
+				29955D64F95AEBC038A54E45 /* UltimateCinematicOverlay.swift */,
 			);
 			path = Feedback;
 			sourceTree = "<group>";
@@ -645,6 +657,7 @@
 			children = (
 				AB30AA12E6C7091589FC8D47 /* AppStateSessionPersistenceTests.swift */,
 				B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */,
+				4F6AB9883576D1098077D401 /* BattleSpectacleModels.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -718,6 +731,7 @@
 			children = (
 				79C259E3726A10BD6745322F /* BattleCombatantPane.swift */,
 				ACECAC19EA46BA5F74A98260 /* BattlefieldView.swift */,
+				8AAF57614153B6A7052C6D06 /* SkillChargeArtwork.swift */,
 			);
 			path = Battlefield;
 			sourceTree = "<group>";
@@ -771,6 +785,7 @@
 			children = (
 				7382C80BE222D86330B72AC2 /* ActiveBattleConfiguration.swift */,
 				A53FCF74A03783A9AD74786D /* BattleVictorySummary.swift */,
+				629511A1C422BD680C0AE9D4 /* BattleCinematicPlayer.swift */,
 			);
 			path = BattleShell;
 			sourceTree = "<group>";
@@ -1050,6 +1065,7 @@
 				76E82C01E9E1D8478547C4D3 /* AppTypes.swift in Sources */,
 				12C8D5FF54791EF0A9A26117 /* BattleCardGridLayout.swift in Sources */,
 				13AD98FA0DE6DB7A7518A2E2 /* BattleCombatantPane.swift in Sources */,
+				EE218D09AC723B5B70B84FF4 /* SkillChargeArtwork.swift in Sources */,
 				FC89C4C57E58A816112E33A3 /* BattleLogSheet.swift in Sources */,
 				7019D0757E60A886277D763A /* BattleOutcomeComponents.swift in Sources */,
 				D78954FC66153D11DB8496CE /* BattleSession.swift in Sources */,
@@ -1116,6 +1132,10 @@
 				C5E487CC286D93FF516EA957 /* TrinketApp.swift in Sources */,
 				DFF7A60FCEB00947EC9F9A53 /* VictoryView.swift in Sources */,
 				A067E2E2FD16C165BF101191 /* VolumeOptionRow.swift in Sources */,
+				CB7A3A5F47BEC1F6F4573F27 /* BattleCinematicPlayer.swift in Sources */,
+				3F2874E10A069FBE6A728986 /* BattleSpectacleModels.swift in Sources */,
+				128CD72830944A4FA55590DB /* SkillCalloutView.swift in Sources */,
+				4588C56FDFB193A4B7C3CF25 /* UltimateCinematicOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -212,6 +212,7 @@ struct BattleView: View {
             healthBarPlacement: healthBarPlacement,
             events: feedbackEvents(for: combatant, battleSession: battleSession),
             skillCallout: battleSession.skillCallout(for: combatant.id),
+            skillCharge: battleState.skillChargeProjection(of: combatant),
             reduceMotion: reduceMotion,
             cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
