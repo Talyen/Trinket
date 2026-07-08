@@ -86,7 +86,7 @@ extension AppState {
     func finishBootstrap(environment: AppEnvironment) {
         seedJourneyProgress(completedStageIDs: environment.completedStageIDs, resetState: environment.resetState)
         if let mapScrollTarget = environment.mapScrollTarget {
-            noteMapScrollFocus(mapScrollTarget, bumpEvenWhenUnchanged: true)
+            noteMapScrollFocus(mapScrollTarget)
         }
         if environment.launchScreen == .battle {
             startLaunchBattle()

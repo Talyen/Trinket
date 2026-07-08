@@ -13,7 +13,7 @@ struct AppEnvironment {
     let persistSaveImmediately: Bool
     let appearanceOverride: TrinketDesign.AppAppearance?
     let completedStageIDs: [String]
-    /// Scroll target ID for the Play map (`ScrollViewReader` row id), used by UI tests.
+    /// Scroll target ID for the Play map row id, used by UI tests.
     let mapScrollTarget: String?
     /// When set, overrides the default 0.8s battle tick interval in `BattleView`.
     let battleTickInterval: TimeInterval?

@@ -90,22 +90,22 @@ final class AppStateSessionPersistenceTests {
         #expect(state.activeBattleStageID == nil)
     }
 
-    @Test func noteMapScrollFocusPersistsTargetAndBumpsNonce() {
+    @Test func noteMapScrollFocusPersistsTargetAndPublishesFocus() {
         let state = makeState()
 
         state.noteMapScrollFocus("chapter-1-stage-2")
 
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
-        #expect(state.mapScrollNonce == 1)
+        #expect(state.mapScrollFocus == MapScrollFocus(stageID: "chapter-1-stage-2", revision: 1))
         #expect(makeState().mapScrollStageID == "chapter-1-stage-2")
     }
 
-    @Test func noteMapScrollFocusCanForceNonceWhenTargetUnchanged() {
+    @Test func noteMapScrollFocusIncrementsRevisionWhenTargetUnchanged() {
         let state = makeState()
         state.noteMapScrollFocus("chapter-1-stage-2")
 
-        state.noteMapScrollFocus("chapter-1-stage-2", bumpEvenWhenUnchanged: true)
+        state.noteMapScrollFocus("chapter-1-stage-2")
 
-        #expect(state.mapScrollNonce == 2)
+        #expect(state.mapScrollFocus == MapScrollFocus(stageID: "chapter-1-stage-2", revision: 2))
     }
 }

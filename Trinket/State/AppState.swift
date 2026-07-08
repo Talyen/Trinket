@@ -48,7 +48,7 @@ final class AppState {
         set { shellSession.mapScrollStageID = newValue }
     }
 
-    private(set) var mapScrollNonce: UInt = 0
+    private(set) var mapScrollFocus: MapScrollFocus?
 
     init(
         environment: AppEnvironment = .shared,
@@ -193,12 +193,10 @@ final class AppState {
         shellSession.clearBattleState()
     }
 
-    func noteMapScrollFocus(_ targetID: String, bumpEvenWhenUnchanged: Bool = false) {
-        let shouldBump = bumpEvenWhenUnchanged || mapScrollStageID != targetID
+    func noteMapScrollFocus(_ targetID: String) {
         mapScrollStageID = targetID
-        if shouldBump {
-            mapScrollNonce &+= 1
-        }
+        let nextRevision = (mapScrollFocus?.revision ?? 0) + 1
+        mapScrollFocus = MapScrollFocus(stageID: targetID, revision: nextRevision)
     }
 
     @discardableResult

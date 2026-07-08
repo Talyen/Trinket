@@ -197,7 +197,7 @@ Default smoke args (`TestLaunchArg.testLaunchArgs`): `-reset-state`, `-seed-test
 - `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` starts stage 1-1)
 - `-selectedTab` (`play`, `collection`, `homestead`, `search`, `options`; `heroes`/`pets`/`inventory` → `.collection`)
 - `-completed-stages` (comma IDs)
-- `-map-scroll-target` (Play map `ScrollViewReader` row id)
+- `-map-scroll-target` (Play map scroll row id)
 - `-battle-tick-interval` (override fast ticks; avoid with mid-battle interaction tests)
 - `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
 

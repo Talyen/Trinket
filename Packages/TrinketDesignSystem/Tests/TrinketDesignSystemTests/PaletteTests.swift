@@ -1,8 +1,14 @@
+import TrinketCore
 import TrinketDesignSystem
 import Testing
 
 @Suite
 struct PaletteTests {
+    @Test func bundledEncounterAndKeywordColorsResolve() {
+        #expect(TrinketDesign.Colors.encounterBattle != .clear)
+        #expect(Keyword.gold.visualStyle.color != .clear)
+    }
+
     @Test func applePaletteHasValidColors() {
         let palette = ThemePalette.apple
         #expect(palette.appBackground != .clear)

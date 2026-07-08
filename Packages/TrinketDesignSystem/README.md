@@ -7,6 +7,8 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 | File | Role |
 |------|------|
 | `TrinketDesign.swift` | Appearance modes, colors, metrics, and card chrome |
+| `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
+| `Resources/DesignColors.xcassets` | Keyword and encounter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |

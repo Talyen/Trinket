@@ -171,7 +171,8 @@ final class AppStateTests {
             environment: context.makeEnvironment(arguments: ["-map-scroll-target", "chapter-gate-placeholder-2"])
         )
         #expect(state.mapScrollStageID == "chapter-gate-placeholder-2")
-        #expect(state.mapScrollNonce > 0)
+        #expect(state.mapScrollFocus?.stageID == "chapter-gate-placeholder-2")
+        #expect((state.mapScrollFocus?.revision ?? 0) > 0)
     }
 
     @Test func completeStageUpdatesStoresAndMapScrollFocus() throws {
@@ -190,7 +191,8 @@ final class AppStateTests {
         #expect(state.roster.current.gold > initialGold)
         #expect(scrollTarget == "chapter-1-stage-2")
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
-        #expect(state.mapScrollNonce > 0)
+        #expect(state.mapScrollFocus?.stageID == "chapter-1-stage-2")
+        #expect((state.mapScrollFocus?.revision ?? 0) > 0)
     }
 
     private func assertCollectionDetail(
