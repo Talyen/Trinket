@@ -18,6 +18,18 @@ struct PlayView: View {
                     .presentationContentInteraction(.resizes)
                     .presentationDragIndicator(.hidden)
             })
+            .fullScreenCover(
+                item: Binding(
+                    get: { appState.activeMysteryEncounter },
+                    set: { newValue in
+                        if newValue == nil, appState.activeMysteryEncounter != nil {
+                            appState.dismissActiveMysteryEncounterWithoutCompleting()
+                        }
+                    }
+                )
+            ) { session in
+                MysteryEncounterView(session: session)
+            }
             .alert(item: $stageMessage) { message in
                 Alert(
                     title: Text(message.title),

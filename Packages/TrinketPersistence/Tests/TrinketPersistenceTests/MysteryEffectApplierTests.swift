@@ -127,4 +127,61 @@ struct MysteryEffectApplierTests {
         try #expect(ring.baseType.id == "sapphire_ring")
         try #expect(ring.affixes.contains { $0.id == "manabound" })
     }
+
+    @Test func unlockCombatantEffectUnlocksHeroOnce() throws {
+        var save = makeFreshSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
+
+        let first = MysteryEffectApplier.apply(
+            [.unlockCombatant("rogue")],
+            stageID: "chapter-1-stage-8",
+            choiceID: "welcome",
+            hero: hero,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+        try #expect(first.unlockedCombatantIDs == ["rogue"])
+        try #expect(save.roster.isHeroUnlocked("rogue"))
+
+        let second = MysteryEffectApplier.apply(
+            [.unlockCombatant("rogue")],
+            stageID: "chapter-1-stage-8",
+            choiceID: "welcome",
+            hero: hero,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+        try #expect(second.unlockedCombatantIDs.isEmpty)
+    }
+
+    @Test func unlockCombatantEffectUnlocksPet() throws {
+        var save = makeFreshSave()
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 2)
+
+        let result = MysteryEffectApplier.apply(
+            [.unlockCombatant("wolf")],
+            stageID: "chapter-1-stage-2",
+            choiceID: "welcome",
+            hero: hero,
+            save: &save,
+            using: &randomNumberGenerator
+        )
+
+        try #expect(result.unlockedCombatantIDs == ["wolf"])
+        try #expect(save.roster.isPetUnlocked("wolf"))
+    }
+
+    private func makeFreshSave() -> PlayerSave {
+        PlayerSave(
+            schemaVersion: PlayerSave.currentSchemaVersion,
+            modifiedAt: Date(),
+            sessionGeneration: 0,
+            journey: .initial,
+            roster: .freshStart,
+            inventory: PlayerInventoryState(items: []),
+            homestead: .freshStart
+        )
+    }
 }

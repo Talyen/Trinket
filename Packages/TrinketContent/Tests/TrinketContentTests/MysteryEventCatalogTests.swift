@@ -8,13 +8,40 @@ struct MysteryEventCatalogTests {
         try #expect(ids.count == Set(ids).count)
     }
 
-    @Test func allMysteryEventsHaveTwoChoices() throws {
-        for event in GameContent.mysteryEvents {
+    @Test func branchingMysteryEventsHaveTwoChoices() throws {
+        for event in GameContent.branchingMysteryEvents {
             try #expect(
                 event.choices.count == 2,
                 "Mystery event \(event.id) should have exactly 2 choices"
             )
+            try #expect(event.unlockCombatantID == nil)
         }
+    }
+
+    @Test func recruitMysteryEventsHaveOneUnlockChoice() throws {
+        for event in GameContent.recruitMysteryEvents {
+            try #expect(
+                event.choices.count == 1,
+                "Recruit event \(event.id) should have exactly 1 choice"
+            )
+            let combatantID = try #require(event.unlockCombatantID)
+            try #expect(event.choices[0].effects == [.unlockCombatant(combatantID)])
+            try #expect(
+                combatantID != PlayerRosterStarterIDs.hero
+                    && combatantID != PlayerRosterStarterIDs.pet,
+                "Recruit event \(event.id) should not unlock starters"
+            )
+        }
+    }
+
+    @Test func recruitEventsCoverEveryNonStarterCombatantExactlyOnce() throws {
+        let unlockIDs = GameContent.recruitMysteryEvents.compactMap(\.unlockCombatantID)
+        try #expect(unlockIDs.count == Set(unlockIDs).count)
+
+        let expectedHeroes = Set(GameContent.heroes.map(\.id)).subtracting([PlayerRosterStarterIDs.hero])
+        let expectedPets = Set(GameContent.pets.map(\.id)).subtracting([PlayerRosterStarterIDs.pet])
+        try #expect(Set(unlockIDs.filter { expectedHeroes.contains($0) }) == expectedHeroes)
+        try #expect(Set(unlockIDs.filter { expectedPets.contains($0) }) == expectedPets)
     }
 
     @Test func allMysteryEventsHaveUniqueChoiceIDs() throws {
@@ -45,6 +72,16 @@ struct MysteryEventCatalogTests {
         }
     }
 
+    @Test func recruitEventsResolveCombatantArt() throws {
+        for event in GameContent.recruitMysteryEvents {
+            let combatant = try #require(GameContent.combatant(forMysteryEvent: event))
+            _ = try #require(
+                combatant.artReference,
+                "Recruit event \(event.id) combatant \(combatant.id) missing art"
+            )
+        }
+    }
+
     @Test func mysteryEventLookup() throws {
         for event in GameContent.mysteryEvents {
             let lookedUp = try #require(GameContent.mysteryEvent(matching: event.id))
@@ -56,10 +93,33 @@ struct MysteryEventCatalogTests {
         try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
-    @Test func pickMysteryEventReturnsValidEvent() throws {
+    @Test func pickMysteryEventReturnsValidBranchingEvent() throws {
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
         let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
-        try #expect(GameContent.mysteryEvents.contains(picked))
+        try #expect(GameContent.branchingMysteryEvents.contains(picked))
+    }
+
+    @Test func pickEligibleMysteryEventPrefersLockedRecruits() throws {
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
+        let picked = GameContent.pickEligibleMysteryEvent(
+            unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
+            unlockedPetIDs: [PlayerRosterStarterIDs.pet],
+            using: &randomNumberGenerator
+        )
+        try #expect(picked.isRecruit)
+        try #expect(picked.unlockCombatantID != PlayerRosterStarterIDs.hero)
+        try #expect(picked.unlockCombatantID != PlayerRosterStarterIDs.pet)
+    }
+
+    @Test func pickEligibleMysteryEventFallsBackWhenAllUnlocked() throws {
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 3)
+        let picked = GameContent.pickEligibleMysteryEvent(
+            unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
+            unlockedPetIDs: Set(GameContent.pets.map(\.id)),
+            using: &randomNumberGenerator
+        )
+        try #expect(!picked.isRecruit)
+        try #expect(GameContent.branchingMysteryEvents.contains(picked))
     }
 
     @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
@@ -107,11 +167,17 @@ struct MysteryEventCatalogTests {
                         try #expect(amount > 0, "\(event.id)/\(choice.id)")
                     case let .gainExperience(amount):
                         try #expect(amount > 0, "\(event.id)/\(choice.id)")
-                    case .gainGeneratedItem, .gainRandomItem, .chooseItem:
+                    case .gainGeneratedItem, .gainRandomItem, .chooseItem, .unlockCombatant:
                         break
                     }
                 }
             }
         }
     }
+}
+
+/// Starter IDs mirrored from persistence without importing that package into content tests.
+private enum PlayerRosterStarterIDs {
+    static let hero = "knight"
+    static let pet = "bear"
 }

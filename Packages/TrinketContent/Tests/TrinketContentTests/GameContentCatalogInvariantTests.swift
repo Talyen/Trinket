@@ -30,4 +30,16 @@ import Testing
             "Encounter art title should be set when art id is set for \(stage.id)"
         )
     }
+
+    @Test(arguments: GameContent.chapters.flatMap(\.stages))
+    func mysteryStagesReferenceKnownEvents(stage: Stage) throws {
+        guard let eventID = stage.encounter.mysteryEventID else { return }
+        let event = try #require(
+            GameContent.mysteryEvent(matching: eventID),
+            "Stage \(stage.id) references unknown mystery event \(eventID)"
+        )
+        if event.isRecruit {
+            _ = try #require(GameContent.combatant(forMysteryEvent: event))
+        }
+    }
 }

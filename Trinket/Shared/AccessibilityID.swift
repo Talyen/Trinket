@@ -25,6 +25,20 @@ enum AccessibilityID {
         }
     }
 
+    enum Mystery {
+        static let encounterTitle = "Mystery Encounter Title"
+        static let encounterNarrative = "Mystery Encounter Narrative"
+        static let welcomeButton = "Mystery Welcome Button"
+        static let unlockEyebrow = "Mystery Unlock Eyebrow"
+        static let unlockName = "Mystery Unlock Name"
+        static let unlockSubtitle = "Mystery Unlock Subtitle"
+        static let continueButton = "Mystery Continue Button"
+
+        static func unlockCard(name: String) -> String {
+            "\(name) unlock card"
+        }
+    }
+
     enum CombatantDetail {
         static let statsSection = "Combatant Stats Section"
         static let healthStat = "Combatant Health Stat"

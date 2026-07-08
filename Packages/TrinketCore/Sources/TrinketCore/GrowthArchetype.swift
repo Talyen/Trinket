@@ -6,6 +6,16 @@ public enum GrowthArchetype: String, Codable, Hashable, Sendable, CaseIterable {
     case mage
     case support
     case bruiser
+
+    public var displayName: String {
+        switch self {
+        case .tank: return "Tank"
+        case .assassin: return "Assassin"
+        case .mage: return "Mage"
+        case .support: return "Support"
+        case .bruiser: return "Bruiser"
+        }
+    }
 }
 
 public struct StatGrowthDelta: Equatable, Hashable, Sendable {

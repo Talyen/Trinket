@@ -191,10 +191,122 @@ extension AppState {
         switch stage.encounter {
         case .battle:
             return startBattle(for: stage)
-        case .event, .shop, .rest, .mysteryEvent:
+        case .mysteryEvent:
+            return beginMysteryEncounter(for: stage)
+        case .event, .shop, .rest:
             completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
             return nil
         }
+    }
+
+    @discardableResult
+    func beginMysteryEncounter(for stage: Stage) -> StageMapMessage? {
+        guard activeMysteryEncounter == nil else { return nil }
+        guard battle.activeBattle == nil else { return nil }
+
+        guard var event = resolvedMysteryEvent(for: stage) else {
+            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+            return nil
+        }
+
+        // Already-unlocked recruit stages try another eligible recruit, else skip-complete.
+        if let combatantID = event.unlockCombatantID,
+           roster.current.isCombatantUnlocked(id: combatantID) {
+            if let substitute = substituteRecruitEvent(excluding: event.id) {
+                event = substitute
+            } else {
+                completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+                return nil
+            }
+        }
+
+        let combatant = GameContent.combatant(forMysteryEvent: event)
+        activeMysteryEncounter = MysteryEncounterSession(
+            stage: stage,
+            event: event,
+            combatant: combatant
+        )
+        return nil
+    }
+
+    /// Applies the single (or first) choice for the active mystery encounter.
+    /// Recruit unlocks transition to the reveal phase; other outcomes complete the stage.
+    @discardableResult
+    func resolveActiveMysteryChoice(choiceID: String? = nil) -> Bool {
+        guard let session = activeMysteryEncounter else { return false }
+        guard !session.isResolvingChoice else { return false }
+        session.markChoiceStarted()
+
+        let choice = session.event.choices.first { $0.id == choiceID }
+            ?? session.event.choices.first
+        guard let choice else {
+            session.markResolvedWithoutReveal()
+            return false
+        }
+
+        var applyResult = MysteryEffectApplyResult()
+        do {
+            try playerSave.performBatchMutation { save in
+                var randomNumberGenerator = SystemRandomNumberGenerator()
+                applyResult = MysteryEffectApplier.apply(
+                    choice.effects,
+                    stageID: session.stage.id,
+                    choiceID: choice.id,
+                    hero: save.roster.activeHero,
+                    save: &save,
+                    using: &randomNumberGenerator
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to apply mystery effects: \(error.localizedDescription, privacy: .public)"
+            )
+            session.markResolvedWithoutReveal()
+            return false
+        }
+
+        if let unlockedID = applyResult.unlockedCombatantIDs.first
+            ?? session.event.unlockCombatantID.flatMap({ id in
+                roster.current.isCombatantUnlocked(id: id) ? id : nil
+            }) {
+            session.presentReveal(unlockedCombatantID: unlockedID)
+            return true
+        }
+
+        finishActiveMysteryEncounter()
+        return true
+    }
+
+    func finishActiveMysteryEncounter() {
+        guard let session = activeMysteryEncounter else { return }
+        let stage = session.stage
+        activeMysteryEncounter = nil
+        completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+    }
+
+    func dismissActiveMysteryEncounterWithoutCompleting() {
+        activeMysteryEncounter = nil
+    }
+
+    private func resolvedMysteryEvent(for stage: Stage) -> MysteryEvent? {
+        if let authored = stage.mysteryEvent {
+            return authored
+        }
+        var randomNumberGenerator = SystemRandomNumberGenerator()
+        return GameContent.pickEligibleMysteryEvent(
+            unlockedHeroIDs: roster.current.unlockedHeroIDs,
+            unlockedPetIDs: roster.current.unlockedPetIDs,
+            using: &randomNumberGenerator
+        )
+    }
+
+    private func substituteRecruitEvent(excluding eventID: String) -> MysteryEvent? {
+        var randomNumberGenerator = SystemRandomNumberGenerator()
+        let eligible = RecruitMysteryEventPool.eligible(
+            unlockedHeroIDs: roster.current.unlockedHeroIDs,
+            unlockedPetIDs: roster.current.unlockedPetIDs
+        ).filter { $0.id != eventID }
+        return eligible.randomElement(using: &randomNumberGenerator)
     }
 
     @discardableResult

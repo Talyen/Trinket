@@ -100,9 +100,10 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-014 — Hero and Pet unlock flow
 - **Area:** Heroes, Play
-- **Status:** scratch
+- **Status:** shipped (recruit mysteries)
 - **Idea:** Define how new Heroes and Pets enter the roster — stage milestones, shop purchases, event choices — including collection reveal UI and "new" badges.
-- **Touches:** `PlayerRosterState`, collection UI, stage rewards
+- **Shipped:** One-choice recruit mystery events for every non-starter Hero/Pet, journey placement across chapters 1–3, unlock reveal with tap-to-detail, and roster unlock persistence. Shop/other unlock paths remain open.
+- **Touches:** `PlayerRosterState`, collection UI, stage rewards, `RecruitMysteryEventPool`, Play mystery encounter UI
 
 ### R-015 — Shop encounters
 - **Area:** Play
@@ -112,8 +113,9 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-016 — Mystery Events
 - **Area:** Play
-- **Status:** scratch
+- **Status:** partial
 - **Idea:** Replace Event stage placeholders with branching mystery encounters — short narrative choices with varied outcomes (gold, items, buffs, risks).
+- **Shipped:** Recruit (single-choice unlock) mystery flow and journey wiring. Branching economy mysteries remain catalog-only until their Play UI lands.
 - **Touches:** Play encounter routing, event content manifests
 
 ### R-017 — Homestead material drops

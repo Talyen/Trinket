@@ -59,5 +59,10 @@ struct EncounterArtworkButton: View {
             .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
             .clipShape(TrinketDesign.cardShape)
             .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
+            .accessibilityIdentifier(
+                stage.recruitCombatant == nil
+                    ? "\(stage.mapLabel) Encounter Art"
+                    : "\(stage.mapLabel) Recruit Art"
+            )
     }
 }

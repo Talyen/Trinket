@@ -97,7 +97,7 @@ public enum StageEncounter: Hashable, Sendable {
         case .rest:
             return "Rest"
         case .mysteryEvent:
-            return "Investigate"
+            return "Approach"
         }
     }
 

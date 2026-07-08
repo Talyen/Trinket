@@ -68,11 +68,11 @@ chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter
 ```
 
 - `theme`: chapter theme enum case (e.g. `verdantForest`).
-- `encounter`: `battle`, `event`, `shop`, or `rest`.
-- `enemy_id`: required for `battle`; empty otherwise.
+- `encounter`: `battle`, `event`, `shop`, `rest`, or `mystery`.
+- `enemy_id`: required for `battle` (enemy catalog id) and `mystery` (mystery event id); empty otherwise.
 - `item_templates`: comma-separated item template IDs.
 - `materials`: pipe-separated `resource:amount` tokens (e.g. `wood:8|stone:3`).
-- `encounter_art_id` / `encounter_art_title`: optional pair for non-battle stages; references `ArtCatalog.encounterArtByID`.
+- `encounter_art_id` / `encounter_art_title`: optional pair for non-battle, non-mystery stages; references `ArtCatalog.encounterArtByID`. Mystery recruit stages use combatant portrait art instead.
 
 ### Item bases (`ContentManifest/item_bases.tsv`)
 

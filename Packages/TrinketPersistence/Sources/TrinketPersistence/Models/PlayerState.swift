@@ -224,6 +224,46 @@ public struct PlayerRosterState: Equatable, Sendable {
         activePetID = pet.id
     }
 
+    /// Unlocks a hero or pet and seeds baseline progression when missing.
+    /// Returns `true` when the combatant was newly unlocked.
+    @discardableResult
+    public mutating func unlock(_ combatant: Combatant) -> Bool {
+        switch combatant.role {
+        case .hero:
+            return unlockHero(id: combatant.id)
+        case .pet:
+            return unlockPet(id: combatant.id)
+        case .enemy:
+            return false
+        }
+    }
+
+    /// Unlocks a hero by catalog id. Returns `true` when newly unlocked.
+    @discardableResult
+    public mutating func unlockHero(id heroID: String) -> Bool {
+        guard GameContent.heroes.contains(where: { $0.id == heroID }) else { return false }
+        let inserted = unlockedHeroIDs.insert(heroID).inserted
+        if progressions[heroID] == nil {
+            progressions[heroID] = .initial
+        }
+        return inserted
+    }
+
+    /// Unlocks a pet by catalog id. Returns `true` when newly unlocked.
+    @discardableResult
+    public mutating func unlockPet(id petID: String) -> Bool {
+        guard GameContent.pets.contains(where: { $0.id == petID }) else { return false }
+        let inserted = unlockedPetIDs.insert(petID).inserted
+        if progressions[petID] == nil {
+            progressions[petID] = .initial
+        }
+        return inserted
+    }
+
+    public func isCombatantUnlocked(id combatantID: String) -> Bool {
+        unlockedHeroIDs.contains(combatantID) || unlockedPetIDs.contains(combatantID)
+    }
+
     public mutating func grantExperience(_ amount: Int, to combatant: Combatant) {
         progressions[combatant.id] = progression(for: combatant).addingExperience(amount)
     }

@@ -28,8 +28,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 2,
-                    flavorText: "Something beneath the trail points you toward a safer path.",
-                    encounter: .event,
+                    flavorText: "A quiet howl answers from the bend ahead.",
+                    encounter: .mysteryEvent(eventID: "recruit-wolf"),
                     rewards: StageReward(
                         gold: 8,
                         itemTemplateIDs: [],
@@ -106,8 +106,8 @@ enum GameContentChaptersGenerated {
                     chapterID: "chapter-1",
                     chapterNumber: 1,
                     stageNumber: 8,
-                    flavorText: "Two false trails glitter ahead before the forest reveals the true one.",
-                    encounter: .event,
+                    flavorText: "Steel flashes once in the canopy, then stills.",
+                    encounter: .mysteryEvent(eventID: "recruit-rogue"),
                     rewards: StageReward(
                         gold: 10,
                         itemTemplateIDs: [],
@@ -138,6 +138,217 @@ enum GameContentChaptersGenerated {
                         gold: 40,
                         itemTemplateIDs: ["longsword-astral"],
                         materialRewards: [ResourceAmount(.iron, 8), ResourceAmount(.crystal, 3)]
+                    )
+                )
+            ]
+        ),
+        Chapter(
+            id: "chapter-2",
+            number: 2,
+            title: "The Whispering Glade",
+            theme: .verdantForest,
+            stages: [
+                Stage(
+                    id: "chapter-2-stage-1",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 1,
+                    flavorText: "Sparks linger between the trees like unfinished thoughts.",
+                    encounter: .mysteryEvent(eventID: "recruit-wizard"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.herbs, 3)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-2",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 2,
+                    flavorText: "Glass clinks somewhere off the path, then a cork pops.",
+                    encounter: .mysteryEvent(eventID: "recruit-alchemist"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.herbs, 4), ResourceAmount(.food, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-3",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 3,
+                    flavorText: "The undergrowth parts as if greeting an old friend.",
+                    encounter: .mysteryEvent(eventID: "recruit-druid"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 6), ResourceAmount(.herbs, 4)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-4",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 4,
+                    flavorText: "A notice flutters on a pine, pinned by a fresh arrow.",
+                    encounter: .mysteryEvent(eventID: "recruit-ranger"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 4), ResourceAmount(.food, 4)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-5",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 5,
+                    flavorText: "Dusk settles early, and candle-smoke finds you first.",
+                    encounter: .mysteryEvent(eventID: "recruit-warlock"),
+                    rewards: StageReward(
+                        gold: 12,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 3), ResourceAmount(.iron, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-6",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 6,
+                    flavorText: "Frost feathers the hollow before you feel the cold.",
+                    encounter: .mysteryEvent(eventID: "recruit-frost-whelp"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.food, 3)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-7",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 7,
+                    flavorText: "A sketched map flutters down from the canopy.",
+                    encounter: .mysteryEvent(eventID: "recruit-lizard-scout"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 5), ResourceAmount(.food, 3)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-8",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 8,
+                    flavorText: "Gold eyes open along the game trail and do not blink.",
+                    encounter: .mysteryEvent(eventID: "recruit-panther"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.wood, 4), ResourceAmount(.herbs, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-9",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 9,
+                    flavorText: "Warm ash swirls upward from a charred stump.",
+                    encounter: .mysteryEvent(eventID: "recruit-phoenix"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.herbs, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-2-stage-10",
+                    chapterID: "chapter-2",
+                    chapterNumber: 2,
+                    stageNumber: 10,
+                    flavorText: "Muddy paws and a wagging stick announce a new friend.",
+                    encounter: .mysteryEvent(eventID: "recruit-golden-retriever"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.food, 6), ResourceAmount(.wood, 2)]
+                    )
+                )
+            ]
+        ),
+        Chapter(
+            id: "chapter-3",
+            number: 3,
+            title: "The Moonlit Archives",
+            theme: .verdantForest,
+            stages: [
+                Stage(
+                    id: "chapter-3-stage-1",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 1,
+                    flavorText: "A ruined lectern still keeps its place among the trees.",
+                    encounter: .mysteryEvent(eventID: "recruit-library-owl"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 2), ResourceAmount(.herbs, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-3-stage-2",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 2,
+                    flavorText: "Leaf litter shifts, and something bony sits up politely.",
+                    encounter: .mysteryEvent(eventID: "recruit-risen-skeleton"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.iron, 3), ResourceAmount(.stone, 4)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-3-stage-3",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 3,
+                    flavorText: "A mana bloom trembles as starlight drinks from its petals.",
+                    encounter: .mysteryEvent(eventID: "recruit-mana-moth"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.crystal, 4), ResourceAmount(.herbs, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-3-stage-4",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 4,
+                    flavorText: "Giggles ring a mushroom circle just off the path.",
+                    encounter: .mysteryEvent(eventID: "recruit-pixie"),
+                    rewards: StageReward(
+                        gold: 8,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.herbs, 4), ResourceAmount(.food, 2)]
+                    )
+                ),
+                Stage(
+                    id: "chapter-3-stage-5",
+                    chapterID: "chapter-3",
+                    chapterNumber: 3,
+                    stageNumber: 5,
+                    flavorText: "A living buckler blocks the narrow pass ahead.",
+                    encounter: .mysteryEvent(eventID: "recruit-shield-scarab"),
+                    rewards: StageReward(
+                        gold: 10,
+                        itemTemplateIDs: [],
+                        materialRewards: [ResourceAmount(.stone, 6), ResourceAmount(.iron, 3)]
                     )
                 )
             ]

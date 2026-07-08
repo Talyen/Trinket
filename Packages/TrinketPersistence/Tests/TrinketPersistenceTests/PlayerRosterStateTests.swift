@@ -206,6 +206,34 @@ struct PlayerRosterStateTests {
         try #expect(roster.highestPetLevel == 15)
     }
 
+    @Test func unlockHeroAddsToRosterAndSeedsProgression() throws {
+        var roster = PlayerRosterState.freshStart
+        let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
+
+        try #expect(roster.unlock(rogue))
+        try #expect(roster.isHeroUnlocked("rogue"))
+        try #expect(roster.progressions["rogue"] == .initial)
+        try #expect(roster.unlock(rogue) == false)
+    }
+
+    @Test func unlockPetAddsToRosterAndSeedsProgression() throws {
+        var roster = PlayerRosterState.freshStart
+        let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+
+        try #expect(roster.unlock(wolf))
+        try #expect(roster.isPetUnlocked("wolf"))
+        try #expect(roster.progressions["wolf"] == .initial)
+        try #expect(roster.unlockPet(id: "wolf") == false)
+    }
+
+    @Test func unlockIgnoresUnknownAndEnemyIDs() throws {
+        var roster = PlayerRosterState.freshStart
+        try #expect(roster.unlockHero(id: "missing-hero") == false)
+        try #expect(roster.unlockPet(id: "missing-pet") == false)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        try #expect(roster.unlock(enemy) == false)
+    }
+
     @Test func addRewardItemIgnoresDuplicateID() throws {
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]

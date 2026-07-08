@@ -40,6 +40,7 @@ final class AppState {
 
     var options: OptionsStore
     var battle: BattleSession
+    var activeMysteryEncounter: MysteryEncounterSession?
     var journey: JourneyProgressState {
         get { playerSave.journey }
         set { playerSave.journey = newValue }
@@ -190,6 +191,7 @@ final class AppState {
             return false
         }
         battle.endBattle()
+        activeMysteryEncounter = nil
         clearSessionBattleState()
         shellSession.resetToDefaults(selectingTab: .play)
         return true

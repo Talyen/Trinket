@@ -4,10 +4,8 @@ import TrinketCore
 
 enum GameContentEncounterArtGenerated {
     static let stageEncounterArt: [String: (id: String, title: String)] = [
-        "chapter-1-stage-2": (id: "mystery-sunlight-breaks-canopy", title: "Sunlit Trail"),
         "chapter-1-stage-4": (id: "destination-merchant-shop", title: "Merchant's Shop"),
-        "chapter-1-stage-6": (id: "destination-campfire", title: "Campfire"),
-        "chapter-1-stage-8": (id: "mystery-vines-carpet-mosaic-floors", title: "Hidden Mosaic")
+        "chapter-1-stage-6": (id: "destination-campfire", title: "Campfire")
     ]
 }
 

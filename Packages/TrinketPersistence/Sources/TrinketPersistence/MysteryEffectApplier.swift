@@ -9,19 +9,23 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
     public var grantedItems: [InventoryItem]
     /// Populated when a choice includes `.chooseItem`; caller presents options then grants one.
     public var chooseItemCandidates: [InventoryItem]
+    /// Combatant IDs newly unlocked by this apply (heroes and pets).
+    public var unlockedCombatantIDs: [String]
 
     public init(
         grantedGold: Int = 0,
         grantedMaterials: [ResourceAmount] = [],
         grantedExperience: Int = 0,
         grantedItems: [InventoryItem] = [],
-        chooseItemCandidates: [InventoryItem] = []
+        chooseItemCandidates: [InventoryItem] = [],
+        unlockedCombatantIDs: [String] = []
     ) {
         self.grantedGold = grantedGold
         self.grantedMaterials = grantedMaterials
         self.grantedExperience = grantedExperience
         self.grantedItems = grantedItems
         self.chooseItemCandidates = chooseItemCandidates
+        self.unlockedCombatantIDs = unlockedCombatantIDs
     }
 
     public var isEmpty: Bool {
@@ -30,6 +34,7 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
             && grantedExperience == 0
             && grantedItems.isEmpty
             && chooseItemCandidates.isEmpty
+            && unlockedCombatantIDs.isEmpty
     }
 }
 
@@ -123,6 +128,19 @@ public enum MysteryEffectApplier {
                     candidates.append(item)
                 }
                 result.chooseItemCandidates = candidates
+
+            case let .unlockCombatant(combatantID):
+                let didUnlock: Bool
+                if GameContent.heroes.contains(where: { $0.id == combatantID }) {
+                    didUnlock = save.roster.unlockHero(id: combatantID)
+                } else if GameContent.pets.contains(where: { $0.id == combatantID }) {
+                    didUnlock = save.roster.unlockPet(id: combatantID)
+                } else {
+                    didUnlock = false
+                }
+                if didUnlock {
+                    result.unlockedCombatantIDs.append(combatantID)
+                }
             }
         }
 

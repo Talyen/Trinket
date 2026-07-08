@@ -39,15 +39,32 @@ extension Stage {
         "Stage \(chapterNumber)-\(stageNumber)"
     }
 
+    var mysteryEvent: MysteryEvent? {
+        guard let eventID = encounter.mysteryEventID else { return nil }
+        return GameContent.mysteryEvent(matching: eventID)
+    }
+
+    var recruitCombatant: Combatant? {
+        guard let event = mysteryEvent else { return nil }
+        return GameContent.combatant(forMysteryEvent: event)
+    }
+
     var encounterCombatantArtReference: CombatantArtReference? {
-        guard case let .battle(enemyID) = encounter else { return nil }
-        return GameContent.enemy(matching: enemyID)?.combatant.artReference
+        if case let .battle(enemyID) = encounter {
+            return GameContent.enemy(matching: enemyID)?.combatant.artReference
+        }
+        if let recruit = recruitCombatant {
+            return recruit.artReference
+        }
+        return nil
     }
 
     var encounterArtReference: EncounterArtReference? {
         if case .battle = encounter { return nil }
-        if case let .mysteryEvent(eventID) = encounter {
-            guard let artID = GameContent.mysteryEvent(matching: eventID)?.artID else { return nil }
+        if case .mysteryEvent = encounter {
+            // Recruit mysteries use combatant portrait art (3:4), not encounter art.
+            if recruitCombatant != nil { return nil }
+            guard let artID = mysteryEvent?.artID else { return nil }
             return ArtCatalog.encounterArtByID[artID]
         }
         guard let artID = GameContent.encounterArtID(for: self) else { return nil }
@@ -64,8 +81,11 @@ extension Stage {
             return GameContent.encounterArtTitle(for: self) ?? "Merchant"
         case .rest:
             return GameContent.encounterArtTitle(for: self) ?? "Moonwell"
-        case let .mysteryEvent(eventID):
-            return GameContent.mysteryEvent(matching: eventID)?.title ?? "Mystery"
+        case .mysteryEvent:
+            if let recruit = recruitCombatant {
+                return recruit.name
+            }
+            return mysteryEvent?.title ?? "Mystery"
         }
     }
 }
@@ -75,7 +95,12 @@ extension StageEncounter {
         switch self {
         case .battle:
             return 1
-        case .event, .shop, .rest, .mysteryEvent:
+        case let .mysteryEvent(eventID):
+            if let event = GameContent.mysteryEvent(matching: eventID), event.isRecruit {
+                return 3.0 / 4.0
+            }
+            return 4.0 / 3.0
+        case .event, .shop, .rest:
             return 4.0 / 3.0
         }
     }

@@ -9,6 +9,8 @@ public enum MysteryEffect: Hashable, Sendable {
     case gainGeneratedItem(baseTypeID: String, guaranteedAffixIDs: [String] = [])
     case gainRandomItem
     case chooseItem
+    /// Unlocks a hero or pet on the player roster (idempotent at apply time).
+    case unlockCombatant(String)
 }
 
 public struct MysteryChoice: Hashable, Sendable {
@@ -28,13 +30,27 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
     public let title: String
     public let narrative: String
     public let artID: String?
+    /// When set, this is a one-choice recruit encounter for that combatant.
+    public let unlockCombatantID: String?
     public let choices: [MysteryChoice]
 
-    public init(id: String, title: String, narrative: String, artID: String?, choices: [MysteryChoice]) {
+    public var isRecruit: Bool {
+        unlockCombatantID != nil
+    }
+
+    public init(
+        id: String,
+        title: String,
+        narrative: String,
+        artID: String?,
+        unlockCombatantID: String? = nil,
+        choices: [MysteryChoice]
+    ) {
         self.id = id
         self.title = title
         self.narrative = narrative
         self.artID = artID
+        self.unlockCombatantID = unlockCombatantID
         self.choices = choices
     }
 }
