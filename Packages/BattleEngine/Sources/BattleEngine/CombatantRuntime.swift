@@ -29,6 +29,10 @@ public struct CombatantRuntime: Hashable {
     /// The tick at which this combatant is next eligible to act.
     public var nextReadyAtTick: Int
 
+    /// Interval (in ticks) used when `nextReadyAtTick` was last scheduled.
+    /// Used for action-charge progress so mid-cycle haste changes do not desync the wipe.
+    public var scheduledActionInterval: Int
+
     /// Number of times this combatant has acted so far in the battle.
     public var actionCount: Int
 
@@ -77,7 +81,10 @@ public struct CombatantRuntime: Hashable {
 
         let speed = initialActionSpeed ?? CombatantRuntime.defaultActionSpeed(for: combatant)
         actionSpeed = speed
-        nextReadyAtTick = initialNextReadyAtTick ?? speed.effectiveInterval
+        let readyAt = initialNextReadyAtTick ?? speed.effectiveInterval
+        nextReadyAtTick = readyAt
+        // First cycle runs from tick 0 to `nextReadyAtTick`.
+        scheduledActionInterval = max(1, readyAt)
         actionCount = 0
     }
 
@@ -125,6 +132,18 @@ public struct CombatantRuntime: Hashable {
     /// True if this combatant can act on the given tick.
     public func isReady(atTick tick: Int) -> Bool {
         isAlive && nextReadyAtTick <= tick
+    }
+
+    /// Fraction of the current action interval that has elapsed (`0...1`).
+    /// Returns `1` when the combatant is ready to act.
+    public func actionChargeProgress(atTick tick: Int) -> Double {
+        let interval = max(1, scheduledActionInterval)
+        if isReady(atTick: tick) {
+            return 1
+        }
+        let cycleStart = nextReadyAtTick - interval
+        let elapsed = tick - cycleStart
+        return min(1, max(0, Double(elapsed) / Double(interval)))
     }
 
     // MARK: - State mutations
@@ -175,6 +194,7 @@ public struct CombatantRuntime: Hashable {
             return false
         } ? 1 : 0
         let interval = max(1, actionSpeed.effectiveInterval - hasteReduction)
+        scheduledActionInterval = interval
         nextReadyAtTick = tick + interval
     }
 

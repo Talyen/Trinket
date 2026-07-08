@@ -68,8 +68,9 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let turnNumber = (context.roster.runtime(for: actor)?.actionCount ?? 0) + 1
+        let currentMana = context.roster.runtime(for: actor)?.currentMana ?? 0
 
-        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, context: context) else {
+        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, currentMana: currentMana) else {
             recordAction(for: actor, context: &context)
             return []
         }
@@ -308,10 +309,11 @@ public enum BattleTurnEngine {
         }
     }
 
-    private static func selectedAbility(
+    /// Ability that will fire on the combatant's next action, including mana fallback.
+    public static func selectedAbility(
         for actor: Combatant,
         turnNumber: Int,
-        context: BattleEngineContext
+        currentMana: Int
     ) -> Ability? {
         let tier = preferredTier(for: turnNumber)
         let preferred = actor.abilityLoadout.ability(for: tier)
@@ -321,7 +323,6 @@ public enum BattleTurnEngine {
         guard let preferred else { return nil }
         guard preferred.manaCost > 0, actor.hasMana else { return preferred }
 
-        let currentMana = (context.roster.runtime(for: actor)?.currentMana ?? 0)
         if currentMana >= preferred.manaCost {
             return preferred
         }
@@ -333,7 +334,7 @@ public enum BattleTurnEngine {
         _ = context.spendMana(ability.manaCost, for: actor)
     }
 
-    private static func preferredTier(for turnNumber: Int) -> AbilityTier {
+    public static func preferredTier(for turnNumber: Int) -> AbilityTier {
         if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) { return .ultimate }
         if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) { return .skill }
         return .basic

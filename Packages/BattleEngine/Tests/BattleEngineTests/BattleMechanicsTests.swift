@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct BattleMechanicsTests {
     private func makeContext(
         hero: Combatant,
@@ -79,7 +78,11 @@ struct BattleMechanicsTests {
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let context = makeContext(hero: wizard, pet: pet, enemy: enemy, heroMana: 0)
 
-        let ability = selectedAbilityForTests(actor: wizard, turnNumber: 3, context: context)
+        let ability = BattleTurnEngine.selectedAbility(
+            for: wizard,
+            turnNumber: 3,
+            currentMana: context.roster.runtime(for: wizard)?.currentMana ?? 0
+        )
 
         try #expect(ability?.id == wizard.abilityLoadout.basic?.id)
     }
@@ -112,28 +115,4 @@ struct BattleMechanicsTests {
             context.roster.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
         )
     }
-}
-
-private func selectedAbilityForTests(
-    actor: Combatant,
-    turnNumber: Int,
-    context: BattleEngineContext
-) -> Ability? {
-    let tier: AbilityTier
-    if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) {
-        tier = .ultimate
-    } else if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) {
-        tier = .skill
-    } else {
-        tier = .basic
-    }
-    let preferred = actor.abilityLoadout.ability(for: tier)
-        ?? actor.abilityLoadout.basic
-        ?? actor.abilities.first
-    guard let preferred else { return nil }
-    guard preferred.manaCost > 0, actor.hasMana else { return preferred }
-    if (context.roster.runtime(for: actor)?.currentMana ?? 0) >= preferred.manaCost {
-        return preferred
-    }
-    return actor.abilityLoadout.basic ?? actor.abilities.first
 }
