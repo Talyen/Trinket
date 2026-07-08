@@ -63,7 +63,7 @@ struct ActionEventFormatterTests {
         ]
         for event in cases {
             #expect(
-                ActionEventFormatter.display(for: event == nil).secondaryText,
+                ActionEventFormatter.display(for: event).secondaryText == nil,
                 "secondaryText should be nil for \(event)"
             )
         }

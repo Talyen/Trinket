@@ -133,10 +133,10 @@ struct ControlMeterEngineTests {
 
         #expect(events.contains { $0.effectKind == .controlTriggered })
         #expect(
-            context.roster.activeEffects(for: target == nil).first {
+            context.roster.activeEffects(for: target).first {
                 guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
                 return amount < threshold
-            },
+            } != nil,
             "Partial build-up should be consumed on trigger"
         )
         #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))

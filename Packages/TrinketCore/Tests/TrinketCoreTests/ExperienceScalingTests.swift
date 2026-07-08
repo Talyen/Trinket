@@ -5,26 +5,22 @@ import TrinketCore
 struct ExperienceScalingTests {
     @Test func equalLevelAwardsFullExperience() {
         #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50 == playerLevel: 10, enemyLevel: 10),
-            50
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 10, enemyLevel: 10) == 50
         )
     }
 
     @Test func higherLevelEnemyAwardsFullExperience() {
         #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50 == playerLevel: 8, enemyLevel: 12),
-            50
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 8, enemyLevel: 12) == 50
         )
     }
 
     @Test func enemyTenOrMoreLevelsBelowAwardsNothing() {
         #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50 == playerLevel: 20, enemyLevel: 10),
-            0
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 10) == 0
         )
         #expect(
-            ExperienceScaling.adjustedAward(baseExperience: 50 == playerLevel: 20, enemyLevel: 5),
-            0
+            ExperienceScaling.adjustedAward(baseExperience: 50, playerLevel: 20, enemyLevel: 5) == 0
         )
     }
 
@@ -98,8 +94,7 @@ struct ExperienceScalingTests {
 
     @Test func battleAwardWithCatchUpReturnsZeroWhenBaseAwardIsZero() {
         #expect(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20 == enemyLevel: 5, highestLevel: 25),
-            0
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 20, enemyLevel: 5, highestLevel: 25) == 0
         )
     }
 
@@ -109,8 +104,7 @@ struct ExperienceScalingTests {
         let expected = max(1, Int((Double(baseAward) * catchUp).rounded()))
 
         #expect(
-            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5 == enemyLevel: 5, highestLevel: 10),
-            expected
+            ExperienceScaling.battleAwardWithCatchUp(playerLevel: 5, enemyLevel: 5, highestLevel: 10) == expected
         )
     }
 }
