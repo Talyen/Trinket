@@ -2,7 +2,7 @@
 
 Trinket-specific rules for applying Apple's 2026 platform APIs. The hard platform contract lives in `AGENTS.md` § Platform Baseline; official Apple documentation remains the source of truth for API shape.
 
-**Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plan live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), and [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md).
+**Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plans live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md), and [AppleNativeBestPracticesPlan.md](../Platform/AppleNativeBestPracticesPlan.md).
 
 ## Platform Contract
 

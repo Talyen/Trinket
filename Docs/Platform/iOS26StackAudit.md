@@ -2,9 +2,9 @@
 
 Point-in-time audit: **July 2026**. Compares Trinket production code against iOS 16–25-era patterns and iOS 26 Apple guidance. See [iOS26AppleReference.md](iOS26AppleReference.md) for curated WWDC and documentation links.
 
-**Verdict:** Trinket is on the modern Apple stack for state, navigation, concurrency, and tab structure. **Liquid Glass migration (Phases 0–3, 5–6) is complete** as of July 2026. Remaining optional work: Phase 4 toolbar background audit, decorative icon Dynamic Type pass.
+**Verdict:** Trinket is on the modern Apple stack for state, navigation, concurrency, and tab structure. **Liquid Glass migration is complete** as of July 2026. Remaining follow-ups (haptics wiring, AppStorage, Dynamic Type icons, iOS 26 scroll chrome, privacy/CloudKit prep) live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
-**Implementation plan:** [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
+**Implementation plans:** [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) (complete) · [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md)
 
 ---
 
@@ -21,8 +21,8 @@ Point-in-time audit: **July 2026**. Compares Trinket production code against iOS
 | Liquid Glass | ✅ Complete | Shared `TrinketGlassBackgroundModifier`; badge/wallet/bottomBar glass; `GlassEffectContainer` on wallet row |
 | Primary CTAs | ✅ `.glassProminent` | `PrimaryActionButtonModifier` migrated |
 | UI test guard | ✅ Removed | `performAccessibilityAudit()` unconditional at iOS 26 |
-| Toolbar backgrounds | ⏸ Deferred | Phase 4 audit — see migration plan |
-| Dynamic Type (icons) | ⚠️ Minor | 7 files use fixed `.font(.system(size:))` for decorative glyphs |
+| Toolbar backgrounds | ✅ Intentional | Hidden chrome retained on Battle / Play map / combatant detail for art-forward screens — not scheduled for change |
+| Dynamic Type (icons) | ⚠️ Minor | Fixed `.font(.system(size:))` on decorative glyphs — see best-practices plan Phase C |
 
 ---
 
@@ -103,13 +103,11 @@ All `.onChange(of:)` call sites use the iOS 17+ two-parameter closure (`{ _, new
 
 ### 1. Liquid Glass — design-system migration ✅ Complete (July 2026)
 
-Implemented via `TrinketGlassBackgroundModifier` and updated `MaterialRoleStyle` role map. See git history on `VisualFoundation.swift`.
-
-**Deferred:** Phase 4 toolbar background audit (Play, Battle, combatant detail).
+Implemented via `TrinketGlassBackgroundModifier` and updated `MaterialRoleStyle` role map. See git history on `VisualFoundation.swift`. Hidden toolbar backgrounds on Battle, Play map, and combatant detail are an intentional art-forward choice and are not scheduled for migration.
 
 ### 2. Tab bar minimize behavior (priority: low, product decision)
 
-iOS 26 floating tab bars support `.tabBarMinimizeBehavior(.onScrollDown)` ([WWDC25-323](https://developer.apple.com/videos/play/wwdc2025/323/)). Trinket does not opt in today.
+iOS 26 floating tab bars support `.tabBarMinimizeBehavior(.onScrollDown)` ([WWDC25-323](https://developer.apple.com/videos/play/wwdc2025/323/)). Trinket does not opt in today. Tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D.
 
 **Consider for:** Play map (`ChapterStageSelectView`), long Collection shelves.
 
@@ -117,7 +115,7 @@ iOS 26 floating tab bars support `.tabBarMinimizeBehavior(.onScrollDown)` ([WWDC
 
 ### 3. Play journey `backgroundExtensionEffect` (priority: low)
 
-WWDC25 demonstrates hero art extending under sidebars via `.backgroundExtensionEffect()`. Trinket's chapter journey hero (`ChapterJourneyHero`) could adopt this for edge-to-edge presentation without clipping — evaluate against current `scrollTransition` treatment.
+WWDC25 demonstrates hero art extending under sidebars via `.backgroundExtensionEffect()`. Trinket's chapter journey hero (`ChapterJourneyHero`) could adopt this for edge-to-edge presentation without clipping — evaluate against current `scrollTransition` treatment. Tracked in best-practices plan Phase D.
 
 ### 4. Stale UI test availability guard ✅ Complete
 
@@ -125,21 +123,11 @@ Guard removed; `performAccessibilityAudit()` runs unconditionally at iOS 26 depl
 
 ### 5. Fixed decorative font sizes (priority: low)
 
-Seven files use `.font(.system(size: ...))` for placeholder/lock icons. These are not body text but may fail strict Dynamic Type audits. Consider `@ScaledMetric` or semantic icon styles where VoiceOver + Large Content Size matter.
+Several files use `.font(.system(size: ...))` for placeholder/lock icons. These are not body text but may fail strict Dynamic Type audits. Migrate to `@ScaledMetric` or semantic icon styles — best-practices plan Phase C.
 
 Files: `EmptySlots.swift`, `CombatantArtwork.swift`, `AbilityCard.swift`, `EncounterArtwork.swift`, `ChapterGateCardView.swift`, `HomesteadDetailViews.swift`, `BattleOutcomeComponents.swift`, plus `Modifiers.swift` (locked card overlay).
 
-### 6. Toolbar background hiding (priority: review)
-
-Hidden toolbar backgrounds in Battle and Play may interfere with iOS 26's automatic scroll-edge effect ([Adopting Liquid Glass § Toolbars](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass)):
-
-- `BattleView.swift` — conditional `.toolbarBackgroundVisibility`
-- `ChapterStageSelectView.swift` — `.toolbarBackgroundVisibility(.hidden)`
-- `CombatantDetailPane.swift` — `.toolbarBackground(.hidden)` + visibility hidden
-
-**Action:** Visual QA on iOS 26 simulator — confirm legibility over scrolling art. Remove redundant custom scrims if the system effect suffices.
-
-### 7. Future framework adoption
+### 6. Future framework adoption
 
 When adding features, start with current APIs:
 
@@ -148,6 +136,8 @@ When adding features, start with current APIs:
 | In-app purchase | StoreKit 2 (`Product`, `Transaction`) | StoreKit 1 |
 | Leaderboards | Modern GameKit | Legacy GK APIs |
 | 3D content | RealityKit | SceneKit (deprecated Xcode 26) |
+
+Additional gaps (haptics gating, AppStorage options, privacy manifest, CloudKit prep) are inventoried in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
 ---
 

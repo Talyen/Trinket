@@ -6,7 +6,8 @@ Curated Apple platform guidance and Trinket-specific stack audits. Use these whe
 |----------|---------|
 | [iOS26AppleReference.md](iOS26AppleReference.md) | Curated WWDC sessions, release notes, and Apple documentation links relevant to Trinket |
 | [iOS26StackAudit.md](iOS26StackAudit.md) | Point-in-time audit of Trinket against iOS 26 best practices (what is modern, what to improve) |
-| [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) | Phased implementation plan for Liquid Glass design-system migration and UI test guard removal |
-| [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Pre-ship CloudKit / App Store checklist (agent-checkable repo invariants + human device steps) |
+| [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) | Phased implementation plan for Liquid Glass design-system migration and UI test guard removal (complete) |
+| [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) | Follow-up plan: haptics, AppStorage, Dynamic Type, iOS 26 chrome APIs, privacy manifest, CloudKit prep |
+| [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Pre-ship CloudKit / App Store checklist (F1 local prep vs F2 Developer Program enablement) |
 
 Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design HIG index: [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md).
