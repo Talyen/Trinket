@@ -144,11 +144,11 @@ Extend `BattleSession` (names illustrative):
 enum UltimateCinematicSkipPolicy: String, CaseIterable {
     case always
     case never
-    case afterFirstView
+    case oncePerBattle
 }
 ```
 
-Persist with `@AppStorage` key `options.ultimateCinematicSkipPolicy`. For `afterFirstView`, store seen ability IDs in `UserDefaults` (device-local, not CloudKit). Reset-progress keeps settings (existing behavior).
+Persist with `@AppStorage` key `options.ultimateCinematicSkipPolicy`. For `oncePerBattle`, `BattleSession` tracks which of Hero/Pet already presented a cinematic this battle and auto-skips subsequent Ultimates for that actor. Reset-progress keeps settings (existing behavior).
 
 Clear new keys in `clearResetStateDefaults` only if product wants settings wiped on reset — **default: keep** (match appearance/haptics).
 
@@ -228,8 +228,8 @@ Clear new keys in `clearResetStateDefaults` only if product wants settings wiped
 | Layer | What |
 |-------|------|
 | BattleEngine | Ability events include id/tier/actor; cadence unchanged |
-| BattleSession | Soft-hold; cinematic hold; deferred flush; skip does not leak pause |
-| OptionsStore | Skip policy persistence; afterFirstView seen-set |
+| BattleSession | Soft-hold; cinematic hold; deferred flush; once-per-battle auto-skip; skip does not leak pause |
+| OptionsStore | Skip policy persistence; oncePerBattle per-actor battle tracking |
 | UI smoke | Battle enter/pause/log/retreat still green; new a11y ids if asserted |
 | Manual | Buttery expand/collapse; zero blank frames; Reduce Motion; 9:16 crop |
 
@@ -237,7 +237,7 @@ Clear new keys in `clearResetStateDefaults` only if product wants settings wiped
 
 ## Open implementation details (defaults if unspecified at kickoff)
 
-1. **`afterFirstView` scope:** per `abilityID` lifetime on device (recommended).
+1. **`oncePerBattle` scope:** one full-screen Ultimate per Hero and per Pet each battle (recommended; implemented).
 2. **Enemy Ultimate:** Skill-style caster callout (recommended) vs Basic-only chips.
 3. **Skill callout size:** ~40–55% of caster card width, top-trailing or center-over-card — tune in Phase 3.
 4. **Matched-geometry source:** ability art thumbnail on caster if already visible, else combatant card bounds.

@@ -48,6 +48,8 @@ final class BattleSession {
     private var cinematicPauseDepth = 0
     private var pauseStateBeforeCinematic: Bool?
     private var nextSpectacleID = 0
+    /// Actor IDs (Hero/Pet) that already presented a full-screen Ultimate this battle.
+    private var actorsWhoPresentedUltimateThisBattle: Set<String> = []
 
     var outcome: BattleSimulationOutcome? {
         guard let state else { return nil }
@@ -233,6 +235,14 @@ final class BattleSession {
                 petID: petID
             )
         }) {
+            let autoSkip = options?.shouldAutoSkipUltimateCinematic(
+                actorID: ultimate.actorID,
+                actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
+            ) ?? false
+            if autoSkip {
+                recordFeedbackEvents(nonMilestone, at: date)
+                return step
+            }
             deferredFeedbackEvents = nonMilestone
             beginCinematic(from: ultimate, at: date)
             return step
@@ -250,23 +260,20 @@ final class BattleSession {
     }
 
     func requestSkipCinematic(at date: Date = .now) {
-        guard let cinematic = activeCinematic else { return }
-        guard date >= cinematic.skipArmedAt else { return }
-        guard options?.canSkipUltimateCinematic(abilityID: cinematic.abilityID) ?? true else { return }
+        guard activeCinematic != nil else { return }
+        guard date >= (activeCinematic?.skipArmedAt ?? .distantPast) else { return }
+        guard options?.canSkipUltimateCinematic() ?? true else { return }
         beginCinematicCollapse()
     }
 
     func completeCinematicCollapse(at date: Date = .now) {
-        guard activeCinematic != nil else { return }
-        let abilityID = activeCinematic?.abilityID
+        guard let cinematic = activeCinematic else { return }
+        actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         activeCinematic = nil
         restorePauseAfterCinematic()
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
         recordFeedbackEvents(deferred, at: date)
-        if let abilityID {
-            options?.markUltimateCinematicSeen(abilityID: abilityID)
-        }
     }
 
     func beginCinematicCollapse() {
@@ -377,6 +384,7 @@ final class BattleSession {
         activeCinematic = nil
         deferredFeedbackEvents = []
         softHoldUntil = nil
+        actorsWhoPresentedUltimateThisBattle = []
         BattleCinematicPlayer.shared.releaseAll()
     }
 

@@ -172,7 +172,7 @@ struct BattleView: View {
                     UltimateCinematicOverlay(
                         cinematic: cinematic,
                         reduceMotion: reduceMotion,
-                        canSkip: appState.options.canSkipUltimateCinematic(abilityID: cinematic.abilityID),
+                        canSkip: appState.options.canSkipUltimateCinematic(),
                         namespace: cinematicNamespace,
                         onPlaying: {
                             battleSession.markCinematicPlaying()

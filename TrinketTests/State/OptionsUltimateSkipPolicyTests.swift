@@ -4,29 +4,62 @@ import Testing
 
 @MainActor
 struct OptionsUltimateSkipPolicyTests {
-    @Test func afterFirstViewAllowsSkipOnlyOnceSeen() {
+    @Test func oncePerBattleAutoSkipsAfterActorPresented() {
         let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.\(UUID().uuidString)")!
         let options = OptionsStore(defaults: defaults)
-        options.ultimateCinematicSkipPolicy = .afterFirstView
+        options.ultimateCinematicSkipPolicy = .oncePerBattle
 
-        #expect(options.canSkipUltimateCinematic(abilityID: "bloodthorn") == false)
-        options.markUltimateCinematicSeen(abilityID: "bloodthorn")
-        #expect(options.canSkipUltimateCinematic(abilityID: "bloodthorn"))
-        #expect(options.canSkipUltimateCinematic(abilityID: "faustian-bargain") == false)
+        #expect(options.canSkipUltimateCinematic())
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "hero",
+                actorsWhoPresentedThisBattle: []
+            ) == false
+        )
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "hero",
+                actorsWhoPresentedThisBattle: ["hero"]
+            )
+        )
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "pet",
+                actorsWhoPresentedThisBattle: ["hero"]
+            ) == false
+        )
+    }
+
+    @Test func migratesLegacyAfterFirstViewToOncePerBattle() {
+        let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.legacy.\(UUID().uuidString)")!
+        defaults.set(UltimateCinematicSkipPolicy.afterFirstView.rawValue, forKey: OptionsStore.ultimateCinematicSkipPolicyKey)
+        let options = OptionsStore(defaults: defaults)
+        #expect(options.ultimateCinematicSkipPolicy == .oncePerBattle)
     }
 
     @Test func neverPolicyBlocksSkip() {
         let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.never.\(UUID().uuidString)")!
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicSkipPolicy = .never
-        options.markUltimateCinematicSeen(abilityID: "bloodthorn")
-        #expect(options.canSkipUltimateCinematic(abilityID: "bloodthorn") == false)
+        #expect(options.canSkipUltimateCinematic() == false)
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "hero",
+                actorsWhoPresentedThisBattle: ["hero"]
+            ) == false
+        )
     }
 
-    @Test func alwaysPolicyAllowsSkip() {
+    @Test func alwaysPolicyAllowsSkipAndNeverAutoSkips() {
         let defaults = UserDefaults(suiteName: "OptionsUltimateSkipPolicyTests.always.\(UUID().uuidString)")!
         let options = OptionsStore(defaults: defaults)
         options.ultimateCinematicSkipPolicy = .always
-        #expect(options.canSkipUltimateCinematic(abilityID: "bloodthorn"))
+        #expect(options.canSkipUltimateCinematic())
+        #expect(
+            options.shouldAutoSkipUltimateCinematic(
+                actorID: "hero",
+                actorsWhoPresentedThisBattle: ["hero"]
+            ) == false
+        )
     }
 }

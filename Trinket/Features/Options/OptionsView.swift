@@ -54,7 +54,7 @@ struct OptionsView: View {
 
             Section("Battle") {
                 Picker("Skip Ultimate Animations", selection: $options.ultimateCinematicSkipPolicy) {
-                    ForEach(UltimateCinematicSkipPolicy.allCases) { policy in
+                    ForEach(UltimateCinematicSkipPolicy.pickerCases) { policy in
                         Text(policy.displayName).tag(policy)
                     }
                 }

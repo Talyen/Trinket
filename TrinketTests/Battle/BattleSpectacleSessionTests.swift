@@ -87,7 +87,53 @@ struct BattleSpectacleSessionTests {
         session.completeCinematicCollapse(at: now.addingTimeInterval(1))
         #expect(session.activeCinematic == nil)
         #expect(session.activeFeedbackEvents.count > beforeFeedbackCount)
-        #expect(options.hasSeenUltimateCinematic(abilityID: Ability.bloodthorn.id))
+    }
+
+    @Test func oncePerBattleShowsHeroUltimateOnceThenAutoSkips() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 1,
+            abilities: [.slash, .fireball, .bloodthorn]
+        )
+        let session = try BattleSessionTestSupport.makeConfiguredSession(
+            hero: hero,
+            pet: CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: []),
+            enemy: CombatantFixtures.combatant(
+                id: "enemy",
+                role: .enemy,
+                maxHealth: 2000,
+                actionIntervalTicks: 100,
+                abilities: []
+            )
+        )
+        let options = OptionsStore(
+            defaults: UserDefaults(suiteName: "BattleSpectacleOncePerBattle.\(UUID().uuidString)")!
+        )
+        options.ultimateCinematicSkipPolicy = .oncePerBattle
+        session.options = options
+
+        // First Ultimate (turn 6)
+        for _ in 0..<5 {
+            _ = session.advanceOneStep()
+        }
+        let firstUltimateAt = Date()
+        _ = session.advanceOneStep(at: firstUltimateAt)
+        #expect(session.activeCinematic?.actorID == "hero")
+        session.markCinematicPlaying()
+        session.beginCinematicCollapse()
+        session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
+
+        // Next Ultimate for same hero (turn 12) should auto-skip cinematic
+        for _ in 0..<5 {
+            _ = session.advanceOneStep()
+        }
+        let secondUltimateAt = Date()
+        let feedbackBefore = session.activeFeedbackEvents.count
+        _ = session.advanceOneStep(at: secondUltimateAt)
+        #expect(session.activeCinematic == nil)
+        #expect(session.activeFeedbackEvents.count > feedbackBefore)
+        #expect(session.canAutoAdvanceTick(at: secondUltimateAt))
     }
 
     @Test func enemyUltimateUsesSkillCalloutNotCinematic() throws {

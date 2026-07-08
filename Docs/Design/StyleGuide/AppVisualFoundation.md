@@ -178,7 +178,7 @@ Recommended VFX:
 - Health-bar fill and trailing damage/heal animation.
 - Skill cast: short caster-anchored ability-art callout (~0.5s soft-hold), with hit chips still on the target.
 - Ultimate cast (Hero/Pet only): full-screen cinematic while combat is held; prefer preloaded 9:16 video (source assets may vary; crop to 9:16 for display), fall back to ability card art until video exists; on dismiss, immediately resume combat and show damage/effects. Enemy Ultimates do not take over the screen.
-- Options preference controls whether Ultimate cinematics can be skipped (always / never / after first view).
+- Options preference controls whether Ultimate cinematics can be skipped (always / never / show once per battle for each of Hero and Pet).
 
 Reduce Motion should replace movement-heavy feedback with fades, static glows, or lower-count effects, and should prefer the static Ultimate art fallback over video. Do not use 3D models or a 3D battle scene for these effects.
 
