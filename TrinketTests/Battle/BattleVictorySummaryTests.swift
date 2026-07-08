@@ -31,9 +31,10 @@ final class BattleVictorySummaryTests {
             _ = session.advanceOneStep()
         }
 
+        let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: #require(session.state),
+            state: state,
             homestead: .freshStart
         )
         let expectedHeroXP = ExperienceScaling.battleAward(playerLevel: 2, enemyLevel: 2)
@@ -72,9 +73,10 @@ final class BattleVictorySummaryTests {
             _ = session.advanceOneStep()
         }
 
+        let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: #require(session.state),
+            state: state,
             homestead: .freshStart
         )
         let expectedPetXP = ExperienceScaling.battleAward(playerLevel: 1, enemyLevel: 1)
@@ -109,9 +111,10 @@ final class BattleVictorySummaryTests {
             _ = session.advanceOneStep()
         }
 
+        let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: #require(session.state),
+            state: state,
             homestead: .freshStart
         )
 
@@ -148,9 +151,10 @@ final class BattleVictorySummaryTests {
             _ = session.advanceOneStep()
         }
 
+        let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
             configuration: configuration,
-            state: #require(session.state),
+            state: state,
             homestead: homestead
         )
 

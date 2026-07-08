@@ -12,7 +12,10 @@ final class AppTestContext {
         let prefix = "AppTestContext"
         suiteName = "\(prefix).\(UUID().uuidString)"
         directoryURL = try SaveTestSupport.makeTempDirectory(prefix: prefix)
-        userDefaults = try #require(UserDefaults(suiteName: suiteName))
+        guard let userDefaults = UserDefaults(suiteName: suiteName) else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        self.userDefaults = userDefaults
         userDefaults.removePersistentDomain(forName: suiteName)
     }
 
