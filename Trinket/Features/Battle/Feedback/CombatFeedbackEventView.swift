@@ -1,6 +1,7 @@
 import BattleEngine
 import SwiftUI
 import TrinketCore
+import TrinketDesignSystem
 
 struct CombatFeedbackEventView: View {
     let event: ActionEvent
@@ -74,9 +75,7 @@ struct CombatFeedbackEventView: View {
         .foregroundStyle(style.color)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        // UIStyleCheck: allow - combat feedback is transient floating battle chrome.
-        .glassEffect(.regular)
-        .clipShape(Capsule())
+        .trinketGlassChip()
     }
 }
 

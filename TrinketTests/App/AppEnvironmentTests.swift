@@ -87,28 +87,9 @@ struct AppEnvironmentTests {
         #expect(Self.parse(arguments: ["-reset-state"]).disableCloudSync)
     }
 
-    @Test func runningUnderXCTestDisablesCloudSync() {
-        let env = Self.parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        #expect(env.disableCloudSync)
-    }
-
-    @Test func runningUnderXCTestDisablesAudio() {
-        let env = Self.parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        #expect(env.disableAudio)
-    }
-
-    @Test func runningUnderXCTestUsesFastBattleTickInterval() {
-        let env = Self.parse(
-            arguments: [],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        #expect(env.battleTickInterval == AppEnvironment.testBattleTickInterval)
+    @Test func persistSaveImmediatelyFlag() {
+        #expect(Self.parse(arguments: ["-persist-save-immediately"]).persistSaveImmediately)
+        #expect(!Self.parse(arguments: []).persistSaveImmediately)
     }
 
     @Test func battleTickIntervalParsesExplicitValue() {
@@ -116,20 +97,14 @@ struct AppEnvironmentTests {
         #expect(env.battleTickInterval == 0.25)
     }
 
-    @Test func battleTickIntervalExplicitOverridesXCTestDefault() {
-        let env = Self.parse(
-            arguments: ["-battle-tick-interval", "0.4"],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
+    @Test func battleTickIntervalExplicitValueIsHonored() {
+        let env = Self.parse(arguments: ["-battle-tick-interval", "0.4"])
         #expect(env.battleTickInterval == 0.4)
     }
 
     @Test func invalidBattleTickIntervalIgnored() {
-        let env = Self.parse(
-            arguments: ["-battle-tick-interval", "not-a-number"],
-            environment: ["XCTestConfigurationFilePath": "/tmp/TrinketTests.xctest"]
-        )
-        #expect(env.battleTickInterval == AppEnvironment.testBattleTickInterval)
+        let env = Self.parse(arguments: ["-battle-tick-interval", "not-a-number"])
+        #expect(env.battleTickInterval == nil)
     }
 
     @Test func completedStagesParsesCommaSeparatedIDs() {
@@ -165,6 +140,7 @@ struct AppEnvironmentTests {
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mapScrollTarget == nil)
         #expect(env.battleTickInterval == nil)
+        #expect(!env.persistSaveImmediately)
     }
 
     private static func parse(

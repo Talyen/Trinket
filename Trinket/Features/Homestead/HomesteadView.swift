@@ -9,6 +9,7 @@ struct HomesteadView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var build = HomesteadBuildControl()
     @State private var recentUpgradeID: HomesteadNodeID?
+    @State private var selectedHomesteadNode: HomesteadNodeDefinition?
 
     private var homestead: PlayerHomesteadState {
         appState.homestead.current
@@ -51,7 +52,8 @@ struct HomesteadView: View {
                             homestead: homestead,
                             roster: roster
                         ),
-                        style: .featured(onBuild: { buildOrUpgrade(featuredDefinition) })
+                        style: .featured(onBuild: { buildOrUpgrade(featuredDefinition) }),
+                        onSelect: { selectedHomesteadNode = featuredDefinition }
                     )
                 }
 
@@ -63,7 +65,8 @@ struct HomesteadView: View {
                             definitions: definitions,
                             homestead: homestead,
                             roster: roster,
-                            recentUpgradeID: recentUpgradeID
+                            recentUpgradeID: recentUpgradeID,
+                            onSelect: { selectedHomesteadNode = $0 }
                         )
                     }
                 }
@@ -77,6 +80,12 @@ struct HomesteadView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.homestead)
         .sensoryFeedback(.success, trigger: build.upgradeEventCount)
         .homesteadBuildErrorAlert(build: $build)
+        .sheet(item: $selectedHomesteadNode) { definition in
+            NavigationStack {
+                HomesteadNodeDetailView(definition: definition)
+            }
+            .trinketDetailSheet()
+        }
     }
 
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {

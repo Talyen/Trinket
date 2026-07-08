@@ -50,8 +50,7 @@ struct HomesteadResourcePill: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        // UIStyleCheck: allow - Resource wallet is compact glass chrome, not a content card.
-        .background(.thinMaterial, in: Capsule(style: .continuous))
+        .trinketWalletPill()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(resource.displayName), \(balance)")
     }

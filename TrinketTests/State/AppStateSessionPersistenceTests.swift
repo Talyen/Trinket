@@ -1,5 +1,4 @@
 import Testing
-import TrinketContent
 import TrinketPersistence
 @testable import Trinket
 
@@ -23,24 +22,25 @@ final class AppStateSessionPersistenceTests {
         #expect(state.mapScrollStageID == nil)
     }
 
-    @Test func loadsPreviouslyStoredTab() {
-        context.userDefaults.set(AppTab.homestead.rawValue, forKey: AppState.sessionTabKey)
+    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaults() {
+        context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
 
         let state = makeState()
 
         #expect(state.selectedTab == .homestead)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
     }
 
-    @Test func loadsPreviouslyStoredBattleStageID() {
-        context.userDefaults.set("chapter-1-stage-3", forKey: AppState.activeBattleStageIDKey)
+    @Test func migratesPreviouslyStoredBattleStageIDFromLegacyUserDefaults() {
+        context.userDefaults.set("chapter-1-stage-3", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
 
         let state = makeState()
 
         #expect(state.activeBattleStageID == "chapter-1-stage-3")
     }
 
-    @Test func loadsPreviouslyStoredMapScrollStageID() {
-        context.userDefaults.set("chapter-2-stage-1", forKey: AppState.mapScrollStageIDKey)
+    @Test func migratesPreviouslyStoredMapScrollStageIDFromLegacyUserDefaults() {
+        context.userDefaults.set("chapter-2-stage-1", forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
         let state = makeState()
 
@@ -51,7 +51,6 @@ final class AppStateSessionPersistenceTests {
         let state = makeState()
         state.selectedTab = .options
 
-        #expect(context.userDefaults.string(forKey: AppState.sessionTabKey) == AppTab.options.rawValue)
         #expect(makeState().selectedTab == .options)
     }
 
@@ -59,7 +58,6 @@ final class AppStateSessionPersistenceTests {
         let state = makeState()
         state.activeBattleStageID = "chapter-1-stage-5"
 
-        #expect(context.userDefaults.string(forKey: AppState.activeBattleStageIDKey) == "chapter-1-stage-5")
         #expect(makeState().activeBattleStageID == "chapter-1-stage-5")
     }
 
@@ -67,7 +65,6 @@ final class AppStateSessionPersistenceTests {
         let state = makeState()
         state.mapScrollStageID = "chapter-3-gate"
 
-        #expect(context.userDefaults.string(forKey: AppState.mapScrollStageIDKey) == "chapter-3-gate")
         #expect(makeState().mapScrollStageID == "chapter-3-gate")
     }
 
@@ -100,7 +97,7 @@ final class AppStateSessionPersistenceTests {
 
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
         #expect(state.mapScrollNonce == 1)
-        #expect(context.userDefaults.string(forKey: AppState.mapScrollStageIDKey) == "chapter-1-stage-2")
+        #expect(makeState().mapScrollStageID == "chapter-1-stage-2")
     }
 
     @Test func noteMapScrollFocusCanForceNonceWhenTargetUnchanged() {

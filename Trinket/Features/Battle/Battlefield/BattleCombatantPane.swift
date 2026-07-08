@@ -94,13 +94,9 @@ struct BattleCombatantPane: View {
 
     private var healthScrim: some View {
         healthChrome {
-            LinearGradient(
-                // UIStyleCheck: allow - battle health bars need readable contrast over full-bleed art.
-                colors: [Color.black.opacity(0.42), .clear],
-                startPoint: healthBarPlacement == .top ? .top : .bottom,
-                endPoint: healthBarPlacement == .top ? .bottom : .top
+            BattleHealthScrimGradient(
+                placement: healthBarPlacement == .top ? .top : .bottom
             )
-            .frame(height: 54)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

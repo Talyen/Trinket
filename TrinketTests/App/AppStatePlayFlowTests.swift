@@ -150,7 +150,10 @@ final class AppStatePlayFlowTests {
     // MARK: - Session state restoration
 
     @Test func sessionTabRestored() {
-        context.userDefaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+        context.userDefaults.set(
+            AppTab.homestead.rawValue,
+            forKey: PlayerShellSessionStore.legacySessionTabKey
+        )
 
         let state = context.makeAppState()
 
@@ -158,7 +161,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionTabOverriddenByEnv() {
-        context.userDefaults.set(AppTab.homestead.rawValue, forKey: "session.selectedTab")
+        context.userDefaults.set(
+            AppTab.homestead.rawValue,
+            forKey: PlayerShellSessionStore.legacySessionTabKey
+        )
 
         let state = context.makeAppState(arguments: ["-selectedTab", "options"])
 
@@ -172,7 +178,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionBattleRestored() throws {
-        context.userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
 
         let state = context.makeAppState()
 
@@ -182,7 +191,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionBattleNotRestoredWhenRewardsAlreadyClaimed() {
-        context.userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
 
         let state = context.makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
 
@@ -193,7 +205,7 @@ final class AppStatePlayFlowTests {
     @Test func completeStageUpdatesSessionMapScrollTarget() throws {
         let state = context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        context.userDefaults.set(stage.id, forKey: "session.mapScrollStageID")
+        context.userDefaults.set(stage.id, forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
 
         _ = state.completeStage(stage, hero: state.roster.activeHero, pet: state.roster.activePet)
 
@@ -209,7 +221,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionBattleNotRestoredWhenLaunchScreenBattle() throws {
-        context.userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
 
         let state = context.makeAppState(arguments: ["-launch-screen", "battle"])
 
@@ -219,7 +234,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionStaleStageIDIgnored() {
-        context.userDefaults.set("nonexistent-stage", forKey: "session.activeBattleStageID")
+        context.userDefaults.set(
+            "nonexistent-stage",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
 
         let state = context.makeAppState()
 
@@ -228,7 +246,10 @@ final class AppStatePlayFlowTests {
     }
 
     @Test func sessionBattleClearedOnEndBattle() throws {
-        context.userDefaults.set("chapter-1-stage-1", forKey: "session.activeBattleStageID")
+        context.userDefaults.set(
+            "chapter-1-stage-1",
+            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
+        )
 
         let state = context.makeAppState()
         _ = try #require(state.battle.activeBattle)

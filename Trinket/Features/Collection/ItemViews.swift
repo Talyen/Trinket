@@ -89,8 +89,7 @@ struct InventoryGridView: View {
             NavigationStack {
                 ItemDetailView(item: item)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .trinketDetailSheet()
         }
     }
 

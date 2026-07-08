@@ -312,6 +312,83 @@ public struct TypographyModifier: ViewModifier {
     }
 }
 
+public struct GlassChipModifier: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    public func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(ThemePalette.apple.elevatedBackground, in: Capsule(style: .continuous))
+                .overlay {
+                    Capsule(style: .continuous)
+                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                }
+        } else {
+            content
+                .glassEffect(.regular)
+                .clipShape(Capsule(style: .continuous))
+        }
+    }
+}
+
+public struct StatusBadgeModifier: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    public func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(ThemePalette.apple.panelSurface, in: Capsule(style: .continuous))
+                .overlay {
+                    Capsule(style: .continuous)
+                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                }
+        } else {
+            content
+                .background(.regularMaterial, in: Capsule(style: .continuous))
+        }
+    }
+}
+
+public struct WalletPillModifier: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    public func body(content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(ThemePalette.apple.secondaryBackground, in: Capsule(style: .continuous))
+                .overlay {
+                    Capsule(style: .continuous)
+                        .stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                }
+        } else {
+            content
+                .background(.thinMaterial, in: Capsule(style: .continuous))
+        }
+    }
+}
+
+public struct BattleHealthScrimGradient: View {
+    public enum Placement {
+        case top
+        case bottom
+    }
+
+    let placement: Placement
+
+    public init(placement: Placement) {
+        self.placement = placement
+    }
+
+    public var body: some View {
+        LinearGradient(
+            colors: [Color.black.opacity(0.42), .clear],
+            startPoint: placement == .top ? .top : .bottom,
+            endPoint: placement == .top ? .bottom : .top
+        )
+        .frame(height: 54)
+    }
+}
+
 public extension View {
     func trinketScreenBackground(_ mode: BackgroundMode = .standard, elementTint: Color? = nil) -> some View {
         modifier(ScreenBackgroundModifier(mode: mode, elementTint: elementTint))
@@ -333,5 +410,17 @@ public extension View {
 
     func trinketTypography(_ role: TypographyRole) -> some View {
         modifier(TypographyModifier(role: role))
+    }
+
+    func trinketGlassChip() -> some View {
+        modifier(GlassChipModifier())
+    }
+
+    func trinketStatusBadge() -> some View {
+        modifier(StatusBadgeModifier())
+    }
+
+    func trinketWalletPill() -> some View {
+        modifier(WalletPillModifier())
     }
 }

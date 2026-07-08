@@ -17,7 +17,7 @@ is_allowed_line() {
   fi
 
   # Central styling helpers are the approved place for raw glass/material details.
-  if [[ "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift" || "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Modifiers.swift" ]]; then
+  if [[ "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift" || "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Modifiers.swift" || "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift" ]]; then
     return 0
   fi
 

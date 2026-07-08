@@ -6,7 +6,7 @@ extension AppState {
     private static let battleTickIdlePollTolerance: Duration = .milliseconds(100)
 
     var battleTickInterval: Duration {
-        let seconds = AppEnvironment.shared.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
+        let seconds = environment.battleTickInterval ?? AppEnvironment.defaultBattleTickInterval
         return .seconds(seconds)
     }
 

@@ -43,10 +43,7 @@ struct ContentView: View {
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
-                    CollectionView(
-                        initialCombatantDetail: appState.initialCollectionCombatantDetail,
-                        initialItemID: appState.initialCollectionItemID
-                    )
+                    CollectionView()
                 }
             }
 

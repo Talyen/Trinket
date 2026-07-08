@@ -33,12 +33,15 @@ final class AppStateTests {
         )
 
         #expect(state.selectedTab == .collection)
+        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection combatant presentation")
+            return
+        }
         assertCollectionDetail(
-            state.initialCollectionCombatantDetail,
+            detail,
             kind: .hero,
             combatantID: "knight"
         )
-        #expect(state.initialCollectionItemID == nil)
     }
 
     @Test func petDetailLaunchScreenExposesCollectionCombatantDetail() {
@@ -47,21 +50,28 @@ final class AppStateTests {
         )
 
         #expect(state.selectedTab == .collection)
+        guard case let .collectionCombatant(detail) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection combatant presentation")
+            return
+        }
         assertCollectionDetail(
-            state.initialCollectionCombatantDetail,
+            detail,
             kind: .pet,
             combatantID: "wolf"
         )
     }
 
-    @Test func itemDetailLaunchScreenExposesCollectionItemID() {
+    @Test func itemDetailLaunchScreenExposesCollectionItemPresentation() {
         let state = context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "item:shortsword-basic"])
         )
 
         #expect(state.selectedTab == .collection)
-        #expect(state.initialCollectionCombatantDetail == nil)
-        #expect(state.initialCollectionItemID == "shortsword-basic")
+        guard case let .collectionItem(itemID) = state.pendingCollectionPresentation else {
+            Issue.record("Expected pending collection item presentation")
+            return
+        }
+        #expect(itemID == "shortsword-basic")
     }
 
     @Test func battleLaunchScreenDefaultsToPlayTab() {
