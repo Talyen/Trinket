@@ -96,14 +96,13 @@ final class JourneyProgressTests {
         try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directoryURL) }
 
-        let storeURL = SaveTestSupport.makeStoreURL(directoryURL: directoryURL)
         let firstSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        let firstStore = PlayerJourneyStore(saveStore: firstSaveStore)
-        firstStore.complete(chapter.stages[0], in: GameContent.chapters)
+        try firstSaveStore.performBatchMutation { save in
+            save.journey.complete(chapter.stages[0], in: GameContent.chapters)
+        }
 
         let secondSaveStore = try SaveTestSupport.makeSaveStore(directoryURL: directoryURL)
-        let secondStore = PlayerJourneyStore(saveStore: secondSaveStore)
-        try #expect(secondStore.current.activeStageID == "chapter-1-stage-2")
-        try #expect(secondStore.current.completedStageIDs.contains("chapter-1-stage-1"))
+        try #expect(secondSaveStore.journey.activeStageID == "chapter-1-stage-2")
+        try #expect(secondSaveStore.journey.completedStageIDs.contains("chapter-1-stage-1"))
     }
 }

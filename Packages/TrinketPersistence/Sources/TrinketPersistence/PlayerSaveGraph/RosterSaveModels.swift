@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 @Model
 public final class RosterModel {

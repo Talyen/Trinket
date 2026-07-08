@@ -7,7 +7,7 @@ struct TrinketApp: App {
 
     init() {
         do {
-            _appState = State(initialValue: try AppState(environment: .shared))
+            _appState = try State(initialValue: AppState(environment: .shared))
         } catch {
             assertionFailure("AppState bootstrap failed: \(error)")
             _appState = State(initialValue: try! AppState(

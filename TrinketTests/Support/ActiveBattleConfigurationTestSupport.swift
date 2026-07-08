@@ -5,19 +5,6 @@ import TrinketPersistence
 
 @MainActor
 enum ActiveBattleConfigurationTestSupport {
-    static func makeStores(
-        roster: PlayerRosterState = .initial,
-        inventory: PlayerInventoryState = .initial
-    ) throws -> (roster: PlayerRosterStore, inventory: PlayerInventoryStore) {
-        let saveStore = try PlayerSaveStore(inMemoryOnly: true)
-        saveStore.inventory = inventory
-        saveStore.roster = roster
-        return (
-            PlayerRosterStore(saveStore: saveStore),
-            PlayerInventoryStore(saveStore: saveStore)
-        )
-    }
-
     static func make(
         stageID: String? = nil,
         rngSeed: UInt64 = 0,
@@ -29,17 +16,17 @@ enum ActiveBattleConfigurationTestSupport {
         inventory: PlayerInventoryState = .initial,
         stageReward: StageReward? = nil
     ) throws -> ActiveBattleConfiguration {
-        let stores = try makeStores(roster: roster, inventory: inventory)
-        return ActiveBattleConfiguration.make(
+        ActiveBattleConfiguration.make(
             stageID: stageID,
             rngSeed: rngSeed,
             hero: hero,
             pet: pet,
-            roster: stores.roster,
-            inventory: stores.inventory,
+            rosterState: roster,
+            inventoryState: inventory,
             enemy: enemy,
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward
         )
     }
 }
+

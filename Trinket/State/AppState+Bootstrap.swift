@@ -8,16 +8,13 @@ extension AppState {
         let playerSave: PlayerSaveStore
         let shellSession: PlayerShellSessionStore
         let musicPlayer: MusicPlayer
-        let roster: PlayerRosterStore
-        let inventory: PlayerInventoryStore
-        let homestead: PlayerHomesteadStore
         let options: OptionsStore
-        let journey: PlayerJourneyStore
         let selectedTab: AppTab
         let activeBattleStageID: String?
         let mapScrollStageID: String?
         let pendingCollectionPresentation: LaunchPresentation?
     }
+
 
     static func makeBootstrapDependencies(
         environment: AppEnvironment,
@@ -58,21 +55,13 @@ extension AppState {
             resolvedOptions.appearance = appearanceOverride
         }
 
-        let resolvedRoster = PlayerRosterStore(saveStore: resolvedPlayerSave)
-        let resolvedInventory = PlayerInventoryStore(saveStore: resolvedPlayerSave)
-        let resolvedHomestead = PlayerHomesteadStore(saveStore: resolvedPlayerSave)
-        let resolvedJourney = PlayerJourneyStore(saveStore: resolvedPlayerSave)
         let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
 
         return BootstrapDependencies(
             playerSave: resolvedPlayerSave,
             shellSession: resolvedShellSession,
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
-            roster: resolvedRoster,
-            inventory: resolvedInventory,
-            homestead: resolvedHomestead,
             options: resolvedOptions,
-            journey: resolvedJourney,
             selectedTab: selectedTab(
                 environment: environment,
                 restoredTab: AppTab(shellSessionTab: resolvedShellSession.selectedTab)
@@ -81,6 +70,7 @@ extension AppState {
             mapScrollStageID: resolvedShellSession.mapScrollStageID,
             pendingCollectionPresentation: launchCollection
         )
+
     }
 
     func finishBootstrap(environment: AppEnvironment) {

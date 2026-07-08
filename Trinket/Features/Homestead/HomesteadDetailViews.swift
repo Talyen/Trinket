@@ -91,11 +91,11 @@ struct HomesteadNodeDetailView: View {
     private func buildOrUpgrade() {
         build.perform(
             definition,
-            homestead: appState.homestead,
-            roster: appState.roster
+            saveStore: appState.playerSave
         )
     }
 }
+
 
 struct HomesteadDetailHeader: View {
     let definition: HomesteadNodeDefinition

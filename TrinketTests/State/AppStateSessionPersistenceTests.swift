@@ -2,7 +2,7 @@ import Testing
 import TrinketPersistence
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct AppStateSessionPersistenceTests {
     let context: AppTestContext
 

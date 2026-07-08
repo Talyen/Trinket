@@ -54,15 +54,13 @@ struct ActiveBattleConfiguration: Identifiable {
         rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
-        roster: PlayerRosterStore,
-        inventory: PlayerInventoryStore,
+        rosterState: PlayerRosterState,
+        inventoryState: PlayerInventoryState,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil,
         catalog: CombatCatalog = GameContentCombatCatalog()
     ) -> ActiveBattleConfiguration {
-        let rosterState = roster.current
-        let inventoryState = inventory.current
         let enemyBuild = resolvedEnemyBuild(enemy: enemy, catalog: catalog)
         return ActiveBattleConfiguration(
             stageID: stageID,
@@ -89,6 +87,7 @@ struct ActiveBattleConfiguration: Identifiable {
             rewardItemNames: rewardItemNames(for: stageReward)
         )
     }
+
 
     private static func partyMember(
         combatant: Combatant,

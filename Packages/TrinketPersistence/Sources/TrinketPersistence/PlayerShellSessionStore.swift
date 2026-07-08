@@ -27,7 +27,7 @@ public final class PlayerShellSessionStore {
         didSet { persistSelectedTab() }
     }
 
-    public var activeBattleStageID: String? = nil {
+    public var activeBattleStageID: String? {
         didSet {
             persistBattleStageID()
             if activeBattleStageID != nil {
@@ -40,7 +40,7 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    public var mapScrollStageID: String? = nil {
+    public var mapScrollStageID: String? {
         didSet { persistMapScrollStageID() }
     }
 
@@ -160,10 +160,10 @@ public final class PlayerShellSessionStore {
         let initialBattleStage = finalRecord.activeBattleStageID
         let initialMapScrollStage = finalRecord.mapScrollStageID
 
-        self.record = finalRecord
-        self.selectedTab = initialTab
-        self.activeBattleStageID = initialBattleStage
-        self.mapScrollStageID = initialMapScrollStage
+        record = finalRecord
+        selectedTab = initialTab
+        activeBattleStageID = initialBattleStage
+        mapScrollStageID = initialMapScrollStage
 
         if needsInitialSave {
             saveContext()
@@ -275,4 +275,3 @@ public final class PlayerShellSessionStore {
         PlayerShellSessionTab(rawValue: rawValue)
     }
 }
-

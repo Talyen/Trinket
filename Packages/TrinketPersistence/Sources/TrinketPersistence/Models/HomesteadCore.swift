@@ -117,3 +117,11 @@ public extension PlayerHomesteadState {
         return true
     }
 }
+
+extension PlayerHomesteadState {
+    public var current: PlayerHomesteadState {
+        get { self }
+        set { self = newValue }
+    }
+}
+

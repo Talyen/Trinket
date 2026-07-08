@@ -57,13 +57,13 @@ final class AppTestContext {
         )
         return try AppState(
             environment: parsed,
-            playerSave: try playerSave ?? PlayerSaveStore(
+            playerSave: playerSave ?? PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
                 disableCloudSync: true,
                 resetState: parsed.resetState,
                 persistSaveImmediately: parsed.persistSaveImmediately
             ),
-            shellSessionStore: try makeShellSessionStore(environment: parsed),
+            shellSessionStore: makeShellSessionStore(environment: parsed),
             userDefaults: userDefaults
         )
     }
@@ -72,13 +72,13 @@ final class AppTestContext {
     func makeAppState(environment: AppEnvironment) throws -> AppState {
         try AppState(
             environment: environment,
-            playerSave: try PlayerSaveStore(
+            playerSave: PlayerSaveStore(
                 storeURL: SaveTestSupport.makeStoreURL(directoryURL: directoryURL),
                 disableCloudSync: true,
                 resetState: environment.resetState,
                 persistSaveImmediately: environment.persistSaveImmediately
             ),
-            shellSessionStore: try makeShellSessionStore(environment: environment),
+            shellSessionStore: makeShellSessionStore(environment: environment),
             userDefaults: userDefaults
         )
     }

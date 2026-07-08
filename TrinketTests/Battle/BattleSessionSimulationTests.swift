@@ -7,7 +7,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct BattleSessionSimulationTests {
     @Test func advanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
         let party = BattlePartyFixtures.quickWinParty()

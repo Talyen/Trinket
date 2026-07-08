@@ -1,11 +1,11 @@
-import Testing
 import Foundation
+import Testing
 import TrinketContent
 import TrinketPersistence
 import TrinketTestSupport
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct AppStatePlayFlowTests {
     let context: AppTestContext
 

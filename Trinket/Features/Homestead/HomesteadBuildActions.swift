@@ -12,15 +12,14 @@ struct HomesteadBuildControl {
     @MainActor
     mutating func perform(
         _ definition: HomesteadNodeDefinition,
-        homestead: PlayerHomesteadStore,
-        roster: PlayerRosterStore,
+        saveStore: PlayerSaveStore,
         onSuccess: (HomesteadNodeID) -> Void = { _ in }
     ) {
         guard !isBuilding else { return }
         isBuilding = true
         defer { isBuilding = false }
 
-        switch homestead.buildOrUpgrade(definition, roster: roster) {
+        switch saveStore.buildOrUpgradeHomesteadNode(definition) {
         case .success:
             upgradeEventCount += 1
             onSuccess(definition.id)
@@ -30,6 +29,7 @@ struct HomesteadBuildControl {
             error = "Couldn't save homestead progress. Try again."
         }
     }
+
 }
 
 extension View {

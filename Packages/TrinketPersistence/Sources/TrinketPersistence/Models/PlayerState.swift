@@ -240,4 +240,53 @@ public struct PlayerRosterState: Equatable, Sendable {
     ) -> InventoryItem? {
         inventory.item(matching: equipmentLoadout(for: combatant).itemID(for: slot))
     }
+
+    public var heroes: [Combatant] {
+        battleConfiguredCombatants(
+            GameContent.heroes.filter { isUnlocked($0) }
+        )
+    }
+
+    public var pets: [Combatant] {
+        battleConfiguredCombatants(
+            GameContent.pets.filter { isUnlocked($0) }
+        )
+    }
+
+    public var collectionHeroes: [Combatant] {
+        configuredCombatants(GameContent.heroes)
+    }
+
+    public var collectionPets: [Combatant] {
+        configuredCombatants(GameContent.pets)
+    }
+
+    public var activeHero: Combatant {
+        heroes.first { $0.id == activeHeroID } ??
+            heroes.first ??
+            GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID } ??
+            collectionHeroes[0]
+    }
+
+    public var activePet: Combatant {
+        pets.first { $0.id == activePetID } ??
+            pets.first ??
+            GameContent.pets.first { $0.id == PlayerRosterState.starterPetID } ??
+            collectionPets[0]
+    }
 }
+
+extension PlayerRosterState {
+    public var current: PlayerRosterState {
+        get { self }
+        set { self = newValue }
+    }
+}
+
+extension PlayerInventoryState {
+    public var current: PlayerInventoryState {
+        get { self }
+        set { self = newValue }
+    }
+}
+

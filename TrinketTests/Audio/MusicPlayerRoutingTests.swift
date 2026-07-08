@@ -2,7 +2,7 @@ import Testing
 import TrinketContent
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct MusicPlayerRoutingTests {
     @Test func menuRoutePlaysMenuTrackWhenNoEncounterIsActive() throws {
         let route = MusicRoute.resolve(

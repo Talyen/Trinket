@@ -4,7 +4,7 @@ import TrinketPersistence
 import TrinketTestSupport
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct AppStateTests {
     let context: AppTestContext
 

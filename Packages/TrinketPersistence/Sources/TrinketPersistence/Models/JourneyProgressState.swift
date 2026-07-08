@@ -29,3 +29,11 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
         self.lastCompletedStageID = lastCompletedStageID
     }
 }
+
+extension JourneyProgressState {
+    public var current: JourneyProgressState {
+        get { self }
+        set { self = newValue }
+    }
+}
+

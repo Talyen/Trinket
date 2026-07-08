@@ -2,7 +2,7 @@ import Testing
 import TrinketDesignSystem
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct OptionsStoreTests {
     let context: AppTestContext
 

@@ -2,6 +2,8 @@ import Foundation
 import Observation
 import os
 import SwiftData
+import TrinketContent
+
 
 @MainActor
 @Observable
@@ -299,4 +301,22 @@ public final class PlayerSaveStore {
             return nil
         }
     }
+
+    public func buildOrUpgradeHomesteadNode(_ definition: HomesteadNodeDefinition) -> HomesteadBuildResult {
+        var didUpgrade = false
+        do {
+            try performBatchMutation { save in
+                var homestead = save.homestead
+                var rosterState = save.roster
+                guard homestead.buildOrUpgrade(definition, roster: &rosterState) else { return }
+                save.homestead = homestead
+                save.roster = rosterState
+                didUpgrade = true
+            }
+        } catch {
+            return .persistFailed
+        }
+        return didUpgrade ? .success : .insufficientResources
+    }
 }
+

@@ -91,8 +91,7 @@ struct HomesteadView: View {
     private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
         build.perform(
             definition,
-            homestead: appState.homestead,
-            roster: appState.roster,
+            saveStore: appState.playerSave,
             onSuccess: { nodeID in
                 recentUpgradeID = nodeID
                 guard !reduceMotion else { return }
@@ -102,6 +101,7 @@ struct HomesteadView: View {
             }
         )
     }
+
 
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
         HomesteadProgression.visibleDefinitions(

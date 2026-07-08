@@ -17,7 +17,7 @@ enum AppTestSupport {
     ) throws -> AppState {
         try AppState(
             environment: makeEnvironment(arguments: arguments),
-            playerSave: try playerSave ?? SaveTestSupport.makeSaveStore(directoryURL: directoryURL),
+            playerSave: playerSave ?? SaveTestSupport.makeSaveStore(directoryURL: directoryURL),
             userDefaults: userDefaults
         )
     }

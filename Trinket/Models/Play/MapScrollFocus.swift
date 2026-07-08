@@ -1,6 +1,6 @@
 import Foundation
 
-struct MapScrollFocus: Equatable, Sendable {
+struct MapScrollFocus: Equatable {
     let stageID: String
     let revision: UInt
 }

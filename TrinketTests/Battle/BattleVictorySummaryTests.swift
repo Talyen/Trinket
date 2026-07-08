@@ -6,7 +6,7 @@ import TrinketTestSupport
 @testable import BattleEngine
 @testable import Trinket
 
-@Suite @MainActor
+@MainActor
 struct BattleVictorySummaryTests {
     @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
