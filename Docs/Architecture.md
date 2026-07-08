@@ -147,7 +147,7 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
 - Swift 6 strict concurrency enabled on all package targets
-- XCTest unit + XCUITest UI (tiered via `.xctestplan` files)
+- Swift Testing unit + XCTest UI (tiered via `.xctestplan` files)
 - XcodeGen (`project.yml`), SwiftLint, SwiftFormat
 - No third-party Swift dependencies
 - Battle presentation is SwiftUI; SpriteKit is not in use yet

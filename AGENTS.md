@@ -2,6 +2,37 @@
 
 Guidance for agents on Trinket: portrait-first iOS fantasy idle auto-battler.
 
+## Platform Baseline (read first)
+
+Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier as wrong unless the user explicitly asks for it.
+
+| Requirement | Value | Source of truth |
+|-------------|-------|-----------------|
+| Minimum OS | **iOS 26.0** | `project.yml` `deploymentTarget` |
+| Language | **Swift 6.0** | `project.yml` `SWIFT_VERSION` |
+| Toolchain | **Xcode 26+** | `README.md` |
+| Concurrency | **Strict** (`SWIFT_STRICT_CONCURRENCY: complete`) | `project.yml` |
+| UI framework | **SwiftUI** (no UIKit bridges unless unavoidable) | app target |
+| Unit tests | **Swift Testing** (`import Testing`) | `TrinketTests/`, package tests |
+| UI tests | **XCTest** (`TrinketUITests/`) | smoke/deploy plans |
+
+**Do not:**
+
+- Add `#available` / `@available` checks for iOS versions below 26 — we do not ship to older OSes.
+- Introduce `NavigationView`, `ObservableObject`, `@StateObject`, or `@Published` in new code.
+- Hand-roll materials, glass, or button styles in feature views — use `TrinketDesignSystem` (see `./Scripts/check-ui-style.sh`).
+- Assume UIKit patterns (manual layout, `UIViewRepresentable`) when SwiftUI has a first-party API.
+
+**Do:**
+
+- Use `@Observable` + `@Environment(Type.self)` + `@Bindable` for app state (see `Trinket/State/AppState.swift`, `Trinket/App/ContentView.swift`).
+- Use `NavigationStack`, modern `Tab` (including `role: .search`), sheets, `ToolbarItem`, semantic colors.
+- Use SwiftData (`@Model`) for persistence — see `TrinketPersistence`.
+- Route chrome through `TrinketDesign` / `.trinketSurface` / `.trinketMaterial` / `.trinketGlassChip` in `TrinketDesignSystem`.
+- When unsure, **grep the repo** for an existing pattern before inventing one.
+
+“Fallbacks” in design docs mean **accessibility** (Reduce Transparency / Reduce Motion), not older iOS support.
+
 ## When To Read What
 
 - Workflow/scripts/style: `AGENTS.md` · architecture/repo map: `Docs/Architecture.md` · gameplay vocabulary: `Docs/Design/CoreDesignConcepts.md` · future ideas: `Docs/Roadmap.md` · Apple HIG: `Docs/Design/AppleNativeGuidelines.md` · style guide: `Docs/Design/StyleGuide/AppVisualFoundation.md` · art: `ArtManifest/README.md` · content: `ContentManifest/README.md` · music: `MusicManifest/README.md` · releases: `Scripts/README.md` · setup: `README.md`
@@ -44,7 +75,7 @@ Key patterns:
 
 - System SwiftUI, SF Symbols, Dynamic Type, accessibility, semantic colors/materials. Major UI: `Docs/Design/AppleNativeGuidelines.md`. Swift API Design Guidelines; testably separate models, rules, rendering, persistence, platform services.
 - `TabView` top-level only; `NavigationStack`, sheets, alerts, menus, `ToolbarItem` for detail. Portrait, thumb-reachable; VoiceOver, Reduce Motion, contrast, Dynamic Type.
-- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass. Native glass on iOS 26+ with fallbacks. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
+- Chrome via `TrinketDesign`; avoid ad-hoc `.buttonStyle`, materials, capsules, and simulated glass. Native glass via `.glassEffect()` in `TrinketDesignSystem`; solid-surface fallback when Reduce Transparency is on. `Toggle` modes, `Button` actions; `controlSize`, `buttonBorderShape`, `Label`, semantic styles. `TrinketDesignSystem` depends on `TrinketCore` only (not `BattleEngine` or `TrinketContent`). Homestead node tint presentation lives in `Trinket/Models/Homestead.swift`.
 - **Style Guardrail Triggers**: `./Scripts/check-ui-style.sh` flags:
   - Raw materials: `.background` or `.fill` with `.regularMaterial`, `.thinMaterial`, or `.ultraThinMaterial`.
   - Raw button/toggle styles: `.buttonStyle(.glass)`, `.buttonStyle(.glassProminent)`, `.buttonStyle(.bordered)`, `.buttonStyle(.borderedProminent)`, and `.toggleStyle(.button)`.

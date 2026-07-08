@@ -152,7 +152,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
-        guard #available(iOS 17.0, *) else { return }
+        // Deployment target is iOS 26; guard documents API availability, not backward compatibility.
         do {
             try app.performAccessibilityAudit()
         } catch {

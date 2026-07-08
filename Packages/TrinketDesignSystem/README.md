@@ -27,4 +27,21 @@ Use semantic modifiers (`.trinketSurface(.base)`, `.trinketScreenBackground(.pla
 
 Every keyword has one visual identity via `Keyword.visualStyle`. Do not introduce one-off keyword colors in feature views.
 
-See `Docs/Design/StyleGuide/AppVisualFoundation.md` for the full visual direction.
+## Modern API Inventory
+
+Route recurring chrome through these modifiers — do not call raw SwiftUI styling APIs from feature views.
+
+| Modifier / API | Use for |
+|----------------|---------|
+| `.trinketScreenBackground(_:)` | Tab/screen background by semantic `BackgroundMode` |
+| `.trinketSurface(_:)` | Panels, cards, rows, selected/disabled/warning/reward states |
+| `.trinketMaterial(_:)` | Toolbars, bottom bars, sheets, popovers, reward reveals |
+| `.trinketGlassChip()` | Glass capsule chips via iOS 26 `.glassEffect(.regular)` |
+| `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
+| `.trinketCardSurface()` | 3:4 card identity tiles |
+| `.trinketPrimaryActionButton()` | Primary CTAs |
+| `.trinketStatusBadge()` / `.trinketWalletPill()` | Compact chips with material or solid fallback |
+
+Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
+
+See `Docs/Design/AppleNativeGuidelines.md` for deprecated patterns and `Docs/Design/StyleGuide/AppVisualFoundation.md` for the full visual direction.

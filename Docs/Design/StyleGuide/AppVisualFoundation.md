@@ -245,7 +245,7 @@ Update docs as implementation names settle:
 
 - `Docs/Architecture.md` for expanded `TrinketDesignSystem` ownership.
 - `Docs/Design/CoreDesignConcepts.md` for durable visual and battle-presentation principles.
-- `Docs/Design/AppleNativeGuidelines.md` for Trinket-specific native chrome rules if the design-system APIs need review guidance.
+- `Docs/Design/AppleNativeGuidelines.md` for Trinket-specific native chrome rules and deprecated-pattern deny list.
 - `Docs/Design/StyleGuide/VisualReferences/README.md` when a newer visual pass supersedes v2.
 
 Recommended verification for Phase 1-3:

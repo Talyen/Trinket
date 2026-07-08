@@ -159,9 +159,9 @@ rg 'SWIFT_STRICT_CONCURRENCY|warning.*concurrency' --type swift -g '*Tests/*'
 
 ### 4. Swift Testing adoption assessment
 
-Swift Testing (`import Testing`) is Apple's first-party testing framework alongside XCTest. It has been generally available since Xcode 16 (2024) and was featured in WWDC26 session #267 "Migrate to Swift Testing". The project currently has **zero** Swift Testing adoption (all 104 test files use XCTest).
+Swift Testing (`import Testing`) is Apple's first-party testing framework alongside XCTest. Migration to Swift Testing is **complete** for all unit and package test targets (`TrinketTests/`, `Packages/*/Tests/`). **XCTest remains only for `TrinketUITests/`** (`XCUIApplication`, performance metrics).
 
-Both frameworks coexist in the same target — migration can be incremental.
+Both frameworks coexist in the app test bundle during the UI-test-only XCTest retention — new unit tests must use Swift Testing.
 
 #### Evaluate migration candidates
 
