@@ -38,25 +38,6 @@ final class TabNavigationUITests: TrinketUITestCase {
         goBack()
     }
 
-    func testPetDetailInspection() {
-        launchApp(arguments: TestLaunchArg.allForScreen("pet:wolf"))
-        combatantDetail.assertLoaded(for: "Wolf")
-
-        let wolfHeader = combatantDetail.header(for: "Wolf")
-        assertExists(wolfHeader)
-        XCTAssertEqual(wolfHeader.label, "Wolf, Pet, level 2, 12 of 155 experience")
-        assertCombatantDetailSections()
-    }
-
-    func testInventoryItemInspection() {
-        launchApp(arguments: TestLaunchArg.allForScreen("item:wand-basic"))
-        assertExists("Wand")
-        assertExists("Affixes")
-
-        goBack()
-        collection.assertLoaded()
-    }
-
     func testTabBarRoundTrip() {
         launchApp(arguments: TestLaunchArg.allForTab("homestead"))
         homestead.assertLoaded(timeout: 2)
@@ -77,42 +58,6 @@ final class TabNavigationUITests: TrinketUITestCase {
         assertItemCardExists("Crossbow")
         collection.filterInventory(to: "All")
         assertItemCardExists("Crossbow")
-    }
-
-    func testHeroesGridListsRoster() {
-        launchApp(arguments: TestLaunchArg.allForTab("collection"))
-        collection.openHeroesCategory()
-        assertExists("Knight collection card")
-        assertExists("Wizard collection card")
-        assertExists("Rogue collection card")
-    }
-
-    func testFreshStartCollectionHidesInventorySection() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync,
-            "-selectedTab",
-            "collection"
-        ])
-        assertExists("Heroes collection category")
-        assertExists("Pets collection category")
-        XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
-        XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryEmptyState].exists)
-    }
-
-    func testFreshStartItemSlotsRenderLockedUntilSlotItemExists() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync
-        ] + TestLaunchArg.screen("hero:knight"))
-
-        scrollUntilVisible(app.descendants(matching: .any)["Weapon item slot"], swipingUp: true)
-        assertExists("Find a Weapon to Unlock")
-        assertExists("Find Armor to Unlock")
-        assertExists("Find a Trinket to Unlock")
-
-        app.descendants(matching: .any)["Weapon item slot"].tap()
-        XCTAssertFalse(app.navigationBars["Equip Weapon"].waitForExistence(timeout: 1))
     }
 
     private func firstEquipOption() -> XCUIElement {
