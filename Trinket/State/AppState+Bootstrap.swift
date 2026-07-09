@@ -82,8 +82,8 @@ extension AppState {
             startLaunchBattle()
         }
 
-        battle.onBattleStateChange = { [weak self] stageID in
-            self?.activeBattleStageID = stageID
+        battle.onBattleStateChange = { [weak self] token in
+            self?.applyBattleResumeToken(token)
             self?.syncBattleTickLoop()
         }
         installMemoryPressureHandling()
@@ -126,12 +126,12 @@ extension AppState {
         guard let stage = GameContent.stage(id: stageID),
               case .battle = stage.encounter
         else {
-            activeBattleStageID = nil
+            shellSession.clearActiveBattleResume()
             return
         }
 
         guard !journey.current.hasClaimedRewards(for: stage) else {
-            activeBattleStageID = nil
+            shellSession.clearActiveBattleResume()
             return
         }
 

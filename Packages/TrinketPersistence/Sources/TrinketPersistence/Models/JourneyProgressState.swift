@@ -15,6 +15,8 @@ public struct JourneyProgressState: Codable, Equatable, Sendable {
         lastCompletedStageID: nil
     )
 
+    public static let testSeed = JourneyProgressState.initial
+
     public init(
         activeChapterID: String,
         activeStageID: String?,

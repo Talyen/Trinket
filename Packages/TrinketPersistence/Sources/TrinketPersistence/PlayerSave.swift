@@ -32,7 +32,7 @@ public struct PlayerSave: Equatable, Sendable {
             schemaVersion: currentSchemaVersion,
             modifiedAt: Date(),
             sessionGeneration: 0,
-            journey: .initial,
+            journey: .testSeed,
             roster: .testSeed,
             inventory: .testSeed,
             homestead: .testSeed,

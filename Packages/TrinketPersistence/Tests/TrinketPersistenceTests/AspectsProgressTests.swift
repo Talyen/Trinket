@@ -1,17 +1,20 @@
 import Testing
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
 import TrinketTestSupport
 
 @Suite("AspectsProgress")
 struct AspectsProgressTests {
-    @Test func markFloorClearedAdvancesHighestOnly() {
+    @Test func markFloorClearedAdvancesSequentiallyOnly() {
         var progress = PlayerAspectsState()
-        progress.markFloorCleared(1, aspectID: AspectID.ironVein.rawValue)
-        progress.markFloorCleared(3, aspectID: AspectID.ironVein.rawValue)
-        progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue)
-        #expect(progress.highestClearedFloor(for: AspectID.ironVein.rawValue) == 3)
-        #expect(progress.activeFloor(for: AspectID.ironVein.rawValue, floorCount: 10) == 4)
+        #expect(progress.markFloorCleared(1, aspectID: AspectID.ironVein.rawValue))
+        #expect(!progress.markFloorCleared(3, aspectID: AspectID.ironVein.rawValue))
+        #expect(progress.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
+        #expect(progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue))
+        #expect(progress.highestClearedFloor(for: AspectID.ironVein.rawValue) == 2)
+        #expect(!progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue))
+        #expect(progress.activeFloor(for: AspectID.ironVein.rawValue, floorCount: 10) == 3)
     }
 
     @Test func sanitizeDropsUnknownAspectsAndClampsFloors() {
@@ -32,6 +35,9 @@ struct AspectsProgressTests {
 
         let first = try SaveTestSupport.makeSaveStore(directoryURL: directory)
         var progress = first.aspects
+        progress.markFloorCleared(1, aspectID: AspectID.cinderSpire.rawValue)
+        progress.markFloorCleared(2, aspectID: AspectID.cinderSpire.rawValue)
+        progress.markFloorCleared(3, aspectID: AspectID.cinderSpire.rawValue)
         progress.markFloorCleared(4, aspectID: AspectID.cinderSpire.rawValue)
         first.aspects = progress
 
@@ -58,15 +64,69 @@ struct AspectsProgressTests {
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
     }
 
+    @Test func wardenCompletionGrantsBiasedItem() throws {
+        var save = PlayerSave.fresh
+        for floorIndex in 1 ... 9 {
+            let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: floorIndex))
+            let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+            let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+            AspectCompletion.complete(floor: floor, hero: hero, pet: pet, save: &save)
+        }
+
+        let warden = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 10))
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+        let countBefore = save.inventory.items.count
+
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let item = try #require(AspectCompletion.makeWardenItem(for: warden, using: &rng))
+        AspectCompletion.complete(
+            floor: warden,
+            hero: hero,
+            pet: pet,
+            rewardItem: item,
+            save: &save
+        )
+
+        #expect(save.inventory.items.count == countBefore + 1)
+        #expect(item.baseType.keywordAffinities.contains(.physical))
+        #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 10)
+    }
+
     @Test func unlockGatesFollowIronVeinProgress() throws {
         var progress = PlayerAspectsState()
         let cinder = try #require(GameContent.aspect(id: .cinderSpire))
         let rime = try #require(GameContent.aspect(id: .rimeVault))
         #expect(!AspectUnlock.isUnlocked(cinder, progress: progress))
-        progress.markFloorCleared(5, aspectID: AspectID.ironVein.rawValue)
+        for floor in 1 ... 5 {
+            _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
+        }
         #expect(AspectUnlock.isUnlocked(cinder, progress: progress))
         #expect(!AspectUnlock.isUnlocked(rime, progress: progress))
-        progress.markFloorCleared(10, aspectID: AspectID.ironVein.rawValue)
+        for floor in 6 ... 10 {
+            _ = progress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
+        }
         #expect(AspectUnlock.isUnlocked(rime, progress: progress))
+    }
+
+    @Test func modesUnlockRequiresChapterOneComplete() throws {
+        #expect(!ModesUnlock.isUnlocked(journey: .initial))
+        let chapter1 = try #require(GameContent.chapters.first { $0.id == "chapter-1" })
+        let stageIDs = Set(chapter1.stages.map(\.id))
+        let unlockedJourney = JourneyProgressState(
+            activeChapterID: "chapter-2",
+            activeStageID: GameContent.chapters.first { $0.id == "chapter-2" }?.stages.first?.id,
+            completedStageIDs: stageIDs,
+            claimedRewardStageIDs: stageIDs,
+            lastCompletedStageID: chapter1.stages.last?.id
+        )
+        #expect(ModesUnlock.isUnlocked(journey: unlockedJourney))
+    }
+
+    @Test func materialBiasMatchesAspectKeyword() throws {
+        let burnFloor = try #require(GameContent.aspectFloor(aspectID: .cinderSpire, floor: 3))
+        #expect(burnFloor.rewards.materialRewards.contains { $0.resource == .wood })
+        let natureFloor = try #require(GameContent.aspectFloor(aspectID: .wildrootGrove, floor: 3))
+        #expect(natureFloor.rewards.materialRewards.contains { $0.resource == .herbs })
     }
 }

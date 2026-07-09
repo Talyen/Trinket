@@ -69,13 +69,14 @@ public enum AspectCatalog {
     }
 
     /// Preferred enemy IDs per Aspect keyword, ordered for floors 1…n (warden last when possible).
+    /// Prefer enemies whose kits include the Aspect keyword; fall back to thematic roster fills.
     private static let enemyPools: [Keyword: [String]] = [
-        .physical: ["goblin", "skeleton", "slime", "living_armor", "the_iron_bear"],
+        .physical: ["goblin", "skeleton", "slime", "mimic", "the_iron_bear"],
         .burn: ["will_o_wisp", "fire_elemental", "the_forge_golem"],
-        .poison: ["plague_doctor", "slime", "the_blight_treant"],
+        .poison: ["plague_doctor", "necromancer", "the_blight_treant"],
         .bleed: ["mimic", "necromancer", "the_blight_treant"],
         .holy: ["skeleton", "living_armor", "the_iron_bear"],
-        .nature: ["mud_elemental", "slime", "the_blight_treant"],
+        .nature: ["mud_elemental", "the_blight_treant", "the_blight_treant"],
         .freeze: ["frost_elemental", "the_frostwarden"],
         .stun: ["goblin", "living_armor", "the_forge_golem"]
     ]
@@ -98,7 +99,7 @@ public enum AspectCatalog {
                         aspectID: aspect.id,
                         floor: floorIndex,
                         enemyID: enemyID,
-                        rewards: rewards(for: floorIndex, isWarden: isWarden),
+                        rewards: rewards(for: floorIndex, keyword: aspect.keyword, isWarden: isWarden),
                         isWarden: isWarden
                     )
                 )
@@ -108,11 +109,30 @@ public enum AspectCatalog {
         return result
     }()
 
-    private static func rewards(for floor: Int, isWarden: Bool) -> StageReward {
+    public static func materialResource(for keyword: Keyword) -> HomesteadResource {
+        switch keyword {
+        case .physical, .stun:
+            return .iron
+        case .burn:
+            return .wood
+        case .poison, .nature:
+            return .herbs
+        case .bleed:
+            return .food
+        case .holy:
+            return .crystal
+        case .freeze:
+            return .stone
+        default:
+            return .wood
+        }
+    }
+
+    private static func rewards(for floor: Int, keyword: Keyword, isWarden: Bool) -> StageReward {
         let gold = 4 + floor * 2 + (isWarden ? 12 : 0)
         let materials: [ResourceAmount]
         if floor % 3 == 0 || isWarden {
-            materials = [ResourceAmount(.wood, isWarden ? 3 : 1)]
+            materials = [ResourceAmount(materialResource(for: keyword), isWarden ? 3 : 1)]
         } else {
             materials = []
         }

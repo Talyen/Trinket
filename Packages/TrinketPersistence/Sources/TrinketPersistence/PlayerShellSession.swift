@@ -6,6 +6,8 @@ public final class PlayerShellSession {
     public var id: String = "current"
     public var selectedTabRaw: String = "play"
     public var activeBattleStageID: String?
+    public var activeBattleAspectID: String?
+    public var activeBattleAspectFloor: Int?
     public var mapScrollStageID: String?
     public var activeBattleSavedAt: Date?
     public var activeBattleSchemaVersion: Int?

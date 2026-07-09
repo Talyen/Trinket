@@ -177,6 +177,7 @@
 		5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */; };
 		33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DD20B8080EC1342CD43769 /* ModesView.swift */; };
 		DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */; };
+		62325C2FC7B81C312DAFC8AF /* ActiveBattleResumeToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BD20B5279B2C0CC9946534 /* ActiveBattleResumeToken.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -369,6 +370,7 @@
 		F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectsHubView.swift; sourceTree = "<group>"; };
 		29DD20B8080EC1342CD43769 /* ModesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModesView.swift; sourceTree = "<group>"; };
 		EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Attention.swift; sourceTree = "<group>"; };
+		D6BD20B5279B2C0CC9946534 /* ActiveBattleResumeToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleResumeToken.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -817,6 +819,7 @@
 				7382C80BE222D86330B72AC2 /* ActiveBattleConfiguration.swift */,
 				A53FCF74A03783A9AD74786D /* BattleVictorySummary.swift */,
 				629511A1C422BD680C0AE9D4 /* BattleCinematicPlayer.swift */,
+				D6BD20B5279B2C0CC9946534 /* ActiveBattleResumeToken.swift */,
 			);
 			path = BattleShell;
 			sourceTree = "<group>";
@@ -1185,6 +1188,7 @@
 				5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */,
 				33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */,
 				DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */,
+				62325C2FC7B81C312DAFC8AF /* ActiveBattleResumeToken.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

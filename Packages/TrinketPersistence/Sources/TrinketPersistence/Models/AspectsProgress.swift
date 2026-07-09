@@ -28,11 +28,16 @@ public struct PlayerAspectsState: Equatable, Sendable {
         floor <= highestClearedFloor(for: aspectID)
     }
 
-    public mutating func markFloorCleared(_ floor: Int, aspectID: String) {
+    /// Advances highest cleared floor only for the next sequential floor.
+    /// Replays (`floor <= current`) are no-ops. Skips are ignored.
+    @discardableResult
+    public mutating func markFloorCleared(_ floor: Int, aspectID: String) -> Bool {
         let current = highestClearedFloor(for: aspectID)
-        if floor > current {
+        if floor == current + 1 {
             highestClearedFloorByAspectID[aspectID] = floor
+            return true
         }
+        return false
     }
 }
 

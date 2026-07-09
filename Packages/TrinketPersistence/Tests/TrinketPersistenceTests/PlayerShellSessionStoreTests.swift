@@ -42,14 +42,29 @@ final class PlayerShellSessionStoreTests {
         let storeURL = directoryURL.appending(path: "clear-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL)
         store.activeBattleStageID = "chapter-1-stage-1"
+        store.setAspectBattleResume(aspectID: "ironVein", floor: 2)
         store.mapScrollStageID = "chapter-1-stage-2"
 
         store.clearBattleState()
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.activeBattleStageID == nil)
+        try #expect(reloaded.activeBattleAspectID == nil)
+        try #expect(reloaded.activeBattleAspectFloor == nil)
         try #expect(reloaded.mapScrollStageID == nil)
         try #expect(reloaded.selectedTab == store.selectedTab)
+    }
+
+    @Test func aspectBattleResumePersistsAcrossReload() throws {
+        let storeURL = directoryURL.appending(path: "aspect-shell.store")
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        store.setAspectBattleResume(aspectID: "cinderSpire", floor: 4)
+
+        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(reloaded.activeBattleStageID == nil)
+        try #expect(reloaded.activeBattleAspectID == "cinderSpire")
+        try #expect(reloaded.activeBattleAspectFloor == 4)
+        try #expect(reloaded.hasActiveBattleResumeToken)
     }
 
     @Test func markCombatantAsViewedPersistsAcrossReload() throws {

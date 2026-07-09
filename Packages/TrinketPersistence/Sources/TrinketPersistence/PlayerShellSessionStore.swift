@@ -30,18 +30,30 @@ public final class PlayerShellSessionStore {
     public var activeBattleStageID: String? {
         didSet {
             persistBattleStageID()
-            if activeBattleStageID != nil {
-                activeBattleSavedAt = Date.now
-                activeBattleSchemaVersion = Self.currentSchemaVersion
-            } else {
-                activeBattleSavedAt = nil
-                activeBattleSchemaVersion = nil
-            }
+            touchBattleMetadataIfNeeded()
+        }
+    }
+
+    public var activeBattleAspectID: String? {
+        didSet {
+            persistBattleAspectID()
+            touchBattleMetadataIfNeeded()
+        }
+    }
+
+    public var activeBattleAspectFloor: Int? {
+        didSet {
+            persistBattleAspectFloor()
+            touchBattleMetadataIfNeeded()
         }
     }
 
     public var mapScrollStageID: String? {
         didSet { persistMapScrollStageID() }
+    }
+
+    public var hasActiveBattleResumeToken: Bool {
+        activeBattleStageID != nil || activeBattleAspectID != nil
     }
 
     public var activeBattleSavedAt: Date? {
@@ -126,6 +138,8 @@ public final class PlayerShellSessionStore {
         let resolvedTab = Self.tab(from: record.selectedTabRaw) ?? .play
         selectedTab = resolvedTab
         activeBattleStageID = record.activeBattleStageID
+        activeBattleAspectID = record.activeBattleAspectID
+        activeBattleAspectFloor = record.activeBattleAspectFloor
         mapScrollStageID = record.mapScrollStageID
         viewedCombatantIDs = Set(record.viewedCombatantIDs)
         acknowledgedHomesteadActionableFingerprint = record.acknowledgedHomesteadActionableFingerprint
@@ -182,11 +196,30 @@ public final class PlayerShellSessionStore {
     }
 
     public func clearBattleState() {
-        activeBattleStageID = nil
+        clearActiveBattleResume()
         mapScrollStageID = nil
+        lastBackgroundedTime = nil
+    }
+
+    public func clearActiveBattleResume() {
+        activeBattleStageID = nil
+        activeBattleAspectID = nil
+        activeBattleAspectFloor = nil
         activeBattleSavedAt = nil
         activeBattleSchemaVersion = nil
-        lastBackgroundedTime = nil
+    }
+
+    /// Journey and Aspect resume tokens are mutually exclusive.
+    public func setJourneyBattleResume(stageID: String) {
+        activeBattleAspectID = nil
+        activeBattleAspectFloor = nil
+        activeBattleStageID = stageID
+    }
+
+    public func setAspectBattleResume(aspectID: String, floor: Int) {
+        activeBattleStageID = nil
+        activeBattleAspectID = aspectID
+        activeBattleAspectFloor = floor
     }
 
     public func resetToDefaults(selectingTab tab: PlayerShellSessionTab = .play) {
@@ -265,6 +298,28 @@ public final class PlayerShellSessionStore {
         record.activeBattleStageID = activeBattleStageID
         record.updatedAt = .now
         saveContext()
+    }
+
+    private func persistBattleAspectID() {
+        record.activeBattleAspectID = activeBattleAspectID
+        record.updatedAt = .now
+        saveContext()
+    }
+
+    private func persistBattleAspectFloor() {
+        record.activeBattleAspectFloor = activeBattleAspectFloor
+        record.updatedAt = .now
+        saveContext()
+    }
+
+    private func touchBattleMetadataIfNeeded() {
+        if hasActiveBattleResumeToken {
+            activeBattleSavedAt = Date.now
+            activeBattleSchemaVersion = Self.currentSchemaVersion
+        } else if activeBattleStageID == nil, activeBattleAspectID == nil {
+            activeBattleSavedAt = nil
+            activeBattleSchemaVersion = nil
+        }
     }
 
     private func persistMapScrollStageID() {

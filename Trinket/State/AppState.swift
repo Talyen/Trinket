@@ -71,8 +71,29 @@ final class AppState {
         set { shellSession.activeBattleStageID = newValue }
     }
 
+    var activeBattleAspectID: String? {
+        get { shellSession.activeBattleAspectID }
+        set { shellSession.activeBattleAspectID = newValue }
+    }
+
+    var activeBattleAspectFloor: Int? {
+        get { shellSession.activeBattleAspectFloor }
+        set { shellSession.activeBattleAspectFloor = newValue }
+    }
+
     var activeBattleSavedAt: Date? {
         shellSession.activeBattleSavedAt
+    }
+
+    func applyBattleResumeToken(_ token: ActiveBattleResumeToken?) {
+        switch token {
+        case let .journey(stageID):
+            shellSession.setJourneyBattleResume(stageID: stageID)
+        case let .aspect(aspectID, floor):
+            shellSession.setAspectBattleResume(aspectID: aspectID.rawValue, floor: floor)
+        case .none:
+            shellSession.clearActiveBattleResume()
+        }
     }
 
     var mapScrollStageID: String? {
@@ -271,7 +292,7 @@ final class AppState {
     }
 
     var currentActivityType: AppActivityType {
-        if battle.activeBattle != nil || shellSession.activeBattleStageID != nil {
+        if battle.activeBattle != nil || shellSession.hasActiveBattleResumeToken {
             return .localBattle
         }
         return .browsing
@@ -297,8 +318,8 @@ final class AppState {
             case .localBattle:
                 if isSavedBattleValid() {
                     if elapsed < seamlessWindow {
-                        if battle.activeBattle == nil, let stageID = shellSession.activeBattleStageID, let stage = GameContent.stage(id: stageID) {
-                            startBattle(for: stage)
+                        if battle.activeBattle == nil {
+                            resumeSavedBattle()
                         }
                         selectedTab = .play
                     } else {

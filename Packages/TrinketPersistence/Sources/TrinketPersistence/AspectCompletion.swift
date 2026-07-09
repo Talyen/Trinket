@@ -14,8 +14,19 @@ public enum AspectCompletion {
         pet: Combatant,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil,
         save: inout PlayerSave
     ) {
+        let aspectID = floor.aspectID.rawValue
+        let floorCount = GameContent.aspect(id: floor.aspectID)?.floorCount ?? floor.floor
+        guard save.aspects.isFloorUnlocked(
+            floor.floor,
+            aspectID: aspectID,
+            floorCount: floorCount
+        ) else {
+            return
+        }
+
         let encounterLevel = enemyLevel(for: floor)
         save.roster.grantGold(floor.rewards.gold + battleEarnedGold)
         grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
@@ -24,7 +35,43 @@ public enum AspectCompletion {
         let resolvedMaterials = materialRewards
             ?? save.homestead.adjustedMaterialRewards(floor.rewards.materialRewards)
         save.homestead.grant(resolvedMaterials)
-        save.aspects.markFloorCleared(floor.floor, aspectID: floor.aspectID.rawValue)
+
+        if let rewardItem {
+            save.inventory.appendUniqueItem(rewardItem)
+        } else if floor.isWarden {
+            var rng = SystemRandomNumberGenerator()
+            if let generated = makeWardenItem(for: floor, using: &rng) {
+                save.inventory.appendUniqueItem(generated)
+            }
+        }
+
+        save.aspects.markFloorCleared(floor.floor, aspectID: aspectID)
+    }
+
+    public static func makeWardenItem<RNG: RandomNumberGenerator>(
+        for floor: AspectFloor,
+        using randomNumberGenerator: inout RNG
+    ) -> InventoryItem? {
+        guard floor.isWarden,
+              let aspect = GameContent.aspect(id: floor.aspectID)
+        else { return nil }
+
+        let keywordBias: Set<Keyword> = [aspect.keyword]
+        let candidates = GameContent.itemBaseTypes.filter {
+            !$0.keywordAffinities.isDisjoint(with: keywordBias)
+        }
+        guard let baseType = candidates.randomElement(using: &randomNumberGenerator) else {
+            return nil
+        }
+
+        let itemID = "aspect-\(floor.aspectID.rawValue)-floor-\(floor.floor)-\(baseType.id)"
+        return ItemGenerator().generate(
+            id: itemID,
+            baseType: baseType,
+            rarity: .basic,
+            keywordBias: keywordBias,
+            using: &randomNumberGenerator
+        )
     }
 
     private static func grantBattleExperience(
@@ -45,8 +92,23 @@ public enum AspectCompletion {
     }
 }
 
+public enum ModesUnlock {
+    /// Modes open after Chapter 1 is fully cleared.
+    public static func isUnlocked(
+        journey: JourneyProgressState,
+        chapters: [Chapter] = GameContent.chapters
+    ) -> Bool {
+        guard let chapter1 = chapters.first(where: { $0.id == "chapter-1" }) else {
+            return false
+        }
+        return chapter1.stages.allSatisfy { journey.completedStageIDs.contains($0.id) }
+    }
+
+    public static let unlockHint = "Clear Chapter 1"
+}
+
 public enum AspectUnlock {
-    /// Iron Vein is always available once Modes exists. Other Aspects unlock from Iron Vein progress.
+    /// Iron Vein is available once Modes is unlocked. Other Aspects unlock from Iron Vein progress.
     public static func isUnlocked(
         _ aspect: AspectDefinition,
         progress: PlayerAspectsState

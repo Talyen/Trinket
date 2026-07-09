@@ -1,12 +1,18 @@
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
+import TrinketPersistence
 
 struct ChapterJourneyHero: View {
+    @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let chapter: Chapter
     let overscroll: CGFloat
+
+    private var modesUnlocked: Bool {
+        ModesUnlock.isUnlocked(journey: appState.journey.current)
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -36,17 +42,7 @@ struct ChapterJourneyHero: View {
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.white.opacity(0.84))
                             Spacer(minLength: 8)
-                            NavigationLink {
-                                ModesView()
-                            } label: {
-                                Label("Modes", systemImage: "sparkles")
-                                    .font(.subheadline.weight(.semibold))
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                            }
-                            .buttonStyle(.plain)
-                            .trinketGlassChip()
-                            .accessibilityIdentifier(AccessibilityID.Play.modesEntry)
+                            modesEntryControl
                         }
 
                         Text(chapter.title)
@@ -71,5 +67,31 @@ struct ChapterJourneyHero: View {
         .backgroundExtensionEffect()
         .ignoresSafeArea(edges: .top)
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder
+    private var modesEntryControl: some View {
+        if modesUnlocked {
+            NavigationLink {
+                ModesView()
+            } label: {
+                modesChipLabel(locked: false)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Play.modesEntry)
+        } else {
+            modesChipLabel(locked: true)
+                .accessibilityIdentifier(AccessibilityID.Play.modesEntry)
+                .accessibilityHint(ModesUnlock.unlockHint)
+        }
+    }
+
+    private func modesChipLabel(locked: Bool) -> some View {
+        Label(locked ? "Modes Locked" : "Modes", systemImage: locked ? "lock.fill" : "sparkles")
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .opacity(locked ? 0.72 : 1)
+            .trinketGlassChip()
     }
 }

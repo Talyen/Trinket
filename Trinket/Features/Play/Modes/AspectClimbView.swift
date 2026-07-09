@@ -9,6 +9,7 @@ struct AspectClimbView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var partyPicker: PartyPickerKind?
     @State private var floorMessage: StageMapMessage?
+    @State private var scrollTarget: String?
 
     let aspectID: AspectID
 
@@ -31,6 +32,18 @@ struct AspectClimbView: View {
             pet: appState.roster.activePet,
             aspect: aspect
         )
+    }
+
+    private var activeFloorNumber: Int {
+        guard let aspect else { return 1 }
+        return progress.activeFloor(for: aspectID.rawValue, floorCount: aspect.floorCount)
+    }
+
+    private var showsItemAffinityHint: Bool {
+        guard let aspect else { return false }
+        let heroItems = equippedKeywords(for: appState.roster.activeHero)
+        let petItems = equippedKeywords(for: appState.roster.activePet)
+        return !heroItems.contains(aspect.keyword) && !petItems.contains(aspect.keyword)
     }
 
     var body: some View {
@@ -63,6 +76,12 @@ struct AspectClimbView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .onAppear {
+            scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: activeFloorNumber)?.id
+        }
+        .onChange(of: activeFloorNumber) { _, newValue in
+            scrollTarget = GameContent.aspectFloor(aspectID: aspectID, floor: newValue)?.id
+        }
     }
 
     @ViewBuilder
@@ -77,6 +96,11 @@ struct AspectClimbView: View {
                     Text(attunement.message)
                         .font(.footnote)
                         .foregroundStyle(attunement.isReady ? .secondary : .orange)
+                    if showsItemAffinityHint {
+                        Text("Affinity gear helps — not required.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(.horizontal, 4)
 
@@ -96,7 +120,10 @@ struct AspectClimbView: View {
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
             .padding(.vertical, 16)
+            .scrollTargetLayout()
         }
+        .scrollPosition(id: $scrollTarget, anchor: .center)
+        .animation(reduceMotion ? nil : .smooth, value: scrollTarget)
     }
 
     @ViewBuilder
@@ -111,13 +138,14 @@ struct AspectClimbView: View {
             floorCount: aspect.floorCount
         )
         let cleared = progress.isFloorCleared(floor.floor, aspectID: aspect.id.rawValue)
+        let isActive = floor.floor == activeFloorNumber && !cleared
 
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: isActive || !cleared ? 12 : 6) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)")
-                        .font(.headline)
-                    if let enemy = GameContent.enemy(matching: floor.enemyID) {
+                        .font(isActive ? .title3.weight(.bold) : .headline)
+                    if unlocked, let enemy = GameContent.enemy(matching: floor.enemyID) {
                         Text(enemy.combatant.name)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -147,8 +175,8 @@ struct AspectClimbView: View {
                 .disabled(!attunement.isReady || appState.battle.activeBattle != nil)
             }
         }
-        .padding(14)
-        .trinketSurface(unlocked ? .elevated : .denseRow)
+        .padding(isActive ? 16 : 14)
+        .trinketSurface(isActive ? .elevated : (unlocked ? .elevated : .denseRow))
         .opacity(unlocked ? 1 : 0.7)
         .accessibilityIdentifier(AccessibilityID.Play.aspectFloor(aspect.id.rawValue, floor: floor.floor))
         .animation(reduceMotion ? nil : .smooth, value: unlocked)
@@ -178,5 +206,17 @@ struct AspectClimbView: View {
             updatedRoster.setActivePet(combatant)
         }
         appState.roster.current = updatedRoster
+    }
+
+    private func equippedKeywords(for combatant: Combatant) -> Set<Keyword> {
+        let loadout = appState.roster.equipmentLoadout(for: combatant)
+        var keywords = Set<Keyword>()
+        for slot in combatant.role.equipmentSlots {
+            guard let itemID = loadout.itemID(for: slot),
+                  let item = appState.inventory.item(matching: itemID)
+            else { continue }
+            keywords.formUnion(item.baseType.keywordAffinities)
+        }
+        return keywords
     }
 }

@@ -9,9 +9,9 @@ warlock	Warlock	hero	16	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faus
 bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	plateMail,thornMail	9	3	10	2	4	thick_hide
 frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4	permafrost
 lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5	cold_blood
-panther	Panther	pet	15	0	bruiser	rendingSlash,fangs	serratedEdge,predatorsHaste	packTactics,hemorrhage	8	9	5	3	3	razor_claws
+panther	Panther	pet	15	0	bruiser	rendingSlash,fangs	serratedEdge,poisonDagger	packTactics,hemorrhage	8	9	5	3	3	razor_claws
 phoenix	Phoenix	pet	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,combustion	2	6	4	9	7	immortal_ember
-wolf	Wolf	pet	14	0	assassin	rendingSlash,fangs	serratedEdge,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4	pack_ferocity
+wolf	Wolf	pet	14	0	assassin	rendingSlash,fangs	graspingVines,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4	pack_ferocity
 golden_retriever	Golden Retriever	pet	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9	loyal_comfort
 library_owl	Library Owl	pet	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	2	6	5	7	10	purifying_wisdom
 risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	gravePact,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4	unliving_frame

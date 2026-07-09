@@ -6,14 +6,6 @@ import TrinketPersistence
 
 extension AppState {
     func isSavedBattleValid() -> Bool {
-        guard let stageID = shellSession.activeBattleStageID else { return false }
-        guard let stage = GameContent.stage(id: stageID),
-              case .battle = stage.encounter else {
-            return false
-        }
-        guard !journey.current.hasClaimedRewards(for: stage) else {
-            return false
-        }
         guard let savedVersion = shellSession.activeBattleSchemaVersion,
               savedVersion == PlayerShellSessionStore.currentSchemaVersion else {
             return false
@@ -24,13 +16,46 @@ extension AppState {
                 return false
             }
         }
-        return true
+
+        if let stageID = shellSession.activeBattleStageID {
+            guard let stage = GameContent.stage(id: stageID),
+                  case .battle = stage.encounter else {
+                return false
+            }
+            return !journey.current.hasClaimedRewards(for: stage)
+        }
+
+        if let aspectIDRaw = shellSession.activeBattleAspectID,
+           let floorNumber = shellSession.activeBattleAspectFloor {
+            let aspectID = AspectID(aspectIDRaw)
+            guard ModesUnlock.isUnlocked(journey: journey.current),
+                  let aspect = GameContent.aspect(id: aspectID),
+                  AspectUnlock.isUnlocked(aspect, progress: aspects.current),
+                  GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) != nil
+            else {
+                return false
+            }
+            return aspects.current.isFloorUnlocked(
+                floorNumber,
+                aspectID: aspectIDRaw,
+                floorCount: aspect.floorCount
+            )
+        }
+
+        return false
     }
 
     func resumeSavedBattle() {
-        guard let stageID = shellSession.activeBattleStageID,
-              let stage = GameContent.stage(id: stageID) else { return }
-        startBattle(for: stage)
+        if let stageID = shellSession.activeBattleStageID,
+           let stage = GameContent.stage(id: stageID) {
+            startBattle(for: stage)
+            return
+        }
+        if let aspectIDRaw = shellSession.activeBattleAspectID,
+           let floorNumber = shellSession.activeBattleAspectFloor,
+           let floor = GameContent.aspectFloor(aspectID: AspectID(aspectIDRaw), floor: floorNumber) {
+            _ = startAspectBattle(for: floor)
+        }
     }
 
     func abandonSavedBattle() {
@@ -85,7 +110,8 @@ extension AppState {
                 hero: configuration.hero.combatant,
                 pet: configuration.pet.combatant,
                 battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
+                materialRewards: materialRewards,
+                rewardItem: configuration.pendingRewardItem
             )
         } else if battleEarnedGold > 0 {
             grantBattleEarnedGold(battleEarnedGold)
