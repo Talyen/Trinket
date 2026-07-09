@@ -9,7 +9,7 @@ struct CombatFeedbackPresenterTests {
     @Test func dropsZeroDamageAbilityChips() {
         let events = [
             makeEvent(id: 1, kind: .ability, amount: 0, keyword: .physical),
-            makeEvent(id: 2, kind: .ability, amount: 5, keyword: .physical),
+            makeEvent(id: 2, kind: .ability, amount: 5, keyword: .physical)
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 100))
         #expect(items.count == 1)
@@ -26,7 +26,7 @@ struct CombatFeedbackPresenterTests {
                 effectKind: .criticalApplied,
                 amount: 0,
                 keyword: .physical
-            ),
+            )
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 100))
         #expect(items.count == 1)
@@ -38,7 +38,7 @@ struct CombatFeedbackPresenterTests {
 
     @Test func classifiesStatusAsDotWithShorterLifetime() {
         let events = [
-            makeEvent(id: 3, kind: .status, amount: 2, keyword: .burn),
+            makeEvent(id: 3, kind: .status, amount: 2, keyword: .burn)
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 50))
         #expect(items.count == 1)
@@ -62,7 +62,7 @@ struct CombatFeedbackPresenterTests {
                 effectKind: .dodgeApplied,
                 amount: 0,
                 keyword: .dodge
-            ),
+            )
         ]
         let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 1))
         #expect(items.map(\.feedbackClass) == [.heal, .dodge])
@@ -73,7 +73,7 @@ struct CombatFeedbackPresenterTests {
     @Test func staggerOffsetsAvailability() {
         let events = [
             makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
-            makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical),
+            makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical)
         ]
         let now = Date(timeIntervalSince1970: 1000)
         let items = CombatFeedbackPresenter.makeItems(
@@ -105,7 +105,7 @@ struct CombatFeedbackPresenterTests {
                     amount: 0,
                     keyword: .dodge
                 ),
-                makeEvent(id: 2, kind: .ability, amount: 5, keyword: .burn),
+                makeEvent(id: 2, kind: .ability, amount: 5, keyword: .burn)
             ],
             at: now
         )

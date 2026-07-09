@@ -9,7 +9,9 @@ struct CombatFeedbackEventView: View {
 
     @State private var rmOpacity = 0.0
 
-    private var recipe: CombatFeedbackMotionRecipe { item.recipe }
+    private var recipe: CombatFeedbackMotionRecipe {
+        item.recipe
+    }
 
     private var jitterX: CGFloat {
         guard !reduceMotion else { return 0 }

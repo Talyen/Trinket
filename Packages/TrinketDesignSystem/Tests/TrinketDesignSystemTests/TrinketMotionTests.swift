@@ -1,7 +1,6 @@
 import Testing
 import TrinketDesignSystem
 
-@Suite
 struct TrinketMotionTests {
     @Test func battleSkillSoftHoldIsHalfSecond() {
         #expect(TrinketMotion.Battle.skillSoftHold == 0.5)

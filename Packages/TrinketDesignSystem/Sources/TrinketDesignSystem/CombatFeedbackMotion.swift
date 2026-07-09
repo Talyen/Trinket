@@ -130,7 +130,7 @@ public enum CombatFeedbackLayout: Sendable {
     public static func unitNoise(seed: Int) -> CGFloat {
         let mixed = UInt64(bitPattern: Int64(seed)) &* 0x9E37_79B9_7F4A_7C15
         let shifted = (mixed ^ (mixed >> 33))
-        return CGFloat(shifted % 10_000) / 10_000
+        return CGFloat(shifted % 10000) / 10000
     }
 
     public static func horizontalOffset(seed: Int, jitter: ClosedRange<CGFloat>) -> CGFloat {
