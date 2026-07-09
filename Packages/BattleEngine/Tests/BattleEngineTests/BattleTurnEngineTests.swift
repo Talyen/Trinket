@@ -80,6 +80,49 @@ struct BattleTurnEngineTests {
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
     }
 
+    @Test func deathgripDoesNotFireOnSkippedAction() throws {
+        let hero = CombatantFixtures.combatant(
+            id: "hero",
+            role: .hero,
+            actionIntervalTicks: 2,
+            abilities: [.slash]
+        )
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, actionIntervalTicks: 100)
+        var context = BattleEngineContext(
+            roster: BattleRoster(
+                hero: CombatantRuntime(
+                    combatant: hero,
+                    initialActiveEffects: [
+                        ActiveEffect(id: 1, effect: .deathsDoor, remainingTicks: 4),
+                        ActiveEffect(id: 2, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
+                    ],
+                    hasConsumedDeathsDoor: true
+                ),
+                pet: CombatantRuntime(combatant: pet),
+                enemy: CombatantRuntime(combatant: enemy)
+            ),
+            rng: SeededRandomNumberGenerator(seed: 0),
+            nextEffectID: 3,
+            nextEventID: 0,
+            events: [],
+            gold: 0,
+            initialGold: 0,
+            heroModifiers: CombatModifierProfile(blockPerActionWhileDeathsDoor: 2),
+            petModifiers: .zero,
+            enemyModifiers: .zero
+        )
+        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
+
+        let events = BattleTurnEngine.act(actor: hero, matchup: matchup, context: &context)
+
+        try #expect(events.contains { $0.effectKind == .controlActionSkipped })
+        try #expect(!events.contains { $0.abilityName == "Deathgrip" })
+        try #expect(
+            !context.roster.activeEffects(for: hero).contains { if case .shield = $0.effect { return true }; return false }
+        )
+    }
+
     @Test func abilityEventIncludesActorAbilityAndTier() throws {
         var (context, matchup) = makeContext()
         let enemy = context.roster.enemy.combatant

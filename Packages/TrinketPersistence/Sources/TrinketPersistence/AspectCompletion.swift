@@ -19,11 +19,16 @@ public enum AspectCompletion {
     ) {
         let aspectID = floor.aspectID.rawValue
         let floorCount = GameContent.aspect(id: floor.aspectID)?.floorCount ?? floor.floor
-        guard save.aspects.isFloorUnlocked(
-            floor.floor,
-            aspectID: aspectID,
-            floorCount: floorCount
-        ) else {
+        guard !save.aspects.isFloorCleared(floor.floor, aspectID: aspectID) else {
+            return
+        }
+        guard save.aspects.isFloorStartable(floor.floor, aspectID: aspectID),
+              save.aspects.isFloorUnlocked(
+                  floor.floor,
+                  aspectID: aspectID,
+                  floorCount: floorCount
+              )
+        else {
             return
         }
 
@@ -38,9 +43,9 @@ public enum AspectCompletion {
 
         if let rewardItem {
             save.inventory.appendUniqueItem(rewardItem)
-        } else if floor.isWarden {
+        } else {
             var rng = SystemRandomNumberGenerator()
-            if let generated = makeWardenItem(for: floor, using: &rng) {
+            if let generated = makeAspectFloorItem(for: floor, using: &rng) {
                 save.inventory.appendUniqueItem(generated)
             }
         }
@@ -48,13 +53,12 @@ public enum AspectCompletion {
         save.aspects.markFloorCleared(floor.floor, aspectID: aspectID)
     }
 
-    public static func makeWardenItem<RNG: RandomNumberGenerator>(
+    /// Generates an Aspect-biased item for any cleared floor (affinity base + biased affixes).
+    public static func makeAspectFloorItem<RNG: RandomNumberGenerator>(
         for floor: AspectFloor,
         using randomNumberGenerator: inout RNG
     ) -> InventoryItem? {
-        guard floor.isWarden,
-              let aspect = GameContent.aspect(id: floor.aspectID)
-        else { return nil }
+        guard let aspect = GameContent.aspect(id: floor.aspectID) else { return nil }
 
         let keywordBias: Set<Keyword> = [aspect.keyword]
         let candidates = GameContent.itemBaseTypes.filter {
@@ -72,6 +76,15 @@ public enum AspectCompletion {
             keywordBias: keywordBias,
             using: &randomNumberGenerator
         )
+    }
+
+    /// Backward-compatible alias used by older call sites and tests.
+    public static func makeWardenItem<RNG: RandomNumberGenerator>(
+        for floor: AspectFloor,
+        using randomNumberGenerator: inout RNG
+    ) -> InventoryItem? {
+        guard floor.isWarden else { return nil }
+        return makeAspectFloorItem(for: floor, using: &randomNumberGenerator)
     }
 
     private static func grantBattleExperience(

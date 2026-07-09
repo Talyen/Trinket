@@ -132,22 +132,28 @@ struct AspectClimbView: View {
         aspect: AspectDefinition,
         style: Keyword.VisualStyle
     ) -> some View {
+        let startable = progress.isFloorStartable(floor.floor, aspectID: aspect.id.rawValue)
+        let cleared = progress.isFloorCleared(floor.floor, aspectID: aspect.id.rawValue)
         let unlocked = progress.isFloorUnlocked(
             floor.floor,
             aspectID: aspect.id.rawValue,
             floorCount: aspect.floorCount
         )
-        let cleared = progress.isFloorCleared(floor.floor, aspectID: aspect.id.rawValue)
-        let isActive = floor.floor == activeFloorNumber && !cleared
+        let isActive = startable
 
         VStack(alignment: .leading, spacing: isActive || !cleared ? 12 : 6) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)")
                         .font(isActive ? .title3.weight(.bold) : .headline)
-                    if unlocked, let enemy = GameContent.enemy(matching: floor.enemyID) {
+                    if unlocked || cleared, let enemy = GameContent.enemy(matching: floor.enemyID) {
                         Text(enemy.combatant.name)
                             .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    if cleared {
+                        Text("Cleared")
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -156,18 +162,18 @@ struct AspectClimbView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .accessibilityLabel("Cleared")
-                } else if !unlocked {
+                } else if !startable {
                     Image(systemName: "lock.fill")
                         .foregroundStyle(.secondary)
                         .accessibilityLabel("Locked")
                 }
             }
 
-            if unlocked {
+            if startable {
                 Button {
                     beginFloor(floor)
                 } label: {
-                    Text(cleared ? "Replay Floor" : "Begin Floor")
+                    Text("Begin Floor")
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
@@ -176,10 +182,10 @@ struct AspectClimbView: View {
             }
         }
         .padding(isActive ? 16 : 14)
-        .trinketSurface(isActive ? .elevated : (unlocked ? .elevated : .denseRow))
-        .opacity(unlocked ? 1 : 0.7)
+        .trinketSurface(isActive ? .elevated : (cleared || unlocked ? .elevated : .denseRow))
+        .opacity(startable || cleared ? 1 : 0.7)
         .accessibilityIdentifier(AccessibilityID.Play.aspectFloor(aspect.id.rawValue, floor: floor.floor))
-        .animation(reduceMotion ? nil : .smooth, value: unlocked)
+        .animation(reduceMotion ? nil : .smooth, value: startable)
     }
 
     private func beginFloor(_ floor: AspectFloor) {

@@ -157,10 +157,9 @@ struct ActiveBattleConfiguration: Identifiable {
               let floor = GameContent.aspectFloor(
                   aspectID: aspectBattle.aspectID,
                   floor: aspectBattle.floor
-              ),
-              floor.isWarden
+              )
         else { return nil }
-        return AspectCompletion.makeWardenItem(for: floor, using: &randomNumberGenerator)
+        return AspectCompletion.makeAspectFloorItem(for: floor, using: &randomNumberGenerator)
     }
 
     private static func partyMember(

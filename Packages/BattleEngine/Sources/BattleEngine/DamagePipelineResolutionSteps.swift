@@ -213,7 +213,7 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
-        guard state.markedBonusApplied, state.healthLost > 0 else { return }
+        guard state.markedBonusApplied else { return }
 
         var effects = context.roster.activeEffects(for: state.combatant)
         guard let index = effects.firstIndex(where: { if case .marked = $0.effect { return true }; return false }),

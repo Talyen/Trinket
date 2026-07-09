@@ -23,11 +23,13 @@ extension AppState {
             )
         }
 
-        guard aspects.current.isFloorUnlocked(
-            floor.floor,
-            aspectID: floor.aspectID.rawValue,
-            floorCount: aspect.floorCount
-        ) else {
+        guard aspects.current.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue) else {
+            if aspects.current.isFloorCleared(floor.floor, aspectID: floor.aspectID.rawValue) {
+                return StageMapMessage(
+                    title: "Floor Cleared",
+                    message: "This floor is already complete."
+                )
+            }
             return StageMapMessage(
                 title: "Floor Locked",
                 message: "Clear earlier floors first."
@@ -58,6 +60,7 @@ extension AppState {
         return nil
     }
 
+    @discardableResult
     func completeAspectFloor(
         _ floor: AspectFloor,
         hero: Combatant,
@@ -65,7 +68,7 @@ extension AppState {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil,
         rewardItem: InventoryItem? = nil
-    ) {
+    ) -> Bool {
         do {
             try playerSave.performBatchMutation { save in
                 AspectCompletion.complete(
@@ -78,10 +81,12 @@ extension AppState {
                     save: &save
                 )
             }
+            return true
         } catch {
             appStateLogger.error(
                 "Failed to persist Aspect floor: \(error.localizedDescription, privacy: .public)"
             )
+            return false
         }
     }
 }

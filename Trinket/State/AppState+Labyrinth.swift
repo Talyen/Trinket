@@ -170,13 +170,14 @@ extension AppState {
         return nil
     }
 
+    @discardableResult
     func completeLabyrinthNode(
         nodeID: String,
         hero: Combatant? = nil,
         pet: Combatant? = nil,
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
-    ) {
+    ) -> Bool {
         let resolvedHero = hero ?? roster.activeHero
         let resolvedPet = pet ?? roster.activePet
         do {
@@ -190,10 +191,12 @@ extension AppState {
                     save: &save
                 )
             }
+            return true
         } catch {
             appStateLogger.error(
                 "Failed to persist Labyrinth node: \(error.localizedDescription, privacy: .public)"
             )
+            return false
         }
     }
 

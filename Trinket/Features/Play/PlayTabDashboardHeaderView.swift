@@ -6,6 +6,7 @@ import TrinketPersistence
 
 struct PlayTabDashboardHeaderView: View {
     @Environment(AppState.self) private var appState
+    var onResumeMessage: ((StageMapMessage) -> Void)?
 
     var body: some View {
         VStack(spacing: 12) {
@@ -14,7 +15,7 @@ struct PlayTabDashboardHeaderView: View {
                 .frame(height: 0)
 
             if appState.showResumeBattleCard {
-                ResumeBattleCardView()
+                ResumeBattleCardView(onResumeMessage: onResumeMessage)
             }
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -24,6 +25,7 @@ struct PlayTabDashboardHeaderView: View {
 
 struct ResumeBattleCardView: View {
     @Environment(AppState.self) private var appState
+    var onResumeMessage: ((StageMapMessage) -> Void)?
 
     var body: some View {
         Group {
@@ -109,15 +111,15 @@ struct ResumeBattleCardView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 4) {
-                    Image(systemName: "timer")
+                    Image(systemName: "flag.checkered")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.green)
-                    Text("IN PROGRESS")
+                        .foregroundStyle(Color.secondary)
+                    Text("SAVED ENCOUNTER")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.green)
+                        .foregroundStyle(Color.secondary)
                 }
 
-                Text("Resume Battle")
+                Text("Return to Encounter")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.primary)
 
@@ -143,9 +145,11 @@ struct ResumeBattleCardView: View {
     private func resumeActions(tint: Color) -> some View {
         VStack(spacing: 8) {
             Button {
-                appState.resumeSavedBattle()
+                if let message = appState.resumeSavedBattle() {
+                    onResumeMessage?(message)
+                }
             } label: {
-                Label("Resume", systemImage: "swords")
+                Label("Fight Again", systemImage: "swords")
                     .frame(maxWidth: .infinity)
             }
             .trinketPrimaryActionButton()

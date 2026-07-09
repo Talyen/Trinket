@@ -371,6 +371,15 @@ package extension CombatReactionEngine {
               !runtime.hasTriggeredSecondWind
         else { return [] }
 
+        // Death's Door owns lethal hits; Second Wind must not preempt it.
+        let deathsDoorOwnsLethalHit = DeathsDoorEngine.applies(to: target)
+            && context.roster.health(for: target) == 0
+            && (!context.roster.hasConsumedDeathsDoor(for: target)
+                || DeathsDoorEngine.hasLethalProtection(for: target, in: context))
+        if deathsDoorOwnsLethalHit {
+            return []
+        }
+
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
         guard percent < profile.onceBelowHealthPercentThreshold else { return [] }
         context.roster.mutateRuntime(for: target) { $0.hasTriggeredSecondWind = true }

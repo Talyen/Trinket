@@ -33,6 +33,9 @@ public struct DeathsDoorHandler: BattleEffectHandler {
         var updated = active
         updated.remainingTicks -= 1
         if updated.remainingTicks <= 0 {
+            context.roster.mutateRuntime(for: target) {
+                $0.deathsDoorExpiredAtTick = context.tickCount
+            }
             let event = context.nextEvent(
                 kind: .effect,
                 effectKind: .deathsDoorExpired,

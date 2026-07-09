@@ -1,8 +1,14 @@
 import Foundation
+import os
 import TrinketContent
 import TrinketCore
 
 public enum EffectTickEngine {
+    private static let logger = Logger(
+        subsystem: "com.ryanmcintire.Trinket",
+        category: "EffectTickEngine"
+    )
+
     public static func tickAll(context: inout BattleEngineContext, matchup: BattleMatchup) -> [ActionEvent] {
         var events: [ActionEvent] = []
 
@@ -39,7 +45,12 @@ public enum EffectTickEngine {
 
         for activeEffect in effects {
             guard context.roster.health(for: target) > 0 else { break }
-            guard let handler = EffectHandlers.all[activeEffect.effect.kind] else { continue }
+            guard let handler = EffectHandlers.all[activeEffect.effect.kind] else {
+                logger.error(
+                    "Missing effect handler for tick of \(String(describing: activeEffect.effect.kind), privacy: .public)"
+                )
+                continue
+            }
             let outcome = handler.tick(activeEffect, on: target, in: &context)
             events.append(contentsOf: outcome.events)
             tickOutcomes[activeEffect.id] = (outcome.updatedStack, outcome.removeAfter)

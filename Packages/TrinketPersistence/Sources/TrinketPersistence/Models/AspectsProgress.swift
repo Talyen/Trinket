@@ -28,6 +28,11 @@ public struct PlayerAspectsState: Equatable, Sendable {
         floor <= highestClearedFloor(for: aspectID)
     }
 
+    /// True only for the next uncleared floor in the climb (one-clear tower).
+    public func isFloorStartable(_ floor: Int, aspectID: String) -> Bool {
+        floor == highestClearedFloor(for: aspectID) + 1
+    }
+
     /// Advances highest cleared floor only for the next sequential floor.
     /// Replays (`floor <= current`) are no-ops. Skips are ignored.
     @discardableResult

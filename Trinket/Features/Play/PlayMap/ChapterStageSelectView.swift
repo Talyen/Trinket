@@ -11,6 +11,7 @@ struct ChapterStageSelectView: View {
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
+    var onResumeMessage: ((StageMapMessage) -> Void)?
 
     var body: some View {
         ScrollView {
@@ -20,7 +21,7 @@ struct ChapterStageSelectView: View {
                     overscroll: heroOverscroll
                 )
 
-                PlayTabDashboardHeaderView()
+                PlayTabDashboardHeaderView(onResumeMessage: onResumeMessage)
 
                 LazyVStack(alignment: .leading, spacing: 14) {
                     ForEach(journeyRows) { row in

@@ -87,9 +87,6 @@ struct HomesteadView: View {
         .onAppear {
             appState.acknowledgeHomesteadActionablesIfNeeded()
         }
-        .onChange(of: appState.homesteadActionableFingerprint) { _, _ in
-            appState.acknowledgeHomesteadActionablesIfNeeded()
-        }
         .sheet(item: $selectedHomesteadNode) { definition in
             NavigationStack {
                 HomesteadNodeDetailView(definition: definition)

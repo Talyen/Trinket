@@ -205,6 +205,11 @@ final class AppState {
         }
     }
 
+    /// True when save storage is degraded or was recovered by wiping a corrupt store.
+    var requiresPersistenceRecoveryAcknowledgement: Bool {
+        playerSave.isPersistenceDegraded || playerSave.recoveredAfterStoreDeletion
+    }
+
     var playChapter: Chapter {
         GameContent.chapter(id: journey.current.activeChapterID) ?? GameContent.chapters[0]
     }
@@ -380,6 +385,7 @@ final class AppState {
             shellSession.lastBackgroundedTime = Date()
         case .inactive:
             musicPlayer.cancelActiveFades()
+            Task { await playerSave.flushPendingSave() }
         case .active:
             evaluateResumeRules()
         @unknown default:

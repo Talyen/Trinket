@@ -6,7 +6,7 @@ import TrinketContent
 
 @Suite
 struct MarkedConsumeTests {
-    @Test func markedNotConsumedWhenFullyShielded() throws {
+    @Test func markedConsumedWhenFullyShielded() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         let shield = ActiveEffect(id: 1, effect: .shield(.block, 50, 6), remainingTicks: 6, sourceActorID: hero.id)
@@ -37,7 +37,8 @@ struct MarkedConsumeTests {
 
         try #expect(outcome.healthLost == 0)
         try #expect(
-            context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
+            !context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
         )
+        try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }
 }

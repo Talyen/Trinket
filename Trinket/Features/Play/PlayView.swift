@@ -12,7 +12,8 @@ struct PlayView: View {
 
         ChapterStageSelectView(
             onStageTap: handleStageTap,
-            onEnemyTap: showEnemyDetails(for:)
+            onEnemyTap: showEnemyDetails(for:),
+            onResumeMessage: { stageMessage = $0 }
         )
         .navigationDestination(item: $labyrinthDeepLink) { _ in
             LabyrinthMapView()
@@ -46,6 +47,7 @@ struct PlayView: View {
             )
         ) { session in
             MysteryEncounterView(session: session)
+                .interactiveDismissDisabled()
         }
         .fullScreenCover(
             item: Binding(

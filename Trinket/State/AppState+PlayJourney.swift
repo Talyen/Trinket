@@ -20,19 +20,28 @@ extension AppState {
         return isResumeTokenStillPlayable(token)
     }
 
-    func resumeSavedBattle() {
-        guard let token = savedBattleResumeToken else { return }
+    @discardableResult
+    func resumeSavedBattle() -> StageMapMessage? {
+        guard let token = savedBattleResumeToken else { return nil }
         switch token {
         case let .journey(stageID):
-            if let stage = GameContent.stage(id: stageID) {
-                startBattle(for: stage)
+            guard let stage = GameContent.stage(id: stageID) else {
+                return StageMapMessage(
+                    title: "Encounter Missing",
+                    message: "This saved encounter is no longer available."
+                )
             }
+            return startBattle(for: stage)
         case let .aspect(aspectID, floorNumber):
-            if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
-                _ = startAspectBattle(for: floor)
+            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
+                return StageMapMessage(
+                    title: "Encounter Missing",
+                    message: "This saved Aspect floor is no longer available."
+                )
             }
+            return startAspectBattle(for: floor)
         case let .labyrinth(nodeID):
-            _ = startLabyrinthBattle(nodeID: nodeID)
+            return startLabyrinthBattle(nodeID: nodeID)
         }
     }
 
@@ -62,29 +71,39 @@ extension AppState {
         return scrollTarget
     }
 
+    /// Persists victory rewards and ends the battle only when persistence succeeds.
+    @discardableResult
     func completeActiveBattle(
         _ configuration: ActiveBattleConfiguration,
         battleEarnedGold: Int,
         materialRewards: [ResourceAmount]? = nil
-    ) {
-        guard battle.activeBattle != nil else { return }
+    ) -> Bool {
+        guard battle.activeBattle != nil else { return false }
 
         let hero = configuration.hero.combatant
         let pet = configuration.pet.combatant
+        let persisted: Bool
         switch configuration.resumeToken {
         case let .journey(stageID):
             if let stage = GameContent.stage(id: stageID) {
-                completeStage(
-                    stage,
+                if let resultingJourney = persistStageCompletions(
+                    [stage],
                     hero: hero,
                     pet: pet,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards
-                )
+                ) {
+                    noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: resultingJourney))
+                    persisted = true
+                } else {
+                    persisted = false
+                }
+            } else {
+                persisted = true
             }
         case let .aspect(aspectID, floorNumber):
             if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
-                completeAspectFloor(
+                persisted = completeAspectFloor(
                     floor,
                     hero: hero,
                     pet: pet,
@@ -92,9 +111,11 @@ extension AppState {
                     materialRewards: materialRewards,
                     rewardItem: configuration.pendingRewardItem
                 )
+            } else {
+                persisted = true
             }
         case let .labyrinth(nodeID):
-            completeLabyrinthNode(
+            persisted = completeLabyrinthNode(
                 nodeID: nodeID,
                 hero: hero,
                 pet: pet,
@@ -103,10 +124,16 @@ extension AppState {
             )
         case .none:
             if battleEarnedGold > 0 {
-                grantBattleEarnedGold(battleEarnedGold)
+                persisted = grantBattleEarnedGold(battleEarnedGold)
+            } else {
+                persisted = true
             }
         }
-        battle.endBattle()
+
+        if persisted {
+            battle.endBattle()
+        }
+        return persisted
     }
 
     private func isResumeTokenStillPlayable(_ token: ActiveBattleResumeToken) -> Bool {
@@ -125,16 +152,9 @@ extension AppState {
             else {
                 return false
             }
-            return aspects.current.isFloorUnlocked(
-                floorNumber,
-                aspectID: aspectID.rawValue,
-                floorCount: aspect.floorCount
-            )
+            return aspects.current.isFloorStartable(floorNumber, aspectID: aspectID.rawValue)
         case let .labyrinth(nodeID):
-            guard isLabyrinthUnlocked else { return false }
-            if !labyrinth.hasMap {
-                _ = enterLabyrinth()
-            }
+            guard isLabyrinthUnlocked, labyrinth.hasMap else { return false }
             guard let node = labyrinth.node(id: nodeID),
                   node.type.isCombat,
                   !node.isCleared
@@ -145,16 +165,19 @@ extension AppState {
         }
     }
 
-    func grantBattleEarnedGold(_ amount: Int) {
-        guard amount > 0 else { return }
+    @discardableResult
+    func grantBattleEarnedGold(_ amount: Int) -> Bool {
+        guard amount > 0 else { return true }
         do {
             try playerSave.performBatchMutation { save in
                 save.roster.gold += amount
             }
+            return true
         } catch {
             appStateLogger.error(
                 "Failed to persist battle gold: \(error.localizedDescription, privacy: .public)"
             )
+            return false
         }
     }
 

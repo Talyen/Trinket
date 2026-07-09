@@ -60,12 +60,8 @@ struct AppEnvironmentTests {
 
     @Test func disableCloudSyncFlag() {
         #expect(Self.parse(arguments: ["-disable-cloud-sync"]).disableCloudSync)
-        #if targetEnvironment(simulator)
-        // On simulator, CloudKit is disabled by default unless -enable-cloud-sync is passed
+        // F1 ship posture: CloudKit off unless -enable-cloud-sync is passed.
         #expect(Self.parse(arguments: []).disableCloudSync)
-        #else
-        #expect(!Self.parse(arguments: []).disableCloudSync)
-        #endif
     }
 
     @Test func disableAudioFlag() {
@@ -134,17 +130,18 @@ struct AppEnvironmentTests {
         #expect(env.launchScreen == nil)
         #expect(!env.resetState)
         #expect(!env.seedTestProgress)
-        #if targetEnvironment(simulator)
         #expect(env.disableCloudSync)
-        #else
-        #expect(!env.disableCloudSync)
-        #endif
         #expect(!env.disableAudio)
         #expect(env.appearanceOverride == nil)
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mapScrollTarget == nil)
         #expect(env.battleTickInterval == nil)
         #expect(!env.persistSaveImmediately)
+    }
+
+    @Test func enableCloudSyncFlag() {
+        let env = Self.parse(arguments: ["-enable-cloud-sync"])
+        #expect(!env.disableCloudSync)
     }
 
     #if targetEnvironment(simulator)
