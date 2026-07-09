@@ -101,4 +101,76 @@ struct AbilityEffectIntegrationTests {
         try #expect(step.events.contains { $0.effectKind == .instantHeal && $0.keyword == .health })
         try #expect(battle.activeEffects(of: battle.hero).filter(ActiveEffect.isDebuff).count == 1)
     }
+
+    @Test func damageKeywordOverrideRewritesOutgoingDamageToHolyWithBonus() throws {
+        let strike = Ability(
+            id: "strike",
+            name: "Strike",
+            tier: .basic,
+            directDamage: 2,
+            damageKeyword: .physical,
+            description: "Strike"
+        )
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            actionIntervalTicks: 2,
+            abilities: [strike]
+        )
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(
+            hero: hero,
+            pet: pet,
+            enemy: enemy,
+            activeHeroEffects: [
+                ActiveEffect(id: 1, effect: .damageKeywordOverride(.holy, 3, 6), remainingTicks: 6)
+            ]
+        )
+
+        let step = try #require(
+            BattleTestFixtures.advanceUntilAbility("Strike", on: &battle),
+            "Expected Strike to resolve in battle"
+        )
+        let abilityEvent = try #require(step.events.first { $0.kind == .ability && $0.abilityName == "Strike" })
+        try #expect(abilityEvent.keyword == .holy)
+        try #expect(abilityEvent.amount >= 5)
+        try #expect(battle.health(of: battle.enemy) <= 95)
+    }
+
+    @Test func avatarOfJusticeAppliesConsecratedBlockAndArmor() throws {
+        let hero = Combatant(
+            id: "hero",
+            name: "Hero",
+            role: .hero,
+            maxHealth: 20,
+            actionIntervalTicks: 2,
+            abilities: [.avatarOfJustice]
+        )
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
+        let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
+        var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+
+        _ = try #require(
+            BattleTestFixtures.advanceUntilAbility("Avatar of Justice", on: &battle),
+            "Expected Avatar of Justice to resolve in battle"
+        )
+
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
+                return keyword == .holy && bonus == 3 && active.remainingTicks == 6
+            }
+            return false
+        })
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case .shield(.block, _, _) = active.effect { return true }
+            return false
+        })
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case .mitigation(.armor, _, _) = active.effect { return true }
+            return false
+        })
+    }
 }

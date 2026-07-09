@@ -101,6 +101,7 @@ public enum BattleTurnEngine {
             events: &events
         )
 
+        let logKeyword = damageOutcome.logDamageKeyword ?? ability.logDamageKeyword
         events.append(
             context.nextEvent(
                 kind: .ability,
@@ -112,7 +113,7 @@ public enum BattleTurnEngine {
                 abilityTier: ability.tier,
                 target: abilityTarget,
                 amount: damageOutcome.totalDealtToAbilityTarget,
-                keyword: ability.logDamageKeyword,
+                keyword: logKeyword,
                 appliedEffectSummaries: appliedEffectLogs
             )
         )
@@ -125,6 +126,8 @@ public enum BattleTurnEngine {
         let events: [ActionEvent]
         let pairedDirectDamage: [(Keyword, Int)]
         let totalDealtToAbilityTarget: Int
+        /// Keyword used for the ability log line when damage was rewritten by an override buff.
+        let logDamageKeyword: Keyword?
     }
 
     // swiftlint:disable:next function_body_length
@@ -138,6 +141,8 @@ public enum BattleTurnEngine {
         var events: [ActionEvent] = []
         var totalDealtToAbilityTarget = 0
         var pairedDirectDamage: [(Keyword, Int)] = []
+        var logDamageKeyword: Keyword?
+        let keywordOverride = activeDamageKeywordOverride(for: actor, in: context)
 
         for component in ability.damageComponents {
             let damageTarget = resolveEffectTarget(
@@ -163,11 +168,20 @@ public enum BattleTurnEngine {
                 amount += component.bonusAmount
             }
 
+            var damageKeyword = component.keyword
+            if amount > 0, let override = keywordOverride {
+                damageKeyword = override.keyword
+                amount += override.bonus
+                if component.target == .abilityTarget {
+                    logDamageKeyword = override.keyword
+                }
+            }
+
             let damageOutcome = context.resolveDamage(
                 DamageRequest(
                     amount: amount,
                     target: damageTarget,
-                    keyword: component.keyword,
+                    keyword: damageKeyword,
                     sourceActorID: actor.id,
                     options: DamageOptions(
                         abilityCriticalChanceBonus: ability.criticalChanceBonus,
@@ -181,14 +195,14 @@ public enum BattleTurnEngine {
             events.append(contentsOf: damageEvents)
             if amount > 0 {
                 var pairedAmount = amount
-                if component.keyword == .bleed {
+                if damageKeyword == .bleed {
                     pairedAmount += EnemyTraitEngine.bonusBleedPotency(
                         ability: ability,
                         sourceID: actor.id,
                         in: context
                     )
                 }
-                pairedDirectDamage.append((component.keyword, pairedAmount))
+                pairedDirectDamage.append((damageKeyword, pairedAmount))
             }
             if component.target == .abilityTarget {
                 totalDealtToAbilityTarget += dealt
@@ -198,8 +212,21 @@ public enum BattleTurnEngine {
         return DamageComponentOutcome(
             events: events,
             pairedDirectDamage: pairedDirectDamage,
-            totalDealtToAbilityTarget: totalDealtToAbilityTarget
+            totalDealtToAbilityTarget: totalDealtToAbilityTarget,
+            logDamageKeyword: logDamageKeyword
         )
+    }
+
+    private static func activeDamageKeywordOverride(
+        for actor: Combatant,
+        in context: BattleEngineContext
+    ) -> (keyword: Keyword, bonus: Int)? {
+        for active in context.roster.activeEffects(for: actor) where active.remainingTicks > 0 {
+            if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
+                return (keyword, bonus)
+            }
+        }
+        return nil
     }
 
     private static func applyTargetedEffects(

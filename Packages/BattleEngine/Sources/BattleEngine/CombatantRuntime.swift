@@ -169,18 +169,6 @@ public struct CombatantRuntime: Hashable {
         isAlive && nextReadyAtTick <= tick
     }
 
-    /// Fraction of the current action interval that has elapsed (`0...1`).
-    /// Returns `1` when the combatant is ready to act.
-    public func actionChargeProgress(atTick tick: Int) -> Double {
-        let interval = max(1, scheduledActionInterval)
-        if isReady(atTick: tick) {
-            return 1
-        }
-        let cycleStart = nextReadyAtTick - interval
-        let elapsed = tick - cycleStart
-        return min(1, max(0, Double(elapsed) / Double(interval)))
-    }
-
     // MARK: - State mutations
 
     /// Subtracts `amount` from `currentHealth`, clamped at 0. Returns the

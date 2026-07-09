@@ -48,11 +48,6 @@ final class AppState {
         set { playerSave.labyrinth = newValue }
     }
 
-    var collectionAttention: PlayerCollectionAttentionState {
-        get { playerSave.collectionAttention }
-        set { playerSave.collectionAttention = newValue }
-    }
-
     var options: OptionsStore
     var battle: BattleSession
     var activeMysteryEncounter: MysteryEncounterSession?
@@ -231,7 +226,6 @@ final class AppState {
         activeLabyrinthCraft = nil
         clearSessionBattleState()
         shellSession.resetToDefaults(selectingTab: .play)
-        seedStarterCombatantsAsViewedIfNeeded()
         return true
     }
 

@@ -256,39 +256,4 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.inventory.items.map(\.id) == ["item-id"])
         try #expect(sanitized.roster.unlockedHeroIDs == [PlayerRosterState.starterHeroID])
     }
-
-    @Test func sanitizeCollectionAttentionPrunesStaleIDsAndKeepsStarters() throws {
-        let baseType = try #require(GameContent.itemBaseTypes.first)
-        let owned = InventoryItem(
-            id: "owned-item",
-            templateID: "template",
-            baseType: baseType,
-            rarity: .basic,
-            displayName: "Owned",
-            affixes: []
-        )
-        var save = PlayerSave.fresh
-        save.inventory = PlayerInventoryState(items: [owned])
-        save.roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "rogue"]
-        save.roster.progressions["rogue"] = .initial
-        save.collectionAttention = PlayerCollectionAttentionState(
-            viewedCombatantIDs: ["rogue", "missing-hero", PlayerRosterState.starterHeroID],
-            viewedItemIDs: ["owned-item", "missing-item"],
-            viewedItemTemplateIDs: ["template", "missing-template"]
-        )
-
-        let sanitized = PlayerSaveSanitizer.sanitize(save)
-
-        try #expect(sanitized.collectionAttention.viewedCombatantIDs.contains("rogue"))
-        try #expect(
-            sanitized.collectionAttention.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID)
-        )
-        try #expect(
-            sanitized.collectionAttention.viewedCombatantIDs.contains(PlayerRosterState.starterPetID)
-        )
-        try #expect(!sanitized.collectionAttention.viewedCombatantIDs.contains("missing-hero"))
-        try #expect(sanitized.collectionAttention.viewedItemIDs == ["owned-item"])
-        try #expect(sanitized.collectionAttention.viewedItemTemplateIDs == ["template"])
-        try #expect(!sanitized.collectionAttention.viewedItemTemplateIDs.contains("missing-template"))
-    }
 }

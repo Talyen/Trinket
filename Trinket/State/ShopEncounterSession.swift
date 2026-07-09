@@ -6,7 +6,7 @@ import TrinketPersistence
 @MainActor
 @Observable
 final class ShopEncounterSession: Identifiable {
-    var id: String {
+    nonisolated var id: String {
         stage.id
     }
 

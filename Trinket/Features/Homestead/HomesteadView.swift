@@ -84,9 +84,6 @@ struct HomesteadView: View {
             enabled: appState.options.hapticsEnabled
         )
         .homesteadBuildErrorAlert(build: $build)
-        .onAppear {
-            appState.acknowledgeHomesteadActionablesIfNeeded()
-        }
         .sheet(item: $selectedHomesteadNode) { definition in
             NavigationStack {
                 HomesteadNodeDetailView(definition: definition)

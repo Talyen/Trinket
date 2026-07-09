@@ -79,14 +79,15 @@ final class JourneyProgressTests {
         try #expect((1 ... 2).contains(rewardItem.affixes.count))
     }
 
-    @Test func chapterCompletionExposesLockedNextChapterState() throws {
+    @Test func chapterCompletionAdvancesActiveStageToNextChapter() throws {
         var progress = JourneyProgressState.initial
 
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        try #expect(progress.activeStageID == nil)
+        try #expect(progress.activeStageID == "chapter-2-stage-1")
+        try #expect(progress.activeChapterID == "chapter-2")
         try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
     }
 

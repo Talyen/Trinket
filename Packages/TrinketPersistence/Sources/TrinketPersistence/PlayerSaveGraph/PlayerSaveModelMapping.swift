@@ -205,22 +205,6 @@ extension HomesteadModel {
     }
 }
 
-extension CollectionAttentionModel {
-    func toPlayerCollectionAttentionState() -> PlayerCollectionAttentionState {
-        PlayerCollectionAttentionState(
-            viewedCombatantIDs: Set(viewedCombatantIDs),
-            viewedItemIDs: Set(viewedItemIDs),
-            viewedItemTemplateIDs: Set(viewedItemTemplateIDs)
-        )
-    }
-
-    func update(from attention: PlayerCollectionAttentionState) {
-        viewedCombatantIDs = attention.viewedCombatantIDs.sorted()
-        viewedItemIDs = attention.viewedItemIDs.sorted()
-        viewedItemTemplateIDs = attention.viewedItemTemplateIDs.sorted()
-    }
-}
-
 extension AspectsProgressModel {
     func toPlayerAspectsState() -> PlayerAspectsState {
         let rows = floors ?? []

@@ -9,7 +9,8 @@ struct DeathsDoorEngineTests {
     private func makeContext(
         heroHP: Int = 10,
         petHP: Int = 10,
-        enemyHP: Int = 50
+        enemyHP: Int = 50,
+        heroModifiers: CombatModifierProfile = .zero
     ) -> BattleEngineContext {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 50)
@@ -27,7 +28,7 @@ struct DeathsDoorEngineTests {
             events: [],
             gold: 0,
             initialGold: 0,
-            heroModifiers: .zero,
+            heroModifiers: heroModifiers,
             petModifiers: .zero,
             enemyModifiers: .zero
         )
@@ -119,10 +120,12 @@ struct DeathsDoorEngineTests {
     }
 
     @Test func secondWindDoesNotPreemptDeathsDoorOnLethalHit() throws {
-        var context = makeContext(heroHP: 5)
-        context.heroModifiers = CombatModifierProfile(
-            onceBelowHealthPercentThreshold: 0.25,
-            onceBelowHealthPercentHeal: 3
+        var context = makeContext(
+            heroHP: 5,
+            heroModifiers: CombatModifierProfile(
+                onceBelowHealthPercentThreshold: 0.25,
+                onceBelowHealthPercentHeal: 3
+            )
         )
         let hero = context.roster.hero.combatant
         let (_, events) = context.applyTestDamage(

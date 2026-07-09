@@ -11,6 +11,7 @@ struct UltimateCinematicOverlay: View {
     let cinematic: BattleCinematicPresentation
     let reduceMotion: Bool
     let canSkip: Bool
+    let effectsVolume: Double
     let namespace: Namespace.ID
     let onPlaying: () -> Void
     let onRequestSkip: () -> Void
@@ -140,8 +141,10 @@ struct UltimateCinematicOverlay: View {
             contentOpacity = 1
         }
         onPlaying()
-        attemptVideoReveal()
-        scheduleFallbackHold()
+        let didStartVideo = attemptVideoReveal()
+        if !didStartVideo {
+            scheduleFallbackHold()
+        }
         scheduleSkipHint()
     }
 
@@ -168,13 +171,22 @@ struct UltimateCinematicOverlay: View {
         }
     }
 
-    private func attemptVideoReveal() {
-        guard !reduceMotion else { return }
-        guard BattleCinematicPlayer.shared.isReady(for: cinematic.abilityID) else { return }
+    @discardableResult
+    private func attemptVideoReveal() -> Bool {
+        guard !reduceMotion else { return false }
+        guard BattleCinematicPlayer.shared.hasVideo(for: cinematic.abilityID) else { return false }
+        guard BattleCinematicPlayer.shared.isReady(for: cinematic.abilityID) else { return false }
         withAnimation(.easeInOut(duration: 0.2)) {
             showVideo = true
         }
-        BattleCinematicPlayer.shared.play(abilityID: cinematic.abilityID)
+        BattleCinematicPlayer.shared.play(
+            abilityID: cinematic.abilityID,
+            effectsVolume: effectsVolume
+        ) {
+            guard !didFinish else { return }
+            onAutoFinish()
+        }
+        return true
     }
 
     private func scheduleFallbackHold() {

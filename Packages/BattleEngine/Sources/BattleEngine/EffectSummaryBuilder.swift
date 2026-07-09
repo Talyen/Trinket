@@ -17,7 +17,7 @@ public enum EffectSummaryBuilder {
         .burn, .poison,
         .bleed,
         .shield, .mitigation,
-        .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit,
+        .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
         .controlMeter,
         .leech
     ]

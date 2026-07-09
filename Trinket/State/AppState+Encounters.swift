@@ -142,14 +142,11 @@ extension AppState {
         } else if let stage {
             // Journey keeps separate RNGs for pool pick vs recruit substitute (prior contract).
             var pickRNG = SystemRandomNumberGenerator()
-            guard var picked = stage.mysteryEvent ?? GameContent.pickEligibleMysteryEvent(
+            var picked = stage.mysteryEvent ?? GameContent.pickEligibleMysteryEvent(
                 unlockedHeroIDs: roster.current.unlockedHeroIDs,
                 unlockedPetIDs: roster.current.unlockedPetIDs,
                 using: &pickRNG
-            ) else {
-                completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
-                return nil
-            }
+            )
             var substituteRNG = SystemRandomNumberGenerator()
             guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
                 completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
@@ -255,13 +252,11 @@ extension AppState {
         authored: MysteryEvent?,
         using randomNumberGenerator: inout RNG
     ) -> MysteryEvent? {
-        guard var event = authored ?? GameContent.pickEligibleMysteryEvent(
+        var event = authored ?? GameContent.pickEligibleMysteryEvent(
             unlockedHeroIDs: roster.current.unlockedHeroIDs,
             unlockedPetIDs: roster.current.unlockedPetIDs,
             using: &randomNumberGenerator
-        ) else {
-            return nil
-        }
+        )
         guard resolveRecruitSubstitution(event: &event, using: &randomNumberGenerator) else {
             return nil
         }

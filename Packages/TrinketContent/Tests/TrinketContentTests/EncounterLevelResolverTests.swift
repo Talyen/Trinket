@@ -19,8 +19,11 @@ struct EncounterLevelResolverTests {
 
     @Test func nonBattleStagesReturnChapterBaseLevel() throws {
         let chapter = try #require(GameContent.chapters.first)
-        let eventStage = try #require(chapter.stages.first { if case .event = $0.encounter { return true } else { return false } })
+        let nonBattleStage = try #require(chapter.stages.first {
+            if case .battle = $0.encounter { return false }
+            return true
+        })
 
-        try #expect(EncounterLevelResolver.journeyEnemyLevel(for: eventStage, in: chapter) == 1)
+        try #expect(EncounterLevelResolver.journeyEnemyLevel(for: nonBattleStage, in: chapter) == 1)
     }
 }

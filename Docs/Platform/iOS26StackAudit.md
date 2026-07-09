@@ -103,9 +103,9 @@ All `.onChange(of:)` call sites use the iOS 17+ two-parameter closure (`{ _, new
 
 Implemented via `TrinketGlassBackgroundModifier` and updated `MaterialRoleStyle` role map. See git history on `VisualFoundation.swift`. Hidden toolbar backgrounds on Battle, Play map, and combatant detail are an intentional art-forward choice and are not scheduled for migration.
 
-### 2. Tab bar minimize behavior ✅ Complete
+### 2. Tab bar minimize behavior — deliberately omitted
 
-`.tabBarMinimizeBehavior(.onScrollDown)` on root `TabView` (`ContentView`).
+Product decision: do **not** use `.tabBarMinimizeBehavior(.onScrollDown)` on root `TabView`. Tab bar stays fully expanded.
 
 ### 3. Play journey `backgroundExtensionEffect` ✅ Complete
 

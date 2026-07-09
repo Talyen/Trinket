@@ -50,12 +50,16 @@ struct ChapterJourneyHero: View {
                             .foregroundStyle(.white)
                             .lineLimit(2)
                             .minimumScaleFactor(0.76)
+                            .accessibilityIdentifier(
+                                AccessibilityID.Play.chapterHeader(number: chapter.number)
+                            )
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     .shadow(color: .black.opacity(0.48), radius: 8, y: 2)
-                    .accessibilityIdentifier(AccessibilityID.Play.chapterHeader(number: chapter.number))
+                    // Expose Modes Entry separately from the chapter header identifier.
+                    .accessibilityElement(children: .contain)
                 }
             }
         }

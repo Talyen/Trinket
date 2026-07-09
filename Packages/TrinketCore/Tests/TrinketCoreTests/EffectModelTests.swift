@@ -44,6 +44,7 @@ struct EffectModelTests {
         try #expect(Effect.marked(2, 6).kind == .marked)
         try #expect(Effect.criticalChanceBonus(0.1, 6).kind == .criticalChanceBonus)
         try #expect(Effect.restoreManaOnHit(1, 6).kind == .restoreManaOnHit)
+        try #expect(Effect.damageKeywordOverride(.holy, 3, 6).kind == .damageKeywordOverride)
     }
 
     @Test func effectKindIsUniquePerCase() throws {

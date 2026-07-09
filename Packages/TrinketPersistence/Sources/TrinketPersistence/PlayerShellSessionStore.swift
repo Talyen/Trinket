@@ -12,6 +12,7 @@ public final class PlayerShellSessionStore {
     public static let legacyActiveBattleSavedAtKey = "session.activeBattleSavedAt"
     public static let legacyActiveBattleSchemaVersionKey = "session.activeBattleSchemaVersion"
     public static let legacyLastBackgroundedTimeKey = "session.lastBackgroundedTime"
+    /// Cleared on migrate only — Collection attention was removed; do not restore into session state.
     public static let legacyViewedCombatantIDsKey = "session.viewedCombatantIDs"
 
     public static let currentSchemaVersion = 1
@@ -90,23 +91,6 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    /// Legacy pre-schema-7 Collection attention. Migrated into `PlayerSave.collectionAttention` on bootstrap; do not write new viewed state here.
-    public var viewedCombatantIDs: Set<String> = [] {
-        didSet { persistViewedCombatantIDs() }
-    }
-
-    /// Last Homestead actionable fingerprint the player dismissed by visiting the Homestead tab.
-    /// When the live actionable set changes (new affordable builds), the tab badge returns.
-    public var acknowledgedHomesteadActionableFingerprint: String = "" {
-        didSet { persistAcknowledgedHomesteadActionableFingerprint() }
-    }
-
-    @available(*, deprecated, message: "Use PlayerSave.collectionAttention via AppState.markCombatantAsViewed")
-    public func markCombatantAsViewed(id: String) {
-        guard !viewedCombatantIDs.contains(id) else { return }
-        viewedCombatantIDs.insert(id)
-    }
-
     public init(
         storeName: String? = nil,
         storeURL: URL? = nil,
@@ -149,8 +133,6 @@ public final class PlayerShellSessionStore {
         activeBattleAspectFloor = record.activeBattleAspectFloor
         activeBattleLabyrinthNodeID = record.activeBattleLabyrinthNodeID
         mapScrollStageID = record.mapScrollStageID
-        viewedCombatantIDs = Set(record.viewedCombatantIDs)
-        acknowledgedHomesteadActionableFingerprint = record.acknowledgedHomesteadActionableFingerprint
 
         // Property observers do not run during init; rewrite remapped legacy tabs
         // (e.g. "search" → collection) and first-create records explicitly.
@@ -243,8 +225,6 @@ public final class PlayerShellSessionStore {
     public func resetToDefaults(selectingTab tab: PlayerShellSessionTab = .play) {
         selectedTab = tab
         clearBattleState()
-        viewedCombatantIDs = []
-        acknowledgedHomesteadActionableFingerprint = ""
     }
 
     public static func clearLegacyKeys(from defaults: UserDefaults) {
@@ -287,27 +267,12 @@ public final class PlayerShellSessionStore {
         if let lastBgVal = defaults.object(forKey: Self.legacyLastBackgroundedTimeKey) as? Double {
             lastBackgroundedTime = Date(timeIntervalSince1970: lastBgVal)
         }
-        if let viewedArray = defaults.stringArray(forKey: Self.legacyViewedCombatantIDsKey) {
-            viewedCombatantIDs = Set(viewedArray)
-        }
 
         Self.clearLegacyKeys(from: defaults)
     }
 
     private func persistSelectedTab() {
         record.selectedTabRaw = selectedTab.rawValue
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistViewedCombatantIDs() {
-        record.viewedCombatantIDs = Array(viewedCombatantIDs)
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistAcknowledgedHomesteadActionableFingerprint() {
-        record.acknowledgedHomesteadActionableFingerprint = acknowledgedHomesteadActionableFingerprint
         record.updatedAt = .now
         saveContext()
     }

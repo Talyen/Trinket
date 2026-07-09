@@ -11,9 +11,9 @@ struct BattleGoldenPathTests {
     private var wolf: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
     private var goblin: Combatant { GameContent.enemies.first { $0.id == "goblin" }!.combatant }
 
-    private func runGoldenBattle() -> BattleSimulationResult {
+    private func runGoldenBattle(pet: Combatant? = nil) -> BattleSimulationResult {
         BattleSimulator.run(
-            BattleStateTestFactory.makeBattle(hero: wizard, pet: wolf, enemy: goblin),
+            BattleStateTestFactory.makeBattle(hero: wizard, pet: pet ?? wolf, enemy: goblin),
             options: BattleSimulationOptions(maxTicks: 500, recordsEvents: true, recordsLog: true)
         )
     }
@@ -30,7 +30,15 @@ struct BattleGoldenPathTests {
     }
 
     @Test func goldenPathEventSemantics() throws {
-        let result = runGoldenBattle()
+        // Default wolf basic is rendingSlash (physical); select fangs so bleed remains pinned.
+        let bleedWolf = wolf.withAbilityLoadout(
+            AbilityLoadout(
+                basic: .fangs,
+                skill: wolf.abilityLoadout.skill,
+                ultimate: wolf.abilityLoadout.ultimate
+            )
+        )
+        let result = runGoldenBattle(pet: bleedWolf)
         let events = result.events
 
         assertEndsWithVictoryMilestone(on: "goblin", events: events)

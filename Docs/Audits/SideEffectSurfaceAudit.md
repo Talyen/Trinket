@@ -21,7 +21,7 @@ Run the probes, triage unexpected hits, fix the highest-value seam violations (c
 | Effect | Allowed locations |
 |--------|-------------------|
 | Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling) |
-| `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` or Collection attention |
+| `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
 | Seeded RNG | `Double.random(using: &…)`, `BattleBalanceTools/`, `BalanceSweepCLI/` |
@@ -67,7 +67,7 @@ rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 
 - Disk/CloudKit writes route through `PlayerSaveStore` / `TrinketPersistence`
 - Domain stores mutate memory then delegate — no direct `FileManager` / encoder outside persistence
-- `UserDefaults` only for options + ephemeral shell session keys (tab/battle) — not `PlayerSave` or Collection attention
+- `UserDefaults` only for options + ephemeral shell session keys (tab/battle) — not `PlayerSave`
 
 ### Audio
 

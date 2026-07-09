@@ -22,7 +22,7 @@ if [[ -f "$GENERATE_STAMP" ]]; then
     else
       echo "=== Content or project sources changed; running generate ==="
     fi
-    ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
+    ./Scripts/generate.sh ${GENERATE_ARGS[@]+"${GENERATE_ARGS[@]}"}
   fi
 else
   echo "=== Running generate ==="

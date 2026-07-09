@@ -38,7 +38,7 @@ Confirm in source / CI config (expected true after best-practices F1):
 - [ ] App ID `com.ryanmcintire.Trinket` has **iCloud** capability enabled
 - [ ] CloudKit container **`iCloud.com.ryanmcintire.Trinket`** exists and matches `Trinket.entitlements`
 - [ ] Entitlements include `com.apple.developer.icloud-services = CloudKit` and `com.apple.developer.icloud-container-identifiers = iCloud.com.ryanmcintire.Trinket`
-- [ ] SwiftData CloudKit schema validates in Development for the full player object graph (`PlayerSaveRoot`, journey, roster, inventory, homestead, collection attention children)
+- [ ] SwiftData CloudKit schema validates in Development for the full player object graph (`PlayerSaveRoot`, journey, roster, inventory, homestead, aspects, labyrinth children)
 - [ ] Schema review: CloudKit-compatible SwiftData constraints (optional relationships, defaults/optionals on scalars, no `@Attribute(.unique)`)
 - [ ] **Production** schema deployed (promoted from Development) before App Store release
 - [ ] Re-add `UIBackgroundModes: remote-notification` in `project.yml` **only if** sync wakeups require it

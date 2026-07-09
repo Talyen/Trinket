@@ -33,6 +33,13 @@ struct AbilityDescriptionFormatterTests {
         )
     }
 
+    @Test func avatarOfJusticeDescribesConsecratedBuffPackage() throws {
+        try #expect(
+            AbilityDescriptionFormatter.format(.avatarOfJustice)
+                == "Gain 5 Block for 6 seconds, Gain 15% Armor for 6 seconds and Your attacks become Holy damage and deal +3 for 6 seconds."
+        )
+    }
+
     @Test func manaBerriesRestoreMana() throws {
         try #expect(
             AbilityDescriptionFormatter.format(.manaBerries) == "Deal 1 Burn damage and Restore 1 Mana."

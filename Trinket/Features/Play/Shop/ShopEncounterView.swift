@@ -101,7 +101,6 @@ struct ShopEncounterView: View {
                     canAfford: appState.roster.gold >= offer.price,
                     isPurchaseDisabled: session.isPurchasing || session.isSoldOut(offer.id),
                     purchaseButtonTitleOverride: session.isSoldOut(offer.id) ? "Sold Out" : nil,
-                    marksCollectionAttention: false,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
                     }

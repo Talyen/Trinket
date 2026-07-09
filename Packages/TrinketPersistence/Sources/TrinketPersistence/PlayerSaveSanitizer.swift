@@ -9,11 +9,6 @@ public enum PlayerSaveSanitizer {
         sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
         sanitized.homestead = save.homestead
         sanitized.journey = sanitizeJourney(save.journey)
-        sanitized.collectionAttention = sanitizeCollectionAttention(
-            save.collectionAttention,
-            roster: sanitized.roster,
-            inventory: sanitized.inventory
-        )
         sanitized.aspects = sanitizeAspects(save.aspects)
         sanitized.labyrinth = sanitizeLabyrinth(save.labyrinth)
         return sanitized
@@ -160,28 +155,6 @@ public enum PlayerSaveSanitizer {
         }
         sanitized.abilityLoadouts = RosterHydration.resolveAbilityLoadouts(from: wireAbility)
 
-        return sanitized
-    }
-
-    public static func sanitizeCollectionAttention(
-        _ attention: PlayerCollectionAttentionState,
-        roster: PlayerRosterState,
-        inventory: PlayerInventoryState
-    ) -> PlayerCollectionAttentionState {
-        let unlockedCombatantIDs = roster.unlockedHeroIDs.union(roster.unlockedPetIDs)
-        let ownedItemIDs = Set(inventory.items.map(\.id))
-        let ownedTemplateIDs = Set(inventory.items.map(\.templateID))
-        var sanitized = attention
-        sanitized.viewedCombatantIDs = attention.viewedCombatantIDs.intersection(unlockedCombatantIDs)
-        sanitized.viewedItemIDs = attention.viewedItemIDs.intersection(ownedItemIDs)
-        sanitized.viewedItemTemplateIDs = attention.viewedItemTemplateIDs.intersection(ownedTemplateIDs)
-        // Starters are always acknowledged — they are not discovery signals.
-        if unlockedCombatantIDs.contains(PlayerRosterState.starterHeroID) {
-            sanitized.viewedCombatantIDs.insert(PlayerRosterState.starterHeroID)
-        }
-        if unlockedCombatantIDs.contains(PlayerRosterState.starterPetID) {
-            sanitized.viewedCombatantIDs.insert(PlayerRosterState.starterPetID)
-        }
         return sanitized
     }
 

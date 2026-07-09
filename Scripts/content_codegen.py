@@ -660,6 +660,9 @@ def parse_effect_token(token: str) -> str:
     elif token.startswith("thorns:"):
         _, keyword, amount, duration = token.split(":", 3)
         effect = f".thorns(.{keyword}, {amount}, {duration})"
+    elif token.startswith("damage_keyword_override:"):
+        _, keyword, bonus, duration = token.split(":", 3)
+        effect = f".damageKeywordOverride(.{keyword}, {bonus}, {duration})"
     elif token.startswith("halve_mitigation:"):
         effect = f".halveMitigation(.{token.split(':', 1)[1]})"
     else:
@@ -884,6 +887,8 @@ def parse_generated_ability_symbols(path: Path) -> list[tuple[str, str]]:
 
 def collect_ability_symbols() -> set[str]:
     symbols: set[str] = set()
+    for row in parse_ability_rows():
+        symbols.add(row.symbol)
     for tier in ("Basic", "Skill", "Ultimate"):
         hand_path = CONTENT_DIR / f"AbilityCatalog{tier}.swift"
         generated_path = GENERATED_DIR / f"AbilityCatalog{tier}.generated.swift"

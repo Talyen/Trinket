@@ -19,9 +19,9 @@ struct GameContentEncounterArtTests {
         #expect(GameContent.encounterArtID(for: stage) == nil)
         #expect(stage.encounterArtReference == nil)
         let art = try #require(stage.encounterCombatantArtReference)
-        #expect(art.id == "wolf")
+        #expect(art == ArtCatalog.combatantArtByID["wolf"])
         #expect(stage.encounterSubjectName == "Wolf")
-        #expect(stage.encounter.artAspectRatio == 3.0 / 4.0)
+        #expect(abs(stage.encounter.artAspectRatio - 0.75) < 0.000_1)
     }
 
     @Test func unmappedBattleStageUsesEnemyArt() throws {

@@ -103,7 +103,8 @@ public enum ActionEventFormatter {
                 text: "Critical",
                 secondaryText: nil
             )
-        case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied:
+        case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
+             .damageKeywordOverrideApplied:
             return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .thornsTriggered, .markedConsumed:
             return amountDisplay(emphasis: .damage, event: event, prefix: "-")

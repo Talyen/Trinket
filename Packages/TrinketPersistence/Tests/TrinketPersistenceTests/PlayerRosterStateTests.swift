@@ -10,14 +10,14 @@ struct PlayerRosterStateTests {
         let customLoadout = AbilityLoadout(
             basic: .bash,
             skill: .smite,
-            ultimate: .blessedAegis
+            ultimate: .avatarOfJustice
         )
 
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.configuredCombatant(knight)
 
         try #expect(configured.abilityLoadout.skill?.id == "smite")
-        try #expect(configured.abilityLoadout.ultimate?.id == "blessed-aegis")
+        try #expect(configured.abilityLoadout.ultimate?.id == "avatar-of-justice")
     }
 
     @Test func battleConfiguredCombatantFiltersLockedPlayerAbilityTiers() throws {
@@ -111,7 +111,8 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.initial
         roster.gold = 40
 
-        #expect(roster.spendGold(28))
+        let spent = roster.spendGold(28)
+        #expect(spent)
         #expect(roster.gold == 12)
     }
 
@@ -119,9 +120,12 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.initial
         roster.gold = 10
 
-        #expect(!roster.spendGold(11))
-        #expect(!roster.spendGold(0))
-        #expect(!roster.spendGold(-3))
+        let overspend = roster.spendGold(11)
+        let zeroSpend = roster.spendGold(0)
+        let negativeSpend = roster.spendGold(-3)
+        #expect(!overspend)
+        #expect(!zeroSpend)
+        #expect(!negativeSpend)
         #expect(roster.gold == 10)
     }
 
@@ -227,28 +231,35 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.freshStart
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
 
-        try #expect(roster.unlock(rogue))
+        let unlocked = roster.unlock(rogue)
+        try #expect(unlocked)
         try #expect(roster.isHeroUnlocked("rogue"))
         try #expect(roster.progressions["rogue"] == .initial)
-        try #expect(roster.unlock(rogue) == false)
+        let unlockedAgain = roster.unlock(rogue)
+        try #expect(unlockedAgain == false)
     }
 
     @Test func unlockPetAddsToRosterAndSeedsProgression() throws {
         var roster = PlayerRosterState.freshStart
         let wolf = try #require(GameContent.pets.first { $0.id == "wolf" })
 
-        try #expect(roster.unlock(wolf))
+        let unlocked = roster.unlock(wolf)
+        try #expect(unlocked)
         try #expect(roster.isPetUnlocked("wolf"))
         try #expect(roster.progressions["wolf"] == .initial)
-        try #expect(roster.unlockPet(id: "wolf") == false)
+        let unlockedAgain = roster.unlockPet(id: "wolf")
+        try #expect(unlockedAgain == false)
     }
 
     @Test func unlockIgnoresUnknownAndEnemyIDs() throws {
         var roster = PlayerRosterState.freshStart
-        try #expect(roster.unlockHero(id: "missing-hero") == false)
-        try #expect(roster.unlockPet(id: "missing-pet") == false)
+        let missingHero = roster.unlockHero(id: "missing-hero")
+        let missingPet = roster.unlockPet(id: "missing-pet")
+        try #expect(missingHero == false)
+        try #expect(missingPet == false)
         let enemy = try #require(GameContent.enemies.first?.combatant)
-        try #expect(roster.unlock(enemy) == false)
+        let unlockedEnemy = roster.unlock(enemy)
+        try #expect(unlockedEnemy == false)
     }
 
     @Test func addRewardItemIgnoresDuplicateID() throws {

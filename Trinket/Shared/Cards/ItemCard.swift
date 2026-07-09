@@ -7,7 +7,6 @@ struct ItemCard: View {
     var showsAffixCount: Bool
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
-    var showsNewMarker: Bool = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -25,16 +24,6 @@ struct ItemCard: View {
                         }
                     }
                     .clipShape(TrinketDesign.cardShape)
-                }
-                .overlay(alignment: .topTrailing) {
-                    if showsNewMarker {
-                        CollectionNewMarker(
-                            accessibilityIdentifier: AccessibilityID.Collection.newMarker(
-                                itemName: item.displayName
-                            )
-                        )
-                        .padding(8)
-                    }
                 }
                 .trinketCardSurface()
 
@@ -58,15 +47,7 @@ struct ItemCard: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var accessibilityLabel: String {
-        let base = "\(item.displayName), \(item.baseType.slot.rawValue)"
-        if showsNewMarker {
-            return "\(base), new"
-        }
-        return base
+        .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
     }
 }
 

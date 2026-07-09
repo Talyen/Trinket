@@ -13,7 +13,7 @@ Usage: ./Scripts/generate.sh [options]
 Runs manifest validation, content codegen, optional asset pipelines, and XcodeGen.
 
 Options:
-  --assets         Also run art and music asset pipelines (slow; for manifest edits)
+  --assets         Also run art, music, SFX, and cinematic asset pipelines (slow; for manifest edits)
   --skip-xcodegen  Skip XcodeGen (content/asset codegen only)
   -h, --help       Show this help
 
@@ -58,6 +58,9 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
 
   echo "=== Preparing SFX catalog ==="
   ./Scripts/prepare-sfx-assets.sh
+
+  echo "=== Preparing cinematic assets ==="
+  ./Scripts/prepare-cinematic-assets.sh
 
   echo "=== Preparing app icon ==="
   ./Scripts/prepare-app-icon.sh

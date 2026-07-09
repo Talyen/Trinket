@@ -13,7 +13,7 @@ final class CollectionSearchUITests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
         collection.openCombatantCard(named: "Knight")
         assertCombatantDetailSections()
-        goBack()
+        dismissSheet()
 
         searchField.tap()
         replaceText(in: searchField, with: "Wolf")
@@ -23,6 +23,10 @@ final class CollectionSearchUITests: TrinketUITestCase {
         assertItemCardExists("Wand")
 
         replaceText(in: searchField, with: "xyz123")
+        // Dismiss the keyboard so ContentUnavailableView is fully in the hierarchy.
+        if app.keyboards.element.exists {
+            app.swipeDown()
+        }
         collection.assertSearchNoResults()
     }
 }

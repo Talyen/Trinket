@@ -14,7 +14,8 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 4
 
-        try #expect(homestead.buildOrUpgrade(definition, roster: &roster))
+        let built = homestead.buildOrUpgrade(definition, roster: &roster)
+        try #expect(built)
 
         try #expect(homestead.tier(for: .wheatField) == 1)
         try #expect(homestead.resources[.wood] == 10)
@@ -31,7 +32,8 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 10
 
-        try #expect(homestead.buildOrUpgrade(definition, roster: &roster))
+        let built = homestead.buildOrUpgrade(definition, roster: &roster)
+        try #expect(built)
 
         try #expect(homestead.tier(for: .herbGarden) == 1)
         try #expect(homestead.resources[.wood] == 0)
@@ -48,7 +50,8 @@ struct HomesteadStateTests {
         var roster = PlayerRosterState.freshStart
         roster.gold = 100
 
-        try #expect(!(homestead.buildOrUpgrade(definition, roster: &roster)))
+        let built = homestead.buildOrUpgrade(definition, roster: &roster)
+        try #expect(!built)
         try #expect(homestead.tier(for: .blacksmithForge) == 0)
     }
 

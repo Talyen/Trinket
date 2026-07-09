@@ -11,12 +11,18 @@ final class TabNavigationUITests: TrinketUITestCase {
         scrollUntilVisible(button(AccessibilityID.Equipment.basicAbilitySlot), swipingUp: true)
         assertButtonExists(AccessibilityID.Equipment.basicAbilitySlot)
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
-        assertExists("Basic")
+        XCTAssertTrue(
+            app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
+            "Basic ability picker not found"
+        )
         button("Basic Shield Bash ability card").tap()
         assertExists("Shield Bash")
 
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
-        assertExists("Basic")
+        XCTAssertTrue(
+            app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
+            "Basic ability picker not found"
+        )
         button("Basic Bash ability card").tap()
         assertExists("Bash")
 

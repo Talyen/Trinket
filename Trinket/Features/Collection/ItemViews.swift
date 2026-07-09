@@ -55,8 +55,7 @@ struct InventoryGridView: View {
                             } label: {
                                 ItemCard(
                                     item: item,
-                                    showsAffixCount: true,
-                                    showsNewMarker: appState.showsCollectionNewMarker(forItem: item.id)
+                                    showsAffixCount: true
                                 )
                             }
                             .buttonStyle(.plain)
@@ -89,15 +88,6 @@ struct InventoryGridView: View {
                 .accessibilityLabel("Filter")
                 .accessibilityIdentifier("Inventory filter")
             }
-
-            if appState.unviewedItemCount > 0 {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Mark All Seen") {
-                        appState.markAllCollectionItemsAsViewed()
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Collection.markAllItemsSeen)
-                }
-            }
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
@@ -108,8 +98,7 @@ struct InventoryGridView: View {
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
-        let attention = appState.collectionAttention.current
-        let filtered = inventoryState.items.filter { item in
+        inventoryState.items.filter { item in
             let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             let matchesSearch = query.isEmpty
@@ -117,9 +106,6 @@ struct InventoryGridView: View {
 
             return matchesSlot && matchesSearch
         }
-        let unviewed = filtered.filter { attention.showsNewMarker(for: $0) }
-        let viewed = filtered.filter { !attention.showsNewMarker(for: $0) }
-        return unviewed + viewed
     }
 
     @ViewBuilder
@@ -151,11 +137,8 @@ struct ItemDetailView: View {
     var isPurchaseDisabled: Bool = false
     /// When set, replaces the default Buy / Need Gold label (e.g. Sold Out).
     var purchaseButtonTitleOverride: String?
-    /// When true (Collection), acknowledge discovery on appear. Shop previews pass false.
-    var marksCollectionAttention: Bool = true
     var onPurchase: (() -> Void)?
 
-    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
     init(
@@ -164,7 +147,6 @@ struct ItemDetailView: View {
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
         purchaseButtonTitleOverride: String? = nil,
-        marksCollectionAttention: Bool = true,
         onPurchase: (() -> Void)? = nil
     ) {
         self.item = item
@@ -172,7 +154,6 @@ struct ItemDetailView: View {
         self.canAfford = canAfford
         self.isPurchaseDisabled = isPurchaseDisabled
         self.purchaseButtonTitleOverride = purchaseButtonTitleOverride
-        self.marksCollectionAttention = marksCollectionAttention
         self.onPurchase = onPurchase
     }
 
@@ -256,10 +237,6 @@ struct ItemDetailView: View {
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .padding(.vertical, 12)
             }
-        }
-        .onAppear {
-            guard marksCollectionAttention else { return }
-            appState.markItemAsViewed(item)
         }
     }
 }

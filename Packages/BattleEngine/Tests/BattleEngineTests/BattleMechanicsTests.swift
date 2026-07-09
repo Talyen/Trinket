@@ -88,31 +88,33 @@ struct BattleMechanicsTests {
     }
 
     @Test func predatorsHasteAppliesHasteBuff() throws {
-        let basePanther = try #require(GameContent.pets.first { $0.id == "panther" })
-        let panther = basePanther.withAbilityLoadout(
+        // Wolf lists Predator's Haste in skill choices; withAbilityLoadout resolves
+        // selections against choices, so panther cannot select this skill.
+        let baseWolf = try #require(GameContent.pets.first { $0.id == "wolf" })
+        let wolf = baseWolf.withAbilityLoadout(
             AbilityLoadout(
-                basic: basePanther.abilityLoadout.basic,
+                basic: baseWolf.abilityLoadout.basic,
                 skill: .predatorsHaste,
-                ultimate: basePanther.abilityLoadout.ultimate
+                ultimate: baseWolf.abilityLoadout.ultimate
             )
         )
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        var context = makeContext(hero: hero, pet: panther, enemy: enemy)
-        var pantherRuntime = try #require(context.roster.runtime(for: panther))
-        pantherRuntime.actionCount = 2
-        context.roster.update(pantherRuntime)
-        let matchup = BattleMatchup(hero: hero, pet: panther, enemy: enemy)
+        var context = makeContext(hero: hero, pet: wolf, enemy: enemy)
+        var wolfRuntime = try #require(context.roster.runtime(for: wolf))
+        wolfRuntime.actionCount = 2
+        context.roster.update(wolfRuntime)
+        let matchup = BattleMatchup(hero: hero, pet: wolf, enemy: enemy)
 
         _ = BattleTurnEngine.performAction(
-            actor: panther,
+            actor: wolf,
             abilityTarget: enemy,
             matchup: matchup,
             context: &context
         )
 
         try #expect(
-            context.roster.activeEffects(for: panther).contains { if case .haste = $0.effect { return true }; return false }
+            context.roster.activeEffects(for: wolf).contains { if case .haste = $0.effect { return true }; return false }
         )
     }
 }

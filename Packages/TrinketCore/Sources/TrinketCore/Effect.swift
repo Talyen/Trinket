@@ -64,6 +64,8 @@ public enum Effect: Hashable, Sendable {
     case marked(Int, Int)
     case criticalChanceBonus(Double, Int)
     case restoreManaOnHit(Int, Int)
+    /// Forces outgoing damage keywords to `keyword` and adds `bonus` damage for `durationTicks`.
+    case damageKeywordOverride(Keyword, Int, Int)
 
     public static let bleedDoTTickCount = 3
     public static let standardLeechPercent = 0.10
@@ -96,6 +98,7 @@ public enum Effect: Hashable, Sendable {
         case .marked: return .physical
         case .criticalChanceBonus: return .physical
         case .restoreManaOnHit: return .mana
+        case let .damageKeywordOverride(k, _, _): return k
         }
     }
 
@@ -117,6 +120,7 @@ public enum Effect: Hashable, Sendable {
         case let .marked(_, d): return d
         case let .criticalChanceBonus(_, d): return d
         case let .restoreManaOnHit(_, d): return d
+        case let .damageKeywordOverride(_, _, d): return d
         case .burn, .poison, .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor: return 0
         }
@@ -146,7 +150,7 @@ public enum Effect: Hashable, Sendable {
         case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom, .marked:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom,
-             .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
+             .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return .actor
         }
     }

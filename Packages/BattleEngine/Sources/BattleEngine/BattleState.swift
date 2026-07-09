@@ -17,7 +17,7 @@ public typealias BattleEngineContext = BattleState
 /// - Combatant definitions: `hero`, `pet`, `enemy`
 /// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
 ///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
-///   `effectSummaries(of:)`, `modifiers(for:)`, `skillChargeProjection(of:)`
+///   `effectSummaries(of:)`, `modifiers(for:)`
 /// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`,
 ///   `rngSeed`
 /// - Derived: `log` (empty when `tracksLog` is `false`)

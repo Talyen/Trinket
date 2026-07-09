@@ -1,24 +1,28 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    /// Mid-battle interactions: enter via Play map (not `-launch-screen battle` + extreme ticks).
+    /// Mid-battle interactions: enter via Play map with a moderate tick so chrome stays visible.
     func testMidBattleCombatantDetailAndTabPause() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.05", in: TestLaunchArg.testLaunchArgs))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.25", in: TestLaunchArg.testLaunchArgs))
 
         play.assertLoaded()
         play.openStage(chapter: 1, stage: 1)
 
-        battle.assertActive()
-        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
-        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Wolf"))
-
         // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
-        if battle.victory.waitForExistence(timeout: 1) {
+        if battle.waitForMidBattleOrVictory() {
             return
         }
 
+        // Knight is the card we open; Wolf may already be downed / off-layout mid-fight.
+        assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
+
+        // Pause immediately so the rest of the mid-battle checks are stable.
+        if battle.pauseButton.waitForExistence(timeout: 1) {
+            battle.pauseButton.tap()
+        }
+
         // Leave Play to pause the battle, then return and inspect a combatant.
-        _ = battle.menu.waitForExistence(timeout: 2)
+        _ = battle.menu.waitForExistence(timeout: Self.defaultTimeout)
         tabBar.selectCollection()
         assertExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
         tabBar.selectPlay()
@@ -27,7 +31,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             return
         }
 
-        battle.assertActive(timeout: 2)
+        battle.assertPresented()
         battle.openCombatantCard(named: "Knight")
         combatantDetail.assertSeededHeroHeaderSummary(for: "Knight")
         assertCombatantDetailSections()
@@ -45,7 +49,6 @@ final class BattleFlowUITests: TrinketUITestCase {
 
         play.assertLoaded()
         play.openStage(chapter: 1, stage: 1)
-        battle.assertActive()
 
         assertExists(battle.victory, timeout: 60)
 

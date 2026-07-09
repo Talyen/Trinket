@@ -20,7 +20,6 @@ struct BattleCombatantPane: View {
     let hitReaction: CombatantHitReaction?
     let keywordBursts: [KeywordBurstRequest]
     let skillCallout: SkillCalloutPresentation?
-    let skillCharge: SkillChargeProjection?
     let reduceMotion: Bool
     let cinematicNamespace: Namespace.ID
     let onCombatantTap: () -> Void
@@ -132,28 +131,12 @@ struct BattleCombatantPane: View {
         }
     }
 
-    @ViewBuilder
     private var artworkLayer: some View {
-        if let skillCharge {
-            SkillChargeArtwork(
-                combatant: combatant,
-                skill: skillCharge.ability,
-                progress: skillCharge.progress,
-                reduceMotion: reduceMotion
-            )
-        } else {
-            CombatantArtwork(combatant: combatant, variant: .battle)
-        }
+        CombatantArtwork(combatant: combatant, variant: .battle)
     }
 
     private var accessibilityLabel: String {
-        if let skillCharge {
-            if skillCharge.progress >= 1 {
-                return "\(combatant.name), \(skillCharge.ability.name) ready"
-            }
-            return "\(combatant.name), charging \(skillCharge.ability.name)"
-        }
-        return "\(combatant.name) card"
+        "\(combatant.name) card"
     }
 
     private var healthText: String {

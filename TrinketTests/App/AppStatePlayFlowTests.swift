@@ -103,25 +103,15 @@ struct AppStatePlayFlowTests {
         #expect(JourneyMapPresentation.scrollFocusID(for: .initial) == "chapter-1-stage-1")
     }
 
-    @Test func mapScrollFocusIDReturnsChapterGateWhenChapterComplete() throws {
-        let state = try context.makeAppState()
+    @Test func mapScrollFocusIDReturnsNextChapterStageWhenChapterComplete() throws {
+        _ = try context.makeAppState()
         var progress = JourneyProgressState.initial
         for stage in GameContent.chapters[0].stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        #expect(progress.activeStageID == nil)
-        #expect(
-            JourneyMapPresentation.scrollFocusID(for: progress) == StageMapID.chapterGate(
-                for: Chapter(
-                    id: StageMapID.placeholderGate(afterChapterNumber: 2),
-                    number: 2,
-                    title: "",
-                    theme: GameContent.chapters[0].theme,
-                    stages: []
-                )
-            )
-        )
+        #expect(progress.activeStageID == "chapter-2-stage-1")
+        #expect(JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-2-stage-1")
     }
 
     @Test func resetGameplayProgressClearsBattleAndMapScroll() throws {

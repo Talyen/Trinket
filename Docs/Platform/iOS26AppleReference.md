@@ -30,7 +30,7 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 
 | API | Use in Trinket |
 |-----|----------------|
-| `.tabBarMinimizeBehavior(.onScrollDown)` | Optional: recede tab bar on Play map / long scroll surfaces — [best-practices plan](AppleNativeBestPracticesPlan.md) Phase D |
+| `.tabBarMinimizeBehavior(.onScrollDown)` | Deliberately omitted — tab bar stays fully expanded on scroll |
 | `.tabViewBottomAccessory { }` | Optional: persistent mini-player or battle status above tab bar |
 | `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome — best-practices plan Phase D |
 | `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / Play map / combatant detail for art-forward chrome (not scheduled for removal) |

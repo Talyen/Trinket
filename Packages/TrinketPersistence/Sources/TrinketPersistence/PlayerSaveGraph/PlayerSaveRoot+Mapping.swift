@@ -17,7 +17,6 @@ public extension PlayerSaveRoot {
             roster: roster?.toPlayerRosterState(inventory: inventoryState) ?? .freshStart,
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
-            collectionAttention: collectionAttention?.toPlayerCollectionAttentionState() ?? .freshStart,
             aspects: aspects?.toPlayerAspectsState() ?? .freshStart,
             labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart
         )
@@ -48,12 +47,6 @@ public extension PlayerSaveRoot {
 
         syncChild(\.homestead, make: HomesteadModel()) {
             $0.update(from: save.homestead)
-        } setRoot: {
-            $0.root = self
-        }
-
-        syncChild(\.collectionAttention, make: CollectionAttentionModel()) {
-            $0.update(from: save.collectionAttention)
         } setRoot: {
             $0.root = self
         }

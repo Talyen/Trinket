@@ -95,7 +95,7 @@ struct AspectClimbView: View {
                         .foregroundStyle(style.color)
                     Text(attunement.message)
                         .font(.footnote)
-                        .foregroundStyle(attunement.isReady ? .secondary : .orange)
+                        .foregroundStyle(attunement.isReady ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
                     if showsItemAffinityHint {
                         Text("Affinity gear helps — not required.")
                             .font(.caption)

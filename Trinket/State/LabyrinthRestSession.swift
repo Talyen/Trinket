@@ -5,7 +5,7 @@ import TrinketContent
 @MainActor
 @Observable
 final class LabyrinthRestSession: Identifiable {
-    let id = UUID()
+    nonisolated let id = UUID()
     let nodeID: String
     let goldCrumb: Int
     let depth: Int

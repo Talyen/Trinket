@@ -228,7 +228,7 @@ Align with `BattleSpectaclePlan.md` motion vocabulary and iOS 26 APIs already in
 | Victory → next floor focus | `scrollPosition` + `withAnimation(.smooth)` (journey pattern) | Consistency | Manual `ScrollViewReader` unless needed |
 | Attunement fail feedback | `.trinketSensoryFeedback` gated by Options + symbol bounce via `.symbolEffect(.bounce)` | Native, accessible | Custom shake hacks |
 | Matched hero art (optional polish) | `@Namespace` + `matchedGeometryEffect` from Aspect row symbol → Climb header symbol | Continuity | `navigationTransition(.zoom)` until proven on art-forward hidden toolbars |
-| Tab bar | Existing `.tabBarMinimizeBehavior(.onScrollDown)` | Already on `ContentView` | Re-implementing minimize per screen |
+| Tab bar | System default (always expanded) | No minimize-on-scroll | Reintroducing `.tabBarMinimizeBehavior` |
 
 ### Motion tokens (add to `TrinketDesignSystem` when implementing)
 

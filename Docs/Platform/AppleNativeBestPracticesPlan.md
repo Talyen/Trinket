@@ -15,7 +15,7 @@ Implementation plan to close the remaining Apple-native gaps identified in the J
 | Haptics respect Options | Every `.sensoryFeedback` site is gated by `options.hapticsEnabled`; unit + smoke cover toggle off |
 | Preferences are SwiftUI-native | `OptionsStore` uses `AppStorage` / `@AppStorage`-compatible keys; no hand-rolled `UserDefaults` get/set for options |
 | Dynamic Type for icons | Decorative/placeholder SF Symbols use `@ScaledMetric` or semantic styles — zero fixed `.font(.system(size:))` in feature views |
-| iOS 26 scroll chrome | Tab bar minimize + journey `backgroundExtensionEffect` + dense-list `scrollEdgeEffectStyle` adopted where product-safe |
+| iOS 26 scroll chrome | Journey `backgroundExtensionEffect` + dense-list `scrollEdgeEffectStyle` adopted where product-safe; tab bar minimize deliberately omitted |
 | Privacy + App Store readiness | `PrivacyInfo.xcprivacy` present; Info.plist / generated keys declare iCloud sync intent when CloudKit ships |
 | CloudKit prep without account | Local SwiftData path remains default; entitlements/docs staged so enabling CloudKit is a config flip after Developer Program enrollment |
 | Concurrency hygiene | `NotificationToken` documents `Concurrency-Safety:`; no undocumented `@unchecked Sendable` in production |
@@ -159,9 +159,8 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
 
 **In scope (product-safe):**
 
-1. **`.tabBarMinimizeBehavior(.onScrollDown)`** on root `TabView` in `ContentView.swift`.
-   - Verify Battle full-screen / modal flows still expose tabs when needed.
-   - If Battle regresses, scope minimize to Play/Collection only via per-tab APIs if available; otherwise keep global and document exception.
+1. **`.tabBarMinimizeBehavior(.onScrollDown)`** — **deliberately omitted**.
+   - Product decision: keep the root tab bar always fully expanded (do not reintroduce minimize-on-scroll).
 
 2. **`.backgroundExtensionEffect()`** on `ChapterJourneyHero` (Play journey).
    - Evaluate against existing `scrollTransition` / `ignoresSafeArea`.
@@ -272,7 +271,7 @@ Update after code lands:
 | 1 | A | `fix(options): gate sensory feedback on haptics setting` |
 | 2 | B | `refactor(options): migrate OptionsStore to AppStorage` |
 | 3 | C | `a11y(design): scale decorative icon fonts with Dynamic Type` |
-| 4 | D | `feat(ui): adopt tabBarMinimize and scroll edge chrome APIs` |
+| 4 | D | `feat(ui): adopt scroll edge chrome APIs` (tab minimize omitted) |
 | 5 | E + F1 | `chore(privacy): add PrivacyInfo; stage CloudKit-ready local defaults` |
 | 6 | G + H | `docs(platform): concurrency notes + best-practices plan status` |
 | later | F2 | `feat(sync): enable SwiftData CloudKit after Developer Program setup` |
@@ -297,5 +296,5 @@ Update after code lands:
 - [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
 - [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md)
 - [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md)
-- WWDC25-323 — tab minimize, background extension, scroll edge
+- WWDC25-323 — background extension, scroll edge (tab minimize deliberately omitted)
 - [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) — glass on controls; toolbar overrides intentionally retained for art screens

@@ -21,27 +21,4 @@ final class SmokeCollectionTests: TrinketUITestCase {
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryCategory].exists)
         XCTAssertFalse(app.descendants(matching: .any)[AccessibilityID.Collection.inventoryEmptyState].exists)
     }
-
-    func testFreshStartCollectionHasNoNewMarkersOnStarters() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync,
-            "-selectedTab",
-            "collection"
-        ])
-        collection.assertLoaded()
-
-        let knight = button(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
-        let bear = button(AccessibilityID.CombatantDetail.collectionCard(name: "Bear"))
-        XCTAssertTrue(knight.waitForExistence(timeout: Self.defaultTimeout))
-        XCTAssertTrue(bear.waitForExistence(timeout: Self.defaultTimeout))
-        XCTAssertFalse(
-            knight.label.localizedCaseInsensitiveContains("new"),
-            "Starter Knight should not show NEW attention: \(knight.label)"
-        )
-        XCTAssertFalse(
-            bear.label.localizedCaseInsensitiveContains("new"),
-            "Starter Bear should not show NEW attention: \(bear.label)"
-        )
-    }
 }

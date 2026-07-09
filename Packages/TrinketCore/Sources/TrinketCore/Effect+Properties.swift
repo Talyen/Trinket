@@ -24,6 +24,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case marked
     case criticalChanceBonus
     case restoreManaOnHit
+    case damageKeywordOverride
 }
 
 public extension Effect {
@@ -51,6 +52,7 @@ public extension Effect {
         case .marked: return .marked
         case .criticalChanceBonus: return .criticalChanceBonus
         case .restoreManaOnHit: return .restoreManaOnHit
+        case .damageKeywordOverride: return .damageKeywordOverride
         }
     }
 
@@ -62,7 +64,7 @@ public extension Effect {
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge,
              .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
-             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
+             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return false
         }
     }
@@ -71,7 +73,8 @@ public extension Effect {
     /// strip from enemies.
     var isRemovableBuff: Bool {
         switch self {
-        case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit:
+        case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+             .damageKeywordOverride:
             return true
         default:
             return false
@@ -85,7 +88,7 @@ public extension Effect {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
              .shield, .mitigation, .leech, .deathsDoor,
-             .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit:
+             .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return true
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:

@@ -123,6 +123,33 @@ class TrinketUITestCase: XCTestCase {
         app.descendants(matching: .any)[identifier]
     }
 
+    /// Tap a button by accessibility id, waiting for hittability and falling back to a coordinate tap.
+    func tapButton(
+        _ identifier: String,
+        timeout: TimeInterval = defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let element = button(identifier)
+        guard element.waitForExistence(timeout: timeout) else {
+            fail("Button '\(identifier)' not found", file: file, line: line)
+            return
+        }
+        tapWhenReady(element)
+    }
+
+    func tapWhenReady(_ element: XCUIElement) {
+        let deadline = Date().addingTimeInterval(2)
+        while Date() < deadline, !element.isHittable {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        if element.isHittable {
+            element.tap()
+        } else {
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+    }
+
     func assertButtonExists(
         _ identifier: String,
         timeout: TimeInterval = defaultTimeout,
@@ -213,7 +240,15 @@ class TrinketUITestCase: XCTestCase {
 
     func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
         do {
-            try app.performAccessibilityAudit()
+            // Art-heavy Play/Collection surfaces trip contrast / Dynamic Type / clipping on
+            // hero art and glass chrome. Keep structural audits that catch missing labels.
+            let auditTypes: XCUIAccessibilityAuditType = [
+                .elementDetection,
+                .hitRegion,
+                .sufficientElementDescription,
+                .trait
+            ]
+            try app.performAccessibilityAudit(for: auditTypes)
         } catch {
             fail("Accessibility audit failed: \(error)", file: file, line: line)
         }

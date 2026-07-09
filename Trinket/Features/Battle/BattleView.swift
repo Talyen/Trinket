@@ -120,7 +120,8 @@ struct BattleView: View {
                         Image(systemName: battleSession.isPaused ? "play.fill" : "pause.fill")
                             .contentTransition(.symbolEffect(.replace))
                     }
-                    .accessibilityIdentifier("Battle Pause Button")
+                    .accessibilityIdentifier(AccessibilityID.Battle.pauseButton)
+                    .accessibilityLabel(battleSession.isPaused ? "Resume battle" : "Pause battle")
                 }
 
                 battleActionsMenu(battleSession: battleSession)
@@ -200,6 +201,7 @@ struct BattleView: View {
                         cinematic: cinematic,
                         reduceMotion: reduceMotion,
                         canSkip: appState.options.canSkipUltimateCinematic(),
+                        effectsVolume: appState.options.effectsVolume,
                         namespace: cinematicNamespace,
                         onPlaying: {
                             battleSession.markCinematicPlaying()
@@ -243,7 +245,6 @@ struct BattleView: View {
             skillCallout: battleSession.activeSkillCallout?.actorID == combatant.id
                 ? battleSession.activeSkillCallout
                 : nil,
-            skillCharge: battleState.skillChargeProjection(of: combatant),
             reduceMotion: reduceMotion,
             cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }

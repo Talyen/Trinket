@@ -277,50 +277,6 @@ struct WireHomesteadState: Codable, Equatable {
     }
 }
 
-struct WireCollectionAttentionState: Codable, Equatable {
-    var viewedCombatantIDs: [String]
-    var viewedItemIDs: [String]
-    var viewedItemTemplateIDs: [String]
-
-    init(_ attention: PlayerCollectionAttentionState) {
-        viewedCombatantIDs = attention.viewedCombatantIDs.sorted()
-        viewedItemIDs = attention.viewedItemIDs.sorted()
-        viewedItemTemplateIDs = attention.viewedItemTemplateIDs.sorted()
-    }
-
-    init(
-        viewedCombatantIDs: [String],
-        viewedItemIDs: [String],
-        viewedItemTemplateIDs: [String] = []
-    ) {
-        self.viewedCombatantIDs = viewedCombatantIDs
-        self.viewedItemIDs = viewedItemIDs
-        self.viewedItemTemplateIDs = viewedItemTemplateIDs
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        viewedCombatantIDs = try container.decodeIfPresent([String].self, forKey: .viewedCombatantIDs) ?? []
-        viewedItemIDs = try container.decodeIfPresent([String].self, forKey: .viewedItemIDs) ?? []
-        viewedItemTemplateIDs = try container.decodeIfPresent([String].self, forKey: .viewedItemTemplateIDs)
-            ?? []
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case viewedCombatantIDs
-        case viewedItemIDs
-        case viewedItemTemplateIDs
-    }
-
-    func attention() -> PlayerCollectionAttentionState {
-        PlayerCollectionAttentionState(
-            viewedCombatantIDs: Set(viewedCombatantIDs),
-            viewedItemIDs: Set(viewedItemIDs),
-            viewedItemTemplateIDs: Set(viewedItemTemplateIDs)
-        )
-    }
-}
-
 struct WireAspectsState: Codable, Equatable {
     var highestClearedFloorByAspectID: [String: Int]
 

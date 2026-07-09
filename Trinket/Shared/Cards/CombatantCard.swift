@@ -6,7 +6,6 @@ struct CombatantCard: View {
     let combatant: Combatant
     var isLocked: Bool = false
     var showsName: Bool = true
-    var showsNewMarker: Bool = false
 
     var body: some View {
         VStack(spacing: 8) {
@@ -15,16 +14,6 @@ struct CombatantCard: View {
                 .overlay {
                     CombatantArtwork(combatant: combatant, variant: .card)
                         .clipShape(TrinketDesign.cardShape)
-                }
-                .overlay(alignment: .topTrailing) {
-                    if showsNewMarker && !isLocked {
-                        CollectionNewMarker(
-                            accessibilityIdentifier: AccessibilityID.Collection.newMarker(
-                                combatantName: combatant.name
-                            )
-                        )
-                        .padding(8)
-                    }
                 }
                 .trinketLockedCardEffect(isLocked: isLocked, text: "Locked")
                 .trinketCardSurface()
@@ -47,25 +36,7 @@ struct CombatantCard: View {
         if isLocked {
             return "\(combatant.name), locked"
         }
-        if showsNewMarker {
-            return "\(combatant.name) card, new"
-        }
         return "\(combatant.name) card"
-    }
-}
-
-struct CollectionNewMarker: View {
-    let accessibilityIdentifier: String
-
-    var body: some View {
-        Text("NEW")
-            .trinketTypography(.badge)
-            .foregroundStyle(TrinketDesign.Colors.destructive)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .trinketStatusBadge()
-            // Parent card uses children: .ignore; identifier remains for hierarchy debugging.
-            .accessibilityIdentifier(accessibilityIdentifier)
     }
 }
 
@@ -74,7 +45,6 @@ struct CollectionCombatantButton: View {
     let isLocked: Bool
     var cardWidth: CGFloat? = 130
     var showsName: Bool = true
-    var showsNewMarker: Bool = false
     let onSelect: () -> Void
 
     var body: some View {
@@ -84,16 +54,14 @@ struct CollectionCombatantButton: View {
                     CombatantCard(
                         combatant: combatant,
                         isLocked: isLocked,
-                        showsName: showsName,
-                        showsNewMarker: showsNewMarker
+                        showsName: showsName
                     )
                     .frame(width: cardWidth)
                 } else {
                     CombatantCard(
                         combatant: combatant,
                         isLocked: isLocked,
-                        showsName: showsName,
-                        showsNewMarker: showsNewMarker
+                        showsName: showsName
                     )
                 }
             }

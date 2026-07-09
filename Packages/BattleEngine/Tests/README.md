@@ -14,7 +14,6 @@ not need the full battle loop, it belongs in a unit file instead.
 | Combatant defaults | `TrinketContentTests/CombatantModelTests` | zero `primaryStats` |
 | Single engine step | `*EngineTests`, `*PipelineTests` | `ControlMeterEngine.applyMeterCharge` |
 | Turn consumption | `BattleTurnEngineTests` | `consumeActionSkip` |
-| Skill charge projection | `SkillChargeProjectionTests` | cadence + mana + progress |
 | Handler apply/tick | `EffectHandlers*Tests` | cleanse removes meter |
 | Presentation strings | `EffectSummaryBuilderTests`, `ActionEventFormatterTests` | “Stun Build-up: 3/10” |
 | Turn loop wiring | `*IntegrationTests` (thin, 3–6 tests) | skip claims turn slot |

@@ -67,19 +67,6 @@ public final class PlayerSaveStore {
         set { mutate { $0.homestead = newValue } }
     }
 
-    public var collectionAttention: PlayerCollectionAttentionState {
-        get { currentSave.collectionAttention }
-        set {
-            mutate { save in
-                save.collectionAttention = PlayerSaveSanitizer.sanitizeCollectionAttention(
-                    newValue,
-                    roster: save.roster,
-                    inventory: save.inventory
-                )
-            }
-        }
-    }
-
     public var aspects: PlayerAspectsState {
         get { currentSave.aspects }
         set { mutate { $0.aspects = PlayerSaveSanitizer.sanitizeAspects(newValue) } }

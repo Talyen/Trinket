@@ -102,7 +102,7 @@ struct AbilityCatalogTests {
             tier: .basic,
             effects: [.shield(.block, 2, 6)]
         )
-        try #expect(ability.summary == "Gain Block.")
+        try #expect(ability.summary == "Gain 2 Block for 6 seconds.")
     }
 
     @Test func multiDamageBuilderFormatsSummary() throws {

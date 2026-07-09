@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import Observation
+import TrinketContent
 
 /// Session-scoped Ultimate cinematic player cache.
 /// Keeps AVPlayers warm so cast transitions never hitch on cold load.
@@ -12,6 +13,7 @@ final class BattleCinematicPlayer {
 
     private var playersByAbilityID: [String: AVPlayer] = [:]
     private var warmedAbilityIDs: Set<String> = []
+    private var endObserversByAbilityID: [String: NSObjectProtocol] = [:]
 
     private init() {}
 
@@ -34,9 +36,10 @@ final class BattleCinematicPlayer {
         item.preferredForwardBufferDuration = 2
         let player = AVPlayer(playerItem: item)
         player.automaticallyWaitsToMinimizeStalling = false
-        player.isMuted = true
+        applyVolume(effectsVolume: 0, to: player, abilityID: abilityID)
         playersByAbilityID[abilityID] = player
-        player.preroll(atRate: 1.0) { _ in }
+        // Do not preroll here — AVPlayer throws if status is not ReadyToPlay yet.
+        // Creating the item is enough to start buffering; play() seeks when cast begins.
     }
 
     func player(for abilityID: String) -> AVPlayer? {
@@ -47,23 +50,50 @@ final class BattleCinematicPlayer {
         return playersByAbilityID[abilityID]
     }
 
+    func hasVideo(for abilityID: String) -> Bool {
+        UltimateCinematicCatalog.reference(for: abilityID).videoName != nil
+    }
+
     func isReady(for abilityID: String) -> Bool {
         guard let player = playersByAbilityID[abilityID],
               let item = player.currentItem else { return false }
         return item.status == .readyToPlay
     }
 
-    func play(abilityID: String) {
+    func play(
+        abilityID: String,
+        effectsVolume: Double,
+        onEnded: @escaping @MainActor () -> Void
+    ) {
         guard let player = player(for: abilityID) else { return }
+        applyVolume(effectsVolume: effectsVolume, to: player, abilityID: abilityID)
+        clearEndObserver(for: abilityID)
+        if let item = player.currentItem {
+            let observer = NotificationCenter.default.addObserver(
+                forName: .AVPlayerItemDidPlayToEndTime,
+                object: item,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in
+                    self?.clearEndObserver(for: abilityID)
+                    onEnded()
+                }
+            }
+            endObserversByAbilityID[abilityID] = observer
+        }
         player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()
     }
 
     func pause(abilityID: String) {
+        clearEndObserver(for: abilityID)
         playersByAbilityID[abilityID]?.pause()
     }
 
     func releaseAll() {
+        for abilityID in Array(endObserversByAbilityID.keys) {
+            clearEndObserver(for: abilityID)
+        }
         for player in playersByAbilityID.values {
             player.pause()
             player.replaceCurrentItem(with: nil)
@@ -71,39 +101,22 @@ final class BattleCinematicPlayer {
         playersByAbilityID.removeAll()
         warmedAbilityIDs.removeAll()
     }
-}
 
-/// Catalog bridge for Ultimate cinematic videos.
-/// Returns nil until video assets are authored; battle uses ability-art fallback.
-enum UltimateCinematicCatalog {
-    struct Reference: Equatable {
-        let abilityID: String
-        let videoName: String?
-        let hasAudio: Bool
-        /// Battle always presents cinematics in 9:16; sources may differ and are cropped.
-        let displayAspectWidth: Int
-        let displayAspectHeight: Int
-
-        static func fallback(abilityID: String) -> Reference {
-            Reference(
-                abilityID: abilityID,
-                videoName: nil,
-                hasAudio: false,
-                displayAspectWidth: 9,
-                displayAspectHeight: 16
-            )
+    private func applyVolume(effectsVolume: Double, to player: AVPlayer, abilityID: String) {
+        let reference = UltimateCinematicCatalog.reference(for: abilityID)
+        let clamped = max(0, min(effectsVolume, 1))
+        if reference.hasAudio, clamped > 0 {
+            player.isMuted = false
+            player.volume = Float(clamped)
+        } else {
+            player.isMuted = true
+            player.volume = 0
         }
     }
 
-    static func reference(for abilityID: String) -> Reference {
-        // Placeholder until ArtManifest / generate pipeline adds ability_cinematic rows.
-        .fallback(abilityID: abilityID)
-    }
-
-    static func videoURL(for abilityID: String) -> URL? {
-        let reference = reference(for: abilityID)
-        guard let videoName = reference.videoName else { return nil }
-        return Bundle.main.url(forResource: videoName, withExtension: "mp4")
-            ?? Bundle.main.url(forResource: videoName, withExtension: nil)
+    private func clearEndObserver(for abilityID: String) {
+        if let observer = endObserversByAbilityID.removeValue(forKey: abilityID) {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 }

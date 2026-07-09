@@ -39,9 +39,6 @@ struct ContentView: View {
             }
             .onChange(of: localSelectedTab) { _, newTab in
                 appState.selectedTab = newTab
-                if newTab == .homestead {
-                    appState.acknowledgeHomesteadActionablesIfNeeded()
-                }
             }
             .onChange(of: appState.selectedTab) { _, newTab in
                 localSelectedTab = newTab
@@ -77,14 +74,12 @@ struct ContentView: View {
                     CollectionView()
                 }
             }
-            .badge(appState.collectionBadge.map { Text("\($0)") })
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 NavigationStack {
                     HomesteadView()
                 }
             }
-            .badge(appState.homesteadBadge.map { Text("\($0)") })
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
@@ -92,6 +87,5 @@ struct ContentView: View {
                 }
             }
         }
-        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }

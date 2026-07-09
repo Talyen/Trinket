@@ -8,8 +8,7 @@ extension AppState {
     func rosterCombatantDetail(
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        hidesNavigationBar: Bool = false,
-        marksCollectionAttention: Bool = true
+        hidesNavigationBar: Bool = false
     ) -> some View {
         let catalog: [Combatant] = switch kind {
         case .hero:
@@ -47,11 +46,6 @@ extension AppState {
                 allowsEditing: roster.current.isUnlocked(combatant),
                 hidesNavigationBar: hidesNavigationBar
             )
-            .onAppear {
-                if marksCollectionAttention {
-                    self.markCombatantAsViewed(id: combatantID)
-                }
-            }
         } else {
             ContentUnavailableView(
                 kind == .hero ? "Hero Not Found" : "Pet Not Found",

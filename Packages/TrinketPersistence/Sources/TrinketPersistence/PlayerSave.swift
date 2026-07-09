@@ -1,7 +1,7 @@
 import Foundation
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 9
+    public static let currentSchemaVersion = 10
 
     public var schemaVersion: Int
     public var modifiedAt: Date
@@ -10,7 +10,6 @@ public struct PlayerSave: Equatable, Sendable {
     public var roster: PlayerRosterState
     public var inventory: PlayerInventoryState
     public var homestead: PlayerHomesteadState
-    public var collectionAttention: PlayerCollectionAttentionState
     public var aspects: PlayerAspectsState
     public var labyrinth: PlayerLabyrinthState
 
@@ -23,7 +22,6 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .freshStart,
             inventory: .freshStart,
             homestead: .freshStart,
-            collectionAttention: .freshStart,
             aspects: .freshStart,
             labyrinth: .freshStart
         )
@@ -38,7 +36,6 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .testSeed,
             inventory: .testSeed,
             homestead: .testSeed,
-            collectionAttention: .testSeed,
             aspects: .testSeed,
             labyrinth: .testSeed
         )
@@ -52,7 +49,6 @@ public struct PlayerSave: Equatable, Sendable {
         roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         homestead: PlayerHomesteadState = .freshStart,
-        collectionAttention: PlayerCollectionAttentionState = .freshStart,
         aspects: PlayerAspectsState = .freshStart,
         labyrinth: PlayerLabyrinthState = .freshStart
     ) {
@@ -63,7 +59,6 @@ public struct PlayerSave: Equatable, Sendable {
         self.roster = roster
         self.inventory = inventory
         self.homestead = homestead
-        self.collectionAttention = collectionAttention
         self.aspects = aspects
         self.labyrinth = labyrinth
     }
@@ -85,7 +80,6 @@ extension PlayerSave: Codable {
         case roster
         case inventory
         case homestead
-        case collectionAttention
         case aspects
         case labyrinth
     }
@@ -102,10 +96,6 @@ extension PlayerSave: Codable {
         roster = wireRoster.roster(inventory: inventory)
         homestead = try container.decodeIfPresent(WireHomesteadState.self, forKey: .homestead)?
             .homestead() ?? .freshStart
-        collectionAttention = try container.decodeIfPresent(
-            WireCollectionAttentionState.self,
-            forKey: .collectionAttention
-        )?.attention() ?? .freshStart
         aspects = try container.decodeIfPresent(
             WireAspectsState.self,
             forKey: .aspects
@@ -125,7 +115,6 @@ extension PlayerSave: Codable {
         try container.encode(WireRosterState(roster), forKey: .roster)
         try container.encode(WireInventoryState(inventory), forKey: .inventory)
         try container.encode(WireHomesteadState(homestead), forKey: .homestead)
-        try container.encode(WireCollectionAttentionState(collectionAttention), forKey: .collectionAttention)
         try container.encode(WireAspectsState(aspects), forKey: .aspects)
         try container.encode(WireLabyrinthState(labyrinth), forKey: .labyrinth)
     }

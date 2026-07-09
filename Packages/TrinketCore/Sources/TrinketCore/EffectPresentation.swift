@@ -44,6 +44,8 @@ public enum EffectPresentation {
             return "Focused"
         case .restoreManaOnHit:
             return "Mana Shield"
+        case .damageKeywordOverride:
+            return "Consecrated"
         case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }
@@ -73,10 +75,10 @@ public enum EffectPresentation {
 
     private static func defensivePhrase(for effect: Effect) -> String? {
         switch effect {
-        case .shield(.block, _, _):
-            return "gain Block"
-        case .mitigation(.armor, _, _):
-            return "gain Armor"
+        case let .shield(.block, buffer, durationTicks):
+            return "gain \(buffer) Block \(durationPhrase(ticks: durationTicks))"
+        case let .mitigation(.armor, percent, durationTicks):
+            return "gain \(Int(percent * 100))% Armor \(durationPhrase(ticks: durationTicks))"
         case .haste:
             return "gain Haste"
         case .thorns:
@@ -140,9 +142,16 @@ public enum EffectPresentation {
             return "gain +\(Int(percent * 100))% Critical chance"
         case let .restoreManaOnHit(amount, _):
             return "restore \(amount) Mana when you take damage"
+        case let .damageKeywordOverride(keyword, bonus, durationTicks):
+            return "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(ticks: durationTicks))"
         default:
             return nil
         }
+    }
+
+    /// Battle ticks are player-facing seconds (1 tick = 1 second).
+    private static func durationPhrase(ticks: Int) -> String {
+        ticks == 1 ? "for 1 second" : "for \(ticks) seconds"
     }
 
     private static func statusPhrase(for keyword: Keyword, amount _: Int) -> String {

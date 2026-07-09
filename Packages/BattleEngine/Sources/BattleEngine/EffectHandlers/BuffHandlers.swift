@@ -203,3 +203,53 @@ public struct RestoreManaOnHitHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: [event], didApply: true)
     }
 }
+
+public struct DamageKeywordOverrideHandler: BattleEffectHandler {
+    public let kind: EffectKind = .damageKeywordOverride
+
+    public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+        guard let active = stacks.first,
+              case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
+        else { return nil }
+        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
+            if case let .damageKeywordOverride(_, _, duration) = effect { return duration }
+            return nil
+        }
+        return EffectSummary(
+            keyword: keyword,
+            text: "Consecrated: attacks deal \(overrideKeyword.rawValue) (+\(bonus)), \(BattleTiming.remainingDurationLabel(ticks: maxTicks))."
+        )
+    }
+
+    public func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleEngineContext
+    ) -> EffectApplyOutcome {
+        guard case let .damageKeywordOverride(keyword, bonus, durationTicks) = effect else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        var effects = context.roster.activeEffects(for: target)
+        effects.removeAll { if case .damageKeywordOverride = $0.effect { return true }; return false }
+        context.roster.setActiveEffects(effects, for: target)
+        context.appendEffect(
+            .damageKeywordOverride(keyword, bonus, durationTicks),
+            to: target,
+            sourceID: source.id,
+            remainingTicks: durationTicks
+        )
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .damageKeywordOverrideApplied,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: target,
+            amount: bonus,
+            keyword: keyword
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}

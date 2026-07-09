@@ -8,12 +8,16 @@ import TrinketTestSupport
 struct AspectsProgressTests {
     @Test func markFloorClearedAdvancesSequentiallyOnly() {
         var progress = PlayerAspectsState()
-        #expect(progress.markFloorCleared(1, aspectID: AspectID.ironVein.rawValue))
-        #expect(!progress.markFloorCleared(3, aspectID: AspectID.ironVein.rawValue))
+        let cleared1 = progress.markFloorCleared(1, aspectID: AspectID.ironVein.rawValue)
+        let cleared3Early = progress.markFloorCleared(3, aspectID: AspectID.ironVein.rawValue)
+        #expect(cleared1)
+        #expect(!cleared3Early)
         #expect(progress.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
-        #expect(progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue))
+        let cleared2 = progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue)
+        #expect(cleared2)
         #expect(progress.highestClearedFloor(for: AspectID.ironVein.rawValue) == 2)
-        #expect(!progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue))
+        let cleared2Again = progress.markFloorCleared(2, aspectID: AspectID.ironVein.rawValue)
+        #expect(!cleared2Again)
         #expect(progress.activeFloor(for: AspectID.ironVein.rawValue, floorCount: 10) == 3)
     }
 

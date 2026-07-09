@@ -134,7 +134,8 @@ struct BattleSpectacleSessionTests {
         session.beginCinematicCollapse()
         session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
 
-        // Next Ultimate for same hero (turn 12) should auto-skip cinematic
+        // Next Ultimate for same hero (turn 12) should auto-skip cinematic.
+        // Intervening skill casts may leave a soft-hold; advance past it before asserting.
         for _ in 0 ..< 5 {
             _ = session.advanceOneStep()
         }
@@ -143,7 +144,8 @@ struct BattleSpectacleSessionTests {
         _ = session.advanceOneStep(at: secondUltimateAt)
         #expect(session.activeCinematic == nil)
         #expect(session.activeFeedbackEvents.count > feedbackBefore)
-        #expect(session.canAutoAdvanceTick(at: secondUltimateAt))
+        let afterSoftHold = secondUltimateAt.addingTimeInterval(TrinketMotion.Battle.skillSoftHold + 0.05)
+        #expect(session.canAutoAdvanceTick(at: afterSoftHold))
     }
 
     @Test func enemyUltimateUsesSkillCalloutNotCinematic() throws {

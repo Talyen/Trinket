@@ -51,8 +51,10 @@ struct CollectionScreen {
         line: UInt = #line
     ) {
         let element = app.descendants(matching: .any)[AccessibilityID.Collection.searchNoResults]
+        let title = app.staticTexts["No Results Found"]
+        let found = element.waitForExistence(timeout: timeout) || title.waitForExistence(timeout: timeout)
         XCTAssertTrue(
-            element.waitForExistence(timeout: timeout),
+            found,
             "Collection search no-results state not found",
             file: file,
             line: line

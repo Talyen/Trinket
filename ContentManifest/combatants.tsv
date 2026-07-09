@@ -1,5 +1,5 @@
 id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom	trait_id
-knight	Knight	hero	17	0	tank	bash,shieldBash	smite,spikedShield	blessedAegis,plateMail	9	3	11	2	4	oathbound
+knight	Knight	hero	17	0	tank	bash,shieldBash	smite,spikedShield	avatarOfJustice,plateMail	9	3	11	2	4	oathbound
 rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	5	11	4	3	6	cutpurse
 wizard	Wizard	hero	14	10	mage	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	12	3	arcane_focus
 alchemist	Alchemist	hero	15	8	support	causticJab,block	acidPotion,healthPotion	panaceaPotion,luckPotion	2	5	5	8	10	reinforced_formula

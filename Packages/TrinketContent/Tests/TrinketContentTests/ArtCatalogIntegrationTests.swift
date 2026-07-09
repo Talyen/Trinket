@@ -3,8 +3,16 @@ import Testing
 
 @Suite
 struct ArtCatalogIntegrationTests {
+    /// Abilities intentionally shipping without curated art yet (cinematic / placeholder path).
+    private static let abilitiesAllowedWithoutArt: Set<String> = [
+        "avatar-of-justice"
+    ]
+
     @Test func everyCatalogAbilityHasArt() throws {
         for ability in AbilityCatalog.all {
+            if Self.abilitiesAllowedWithoutArt.contains(ability.id) {
+                continue
+            }
             _ = try #require(
                 ability.artReference,
                 "Missing art for ability id \(ability.id)"

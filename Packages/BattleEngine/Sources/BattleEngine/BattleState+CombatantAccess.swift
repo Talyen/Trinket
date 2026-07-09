@@ -54,32 +54,6 @@ public extension BattleState {
         roster.runtime(for: combatant)?.actionCount ?? 0
     }
 
-    /// Skill-only charge wipe projection for battle presentation.
-    /// Returns `nil` when the next cast is not a Skill (basic, ultimate, or mana fallback).
-    func skillChargeProjection(of combatant: Combatant) -> SkillChargeProjection? {
-        guard let runtime = roster.runtime(for: combatant), runtime.isAlive else {
-            return nil
-        }
-
-        let turnNumber = runtime.actionCount + 1
-        guard BattleTurnEngine.preferredTier(for: turnNumber) == .skill else {
-            return nil
-        }
-
-        guard let ability = BattleTurnEngine.selectedAbility(
-            for: combatant,
-            turnNumber: turnNumber,
-            currentMana: runtime.currentMana
-        ), ability.tier == .skill else {
-            return nil
-        }
-
-        return SkillChargeProjection(
-            ability: ability,
-            progress: runtime.actionChargeProgress(atTick: tickCount)
-        )
-    }
-
     func activeEffects(of combatant: Combatant) -> [ActiveEffect] {
         roster.activeEffects(for: combatant)
     }

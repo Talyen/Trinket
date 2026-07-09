@@ -9,8 +9,6 @@ struct CollectionSearchResultsView: View {
     let onSelectItem: (InventoryItem) -> Void
     let onSelectCombatant: (CombatantDetailContext) -> Void
 
-    @Environment(AppState.self) private var appState
-
     var body: some View {
         if results.isEmpty {
             ContentUnavailableView(
@@ -18,6 +16,7 @@ struct CollectionSearchResultsView: View {
                 systemImage: "questionmark.magnifyingglass",
                 description: Text("No match for \"\(query)\".")
             )
+            .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.Collection.searchNoResults)
         } else {
             List {
@@ -39,8 +38,7 @@ struct CollectionSearchResultsView: View {
                         } label: {
                             ItemCard(
                                 item: item,
-                                showsAffixCount: true,
-                                showsNewMarker: appState.showsCollectionNewMarker(forItem: item.id)
+                                showsAffixCount: true
                             )
                             .collectionShelfCardWidth()
                         }
@@ -67,11 +65,8 @@ struct CollectionSearchResultsView: View {
                 Button {
                     onSelectCombatant(CombatantDetailContext(kind: kind, combatantID: combatant.id))
                 } label: {
-                    CombatantCard(
-                        combatant: combatant,
-                        showsNewMarker: appState.showsCollectionNewMarker(for: combatant.id)
-                    )
-                    .collectionShelfCardWidth()
+                    CombatantCard(combatant: combatant)
+                        .collectionShelfCardWidth()
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("\(combatant.name) collection card")

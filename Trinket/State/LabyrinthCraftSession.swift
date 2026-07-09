@@ -5,7 +5,7 @@ import TrinketContent
 @MainActor
 @Observable
 final class LabyrinthCraftSession: Identifiable {
-    let id = UUID()
+    nonisolated let id = UUID()
     let nodeID: String
     let goldCost: Int
     let depth: Int

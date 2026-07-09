@@ -15,10 +15,11 @@ Trinket/                    App target — shell, features, presentation glue
   Audio/                    Music director and AVFoundation glue
   Assets.xcassets           Processed art (HEIC) from ArtManifest
   Resources/Music           AAC tracks from MusicManifest
+  Resources/Cinematics      Ultimate cinematic MP4s from CinematicManifest
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
-  TrinketContent/           Catalogs + Generated/ content, art, music, and SFX catalogs
+  TrinketContent/           Catalogs + Generated/ content, art, music, SFX, and cinematic catalogs
   BattleEngine/             Combat simulation, effect handlers, simulator
   TrinketPersistence/       Save model, stores, migration, CloudKit sync
   TrinketDesignSystem/      App chrome, surfaces, typography, Keyword visuals, ExperienceBar (TrinketCore only)
@@ -28,7 +29,8 @@ ContentManifest/            abilities.tsv, affixes.tsv, item_bases.tsv, stages.t
 ArtManifest/                curated-assets.tsv
 MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv
-Raw Assets/                 Source art/music/SFX (not in Xcode target)
+CinematicManifest/          cinematics.tsv
+Raw Assets/                 Source art/music/SFX/animations (not in Xcode target)
 Scripts/                    generate, build, test, CI helpers
 ```
 
@@ -38,6 +40,7 @@ Manifests and pipelines live outside the app folder:
 - `ArtManifest/curated-assets.tsv` → `Scripts/prepare-art-assets.sh` → `Packages/TrinketContent/.../Generated/ArtCatalog.generated.swift` + `Trinket/Assets.xcassets`
 - `MusicManifest/music.tsv` → `Scripts/prepare-music-assets.sh` → `Packages/TrinketContent/.../Generated/MusicCatalog.generated.swift` + `Trinket/Resources/Music`
 - `SoundManifest/sfx.tsv` → `Scripts/prepare-sfx-assets.sh` → `Packages/TrinketContent/.../Generated/SFXCatalog.generated.swift`
+- `CinematicManifest/cinematics.tsv` → `Scripts/prepare-cinematic-assets.sh` → `Packages/TrinketContent/.../Generated/UltimateCinematicCatalog.generated.swift` + `Trinket/Resources/Cinematics`
 
 ## Module ownership
 
@@ -135,13 +138,12 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 
 ## Persistence overview
 
-- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, collection attention). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, and collection-attention records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and viewed combatant/item IDs for Collection NEW markers.
+- **Canonical save:** SwiftData models in `TrinketPersistence` form the player database object graph, split across `PlayerSaveGraph/` (journey, roster, inventory, homestead, aspects, labyrinth). `PlayerSaveRoot` owns optional CloudKit-compatible relationships to journey, roster, inventory, homestead, aspects, and labyrinth records; child rows hold per-stage progress, combatant progression/loadouts, inventory items/affixes, homestead balances/tiers, and mode progress.
 - **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` + `PlayerSaveStoreConfiguration` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
-- **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `collectionAttention`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
-- **Options/preferences:** `OptionsStore` persists appearance, volumes, and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Session keys (tab/battle restoration, Homestead affordance acknowledgment fingerprint) remain on the shell session store. Collection discovery acknowledgment (`viewedCombatantIDs` / `viewedItemIDs` / `viewedItemTemplateIDs`) lives on `PlayerSave.collectionAttention`, not the shell session.
+- **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
+- **Options/preferences:** `OptionsStore` persists appearance, volumes, and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Session keys (tab/battle restoration) remain on the shell session store.
 - **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements (F2). Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
-- **Collection attention:** `PlayerCollectionAttentionState` tracks which unlocked combatants and owned items the player has opened in **Collection** detail sheets (not Mystery inspect or Shop previews). Tab badges and per-card NEW markers derive from unlocks/inventory minus these viewed sets. Basic gear uses template-level acknowledgment; Astral gear stays instance-level. Starters are always treated as viewed. Homestead tab badges are a separate ephemeral affordance indicator (dismissed by visiting Homestead; returns when the affordable-build set changes).
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`
 - **Audio:** `Trinket/Audio/MusicPlayer` uses ambient `AVAudioPlayer` by design — see `Trinket/Audio/README.md`.
 

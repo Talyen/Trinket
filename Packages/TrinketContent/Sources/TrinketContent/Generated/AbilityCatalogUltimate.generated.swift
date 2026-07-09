@@ -9,6 +9,11 @@ enum AbilityCatalogUltimateGenerated {
         extras: [TargetedEffect(.shield(.block, 4, 6))]
     )
 
+    static let avatarOfJustice = AbilityBuilder.buffOnly(
+        id: "avatar-of-justice", name: "Avatar of Justice", tier: .ultimate,
+        effects: [.shield(.block, 5, 6), .mitigation(.armor, 0.15, 6), .damageKeywordOverride(.holy, 3, 6)]
+    )
+
     static let holyRadiance = AbilityBuilder.directHit(
         id: "holy-radiance", name: "Holy Radiance", tier: .ultimate,
         amount: 6, keyword: .holy,
@@ -50,6 +55,7 @@ enum AbilityCatalogUltimateGenerated {
 
     static let all: [Ability] = [
         blessedAegis,
+        avatarOfJustice,
         holyRadiance,
         sunburst,
         luckPotion,

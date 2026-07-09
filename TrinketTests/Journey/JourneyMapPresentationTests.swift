@@ -137,7 +137,7 @@ struct JourneyMapPresentationTests {
         })
     }
 
-    @Test func scrollTargetFallsBackToChapterGateWhenChapterComplete() {
+    @Test func scrollTargetAdvancesToNextChapterWhenChapterComplete() {
         var progress = JourneyProgressState.initial
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
@@ -149,17 +149,7 @@ struct JourneyMapPresentationTests {
             chapters: GameContent.chapters
         )
 
-        #expect(
-            scrollTargetID == StageMapID.chapterGate(
-                for: Chapter(
-                    id: StageMapID.placeholderGate(afterChapterNumber: 2),
-                    number: 2,
-                    title: "",
-                    theme: chapter.theme,
-                    stages: []
-                )
-            )
-        )
+        #expect(scrollTargetID == "chapter-2-stage-1")
     }
 
     @Test func gateChapterUsesPlaceholderWhenNextChapterMissing() throws {

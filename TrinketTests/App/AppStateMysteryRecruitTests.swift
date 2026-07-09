@@ -29,7 +29,8 @@ struct AppStateMysteryRecruitTests {
         #expect(state.roster.current.isPetUnlocked("wolf"))
         #expect(state.activeMysteryEncounter?.phase == .revealing)
         #expect(state.activeMysteryEncounter?.unlockedCombatantID == "wolf")
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        // Opening / resolving a mystery does not advance journey progress.
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
 
         state.finishActiveMysteryEncounter()
 
@@ -63,7 +64,8 @@ struct AppStateMysteryRecruitTests {
         state.dismissActiveMysteryEncounterWithoutCompleting()
 
         #expect(state.activeMysteryEncounter == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
+        #expect(!state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.roster.current.isPetUnlocked("wolf") == false)
     }
 }

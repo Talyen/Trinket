@@ -321,14 +321,15 @@ struct EffectHandlersApplyTests {
 
     @Test func burnHandlerDoesNotApplyToDefeatedTarget() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
+        let enemy = battle.enemy
         battle.withEngineContext { context in
-            context.roster.mutateRuntime(for: battle.enemy) { $0.currentHealth = 0 }
+            context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 0 }
         }
         let outcome = EffectHandlersTestSupport.dispatch(
             .burn(3),
             ability: CombatantFixtures.ability(),
             source: battle.hero,
-            target: battle.enemy,
+            target: enemy,
             battle: &battle
         )
         try #expect(!(outcome.didApply))
@@ -496,6 +497,27 @@ struct EffectHandlersApplyTests {
         })
         try #expect(outcome.events.contains {
             $0.effectKind == .manaShieldApplied && $0.amount == 3 && $0.keyword == .mana
+        })
+    }
+
+    @Test func damageKeywordOverrideHandlerAppliesBuffAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle()
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .damageKeywordOverride(.holy, 3, 6),
+            ability: CombatantFixtures.ability(),
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.activeEffects(of: battle.hero).contains { active in
+            if case let .damageKeywordOverride(keyword, bonus, duration) = active.effect {
+                return keyword == .holy && bonus == 3 && duration == 6 && active.remainingTicks == 6
+            }
+            return false
+        })
+        try #expect(outcome.events.contains {
+            $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 && $0.keyword == .holy
         })
     }
 }

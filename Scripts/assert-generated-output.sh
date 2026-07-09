@@ -14,7 +14,7 @@ Fails when committed generated output does not match manifests.
 
 Options:
   --regenerate     Run ./Scripts/generate.sh before checking (default: check only)
-  --assets         Include art/music outputs when regenerating or checking
+  --assets         Include art/music/SFX/cinematic outputs when regenerating or checking
   -h, --help       Show this help
 
 CI runs ./Scripts/generate.sh first, then this script without --regenerate.
@@ -63,8 +63,10 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
     "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift"
     "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift"
+    "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
     "Trinket/Assets.xcassets"
     "Trinket/Resources/Music"
+    "Trinket/Resources/Cinematics"
   )
 fi
 

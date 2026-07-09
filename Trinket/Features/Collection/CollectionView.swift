@@ -53,17 +53,19 @@ struct CollectionView: View {
             .trinketDetailSheet()
         }
         .sheet(item: $selectedCombatant) { context in
-            appState.rosterCombatantDetail(
-                kind: context.kind,
-                combatantID: context.combatantID
-            )
+            NavigationStack {
+                appState.rosterCombatantDetail(
+                    kind: context.kind,
+                    combatantID: context.combatantID
+                )
+            }
             .trinketDetailSheet()
         }
     }
 
     private var collectionBrowseContent: some View {
         let inventoryState = appState.inventory.current
-        let shelfItems = appState.collectionInventoryShelfItems()
+        let shelfItems = Array(inventoryState.items.prefix(12))
 
         return ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
@@ -71,23 +73,20 @@ struct CollectionView: View {
                     title: "Heroes",
                     accessibilityIdentifier: AccessibilityID.Collection.heroesCategory,
                     kind: .hero,
-                    combatants: appState.roster.collectionHeroes,
-                    unviewedCount: appState.unviewedHeroCount
+                    combatants: appState.roster.collectionHeroes
                 )
 
                 combatantCategorySection(
                     title: "Pets",
                     accessibilityIdentifier: AccessibilityID.Collection.petsCategory,
                     kind: .pet,
-                    combatants: appState.roster.collectionPets,
-                    unviewedCount: appState.unviewedPetCount
+                    combatants: appState.roster.collectionPets
                 )
 
                 if !inventoryState.items.isEmpty {
                     collectionCategorySection(
                         title: "Inventory",
                         accessibilityIdentifier: AccessibilityID.Collection.inventoryCategory,
-                        unviewedCount: appState.unviewedItemCount,
                         destination: InventoryGridView()
                     ) {
                         ForEach(shelfItems) { item in
@@ -97,8 +96,7 @@ struct CollectionView: View {
                                 ItemCard(
                                     item: item,
                                     showsAffixCount: false,
-                                    showsName: false,
-                                    showsNewMarker: appState.showsCollectionNewMarker(for: item)
+                                    showsName: false
                                 )
                                 .collectionShelfCardWidth()
                             }
@@ -134,13 +132,11 @@ struct CollectionView: View {
         title: String,
         accessibilityIdentifier: String,
         kind: CombatantDetailContext.Kind,
-        combatants: [Combatant],
-        unviewedCount: Int
+        combatants: [Combatant]
     ) -> some View {
         collectionCategorySection(
             title: title,
             accessibilityIdentifier: accessibilityIdentifier,
-            unviewedCount: unviewedCount,
             destination: CollectionCombatantGridView(kind: kind)
         ) {
             ForEach(combatants) { combatant in
@@ -148,8 +144,7 @@ struct CollectionView: View {
                     combatant: combatant,
                     isLocked: !appState.roster.current.isUnlocked(combatant),
                     cardWidth: nil,
-                    showsName: false,
-                    showsNewMarker: appState.showsCollectionNewMarker(for: combatant.id)
+                    showsName: false
                 ) {
                     selectedCombatant = CombatantDetailContext(kind: kind, combatantID: combatant.id)
                 }
@@ -161,7 +156,6 @@ struct CollectionView: View {
     private func collectionCategorySection<Destination: View, ShelfContent: View>(
         title: String,
         accessibilityIdentifier: String,
-        unviewedCount: Int,
         destination: Destination,
         @ViewBuilder shelf: () -> ShelfContent
     ) -> some View {
@@ -169,22 +163,18 @@ struct CollectionView: View {
             NavigationLink {
                 destination
             } label: {
-                collectionCategoryHeader(title: title, unviewedCount: unviewedCount)
+                collectionCategoryHeader(title: title)
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(accessibilityIdentifier)
-            .accessibilityLabel(
-                unviewedCount > 0
-                    ? "\(title), \(unviewedCount) new"
-                    : title
-            )
+            .accessibilityLabel(title)
 
             horizontalShelf(content: shelf)
         }
     }
 
-    private func collectionCategoryHeader(title: String, unviewedCount: Int) -> some View {
+    private func collectionCategoryHeader(title: String) -> some View {
         HStack(spacing: 6) {
             Text(title)
                 .font(.title2.weight(.bold))
@@ -193,17 +183,6 @@ struct CollectionView: View {
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
             Spacer()
-            if unviewedCount > 0 {
-                Text("\(unviewedCount)")
-                    .trinketTypography(.badge)
-                    .foregroundStyle(TrinketDesign.Colors.destructive)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 4)
-                    .trinketStatusBadge()
-                    .accessibilityIdentifier(
-                        AccessibilityID.Collection.categoryUnviewedCount(title: title)
-                    )
-            }
         }
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .contentShape(Rectangle())

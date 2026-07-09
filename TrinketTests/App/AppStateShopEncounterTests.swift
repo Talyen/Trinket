@@ -22,7 +22,8 @@ struct AppStateShopEncounterTests {
         let session = try #require(state.activeShopEncounter)
         #expect(session.stage.id == "chapter-1-stage-4")
         #expect(session.offers.count == ShopOfferGenerator.offerCount)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-4")
+        // Opening a shop does not advance journey progress.
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
     }
 
     @Test func purchasingOfferSpendsGoldAndGrantsItem() throws {
@@ -162,7 +163,7 @@ struct AppStateShopEncounterTests {
         state.dismissActiveShopEncounterWithoutCompleting()
 
         #expect(state.activeShopEncounter == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-4")
+        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
         #expect(!state.journey.current.completedStageIDs.contains("chapter-1-stage-4"))
     }
 

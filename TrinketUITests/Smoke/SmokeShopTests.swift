@@ -41,6 +41,7 @@ final class SmokeShopTests: TrinketUITestCase {
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         app.swipeDown()
+        _ = button(AccessibilityID.Shop.leaveButton).waitForExistence(timeout: Self.defaultTimeout)
 
         // Purchase when an offer is affordable (stage 1–3 gold ≈ 34); otherwise leave.
         let buyButtons = app.buttons.matching(
@@ -55,7 +56,7 @@ final class SmokeShopTests: TrinketUITestCase {
             }
         }
 
-        button(AccessibilityID.Shop.leaveButton).tap()
+        tapButton(AccessibilityID.Shop.leaveButton)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
     }
 }

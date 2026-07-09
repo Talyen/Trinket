@@ -20,7 +20,7 @@ struct MysteryEffectApplierTests {
     @Test func applyingGoldMaterialsAndExperienceMutatesSave() throws {
         var save = makeSave()
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
-        let startingXP = save.roster.progression(for: hero).experience
+        let startingXP = save.roster.progression(for: hero).currentXP
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
 
         let result = MysteryEffectApplier.apply(
@@ -41,7 +41,7 @@ struct MysteryEffectApplierTests {
         try #expect(result.grantedMaterials == [ResourceAmount(.herbs, 3)])
         try #expect(save.roster.gold == 20)
         try #expect(save.homestead.balance(for: .herbs, roster: save.roster) >= 3)
-        try #expect(save.roster.progression(for: hero).experience == startingXP + 10)
+        try #expect(save.roster.progression(for: hero).currentXP == startingXP + 10)
     }
 
     @Test func generatedItemIncludesGuaranteedAffixAndUsesRolledRarity() throws {

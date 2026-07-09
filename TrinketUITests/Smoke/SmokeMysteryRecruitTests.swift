@@ -25,9 +25,10 @@ final class SmokeMysteryRecruitTests: TrinketUITestCase {
         button(AccessibilityID.Mystery.unlockCard(name: "Wolf")).tap()
         assertExists(AccessibilityID.CombatantDetail.header(name: "Wolf"))
         app.swipeDown()
+        _ = button(AccessibilityID.Mystery.continueButton).waitForExistence(timeout: Self.defaultTimeout)
 
         assertExists(AccessibilityID.Mystery.continueButton)
-        button(AccessibilityID.Mystery.continueButton).tap()
+        tapButton(AccessibilityID.Mystery.continueButton)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
     }
 }
