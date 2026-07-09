@@ -33,7 +33,7 @@ final class BattleSession {
         didSet {
             if let activeBattle {
                 resetRun(from: activeBattle)
-                onBattleStateChange?(activeBattle.stageID)
+                onBattleStateChange?(activeBattle.resumeToken)
             } else {
                 clearRunState()
             }

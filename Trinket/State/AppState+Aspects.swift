@@ -47,18 +47,14 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
         }
 
-        battle.preview = nil
-        battle.activeBattle = makeActiveBattleConfiguration(
-            stageID: nil,
+        activateBattle(
+            resumeToken: .aspect(aspectID: floor.aspectID, floor: floor.floor),
             hero: roster.activeHero,
             pet: roster.activePet,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: floor.rewards,
-            aspectBattle: .init(aspectID: floor.aspectID, floor: floor.floor)
+            stageReward: floor.rewards
         )
-        battle.isPaused = selectedTab != .play
-        syncBattleTickLoop()
         return nil
     }
 

@@ -74,19 +74,14 @@ extension AppState {
         }
 
         let rewards = LabyrinthCompletion.rewards(for: node, effects: effects)
-        battle.preview = nil
-        battle.activeBattle = makeActiveBattleConfiguration(
-            stageID: nil,
+        activateBattle(
+            resumeToken: .labyrinth(nodeID: nodeID),
             hero: roster.activeHero,
             pet: roster.activePet,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
-            stageReward: rewards,
-            aspectBattle: nil,
-            labyrinthBattle: .init(nodeID: nodeID)
+            stageReward: rewards
         )
-        battle.isPaused = selectedTab != .play
-        syncBattleTickLoop()
         return nil
     }
 

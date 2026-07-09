@@ -27,22 +27,27 @@ struct ResumeBattleCardView: View {
 
     var body: some View {
         Group {
-            if let stageID = appState.activeBattleStageID,
-               let stage = GameContent.stage(id: stageID) {
-                resumeCard(
-                    subtitle: stage.mapLabel + " " + stage.encounterSubjectName,
-                    tint: stage.encounter.mapTint
-                ) {
-                    EncounterArtwork(stage: stage)
+            switch appState.savedBattleResumeToken {
+            case let .journey(stageID):
+                if let stage = GameContent.stage(id: stageID) {
+                    resumeCard(
+                        subtitle: stage.mapLabel + " " + stage.encounterSubjectName,
+                        tint: stage.encounter.mapTint
+                    ) {
+                        EncounterArtwork(stage: stage)
+                    }
                 }
-            } else if let aspectIDRaw = appState.activeBattleAspectID,
-                      let floorNumber = appState.activeBattleAspectFloor,
-                      let aspect = GameContent.aspect(id: AspectID(aspectIDRaw)),
-                      let floor = GameContent.aspectFloor(aspectID: aspect.id, floor: floorNumber) {
-                aspectResumeCard(aspect: aspect, floor: floor, floorNumber: floorNumber)
-            } else if let nodeID = appState.shellSession.activeBattleLabyrinthNodeID,
-                      let node = appState.labyrinth.node(id: nodeID) {
-                labyrinthResumeCard(node: node)
+            case let .aspect(aspectID, floorNumber):
+                if let aspect = GameContent.aspect(id: aspectID),
+                   let floor = GameContent.aspectFloor(aspectID: aspect.id, floor: floorNumber) {
+                    aspectResumeCard(aspect: aspect, floor: floor, floorNumber: floorNumber)
+                }
+            case let .labyrinth(nodeID):
+                if let node = appState.labyrinth.node(id: nodeID) {
+                    labyrinthResumeCard(node: node)
+                }
+            case .none:
+                EmptyView()
             }
         }
     }

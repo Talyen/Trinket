@@ -90,6 +90,21 @@ final class AppState {
         shellSession.activeBattleSavedAt
     }
 
+    /// Shell-session resume token assembled from mutually exclusive journey/aspect/labyrinth fields.
+    var savedBattleResumeToken: ActiveBattleResumeToken? {
+        if let stageID = shellSession.activeBattleStageID {
+            return .journey(stageID: stageID)
+        }
+        if let aspectIDRaw = shellSession.activeBattleAspectID,
+           let floor = shellSession.activeBattleAspectFloor {
+            return .aspect(aspectID: AspectID(aspectIDRaw), floor: floor)
+        }
+        if let nodeID = shellSession.activeBattleLabyrinthNodeID {
+            return .labyrinth(nodeID: nodeID)
+        }
+        return nil
+    }
+
     func applyBattleResumeToken(_ token: ActiveBattleResumeToken?) {
         switch token {
         case let .journey(stageID):

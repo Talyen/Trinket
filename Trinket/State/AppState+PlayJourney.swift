@@ -16,62 +16,22 @@ extension AppState {
                 return false
             }
         }
-
-        if let stageID = shellSession.activeBattleStageID {
-            guard let stage = GameContent.stage(id: stageID),
-                  case .battle = stage.encounter else {
-                return false
-            }
-            return !journey.current.hasClaimedRewards(for: stage)
-        }
-
-        if let aspectIDRaw = shellSession.activeBattleAspectID,
-           let floorNumber = shellSession.activeBattleAspectFloor {
-            let aspectID = AspectID(aspectIDRaw)
-            guard ModesUnlock.isUnlocked(journey: journey.current),
-                  let aspect = GameContent.aspect(id: aspectID),
-                  AspectUnlock.isUnlocked(aspect, progress: aspects.current),
-                  GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) != nil
-            else {
-                return false
-            }
-            return aspects.current.isFloorUnlocked(
-                floorNumber,
-                aspectID: aspectIDRaw,
-                floorCount: aspect.floorCount
-            )
-        }
-
-        if let nodeID = shellSession.activeBattleLabyrinthNodeID {
-            guard isLabyrinthUnlocked else { return false }
-            if !labyrinth.hasMap {
-                _ = enterLabyrinth()
-            }
-            guard let node = labyrinth.node(id: nodeID),
-                  node.type.isCombat,
-                  !node.isCleared
-            else {
-                return false
-            }
-            return labyrinth.isNodeReachable(nodeID) || node.isRevealed
-        }
-
-        return false
+        guard let token = savedBattleResumeToken else { return false }
+        return isResumeTokenStillPlayable(token)
     }
 
     func resumeSavedBattle() {
-        if let stageID = shellSession.activeBattleStageID,
-           let stage = GameContent.stage(id: stageID) {
-            startBattle(for: stage)
-            return
-        }
-        if let aspectIDRaw = shellSession.activeBattleAspectID,
-           let floorNumber = shellSession.activeBattleAspectFloor,
-           let floor = GameContent.aspectFloor(aspectID: AspectID(aspectIDRaw), floor: floorNumber) {
-            _ = startAspectBattle(for: floor)
-            return
-        }
-        if let nodeID = shellSession.activeBattleLabyrinthNodeID {
+        guard let token = savedBattleResumeToken else { return }
+        switch token {
+        case let .journey(stageID):
+            if let stage = GameContent.stage(id: stageID) {
+                startBattle(for: stage)
+            }
+        case let .aspect(aspectID, floorNumber):
+            if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
+                _ = startAspectBattle(for: floor)
+            }
+        case let .labyrinth(nodeID):
             _ = startLabyrinthBattle(nodeID: nodeID)
         }
     }
@@ -109,40 +69,80 @@ extension AppState {
     ) {
         guard battle.activeBattle != nil else { return }
 
-        if let stageID = configuration.stageID,
-           let stage = GameContent.stage(id: stageID) {
-            completeStage(
-                stage,
-                hero: configuration.hero.combatant,
-                pet: configuration.pet.combatant,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards
-            )
-        } else if let aspectBattle = configuration.aspectBattle,
-                  let floor = GameContent.aspectFloor(
-                      aspectID: aspectBattle.aspectID,
-                      floor: aspectBattle.floor
-                  ) {
-            completeAspectFloor(
-                floor,
-                hero: configuration.hero.combatant,
-                pet: configuration.pet.combatant,
-                battleEarnedGold: battleEarnedGold,
-                materialRewards: materialRewards,
-                rewardItem: configuration.pendingRewardItem
-            )
-        } else if let labyrinthBattle = configuration.labyrinthBattle {
+        let hero = configuration.hero.combatant
+        let pet = configuration.pet.combatant
+        switch configuration.resumeToken {
+        case let .journey(stageID):
+            if let stage = GameContent.stage(id: stageID) {
+                completeStage(
+                    stage,
+                    hero: hero,
+                    pet: pet,
+                    battleEarnedGold: battleEarnedGold,
+                    materialRewards: materialRewards
+                )
+            }
+        case let .aspect(aspectID, floorNumber):
+            if let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) {
+                completeAspectFloor(
+                    floor,
+                    hero: hero,
+                    pet: pet,
+                    battleEarnedGold: battleEarnedGold,
+                    materialRewards: materialRewards,
+                    rewardItem: configuration.pendingRewardItem
+                )
+            }
+        case let .labyrinth(nodeID):
             completeLabyrinthNode(
-                nodeID: labyrinthBattle.nodeID,
-                hero: configuration.hero.combatant,
-                pet: configuration.pet.combatant,
+                nodeID: nodeID,
+                hero: hero,
+                pet: pet,
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards
             )
-        } else if battleEarnedGold > 0 {
-            grantBattleEarnedGold(battleEarnedGold)
+        case .none:
+            if battleEarnedGold > 0 {
+                grantBattleEarnedGold(battleEarnedGold)
+            }
         }
         battle.endBattle()
+    }
+
+    private func isResumeTokenStillPlayable(_ token: ActiveBattleResumeToken) -> Bool {
+        switch token {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID),
+                  case .battle = stage.encounter else {
+                return false
+            }
+            return !journey.current.hasClaimedRewards(for: stage)
+        case let .aspect(aspectID, floorNumber):
+            guard ModesUnlock.isUnlocked(journey: journey.current),
+                  let aspect = GameContent.aspect(id: aspectID),
+                  AspectUnlock.isUnlocked(aspect, progress: aspects.current),
+                  GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) != nil
+            else {
+                return false
+            }
+            return aspects.current.isFloorUnlocked(
+                floorNumber,
+                aspectID: aspectID.rawValue,
+                floorCount: aspect.floorCount
+            )
+        case let .labyrinth(nodeID):
+            guard isLabyrinthUnlocked else { return false }
+            if !labyrinth.hasMap {
+                _ = enterLabyrinth()
+            }
+            guard let node = labyrinth.node(id: nodeID),
+                  node.type.isCombat,
+                  !node.isCleared
+            else {
+                return false
+            }
+            return labyrinth.isNodeReachable(nodeID) || node.isRevealed
+        }
     }
 
     func grantBattleEarnedGold(_ amount: Int) {
@@ -199,17 +199,14 @@ extension AppState {
             return StageMapMessage(title: "Encounter Missing", message: "This stage is not ready yet.")
         }
 
-        battle.preview = nil
-        battle.activeBattle = makeActiveBattleConfiguration(
-            stageID: stage.id,
+        activateBattle(
+            resumeToken: .journey(stageID: stage.id),
             hero: roster.activeHero,
             pet: roster.activePet,
             enemy: encounter.combatant,
             enemyEncounterLevel: encounter.level,
             stageReward: stage.rewards
         )
-        battle.isPaused = selectedTab != .play
-        syncBattleTickLoop()
         return nil
     }
 
@@ -221,30 +218,49 @@ extension AppState {
         let pet = roster.pets.first(where: { $0.id == activeBattle.pet.combatant.id })
             ?? roster.activePet
 
-        battle.activeBattle = makeActiveBattleConfiguration(
-            stageID: activeBattle.stageID,
+        activateBattle(
+            resumeToken: activeBattle.resumeToken,
             hero: hero,
             pet: pet,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward,
-            aspectBattle: activeBattle.aspectBattle,
-            labyrinthBattle: activeBattle.labyrinthBattle
+            stageReward: activeBattle.stageReward
         )
-        syncBattleTickLoop()
     }
 
-    func makeActiveBattleConfiguration(
-        stageID: String?,
+    /// Clears preview, installs a fresh battle configuration, and syncs the tick loop.
+    func activateBattle(
+        resumeToken: ActiveBattleResumeToken? = nil,
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant?,
         enemyEncounterLevel: Int?,
-        stageReward: StageReward?,
-        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil,
-        labyrinthBattle: ActiveBattleConfiguration.LabyrinthBattle? = nil
-    ) -> ActiveBattleConfiguration {
-        ActiveBattleConfiguration.make(
+        stageReward: StageReward?
+    ) {
+        let stageID: String?
+        let aspectBattle: ActiveBattleConfiguration.AspectBattle?
+        let labyrinthBattle: ActiveBattleConfiguration.LabyrinthBattle?
+        switch resumeToken {
+        case let .journey(id):
+            stageID = id
+            aspectBattle = nil
+            labyrinthBattle = nil
+        case let .aspect(aspectID, floor):
+            stageID = nil
+            aspectBattle = .init(aspectID: aspectID, floor: floor)
+            labyrinthBattle = nil
+        case let .labyrinth(nodeID):
+            stageID = nil
+            aspectBattle = nil
+            labyrinthBattle = .init(nodeID: nodeID)
+        case .none:
+            stageID = nil
+            aspectBattle = nil
+            labyrinthBattle = nil
+        }
+
+        battle.preview = nil
+        battle.activeBattle = ActiveBattleConfiguration.make(
             stageID: stageID,
             aspectBattle: aspectBattle,
             labyrinthBattle: labyrinthBattle,
@@ -257,6 +273,8 @@ extension AppState {
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward
         )
+        battle.isPaused = selectedTab != .play
+        syncBattleTickLoop()
     }
 
     @discardableResult
