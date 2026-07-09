@@ -4,6 +4,8 @@ Trinket-specific rules for applying Apple's 2026 platform APIs. The hard platfor
 
 **Trinket iOS 26 stack:** curated WWDC notes, API maps, codebase audit, and migration plans live in `Docs/Platform/` — start with [iOS26AppleReference.md](../Platform/iOS26AppleReference.md), [iOS26StackAudit.md](../Platform/iOS26StackAudit.md), [LiquidGlassMigrationPlan.md](../Platform/LiquidGlassMigrationPlan.md), and [AppleNativeBestPracticesPlan.md](../Platform/AppleNativeBestPracticesPlan.md).
 
+**Fluid interface taste:** when designing or reviewing gesture-driven UI, springs, sheets/drags, interruptible transitions, materials depth, or reduced-motion behavior, load the Cursor skill [apple-design](../../.cursor/skills/apple-design/SKILL.md) (Emil Kowalski’s distillation of Apple WWDC design talks). Translate its principles into SwiftUI / `TrinketDesignSystem` / `TrinketMotion` — do not copy its web (CSS / Pointer Events / Framer Motion) examples into this codebase.
+
 ## Platform Contract
 
 | Requirement | Value |

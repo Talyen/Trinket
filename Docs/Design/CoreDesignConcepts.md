@@ -30,7 +30,7 @@ The **Collection** tab groups Heroes, Pets, and Inventory behind an in-tab categ
 
 ## Visual Foundation
 
-Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/Design/StyleGuide/AppVisualFoundation.md`. Reference PNG boards described in `Docs/Design/StyleGuide/VisualReferences/README.md` are maintained outside the repo; code and `AppVisualFoundation.md` are authoritative for implementation.
+Trinket's app chrome should feel Apple-native, readable, restrained, and fantasy-appropriate. The current visual direction is documented in `Docs/Design/StyleGuide/AppVisualFoundation.md`. Reference PNG boards described in `Docs/Design/StyleGuide/VisualReferences/README.md` are maintained outside the repo; code and `AppVisualFoundation.md` are authoritative for implementation. For fluid motion and gesture feel (springs, direct manipulation, interruptible transitions), agents should also load `.cursor/skills/apple-design/SKILL.md` and apply those principles through SwiftUI / `TrinketMotion` — see `Docs/Design/AppleNativeGuidelines.md`.
 
 Chrome uses Apple semantic system backgrounds, quiet neutral strokes, restrained material for overlays, and solid readable surfaces. Keyword identities and card art carry the strong hues. Screens should request semantic backgrounds, surfaces, materials, typography, spacing, and Keyword styles rather than hardcoded colors.
 

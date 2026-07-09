@@ -74,5 +74,6 @@ Start with **`Docs/Architecture.md`** for the repo map, module ownership, and ta
 - Art pipeline: `ArtManifest/README.md`
 - Music pipeline: `MusicManifest/README.md`
 - Apple-native guidance: `Docs/Design/AppleNativeGuidelines.md`
+- Apple fluid-interface skill (Cursor): `.cursor/skills/apple-design/SKILL.md`
 - CloudKit pre-ship checklist: `Docs/Platform/CloudKitPreShipChecklist.md`
 - Release pipeline: `Scripts/README.md`

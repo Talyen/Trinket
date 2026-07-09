@@ -37,7 +37,7 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 
 ### Style guardrails
 
-`./Scripts/check-ui-style.sh` flags raw `.regularMaterial` / `.thinMaterial` / `.ultraThinMaterial`, raw `.buttonStyle(.glass|glassProminent|bordered|borderedProminent)`, `.toggleStyle(.button)`, and fixed `.frame(width:)` / `.frame(height:)` inside text buttons. Bypass with `// UIStyleCheck: allow - <reason>` on the same or preceding line. Otherwise route reusable chrome through `Packages/TrinketDesignSystem/`. Prefer fixing SwiftLint violations over new `swiftlint:disable`. Major UI guidance: `Docs/Design/AppleNativeGuidelines.md`.
+`./Scripts/check-ui-style.sh` flags raw `.regularMaterial` / `.thinMaterial` / `.ultraThinMaterial`, raw `.buttonStyle(.glass|glassProminent|bordered|borderedProminent)`, `.toggleStyle(.button)`, and fixed `.frame(width:)` / `.frame(height:)` inside text buttons. Bypass with `// UIStyleCheck: allow - <reason>` on the same or preceding line. Otherwise route reusable chrome through `Packages/TrinketDesignSystem/`. Prefer fixing SwiftLint violations over new `swiftlint:disable`. Major UI guidance: `Docs/Design/AppleNativeGuidelines.md`. For fluid motion / gesture feel (springs, interruptibility, direct manipulation, materials depth), also load the Cursor skill `.cursor/skills/apple-design/SKILL.md` — apply its principles through SwiftUI and `TrinketDesignSystem` / `TrinketMotion`, not web CSS or pointer APIs.
 
 ### Module & hub boundaries
 
@@ -88,6 +88,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | Setup / first run | `README.md` |
 | Gameplay vocabulary | `Docs/Design/CoreDesignConcepts.md` |
 | Apple HIG / native UI | `Docs/Design/AppleNativeGuidelines.md` |
+| Fluid motion / gesture feel (Apple WWDC principles) | Cursor skill `apple-design` (`.cursor/skills/apple-design/SKILL.md`) — principles only; implement via SwiftUI / `TrinketMotion` |
 | Visual foundation | `Docs/Design/StyleGuide/AppVisualFoundation.md` |
 | iOS 26 APIs / stack notes | `Docs/Platform/` |
 | Content / art / music pipelines | `ContentManifest/README.md`, `ArtManifest/README.md`, `MusicManifest/README.md` |

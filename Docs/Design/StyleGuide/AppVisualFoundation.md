@@ -251,6 +251,7 @@ Update docs as implementation names settle:
 - `Docs/Design/CoreDesignConcepts.md` for durable visual and battle-presentation principles.
 - `Docs/Design/AppleNativeGuidelines.md` for Trinket-specific native chrome rules and deprecated-pattern deny list.
 - `Docs/Design/StyleGuide/VisualReferences/README.md` when a newer visual pass supersedes v2.
+- Cursor skill `.cursor/skills/apple-design/SKILL.md` for Apple fluid-interface principles (response, springs, interruptibility, materials) when polishing motion — implement through `TrinketMotion` / SwiftUI, not web examples.
 
 Recommended verification for Phase 1-3:
 
