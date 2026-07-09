@@ -152,9 +152,16 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 ### R-022 — Alternate Game Modes
 - **Area:** Play, Cross-cutting
 - **Status:** scratch
-- **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. First mode: **Aspects** (affinity floor climbs; player-facing name avoids “Keyword”). Later candidates: Reliquary Gauntlet, Astral Hunt, Wanderer's Labyrinth. Goal: level or gear alternate heroes/pets without replaying chapters.
-- **Plan:** `Docs/Design/AspectsAndModesPlan.md` (Modes shell + Aspects naming, UX, motion, phased implementation).
+- **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. First mode: **Aspects** (affinity floor climbs; player-facing name avoids “Keyword”). Later candidates: Reliquary Gauntlet, Astral Hunt, and an infinite delve Mode (see **R-022c**; recommended name **The Undercroft**, may replace the Wanderer's Labyrinth teaser). Goal: level or gear alternate heroes/pets without replaying chapters.
+- **Plan:** `Docs/Design/AspectsAndModesPlan.md` (Modes shell + Aspects naming, UX, motion, phased implementation). Delve Mode: `Docs/Design/DelveModePlan.md`.
 - **Touches:** `AppState`, `BattleSession`, Play Home / Modes UI, Aspects catalogs + persistence, `TrinketCore` progression
+
+### R-022c — Undercroft (Delve Mode)
+- **Area:** Play, Cross-cutting
+- **Status:** scratch
+- **Idea:** Infinite dungeon Mode inspired by PoE Delve: procedurally generated node map, biome **clusters**, stacked **Echoes** (affixes) that modify monster power, loot/XP, Keyword-affinity farming, and special finds (Wardens, shops, mysteries). Session runs + depth record + atlas; same idle Hero+Pet battles. Player-facing name TBD (rec: **The Undercroft**).
+- **Plan:** `Docs/Design/DelveModePlan.md` (full product spec, UI/UX, naming, preference questions).
+- **Touches:** Modes UI, `AppState` battle source, procedural generator + catalogs, `TrinketPersistence` run/atlas slice, Shop/Mystery/reward reuse
 
 ---
 

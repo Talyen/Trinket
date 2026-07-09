@@ -3,7 +3,7 @@
 Design and implementation plan for the **Play Modes** destination chooser and the first alternate mode, **Aspects** (Keyword-constrained floor climbs). Expands roadmap **R-022**. Complements `CoreDesignConcepts.md` (journey + Keywords), `AppVisualFoundation.md` (chrome + motion), and `AppleNativeGuidelines.md` (SwiftUI / iOS 26 patterns).
 
 **Status:** implementing — Phases 1–4 landed (Modes shell, Aspects catalog/persistence, hub/climb UI, battle wiring). Content uses existing enemy roster; TSV codegen deferred.  
-**Out of scope for v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt / Labyrinth (named as future Modes only)
+**Out of scope for v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt / Labyrinth (named as future Modes only). Infinite delve Mode is specified separately in `Docs/Design/DelveModePlan.md` (**R-022c**; recommended player name **The Undercroft**).
 
 ---
 
@@ -446,9 +446,9 @@ Locked teasers for Gauntlet / Hunt / Labyrinth appear on Modes with no unlock ye
 |------|------------------|--------|
 | Reliquary Gauntlet | Multi-fight run; wounds persist | Encounter types, carry HP between battles |
 | Astral Hunt | Rotating Warden; score damage | Boss enemy, event scoring from battle log |
-| Wanderer's Labyrinth | Branching rooms; run boons | Mystery/Shop/Rest + run modifiers |
+| Wanderer's Labyrinth / **The Undercroft** | Infinite procedural descent; biome clusters + Echoes | Mystery/Shop/Rest + run modifiers; see `DelveModePlan.md` |
 
-Do not implement these in Aspects phases.
+Do not implement these in Aspects phases. Prefer locking the delve Mode name in `DelveModePlan.md` §12 before changing `ModesView` copy.
 
 ---
 
