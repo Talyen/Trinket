@@ -6,7 +6,7 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 **Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, navigation structure, or art-forward toolbar visibility overrides.
 
-**Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Collection search results, Options forms) per `AppVisualFoundation.md`.
+**Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Collection search results, Options forms) via `TrinketDesignSystem` / `VisualFoundation`.
 
 ---
 
@@ -273,7 +273,7 @@ func assertAccessibilityAudit(file: StaticString = #file, line: UInt = #line) {
 ### Phase 6 — Documentation and audit refresh
 
 1. Update [iOS26StackAudit.md](iOS26StackAudit.md) — mark glass migration complete, refresh date.
-2. Update `AppVisualFoundation.md` Material Rules if role map changed.
+2. Update `TrinketDesignSystem` / `VisualFoundation` material rules if role map changed.
 3. Update `TrinketDesignSystem` README modifier table.
 4. Add entry to `Docs/Platform/README.md` linking this plan (done when plan lands).
 
@@ -329,6 +329,6 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 - [iOS26AppleReference.md](iOS26AppleReference.md) — WWDC links and API table
 - [iOS26StackAudit.md](iOS26StackAudit.md) — point-in-time findings
 - [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) — follow-up Apple-native migrations
-- [AppVisualFoundation.md](../Design/StyleGuide/AppVisualFoundation.md) — dense vs glass surfaces
-- [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md) — repo patterns and deprecated APIs
+- [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md) — dense vs glass surfaces, chrome inventory
+- [AgentMotion.md](../AgentMotion.md) — fluid motion via SwiftUI / `TrinketMotion`
 - `Scripts/check-ui-style.sh` — enforcement rules

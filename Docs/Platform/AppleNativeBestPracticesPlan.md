@@ -1,6 +1,6 @@
 # Apple / Swift Native Best Practices Plan
 
-Implementation plan to close the remaining Apple-native gaps identified in the July 2026 stack review. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md).
+Implementation plan to close the remaining Apple-native gaps identified in the July 2026 stack review. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [iOS26AppleReference.md](iOS26AppleReference.md).
 
 **Status:** Phases **A–E, F1, G, H** implemented (July 2026). **F2** (live CloudKit) blocked on Apple Developer Program enrollment.
 
@@ -245,7 +245,7 @@ Update after code lands:
 |-----|--------|
 | [iOS26StackAudit.md](iOS26StackAudit.md) | Mark A–E/G complete; remove toolbar Phase 4 gap; point here for remaining F2 |
 | [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) | Already drops Phase 4; status = complete |
-| [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md) | Link this plan; note haptics + AppStorage patterns |
+| [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md) | Link this plan; note haptics + AppStorage patterns |
 | [Architecture.md](../Architecture.md) | Options/`AppStorage`; CloudKit gated on Developer Program |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Split “prep without account” vs “portal required” |
 | [Platform README](README.md) | Link this plan |
@@ -295,6 +295,7 @@ Update after code lands:
 - [iOS26AppleReference.md](iOS26AppleReference.md)
 - [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
 - [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md)
-- [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md)
+- [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md)
+- [AgentMotion.md](../AgentMotion.md)
 - WWDC25-323 — background extension, scroll edge (tab minimize deliberately omitted)
 - [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) — glass on controls; toolbar overrides intentionally retained for art screens

@@ -11,4 +11,4 @@ Curated Apple platform guidance and Trinket-specific stack audits. Use these whe
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Pre-ship CloudKit / App Store checklist (F1 local prep vs F2 Developer Program enablement) |
 | [IdentityPlan.md](IdentityPlan.md) | Guest-first identity: iCloud = cross-device progress; no login splash / SIWA / Google (stub until F2) |
 
-Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design HIG index: [AppleNativeGuidelines.md](../Design/AppleNativeGuidelines.md). Fluid motion / gesture principles (Cursor skill): [apple-design](../../.cursor/skills/apple-design/SKILL.md) — apply via SwiftUI / `TrinketMotion`, not web APIs.
+Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design system / chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid motion: [AgentMotion.md](../AgentMotion.md).

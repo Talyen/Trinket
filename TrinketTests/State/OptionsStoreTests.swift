@@ -20,7 +20,7 @@ struct OptionsStoreTests {
         #endif
         #expect(abs((store.effectsVolume) - 0.85) < 0.001)
         #expect(store.hapticsEnabled)
-        #expect(store.appearance == .system)
+        #expect(store.appearance == .dark)
         #expect(store.ultimateCinematicSkipPolicy == .always)
     }
 

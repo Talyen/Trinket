@@ -58,7 +58,7 @@ Manifests and pipelines live outside the app folder:
 
 ## Product tabs vs code
 
-Persistent player-facing tabs (`Docs/Design/CoreDesignConcepts.md`):
+Persistent player-facing tabs:
 
 ```text
 Play → Collection → Homestead → Options

@@ -31,25 +31,39 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 - Use `NavigationStack`, modern `Tab`, sheets, `ToolbarItem`, semantic colors.
 - Use SwiftData (`@Model`) for persistence — see `TrinketPersistence`.
 - Route chrome through `TrinketDesign` / `.trinketSurface` / `.trinketMaterial` / `.trinketGlassChip` in `TrinketDesignSystem`.
-- When unsure, **grep the repo** before inventing a pattern: app state → `AppState`; chrome → `TrinketDesignSystem`; battle rules → `BattleEngine`; catalogs → `TrinketContent` / manifests.
+- When unsure, **grep the repo** before inventing a pattern: app state → `AppState`; chrome → `TrinketDesignSystem`; battle rules → `BattleEngine`; catalogs → `TrinketContent` / manifests. Prefer:
+
+```bash
+rg 'pattern' --type swift -g '!**/Generated/*' -g '!**/project.pbxproj'
+```
 
 “Fallbacks” in design docs mean **accessibility** (Reduce Transparency / Reduce Motion), not older iOS support.
 
 ## Contracts
 
-- **Style:** Route reusable chrome through `Packages/TrinketDesignSystem/`; `./Scripts/check-ui-style.sh` enforces materials/button styles. Prefer fixing SwiftLint over new `swiftlint:disable`. UI guidance: `Docs/Design/AppleNativeGuidelines.md`. Fluid motion: Cursor skill `.cursor/skills/apple-design/SKILL.md` (apply via SwiftUI / `TrinketMotion`, not web CSS).
+- **Style:** Route reusable chrome through `Packages/TrinketDesignSystem/`; `./Scripts/check-ui-style.sh` enforces materials/button styles. Prefer fixing SwiftLint over new `swiftlint:disable`. UI guidance: `Packages/TrinketDesignSystem/README.md` + `Docs/Platform/iOS26AppleReference.md`. Fluid motion: **`Docs/AgentMotion.md`** (SwiftUI / `TrinketMotion`).
+- **Content:** Read/edit TSV manifests (`ContentManifest/`, `ArtManifest/`, `MusicManifest/`, `SoundManifest/`, `CinematicManifest/`). Do **not** open `*Catalog.generated.swift` to understand or change content. After `./Scripts/generate.sh`, review `git diff` on `Generated/` only, then stage.
+- **Xcode project:** Edit `project.yml`, then `./Scripts/generate.sh` — do not hand-edit or explore `Trinket.xcodeproj/project.pbxproj`.
 - **Packages** must not import the `Trinket` app. `TrinketDesignSystem` → `TrinketCore` only (not `BattleEngine` or `TrinketContent`).
 - **App layers:** `BattleShell/` ↛ `Features/`; `State/` ↛ feature views; `Models/` ↛ `State/` or `Features/`. Full graph: `Docs/Architecture.md`.
 - **Hub containment:** keep `BattleState` and `PlayerSaveStore` thin — handlers/engines, `Player*Store` slices, or `BattleState+*.swift` / value-type models (Architecture “Extension policy”).
 
-### Hard do-not-touch
+### Hard do-not-touch / do-not-read
+
+**Do not edit:**
 
 - Hand-edit `Generated/`, `.DerivedData/`, or `.tools/`
-- Edit processed `Trinket/Assets.xcassets` or `Trinket/Resources/Music` except via `./Scripts/generate.sh --assets`
+- Edit processed `Trinket/Assets.xcassets`, `Trinket/Resources/Music`, or `Trinket/Resources/Cinematics` except via `./Scripts/generate.sh --assets`
 - Edit `CHANGELOG.md` per commit — `./Scripts/release.sh` owns it
-- Implement `Docs/Roadmap.md` (`R-###`) unless the user cites an entry
 - Treat `Docs/Audits/*Audit.md` as standing backlog, or append run results into an audit file
 - Drive-by refactors, unsolicited markdown, or scope beyond the asked task
+
+**Do not read or explore** (except the narrow exceptions noted):
+
+- `Packages/**/Generated/` — manifests + generate only; open Generated solely for post-generate `git diff` / staging
+- `Trinket.xcodeproj/project.pbxproj` — use `project.yml`
+- Binary / processed media under `Trinket/Assets.xcassets/`, `Trinket/Resources/Music/`, `Trinket/Resources/Cinematics/`
+- Build trees: `.DerivedData/`, `**/.build/`, `.tools/`
 
 ## Task → Command Router
 
@@ -66,7 +80,7 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 | Pre-merge | `./Scripts/test-deploy.sh` |
 | One-screen layout check | `./Scripts/build.sh` or `./Scripts/run-simulator.sh` |
 
-Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <SmokeClass>` or `test-iterate.sh` for one smoke class. Preferred full-unit path: `./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build`. During active coding prefer `build.sh`, `test.sh unit`, and bare `test.sh smoke` — `smoke-full` is CI-only unless debugging a smoke failure. Gate/tier details: `Scripts/README.md`.
+Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <SmokeClass>` or `test-iterate.sh` for one smoke class. Preferred full-unit path: `./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build`. During active coding prefer `build.sh`, `test.sh unit` / `test-package.sh`, and bare `test.sh smoke` — `smoke-full` is CI-only unless debugging a smoke failure. Gate/tier details: `Scripts/README.md`. Verification ladder detail: **`Docs/Testing.md`**.
 
 **No Xcode 26 / simulator:** land correct source/docs; run `generate.sh`, `assert-generated-output.sh`, `check-module-boundaries.sh`, `check-ui-style.sh`, `ci-gate.sh` as applicable; skip `build.sh` / `test.sh`; state skips in the commit/PR body. When the toolchain is present, router verification is mandatory before claiming done.
 
@@ -79,11 +93,11 @@ Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <Smok
 | UI launch args / speed | `TrinketUITests/README.md` |
 | Setup / first run | `README.md` |
 | Release / commit contract / gates | `Scripts/README.md` |
-| Apple HIG / native UI | `Docs/Design/AppleNativeGuidelines.md` |
-| Gameplay vocabulary | `Docs/Design/CoreDesignConcepts.md` |
+| Apple HIG / native UI / chrome | `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md` |
+| Fluid motion / gesture feel | `Docs/AgentMotion.md` |
 | Content / art / music pipelines | `ContentManifest/README.md`, `ArtManifest/README.md`, `MusicManifest/README.md` |
 
-Cited-only (Roadmap, Audits, Identity, Liquid Glass, Platform notes): open only when the user cites them or the task requires them — see Hard do-not-touch.
+Cited-only (Audits, Identity, Liquid Glass, other Platform notes): open only when the user cites them or the task requires them — see Hard do-not-touch.
 
 ## Git & commits
 
@@ -98,4 +112,4 @@ Commits: `<type>(<scope>): <imperative subject ≤72 chars>` plus optional bulle
 
 ## Testing (summary)
 
-Swift Testing for unit/package targets; XCTest for `TrinketUITests/` only. New features: follow the definition of done in **`Docs/Testing.md`** (package/unit coverage, persistence write-through, catalog invariants, AccessibilityID + smoke for new flows). Run `./Scripts/test.sh unit` before commit when package code changed (toolchain permitting). UI smoke canary: `./Scripts/test.sh smoke`.
+Swift Testing for unit/package targets; XCTest for `TrinketUITests/` only. New features: follow the definition of done in **`Docs/Testing.md`**. Package-only changes: `./Scripts/test-package.sh <Package>`. App orchestration: `./Scripts/test.sh unit <Class>` (or full unit when cross-cutting). UI smoke canary: `./Scripts/test.sh smoke`.

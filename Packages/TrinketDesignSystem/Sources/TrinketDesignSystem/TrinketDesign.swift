@@ -52,7 +52,7 @@ public enum TrinketDesign {
         case light
         case dark
 
-        public static let `default` = AppAppearance.system
+        public static let `default` = AppAppearance.dark
 
         public init?(rawValue: String) {
             let normalized = rawValue

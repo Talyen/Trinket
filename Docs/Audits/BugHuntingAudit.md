@@ -20,7 +20,7 @@ Do **not** re-run sibling audits’ full suites — only chase hits from these p
 
 - Do not read every file — probe, triage, fix.
 - Do not refactor/rename/restyle unless required to fix a confirmed bug.
-- Do not touch Roadmap speculative features, manifests (unless a stale catalog ref), assets, music, `.DerivedData/`, or hand-edit `Generated/*`.
+- Do not expand into speculative backlog the user did not cite; do not touch manifests (unless a stale catalog ref), assets, music, `.DerivedData/`, or hand-edit `Generated/*`.
 - Do not alter `accessibilityIdentifier` values unless removing the control.
 - Do not weaken `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`.
 

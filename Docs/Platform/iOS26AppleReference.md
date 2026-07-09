@@ -51,7 +51,7 @@ From [Adopting Liquid Glass](https://developer.apple.com/documentation/technolog
 3. **Respect accessibility** — Liquid Glass adapts to Reduce Transparency and Reduce Motion; keep solid fallbacks (already patterned in `GlassChipModifier`).
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
-Trinket's dense Collection / Inventory / Search surfaces should stay on **solid themed surfaces** per `AppVisualFoundation.md`; glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+Trinket's dense Collection / Inventory / Search surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem` / `VisualFoundation`); glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
 ---
 
@@ -136,6 +136,6 @@ iOS 26 app icons use layered compositions with system-applied effects. When prep
 | Custom glass / materials | `Packages/TrinketDesignSystem/VisualFoundation.swift` | [iOS26StackAudit.md](iOS26StackAudit.md) § Liquid Glass |
 | Tab shell | `Trinket/App/ContentView.swift` | This doc § TabView APIs |
 | Style guardrails | `Scripts/check-ui-style.sh` | Route `.glassEffect` / `.buttonStyle(.glass*)` through design system |
-| Visual foundation rules | `Docs/Design/StyleGuide/AppVisualFoundation.md` | Dense vs glass surfaces |
-| Fluid motion / gesture feel | Cursor skill [apple-design](../../.cursor/skills/apple-design/SKILL.md) | Principles via SwiftUI / `TrinketMotion` (not web APIs) |
+| Visual foundation rules | `Packages/TrinketDesignSystem` (`VisualFoundation.swift`) | Dense vs glass surfaces |
+| Fluid motion / gesture feel | [AgentMotion.md](../AgentMotion.md) | Principles via SwiftUI / `TrinketMotion` |
 | Concurrency | `project.yml`, `@MainActor` stores | Swift 6 migration guide |

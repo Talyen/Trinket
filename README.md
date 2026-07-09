@@ -72,12 +72,12 @@ Start with **`Docs/Architecture.md`** for the repo map, module ownership, and ta
 - Agent workflow: `AGENTS.md`
 - Testing conventions: `Docs/Testing.md`
 - UI test launch args / speed: `TrinketUITests/README.md`
-- Core design concepts: `Docs/Design/CoreDesignConcepts.md`
-- Product roadmap (scratch ideas): `Docs/Roadmap.md`
+- Product tabs / repo map: `Docs/Architecture.md`
 - Content pipeline: `ContentManifest/README.md`
 - Art pipeline: `ArtManifest/README.md`
 - Music pipeline: `MusicManifest/README.md`
-- Apple-native guidance: `Docs/Design/AppleNativeGuidelines.md`
-- Apple fluid-interface skill (Cursor): `.cursor/skills/apple-design/SKILL.md`
+- Design system / chrome: `Packages/TrinketDesignSystem/README.md`
+- Apple platform notes: `Docs/Platform/iOS26AppleReference.md`
+- Fluid motion (SwiftUI): `Docs/AgentMotion.md`
 - CloudKit pre-ship checklist: `Docs/Platform/CloudKitPreShipChecklist.md`
 - Release pipeline: `Scripts/README.md`

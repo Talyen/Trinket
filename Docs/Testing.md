@@ -1,6 +1,6 @@
 # Testing
 
-Unit and UI test conventions for Trinket. Agent workflow overview and definition of done: **`AGENTS.md`**. Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args / speed: `TrinketUITests/README.md`.
+Unit and UI test conventions for Trinket. Agent workflow / command router: **`AGENTS.md`**. This file owns the definition of done and test conventions. Battle ownership matrix: `Packages/BattleEngine/Tests/README.md`. UI launch args / speed: `TrinketUITests/README.md`.
 
 ## Framework split
 
@@ -40,7 +40,10 @@ Prefer `TrinketTestSupport` (`CombatantFixtures`, `SaveTestSupport`, battle part
 4. New `EffectKind` → registry parity + `EffectHandlersApplyTests`; thin integration only for multi-effect combos.
 5. New app orchestration on `AppState` / `BattleSession` → focused `TrinketTests` test.
 6. New user flow → `AccessibilityID` (or existing id) + one smoke UI test.
-7. Run `./Scripts/test.sh unit` (full, unfiltered) before commit when package code changed (toolchain permitting).
+7. Verify with the AGENTS Task→Command Router (toolchain permitting):
+   - **Package-only** change → `./Scripts/test-package.sh <Package>`
+   - **App orchestration** → `./Scripts/test.sh unit <Class>` (or full `./Scripts/test.sh unit` when cross-cutting)
+   - **UI** → `./Scripts/test.sh smoke` (canary); full unit / smoke-full remain pre-push / CI via `ci-locally.sh` / PR workflows
 
 ## UI tests (summary)
 

@@ -14,7 +14,7 @@ Read `AGENTS.md` and `Docs/Architecture.md` before editing.
 
 ## Hard stops
 
-- Do not implement `Docs/Roadmap.md` items unless this task names one.
+- Do not expand scope into speculative backlog items the user did not cite.
 - One target, one focused diff — do not spread across unrelated modules.
 - No rename-only or format-only churn without structural simplification.
 - Do not weaken `BattleStateTestFactory.makeBattle(..., rngSeed: 0)`.

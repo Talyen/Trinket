@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Discover markdown from the repo (do not trust a hardcoded file count). Fix **Critical** and **Moderate** issues found in this pass, capped at a sensible blast radius (**≤15** doc files or one coherent doc area). Cap Roadmap `Status:` churn unless the user asked for a roadmap pass.
+Discover markdown from the repo (do not trust a hardcoded file count). Fix **Critical** and **Moderate** issues found in this pass, capped at a sensible blast radius (**≤15** doc files or one coherent doc area).
 
 ## Hard stops
 
@@ -34,7 +34,7 @@ rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this po
 rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md
 ```
 
-Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Roadmap, Design, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
+Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Testing, AgentMotion, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
 
 ## Workflow
 

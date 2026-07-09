@@ -17,7 +17,7 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 ## Appearance
 
-App chrome uses Apple semantic system colors through `ThemePalette.apple`. Players choose **System**, **Light**, or **Dark** appearance via `OptionsStore.appearance` in Options. Tests can override with the `-appearance` launch argument.
+App chrome uses Apple semantic system colors through `ThemePalette.apple`. Default appearance is **Dark**; players can choose **System**, **Light**, or **Dark** via `OptionsStore.appearance` in Options. Tests can override with the `-appearance` launch argument.
 
 ## Surface roles
 
@@ -45,4 +45,4 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
 
-See `Docs/Design/AppleNativeGuidelines.md` for deprecated patterns and `Docs/Design/StyleGuide/AppVisualFoundation.md` for the full visual direction.
+Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/AgentMotion.md`. Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays (`VisualFoundation.swift` surface roles above).
