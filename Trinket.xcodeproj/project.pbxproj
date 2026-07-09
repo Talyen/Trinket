@@ -190,6 +190,7 @@
 		C5A070BF78B392C50C287886 /* LabyrinthCraftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A216BD8A3D83F5F94EC3C6 /* LabyrinthCraftView.swift */; };
 		A972738D6A2BFF51A7B5F6BF /* LabyrinthRestSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691DB81CC5E1D61D1B53517C /* LabyrinthRestSession.swift */; };
 		15725E0354614B67E5DF9B85 /* LabyrinthRestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9D80F39A57FA94FF8C86B2 /* LabyrinthRestView.swift */; };
+		34E1D019B78BDC704A3FD0F1 /* LabyrinthMapClusterViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921916095FEA3FE375647ADD /* LabyrinthMapClusterViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -395,6 +396,7 @@
 		B4A216BD8A3D83F5F94EC3C6 /* LabyrinthCraftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthCraftView.swift; sourceTree = "<group>"; };
 		691DB81CC5E1D61D1B53517C /* LabyrinthRestSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthRestSession.swift; sourceTree = "<group>"; };
 		9D9D80F39A57FA94FF8C86B2 /* LabyrinthRestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthRestView.swift; sourceTree = "<group>"; };
+		921916095FEA3FE375647ADD /* LabyrinthMapClusterViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthMapClusterViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1229,6 +1231,7 @@
 				C5A070BF78B392C50C287886 /* LabyrinthCraftView.swift in Sources */,
 				A972738D6A2BFF51A7B5F6BF /* LabyrinthRestSession.swift in Sources */,
 				15725E0354614B67E5DF9B85 /* LabyrinthRestView.swift in Sources */,
+				34E1D019B78BDC704A3FD0F1 /* LabyrinthMapClusterViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

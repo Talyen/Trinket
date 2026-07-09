@@ -112,57 +112,22 @@ public enum LabyrinthGenerator {
         let modifierIDs = rollModifiers(depthBand: depthBand, biome: biome, using: &rng)
         let modifiers = LabyrinthCatalog.modifiers(ids: modifierIDs)
         let clusterID = "labyrinth-cluster-\(depthBand)-\(biome.id.rawValue)"
-
         let nodeCount = Int.random(in: 3 ... 7, using: &rng)
-        var types = plannedTypes(
+        let types = plannedTypes(
             count: nodeCount,
             depthBand: depthBand,
             modifiers: modifiers,
             biome: biome,
             using: &rng
         )
-
-        var nodes: [LabyrinthNode] = []
-        nodes.reserveCapacity(types.count)
-        for (index, type) in types.enumerated() {
-            let nodeID = "\(clusterID)-n\(index)"
-            let enemyID: String?
-            if type.isCombat {
-                if type == .warden || type == .gate {
-                    enemyID = type == .warden ? biome.wardenEnemyID : pickEnemy(from: biome, using: &rng)
-                } else {
-                    enemyID = pickEnemy(from: biome, using: &rng)
-                }
-            } else {
-                enemyID = nil
-            }
-            nodes.append(
-                LabyrinthNode(
-                    id: nodeID,
-                    type: type,
-                    enemyID: enemyID,
-                    depth: depthBand,
-                    clusterID: clusterID,
-                    outgoingIDs: [],
-                    isCleared: false,
-                    isRevealed: depthBand == 1 && index == 0,
-                    failCount: 0
-                )
-            )
-        }
-
-        // Wire a layered DAG: most non-terminal nodes fan out to 2–3 later nodes; last is gate.
-        for index in nodes.indices {
-            if nodes[index].type == .gate { continue }
-            let remaining = (index + 1) ..< nodes.count
-            guard !remaining.isEmpty else { continue }
-            let preferred = Int.random(in: 2 ... 3, using: &rng)
-            let targetCount = min(remaining.count, preferred)
-            let targets = Array(remaining).shuffled(using: &rng).prefix(targetCount)
-            nodes[index].outgoingIDs = targets.map { nodes[$0].id }
-        }
-
-        // Ensure every non-entry node is reachable from entry (index 0).
+        var nodes = makeNodes(
+            types: types,
+            clusterID: clusterID,
+            depthBand: depthBand,
+            biome: biome,
+            using: &rng
+        )
+        wireLayeredEdges(nodes: &nodes, using: &rng)
         ensureReachability(nodes: &nodes)
 
         let cluster = LabyrinthCluster(
@@ -177,6 +142,51 @@ public enum LabyrinthGenerator {
             nodes: nodes,
             entryNodeIDs: nodes.isEmpty ? [] : [nodes[0].id]
         )
+    }
+
+    private static func makeNodes<RNG: RandomNumberGenerator>(
+        types: [LabyrinthNodeType],
+        clusterID: String,
+        depthBand: Int,
+        biome: LabyrinthBiomeDefinition,
+        using rng: inout RNG
+    ) -> [LabyrinthNode] {
+        types.enumerated().map { index, type in
+            let enemyID: String?
+            if type.isCombat {
+                enemyID = (type == .warden)
+                    ? biome.wardenEnemyID
+                    : pickEnemy(from: biome, using: &rng)
+            } else {
+                enemyID = nil
+            }
+            return LabyrinthNode(
+                id: "\(clusterID)-n\(index)",
+                type: type,
+                enemyID: enemyID,
+                depth: depthBand,
+                clusterID: clusterID,
+                outgoingIDs: [],
+                isCleared: false,
+                isRevealed: depthBand == 1 && index == 0,
+                failCount: 0
+            )
+        }
+    }
+
+    private static func wireLayeredEdges<RNG: RandomNumberGenerator>(
+        nodes: inout [LabyrinthNode],
+        using rng: inout RNG
+    ) {
+        for index in nodes.indices {
+            if nodes[index].type == .gate { continue }
+            let remaining = (index + 1) ..< nodes.count
+            guard !remaining.isEmpty else { continue }
+            let preferred = Int.random(in: 2 ... 3, using: &rng)
+            let targetCount = min(remaining.count, preferred)
+            let targets = Array(remaining).shuffled(using: &rng).prefix(targetCount)
+            nodes[index].outgoingIDs = targets.map { nodes[$0].id }
+        }
     }
 
     private static func ensureReachability(nodes: inout [LabyrinthNode]) {
