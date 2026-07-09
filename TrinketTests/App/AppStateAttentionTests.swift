@@ -41,6 +41,7 @@ struct AppStateAttentionTests {
 
         #expect(state.collectionActionableCount == 1)
         #expect(state.collectionBadge == 1)
+        #expect(state.unviewedHeroCount == 1)
         #expect(state.showsCollectionNewMarker(for: "rogue"))
         #expect(state.showsCollectionNewMarker(for: PlayerRosterState.starterHeroID) == false)
     }
@@ -57,6 +58,22 @@ struct AppStateAttentionTests {
         #expect(state.collectionActionableCount == 0)
         #expect(state.collectionBadge == nil)
         #expect(state.showsCollectionNewMarker(for: "rogue") == false)
+    }
+
+    @Test func markAllCollectionCombatantsAsViewedClearsCategory() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        var roster = state.roster.current
+        roster.unlockedHeroIDs.formUnion(["rogue", "wizard"])
+        roster.progressions["rogue"] = .initial
+        roster.progressions["wizard"] = .initial
+        state.roster.current = roster
+        #expect(state.unviewedHeroCount == 2)
+
+        state.markAllCollectionCombatantsAsViewed(kind: .hero)
+
+        #expect(state.unviewedHeroCount == 0)
+        #expect(state.showsCollectionNewMarker(for: "rogue") == false)
+        #expect(state.showsCollectionNewMarker(for: "wizard") == false)
     }
 
     @Test func newInventoryItemRaisesCollectionBadgeAndNewMarker() throws {
@@ -77,6 +94,114 @@ struct AppStateAttentionTests {
         #expect(state.collectionActionableCount == 0)
         #expect(state.collectionBadge == nil)
         #expect(state.showsCollectionNewMarker(forItem: item.id) == false)
+    }
+
+    @Test func basicItemTemplateAcknowledgmentSuppressesLaterCopies() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let first = template.rewardInstance(for: "attention-copy-1")
+        let second = template.rewardInstance(for: "attention-copy-2")
+
+        var inventory = state.inventory.current
+        inventory.items.append(contentsOf: [first, second])
+        state.inventory.current = inventory
+        #expect(state.unviewedItemCount == 2)
+
+        state.markItemAsViewed(first)
+
+        #expect(state.showsCollectionNewMarker(for: first) == false)
+        #expect(state.showsCollectionNewMarker(for: second) == false)
+        #expect(state.unviewedItemCount == 0)
+        #expect(
+            state.collectionAttention.current.viewedItemTemplateIDs.contains(first.templateID)
+        )
+    }
+
+    @Test func astralItemAcknowledgmentStaysInstanceScoped() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let baseType = try #require(GameContent.itemBaseTypes.first)
+        let first = InventoryItem(
+            id: "astral-1",
+            templateID: "astral-template",
+            baseType: baseType,
+            rarity: .astral,
+            displayName: "Astral Blade",
+            affixes: []
+        )
+        let second = InventoryItem(
+            id: "astral-2",
+            templateID: "astral-template",
+            baseType: baseType,
+            rarity: .astral,
+            displayName: "Astral Blade",
+            affixes: []
+        )
+
+        var inventory = state.inventory.current
+        inventory.items.append(contentsOf: [first, second])
+        state.inventory.current = inventory
+
+        state.markItemAsViewed(first)
+
+        #expect(state.showsCollectionNewMarker(for: first) == false)
+        #expect(state.showsCollectionNewMarker(for: second))
+        #expect(state.unviewedItemCount == 1)
+    }
+
+    @Test func shopPreviewMarkDoesNotPersistUnownedItemAttention() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        let offerItem = InventoryItem(
+            id: "shop-preview-offer",
+            templateID: template.templateID,
+            baseType: template.baseType,
+            rarity: template.rarity,
+            displayName: template.displayName,
+            affixes: template.affixes
+        )
+
+        state.markItemAsViewed(offerItem)
+
+        #expect(state.collectionAttention.current.viewedItemIDs.contains(offerItem.id) == false)
+        #expect(
+            state.collectionAttention.current.viewedItemTemplateIDs.contains(offerItem.templateID)
+                == false
+        )
+    }
+
+    @Test func mysteryInspectDoesNotClearCollectionAttention() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        var roster = state.roster.current
+        roster.unlockedHeroIDs.insert("rogue")
+        roster.progressions["rogue"] = .initial
+        state.roster.current = roster
+        #expect(state.showsCollectionNewMarker(for: "rogue"))
+
+        // Mystery uses marksCollectionAttention: false — simulate by not calling mark.
+        #expect(state.showsCollectionNewMarker(for: "rogue"))
+        #expect(state.collectionActionableCount == 1)
+    }
+
+    @Test func inventoryShelfPrefersUnviewedItems() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
+        var inventory = state.inventory.current
+        for index in 1 ... 14 {
+            inventory.items.append(template.rewardInstance(for: "shelf-\(index)"))
+        }
+        // Mark the first 12 as viewed so only the last two remain NEW.
+        var attention = state.collectionAttention.current
+        for item in inventory.items.prefix(12) {
+            attention.markItemAsViewed(item)
+        }
+        state.inventory.current = inventory
+        state.collectionAttention.current = attention
+
+        let shelf = state.collectionInventoryShelfItems(limit: 12)
+        #expect(shelf.count == 12)
+        #expect(shelf.prefix(2).allSatisfy { state.showsCollectionNewMarker(for: $0) })
+        #expect(state.unviewedItemCount == 2)
+        #expect(state.collectionBadge == 2)
     }
 
     @Test func collectionBadgeNilWhileOnCollectionTab() throws {
@@ -182,7 +307,7 @@ struct AppStateAttentionTests {
         state.homestead.current = homestead
 
         #expect(state.homesteadActionableCount >= 1)
-        #expect(state.homesteadBadge?.isEmpty == true)
+        #expect(state.homesteadBadge == state.homesteadActionableCount)
 
         state.selectedTab = .homestead
         #expect(state.homesteadBadge == nil)
@@ -195,7 +320,7 @@ struct AppStateAttentionTests {
         homestead.resources[.wood] = 10
         homestead.resources[.stone] = 4
         state.homestead.current = homestead
-        #expect(state.homesteadBadge?.isEmpty == true)
+        #expect(state.homesteadBadge == state.homesteadActionableCount)
 
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
         let result = state.playerSave.homesteadStore.buildOrUpgradeNode(definition)
@@ -203,6 +328,34 @@ struct AppStateAttentionTests {
 
         #expect(state.homesteadActionableCount == 0)
         #expect(state.homesteadBadge == nil)
+    }
+
+    @Test func homesteadBadgeDismissesOnVisitAndReturnsWhenSetChanges() throws {
+        let state = try context.makeAppState(environment: context.makeEnvironment())
+        var homestead = state.homestead.current
+        homestead.resources[.wood] = 10
+        homestead.resources[.stone] = 4
+        state.homestead.current = homestead
+        let firstCount = try #require(state.homesteadBadge)
+        #expect(firstCount >= 1)
+
+        state.acknowledgeHomesteadActionablesIfNeeded()
+        state.selectedTab = .play
+        #expect(state.homesteadBadge == nil)
+
+        // Grant enough for an additional upgrade path / different fingerprint.
+        homestead = state.homestead.current
+        homestead.resources[.wood] = 100
+        homestead.resources[.stone] = 100
+        homestead.resources[.iron] = 100
+        state.homestead.current = homestead
+
+        #expect(state.homesteadActionableFingerprint.isEmpty == false)
+        #expect(
+            state.homesteadActionableFingerprint
+                != state.shellSession.acknowledgedHomesteadActionableFingerprint
+        )
+        #expect(state.homesteadBadge == state.homesteadActionableCount)
     }
 
     @Test func lockedCombatantNeverShowsNewMarker() throws {

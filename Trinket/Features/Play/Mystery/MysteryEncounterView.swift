@@ -36,7 +36,8 @@ struct MysteryEncounterView: View {
                 appState.rosterCombatantDetail(
                     kind: context.kind,
                     combatantID: context.combatantID,
-                    hidesNavigationBar: false
+                    hidesNavigationBar: false,
+                    marksCollectionAttention: false
                 )
             }
             .trinketDetailSheet()

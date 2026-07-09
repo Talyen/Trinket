@@ -89,6 +89,15 @@ struct InventoryGridView: View {
                 .accessibilityLabel("Filter")
                 .accessibilityIdentifier("Inventory filter")
             }
+
+            if appState.unviewedItemCount > 0 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Mark All Seen") {
+                        appState.markAllCollectionItemsAsViewed()
+                    }
+                    .accessibilityIdentifier(AccessibilityID.Collection.markAllItemsSeen)
+                }
+            }
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
@@ -99,7 +108,8 @@ struct InventoryGridView: View {
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
-        inventoryState.items.filter { item in
+        let attention = appState.collectionAttention.current
+        let filtered = inventoryState.items.filter { item in
             let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             let matchesSearch = query.isEmpty
@@ -107,6 +117,9 @@ struct InventoryGridView: View {
 
             return matchesSlot && matchesSearch
         }
+        let unviewed = filtered.filter { attention.showsNewMarker(for: $0) }
+        let viewed = filtered.filter { !attention.showsNewMarker(for: $0) }
+        return unviewed + viewed
     }
 
     @ViewBuilder
@@ -136,6 +149,8 @@ struct ItemDetailView: View {
     var purchasePrice: Int?
     var canAfford: Bool = true
     var isPurchaseDisabled: Bool = false
+    /// When true (Collection), acknowledge discovery on appear. Shop previews pass false.
+    var marksCollectionAttention: Bool = true
     var onPurchase: (() -> Void)?
 
     @Environment(AppState.self) private var appState
@@ -146,12 +161,14 @@ struct ItemDetailView: View {
         purchasePrice: Int? = nil,
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
+        marksCollectionAttention: Bool = true,
         onPurchase: (() -> Void)? = nil
     ) {
         self.item = item
         self.purchasePrice = purchasePrice
         self.canAfford = canAfford
         self.isPurchaseDisabled = isPurchaseDisabled
+        self.marksCollectionAttention = marksCollectionAttention
         self.onPurchase = onPurchase
     }
 
@@ -229,7 +246,8 @@ struct ItemDetailView: View {
             }
         }
         .onAppear {
-            appState.markItemAsViewed(id: item.id)
+            guard marksCollectionAttention else { return }
+            appState.markItemAsViewed(item)
         }
     }
 }

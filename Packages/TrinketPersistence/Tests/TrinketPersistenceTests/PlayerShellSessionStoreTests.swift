@@ -70,6 +70,7 @@ final class PlayerShellSessionStoreTests {
         store.activeBattleStageID = "chapter-1-stage-1"
         store.mapScrollStageID = "chapter-1-stage-2"
         store.viewedCombatantIDs = ["hero-knight"]
+        store.acknowledgedHomesteadActionableFingerprint = "wheatField"
         store.lastBackgroundedTime = Date(timeIntervalSince1970: 1_700_000_000)
 
         store.resetToDefaults(selectingTab: .homestead)
@@ -82,6 +83,16 @@ final class PlayerShellSessionStoreTests {
         try #expect(reloaded.activeBattleSchemaVersion == nil)
         try #expect(reloaded.lastBackgroundedTime == nil)
         try #expect(reloaded.viewedCombatantIDs.isEmpty)
+        try #expect(reloaded.acknowledgedHomesteadActionableFingerprint.isEmpty)
+    }
+
+    @Test func persistsHomesteadActionableFingerprintAcrossReload() throws {
+        let storeURL = directoryURL.appending(path: "homestead-ack-shell.store")
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        store.acknowledgedHomesteadActionableFingerprint = "wheatField|lumberMill"
+
+        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(reloaded.acknowledgedHomesteadActionableFingerprint == "wheatField|lumberMill")
     }
 
     @Test func persistsMapScrollAndBackgroundedTimeAcrossReload() throws {

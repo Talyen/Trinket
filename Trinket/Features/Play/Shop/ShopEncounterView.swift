@@ -89,6 +89,7 @@ struct ShopEncounterView: View {
                     purchasePrice: offer.price,
                     canAfford: appState.roster.gold >= offer.price,
                     isPurchaseDisabled: session.isPurchasing,
+                    marksCollectionAttention: false,
                     onPurchase: {
                         if appState.purchaseActiveShopOffer(offerID: offer.id) {
                             purchaseFeedbackTrigger += 1

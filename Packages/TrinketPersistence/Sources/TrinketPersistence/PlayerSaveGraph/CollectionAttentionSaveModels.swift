@@ -6,6 +6,7 @@ public final class CollectionAttentionModel {
     public var root: PlayerSaveRoot?
     public var viewedCombatantIDs: [String] = []
     public var viewedItemIDs: [String] = []
+    public var viewedItemTemplateIDs: [String] = []
 
     public init() {}
 }

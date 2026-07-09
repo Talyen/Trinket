@@ -273,7 +273,8 @@ final class PlayerSaveSanitizerTests {
         save.roster.progressions["rogue"] = .initial
         save.collectionAttention = PlayerCollectionAttentionState(
             viewedCombatantIDs: ["rogue", "missing-hero", PlayerRosterState.starterHeroID],
-            viewedItemIDs: ["owned-item", "missing-item"]
+            viewedItemIDs: ["owned-item", "missing-item"],
+            viewedItemTemplateIDs: ["template", "missing-template"]
         )
 
         let sanitized = PlayerSaveSanitizer.sanitize(save)
@@ -287,5 +288,7 @@ final class PlayerSaveSanitizerTests {
         )
         try #expect(!sanitized.collectionAttention.viewedCombatantIDs.contains("missing-hero"))
         try #expect(sanitized.collectionAttention.viewedItemIDs == ["owned-item"])
+        try #expect(sanitized.collectionAttention.viewedItemTemplateIDs == ["template"])
+        try #expect(!sanitized.collectionAttention.viewedItemTemplateIDs.contains("missing-template"))
     }
 }

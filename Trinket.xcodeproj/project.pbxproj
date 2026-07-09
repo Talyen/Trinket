@@ -176,6 +176,7 @@
 		5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */; };
 		5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */; };
 		33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DD20B8080EC1342CD43769 /* ModesView.swift */; };
+		DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -367,6 +368,7 @@
 		01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectClimbView.swift; sourceTree = "<group>"; };
 		F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectsHubView.swift; sourceTree = "<group>"; };
 		29DD20B8080EC1342CD43769 /* ModesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModesView.swift; sourceTree = "<group>"; };
+		EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Attention.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -682,6 +684,7 @@
 				F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */,
 				164D505923452D9A8FADE34F /* ShopEncounterSession.swift */,
 				AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */,
+				EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -1181,6 +1184,7 @@
 				5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */,
 				5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */,
 				33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */,
+				DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
