@@ -285,17 +285,9 @@ final class AppState {
         )
     }
 
-    enum AppActivityType: Equatable {
-        case browsing
-        case localBattle
-        case serverTrackedBattle
-    }
-
-    var currentActivityType: AppActivityType {
-        if battle.activeBattle != nil || shellSession.hasActiveBattleResumeToken {
-            return .localBattle
-        }
-        return .browsing
+    /// True when a live battle or a shell-session resume token is present (resume card / mid-fight).
+    private var hasLocalBattleActivity: Bool {
+        battle.activeBattle != nil || shellSession.hasActiveBattleResumeToken
     }
 
     func evaluateResumeRules() {
@@ -313,37 +305,36 @@ final class AppState {
             if !isSavedBattleValid() {
                 shellSession.clearBattleState()
             }
-        } else {
-            switch currentActivityType {
-            case .localBattle:
-                if isSavedBattleValid() {
-                    if elapsed < seamlessWindow {
-                        if battle.activeBattle == nil {
-                            resumeSavedBattle()
-                        }
-                        selectedTab = .play
-                    } else {
-                        discardOrCompleteBattleBeyondSeamlessWindow()
-                        selectedTab = .play
-                    }
-                } else {
-                    if battle.activeBattle != nil {
-                        battle.endBattle()
-                    }
-                    selectedTab = .play
-                    shellSession.clearBattleState()
-                }
-            case .browsing:
-                if elapsed < seamlessWindow {
-                    // Resume exact tab
-                } else {
-                    selectedTab = .play
-                    shellSession.clearBattleState()
-                }
-            case .serverTrackedBattle:
-                break
-            }
+            return
         }
+
+        if hasLocalBattleActivity {
+            resumeLocalBattle(elapsed: elapsed)
+        } else if elapsed >= seamlessWindow {
+            selectedTab = .play
+            shellSession.clearBattleState()
+        }
+        // Else browsing within seamless window: keep the exact tab.
+    }
+
+    private func resumeLocalBattle(elapsed: TimeInterval) {
+        guard isSavedBattleValid() else {
+            if battle.activeBattle != nil {
+                battle.endBattle()
+            }
+            selectedTab = .play
+            shellSession.clearBattleState()
+            return
+        }
+
+        if elapsed < seamlessWindow {
+            if battle.activeBattle == nil {
+                resumeSavedBattle()
+            }
+        } else {
+            discardOrCompleteBattleBeyondSeamlessWindow()
+        }
+        selectedTab = .play
     }
 
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
