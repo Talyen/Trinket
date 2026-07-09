@@ -57,12 +57,15 @@ final class AppState {
     var battle: BattleSession
     var activeMysteryEncounter: MysteryEncounterSession?
     var activeShopEncounter: ShopEncounterSession?
+    var activeLabyrinthRest: LabyrinthRestSession?
+    var activeLabyrinthCraft: LabyrinthCraftSession?
     var journey: JourneyProgressState {
         get { playerSave.journey }
         set { playerSave.journey = newValue }
     }
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
+    private(set) var pendingPlayDestination: PlayLaunchDestination?
 
     var battleTickTask: Task<Void, Never>?
 
@@ -155,6 +158,7 @@ final class AppState {
         musicPlayer = dependencies.musicPlayer
         options = dependencies.options
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
+        pendingPlayDestination = dependencies.pendingPlayDestination
 
         let desiredTab = PlayerShellSessionTab(rawValue: dependencies.selectedTab.rawValue) ?? .play
         if shellSession.selectedTab != desiredTab {
@@ -181,6 +185,11 @@ final class AppState {
     func consumePendingCollectionPresentation() -> LaunchPresentation? {
         defer { pendingCollectionPresentation = nil }
         return pendingCollectionPresentation
+    }
+
+    func consumePendingPlayDestination() -> PlayLaunchDestination? {
+        defer { pendingPlayDestination = nil }
+        return pendingPlayDestination
     }
 
     var persistenceStatusMessage: String? {
@@ -212,6 +221,9 @@ final class AppState {
         }
         battle.endBattle()
         activeMysteryEncounter = nil
+        activeShopEncounter = nil
+        activeLabyrinthRest = nil
+        activeLabyrinthCraft = nil
         clearSessionBattleState()
         shellSession.resetToDefaults(selectingTab: .play)
         seedStarterCombatantsAsViewedIfNeeded()

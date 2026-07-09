@@ -7,6 +7,7 @@ import TrinketPersistence
 struct LabyrinthMapView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var dismiss
     @State private var partyPicker: PartyPickerKind?
     @State private var nodeMessage: StageMapMessage?
     @State private var selectedModifier: LabyrinthModifierDefinition?
@@ -20,26 +21,20 @@ struct LabyrinthMapView: View {
             if state.hasMap {
                 mapContent
             } else {
-                ContentUnavailableView {
-                    Label("Wanderer's Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                } description: {
-                    Text("The path remembers. Descend when you are ready.")
-                } actions: {
-                    Button("Enter") {
-                        if let message = appState.enterLabyrinth() {
-                            nodeMessage = message
-                        }
-                    }
-                    .trinketPrimaryActionButton()
-                    .accessibilityIdentifier(AccessibilityID.Play.labyrinthEnter)
-                }
+                emptyState
             }
         }
-        .navigationTitle("Wanderer's Labyrinth")
+        .navigationTitle("The Labyrinth")
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.playJourney)
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Leave") {
+                    dismiss()
+                }
+                .accessibilityIdentifier(AccessibilityID.Play.labyrinthLeave)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
                     LabyrinthAtlasView()
@@ -74,7 +69,7 @@ struct LabyrinthMapView: View {
                             .foregroundStyle(.secondary)
                     }
                     Section("Effects") {
-                        ForEach(modifierDetailLines(modifier), id: \.self) { line in
+                        ForEach(LabyrinthMapPresentation.modifierDetailLines(modifier), id: \.self) { line in
                             Text(line)
                         }
                     }
@@ -93,6 +88,22 @@ struct LabyrinthMapView: View {
         }
     }
 
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("The Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+        } description: {
+            Text("The path remembers. Descend when you are ready.")
+        } actions: {
+            Button("Enter") {
+                if let message = appState.enterLabyrinth() {
+                    nodeMessage = message
+                }
+            }
+            .trinketPrimaryActionButton()
+            .accessibilityIdentifier(AccessibilityID.Play.labyrinthEnter)
+        }
+    }
+
     private var mapContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -105,7 +116,12 @@ struct LabyrinthMapView: View {
                 )
 
                 ForEach(visibleClusters) { cluster in
-                    clusterSection(cluster)
+                    LabyrinthMapClusterSection(
+                        cluster: cluster,
+                        state: state,
+                        onSelectModifier: { selectedModifier = $0 },
+                        onNodeMessage: { nodeMessage = $0 }
+                    )
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -114,46 +130,41 @@ struct LabyrinthMapView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Depth \(state.deepestDepth)")
-                .font(.title2.weight(.semibold))
-            Text("The path remembers. Choose a way forward.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 4)
-    }
-
-    private var visibleClusters: [LabyrinthCluster] {
-        state.clusters
-            .filter { $0.depthBand > 0 }
-            .filter { cluster in
-                cluster.nodeIDs.contains { state.nodes[$0]?.isRevealed == true }
-            }
-            .sorted { $0.depthBand < $1.depthBand }
-    }
-
-    @ViewBuilder
-    private func clusterSection(_ cluster: LabyrinthCluster) -> some View {
-        let biome = GameContent.labyrinthBiome(id: cluster.biomeID)
-        let modifiers = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
+        let focus = focusedCluster
+        let biome = focus.flatMap { GameContent.labyrinthBiome(id: $0.biomeID) }
+        let modifiers = LabyrinthCatalog.modifiers(ids: focus?.modifierIDs ?? [])
         let style = biome?.keywordBias.visualStyle
 
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(biome?.title ?? "Unknown Biome")
-                    .font(.headline)
-                if let epithet = biome?.epithet {
-                    Text(epithet)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Depth \(state.deepestDepth)")
+                    .font(.title2.weight(.semibold))
+                    .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
+                if state.deepestDepth >= 10 {
+                    Text("Atlas marked")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .trinketGlassChip()
                 }
+            }
+
+            if let biome {
+                Text(biome.title)
+                    .font(.headline)
+                Text(biome.epithet)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("The path remembers. Choose a way forward.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             if !modifiers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(modifiers) { modifier in
+                        ForEach(Array(modifiers.enumerated()), id: \.element.id) { index, modifier in
                             Button {
                                 selectedModifier = modifier
                             } label: {
@@ -164,6 +175,14 @@ struct LabyrinthMapView: View {
                             }
                             .trinketGlassChip()
                             .foregroundStyle(style?.color ?? .primary)
+                            .animation(
+                                reduceMotion
+                                    ? nil
+                                    : TrinketMotion.Labyrinth.modifierIn.delay(
+                                        Double(index) * TrinketMotion.Labyrinth.modifierStagger
+                                    ),
+                                value: focus?.id
+                            )
                             .accessibilityIdentifier(
                                 AccessibilityID.Play.labyrinthModifier(modifier.id.rawValue)
                             )
@@ -171,113 +190,28 @@ struct LabyrinthMapView: View {
                     }
                 }
             }
+        }
+        .padding(.horizontal, 4)
+    }
 
-            LazyVStack(spacing: 10) {
-                ForEach(clusterNodes(cluster)) { node in
-                    nodeCard(node, tint: style?.color)
-                        .id(node.id)
+    private var focusedCluster: LabyrinthCluster? {
+        let reachable = state.reachableNodeIDs()
+        if let nodeID = reachable.first, let cluster = state.cluster(for: nodeID) {
+            return cluster
+        }
+        return visibleClusters.last
+    }
+
+    private var visibleClusters: [LabyrinthCluster] {
+        state.clusters
+            .filter { $0.depthBand > 0 }
+            .filter { cluster in
+                cluster.nodeIDs.contains { id in
+                    state.nodes[id]?.isRevealed == true
+                        || LabyrinthMapPresentation.isFogged(nodeID: id, in: state)
                 }
             }
-        }
-        .padding(14)
-        .trinketSurface(.base)
-        .animation(reduceMotion ? nil : .smooth, value: cluster.id)
-    }
-
-    private func clusterNodes(_ cluster: LabyrinthCluster) -> [LabyrinthNode] {
-        cluster.nodeIDs.compactMap { state.nodes[$0] }
-            .filter(\.isRevealed)
-            .sorted { lhs, rhs in
-                if lhs.isCleared != rhs.isCleared { return !lhs.isCleared && rhs.isCleared }
-                return lhs.id < rhs.id
-            }
-    }
-
-    @ViewBuilder
-    private func nodeCard(_ node: LabyrinthNode, tint: Color?) -> some View {
-        let reachable = state.isNodeReachable(node.id)
-        let deadly = node.depth > max(appState.roster.highestHeroLevel + 2, 3)
-
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label(nodeTitle(node), systemImage: node.type.symbolName)
-                    .font(.body.weight(.semibold))
-                Spacer()
-                if node.isCleared {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                        .accessibilityLabel("Cleared")
-                } else if !reachable {
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Locked")
-                } else if node.failCount > 0 {
-                    Text("Retry")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.orange)
-                }
-            }
-
-            if deadly, reachable, !node.isCleared, node.type.isCombat {
-                Text("Deadly")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.orange)
-            }
-
-            if reachable, !node.isCleared {
-                Button {
-                    if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
-                        nodeMessage = message
-                    }
-                } label: {
-                    Text(node.failCount > 0 ? "Retry" : node.type.primaryActionTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-                .tint(tint ?? .accentColor)
-                .disabled(appState.battle.activeBattle != nil)
-            }
-        }
-        .padding(12)
-        .trinketSurface(node.isCleared ? .secondary : .elevated)
-        .opacity(node.isCleared ? 0.72 : 1)
-        .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
-    }
-
-    private func nodeTitle(_ node: LabyrinthNode) -> String {
-        if let enemyID = node.enemyID, let enemy = GameContent.enemy(matching: enemyID) {
-            return "\(node.type.title) · \(enemy.combatant.name)"
-        }
-        return node.type.title
-    }
-
-    private func modifierDetailLines(_ modifier: LabyrinthModifierDefinition) -> [String] {
-        var lines: [String] = []
-        if modifier.enemyPowerPercent != 0 {
-            lines.append("Enemy power +\(modifier.enemyPowerPercent)%")
-        }
-        if modifier.goldPercent != 0 {
-            lines.append("Gold +\(modifier.goldPercent)%")
-        }
-        if modifier.xpPercent != 0 {
-            lines.append("Experience +\(modifier.xpPercent)%")
-        }
-        if modifier.itemDropBonusPercent != 0 {
-            lines.append("Item finds +\(modifier.itemDropBonusPercent)%")
-        }
-        if modifier.astralChanceBonusPercent != 0 {
-            lines.append("Astral chance +\(modifier.astralChanceBonusPercent)%")
-        }
-        if let bias = modifier.keywordBias {
-            lines.append("Spoils lean toward \(bias.rawValue)")
-        }
-        if let guaranteed = modifier.guaranteedNodeType {
-            lines.append("Guarantees a \(guaranteed.title)")
-        }
-        if lines.isEmpty {
-            lines.append("Changes what you find in this cluster.")
-        }
-        return lines
+            .sorted { $0.depthBand < $1.depthBand }
     }
 
     private func combatants(for picker: PartyPickerKind) -> [Combatant] {

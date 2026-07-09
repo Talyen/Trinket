@@ -24,8 +24,9 @@ public enum LabyrinthCompletion {
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects
     ) -> StageReward {
+        let type = node.type.canonical
         let baseGold: Int
-        switch node.type {
+        switch type {
         case .warden:
             baseGold = 10 + node.depth * 3
         case .elite, .gate:
@@ -40,8 +41,8 @@ public enum LabyrinthCompletion {
         let gold = max(0, baseGold + (baseGold * effects.goldPercent) / 100)
 
         var materials: [ResourceAmount] = []
-        if node.type == .warden || node.depth % 3 == 0 {
-            materials = [ResourceAmount(.wood, node.type == .warden ? 3 : 1)]
+        if type == .warden || node.depth % 3 == 0 {
+            materials = [ResourceAmount(.wood, type == .warden ? 3 : 1)]
         }
 
         // Item templates left empty; completion may roll a generated item for elites/wardens.
@@ -53,7 +54,7 @@ public enum LabyrinthCompletion {
         effects: LabyrinthModifierEffects,
         using randomNumberGenerator: inout RNG
     ) -> Bool {
-        switch node.type {
+        switch node.type.canonical {
         case .warden, .elite, .craft:
             return true
         case .battle, .gate:
@@ -61,6 +62,11 @@ public enum LabyrinthCompletion {
         default:
             return false
         }
+    }
+
+    /// Gold cost for the thin Crafting Altar forge action.
+    public static func craftAltarCost(for node: LabyrinthNode) -> Int {
+        max(8, 6 + node.depth * 2)
     }
 
     public static func complete(
@@ -93,17 +99,42 @@ public enum LabyrinthCompletion {
             grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
         }
 
-        if node.type == .craft {
-            // Thin v1 craft altar: small gold stipend already granted; bonus material.
+        if node.type.canonical == .craft {
+            // Thin v1 craft altar: gold stipend already granted; bonus material.
             save.homestead.grant([ResourceAmount(.wood, 1)])
-        }
-
-        if node.type == .rest {
-            // Rest/shrine: tiny heal fantasy via gold crumb already in rewards.
         }
 
         save.labyrinth.markCleared(nodeID: nodeID)
         claimMilestonesIfNeeded(save: &save)
+    }
+
+    /// Spend gold at a Crafting Altar for a guaranteed generated item + clear the node.
+    @discardableResult
+    public static func forgeAtAltar(
+        nodeID: String,
+        hero: Combatant,
+        pet: Combatant,
+        save: inout PlayerSave
+    ) -> Bool {
+        save.labyrinth.ensureMap()
+        guard let node = save.labyrinth.node(id: nodeID),
+              node.type.canonical == .craft,
+              !node.isCleared
+        else { return false }
+
+        let cost = craftAltarCost(for: node)
+        guard save.roster.spendGold(cost) else { return false }
+
+        let effects = save.labyrinth.effects(for: nodeID)
+        grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
+        save.homestead.grant([ResourceAmount(.wood, 1)])
+        // Rest/craft clear paths still grant XP crumbs via complete() for combat nodes only;
+        // altar forge is gold→item, so skip battle XP here.
+        save.labyrinth.markCleared(nodeID: nodeID)
+        claimMilestonesIfNeeded(save: &save)
+        _ = hero
+        _ = pet
+        return true
     }
 
     public static func recordDefeat(nodeID: String, save: inout PlayerSave) {

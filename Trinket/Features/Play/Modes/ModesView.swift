@@ -89,7 +89,7 @@ struct ModesView: View {
                 LabyrinthMapView()
             } label: {
                 modeRow(
-                    title: "Wanderer's Labyrinth",
+                    title: "The Labyrinth",
                     subtitle: depth > 0
                         ? "Depth \(depth). An endless descent."
                         : "An endless descent. Biomes, modifiers, finds.",
@@ -99,7 +99,7 @@ struct ModesView: View {
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
         } else {
             lockedModeRow(
-                title: "Wanderer's Labyrinth",
+                title: "The Labyrinth",
                 subtitle: LabyrinthUnlock.unlockHint(
                     journey: appState.journey.current,
                     aspects: appState.aspects.current

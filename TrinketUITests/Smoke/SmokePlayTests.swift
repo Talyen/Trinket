@@ -55,5 +55,10 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.modesScreen)
         app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
         assertExists(AccessibilityID.Play.labyrinthMap)
+
+        // DoD: entry + one reachable node is visible and actionable.
+        let nodePredicate = NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Node ")
+        let node = app.descendants(matching: .any).matching(nodePredicate).firstMatch
+        assertExists(node)
     }
 }

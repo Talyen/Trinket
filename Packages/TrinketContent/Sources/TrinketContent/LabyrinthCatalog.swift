@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-/// Hand-authored Wanderer's Labyrinth biomes and named modifiers (player sees titles only).
+/// Hand-authored The Labyrinth biomes and named modifiers (player sees titles only).
 public enum LabyrinthCatalog {
     public static let biomes: [LabyrinthBiomeDefinition] = [
         LabyrinthBiomeDefinition(

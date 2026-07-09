@@ -110,4 +110,59 @@ struct LabyrinthProgressTests {
         #expect(save.labyrinth.nodes[nodeID]?.failCount == 1)
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == false)
     }
+
+    @Test func sanitizeCollapsesLegacyEventNodesToMystery() {
+        var dirty = PlayerLabyrinthState.freshStart
+        dirty.ensureMap(seed: 4)
+        let nodeID = dirty.reachableNodeIDs().first ?? dirty.nodes.keys.sorted().first!
+        if let node = dirty.nodes[nodeID] {
+            dirty.nodes[nodeID] = LabyrinthNode(
+                id: node.id,
+                type: .event,
+                enemyID: nil,
+                depth: node.depth,
+                clusterID: node.clusterID,
+                outgoingIDs: node.outgoingIDs,
+                isCleared: node.isCleared,
+                isRevealed: true,
+                failCount: node.failCount
+            )
+        }
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(dirty)
+        #expect(sanitized.nodes[nodeID]?.type == .mystery)
+    }
+
+    @Test func forgeAtAltarSpendsGoldAndClearsCraftNode() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 19)
+        // Clear until a craft node is reachable.
+        var craftID: String?
+        for _ in 0 ..< 40 {
+            if let id = save.labyrinth.reachableNodeIDs().first(where: {
+                save.labyrinth.nodes[$0]?.type.canonical == .craft
+            }) {
+                craftID = id
+                break
+            }
+            guard let next = save.labyrinth.reachableNodeIDs().first else { break }
+            LabyrinthCompletion.complete(
+                nodeID: next,
+                hero: save.roster.activeHero,
+                pet: save.roster.activePet,
+                save: &save
+            )
+        }
+        let nodeID = try #require(craftID)
+        save.roster.grantGold(200)
+        let goldBefore = save.roster.gold
+        let forged = LabyrinthCompletion.forgeAtAltar(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            pet: save.roster.activePet,
+            save: &save
+        )
+        #expect(forged)
+        #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
+        #expect(save.roster.gold < goldBefore)
+    }
 }

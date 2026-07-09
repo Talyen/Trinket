@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-/// Deterministic expanding DAG generator for Wanderer's Labyrinth.
+/// Deterministic expanding DAG generator for The Labyrinth.
 public enum LabyrinthGenerator {
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"
@@ -112,55 +112,22 @@ public enum LabyrinthGenerator {
         let modifierIDs = rollModifiers(depthBand: depthBand, biome: biome, using: &rng)
         let modifiers = LabyrinthCatalog.modifiers(ids: modifierIDs)
         let clusterID = "labyrinth-cluster-\(depthBand)-\(biome.id.rawValue)"
-
-        let nodeCount = Int.random(in: 3 ... 5, using: &rng)
-        var types = plannedTypes(
+        let nodeCount = Int.random(in: 3 ... 7, using: &rng)
+        let types = plannedTypes(
             count: nodeCount,
             depthBand: depthBand,
             modifiers: modifiers,
+            biome: biome,
             using: &rng
         )
-
-        var nodes: [LabyrinthNode] = []
-        nodes.reserveCapacity(types.count)
-        for (index, type) in types.enumerated() {
-            let nodeID = "\(clusterID)-n\(index)"
-            let enemyID: String?
-            if type.isCombat {
-                if type == .warden || type == .gate {
-                    enemyID = type == .warden ? biome.wardenEnemyID : pickEnemy(from: biome, using: &rng)
-                } else {
-                    enemyID = pickEnemy(from: biome, using: &rng)
-                }
-            } else {
-                enemyID = nil
-            }
-            nodes.append(
-                LabyrinthNode(
-                    id: nodeID,
-                    type: type,
-                    enemyID: enemyID,
-                    depth: depthBand,
-                    clusterID: clusterID,
-                    outgoingIDs: [],
-                    isCleared: false,
-                    isRevealed: depthBand == 1 && index == 0,
-                    failCount: 0
-                )
-            )
-        }
-
-        // Wire a simple layered DAG: each node connects to 1–2 later nodes; last is gate.
-        for index in nodes.indices {
-            if nodes[index].type == .gate { continue }
-            let remaining = (index + 1) ..< nodes.count
-            guard !remaining.isEmpty else { continue }
-            let targetCount = min(remaining.count, Int.random(in: 1 ... 2, using: &rng))
-            let targets = Array(remaining).shuffled(using: &rng).prefix(targetCount)
-            nodes[index].outgoingIDs = targets.map { nodes[$0].id }
-        }
-
-        // Ensure every non-entry node is reachable from entry (index 0).
+        var nodes = makeNodes(
+            types: types,
+            clusterID: clusterID,
+            depthBand: depthBand,
+            biome: biome,
+            using: &rng
+        )
+        wireLayeredEdges(nodes: &nodes, using: &rng)
         ensureReachability(nodes: &nodes)
 
         let cluster = LabyrinthCluster(
@@ -175,6 +142,51 @@ public enum LabyrinthGenerator {
             nodes: nodes,
             entryNodeIDs: nodes.isEmpty ? [] : [nodes[0].id]
         )
+    }
+
+    private static func makeNodes<RNG: RandomNumberGenerator>(
+        types: [LabyrinthNodeType],
+        clusterID: String,
+        depthBand: Int,
+        biome: LabyrinthBiomeDefinition,
+        using rng: inout RNG
+    ) -> [LabyrinthNode] {
+        types.enumerated().map { index, type in
+            let enemyID: String?
+            if type.isCombat {
+                enemyID = (type == .warden)
+                    ? biome.wardenEnemyID
+                    : pickEnemy(from: biome, using: &rng)
+            } else {
+                enemyID = nil
+            }
+            return LabyrinthNode(
+                id: "\(clusterID)-n\(index)",
+                type: type,
+                enemyID: enemyID,
+                depth: depthBand,
+                clusterID: clusterID,
+                outgoingIDs: [],
+                isCleared: false,
+                isRevealed: depthBand == 1 && index == 0,
+                failCount: 0
+            )
+        }
+    }
+
+    private static func wireLayeredEdges<RNG: RandomNumberGenerator>(
+        nodes: inout [LabyrinthNode],
+        using rng: inout RNG
+    ) {
+        for index in nodes.indices {
+            if nodes[index].type == .gate { continue }
+            let remaining = (index + 1) ..< nodes.count
+            guard !remaining.isEmpty else { continue }
+            let preferred = Int.random(in: 2 ... 3, using: &rng)
+            let targetCount = min(remaining.count, preferred)
+            let targets = Array(remaining).shuffled(using: &rng).prefix(targetCount)
+            nodes[index].outgoingIDs = targets.map { nodes[$0].id }
+        }
     }
 
     private static func ensureReachability(nodes: inout [LabyrinthNode]) {
@@ -230,10 +242,36 @@ public enum LabyrinthGenerator {
         }
 
         var picked: [LabyrinthModifierID] = []
-        // Prefer a threat-style modifier first so bounty pairing is visible.
-        let threatPool = LabyrinthCatalog.modifiers.filter { $0.category == .threat || $0.enemyPowerPercent > 0 }
-        if let threat = threatPool.randomElement(using: &rng) {
+
+        // ~10% of clusters get a Special modifier (plan §5.5).
+        let specialPool = LabyrinthCatalog.modifiers.filter { $0.category == .special }
+        if Int.random(in: 0 ... 99, using: &rng) < 10,
+           let special = specialPool.randomElement(using: &rng) {
+            picked.append(special.id)
+        }
+
+        // Threat always pairs with a bounty bump (Q10A). Affinity mods that already
+        // carry both threat and bounty count as a paired unit.
+        let threatPool = LabyrinthCatalog.modifiers.filter {
+            $0.category == .threat || ($0.enemyPowerPercent > 0 && $0.category != .special)
+        }
+        let bountyPool = LabyrinthCatalog.modifiers.filter {
+            $0.category == .bounty || ($0.goldPercent > 0 || $0.xpPercent > 0 || $0.itemDropBonusPercent > 0)
+        }
+        if picked.count < count, let threat = threatPool.randomElement(using: &rng) {
             picked.append(threat.id)
+            let threatDef = LabyrinthCatalog.modifier(id: threat.id)
+            let alreadyPaired = (threatDef?.goldPercent ?? 0) > 0
+                || (threatDef?.xpPercent ?? 0) > 0
+                || (threatDef?.itemDropBonusPercent ?? 0) > 0
+                || threatDef?.category == .affinity
+            // Threat always ships with a bounty bump (Q10A), even if it nudges past the rolled count.
+            if !alreadyPaired, picked.count < 3 {
+                let bountyChoices = bountyPool.filter { !picked.contains($0.id) }
+                if let bounty = bountyChoices.randomElement(using: &rng) {
+                    picked.append(bounty.id)
+                }
+            }
         }
 
         let affinityMatches = LabyrinthCatalog.modifiers.filter {
@@ -244,10 +282,11 @@ public enum LabyrinthGenerator {
         }
 
         let remainingPool = LabyrinthCatalog.modifiers.filter { !picked.contains($0.id) }
-        while picked.count < count, let next = remainingPool.randomElement(using: &rng) {
-            if picked.contains(next.id) { continue }
+        var remaining = remainingPool
+        while picked.count < count, !remaining.isEmpty {
+            guard let next = remaining.randomElement(using: &rng) else { break }
+            remaining.removeAll { $0.id == next.id }
             picked.append(next.id)
-            if picked.count >= count { break }
         }
         return Array(picked.prefix(count))
     }
@@ -256,22 +295,31 @@ public enum LabyrinthGenerator {
         count: Int,
         depthBand: Int,
         modifiers: [LabyrinthModifierDefinition],
+        biome: LabyrinthBiomeDefinition,
         using rng: inout RNG
     ) -> [LabyrinthNodeType] {
         var types: [LabyrinthNodeType] = []
         // Guaranteed specials from modifiers.
         for modifier in modifiers {
-            if let guaranteed = modifier.guaranteedNodeType, !types.contains(guaranteed) {
+            if let guaranteed = modifier.guaranteedNodeType?.canonical, !types.contains(guaranteed) {
                 types.append(guaranteed)
             }
         }
 
         // Always end with a gate (combat depth transition).
         let fillCount = max(0, count - types.count - 1)
-        let weighted: [LabyrinthNodeType] = [
+        var weighted: [LabyrinthNodeType] = [
             .battle, .battle, .battle, .elite,
-            .shop, .rest, .mystery, .event, .craft
+            .shop, .rest, .mystery, .craft
         ]
+        // Threat modifiers bias elite finds; Heartwell / rest-leaning biomes bias shrines.
+        let threatPower = modifiers.reduce(0) { $0 + $1.enemyPowerPercent }
+        if threatPower >= 15 {
+            weighted.append(contentsOf: [.elite, .elite])
+        }
+        if biome.id == .heartwellGrotto || modifiers.contains(where: { $0.guaranteedNodeType == .rest }) {
+            weighted.append(contentsOf: [.rest, .rest])
+        }
         for _ in 0 ..< fillCount {
             types.append(weighted.randomElement(using: &rng) ?? .battle)
         }

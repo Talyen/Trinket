@@ -2,7 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Persistent Wanderer's Labyrinth map + discovery meta.
+/// Persistent The Labyrinth map + discovery meta.
 public struct PlayerLabyrinthState: Equatable, Sendable {
     public var worldSeed: UInt64
     public var deepestDepth: Int

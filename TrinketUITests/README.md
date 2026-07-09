@@ -20,7 +20,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 
 **Additional:**
 
-- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1)
+- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1, `labyrinth` / `labyrinth-map` → The Labyrinth map)
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`pets`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)

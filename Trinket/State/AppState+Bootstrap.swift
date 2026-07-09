@@ -13,6 +13,7 @@ extension AppState {
         let activeBattleStageID: String?
         let mapScrollStageID: String?
         let pendingCollectionPresentation: LaunchPresentation?
+        let pendingPlayDestination: PlayLaunchDestination?
     }
 
     static func makeBootstrapDependencies(
@@ -55,6 +56,7 @@ extension AppState {
         }
 
         let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
+        let launchPlay = launchPlayDestination(for: environment.launchScreen)
 
         return BootstrapDependencies(
             playerSave: resolvedPlayerSave,
@@ -67,7 +69,8 @@ extension AppState {
             ),
             activeBattleStageID: resolvedShellSession.activeBattleStageID,
             mapScrollStageID: resolvedShellSession.mapScrollStageID,
-            pendingCollectionPresentation: launchCollection
+            pendingCollectionPresentation: launchCollection,
+            pendingPlayDestination: launchPlay
         )
     }
 
@@ -138,7 +141,7 @@ extension AppState {
         switch launchScreen {
         case .heroDetail, .petDetail, .itemDetail:
             return .collection
-        case .battle:
+        case .battle, .labyrinth, .labyrinthMap:
             return .play
         case .options:
             return .options
@@ -155,7 +158,18 @@ extension AppState {
             return .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
         case let .itemDetail(id):
             return .collectionItem(id)
-        case .battle, .options, .none:
+        case .battle, .options, .labyrinth, .labyrinthMap, .none:
+            return nil
+        }
+    }
+
+    private static func launchPlayDestination(
+        for launchScreen: LaunchScreen?
+    ) -> PlayLaunchDestination? {
+        switch launchScreen {
+        case .labyrinth, .labyrinthMap:
+            return .labyrinthMap
+        case .battle, .options, .heroDetail, .petDetail, .itemDetail, .none:
             return nil
         }
     }
