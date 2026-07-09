@@ -16,7 +16,7 @@ public final class LabyrinthProgressModel {
     public init() {}
 }
 
-struct LabyrinthMapPayload: Codable, Equatable, Sendable {
+struct LabyrinthMapPayload: Codable, Equatable {
     var clusters: [LabyrinthCluster]
     var nodes: [LabyrinthNode]
 }

@@ -68,7 +68,7 @@ public enum LabyrinthGenerator {
             ?? clusters.last?.biomeID
 
         var rng = SeededRandomNumberGenerator(
-            seed: seed &+ UInt64(nextBand) &* 1_000_003 &+ GameContent.stableSeed(for: gateNodeID)
+            seed: seed &+ UInt64(nextBand) &* 1000003 &+ GameContent.stableSeed(for: gateNodeID)
         )
         let generated = generateCluster(
             depthBand: nextBand,
