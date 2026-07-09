@@ -130,21 +130,26 @@ struct BattleSimulatorTests {
     }
 
     @Test func lazyLogSyncMatchesTrackedLog() throws {
-        var battle = BattleState(
-            hero: GameContent.heroes[2],
-            pet: wolfPet,
-            enemy: defaultEnemy,
-            rngSeed: 42,
-            tracksLog: false
-        )
+        // Scope the untracked battle so its large value-type state is released
+        // before the second simulation — cooperative Swift Testing threads have
+        // a small stack and overflow when two full BattleStates stay live.
+        let lazyLogTexts: [String] = {
+            var battle = BattleState(
+                hero: GameContent.heroes[2],
+                pet: wolfPet,
+                enemy: defaultEnemy,
+                rngSeed: 42,
+                tracksLog: false
+            )
 
-        while !battle.isBattleOver {
-            _ = battle.advanceOneStep(rebuildLog: false)
-        }
+            while !battle.isBattleOver {
+                _ = battle.advanceOneStep(rebuildLog: false)
+            }
 
-        try #expect(battle.log.isEmpty)
-
-        battle.syncLog()
+            precondition(battle.log.isEmpty)
+            battle.syncLog()
+            return battle.log.map(\.text)
+        }()
 
         let tracked = BattleSimulator.run(
             hero: GameContent.heroes[2],
@@ -153,6 +158,6 @@ struct BattleSimulatorTests {
             options: BattleSimulationOptions(seed: 42, recordsLog: true, rebuildLogEachStep: true)
         )
 
-        try #expect(battle.log.map(\.text) == tracked.log.map(\.text))
+        try #expect(lazyLogTexts == tracked.log.map(\.text))
     }
 }

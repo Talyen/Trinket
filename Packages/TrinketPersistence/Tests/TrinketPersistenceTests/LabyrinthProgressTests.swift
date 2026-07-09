@@ -98,7 +98,10 @@ struct LabyrinthProgressTests {
         #expect(LabyrinthUnlock.isUnlocked(journey: journey, aspects: aspects))
 
         var aspectProgress = PlayerAspectsState.freshStart
-        aspectProgress.markFloorCleared(5, aspectID: AspectID.ironVein.rawValue)
+        for floor in 1 ... 5 {
+            let advanced = aspectProgress.markFloorCleared(floor, aspectID: AspectID.ironVein.rawValue)
+            #expect(advanced)
+        }
         #expect(LabyrinthUnlock.isUnlocked(journey: .initial, aspects: aspectProgress))
     }
 

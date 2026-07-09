@@ -132,6 +132,8 @@ struct BattleStateTests {
         for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
             _ = battle.advanceOneStep()
         }
+        // Expiry grace lasts through the tick Death's Door fell off; advance once more to clear it.
+        _ = battle.advanceOneStep()
 
         battle.withEngineContext { context in
             _ = context.applyTestDamage(3, to: heroID, applyStatBonus: false, applyItemBonus: false, applyDodge: false)

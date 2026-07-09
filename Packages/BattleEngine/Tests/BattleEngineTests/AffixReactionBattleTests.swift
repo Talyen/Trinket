@@ -189,7 +189,9 @@ struct AffixReactionBattleTests {
 
         try #expect(first.events.contains { $0.abilityName == "Second Wind" && $0.amount == 3 })
         try #expect(!second.events.contains { $0.abilityName == "Second Wind" })
-        try #expect(battle.health(of: battle.hero) > 1)
+        // Second chip is lethal after the heal; Death's Door owns that hit and leaves 1 HP.
+        try #expect(second.events.contains { $0.effectKind == .deathsDoorTriggered })
+        try #expect(battle.health(of: battle.hero) == 1)
     }
 
     @Test func deathsDoorProcsBeforeSecondWindOnLethalHit() throws {
