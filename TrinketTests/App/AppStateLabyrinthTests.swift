@@ -63,6 +63,54 @@ struct AppStateLabyrinthTests {
         #expect(state.battle.activeBattle == nil)
     }
 
+    @Test func labyrinthShopFinishClearsNode() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
+        let session = try #require(state.activeShopEncounter)
+        #expect(session.labyrinthNodeID == shopNodeID)
+        #expect(session.offers.count == ShopOfferGenerator.offerCount)
+
+        state.finishActiveShopEncounter()
+
+        #expect(state.activeShopEncounter == nil)
+        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
+    }
+
+    @Test func labyrinthShopDismissDoesNotClearNode() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
+        #expect(state.activeShopEncounter != nil)
+
+        state.dismissActiveShopEncounterWithoutCompleting()
+
+        #expect(state.activeShopEncounter == nil)
+        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
+    }
+
+    @Test func labyrinthMysteryFinishClearsNode() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let mysteryNodeID = try #require(firstReachableNodeID(of: .mystery, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: mysteryNodeID) == nil)
+        let session = try #require(state.activeMysteryEncounter)
+        #expect(session.labyrinthNodeID == mysteryNodeID)
+
+        state.finishActiveMysteryEncounter()
+
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
+    }
+
     private func unlockLabyrinth(on appState: AppState) {
         var journey = appState.journey.current
         if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
@@ -74,12 +122,27 @@ struct AppStateLabyrinthTests {
     }
 
     private func firstReachableCombatNodeID(in state: AppState) -> String? {
-        // Clear non-combat reachable nodes until a combat node is available.
-        for _ in 0 ..< 8 {
-            if let combatID = state.labyrinth.reachableNodeIDs().first(where: { id in
-                state.labyrinth.node(id: id)?.type.isCombat == true
+        firstReachableNodeID(where: { $0.type.isCombat }, in: state)
+    }
+
+    private func firstReachableNodeID(
+        of type: LabyrinthNodeType,
+        in state: AppState
+    ) -> String? {
+        firstReachableNodeID(where: { $0.type == type }, in: state)
+    }
+
+    private func firstReachableNodeID(
+        where matches: (LabyrinthNode) -> Bool,
+        in state: AppState
+    ) -> String? {
+        // Clear non-matching reachable nodes until a matching node is available.
+        for _ in 0 ..< 24 {
+            if let matchID = state.labyrinth.reachableNodeIDs().first(where: { id in
+                guard let node = state.labyrinth.node(id: id) else { return false }
+                return matches(node)
             }) {
-                return combatID
+                return matchID
             }
             guard let next = state.labyrinth.reachableNodeIDs().first else { return nil }
             state.completeLabyrinthNode(nodeID: next)

@@ -39,22 +39,6 @@ final class MysteryEncounterSession: Identifiable {
         self.combatant = combatant
         self.labyrinthNodeID = labyrinthNodeID
     }
-
-    convenience init(
-        labyrinthNodeID: String,
-        event: MysteryEvent,
-        combatant: Combatant?
-    ) {
-        self.init(
-            stage: LabyrinthEncounterSupport.syntheticStage(
-                nodeID: labyrinthNodeID,
-                encounter: .mysteryEvent(eventID: event.id)
-            ),
-            event: event,
-            combatant: combatant,
-            labyrinthNodeID: labyrinthNodeID
-        )
-    }
 }
 
 extension MysteryEncounterSession {

@@ -37,22 +37,6 @@ final class ShopEncounterSession: Identifiable {
         self.labyrinthNodeID = labyrinthNodeID
     }
 
-    convenience init(
-        labyrinthNodeID: String,
-        offers: [ShopOffer],
-        greeting: String = "Welcome, traveler. Take a look at what I've got."
-    ) {
-        self.init(
-            stage: LabyrinthEncounterSupport.syntheticStage(
-                nodeID: labyrinthNodeID,
-                encounter: .shop
-            ),
-            offers: offers,
-            greeting: greeting,
-            labyrinthNodeID: labyrinthNodeID
-        )
-    }
-
     func isSoldOut(_ offerID: String) -> Bool {
         purchasedOfferIDs.contains(offerID)
     }

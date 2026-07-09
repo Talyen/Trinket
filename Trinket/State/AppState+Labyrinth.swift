@@ -50,9 +50,9 @@ extension AppState {
         case .battle, .elite, .warden, .gate:
             return startLabyrinthBattle(nodeID: nodeID)
         case .shop:
-            return beginLabyrinthShop(nodeID: nodeID)
+            return beginShopEncounter(labyrinthNodeID: nodeID)
         case .mystery:
-            return beginLabyrinthMystery(nodeID: nodeID)
+            return beginMysteryEncounter(labyrinthNodeID: nodeID)
         case .rest, .event, .craft:
             completeLabyrinthNode(nodeID: nodeID)
             return nil
@@ -127,65 +127,5 @@ extension AppState {
                 "Failed to record Labyrinth defeat: \(error.localizedDescription, privacy: .public)"
             )
         }
-    }
-
-    @discardableResult
-    func beginLabyrinthShop(nodeID: String) -> StageMapMessage? {
-        guard activeShopEncounter == nil else { return nil }
-        guard activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
-
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: ShopOfferGenerator.seed(forStageID: nodeID)
-        )
-        let offers = ShopOfferGenerator.generateOffers(
-            stageID: nodeID,
-            using: &randomNumberGenerator
-        )
-        if offers.isEmpty {
-            completeLabyrinthNode(nodeID: nodeID)
-            return nil
-        }
-        activeShopEncounter = ShopEncounterSession(labyrinthNodeID: nodeID, offers: offers)
-        return nil
-    }
-
-    @discardableResult
-    func beginLabyrinthMystery(nodeID: String) -> StageMapMessage? {
-        guard activeMysteryEncounter == nil else { return nil }
-        guard battle.activeBattle == nil else { return nil }
-
-        var randomNumberGenerator = SeededRandomNumberGenerator(
-            seed: GameContent.stableSeed(for: "labyrinth-mystery-\(nodeID)")
-        )
-        guard var event = GameContent.pickEligibleMysteryEvent(
-            unlockedHeroIDs: roster.current.unlockedHeroIDs,
-            unlockedPetIDs: roster.current.unlockedPetIDs,
-            using: &randomNumberGenerator
-        ) else {
-            completeLabyrinthNode(nodeID: nodeID)
-            return nil
-        }
-
-        if let combatantID = event.unlockCombatantID,
-           roster.current.isCombatantUnlocked(id: combatantID) {
-            if let substitute = RecruitMysteryEventPool.eligible(
-                unlockedHeroIDs: roster.current.unlockedHeroIDs,
-                unlockedPetIDs: roster.current.unlockedPetIDs
-            ).filter({ $0.id != event.id }).randomElement(using: &randomNumberGenerator) {
-                event = substitute
-            } else {
-                completeLabyrinthNode(nodeID: nodeID)
-                return nil
-            }
-        }
-
-        let combatant = GameContent.combatant(forMysteryEvent: event)
-        activeMysteryEncounter = MysteryEncounterSession(
-            labyrinthNodeID: nodeID,
-            event: event,
-            combatant: combatant
-        )
-        return nil
     }
 }
