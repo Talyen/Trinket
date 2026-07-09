@@ -10,6 +10,8 @@ Do not check boxes into git as durable state — leave items unchecked in the co
 
 **Current ship posture (F1 done, F2 blocked):** Progress is **local-only**. Simulator and tests keep CloudKit off unless `-enable-cloud-sync` is passed. `Trinket.entitlements` stays empty until portal provisioning. Options reset copy refers to this device only. Re-enable iCloud user copy and `UIBackgroundModes: remote-notification` only when F2 lands.
 
+**Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [IdentityPlan.md](IdentityPlan.md).
+
 ---
 
 ## Prep without Developer Program (F1) — agent-checkable
@@ -63,6 +65,7 @@ Confirm in source / CI config (expected true after best-practices F1):
 - [ ] At F2: privacy questionnaire declares **iCloud sync of game progress**
 - [ ] At F2: App Review notes mention offline playable; iCloud optional for cross-device sync
 - [ ] At F2: Options/reset copy accurately describes cloud-backed progress without promising manual sync controls
+- [ ] At F2: App Review notes align with [IdentityPlan.md](IdentityPlan.md) (no login; iCloud optional sync; reset clears progress)
 
 ---
 
@@ -76,5 +79,6 @@ Confirm in source / CI config (expected true after best-practices F1):
 
 ## Optional Follow-Ups (Post-Launch)
 
-- [ ] Game Center achievements / leaderboards (separate from CloudKit save sync)
+- [ ] Game Center achievements / leaderboards (separate from CloudKit save sync; see IdentityPlan — deferred)
+- [ ] Quiet Options iCloud sync status (On/Off) — no prompts; see IdentityPlan I2+
 - [ ] CloudKit Dashboard telemetry review (error rates, throttling)

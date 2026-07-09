@@ -276,6 +276,7 @@ Update after code lands:
 | 5 | E + F1 | `chore(privacy): add PrivacyInfo; stage CloudKit-ready local defaults` |
 | 6 | G + H | `docs(platform): concurrency notes + best-practices plan status` |
 | later | F2 | `feat(sync): enable SwiftData CloudKit after Developer Program setup` |
+| later | Identity I2 | Follow [IdentityPlan.md](IdentityPlan.md) when enabling F2 (guest-first; no SIWA/Google) |
 
 **Per PR:**
 

@@ -97,6 +97,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | Release / changelog / commit contract detail | `Scripts/README.md` |
 | Speculative ideas | `Docs/Roadmap.md` (`R-###`) — only when cited |
 | Audits | `Docs/Audits/README.md` — run only when cited |
+| Identity / cross-device progress (no login) | `Docs/Platform/IdentityPlan.md` — only when cited or implementing F2 sync |
 | Liquid Glass migration phases | `Docs/Platform/LiquidGlassMigrationPlan.md` — only when asked |
 
 ## Packages (quick)
