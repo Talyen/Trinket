@@ -3,7 +3,7 @@
 Design and implementation plan for the **Play Modes** destination chooser and the first alternate mode, **Aspects** (Keyword-constrained floor climbs). Expands roadmap **R-022**. Complements `CoreDesignConcepts.md` (journey + Keywords), `AppVisualFoundation.md` (chrome + motion), and `AppleNativeGuidelines.md` (SwiftUI / iOS 26 patterns).
 
 **Status:** implementing — Phases 1–4 landed; follow-up fixes cover attunement coverage, Aspect battle resume, unlock guards, Warden item rolls, Modes Chapter-1 gate, climb UX. Content uses existing enemy roster; TSV codegen deferred.  
-**Out of scope for Aspects v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt (teasers only). **Wanderer's Labyrinth** (infinite delve) is specified and implemented per `Docs/Design/DelveModePlan.md` (**R-022c**).
+**Out of scope for Aspects v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt (teasers only). **The Labyrinth** (infinite delve) is specified and implemented per `Docs/Design/DelveModePlan.md` (**R-022c**).
 
 ---
 
@@ -152,7 +152,7 @@ Vertical list of mode cards (v1: Aspects only; others locked teasers):
 | Aspects | Unlocked | Symbol mosaic of Aspect colors, “Climb by affinity”, highest Aspect progress |
 | Reliquary Gauntlet | Locked | Epithet + “Opens later” |
 | Astral Hunt | Locked | Epithet + “Opens later” |
-| Wanderer's Labyrinth | Locked | Epithet + “Opens later” |
+| The Labyrinth | Locked | Epithet + “Opens later” |
 
 Tap Aspects → push `AspectsHubView`. Locked cards are non-interactive (or show a one-line unlock hint sheet — prefer non-interactive for v1).
 
@@ -446,7 +446,7 @@ Locked teasers for Gauntlet / Hunt / Labyrinth appear on Modes with no unlock ye
 |------|------------------|--------|
 | Reliquary Gauntlet | Multi-fight run; wounds persist | Encounter types, carry HP between battles |
 | Astral Hunt | Rotating Warden; score damage | Boss enemy, event scoring from battle log |
-| **Wanderer's Labyrinth** | Persistent infinite descent; biome clusters + named modifiers | Mystery/Shop/Rest/Craft + map modifiers; Event collapsed into Mystery; see `DelveModePlan.md` |
+| **The Labyrinth** | Persistent infinite descent; biome clusters + named modifiers | Mystery/Shop/Rest/Craft + map modifiers; Event collapsed into Mystery; see `DelveModePlan.md` |
 
 Do not implement Gauntlet/Hunt/Labyrinth in Aspects phases. Labyrinth Phase 0 preferences are locked in `DelveModePlan.md` §12.
 

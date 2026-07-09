@@ -65,7 +65,7 @@ public enum TrinketMotion: Sendable {
         }
     }
 
-    /// Wanderer's Labyrinth map motion (R-022c).
+    /// The Labyrinth map motion (R-022c).
     public enum Labyrinth: Sendable {
         public static let modifierStagger: TimeInterval = 0.05
 

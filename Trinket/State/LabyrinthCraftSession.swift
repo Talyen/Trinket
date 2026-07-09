@@ -1,7 +1,7 @@
 import Foundation
 import TrinketContent
 
-/// Thin Crafting Altar encounter for Wanderer's Labyrinth (gold → generated item).
+/// Thin Crafting Altar encounter for The Labyrinth (gold → generated item).
 @MainActor
 @Observable
 final class LabyrinthCraftSession: Identifiable {

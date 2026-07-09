@@ -24,7 +24,7 @@ struct LabyrinthMapView: View {
                 emptyState
             }
         }
-        .navigationTitle("Wanderer's Labyrinth")
+        .navigationTitle("The Labyrinth")
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.playJourney)
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthMap)
@@ -90,7 +90,7 @@ struct LabyrinthMapView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("Wanderer's Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+            Label("The Labyrinth", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
         } description: {
             Text("The path remembers. Descend when you are ready.")
         } actions: {

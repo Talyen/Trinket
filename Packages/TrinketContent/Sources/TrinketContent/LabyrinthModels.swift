@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-/// Stable biome identifier for Wanderer's Labyrinth clusters.
+/// Stable biome identifier for The Labyrinth clusters.
 public struct LabyrinthBiomeID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
     public let rawValue: String
 

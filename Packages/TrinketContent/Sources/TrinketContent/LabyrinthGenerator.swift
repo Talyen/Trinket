@@ -1,7 +1,7 @@
 import Foundation
 import TrinketCore
 
-/// Deterministic expanding DAG generator for Wanderer's Labyrinth.
+/// Deterministic expanding DAG generator for The Labyrinth.
 public enum LabyrinthGenerator {
     public static let entranceNodeID = "labyrinth-entrance"
     public static let entranceClusterID = "labyrinth-cluster-0"

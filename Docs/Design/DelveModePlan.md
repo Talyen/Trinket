@@ -1,6 +1,6 @@
-# Wanderer's Labyrinth — Product Spec & UI/UX Plan
+# The Labyrinth — Product Spec & UI/UX Plan
 
-Design and product plan for an infinite, procedurally generated dungeon Mode inspired by Path of Exile’s Delve: cluster biomes, stacked cluster modifiers, target farming, and special finds. Expands roadmap **R-022** / **R-022c**. Implements the Modes teaser **Wanderer's Labyrinth** (does not invent a second labyrinth Mode).
+Design and product plan for an infinite, procedurally generated dungeon Mode inspired by Path of Exile’s Delve: cluster biomes, stacked cluster modifiers, target farming, and special finds. Expands roadmap **R-022** / **R-022c**. Implements the Modes teaser **The Labyrinth** (does not invent a second labyrinth Mode).
 
 **Status:** finishing — Phase 0 locked; domain/persistence/Modes/map/Atlas/battle/shop/mystery landed. Event nodes collapsed into Mystery. Rest/Craft sheets, modifier pairing, map polish, and DoD verification in progress.  
 **Complements:** `AspectsAndModesPlan.md` (Modes shell), `CoreDesignConcepts.md`, `AppVisualFoundation.md`, `AppleNativeGuidelines.md`.  
@@ -12,7 +12,7 @@ Design and product plan for an infinite, procedurally generated dungeon Mode ins
 
 | Decision | Locked choice | Notes |
 |----------|---------------|-------|
-| **Ship name** | **Wanderer's Labyrinth** | Modes row title; internal id `labyrinth` |
+| **Ship name** | **The Labyrinth** | Modes row title; internal id `labyrinth` |
 | **Modes slot** | Replace the locked Labyrinth teaser with this Mode | Same row; unlock when gated |
 | **Fantasy vs Aspects** | Aspects = vertical affinity climb; Labyrinth = persistent infinite map with biome clusters + modifiers | Both reuse idle battles |
 | **Map persistence** | **One persistent infinite map that grows forever** | Not session runs; save must chunk/stream clusters |
@@ -34,7 +34,7 @@ Design and product plan for an infinite, procedurally generated dungeon Mode ins
 
 ## 1. Player fantasy
 
-> The Wanderer's Labyrinth does not reset when you fall. Stone corridors gather into **clusters**—pockets of heat, root, frost, or gold—each carrying named modifiers that change what you fight and what you find. Push deeper, farm the paths that feed your build, and return whenever you like. The map remembers.
+> The Labyrinth does not reset when you fall. Stone corridors gather into **clusters**—pockets of heat, root, frost, or gold—each carrying named modifiers that change what you fight and what you find. Push deeper, farm the paths that feed your build, and return whenever you like. The map remembers.
 
 ### Why this Mode exists
 
@@ -48,7 +48,7 @@ Design and product plan for an infinite, procedurally generated dungeon Mode ins
 
 ### Differentiation matrix
 
-| | Chapter Journey | Aspects | **Wanderer's Labyrinth** |
+| | Chapter Journey | Aspects | **The Labyrinth** |
 |--|-----------------|---------|--------------------------|
 | Structure | Authored stages | Authored floors per Aspect | Procedural node map |
 | Length | Finite chapter | 10 floors + Warden | Infinite depth (persistent) |
@@ -64,13 +64,13 @@ Design and product plan for an infinite, procedurally generated dungeon Mode ins
 
 ### Mode title (locked)
 
-**Wanderer's Labyrinth** — Modes list, nav title, hub hero.
+**The Labyrinth** — Modes list, nav title, hub hero.
 
 ### Vocabulary (locked)
 
 | Concept | Player term | Internal / rules |
 |---------|-------------|------------------|
-| Mode | **Wanderer's Labyrinth** | `PlayMode.labyrinth` |
+| Mode | **The Labyrinth** | `PlayMode.labyrinth` |
 | Progress measure | **Depth** (Depth 1, 12, …) | `depth` |
 | Map region | **Cluster** (optional in UI; biome title is primary) | `BiomeCluster` |
 | Cluster theme | **Biome** poetic title (e.g. Cinder Galleries) | `BiomeID` + hidden Keyword bias |
@@ -101,7 +101,7 @@ Header can simply list the chips under the biome title with no section label, or
 | **Chapter Journey** | Primary narrative progress (unchanged). |
 | **Modes** | Secondary destinations; Labyrinth is Mode #2 after Aspects. |
 | **Aspects** | Affinity floor climbs (unchanged). |
-| **Wanderer's Labyrinth** | Persistent infinite procedural delve. |
+| **The Labyrinth** | Persistent infinite procedural delve. |
 | **Player-facing language** | No “Keyword”, no “proc gen”, no “seed”, no umbrella modifier noun. Biome titles, modifier titles, Depth. |
 
 **Combat contract:** Normal idle auto-battles. Cluster modifiers change encounter selection, enemy scaling, and rewards before battle entry—not a new battle UI.
@@ -310,7 +310,7 @@ No run-end screen. No loot wipe. Optional light feedback: “The path holds. Try
 | Gate | Unlocks |
 |------|---------|
 | Clear Journey Chapter 1 | Modes (existing) |
-| Chapter 1 complete **OR** Aspect Floor 5 | **Wanderer's Labyrinth** |
+| Chapter 1 complete **OR** Aspect Floor 5 | **The Labyrinth** |
 | Reach Depth 10 | Atlas emphasis / badge (Atlas can exist earlier as empty) |
 
 ---
@@ -378,7 +378,7 @@ source: .journey(...) | .aspect(...) | .labyrinth(nodeID)
 
 Unlock the existing Labyrinth row (no rename):
 
-- Title: **Wanderer's Labyrinth**
+- Title: **The Labyrinth**
 - Subtitle: **An endless descent. Biomes, modifiers, finds.**
 - Trailing: `Depth 14` if any
 - Symbol: keep current labyrinth SF Symbol unless art pass says otherwise
@@ -388,7 +388,7 @@ Unlock the existing Labyrinth row (no rename):
 If the map is the product, Hub can be minimal:
 
 1. Full-bleed quiet gothic atmosphere.
-2. Title **Wanderer's Labyrinth**.
+2. Title **The Labyrinth**.
 3. One line: “The path remembers. Descend when you are ready.”
 4. Primary: **Enter** / **Continue**.
 5. Secondary: **Atlas**.
@@ -497,7 +497,7 @@ LabyrinthAtlas                        // discovered biomes/modifiers, milestones
 ### Phase 0 — Design lock
 
 - [x] Preferences answered (§12)
-- [x] Name locked: Wanderer's Labyrinth
+- [x] Name locked: The Labyrinth
 - [x] No umbrella modifier noun
 - [x] Persistent map + endless retries
 - [ ] Keep Roadmap / CoreDesignConcepts / Aspects plan wording aligned with locks
@@ -542,7 +542,7 @@ LabyrinthAtlas                        // discovered biomes/modifiers, milestones
 
 | # | Topic | Answer |
 |---|-------|--------|
-| Q1 | Name | **E — Wanderer's Labyrinth** |
+| Q1 | Name | **The Labyrinth** (renamed from Wanderer's Labyrinth) |
 | Q2 | Affix umbrella word | **None** — titles only, like Item affixes |
 | Q3 | Map metaphor | **A — Vertical node descent** |
 | Q4 | Failure | **Endless retries** (PoE Delve-like); not run-ending |
@@ -562,7 +562,7 @@ LabyrinthAtlas                        // discovered biomes/modifiers, milestones
 
 ## 13. Definition of done (v1)
 
-1. Modes → Wanderer's Labyrinth → persistent map with ≥2 clusters over play.
+1. Modes → The Labyrinth → persistent map with ≥2 clusters over play.
 2. Named modifiers visible (titles only) and affect rewards and/or encounter mix.
 3. Defeat returns to map; node retryable; map not wiped.
 4. Battle rules/UI unchanged; configuration source extended.
