@@ -57,7 +57,6 @@ struct ResumeBattleCardView: View {
         }
     }
 
-    @ViewBuilder
     private func resumeCard<Artwork: View>(
         subtitle: String,
         tint: Color,
