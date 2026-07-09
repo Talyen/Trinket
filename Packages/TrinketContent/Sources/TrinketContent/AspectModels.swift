@@ -5,7 +5,9 @@ import TrinketCore
 public struct AspectID: RawRepresentable, Hashable, Codable, Sendable, Identifiable {
     public let rawValue: String
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     public init(rawValue: String) {
         self.rawValue = rawValue

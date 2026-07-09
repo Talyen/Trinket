@@ -51,12 +51,10 @@ public enum AspectCatalog {
             title: "Storm Anvil",
             epithet: "One blow that stops the world",
             keyword: .stun
-        ),
+        )
     ]
 
-    public static let aspectsByID: [AspectID: AspectDefinition] = {
-        Dictionary(uniqueKeysWithValues: aspects.map { ($0.id, $0) })
-    }()
+    public static let aspectsByID: [AspectID: AspectDefinition] = Dictionary(uniqueKeysWithValues: aspects.map { ($0.id, $0) })
 
     public static func aspect(id: AspectID) -> AspectDefinition? {
         aspectsByID[id]
@@ -79,7 +77,7 @@ public enum AspectCatalog {
         .holy: ["skeleton", "living_armor", "the_iron_bear"],
         .nature: ["mud_elemental", "slime", "the_blight_treant"],
         .freeze: ["frost_elemental", "the_frostwarden"],
-        .stun: ["goblin", "living_armor", "the_forge_golem"],
+        .stun: ["goblin", "living_armor", "the_forge_golem"]
     ]
 
     private static let floorsByAspectID: [AspectID: [AspectFloor]] = {
@@ -127,7 +125,9 @@ public enum AspectCatalog {
 }
 
 public extension GameContent {
-    static var aspects: [AspectDefinition] { AspectCatalog.aspects }
+    static var aspects: [AspectDefinition] {
+        AspectCatalog.aspects
+    }
 
     static func aspect(id: AspectID) -> AspectDefinition? {
         AspectCatalog.aspect(id: id)
