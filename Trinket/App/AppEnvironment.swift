@@ -60,11 +60,11 @@ struct AppEnvironment {
     static func parse(arguments: [String], environment: [String: String]) -> AppEnvironment {
         let isRunningTests = environment["XCTestConfigurationFilePath"] != nil
         let disableCloudSync: Bool
-        #if targetEnvironment(simulator)
-        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests || !arguments.contains("-enable-cloud-sync")
-        #else
-        disableCloudSync = arguments.contains("-disable-cloud-sync") || arguments.contains("-reset-state") || isRunningTests
-        #endif
+        // F1 ship posture: CloudKit off unless explicitly enabled (device + simulator).
+        disableCloudSync = arguments.contains("-disable-cloud-sync")
+            || arguments.contains("-reset-state")
+            || isRunningTests
+            || !arguments.contains("-enable-cloud-sync")
 
         return AppEnvironment(
             launchTab: launchTab(from: arguments),

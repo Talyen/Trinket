@@ -45,6 +45,9 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant has triggered Death's Door once this battle.
     public var hasConsumedDeathsDoor: Bool
 
+    /// Tick when Death's Door expired; lethal protection lasts through that tick.
+    public var deathsDoorExpiredAtTick: Int?
+
     /// True after this combatant's ambush trait has added its first-strike bonus.
     public var hasTriggeredAmbush: Bool
 
@@ -82,6 +85,7 @@ public struct CombatantRuntime: Hashable {
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
         hasConsumedDeathsDoor: Bool = false,
+        deathsDoorExpiredAtTick: Int? = nil,
         hasTriggeredAmbush: Bool = false,
         hasTriggeredSecondWind: Bool = false,
         hasTriggeredHexmark: Bool = false,
@@ -96,6 +100,7 @@ public struct CombatantRuntime: Hashable {
         self.maximumHealthBonus = maximumHealthBonus
         self.maximumManaBonus = maximumManaBonus
         self.hasConsumedDeathsDoor = hasConsumedDeathsDoor
+        self.deathsDoorExpiredAtTick = deathsDoorExpiredAtTick
         self.hasTriggeredAmbush = hasTriggeredAmbush
         self.hasTriggeredSecondWind = hasTriggeredSecondWind
         self.hasTriggeredHexmark = hasTriggeredHexmark

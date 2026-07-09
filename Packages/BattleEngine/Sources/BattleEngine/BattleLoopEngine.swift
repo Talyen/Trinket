@@ -9,6 +9,13 @@ public enum BattleLoopEngine {
         matchup: BattleMatchup,
         context: inout BattleEngineContext
     ) -> BattleStep {
+        // Clear prior-tick Death's Door expiry grace before advancing the clock.
+        for participant in BattleParticipant.allCases {
+            context.roster.mutateRuntime(for: context.roster[participant].combatant) {
+                $0.deathsDoorExpiredAtTick = nil
+            }
+        }
+
         context.tickCount += 1
 
         var events = EffectTickEngine.tickAll(context: &context, matchup: matchup)

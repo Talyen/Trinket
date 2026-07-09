@@ -7,6 +7,7 @@ import TrinketDesignSystem
 struct BattleView: View {
     @Environment(AppState.self) private var appState
     @State private var isShowingBattleLog = false
+    @State private var persistFailureMessage: StageMapMessage?
     @Namespace private var cinematicNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -40,6 +41,13 @@ struct BattleView: View {
                 )
                 .presentationDetents([.medium])
             })
+            .alert(item: $persistFailureMessage) { message in
+                Alert(
+                    title: Text(message.title),
+                    message: Text(message.message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
             .onChange(of: isShowingBattleLog) { _, isShowing in
                 if isShowing {
                     appState.battle.pauseForOverlay()
@@ -60,11 +68,17 @@ struct BattleView: View {
                 primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
                 onPrimaryAction: {
                     if hasStageProgression {
-                        appState.completeActiveBattle(
+                        let didPersist = appState.completeActiveBattle(
                             configuration,
                             battleEarnedGold: victorySummary.battleGold,
                             materialRewards: victorySummary.materialRewards
                         )
+                        if !didPersist {
+                            persistFailureMessage = StageMapMessage(
+                                title: "Couldn't Save Progress",
+                                message: "Your victory was not saved. Stay on this screen and try Continue again."
+                            )
+                        }
                     } else {
                         appState.restartActiveBattle()
                     }

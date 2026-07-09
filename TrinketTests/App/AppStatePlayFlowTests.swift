@@ -1,9 +1,9 @@
 import Foundation
 import Testing
 import TrinketContent
-import TrinketPersistence
 import TrinketTestSupport
 @testable import Trinket
+@testable import TrinketPersistence
 
 @MainActor
 struct AppStatePlayFlowTests {
@@ -80,18 +80,22 @@ struct AppStatePlayFlowTests {
         #expect(state.roster.current.gold == initialGold)
     }
 
-    @Test func completeActiveBattleAdvancesJourneyWhenPersistFails() throws {
+    #if DEBUG
+    @Test func completeActiveBattleKeepsBattleOpenWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makeAppState(playerSave: playerSave)
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
 
-        state.completeActiveBattle(configuration, battleEarnedGold: 0)
+        playerSave.forcesNextSaveFailure = true
+        let didPersist = state.completeActiveBattle(configuration, battleEarnedGold: 0)
 
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
+        #expect(!didPersist)
+        #expect(state.battle.activeBattle != nil)
+        #expect(state.journey.current.activeStageID == stage.id)
     }
+    #endif
 
     @Test func mapScrollFocusIDReturnsActiveStageWhenInProgress() throws {
         let state = try context.makeAppState()

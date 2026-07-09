@@ -62,6 +62,41 @@ struct AspectsProgressTests {
 
         #expect(save.roster.gold == goldBefore + floor.rewards.gold + 3)
         #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
+        #expect(save.aspects.isFloorStartable(2, aspectID: AspectID.ironVein.rawValue))
+        #expect(!save.aspects.isFloorStartable(1, aspectID: AspectID.ironVein.rawValue))
+    }
+
+    @Test func floorCompletionGrantsBiasedItemAndIsIdempotent() throws {
+        var save = PlayerSave.fresh
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let pet = try #require(GameContent.pets.first { $0.id == "bear" })
+
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let item = try #require(AspectCompletion.makeAspectFloorItem(for: floor, using: &rng))
+        #expect(item.baseType.keywordAffinities.contains(.physical))
+
+        AspectCompletion.complete(
+            floor: floor,
+            hero: hero,
+            pet: pet,
+            rewardItem: item,
+            save: &save
+        )
+        let goldAfterFirst = save.roster.gold
+        let itemCountAfterFirst = save.inventory.items.count
+
+        AspectCompletion.complete(
+            floor: floor,
+            hero: hero,
+            pet: pet,
+            rewardItem: item,
+            save: &save
+        )
+
+        #expect(save.roster.gold == goldAfterFirst)
+        #expect(save.inventory.items.count == itemCountAfterFirst)
+        #expect(save.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
     }
 
     @Test func wardenCompletionGrantsBiasedItem() throws {
@@ -79,7 +114,7 @@ struct AspectsProgressTests {
         let countBefore = save.inventory.items.count
 
         var rng = SeededRandomNumberGenerator(seed: 7)
-        let item = try #require(AspectCompletion.makeWardenItem(for: warden, using: &rng))
+        let item = try #require(AspectCompletion.makeAspectFloorItem(for: warden, using: &rng))
         AspectCompletion.complete(
             floor: warden,
             hero: hero,

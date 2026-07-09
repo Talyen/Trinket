@@ -5,10 +5,34 @@ struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.scenePhase) private var scenePhase
     @State private var localSelectedTab: AppTab = .play
+    @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
         tabRoot(selection: $localSelectedTab)
             .preferredColorScheme(appState.options.appearance.colorScheme)
+            .alert(
+                "Progress Storage Issue",
+                isPresented: Binding(
+                    get: {
+                        appState.requiresPersistenceRecoveryAcknowledgement
+                            && !didAcknowledgePersistenceRecovery
+                    },
+                    set: { isPresented in
+                        if !isPresented {
+                            didAcknowledgePersistenceRecovery = true
+                        }
+                    }
+                )
+            ) {
+                Button("Continue") {
+                    didAcknowledgePersistenceRecovery = true
+                }
+            } message: {
+                Text(
+                    appState.persistenceStatusMessage
+                        ?? "Saved progress could not be opened normally. Check Options → Progress Status."
+                )
+            }
             .onAppear {
                 localSelectedTab = appState.selectedTab
                 appState.reconcileShellState(.appeared, scenePhase: scenePhase)

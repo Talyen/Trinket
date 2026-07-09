@@ -80,6 +80,25 @@ struct AppStateAspectsTests {
         #expect(message?.title == "Floor Locked")
     }
 
+    @Test func startAspectBattleRejectsClearedFloor() throws {
+        let state = try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+        var roster = state.roster.current
+        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+        roster.setActivePet(bear)
+        state.roster.current = roster
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        state.completeAspectFloor(floor, hero: state.roster.activeHero, pet: state.roster.activePet)
+        let message = state.startAspectBattle(for: floor)
+        #expect(message?.title == "Floor Cleared")
+        #expect(state.battle.activeBattle == nil)
+    }
+
     @Test func completeAspectFloorAdvancesProgress() throws {
         let state = try context.makeAppState(arguments: [
             "-reset-state",
@@ -114,8 +133,39 @@ struct AppStateAspectsTests {
 
         state.shellSession.setAspectBattleResume(aspectID: AspectID.ironVein.rawValue, floor: 1)
         #expect(state.isSavedBattleValid())
-        state.resumeSavedBattle()
+        #expect(state.resumeSavedBattle() == nil)
         #expect(state.battle.activeBattle?.aspectBattle?.aspectID == .ironVein)
         #expect(state.battle.activeBattle?.aspectBattle?.floor == 1)
+    }
+
+    @Test func resumeInvalidAfterFloorCleared() throws {
+        let state = try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        state.completeAspectFloor(floor, hero: state.roster.activeHero, pet: state.roster.activePet)
+        state.shellSession.setAspectBattleResume(aspectID: AspectID.ironVein.rawValue, floor: 1)
+        #expect(!state.isSavedBattleValid())
+    }
+
+    @Test func startAspectBattlePreviewsFloorRewardItem() throws {
+        let state = try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+        var roster = state.roster.current
+        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+        roster.setActivePet(bear)
+        state.roster.current = roster
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        #expect(state.startAspectBattle(for: floor) == nil)
+        let pending = try #require(state.battle.activeBattle?.pendingRewardItem)
+        #expect(pending.baseType.keywordAffinities.contains(.physical))
     }
 }

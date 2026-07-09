@@ -22,11 +22,13 @@ public enum BattleTurnEngine {
         context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
-        var events = CombatReactionEngine.atStartOfAction(by: actor, in: &context)
+        var events: [ActionEvent] = []
         if context.roster.hasPendingActionSkip(for: actor) {
             events.append(contentsOf: consumeActionSkip(for: actor, context: &context))
             return events
         }
+        // Deathgrip / start-of-action reactions only fire when the action is taken.
+        events.append(contentsOf: CombatReactionEngine.atStartOfAction(by: actor, in: &context))
         events.append(contentsOf: performAction(
             actor: actor,
             abilityTarget: abilityTarget,

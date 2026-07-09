@@ -89,11 +89,55 @@ struct DeathsDoorEngineTests {
             effects = result.updated
         }
         context.roster.setActiveEffects(effects, for: hero)
+        // Expiry grace only lasts through the tick that removed Death's Door.
+        context.tickCount += 1
+        context.roster.mutateRuntime(for: hero) { $0.deathsDoorExpiredAtTick = nil }
 
         try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
         _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
         try #expect(context.roster.health(for: hero) == 0)
         try #expect(!(context.roster.hero.isAlive))
+    }
+
+    @Test func lethalHitSameTickAfterExpiryStillClampsToOne() throws {
+        var context = makeContext(heroHP: 5)
+        let hero = context.roster.hero.combatant
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+
+        var effects = context.roster.activeEffects(for: hero)
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
+            let result = EffectTickEngine.tickEffects(effects, target: hero, context: &context)
+            effects = result.updated
+        }
+        context.roster.setActiveEffects(effects, for: hero)
+
+        try #expect(!(context.roster.isDeathsDoorActive(for: hero)))
+        try #expect(context.roster.runtime(for: hero)?.deathsDoorExpiredAtTick == context.tickCount)
+        _ = context.applyTestDamage(5, to: hero, applyStatBonus: false, applyItemBonus: false, applyDodge: false)
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.hero.isAlive)
+    }
+
+    @Test func secondWindDoesNotPreemptDeathsDoorOnLethalHit() throws {
+        var context = makeContext(heroHP: 5)
+        context.heroModifiers = CombatModifierProfile(
+            onceBelowHealthPercentThreshold: 0.25,
+            onceBelowHealthPercentHeal: 3
+        )
+        let hero = context.roster.hero.combatant
+        let (_, events) = context.applyTestDamage(
+            5,
+            to: hero,
+            applyStatBonus: false,
+            applyItemBonus: false,
+            applyDodge: false
+        )
+
+        try #expect(context.roster.health(for: hero) == 1)
+        try #expect(context.roster.hasConsumedDeathsDoor(for: hero))
+        try #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
+        try #expect(!events.contains { $0.abilityName == "Second Wind" })
+        try #expect(!(context.roster.runtime(for: hero)?.hasTriggeredSecondWind ?? true))
     }
 
     @Test func heroAndPetProcIndependently() throws {

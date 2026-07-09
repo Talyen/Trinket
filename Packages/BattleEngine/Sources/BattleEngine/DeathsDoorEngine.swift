@@ -12,6 +12,20 @@ package enum DeathsDoorEngine {
         context.roster.isDeathsDoorActive(for: combatant)
     }
 
+    /// Lethal protection while Death's Door is active, or for the remainder of the tick it expired.
+    public static func hasLethalProtection(
+        for combatant: Combatant,
+        in context: BattleEngineContext
+    ) -> Bool {
+        if isActive(for: combatant, in: context) { return true }
+        guard context.roster.hasConsumedDeathsDoor(for: combatant),
+              let runtime = context.roster.runtime(for: combatant),
+              let expiredAt = runtime.deathsDoorExpiredAtTick,
+              expiredAt == context.tickCount
+        else { return false }
+        return true
+    }
+
     public static func resolveAfterDamage(
         to combatant: Combatant,
         in context: inout BattleEngineContext
@@ -23,10 +37,10 @@ package enum DeathsDoorEngine {
             if !context.roster.hasConsumedDeathsDoor(for: combatant) {
                 return trigger(on: combatant, in: &context)
             }
-            if isActive(for: combatant, in: context) {
+            if hasLethalProtection(for: combatant, in: context) {
                 clampToMinimumHP(on: combatant, in: &context)
             }
-        } else if isActive(for: combatant, in: context), health < 1 {
+        } else if hasLethalProtection(for: combatant, in: context), health < 1 {
             clampToMinimumHP(on: combatant, in: &context)
         }
         return []

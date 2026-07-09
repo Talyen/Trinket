@@ -170,11 +170,12 @@ struct AffixReactionBattleTests {
             maxHealth: 100,
             actionIntervalTicks: 1,
             abilities: [
-                Ability(id: "heavy", name: "Heavy", tier: .basic, directDamage: 16, damageKeyword: .physical)
+                // Non-lethal: drop below 25% without killing so Death's Door does not own the hit.
+                Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 16, damageKeyword: .physical)
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], actionIntervalTicks: 100),
+            hero: hero(abilities: [], actionIntervalTicks: 100, maxHealth: 20),
             pet: passivePet(maxHealth: 1),
             enemy: enemy,
             heroModifiers: CombatModifierProfile(
@@ -186,9 +187,37 @@ struct AffixReactionBattleTests {
         let first = battle.advanceOneStep()
         let second = battle.advanceOneStep()
 
-        try #expect(battle.health(of: battle.hero) == 1)
         try #expect(first.events.contains { $0.abilityName == "Second Wind" && $0.amount == 3 })
         try #expect(!second.events.contains { $0.abilityName == "Second Wind" })
+        try #expect(battle.health(of: battle.hero) > 1)
+    }
+
+    @Test func deathsDoorProcsBeforeSecondWindOnLethalHit() throws {
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 100,
+            actionIntervalTicks: 1,
+            abilities: [
+                Ability(id: "execute", name: "Execute", tier: .basic, directDamage: 40, damageKeyword: .physical)
+            ]
+        )
+        var battle = BattleStateTestFactory.makeBattle(
+            hero: hero(abilities: [], actionIntervalTicks: 100, maxHealth: 20),
+            pet: passivePet(maxHealth: 1),
+            enemy: enemy,
+            heroModifiers: CombatModifierProfile(
+                onceBelowHealthPercentThreshold: 0.25,
+                onceBelowHealthPercentHeal: 3
+            )
+        )
+
+        let step = battle.advanceOneStep()
+
+        try #expect(battle.health(of: battle.hero) == 1)
+        try #expect(step.events.contains { $0.effectKind == .deathsDoorTriggered })
+        try #expect(!step.events.contains { $0.abilityName == "Second Wind" })
     }
 
     @Test func shatterAddsFreezeDamageWhileEnemyIsFrozen() throws {

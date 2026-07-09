@@ -94,10 +94,10 @@ An Aspect is a **vertical climb** of authored floors. Entering an Aspect means t
 
 | Floor band | Count (v1) | Encounter | Reward emphasis |
 |------------|------------|-----------|-----------------|
-| 1–9 | 9 | Standard Aspect enemies | Gold, XP, materials |
-| 10 | 1 | Aspect Warden (boss) | Aspect-biased item roll + milestone |
+| 1–9 | 9 | Standard Aspect enemies | Gold, XP, materials, Aspect-biased item |
+| 10 | 1 | Aspect Warden (boss) | Gold, XP, materials, Aspect-biased item + milestone |
 
-Progress is **persistent per Aspect** (`highestClearedFloor`). Floors are sequential; no skipping. Clearing Floor N unlocks N+1. Replays of cleared floors are allowed for farming (same rewards at reduced rate *or* full rate with a daily soft cap — pick in Phase 2 economy pass; default **full rate, no stamina** for v1 simplicity).
+Progress is **persistent per Aspect** (`highestClearedFloor`). Floors are sequential; no skipping. Clearing Floor N unlocks N+1. Each floor is a **one-clear tower step** — cleared floors cannot be replayed. Every clear grants gold/XP/materials plus an item whose base affinities include the Aspect keyword.
 
 ### Why play Aspects (vs Journey)
 
@@ -106,7 +106,7 @@ Progress is **persistent per Aspect** (`highestClearedFloor`). Floors are sequen
 | Story, chapter art, mixed encounter types | Pure combat climb, affinity fantasy |
 | Advances world progress | Advances **roster depth** + **affinity gear** |
 | One active path | Eight parallel paths (v1) |
-| Locked once completed (current loop) | Replayable floors |
+| Locked once completed (current loop) | One-clear tower climb (no floor replay) |
 
 ---
 
@@ -457,7 +457,7 @@ Do not implement Gauntlet/Hunt/Labyrinth in Aspects phases. Labyrinth Phase 0 pr
 1. Play default root: Journey remains root with a Modes entry chip on the chapter hero (Play Home deferred until more Modes ship).
 2. Unlock beat: **Chapter 1 complete** unlocks Modes.
 3. Item affinity: **hint-only** on Aspect Climb.
-4. Replay rewards: **full rate**, no stamina.
+4. Floor clears are one-shot (no replay); every clear grants gold/XP/materials plus an Aspect-biased item.
 5. Resource Keywords: economy-only for v1 (no Gold/Mana climbs).
 
 ---
