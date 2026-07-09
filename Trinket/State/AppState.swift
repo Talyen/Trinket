@@ -43,6 +43,11 @@ final class AppState {
         set { playerSave.aspects = newValue }
     }
 
+    var labyrinth: PlayerLabyrinthState {
+        get { playerSave.labyrinth }
+        set { playerSave.labyrinth = newValue }
+    }
+
     var collectionAttention: PlayerCollectionAttentionState {
         get { playerSave.collectionAttention }
         set { playerSave.collectionAttention = newValue }
@@ -91,6 +96,8 @@ final class AppState {
             shellSession.setJourneyBattleResume(stageID: stageID)
         case let .aspect(aspectID, floor):
             shellSession.setAspectBattleResume(aspectID: aspectID.rawValue, floor: floor)
+        case let .labyrinth(nodeID):
+            shellSession.setLabyrinthBattleResume(nodeID: nodeID)
         case .none:
             shellSession.clearActiveBattleResume()
         }

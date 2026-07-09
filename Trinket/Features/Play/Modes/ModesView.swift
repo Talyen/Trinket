@@ -54,12 +54,8 @@ struct ModesView: View {
                     systemImage: "scope"
                 )
                 .disabled(true)
-                lockedModeRow(
-                    title: "Wanderer's Labyrinth",
-                    subtitle: "Opens later",
-                    systemImage: "point.topleft.down.to.point.bottomright.curvepath"
-                )
-                .disabled(true)
+
+                labyrinthRow
             } footer: {
                 Text("Other paths. Same battles. Different reasons to fight.")
             }
@@ -82,6 +78,37 @@ struct ModesView: View {
             return teaser
         }
         return "Climb by affinity. Attune a Hero and Pet."
+    }
+
+    @ViewBuilder
+    private var labyrinthRow: some View {
+        let unlocked = appState.isLabyrinthUnlocked
+        let depth = appState.labyrinth.deepestDepth
+        if unlocked {
+            NavigationLink {
+                LabyrinthMapView()
+            } label: {
+                modeRow(
+                    title: "Wanderer's Labyrinth",
+                    subtitle: depth > 0
+                        ? "Depth \(depth). An endless descent."
+                        : "An endless descent. Biomes, modifiers, finds.",
+                    systemImage: "point.topleft.down.to.point.bottomright.curvepath"
+                )
+            }
+            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
+        } else {
+            lockedModeRow(
+                title: "Wanderer's Labyrinth",
+                subtitle: LabyrinthUnlock.unlockHint(
+                    journey: appState.journey.current,
+                    aspects: appState.aspects.current
+                ),
+                systemImage: "point.topleft.down.to.point.bottomright.curvepath"
+            )
+            .disabled(true)
+            .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
+        }
     }
 
     private func modeRow(title: String, subtitle: String, systemImage: String) -> some View {

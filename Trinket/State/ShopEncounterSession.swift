@@ -11,6 +11,8 @@ final class ShopEncounterSession: Identifiable {
     }
 
     let stage: Stage
+    /// When set, Leave completes a Labyrinth node instead of a journey stage.
+    let labyrinthNodeID: String?
     let greeting: String
     let offers: [ShopOffer]
     /// Unique per open so inventory instance ids never collide across dismiss/re-open.
@@ -25,12 +27,30 @@ final class ShopEncounterSession: Identifiable {
         stage: Stage,
         offers: [ShopOffer],
         visitToken: String = UUID().uuidString,
-        greeting: String = "Welcome, traveler. Take a look at what I've got."
+        greeting: String = "Welcome, traveler. Take a look at what I've got.",
+        labyrinthNodeID: String? = nil
     ) {
         self.stage = stage
         self.offers = offers
         self.visitToken = visitToken
         self.greeting = greeting
+        self.labyrinthNodeID = labyrinthNodeID
+    }
+
+    convenience init(
+        labyrinthNodeID: String,
+        offers: [ShopOffer],
+        greeting: String = "Welcome, traveler. Take a look at what I've got."
+    ) {
+        self.init(
+            stage: LabyrinthEncounterSupport.syntheticStage(
+                nodeID: labyrinthNodeID,
+                encounter: .shop
+            ),
+            offers: offers,
+            greeting: greeting,
+            labyrinthNodeID: labyrinthNodeID
+        )
     }
 
     func isSoldOut(_ offerID: String) -> Bool {

@@ -8,6 +8,7 @@ public final class PlayerShellSession {
     public var activeBattleStageID: String?
     public var activeBattleAspectID: String?
     public var activeBattleAspectFloor: Int?
+    public var activeBattleLabyrinthNodeID: String?
     public var mapScrollStageID: String?
     public var activeBattleSavedAt: Date?
     public var activeBattleSchemaVersion: Int?

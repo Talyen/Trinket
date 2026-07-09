@@ -16,6 +16,8 @@ final class MysteryEncounterSession: Identifiable {
     }
 
     let stage: Stage
+    /// When set, completion clears a Labyrinth node instead of a journey stage.
+    let labyrinthNodeID: String?
     let event: MysteryEvent
     let combatant: Combatant?
     private(set) var phase: MysteryEncounterPhase = .reading
@@ -26,10 +28,32 @@ final class MysteryEncounterSession: Identifiable {
         phase == .revealing && unlockedCombatantID != nil
     }
 
-    init(stage: Stage, event: MysteryEvent, combatant: Combatant?) {
+    init(
+        stage: Stage,
+        event: MysteryEvent,
+        combatant: Combatant?,
+        labyrinthNodeID: String? = nil
+    ) {
         self.stage = stage
         self.event = event
         self.combatant = combatant
+        self.labyrinthNodeID = labyrinthNodeID
+    }
+
+    convenience init(
+        labyrinthNodeID: String,
+        event: MysteryEvent,
+        combatant: Combatant?
+    ) {
+        self.init(
+            stage: LabyrinthEncounterSupport.syntheticStage(
+                nodeID: labyrinthNodeID,
+                encounter: .mysteryEvent(eventID: event.id)
+            ),
+            event: event,
+            combatant: combatant,
+            labyrinthNodeID: labyrinthNodeID
+        )
     }
 }
 

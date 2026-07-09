@@ -82,6 +82,11 @@ public final class PlayerSaveStore {
         set { mutate { $0.aspects = PlayerSaveSanitizer.sanitizeAspects(newValue) } }
     }
 
+    public var labyrinth: PlayerLabyrinthState {
+        get { currentSave.labyrinth }
+        set { mutate { $0.labyrinth = PlayerSaveSanitizer.sanitizeLabyrinth(newValue) } }
+    }
+
     public var currentSave: PlayerSave {
         root.toPlayerSave()
     }

@@ -243,6 +243,45 @@ extension AspectsProgressModel {
     }
 }
 
+extension LabyrinthProgressModel {
+    func toPlayerLabyrinthState() -> PlayerLabyrinthState {
+        let payload = decodeMapPayload()
+        return PlayerLabyrinthState(
+            worldSeed: worldSeed,
+            deepestDepth: max(0, deepestDepth),
+            hasEntered: hasEntered,
+            clusters: payload.clusters,
+            nodes: Dictionary(uniqueKeysWithValues: payload.nodes.map { ($0.id, $0) }),
+            discoveredBiomeIDs: Set(discoveredBiomeIDs),
+            discoveredModifierIDs: Set(discoveredModifierIDs),
+            claimedMilestoneDepths: Set(claimedMilestoneDepths)
+        )
+    }
+
+    func update(from state: PlayerLabyrinthState) {
+        worldSeed = state.worldSeed
+        deepestDepth = max(0, state.deepestDepth)
+        hasEntered = state.hasEntered
+        discoveredBiomeIDs = state.discoveredBiomeIDs.sorted()
+        discoveredModifierIDs = state.discoveredModifierIDs.sorted()
+        claimedMilestoneDepths = state.claimedMilestoneDepths.sorted()
+        let payload = LabyrinthMapPayload(
+            clusters: state.clusters,
+            nodes: Array(state.nodes.values).sorted { $0.id < $1.id }
+        )
+        mapPayload = try? JSONEncoder().encode(payload)
+    }
+
+    private func decodeMapPayload() -> LabyrinthMapPayload {
+        guard let mapPayload,
+              let decoded = try? JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
+        else {
+            return LabyrinthMapPayload(clusters: [], nodes: [])
+        }
+        return decoded
+    }
+}
+
 extension Array {
     func linkEach<Parent>(
         to parent: Parent,

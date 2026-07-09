@@ -178,6 +178,11 @@
 		33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DD20B8080EC1342CD43769 /* ModesView.swift */; };
 		DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */; };
 		62325C2FC7B81C312DAFC8AF /* ActiveBattleResumeToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BD20B5279B2C0CC9946534 /* ActiveBattleResumeToken.swift */; };
+		60CEC2A31651DF36415AA4B0 /* AppStateLabyrinthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6361B0F94D154200145FCA6 /* AppStateLabyrinthTests.swift */; };
+		2C43BFE21341F236F6DB717A /* AppState+Labyrinth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83151977919798BDD71F356F /* AppState+Labyrinth.swift */; };
+		2D17BDC9DDE9199F2DAD7E12 /* LabyrinthAtlasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F11461D3B37C337E48995 /* LabyrinthAtlasView.swift */; };
+		94ACC009B9DFAE7E755D2B60 /* LabyrinthEncounterSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1EC1E1B14B7D9526F68285D /* LabyrinthEncounterSupport.swift */; };
+		99FB317C304A8C64D859B99D /* LabyrinthMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105ED1FA5B15DE87B67177CC /* LabyrinthMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -371,6 +376,11 @@
 		29DD20B8080EC1342CD43769 /* ModesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModesView.swift; sourceTree = "<group>"; };
 		EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Attention.swift; sourceTree = "<group>"; };
 		D6BD20B5279B2C0CC9946534 /* ActiveBattleResumeToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleResumeToken.swift; sourceTree = "<group>"; };
+		C6361B0F94D154200145FCA6 /* AppStateLabyrinthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateLabyrinthTests.swift; sourceTree = "<group>"; };
+		83151977919798BDD71F356F /* AppState+Labyrinth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Labyrinth.swift; sourceTree = "<group>"; };
+		016F11461D3B37C337E48995 /* LabyrinthAtlasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthAtlasView.swift; sourceTree = "<group>"; };
+		F1EC1E1B14B7D9526F68285D /* LabyrinthEncounterSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthEncounterSupport.swift; sourceTree = "<group>"; };
+		105ED1FA5B15DE87B67177CC /* LabyrinthMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -687,6 +697,8 @@
 				164D505923452D9A8FADE34F /* ShopEncounterSession.swift */,
 				AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */,
 				EE6465E199E4BBC4A8F18ADC /* AppState+Attention.swift */,
+				83151977919798BDD71F356F /* AppState+Labyrinth.swift */,
+				F1EC1E1B14B7D9526F68285D /* LabyrinthEncounterSupport.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -1189,6 +1201,10 @@
 				33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */,
 				DE7B7316A04A64F39D91B69C /* AppState+Attention.swift in Sources */,
 				62325C2FC7B81C312DAFC8AF /* ActiveBattleResumeToken.swift in Sources */,
+				2C43BFE21341F236F6DB717A /* AppState+Labyrinth.swift in Sources */,
+				2D17BDC9DDE9199F2DAD7E12 /* LabyrinthAtlasView.swift in Sources */,
+				94ACC009B9DFAE7E755D2B60 /* LabyrinthEncounterSupport.swift in Sources */,
+				99FB317C304A8C64D859B99D /* LabyrinthMapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1224,6 +1240,7 @@
 				7859520525DAD899A0CD8809 /* AppStateShopEncounterTests.swift in Sources */,
 				A5DFABA843BC1BFEBCB4F62F /* CollectionSearchTests.swift in Sources */,
 				7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */,
+				60CEC2A31651DF36415AA4B0 /* AppStateLabyrinthTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

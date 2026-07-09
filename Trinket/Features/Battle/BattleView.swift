@@ -71,12 +71,25 @@ struct BattleView: View {
                 }
             )
         } else if battleSession.isShowingDefeat {
-            DefeatView(
-                enemyName: battleState.enemy.name,
-                onBattleAgain: {
-                    appState.restartActiveBattle()
-                }
-            )
+            if let labyrinthNodeID = configuration.labyrinthBattle?.nodeID {
+                DefeatView(
+                    enemyName: battleState.enemy.name,
+                    infoTitle: "The Path Holds",
+                    infoMessage: "Try again or take another way. The Labyrinth remembers.",
+                    primaryButtonTitle: "Return to Map",
+                    onPrimaryAction: {
+                        appState.recordLabyrinthDefeat(nodeID: labyrinthNodeID)
+                        appState.battle.endBattle()
+                    }
+                )
+            } else {
+                DefeatView(
+                    enemyName: battleState.enemy.name,
+                    onPrimaryAction: {
+                        appState.restartActiveBattle()
+                    }
+                )
+            }
         } else {
             battlefield(battleSession: battleSession, battleState: battleState)
         }

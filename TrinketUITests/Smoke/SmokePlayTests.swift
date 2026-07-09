@@ -45,4 +45,15 @@ final class SmokePlayTests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.aspectClimb("ironVein"))
         assertExists(AccessibilityID.Play.aspectFloor("ironVein", floor: 1))
     }
+
+    func testModesEntryOpensLabyrinthWhenUnlocked() {
+        launchApp(arguments: chapterOneCompleteArgs)
+
+        play.assertLoaded()
+        assertButtonExists(AccessibilityID.Play.modesEntry)
+        app.buttons[AccessibilityID.Play.modesEntry].tap()
+        assertExists(AccessibilityID.Play.modesScreen)
+        app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
+        assertExists(AccessibilityID.Play.labyrinthMap)
+    }
 }

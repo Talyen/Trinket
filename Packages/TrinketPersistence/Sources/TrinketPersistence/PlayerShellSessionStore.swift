@@ -48,12 +48,19 @@ public final class PlayerShellSessionStore {
         }
     }
 
+    public var activeBattleLabyrinthNodeID: String? {
+        didSet {
+            persistBattleLabyrinthNodeID()
+            touchBattleMetadataIfNeeded()
+        }
+    }
+
     public var mapScrollStageID: String? {
         didSet { persistMapScrollStageID() }
     }
 
     public var hasActiveBattleResumeToken: Bool {
-        activeBattleStageID != nil || activeBattleAspectID != nil
+        activeBattleStageID != nil || activeBattleAspectID != nil || activeBattleLabyrinthNodeID != nil
     }
 
     public var activeBattleSavedAt: Date? {
@@ -140,6 +147,7 @@ public final class PlayerShellSessionStore {
         activeBattleStageID = record.activeBattleStageID
         activeBattleAspectID = record.activeBattleAspectID
         activeBattleAspectFloor = record.activeBattleAspectFloor
+        activeBattleLabyrinthNodeID = record.activeBattleLabyrinthNodeID
         mapScrollStageID = record.mapScrollStageID
         viewedCombatantIDs = Set(record.viewedCombatantIDs)
         acknowledgedHomesteadActionableFingerprint = record.acknowledgedHomesteadActionableFingerprint
@@ -205,21 +213,31 @@ public final class PlayerShellSessionStore {
         activeBattleStageID = nil
         activeBattleAspectID = nil
         activeBattleAspectFloor = nil
+        activeBattleLabyrinthNodeID = nil
         activeBattleSavedAt = nil
         activeBattleSchemaVersion = nil
     }
 
-    /// Journey and Aspect resume tokens are mutually exclusive.
+    /// Journey, Aspect, and Labyrinth resume tokens are mutually exclusive.
     public func setJourneyBattleResume(stageID: String) {
         activeBattleAspectID = nil
         activeBattleAspectFloor = nil
+        activeBattleLabyrinthNodeID = nil
         activeBattleStageID = stageID
     }
 
     public func setAspectBattleResume(aspectID: String, floor: Int) {
         activeBattleStageID = nil
+        activeBattleLabyrinthNodeID = nil
         activeBattleAspectID = aspectID
         activeBattleAspectFloor = floor
+    }
+
+    public func setLabyrinthBattleResume(nodeID: String) {
+        activeBattleStageID = nil
+        activeBattleAspectID = nil
+        activeBattleAspectFloor = nil
+        activeBattleLabyrinthNodeID = nodeID
     }
 
     public func resetToDefaults(selectingTab tab: PlayerShellSessionTab = .play) {
@@ -312,11 +330,19 @@ public final class PlayerShellSessionStore {
         saveContext()
     }
 
+    private func persistBattleLabyrinthNodeID() {
+        record.activeBattleLabyrinthNodeID = activeBattleLabyrinthNodeID
+        record.updatedAt = .now
+        saveContext()
+    }
+
     private func touchBattleMetadataIfNeeded() {
         if hasActiveBattleResumeToken {
             activeBattleSavedAt = Date.now
             activeBattleSchemaVersion = Self.currentSchemaVersion
-        } else if activeBattleStageID == nil, activeBattleAspectID == nil {
+        } else if activeBattleStageID == nil,
+                  activeBattleAspectID == nil,
+                  activeBattleLabyrinthNodeID == nil {
             activeBattleSavedAt = nil
             activeBattleSchemaVersion = nil
         }

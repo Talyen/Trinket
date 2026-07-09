@@ -17,9 +17,14 @@ struct ActiveBattleConfiguration: Identifiable {
         let floor: Int
     }
 
+    struct LabyrinthBattle: Equatable, Hashable {
+        let nodeID: String
+    }
+
     let id = UUID()
     let stageID: String?
     let aspectBattle: AspectBattle?
+    let labyrinthBattle: LabyrinthBattle?
     let rngSeed: UInt64
     let hero: PartyMember
     let pet: PartyMember
@@ -34,7 +39,7 @@ struct ActiveBattleConfiguration: Identifiable {
     let pendingRewardItem: InventoryItem?
 
     var hasProgressionRewards: Bool {
-        stageID != nil || aspectBattle != nil
+        stageID != nil || aspectBattle != nil || labyrinthBattle != nil
     }
 
     var resumeToken: ActiveBattleResumeToken? {
@@ -43,6 +48,9 @@ struct ActiveBattleConfiguration: Identifiable {
         }
         if let aspectBattle {
             return .aspect(aspectID: aspectBattle.aspectID, floor: aspectBattle.floor)
+        }
+        if let labyrinthBattle {
+            return .labyrinth(nodeID: labyrinthBattle.nodeID)
         }
         return nil
     }
@@ -79,10 +87,25 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
+    static func resolvedLabyrinthEncounter(
+        for node: LabyrinthNode,
+        effects: LabyrinthModifierEffects
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let enemyID = node.enemyID,
+              let catalogEnemy = GameContent.enemy(matching: enemyID)
+        else { return nil }
+        let level = LabyrinthCompletion.enemyLevel(for: node, effects: effects)
+        return (
+            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
+            level
+        )
+    }
+
     @MainActor
     static func make(
         stageID: String? = nil,
         aspectBattle: AspectBattle? = nil,
+        labyrinthBattle: LabyrinthBattle? = nil,
         rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
@@ -102,6 +125,7 @@ struct ActiveBattleConfiguration: Identifiable {
         return ActiveBattleConfiguration(
             stageID: stageID,
             aspectBattle: aspectBattle,
+            labyrinthBattle: labyrinthBattle,
             rngSeed: rngSeed,
             hero: partyMember(
                 combatant: hero,
