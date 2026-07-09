@@ -92,6 +92,49 @@ struct AppStateTests {
         #expect(activeBattle.stageID == "chapter-1-stage-1")
     }
 
+    @Test func battleVictoryLaunchScreenShowsVictoryChrome() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: ["-launch-screen", "battle-victory"])
+        )
+
+        let activeBattle = try #require(state.battle.activeBattle)
+        #expect(activeBattle.stageID == "chapter-1-stage-1")
+        #expect(state.battle.isShowingVictory)
+        #expect(state.battle.victorySummary != nil)
+        #expect(state.battle.isPaused)
+        #expect(state.selectedTab == .play)
+    }
+
+    @Test func shopLaunchScreenOpensMerchantShop() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: [
+                "-reset-state",
+                "-seed-test-progress",
+                "-launch-screen",
+                "shop"
+            ])
+        )
+
+        let session = try #require(state.activeShopEncounter)
+        #expect(session.stage.id == "chapter-1-stage-4")
+        #expect(!(session.offers.isEmpty))
+        #expect(state.selectedTab == .play)
+    }
+
+    @Test func mysteryLaunchScreenOpensRecruitEncounter() throws {
+        let state = try context.makeAppState(
+            environment: context.makeEnvironment(arguments: [
+                "-reset-state",
+                "-launch-screen",
+                "mystery"
+            ])
+        )
+
+        let session = try #require(state.activeMysteryEncounter)
+        #expect(session.stage.id == "chapter-1-stage-2")
+        #expect(state.selectedTab == .play)
+    }
+
     @Test func seedTestProgressPopulatesInventory() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])

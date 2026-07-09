@@ -2,22 +2,12 @@ import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
     func testMerchantShopBrowseDetailAndLeave() {
-        launchApp(arguments: [
-            TestLaunchArg.resetState,
-            TestLaunchArg.disableCloudSync,
-            "-disable-audio",
-            "-persist-save-immediately",
-            "-battle-tick-interval",
-            "1.0"
-        ] + TestLaunchArg.completedStages([
+        // Deep-link opens stage 1-4 shop; prior stages completed so leave unlocks stage 5.
+        launchApp(arguments: TestLaunchArg.allForShop() + TestLaunchArg.completedStages([
             "chapter-1-stage-1",
             "chapter-1-stage-2",
             "chapter-1-stage-3"
         ]))
-
-        play.assertLoaded()
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 4))
-        button(AccessibilityID.Play.stageNode(chapter: 1, stage: 4)).tap()
 
         assertExists(AccessibilityID.Shop.encounterTitle)
         assertExists(AccessibilityID.Shop.encounterGreeting)
@@ -43,7 +33,6 @@ final class SmokeShopTests: TrinketUITestCase {
         app.swipeDown()
         _ = button(AccessibilityID.Shop.leaveButton).waitForExistence(timeout: Self.defaultTimeout)
 
-        // Purchase when an offer is affordable (stage 1–3 gold ≈ 34); otherwise leave.
         let buyButtons = app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "Buy ")
         )

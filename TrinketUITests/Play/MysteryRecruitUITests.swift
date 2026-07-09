@@ -1,20 +1,19 @@
 import XCTest
 
-final class SmokeMysteryRecruitTests: TrinketUITestCase {
+/// Exhaustive mystery recruit journey via deep link (kept out of smoke-full).
+final class MysteryRecruitUITests: TrinketUITestCase {
     func testRecruitMysteryUnlockFlow() {
-        // Fresh save (no seed) so Wolf is locked and stage 1-2 presents the recruit encounter.
+        // Fresh save (no seed) so Wolf is locked; stage 1 complete so leave unlocks stage 3.
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
             "-disable-audio",
             "-persist-save-immediately",
             "-battle-tick-interval",
-            "1.0"
+            "1.0",
+            "-launch-screen",
+            "mystery"
         ] + TestLaunchArg.completedStages(["chapter-1-stage-1"]))
-
-        play.assertLoaded()
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 2))
-        button(AccessibilityID.Play.stageNode(chapter: 1, stage: 2)).tap()
 
         assertExists(AccessibilityID.Mystery.encounterTitle)
         assertExists(AccessibilityID.Mystery.welcomeButton)

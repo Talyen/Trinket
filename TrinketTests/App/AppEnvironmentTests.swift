@@ -37,6 +37,11 @@ struct AppEnvironmentTests {
     @Test func launchScreenParsesOptionsAndBattle() {
         #expect(Self.parse(arguments: ["-launch-screen", "options"]).launchScreen == .options)
         #expect(Self.parse(arguments: ["-launch-screen", "battle"]).launchScreen == .battle)
+        #expect(
+            Self.parse(arguments: ["-launch-screen", "battle-victory"]).launchScreen == .battleVictory
+        )
+        #expect(Self.parse(arguments: ["-launch-screen", "shop"]).launchScreen == .shop)
+        #expect(Self.parse(arguments: ["-launch-screen", "mystery"]).launchScreen == .mystery)
     }
 
     @Test func launchScreenRejectsEmptyIDsAndUnknownKinds() {

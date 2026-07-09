@@ -43,14 +43,11 @@ final class BattleFlowUITests: TrinketUITestCase {
         }
     }
 
-    /// Victory path stays focused on outcome chrome; no mid-battle side quests.
+    /// Victory path deep-links to outcome chrome; no live combat simulation.
     func testBattleVictorySummaryAndPostVictoryMenu() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.05", in: TestLaunchArg.testLaunchArgs))
+        launchApp(arguments: TestLaunchArg.allForBattleVictory())
 
-        play.assertLoaded()
-        play.openStage(chapter: 1, stage: 1)
-
-        assertExists(battle.victory, timeout: 60)
+        assertExists(battle.victory, timeout: Self.defaultTimeout)
 
         assertExists(AccessibilityID.Battle.experience)
         assertExists(AccessibilityID.Battle.rewards)

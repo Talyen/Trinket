@@ -31,8 +31,8 @@ if [[ ${#TARGETS[@]} -eq 0 ]]; then
   exit 1
 fi
 
-FIRST_TARGET="${TARGETS[1]}"
-REMAINING=("${TARGETS[@]:2}")
+FIRST_TARGET="${TARGETS[0]}"
+REMAINING=("${TARGETS[@]:1}")
 
 echo "=== UI iteration: $FIRST_TARGET ==="
 if [[ "$FIRST_TARGET" == Smoke* ]]; then

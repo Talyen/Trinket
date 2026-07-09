@@ -23,40 +23,29 @@ final class SmokePlayTests: TrinketUITestCase {
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
     }
 
-    func testModesEntryOpensAspectsHub() {
+    /// One launch covers Aspects hub, climb begin floor, and Labyrinth unlock.
+    func testModesAspectsAndLabyrinthWhenChapterOneComplete() {
         launchApp(arguments: chapterOneCompleteArgs)
 
         play.assertLoaded()
         assertButtonExists(AccessibilityID.Play.modesEntry)
         app.buttons[AccessibilityID.Play.modesEntry].tap()
         assertExists(AccessibilityID.Play.modesScreen)
+
         app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
         assertExists(AccessibilityID.Play.aspectsHub)
         assertExists(AccessibilityID.Play.aspectRow("ironVein"))
-    }
 
-    func testAspectClimbShowsBeginFloor() {
-        launchApp(arguments: chapterOneCompleteArgs)
-
-        play.assertLoaded()
-        app.buttons[AccessibilityID.Play.modesEntry].tap()
-        app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
         app.buttons[AccessibilityID.Play.aspectRow("ironVein")].tap()
         assertExists(AccessibilityID.Play.aspectClimb("ironVein"))
         assertExists(AccessibilityID.Play.aspectFloor("ironVein", floor: 1))
-    }
+        goBack()
+        goBack()
 
-    func testModesEntryOpensLabyrinthWhenUnlocked() {
-        launchApp(arguments: chapterOneCompleteArgs)
-
-        play.assertLoaded()
-        assertButtonExists(AccessibilityID.Play.modesEntry)
-        app.buttons[AccessibilityID.Play.modesEntry].tap()
         assertExists(AccessibilityID.Play.modesScreen)
         app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
         assertExists(AccessibilityID.Play.labyrinthMap)
 
-        // DoD: entry + one reachable node is visible and actionable.
         let nodePredicate = NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Node ")
         let node = app.descendants(matching: .any).matching(nodePredicate).firstMatch
         assertExists(node)

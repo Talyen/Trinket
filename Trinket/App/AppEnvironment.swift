@@ -109,6 +109,9 @@ struct AppEnvironment {
         case "item" where !id.isEmpty: return .itemDetail(id)
         case "options": return .options
         case "battle": return .battle
+        case "battle-victory": return .battleVictory
+        case "shop": return .shop
+        case "mystery": return .mystery
         case "labyrinth": return .labyrinth
         case "labyrinth-map": return .labyrinthMap
         default: return nil

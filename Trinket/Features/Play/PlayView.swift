@@ -10,23 +10,27 @@ struct PlayView: View {
     var body: some View {
         @Bindable var battle = appState.battle
 
-        ChapterStageSelectView(
-            onStageTap: handleStageTap,
-            onEnemyTap: showEnemyDetails(for:),
-            onResumeMessage: { stageMessage = $0 }
-        )
-        .navigationDestination(item: $labyrinthDeepLink) { _ in
-            LabyrinthMapView()
+        // Battle stays in-tab (not a fullScreenCover) so the tab bar remains usable for
+        // mid-fight Collection/Homestead pauses while combat stays paused in session state.
+        // Uses the Play tab NavigationStack for BattleView toolbars. Labyrinth deep-link
+        // state is preserved on PlayView and reapplied when battle ends.
+        Group {
+            if let configuration = battle.activeBattle {
+                BattleView(configuration: configuration)
+                    .id(configuration.id)
+            } else {
+                ChapterStageSelectView(
+                    onStageTap: handleStageTap,
+                    onEnemyTap: showEnemyDetails(for:),
+                    onResumeMessage: { stageMessage = $0 }
+                )
+                .navigationDestination(item: $labyrinthDeepLink) { _ in
+                    LabyrinthMapView()
+                }
+            }
         }
         .onAppear {
             applyPendingPlayDestinationIfNeeded()
-        }
-        .fullScreenCover(item: activeBattleBinding) { configuration in
-            NavigationStack {
-                BattleView(configuration: configuration)
-                    .id(configuration.id)
-            }
-            .interactiveDismissDisabled()
         }
         .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
             appState.battle.restorePauseAfterOverlay()
@@ -94,17 +98,6 @@ struct PlayView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-    }
-
-    private var activeBattleBinding: Binding<ActiveBattleConfiguration?> {
-        Binding(
-            get: { appState.battle.activeBattle },
-            set: { newValue in
-                if newValue == nil, appState.battle.activeBattle != nil {
-                    // Dismiss only through battle end / abandon — keep interactive dismiss disabled.
-                }
-            }
-        )
     }
 
     private func applyPendingPlayDestinationIfNeeded() {

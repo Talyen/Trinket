@@ -63,6 +63,6 @@ jobs:
         with:
           cache-key: ${{ needs.build.outputs.build-cache-key }}
           artifact-name: nightly-integration
-          command: ./Scripts/test.sh all --no-build --verbose
+          command: TRINKET_RUN_A11Y_AUDITS=1 ./Scripts/test.sh all --no-build --verbose
           timing-mode: all
           timing-budget-seconds: '2400'

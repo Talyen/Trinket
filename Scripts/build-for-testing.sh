@@ -45,10 +45,17 @@ CI_FINGERPRINTS=(
   unit
   unit_TrinketTests
   smoke
+  smoke_SmokeHomesteadTests
+  smoke_SmokeBattleTests
+  smoke_SmokeCollectionTests
+  smoke_SmokeHeroDetailTests
+  smoke_SmokePlayTests
+  smoke_SmokeShopTests
   smoke-full
   ui
   ui_BattleFlowUITests
   ui_TabNavigationUITests_CollectionSearchUITests
+  ui_PlayMapUITests_MysteryRecruitUITests
   all
 )
 

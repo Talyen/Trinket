@@ -95,20 +95,30 @@ jobs:
             fi
 
   ui-smoke:
-    name: UI tests - smoke
+    name: UI smoke - ${{ matrix.class }}
     needs: build
     runs-on: macos-26
-    timeout-minutes: 25
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        class:
+          - SmokeHomesteadTests
+          - SmokeBattleTests
+          - SmokeCollectionTests
+          - SmokeHeroDetailTests
+          - SmokePlayTests
+          - SmokeShopTests
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
       - uses: ./.github/actions/test-job
         with:
           cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: ui-smoke
-          command: ./Scripts/test.sh smoke-full --no-build --verbose
-          timing-mode: smoke-full
-          timing-budget-seconds: '360'
+          artifact-name: ui-smoke-${{ matrix.class }}
+          command: ./Scripts/test.sh smoke ${{ matrix.class }} --no-build --verbose
+          timing-mode: smoke
+          timing-budget-seconds: '120'
 
   ui-exhaustive:
     name: UI tests - ${{ matrix.shard }}
@@ -124,6 +134,8 @@ jobs:
             command: ./Scripts/test.sh ui BattleFlowUITests --no-build --verbose
           - shard: exhaustive-collection
             command: ./Scripts/test.sh ui TabNavigationUITests CollectionSearchUITests --no-build --verbose
+          - shard: exhaustive-play
+            command: ./Scripts/test.sh ui PlayMapUITests MysteryRecruitUITests --no-build --verbose
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket

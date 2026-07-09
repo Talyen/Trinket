@@ -79,8 +79,17 @@ extension AppState {
         if let mapScrollTarget = environment.mapScrollTarget {
             noteMapScrollFocus(mapScrollTarget)
         }
-        if environment.launchScreen == .battle {
+        switch environment.launchScreen {
+        case .battle:
             startLaunchBattle()
+        case .battleVictory:
+            startLaunchBattleVictory()
+        case .shop:
+            startLaunchShop()
+        case .mystery:
+            startLaunchMystery()
+        case .heroDetail, .petDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:
+            break
         }
 
         battle.onBattleStateChange = { [weak self] token in
@@ -123,7 +132,35 @@ extension AppState {
         _ = startBattle(for: stage)
     }
 
+    /// Presents stage 1-1 victory chrome without running the live tick loop (UI tests).
+    private func startLaunchBattleVictory() {
+        guard let stage = GameContent.stage(id: Self.launchBattleStageID) else { return }
+        _ = startBattle(for: stage)
+        guard let configuration = battle.activeBattle,
+              let battleState = battle.state
+        else { return }
+        battle.victorySummary = BattleVictorySummary.make(
+            configuration: configuration,
+            state: battleState,
+            homestead: homestead.current
+        )
+        battle.isShowingVictory = true
+        battle.isPaused = true
+    }
+
+    private func startLaunchShop() {
+        guard let stage = GameContent.stage(id: Self.launchShopStageID) else { return }
+        _ = beginShopEncounter(for: stage)
+    }
+
+    private func startLaunchMystery() {
+        guard let stage = GameContent.stage(id: Self.launchMysteryStageID) else { return }
+        _ = beginMysteryEncounter(for: stage)
+    }
+
     private static let launchBattleStageID = "chapter-1-stage-1"
+    private static let launchShopStageID = "chapter-1-stage-4"
+    private static let launchMysteryStageID = "chapter-1-stage-2"
 
     private static func selectedTab(environment: AppEnvironment, restoredTab: AppTab?) -> AppTab {
         if let envTab = environment.launchTab {
@@ -139,7 +176,7 @@ extension AppState {
         switch launchScreen {
         case .heroDetail, .petDetail, .itemDetail:
             return .collection
-        case .battle, .labyrinth, .labyrinthMap:
+        case .battle, .battleVictory, .shop, .mystery, .labyrinth, .labyrinthMap:
             return .play
         case .options:
             return .options
@@ -156,7 +193,7 @@ extension AppState {
             return .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
         case let .itemDetail(id):
             return .collectionItem(id)
-        case .battle, .options, .labyrinth, .labyrinthMap, .none:
+        case .battle, .battleVictory, .shop, .mystery, .options, .labyrinth, .labyrinthMap, .none:
             return nil
         }
     }
@@ -167,7 +204,7 @@ extension AppState {
         switch launchScreen {
         case .labyrinth, .labyrinthMap:
             return .labyrinthMap
-        case .battle, .options, .heroDetail, .petDetail, .itemDetail, .none:
+        case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .petDetail, .itemDetail, .none:
             return nil
         }
     }

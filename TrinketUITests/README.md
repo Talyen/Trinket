@@ -15,13 +15,13 @@ Smoke classes are lean per-screen checks: one assertion theme per method; split 
 
 ## Launch args
 
-Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `completedStages`, `mapScrollTarget`.
+Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppEnvironment` (`LaunchScreen` in `AppTypes.swift`). Helpers: `allForScreen`, `allForTab`, `allForBattle`, `allForBattleVictory`, `allForShop`, `allForMystery`, `completedStages`, `mapScrollTarget`.
 
 **Default smoke args:** `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`.
 
 **Additional:**
 
-- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1, `labyrinth` / `labyrinth-map` → The Labyrinth map)
+- `-launch-screen` (`hero:`, `pet:`, `item:`, `options`, `battle` → stage 1-1, `battle-victory` → stage 1-1 victory chrome without live ticks, `shop` → stage 1-4 merchant, `mystery` → stage 1-2 mystery, `labyrinth` / `labyrinth-map` → The Labyrinth map)
 - `-selectedTab` (`play`, `collection`, `homestead`, `options`; `heroes`/`pets`/`inventory`/`search` → `.collection`)
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
@@ -35,6 +35,7 @@ Keep default launch args unless testing persistence. Prefer ids from `Accessibil
 - Avoid long Play-map scrolls; use `-completed-stages` or `-map-scroll-target`.
 - Filter inventory/search with `replaceText` instead of grid scroll loops.
 - Mid-battle exhaustive tests: enter via Play map, not `-launch-screen battle` with very fast ticks.
-- Keep victory waits in a dedicated method; do not nest mid-battle side quests inside a 60s victory poll.
+- Victory outcome chrome: use `-launch-screen battle-victory` (or `allForBattleVictory()`); do not nest mid-battle side quests inside a live victory poll.
 - Default assertion timeout is `TrinketUITestCase.defaultTimeout` (3s) for deep-linked screens.
+- Accessibility audits (`assertAccessibilityAudit`) run on nightly integration only — not PR/main exhaustive shards.
 - UI tests run serially on a single simulator by default. Hotspots: `./Scripts/test-timing.sh report --top 30`.

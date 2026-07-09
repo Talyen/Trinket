@@ -29,6 +29,10 @@ enum LaunchScreen: Equatable {
     case itemDetail(String)
     case options
     case battle
+    /// Test-only: stage 1-1 battle already at victory chrome (no live tick loop).
+    case battleVictory
+    case shop
+    case mystery
     case labyrinth
     case labyrinthMap
 }
