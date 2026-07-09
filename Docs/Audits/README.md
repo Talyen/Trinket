@@ -38,7 +38,7 @@ When the user cites an audit (or asks to “run the X audit”), execute that gu
 | UI interaction / a11y / HIG | `UIInteractionFeedbackAudit.md` |
 | Perf / memory / energy (static) | `PerformanceMemoryEnergyAudit.md` |
 
-Standing test conventions live in `AGENTS.md` (not duplicated as an audit). CloudKit release steps live in `Docs/Platform/CloudKitPreShipChecklist.md`.
+Standing test conventions live in `Docs/Testing.md` (not duplicated as an audit). Agent workflow: `AGENTS.md`. CloudKit release steps live in `Docs/Platform/CloudKitPreShipChecklist.md`.
 
 ## Platform baseline
 

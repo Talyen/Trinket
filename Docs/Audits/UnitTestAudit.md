@@ -4,7 +4,7 @@ Goal: Improve unit/package test coverage, quality, and speed — then **fix** th
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append plans, Done tables, or “Last execution” notes to this file.
 
-Standing conventions: `AGENTS.md` § Unit Tests. UI/smoke/exhaustive → [E2ETestQualityAudit.md](E2ETestQualityAudit.md).  
+Standing conventions: `Docs/Testing.md`. UI/smoke/exhaustive → [E2ETestQualityAudit.md](E2ETestQualityAudit.md).  
 Battle test ownership: `Packages/BattleEngine/Tests/README.md`.
 
 ## Mission

@@ -63,13 +63,14 @@ For manifest, art, music, or SFX edits:
 ./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)
 ```
 
-Agent workflow and test conventions: `AGENTS.md`.
+Agent workflow: `AGENTS.md`. Test conventions: `Docs/Testing.md`.
 
 ## Docs
 
 Start with **`Docs/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
 
 - Agent workflow: `AGENTS.md`
+- Testing conventions: `Docs/Testing.md`
 - UI test launch args / speed: `TrinketUITests/README.md`
 - Core design concepts: `Docs/Design/CoreDesignConcepts.md`
 - Product roadmap (scratch ideas): `Docs/Roadmap.md`

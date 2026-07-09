@@ -46,7 +46,7 @@ Run `./Scripts/generate.sh` after changing versions so XcodeGen picks them up.
 
 ## Commit message contract
 
-Agents should write commits using this structure (see `AGENTS.md`):
+Canonical commit format for agents and release parsers (`cliff.toml`, `validate-commit-msg.sh`). Agent workflow overview: `AGENTS.md`.
 
 ```
 <type>(<scope>): <imperative subject ≤72 chars>
@@ -68,6 +68,41 @@ CI, style, refactor, and tooling-only work. If omitted, heuristics in
 `release-notes-user.py` decide.
 
 Agents do **not** edit `CHANGELOG.md` per commit. Release scripts generate it at tag time.
+
+## Verification gates & test tiers
+
+Task → script routing for day-to-day work lives in `AGENTS.md`. This section owns gate composition and tier inventory.
+
+| Gate | Runs |
+|------|------|
+| `ci-gate.sh` | generate → assert → boundaries → Swift Testing check → style → release-notes validate |
+| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing budgets) — **pre-push** |
+| `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
+| GitHub `pr.yml` | gate → unit + full smoke (`smoke-full`) (parallel) on `macos-26` |
+| GitHub `ci.yml` (main) | gate → unit + full smoke + exhaustive UI (parallel) on `macos-26` |
+
+| Tier | Command | When |
+|------|---------|------|
+| Unit | `test.sh unit` | Every logic change |
+| Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
+| Package unit | `test-package.sh <Package>` | Focused package logic |
+| UI smoke canary | `test.sh smoke` | Local / agents — Homestead canary (`QuickSmoke.xctestplan`) |
+| Targeted smoke | `test.sh smoke <Class>` | Iterate on one smoke class (`Smoke.xctestplan` + filter) |
+| Full smoke | `test.sh smoke-full` | CI / PR only — full `Smoke.xctestplan` |
+| Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
+| Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
+| Integration | `test.sh all` | Nightly / manual |
+
+`test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Pin format/lint with `./Scripts/ensure-ci-tools.sh`.
+
+### Toolchain ladder (cloud / no Xcode 26)
+
+Local and CI expect **Xcode 26+**. Without the simulator toolchain:
+
+1. Land correct source/docs changes.
+2. Run what you can: `./Scripts/generate.sh`, `./Scripts/assert-generated-output.sh`, `./Scripts/check-module-boundaries.sh`, `./Scripts/check-ui-style.sh`, `./Scripts/ci-gate.sh`.
+3. Skip `build.sh` / `test.sh` / simulator work — state that clearly in the commit/PR body.
+4. When Xcode 26 + simulator **are** present, `build.sh` / `test.sh` (or the AGENTS Task Router row) are mandatory before claiming the change is verified.
 
 ## Commands
 

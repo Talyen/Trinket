@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append improv
 
 Unit/package tests → [UnitTestAudit.md](UnitTestAudit.md).  
 Interaction / a11y product bugs → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md).  
-Conventions → `AGENTS.md` § UI Tests.
+Conventions → `Docs/Testing.md` + `TrinketUITests/README.md`.
 
 ## Mission
 
@@ -19,8 +19,8 @@ Run UI-focused probes, triage P0–P2, implement up to **5** fixes (deep links, 
 - Do not weaken battle determinism.
 - Do not change `project.yml` schemes/test plans unless required for a fix you are implementing.
 - Do not expand into unit XCTest→Testing migration (see UnitTestAudit + `./Scripts/check-swift-testing-migration.sh`).
-- Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals (per `AGENTS.md`).
-- Do not invent wall-clock budgets that conflict with `AGENTS.md` (smoke is a short UI-only plan).
+- Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals (per `TrinketUITests/README.md`).
+- Do not invent wall-clock budgets that conflict with `Docs/Testing.md` / `AGENTS.md` (smoke is a short UI-only plan).
 
 ## Probes
 
@@ -112,7 +112,7 @@ Do **not** add `performAccessibilityAudit()` in this audit unless a screen is al
 ./Scripts/test.sh ui <ClassName>
 ```
 
-Confirm: no identifier removals; no battle RNG changes; recommendations match `AGENTS.md` UI guidance. Skip smoke/UI when the simulator toolchain is absent; note skips in the commit body.
+Confirm: no identifier removals; no battle RNG changes; recommendations match `Docs/Testing.md` / `TrinketUITests/README.md`. Skip smoke/UI when the simulator toolchain is absent; note skips in the commit body.
 
 ## Commit
 
