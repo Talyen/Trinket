@@ -16,7 +16,7 @@ The current play path is:
 Play -> Chapter Journey -> Battle or Encounter
 ```
 
-Alternate destinations under Play are **Modes** (see `Docs/Design/AspectsAndModesPlan.md`). The first Mode is **Aspects**: affinity-themed floor climbs that reuse the same combat systems. A planned second Mode is an infinite procedural delve (working title **The Undercroft**; full spec in `Docs/Design/DelveModePlan.md`) with biome clusters and Echoes—distinct from Aspects’ linear climbs. Player-facing Modes/Aspects/Undercroft copy never says “Keyword”; Aspects use poetic titles (e.g. Cinder Spire for Burn).
+Alternate destinations under Play are **Modes** (see `Docs/Design/AspectsAndModesPlan.md`). The first Mode is **Aspects**: affinity-themed floor climbs that reuse the same combat systems. A planned second Mode is **Wanderer's Labyrinth**: a persistent infinite procedural delve with biome clusters and named modifiers (no umbrella affix noun in UI — titles only, like Item affixes); full spec in `Docs/Design/DelveModePlan.md`. Distinct from Aspects’ linear climbs. Player-facing Modes/Aspects/Labyrinth copy never says “Keyword”; Aspects use poetic titles (e.g. Cinder Spire for Burn).
 
 Combat is idle by default. A Hero and Pet alternate abilities against a single Enemy.
 
