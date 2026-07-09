@@ -5,25 +5,43 @@ import TrinketCore
 public enum ShopPurchaseResult: Equatable, Sendable {
     case success(InventoryItem)
     case insufficientGold
+    case alreadyOwned
 }
 
 /// Atomic gold spend + inventory grant for Merchant's Shop purchases.
 public enum ShopPurchaseApplier {
+    /// Stable inventory instance id for one purchase of `offerID` during `visitToken`.
+    /// Visit-scoped so dismiss/re-open cannot collide with a prior grant and burn gold.
+    public static func inventoryInstanceID(
+        stageID: String,
+        offerID: String,
+        visitToken: String
+    ) -> String {
+        "\(stageID)-shop-\(offerID)-\(visitToken)"
+    }
+
     /// Purchases `offer` into `save`, minting a unique inventory instance id from
-    /// `stageID`, offer id, and `purchaseOrdinal` so the same shelf listing can be
-    /// bought more than once in a visit.
+    /// `stageID`, offer id, and `visitToken`. Each listing is stock-1 per visit.
     public static func purchase(
         offer: ShopOffer,
-        purchaseOrdinal: Int,
+        visitToken: String,
         stageID: String,
         save: inout PlayerSave
     ) -> ShopPurchaseResult {
+        let instanceID = inventoryInstanceID(
+            stageID: stageID,
+            offerID: offer.id,
+            visitToken: visitToken
+        )
+        guard !save.inventory.items.contains(where: { $0.id == instanceID }) else {
+            return .alreadyOwned
+        }
         guard save.roster.spendGold(offer.price) else {
             return .insufficientGold
         }
 
         let purchased = InventoryItem(
-            id: "\(stageID)-shop-\(offer.id)-\(purchaseOrdinal)",
+            id: instanceID,
             templateID: offer.item.templateID,
             baseType: offer.item.baseType,
             rarity: offer.item.rarity,

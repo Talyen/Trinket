@@ -231,8 +231,14 @@ extension AppState {
             using: &randomNumberGenerator
         )
         guard !offers.isEmpty else {
+            appStateLogger.error(
+                "Shop stage \(stage.id, privacy: .public) produced no offers; completing stage."
+            )
             completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
-            return nil
+            return StageMapMessage(
+                title: "Shop Closed",
+                message: "The merchant has nothing left to sell. You continue on."
+            )
         }
 
         activeShopEncounter = ShopEncounterSession(stage: stage, offers: offers)
@@ -244,15 +250,19 @@ extension AppState {
         guard let session = activeShopEncounter else { return false }
         guard !session.isPurchasing else { return false }
         guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
+        guard !session.isSoldOut(offerID) else {
+            session.markPurchaseFailed(message: "That item is already sold.")
+            return false
+        }
 
         session.markPurchaseStarted()
-        let purchaseOrdinal = session.purchaseCount
         var purchasedItem: InventoryItem?
+        var failureMessage: String?
         do {
             try playerSave.performBatchMutation { save in
                 let result = ShopPurchaseApplier.purchase(
                     offer: offer,
-                    purchaseOrdinal: purchaseOrdinal,
+                    visitToken: session.visitToken,
                     stageID: session.stage.id,
                     save: &save
                 )
@@ -260,23 +270,25 @@ extension AppState {
                 case let .success(item):
                     purchasedItem = item
                 case .insufficientGold:
-                    break
+                    failureMessage = "Not enough Gold."
+                case .alreadyOwned:
+                    failureMessage = "That item is already sold."
                 }
             }
         } catch {
             appStateLogger.error(
                 "Failed to purchase shop offer: \(error.localizedDescription, privacy: .public)"
             )
-            session.markPurchaseFailed()
+            session.markPurchaseFailed(message: "Purchase failed. Try again.")
             return false
         }
 
         if let purchasedItem {
-            session.markPurchaseFinished(itemName: purchasedItem.displayName)
+            session.markPurchaseFinished(offerID: offerID, itemName: purchasedItem.displayName)
             return true
         }
 
-        session.markPurchaseFailed()
+        session.markPurchaseFailed(message: failureMessage ?? "Purchase failed.")
         return false
     }
 
@@ -294,6 +306,7 @@ extension AppState {
     @discardableResult
     func beginMysteryEncounter(for stage: Stage) -> StageMapMessage? {
         guard activeMysteryEncounter == nil else { return nil }
+        guard activeShopEncounter == nil else { return nil }
         guard battle.activeBattle == nil else { return nil }
 
         guard var event = resolvedMysteryEvent(for: stage) else {

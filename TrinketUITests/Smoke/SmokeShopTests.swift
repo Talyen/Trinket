@@ -28,6 +28,16 @@ final class SmokeShopTests: TrinketUITestCase {
             NSPredicate(format: "identifier ENDSWITH %@", " shop offer")
         )
         XCTAssertGreaterThan(offerCards.count, 0, "Expected shop offer cards")
+        let offerIdentifiers = (0 ..< offerCards.count).compactMap { index -> String? in
+            let element = offerCards.element(boundBy: index)
+            guard element.exists else { return nil }
+            return element.identifier
+        }
+        XCTAssertEqual(
+            Set(offerIdentifiers).count,
+            offerIdentifiers.count,
+            "Shop offer accessibility ids must be unique even when display names collide"
+        )
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
         app.swipeDown()

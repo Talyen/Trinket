@@ -44,6 +44,7 @@ struct PlayView: View {
             item: Binding(
                 get: { appState.activeShopEncounter },
                 set: { newValue in
+                    // Dismiss only through Leave Shop — interactive dismiss is disabled.
                     if newValue == nil, appState.activeShopEncounter != nil {
                         appState.dismissActiveShopEncounterWithoutCompleting()
                     }
@@ -51,6 +52,7 @@ struct PlayView: View {
             )
         ) { session in
             ShopEncounterView(session: session)
+                .interactiveDismissDisabled()
         }
         .alert(item: $stageMessage) { message in
             Alert(

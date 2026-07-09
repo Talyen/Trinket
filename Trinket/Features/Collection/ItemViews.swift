@@ -136,6 +136,10 @@ struct ItemDetailView: View {
     var purchasePrice: Int?
     var canAfford: Bool = true
     var isPurchaseDisabled: Bool = false
+    /// When set, replaces the default Buy / Need Gold label (e.g. Sold Out).
+    var purchaseButtonTitleOverride: String?
+    /// Collection browse marks items viewed; shop browse must not pollute attention.
+    var marksItemAsViewed: Bool = true
     var onPurchase: (() -> Void)?
 
     @Environment(AppState.self) private var appState
@@ -146,13 +150,25 @@ struct ItemDetailView: View {
         purchasePrice: Int? = nil,
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
+        purchaseButtonTitleOverride: String? = nil,
+        marksItemAsViewed: Bool = true,
         onPurchase: (() -> Void)? = nil
     ) {
         self.item = item
         self.purchasePrice = purchasePrice
         self.canAfford = canAfford
         self.isPurchaseDisabled = isPurchaseDisabled
+        self.purchaseButtonTitleOverride = purchaseButtonTitleOverride
+        self.marksItemAsViewed = marksItemAsViewed
         self.onPurchase = onPurchase
+    }
+
+    private var purchaseButtonTitle: String {
+        if let purchaseButtonTitleOverride {
+            return purchaseButtonTitleOverride
+        }
+        guard let purchasePrice else { return "Buy" }
+        return canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold"
     }
 
     var body: some View {
@@ -217,11 +233,11 @@ struct ItemDetailView: View {
                 Button {
                     onPurchase()
                 } label: {
-                    Text(canAfford ? "Buy for \(purchasePrice) Gold" : "Need \(purchasePrice) Gold")
+                    Text(purchaseButtonTitle)
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
-                .tint(canAfford ? Keyword.gold.visualStyle.color : .secondary)
+                .tint(canAfford && !isPurchaseDisabled ? Keyword.gold.visualStyle.color : .secondary)
                 .disabled(!canAfford || isPurchaseDisabled)
                 .accessibilityIdentifier(AccessibilityID.Shop.detailBuyButton)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
@@ -229,6 +245,7 @@ struct ItemDetailView: View {
             }
         }
         .onAppear {
+            guard marksItemAsViewed else { return }
             appState.markItemAsViewed(id: item.id)
         }
     }

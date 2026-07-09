@@ -13,6 +13,7 @@ struct ShopEncounterView: View {
     @State private var contentAppeared = false
     @State private var offersAppeared = false
     @State private var purchaseFeedbackTrigger = 0
+    @State private var purchaseErrorFeedbackTrigger = 0
 
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
 
@@ -52,6 +53,14 @@ struct ShopEncounterView: View {
                             .accessibilityIdentifier(AccessibilityID.Shop.purchaseConfirmation)
                             .transition(.opacity)
                     }
+
+                    if let errorMessage = session.lastPurchaseError {
+                        Text(errorMessage)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier(AccessibilityID.Shop.purchaseError)
+                            .transition(.opacity)
+                    }
                 }
                 .opacity(contentAppeared ? 1 : 0)
                 .offset(y: contentAppeared || reduceMotion ? 0 : 8)
@@ -60,7 +69,8 @@ struct ShopEncounterView: View {
                     .opacity(offersAppeared ? 1 : 0)
                     .offset(y: offersAppeared || reduceMotion ? 0 : 10)
 
-                if appState.roster.gold < (session.offers.map(\.price).min() ?? 0) {
+                if appState.roster.gold < (session.offers.map(\.price).min() ?? 0),
+                   session.offers.contains(where: { !session.isSoldOut($0.id) }) {
                     Text("Win battles to earn Gold.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -82,18 +92,18 @@ struct ShopEncounterView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground(.modal)
+        .interactiveDismissDisabled()
         .sheet(item: $selectedOffer) { offer in
             NavigationStack {
                 ItemDetailView(
                     item: offer.item,
                     purchasePrice: offer.price,
                     canAfford: appState.roster.gold >= offer.price,
-                    isPurchaseDisabled: session.isPurchasing,
+                    isPurchaseDisabled: session.isPurchasing || session.isSoldOut(offer.id),
+                    purchaseButtonTitleOverride: session.isSoldOut(offer.id) ? "Sold Out" : nil,
+                    marksItemAsViewed: false,
                     onPurchase: {
-                        if appState.purchaseActiveShopOffer(offerID: offer.id) {
-                            purchaseFeedbackTrigger += 1
-                            selectedOffer = nil
-                        }
+                        attemptPurchase(offerID: offer.id, dismissDetail: true)
                     }
                 )
             }
@@ -105,6 +115,11 @@ struct ShopEncounterView: View {
         .trinketSensoryFeedback(
             .success,
             trigger: purchaseFeedbackTrigger,
+            enabled: appState.options.hapticsEnabled
+        )
+        .trinketSensoryFeedback(
+            .error,
+            trigger: purchaseErrorFeedbackTrigger,
             enabled: appState.options.hapticsEnabled
         )
     }
@@ -144,7 +159,9 @@ struct ShopEncounterView: View {
     private var offerGrid: some View {
         LazyVGrid(columns: columns, spacing: 16) {
             ForEach(session.offers) { offer in
+                let soldOut = session.isSoldOut(offer.id)
                 let canAfford = appState.roster.gold >= offer.price
+                let canBuy = canAfford && !soldOut
                 VStack(spacing: 8) {
                     Button {
                         selectedOffer = offer
@@ -153,29 +170,45 @@ struct ShopEncounterView: View {
                     }
                     // UIStyleCheck: allow - Offer card opens item detail without button chrome.
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier(AccessibilityID.Shop.offerCard(name: offer.item.displayName))
+                    .accessibilityIdentifier(AccessibilityID.Shop.offerCard(offerID: offer.id))
                     .accessibilityHint("Shows item details")
 
                     Button {
-                        if appState.purchaseActiveShopOffer(offerID: offer.id) {
-                            purchaseFeedbackTrigger += 1
-                        }
+                        attemptPurchase(offerID: offer.id, dismissDetail: false)
                     } label: {
-                        Label("\(offer.price)", systemImage: Keyword.gold.visualStyle.symbolName)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(canAfford ? Keyword.gold.visualStyle.color : .secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .trinketGlassChip()
+                        Label(
+                            soldOut ? "Sold" : "\(offer.price)",
+                            systemImage: Keyword.gold.visualStyle.symbolName
+                        )
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(canBuy ? Keyword.gold.visualStyle.color : .secondary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .trinketGlassChip()
                     }
                     // UIStyleCheck: allow - Compact price chip buy control without full primary chrome.
                     .buttonStyle(.plain)
-                    .disabled(!canAfford || session.isPurchasing)
-                    .accessibilityIdentifier(AccessibilityID.Shop.buyButton(name: offer.item.displayName))
-                    .accessibilityLabel("Buy \(offer.item.displayName) for \(offer.price) gold")
+                    .disabled(!canBuy || session.isPurchasing)
+                    .accessibilityIdentifier(AccessibilityID.Shop.buyButton(offerID: offer.id))
+                    .accessibilityLabel(
+                        soldOut
+                            ? "\(offer.item.displayName) sold out"
+                            : "Buy \(offer.item.displayName) for \(offer.price) gold"
+                    )
                 }
-                .opacity(canAfford ? 1 : 0.72)
+                .opacity(soldOut ? 0.55 : (canAfford ? 1 : 0.72))
             }
+        }
+    }
+
+    private func attemptPurchase(offerID: String, dismissDetail: Bool) {
+        if appState.purchaseActiveShopOffer(offerID: offerID) {
+            purchaseFeedbackTrigger += 1
+            if dismissDetail {
+                selectedOffer = nil
+            }
+        } else {
+            purchaseErrorFeedbackTrigger += 1
         }
     }
 

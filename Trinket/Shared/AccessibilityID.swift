@@ -65,13 +65,14 @@ enum AccessibilityID {
         static let brokeHint = "Shop Broke Hint"
         static let leaveButton = "Shop Leave Button"
         static let detailBuyButton = "Shop Detail Buy Button"
+        static let purchaseError = "Shop Purchase Error"
 
-        static func offerCard(name: String) -> String {
-            "\(name) shop offer"
+        static func offerCard(offerID: String) -> String {
+            "\(offerID) shop offer"
         }
 
-        static func buyButton(name: String) -> String {
-            "Buy \(name)"
+        static func buyButton(offerID: String) -> String {
+            "Buy \(offerID)"
         }
     }
 
