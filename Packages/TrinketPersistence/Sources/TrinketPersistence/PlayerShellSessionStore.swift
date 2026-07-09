@@ -76,6 +76,12 @@ public final class PlayerShellSessionStore {
         didSet { persistViewedCombatantIDs() }
     }
 
+    /// Last Homestead actionable fingerprint the player dismissed by visiting the Homestead tab.
+    /// When the live actionable set changes (new affordable builds), the tab badge returns.
+    public var acknowledgedHomesteadActionableFingerprint: String = "" {
+        didSet { persistAcknowledgedHomesteadActionableFingerprint() }
+    }
+
     @available(*, deprecated, message: "Use PlayerSave.collectionAttention via AppState.markCombatantAsViewed")
     public func markCombatantAsViewed(id: String) {
         guard !viewedCombatantIDs.contains(id) else { return }
@@ -122,6 +128,7 @@ public final class PlayerShellSessionStore {
         activeBattleStageID = record.activeBattleStageID
         mapScrollStageID = record.mapScrollStageID
         viewedCombatantIDs = Set(record.viewedCombatantIDs)
+        acknowledgedHomesteadActionableFingerprint = record.acknowledgedHomesteadActionableFingerprint
 
         // Property observers do not run during init; rewrite remapped legacy tabs
         // (e.g. "search" → collection) and first-create records explicitly.
@@ -186,6 +193,7 @@ public final class PlayerShellSessionStore {
         selectedTab = tab
         clearBattleState()
         viewedCombatantIDs = []
+        acknowledgedHomesteadActionableFingerprint = ""
     }
 
     public static func clearLegacyKeys(from defaults: UserDefaults) {
@@ -243,6 +251,12 @@ public final class PlayerShellSessionStore {
 
     private func persistViewedCombatantIDs() {
         record.viewedCombatantIDs = Array(viewedCombatantIDs)
+        record.updatedAt = .now
+        saveContext()
+    }
+
+    private func persistAcknowledgedHomesteadActionableFingerprint() {
+        record.acknowledgedHomesteadActionableFingerprint = acknowledgedHomesteadActionableFingerprint
         record.updatedAt = .now
         saveContext()
     }

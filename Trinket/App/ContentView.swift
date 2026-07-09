@@ -15,6 +15,9 @@ struct ContentView: View {
             }
             .onChange(of: localSelectedTab) { _, newTab in
                 appState.selectedTab = newTab
+                if newTab == .homestead {
+                    appState.acknowledgeHomesteadActionablesIfNeeded()
+                }
             }
             .onChange(of: appState.selectedTab) { _, newTab in
                 localSelectedTab = newTab
@@ -57,7 +60,7 @@ struct ContentView: View {
                     HomesteadView()
                 }
             }
-            .badge(appState.homesteadBadge.map { Text($0) })
+            .badge(appState.homesteadBadge.map { Text("\($0)") })
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {

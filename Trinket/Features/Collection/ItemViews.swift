@@ -89,6 +89,15 @@ struct InventoryGridView: View {
                 .accessibilityLabel("Filter")
                 .accessibilityIdentifier("Inventory filter")
             }
+
+            if appState.unviewedItemCount > 0 {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Mark All Seen") {
+                        appState.markAllCollectionItemsAsViewed()
+                    }
+                    .accessibilityIdentifier(AccessibilityID.Collection.markAllItemsSeen)
+                }
+            }
         }
         .sheet(item: $selectedItem) { item in
             NavigationStack {
@@ -99,7 +108,8 @@ struct InventoryGridView: View {
     }
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
-        inventoryState.items.filter { item in
+        let attention = appState.collectionAttention.current
+        let filtered = inventoryState.items.filter { item in
             let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             let matchesSearch = query.isEmpty
@@ -107,6 +117,9 @@ struct InventoryGridView: View {
 
             return matchesSlot && matchesSearch
         }
+        let unviewed = filtered.filter { attention.showsNewMarker(for: $0) }
+        let viewed = filtered.filter { !attention.showsNewMarker(for: $0) }
+        return unviewed + viewed
     }
 
     @ViewBuilder
@@ -138,8 +151,8 @@ struct ItemDetailView: View {
     var isPurchaseDisabled: Bool = false
     /// When set, replaces the default Buy / Need Gold label (e.g. Sold Out).
     var purchaseButtonTitleOverride: String?
-    /// Collection browse marks items viewed; shop browse must not pollute attention.
-    var marksItemAsViewed: Bool = true
+    /// When true (Collection), acknowledge discovery on appear. Shop previews pass false.
+    var marksCollectionAttention: Bool = true
     var onPurchase: (() -> Void)?
 
     @Environment(AppState.self) private var appState
@@ -151,7 +164,7 @@ struct ItemDetailView: View {
         canAfford: Bool = true,
         isPurchaseDisabled: Bool = false,
         purchaseButtonTitleOverride: String? = nil,
-        marksItemAsViewed: Bool = true,
+        marksCollectionAttention: Bool = true,
         onPurchase: (() -> Void)? = nil
     ) {
         self.item = item
@@ -159,7 +172,7 @@ struct ItemDetailView: View {
         self.canAfford = canAfford
         self.isPurchaseDisabled = isPurchaseDisabled
         self.purchaseButtonTitleOverride = purchaseButtonTitleOverride
-        self.marksItemAsViewed = marksItemAsViewed
+        self.marksCollectionAttention = marksCollectionAttention
         self.onPurchase = onPurchase
     }
 
@@ -245,8 +258,8 @@ struct ItemDetailView: View {
             }
         }
         .onAppear {
-            guard marksItemAsViewed else { return }
-            appState.markItemAsViewed(id: item.id)
+            guard marksCollectionAttention else { return }
+            appState.markItemAsViewed(item)
         }
     }
 }

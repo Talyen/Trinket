@@ -45,12 +45,13 @@ final class PlayerSaveStoreTests {
 
         var attention = firstStore.collectionAttention
         attention.markCombatantAsViewed(id: "rogue")
-        attention.markItemAsViewed(id: item.id)
+        attention.markItemAsViewed(item)
         firstStore.collectionAttention = attention
 
         let secondStore = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(secondStore.collectionAttention.viewedCombatantIDs.contains("rogue"))
         try #expect(secondStore.collectionAttention.viewedItemIDs.contains(item.id))
+        try #expect(secondStore.collectionAttention.viewedItemTemplateIDs.contains(item.templateID))
         try #expect(
             secondStore.collectionAttention.viewedCombatantIDs.contains(PlayerRosterState.starterHeroID)
         )

@@ -8,7 +8,8 @@ extension AppState {
     func rosterCombatantDetail(
         kind: CombatantDetailContext.Kind,
         combatantID: String,
-        hidesNavigationBar: Bool = false
+        hidesNavigationBar: Bool = false,
+        marksCollectionAttention: Bool = true
     ) -> some View {
         let catalog: [Combatant] = switch kind {
         case .hero:
@@ -47,7 +48,9 @@ extension AppState {
                 hidesNavigationBar: hidesNavigationBar
             )
             .onAppear {
-                self.markCombatantAsViewed(id: combatantID)
+                if marksCollectionAttention {
+                    self.markCombatantAsViewed(id: combatantID)
+                }
             }
         } else {
             ContentUnavailableView(

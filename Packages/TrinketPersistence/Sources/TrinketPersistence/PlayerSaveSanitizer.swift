@@ -169,9 +169,11 @@ public enum PlayerSaveSanitizer {
     ) -> PlayerCollectionAttentionState {
         let unlockedCombatantIDs = roster.unlockedHeroIDs.union(roster.unlockedPetIDs)
         let ownedItemIDs = Set(inventory.items.map(\.id))
+        let ownedTemplateIDs = Set(inventory.items.map(\.templateID))
         var sanitized = attention
         sanitized.viewedCombatantIDs = attention.viewedCombatantIDs.intersection(unlockedCombatantIDs)
         sanitized.viewedItemIDs = attention.viewedItemIDs.intersection(ownedItemIDs)
+        sanitized.viewedItemTemplateIDs = attention.viewedItemTemplateIDs.intersection(ownedTemplateIDs)
         // Starters are always acknowledged — they are not discovery signals.
         if unlockedCombatantIDs.contains(PlayerRosterState.starterHeroID) {
             sanitized.viewedCombatantIDs.insert(PlayerRosterState.starterHeroID)

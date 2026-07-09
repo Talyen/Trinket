@@ -106,6 +106,9 @@ enum AccessibilityID {
         static let inventoryFilter = "Inventory filter"
         static let searchResults = "Collection Search Results"
         static let searchNoResults = "Collection Search No Results"
+        static let markAllHeroesSeen = "Mark All Heroes Seen"
+        static let markAllPetsSeen = "Mark All Pets Seen"
+        static let markAllItemsSeen = "Mark All Items Seen"
 
         static func newMarker(combatantName: String) -> String {
             "\(combatantName) collection new marker"
@@ -113,6 +116,10 @@ enum AccessibilityID {
 
         static func newMarker(itemName: String) -> String {
             "\(itemName) item new marker"
+        }
+
+        static func categoryUnviewedCount(title: String) -> String {
+            "\(title) collection unviewed count"
         }
     }
 
