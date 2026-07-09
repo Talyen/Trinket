@@ -122,23 +122,6 @@ extension AppState {
         _ = startBattle(for: stage)
     }
 
-    private func startRestoredBattle(stageID: String) {
-        guard let stage = GameContent.stage(id: stageID),
-              case .battle = stage.encounter
-        else {
-            activeBattleStageID = nil
-            return
-        }
-
-        guard !journey.current.hasClaimedRewards(for: stage) else {
-            activeBattleStageID = nil
-            return
-        }
-
-        _ = startBattle(for: stage)
-        selectedTab = .play
-    }
-
     private static let launchBattleStageID = "chapter-1-stage-1"
 
     private static func selectedTab(environment: AppEnvironment, restoredTab: AppTab?) -> AppTab {
