@@ -44,7 +44,9 @@ extension AppState {
 
         if let nodeID = shellSession.activeBattleLabyrinthNodeID {
             guard isLabyrinthUnlocked else { return false }
-            labyrinth.ensureMap()
+            if !labyrinth.hasMap {
+                _ = enterLabyrinth()
+            }
             guard let node = labyrinth.node(id: nodeID),
                   node.type.isCombat,
                   !node.isCleared
