@@ -39,10 +39,15 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 25
     outputs:
-      build-cache-key: ${{ steps.save-build-cache.outputs.cache-primary-key }}
+      # actions/cache/save has no cache-primary-key output; export the save key from a step.
+      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-trinket
+
+      - name: Export build cache key
+        id: export-build-cache-key
+        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
 
       - name: Restore warm build cache
         uses: actions/cache/restore@v4
@@ -58,11 +63,10 @@ jobs:
           SKIP_GENERATE: 1
 
       - name: Save build cache for test jobs
-        id: save-build-cache
         uses: actions/cache/save@v4
         with:
           path: .DerivedData
-          key: build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+          key: ${{ steps.export-build-cache-key.outputs.key }}
 
   unit:
     name: Unit tests - ${{ matrix.target }}
