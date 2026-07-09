@@ -87,6 +87,16 @@ struct BattleSpectacleSessionTests {
         session.completeCinematicCollapse(at: now.addingTimeInterval(1))
         #expect(session.activeCinematic == nil)
         #expect(session.activeFeedbackEvents.count > beforeFeedbackCount)
+        #expect(session.activeFeedbackItems.count > beforeFeedbackCount)
+
+        let flushAt = now.addingTimeInterval(1)
+        let availableOffsets = session.activeFeedbackItems
+            .filter { $0.availableAt >= flushAt }
+            .map { $0.availableAt.timeIntervalSince(flushAt) }
+            .sorted()
+        if availableOffsets.count >= 2 {
+            #expect(availableOffsets[1] >= TrinketMotion.Battle.ultimateChipStagger - 0.001)
+        }
     }
 
     @Test func oncePerBattleShowsHeroUltimateOnceThenAutoSkips() throws {

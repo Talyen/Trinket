@@ -1,15 +1,14 @@
-import BattleEngine
 import SwiftUI
 
 struct CombatFeedbackOverlay: View {
-    let events: [ActionEvent]
+    let items: [CombatFeedbackItem]
     let reduceMotion: Bool
 
     var body: some View {
         ZStack {
-            ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                 CombatFeedbackEventView(
-                    event: event,
+                    item: item,
                     stackIndex: index,
                     reduceMotion: reduceMotion
                 )

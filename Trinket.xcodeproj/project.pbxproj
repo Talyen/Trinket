@@ -183,6 +183,9 @@
 		2D17BDC9DDE9199F2DAD7E12 /* LabyrinthAtlasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F11461D3B37C337E48995 /* LabyrinthAtlasView.swift */; };
 		94ACC009B9DFAE7E755D2B60 /* LabyrinthEncounterSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1EC1E1B14B7D9526F68285D /* LabyrinthEncounterSupport.swift */; };
 		99FB317C304A8C64D859B99D /* LabyrinthMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105ED1FA5B15DE87B67177CC /* LabyrinthMapView.swift */; };
+		93A797F1B37292DE8D649F48 /* CombatFeedbackPresenterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C7768F2C7AFC4DAF3750A2 /* CombatFeedbackPresenterTests.swift */; };
+		BC68C07BD0DFABCD47B3658E /* CombatFeedbackPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1990A6774645BD6050172A0 /* CombatFeedbackPresenter.swift */; };
+		F1D0DCCDC15A6CFF0EF91CCB /* KeywordBurstView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05809B09D5155A4184BA86D7 /* KeywordBurstView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -381,6 +384,9 @@
 		016F11461D3B37C337E48995 /* LabyrinthAtlasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthAtlasView.swift; sourceTree = "<group>"; };
 		F1EC1E1B14B7D9526F68285D /* LabyrinthEncounterSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthEncounterSupport.swift; sourceTree = "<group>"; };
 		105ED1FA5B15DE87B67177CC /* LabyrinthMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabyrinthMapView.swift; sourceTree = "<group>"; };
+		F3C7768F2C7AFC4DAF3750A2 /* CombatFeedbackPresenterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatFeedbackPresenterTests.swift; sourceTree = "<group>"; };
+		E1990A6774645BD6050172A0 /* CombatFeedbackPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatFeedbackPresenter.swift; sourceTree = "<group>"; };
+		05809B09D5155A4184BA86D7 /* KeywordBurstView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeywordBurstView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -504,6 +510,8 @@
 				30C469B158F06F3016AB05EC /* CombatFeedbackTiming.swift */,
 				497C5005ECB6688F561E1EB0 /* SkillCalloutView.swift */,
 				29955D64F95AEBC038A54E45 /* UltimateCinematicOverlay.swift */,
+				E1990A6774645BD6050172A0 /* CombatFeedbackPresenter.swift */,
+				05809B09D5155A4184BA86D7 /* KeywordBurstView.swift */,
 			);
 			path = Feedback;
 			sourceTree = "<group>";
@@ -1205,6 +1213,8 @@
 				2D17BDC9DDE9199F2DAD7E12 /* LabyrinthAtlasView.swift in Sources */,
 				94ACC009B9DFAE7E755D2B60 /* LabyrinthEncounterSupport.swift in Sources */,
 				99FB317C304A8C64D859B99D /* LabyrinthMapView.swift in Sources */,
+				BC68C07BD0DFABCD47B3658E /* CombatFeedbackPresenter.swift in Sources */,
+				F1D0DCCDC15A6CFF0EF91CCB /* KeywordBurstView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1241,6 +1251,7 @@
 				A5DFABA843BC1BFEBCB4F62F /* CollectionSearchTests.swift in Sources */,
 				7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */,
 				60CEC2A31651DF36415AA4B0 /* AppStateLabyrinthTests.swift in Sources */,
+				93A797F1B37292DE8D649F48 /* CombatFeedbackPresenterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

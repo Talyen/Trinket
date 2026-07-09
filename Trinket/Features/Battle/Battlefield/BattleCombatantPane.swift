@@ -16,7 +16,9 @@ struct BattleCombatantPane: View {
     let mana: Int
     let maxMana: Int
     let healthBarPlacement: HealthBarPlacement
-    let events: [ActionEvent]
+    let items: [CombatFeedbackItem]
+    let hitReaction: CombatantHitReaction?
+    let keywordBursts: [KeywordBurstRequest]
     let skillCallout: SkillCalloutPresentation?
     let skillCharge: SkillChargeProjection?
     let reduceMotion: Bool
@@ -30,17 +32,23 @@ struct BattleCombatantPane: View {
     var body: some View {
         Button(action: onCombatantTap) {
             ZStack {
-                artworkLayer
+                reactiveArtwork
 
                 healthScrim
 
                 healthBar
 
+                ForEach(keywordBursts) { burst in
+                    KeywordBurstView(request: burst, reduceMotion: reduceMotion)
+                }
+
                 CombatFeedbackOverlay(
-                    events: events,
+                    items: items,
                     reduceMotion: reduceMotion
                 )
                 .padding(.horizontal, 8)
+                .padding(.bottom, feedbackBottomInset)
+                .padding(.top, feedbackTopInset)
 
                 if let skillCallout {
                     SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
@@ -69,6 +77,59 @@ struct BattleCombatantPane: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("\(combatant.name) card")
+    }
+
+    private var feedbackTopInset: CGFloat {
+        healthBarPlacement == .top ? 44 : 8
+    }
+
+    private var feedbackBottomInset: CGFloat {
+        healthBarPlacement == .bottom ? 44 : 12
+    }
+
+    @ViewBuilder
+    private var reactiveArtwork: some View {
+        let reactionID = hitReaction?.id ?? 0
+        let kind = hitReaction?.kind ?? .none
+        let recipe = TrinketMotion.Battle.cardReaction(for: kind)
+        let flashColor = hitReaction?.keyword.visualStyle.color ?? .white
+
+        if reduceMotion {
+            artworkLayer
+                .overlay {
+                    if kind == .damage || kind == .critical || kind == .heal {
+                        flashColor.opacity(kind == .heal ? 0.18 : 0.22)
+                            .allowsHitTesting(false)
+                    }
+                }
+        } else {
+            KeyframeAnimator(
+                initialValue: CardReactionAnimationState(),
+                trigger: reactionID
+            ) { state in
+                artworkLayer
+                    .scaleEffect(state.scale)
+                    .offset(x: state.offsetX)
+                    .overlay {
+                        flashColor
+                            .opacity(state.flashOpacity)
+                            .allowsHitTesting(false)
+                    }
+            } keyframes: { _ in
+                KeyframeTrack(\.scale) {
+                    SpringKeyframe(recipe.scale[safe: 0]?.value ?? 1.0, duration: recipe.scale[safe: 0]?.duration ?? 0.08)
+                    SpringKeyframe(recipe.scale[safe: 1]?.value ?? 1.0, duration: recipe.scale[safe: 1]?.duration ?? 0.16)
+                }
+                KeyframeTrack(\.offsetX) {
+                    SpringKeyframe(recipe.offsetX[safe: 0]?.value ?? 0, duration: recipe.offsetX[safe: 0]?.duration ?? 0.08)
+                    SpringKeyframe(recipe.offsetX[safe: 1]?.value ?? 0, duration: recipe.offsetX[safe: 1]?.duration ?? 0.16)
+                }
+                KeyframeTrack(\.flashOpacity) {
+                    CubicKeyframe(recipe.flashOpacity[safe: 0]?.value ?? 0, duration: recipe.flashOpacity[safe: 0]?.duration ?? 0.06)
+                    CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -157,6 +218,19 @@ struct BattleCombatantPane: View {
                 Spacer(minLength: 0)
             }
         }
+    }
+}
+
+private struct CardReactionAnimationState {
+    var scale = 1.0
+    var offsetX = 0.0
+    var flashOpacity = 0.0
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return self[index]
     }
 }
 

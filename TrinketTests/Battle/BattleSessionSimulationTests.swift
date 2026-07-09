@@ -165,16 +165,14 @@ struct BattleSessionSimulationTests {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
 
         _ = session.advanceOneStep()
-        let eventID = try #require(session.activeFeedbackEvents.first?.id)
-        let now = Date()
+        let item = try #require(session.activeFeedbackItems.first)
+        let now = item.availableAt
 
         session.pruneExpiredFeedback(at: now)
-        #expect(session.activeFeedbackEvents.contains { $0.id == eventID })
+        #expect(session.activeFeedbackItems.contains { $0.id == item.id })
 
-        session.pruneExpiredFeedback(
-            at: now.addingTimeInterval(CombatFeedbackTiming.displayDuration + 0.1)
-        )
-        #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
+        session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.1))
+        #expect(session.activeFeedbackItems.allSatisfy { $0.id != item.id })
     }
 
     @Test func outcomeReportsOngoingWhenBattleInProgress() throws {

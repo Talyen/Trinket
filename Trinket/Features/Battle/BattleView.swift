@@ -223,7 +223,9 @@ struct BattleView: View {
             mana: manaValues.mana,
             maxMana: manaValues.maxMana,
             healthBarPlacement: healthBarPlacement,
-            events: feedbackEvents(for: combatant, battleSession: battleSession),
+            items: battleSession.feedbackItems(for: combatant.id),
+            hitReaction: battleSession.hitReaction(for: combatant.id),
+            keywordBursts: battleSession.keywordBursts(for: combatant.id),
             skillCallout: battleSession.skillCallout(for: combatant.id),
             skillCharge: battleState.skillChargeProjection(of: combatant),
             reduceMotion: reduceMotion,
@@ -241,10 +243,6 @@ struct BattleView: View {
                 activeEffectSummaries: battleState.effectSummaries(of: combatant)
             )
         )
-    }
-
-    private func feedbackEvents(for combatant: Combatant, battleSession: BattleSession) -> [ActionEvent] {
-        battleSession.feedbackEvents(for: combatant.id)
     }
 }
 

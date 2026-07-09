@@ -317,12 +317,25 @@ public struct TypographyModifier: ViewModifier {
 }
 
 public struct GlassChipModifier: ViewModifier {
+    let role: ChipChromeRole
+
+    public init(role: ChipChromeRole = .standard) {
+        self.role = role
+    }
+
     public func body(content: Content) -> some View {
-        content.modifier(TrinketGlassBackgroundModifier(
-            glass: .regular,
-            shape: Capsule(style: .continuous),
-            solidFill: ThemePalette.apple.elevatedBackground
-        ))
+        content
+            .overlay {
+                if role == .emphasis {
+                    Capsule(style: .continuous)
+                        .strokeBorder(Color.primary.opacity(0.22), lineWidth: 1)
+                }
+            }
+            .modifier(TrinketGlassBackgroundModifier(
+                glass: .regular,
+                shape: Capsule(style: .continuous),
+                solidFill: ThemePalette.apple.elevatedBackground
+            ))
     }
 }
 
@@ -391,8 +404,8 @@ public extension View {
         modifier(TypographyModifier(role: role))
     }
 
-    func trinketGlassChip() -> some View {
-        modifier(GlassChipModifier())
+    func trinketGlassChip(_ role: ChipChromeRole = .standard) -> some View {
+        modifier(GlassChipModifier(role: role))
     }
 
     func trinketStatusBadge() -> some View {

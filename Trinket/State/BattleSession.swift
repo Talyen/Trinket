@@ -17,9 +17,13 @@ final class BattleSession {
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
+    var activeFeedbackItems: [CombatFeedbackItem] = []
+    /// Compatibility mirror of underlying events for tests that inspect event kinds.
     var activeFeedbackEvents: [ActionEvent] = []
     var activeSkillCallout: SkillCalloutPresentation?
     var activeCinematic: BattleCinematicPresentation?
+    private(set) var hitReactionsByTargetID: [String: CombatantHitReaction] = [:]
+    private(set) var keywordBurstsByTargetID: [String: [KeywordBurstRequest]] = [:]
 
     /// Optional Options store for Ultimate skip policy. Injected by AppState when available.
     @ObservationIgnored
@@ -39,8 +43,10 @@ final class BattleSession {
     private(set) var state: BattleState?
     var onBattleStateChange: ((ActiveBattleResumeToken?) -> Void)?
 
+    private var feedbackItemsByTargetID: [String: [CombatFeedbackItem]] = [:]
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
-    private var feedbackDisplayedAt: [Int: Date] = [:]
+    private var feedbackEventRecordedAt: [Int: Date] = [:]
+    private var presentedFeedbackIDs: Set<Int> = []
     /// Nested overlay + cinematic holds that force `isPaused` until the last hold ends.
     private var presentationHoldCount = 0
     private var pauseStateBeforeHold: Bool?
@@ -114,6 +120,22 @@ final class BattleSession {
         feedbackEventsByTargetID[targetID] ?? []
     }
 
+    func feedbackItems(for targetID: String, at date: Date = .now) -> [CombatFeedbackItem] {
+        (feedbackItemsByTargetID[targetID] ?? []).filter { item in
+            date >= item.availableAt && date < item.expiresAt
+        }
+    }
+
+    func hitReaction(for targetID: String) -> CombatantHitReaction? {
+        hitReactionsByTargetID[targetID]
+    }
+
+    func keywordBursts(for targetID: String, at date: Date = .now) -> [KeywordBurstRequest] {
+        (keywordBurstsByTargetID[targetID] ?? []).filter { burst in
+            date >= burst.availableAt && date < burst.expiresAt
+        }
+    }
+
     func skillCallout(for actorID: String) -> SkillCalloutPresentation? {
         guard let activeSkillCallout, activeSkillCallout.actorID == actorID else { return nil }
         return activeSkillCallout
@@ -123,16 +145,35 @@ final class BattleSession {
         if let event = activeFeedbackEvents.first(where: { $0.id == id }) {
             feedbackEventsByTargetID[event.targetID]?.removeAll { $0.id == id }
         }
+        if let item = activeFeedbackItems.first(where: { $0.id == id }) {
+            feedbackItemsByTargetID[item.targetID]?.removeAll { $0.id == id }
+            keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == id }
+        }
         activeFeedbackEvents.removeAll { $0.id == id }
-        feedbackDisplayedAt.removeValue(forKey: id)
+        activeFeedbackItems.removeAll { $0.id == id }
+        feedbackEventRecordedAt.removeValue(forKey: id)
+        presentedFeedbackIDs.remove(id)
     }
 
     func pruneExpiredFeedback(at date: Date = .now) {
-        let expiredIDs = feedbackDisplayedAt.compactMap { eventID, displayedAt in
-            date.timeIntervalSince(displayedAt) >= CombatFeedbackTiming.displayDuration ? eventID : nil
+        promoteDueFeedbackPresentation(at: date)
+        let expiredItemIDs = activeFeedbackItems.compactMap { item in
+            date >= item.expiresAt ? item.id : nil
         }
-        for eventID in expiredIDs {
+        for eventID in expiredItemIDs {
             removeFeedbackEvent(eventID)
+        }
+        // Raw events that were filtered from chips (e.g. critical labels, -0 abilities)
+        // still need a lifetime so activeFeedbackEvents cannot grow unbounded.
+        let maxRawLifetime = TrinketMotion.Battle.chip(for: .critical).lifetime + 0.05
+        let expiredRawIDs = feedbackEventRecordedAt.compactMap { eventID, recordedAt in
+            date.timeIntervalSince(recordedAt) >= maxRawLifetime ? eventID : nil
+        }
+        for eventID in expiredRawIDs where activeFeedbackEvents.contains(where: { $0.id == eventID }) {
+            removeFeedbackEvent(eventID)
+        }
+        for (targetID, bursts) in keywordBurstsByTargetID {
+            keywordBurstsByTargetID[targetID] = bursts.filter { date < $0.expiresAt }
         }
         pruneExpiredSkillCallout(at: date)
         pruneSoftHold(at: date)
@@ -230,7 +271,7 @@ final class BattleSession {
                 actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
             ) ?? false
             if autoSkip {
-                recordFeedbackEvents(nonMilestone, at: date)
+                recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
                 return step
             }
             deferredFeedbackEvents = nonMilestone
@@ -238,7 +279,7 @@ final class BattleSession {
             return step
         }
 
-        recordFeedbackEvents(nonMilestone, at: date)
+        recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
         presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
         return step
     }
@@ -265,7 +306,7 @@ extension BattleSession {
         restorePauseAfterOverlay()
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
-        recordFeedbackEvents(deferred, at: date)
+        recordFeedbackEvents(deferred, at: date, stagger: CombatFeedbackTiming.ultimateChipStagger)
     }
 
     func beginCinematicCollapse() {
@@ -330,18 +371,62 @@ extension BattleSession {
         pauseStateBeforeHold = nil
     }
 
-    private func recordFeedbackEvents(_ events: [ActionEvent], at date: Date = .now) {
+    private func recordFeedbackEvents(
+        _ events: [ActionEvent],
+        at date: Date = .now,
+        stagger: TimeInterval
+    ) {
         for event in events {
             activeFeedbackEvents.append(event)
-            feedbackDisplayedAt[event.id] = date
             feedbackEventsByTargetID[event.targetID, default: []].append(event)
+            feedbackEventRecordedAt[event.id] = date
         }
+
+        let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
+        for item in items {
+            activeFeedbackItems.append(item)
+            feedbackItemsByTargetID[item.targetID, default: []].append(item)
+        }
+
+        applyImmediatePresentation(for: items, at: date)
+    }
+
+    private func applyImmediatePresentation(for items: [CombatFeedbackItem], at date: Date) {
+        let due = items.filter { $0.availableAt <= date && !presentedFeedbackIDs.contains($0.id) }
+        guard !due.isEmpty else { return }
+
+        for item in due {
+            presentedFeedbackIDs.insert(item.id)
+            if let reaction = CombatFeedbackPresenter.reaction(for: [item]) {
+                hitReactionsByTargetID[item.targetID] = reaction
+            }
+        }
+
+        let bursts = CombatFeedbackPresenter.bursts(for: due)
+        for burst in bursts {
+            guard let targetID = due.first(where: { $0.id == burst.id })?.targetID else { continue }
+            var existing = keywordBurstsByTargetID[targetID, default: []]
+            existing.append(burst)
+            if existing.count > TrinketMotion.Battle.maxKeywordBurstsPerPane {
+                existing = Array(existing.suffix(TrinketMotion.Battle.maxKeywordBurstsPerPane))
+            }
+            keywordBurstsByTargetID[targetID] = existing
+        }
+    }
+
+    private func promoteDueFeedbackPresentation(at date: Date) {
+        applyImmediatePresentation(for: activeFeedbackItems, at: date)
     }
 
     private func clearFeedback() {
         activeFeedbackEvents = []
+        activeFeedbackItems = []
         feedbackEventsByTargetID = [:]
-        feedbackDisplayedAt = [:]
+        feedbackItemsByTargetID = [:]
+        feedbackEventRecordedAt = [:]
+        hitReactionsByTargetID = [:]
+        keywordBurstsByTargetID = [:]
+        presentedFeedbackIDs = []
     }
 
     private func clearSpectacle() {

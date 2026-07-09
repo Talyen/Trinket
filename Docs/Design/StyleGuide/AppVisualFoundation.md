@@ -235,9 +235,9 @@ Keep behavior and navigation unchanged.
 
 After the foundation is stable, implement battle polish separately:
 
-- Floating combat text improvements.
-- Keyword particles and feedback bursts.
-- Card flash/recoil/lunge states.
+- Floating combat text improvements. **Done:** class-based motion recipes, crit merge, DoT hierarchy, scatter, spawn anchoring, Ultimate chip stagger (`CombatFeedbackPresenter` / `TrinketMotion.Battle.chip`).
+- Keyword particles and feedback bursts. **Done (lite):** Canvas keyword bursts on direct/crit/DoT/heal hits.
+- Card flash/recoil/lunge states. **Done (lite):** artwork recoil/flash via `CombatantHitReaction`.
 - Health-bar trailing damage/heal animation.
 - Skill caster-anchored ability-art callout and Ultimate cinematic overlay — see **`Docs/Design/BattleSpectaclePlan.md`** (R-008 / R-011) for motion APIs, session timing, video preload, and Options skip policy.
 

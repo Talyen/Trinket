@@ -1,9 +1,12 @@
 import Foundation
+import TrinketDesignSystem
 
+/// Compatibility aliases for combat feedback timing. Prefer `TrinketMotion.Battle` recipes.
 enum CombatFeedbackTiming {
-    static let displayDuration: TimeInterval = 1.0
-    static let reduceMotionFadeIn: TimeInterval = 0.15
-    static let reduceMotionHold: TimeInterval = 0.7
-    static let reduceMotionFadeOut: TimeInterval = 0.15
-    static let stackSpacing: CGFloat = 52
+    static let displayDuration: TimeInterval = TrinketMotion.Battle.chipDisplayDuration
+    static let reduceMotionFadeIn: TimeInterval = TrinketMotion.Battle.reduceMotionChipFadeIn
+    static let reduceMotionHold: TimeInterval = TrinketMotion.Battle.reduceMotionChipHold
+    static let reduceMotionFadeOut: TimeInterval = TrinketMotion.Battle.reduceMotionChipFadeOut
+    static let stackSpacing: CGFloat = 22
+    static let ultimateChipStagger: TimeInterval = TrinketMotion.Battle.ultimateChipStagger
 }
