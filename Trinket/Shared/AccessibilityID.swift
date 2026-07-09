@@ -40,6 +40,19 @@ enum AccessibilityID {
         static func aspectFloor(_ aspectID: String, floor: Int) -> String {
             "Aspect \(aspectID) Floor \(floor)"
         }
+
+        static let labyrinthModeCard = "Labyrinth Mode Card"
+        static let labyrinthMap = "Labyrinth Map"
+        static let labyrinthAtlas = "Labyrinth Atlas"
+        static let labyrinthEnter = "Labyrinth Enter"
+
+        static func labyrinthNode(_ nodeID: String) -> String {
+            "Labyrinth Node \(nodeID)"
+        }
+
+        static func labyrinthModifier(_ modifierID: String) -> String {
+            "Labyrinth Modifier \(modifierID)"
+        }
     }
 
     enum Mystery {

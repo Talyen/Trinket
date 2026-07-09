@@ -21,6 +21,8 @@ public final class PlayerSaveRoot {
     public var collectionAttention: CollectionAttentionModel?
     @Relationship(deleteRule: .cascade, inverse: \AspectsProgressModel.root)
     public var aspects: AspectsProgressModel?
+    @Relationship(deleteRule: .cascade, inverse: \LabyrinthProgressModel.root)
+    public var labyrinth: LabyrinthProgressModel?
 
     public init(id: String = "primary") {
         self.id = id
@@ -47,6 +49,7 @@ public enum PlayerSaveGraph {
         HomesteadNodeTierModel.self,
         CollectionAttentionModel.self,
         AspectsProgressModel.self,
-        AspectFloorProgressModel.self
+        AspectFloorProgressModel.self,
+        LabyrinthProgressModel.self
     ])
 }

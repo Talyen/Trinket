@@ -15,6 +15,7 @@ public enum PlayerSaveSanitizer {
             inventory: sanitized.inventory
         )
         sanitized.aspects = sanitizeAspects(save.aspects)
+        sanitized.labyrinth = sanitizeLabyrinth(save.labyrinth)
         return sanitized
     }
 
@@ -195,5 +196,52 @@ public enum PlayerSaveSanitizer {
             sanitized[aspectID] = min(max(floor, 0), maxFloor)
         }
         return PlayerAspectsState(highestClearedFloorByAspectID: sanitized)
+    }
+
+    public static func sanitizeLabyrinth(
+        _ labyrinth: PlayerLabyrinthState,
+        biomes: [LabyrinthBiomeDefinition] = GameContent.labyrinthBiomes,
+        modifiers: [LabyrinthModifierDefinition] = GameContent.labyrinthModifiers
+    ) -> PlayerLabyrinthState {
+        let validBiomeIDs = Set(biomes.map(\.id.rawValue))
+        let validModifierIDs = Set(modifiers.map(\.id.rawValue))
+        var sanitized = labyrinth
+        sanitized.deepestDepth = max(0, sanitized.deepestDepth)
+        sanitized.discoveredBiomeIDs = Set(sanitized.discoveredBiomeIDs.filter { validBiomeIDs.contains($0) })
+        sanitized.discoveredModifierIDs = Set(sanitized.discoveredModifierIDs.filter { validModifierIDs.contains($0) })
+        sanitized.claimedMilestoneDepths = Set(
+            sanitized.claimedMilestoneDepths.filter { LabyrinthCompletion.milestoneDepths.contains($0) }
+        )
+
+        sanitized.clusters = sanitized.clusters.compactMap { cluster in
+            guard validBiomeIDs.contains(cluster.biomeID.rawValue) else { return nil }
+            let filteredModifiers = cluster.modifierIDs.filter { validModifierIDs.contains($0.rawValue) }
+            return LabyrinthCluster(
+                id: cluster.id,
+                biomeID: cluster.biomeID,
+                depthBand: max(0, cluster.depthBand),
+                modifierIDs: filteredModifiers,
+                nodeIDs: cluster.nodeIDs
+            )
+        }
+
+        let validClusterIDs = Set(sanitized.clusters.map(\.id))
+        sanitized.nodes = sanitized.nodes.filter { _, node in
+            validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
+        }
+
+        // Drop dangling outgoing edges.
+        for (id, var node) in sanitized.nodes {
+            node.outgoingIDs = node.outgoingIDs.filter { sanitized.nodes[$0] != nil }
+            node.failCount = max(0, node.failCount)
+            node.depth = max(0, node.depth)
+            sanitized.nodes[id] = node
+        }
+
+        // If map is corrupt/empty after sanitize but player had entered, rebuild from seed.
+        if sanitized.hasEntered, sanitized.nodes.isEmpty {
+            sanitized.ensureMap(seed: sanitized.worldSeed == 0 ? nil : sanitized.worldSeed)
+        }
+        return sanitized
     }
 }

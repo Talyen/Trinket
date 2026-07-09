@@ -43,6 +43,11 @@ final class AppState {
         set { playerSave.aspects = newValue }
     }
 
+    var labyrinth: PlayerLabyrinthState {
+        get { playerSave.labyrinth }
+        set { playerSave.labyrinth = newValue }
+    }
+
     var collectionAttention: PlayerCollectionAttentionState {
         get { playerSave.collectionAttention }
         set { playerSave.collectionAttention = newValue }

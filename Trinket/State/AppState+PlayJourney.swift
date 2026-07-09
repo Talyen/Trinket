@@ -87,6 +87,14 @@ extension AppState {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards
             )
+        } else if let labyrinthBattle = configuration.labyrinthBattle {
+            completeLabyrinthNode(
+                nodeID: labyrinthBattle.nodeID,
+                hero: configuration.hero.combatant,
+                pet: configuration.pet.combatant,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            )
         } else if battleEarnedGold > 0 {
             grantBattleEarnedGold(battleEarnedGold)
         }
@@ -124,6 +132,9 @@ extension AppState {
         }
 
         if battle.isShowingDefeat {
+            if let nodeID = configuration.labyrinthBattle?.nodeID {
+                recordLabyrinthDefeat(nodeID: nodeID)
+            }
             battle.endBattle()
             return
         }
@@ -173,7 +184,8 @@ extension AppState {
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
             stageReward: activeBattle.stageReward,
-            aspectBattle: activeBattle.aspectBattle
+            aspectBattle: activeBattle.aspectBattle,
+            labyrinthBattle: activeBattle.labyrinthBattle
         )
         syncBattleTickLoop()
     }
@@ -185,11 +197,13 @@ extension AppState {
         enemy: Combatant?,
         enemyEncounterLevel: Int?,
         stageReward: StageReward?,
-        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil
+        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil,
+        labyrinthBattle: ActiveBattleConfiguration.LabyrinthBattle? = nil
     ) -> ActiveBattleConfiguration {
         ActiveBattleConfiguration.make(
             stageID: stageID,
             aspectBattle: aspectBattle,
+            labyrinthBattle: labyrinthBattle,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,
@@ -283,8 +297,13 @@ extension AppState {
     func finishActiveShopEncounter() {
         guard let session = activeShopEncounter else { return }
         let stage = session.stage
+        let labyrinthNodeID = session.labyrinthNodeID
         activeShopEncounter = nil
-        completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+        if let labyrinthNodeID {
+            completeLabyrinthNode(nodeID: labyrinthNodeID)
+        } else {
+            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+        }
     }
 
     func dismissActiveShopEncounterWithoutCompleting() {
@@ -372,8 +391,13 @@ extension AppState {
     func finishActiveMysteryEncounter() {
         guard let session = activeMysteryEncounter else { return }
         let stage = session.stage
+        let labyrinthNodeID = session.labyrinthNodeID
         activeMysteryEncounter = nil
-        completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+        if let labyrinthNodeID {
+            completeLabyrinthNode(nodeID: labyrinthNodeID)
+        } else {
+            completeStage(stage, hero: roster.activeHero, pet: roster.activePet)
+        }
     }
 
     func dismissActiveMysteryEncounterWithoutCompleting() {

@@ -18,7 +18,8 @@ public extension PlayerSaveRoot {
             inventory: inventoryState,
             homestead: homestead?.toPlayerHomesteadState() ?? .freshStart,
             collectionAttention: collectionAttention?.toPlayerCollectionAttentionState() ?? .freshStart,
-            aspects: aspects?.toPlayerAspectsState() ?? .freshStart
+            aspects: aspects?.toPlayerAspectsState() ?? .freshStart,
+            labyrinth: labyrinth?.toPlayerLabyrinthState() ?? .freshStart
         )
     }
 
@@ -59,6 +60,12 @@ public extension PlayerSaveRoot {
 
         syncChild(\.aspects, make: AspectsProgressModel()) {
             $0.update(from: save.aspects)
+        } setRoot: {
+            $0.root = self
+        }
+
+        syncChild(\.labyrinth, make: LabyrinthProgressModel()) {
+            $0.update(from: save.labyrinth)
         } setRoot: {
             $0.root = self
         }

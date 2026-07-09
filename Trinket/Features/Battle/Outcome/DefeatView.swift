@@ -3,7 +3,10 @@ import TrinketDesignSystem
 
 struct DefeatView: View {
     let enemyName: String
-    let onBattleAgain: () -> Void
+    var infoTitle: String = "Lost Progress"
+    var infoMessage: String = "Experience and rewards are lost in defeat."
+    var primaryButtonTitle: String = "Battle Again"
+    let onPrimaryAction: () -> Void
 
     var body: some View {
         BattleOutcomeShell(
@@ -14,14 +17,14 @@ struct DefeatView: View {
             titleAccessibilityIdentifier: "Defeat",
             content: {
                 BattleOutcomeInfoSection(
-                    title: "Lost Progress",
-                    message: "Experience and rewards are lost in defeat."
+                    title: infoTitle,
+                    message: infoMessage
                 )
             },
-            primaryButtonTitle: "Battle Again",
+            primaryButtonTitle: primaryButtonTitle,
             primaryButtonAccessibilityIdentifier: "Battle Again Button",
             primaryButtonTint: TrinketDesign.Colors.destructive,
-            onPrimaryAction: onBattleAgain
+            onPrimaryAction: onPrimaryAction
         )
     }
 }

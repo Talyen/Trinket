@@ -337,3 +337,61 @@ struct WireAspectsState: Codable, Equatable {
         PlayerAspectsState(highestClearedFloorByAspectID: highestClearedFloorByAspectID)
     }
 }
+
+struct WireLabyrinthState: Codable, Equatable {
+    var worldSeed: UInt64
+    var deepestDepth: Int
+    var hasEntered: Bool
+    var clusters: [LabyrinthCluster]
+    var nodes: [LabyrinthNode]
+    var discoveredBiomeIDs: [String]
+    var discoveredModifierIDs: [String]
+    var claimedMilestoneDepths: [Int]
+
+    init(_ labyrinth: PlayerLabyrinthState) {
+        worldSeed = labyrinth.worldSeed
+        deepestDepth = labyrinth.deepestDepth
+        hasEntered = labyrinth.hasEntered
+        clusters = labyrinth.clusters
+        nodes = Array(labyrinth.nodes.values).sorted { $0.id < $1.id }
+        discoveredBiomeIDs = labyrinth.discoveredBiomeIDs.sorted()
+        discoveredModifierIDs = labyrinth.discoveredModifierIDs.sorted()
+        claimedMilestoneDepths = labyrinth.claimedMilestoneDepths.sorted()
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        worldSeed = try container.decodeIfPresent(UInt64.self, forKey: .worldSeed) ?? 0
+        deepestDepth = try container.decodeIfPresent(Int.self, forKey: .deepestDepth) ?? 0
+        hasEntered = try container.decodeIfPresent(Bool.self, forKey: .hasEntered) ?? false
+        clusters = try container.decodeIfPresent([LabyrinthCluster].self, forKey: .clusters) ?? []
+        nodes = try container.decodeIfPresent([LabyrinthNode].self, forKey: .nodes) ?? []
+        discoveredBiomeIDs = try container.decodeIfPresent([String].self, forKey: .discoveredBiomeIDs) ?? []
+        discoveredModifierIDs = try container.decodeIfPresent([String].self, forKey: .discoveredModifierIDs) ?? []
+        claimedMilestoneDepths = try container.decodeIfPresent([Int].self, forKey: .claimedMilestoneDepths) ?? []
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case worldSeed
+        case deepestDepth
+        case hasEntered
+        case clusters
+        case nodes
+        case discoveredBiomeIDs
+        case discoveredModifierIDs
+        case claimedMilestoneDepths
+    }
+
+    func labyrinth() -> PlayerLabyrinthState {
+        PlayerLabyrinthState(
+            worldSeed: worldSeed,
+            deepestDepth: deepestDepth,
+            hasEntered: hasEntered,
+            clusters: clusters,
+            nodes: Dictionary(uniqueKeysWithValues: nodes.map { ($0.id, $0) }),
+            discoveredBiomeIDs: Set(discoveredBiomeIDs),
+            discoveredModifierIDs: Set(discoveredModifierIDs),
+            claimedMilestoneDepths: Set(claimedMilestoneDepths)
+        )
+    }
+}

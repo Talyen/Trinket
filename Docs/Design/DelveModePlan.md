@@ -2,7 +2,7 @@
 
 Design and product plan for an infinite, procedurally generated dungeon Mode inspired by Path of Exile’s Delve: cluster biomes, stacked cluster modifiers, target farming, and special finds. Expands roadmap **R-022** / **R-022c**. Implements the Modes teaser **Wanderer's Labyrinth** (does not invent a second labyrinth Mode).
 
-**Status:** Phase 0 preferences **locked** (see §12). Design only — no implementation yet.  
+**Status:** implementing — Phase 0 preferences locked; domain, persistence, Modes UI, and battle wiring landed on feature branch.  
 **Complements:** `AspectsAndModesPlan.md` (Modes shell), `CoreDesignConcepts.md`, `AppVisualFoundation.md`, `AppleNativeGuidelines.md`.  
 **Out of scope for this doc:** combat rule changes, PvP, real-time multiplayer, hand-authored full maps.
 

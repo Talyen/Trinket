@@ -1,0 +1,113 @@
+import Testing
+import TrinketContent
+import TrinketCore
+import TrinketPersistence
+import TrinketTestSupport
+
+@Suite("LabyrinthProgress")
+struct LabyrinthProgressTests {
+    @Test func ensureMapCreatesReachableNodes() {
+        var state = PlayerLabyrinthState.freshStart
+        state.ensureMap(seed: 99)
+        #expect(state.hasMap)
+        #expect(state.hasEntered)
+        #expect(!state.reachableNodeIDs().isEmpty)
+    }
+
+    @Test func markClearedExpandsPastGate() {
+        var state = PlayerLabyrinthState.freshStart
+        state.ensureMap(seed: 21)
+        let reachable = state.reachableNodeIDs()
+        #expect(!reachable.isEmpty)
+
+        // Clear all non-gate reachable nodes first if needed, then clear toward gate.
+        // Directly clear a depth-1 gate after revealing it.
+        guard var gate = state.nodes.values.first(where: { $0.type == .gate && $0.depth == 1 }) else {
+            Issue.record("Missing depth-1 gate")
+            return
+        }
+        gate.isRevealed = true
+        state.nodes[gate.id] = gate
+        // Make reachable by linking from a cleared node.
+        if var entrance = state.nodes[LabyrinthGenerator.entranceNodeID] {
+            if !entrance.outgoingIDs.contains(gate.id) {
+                entrance.outgoingIDs.append(gate.id)
+                state.nodes[entrance.id] = entrance
+            }
+        }
+        state.markCleared(nodeID: gate.id)
+        #expect(state.nodes[gate.id]?.isCleared == true)
+        #expect(state.clusters.contains { $0.depthBand == 2 })
+        #expect(state.deepestDepth >= 1)
+    }
+
+    @Test func sanitizeDropsUnknownBiomeAndModifierIDs() {
+        var dirty = PlayerLabyrinthState.freshStart
+        dirty.ensureMap(seed: 3)
+        dirty.discoveredBiomeIDs.insert("missing-biome")
+        dirty.discoveredModifierIDs.insert("missing-modifier")
+        dirty.claimedMilestoneDepths.insert(999)
+        let sanitized = PlayerSaveSanitizer.sanitizeLabyrinth(dirty)
+        #expect(!sanitized.discoveredBiomeIDs.contains("missing-biome"))
+        #expect(!sanitized.discoveredModifierIDs.contains("missing-modifier"))
+        #expect(!sanitized.claimedMilestoneDepths.contains(999))
+    }
+
+    @Test @MainActor func labyrinthPersistsThroughStore() throws {
+        let directory = try SaveTestSupport.makeTempDirectory(prefix: "labyrinth-progress")
+        defer { SaveTestSupport.removeTempDirectory(directory) }
+
+        let first = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        var progress = first.labyrinth
+        progress.ensureMap(seed: 55)
+        let firstReachable = try #require(progress.reachableNodeIDs().first)
+        progress.markCleared(nodeID: firstReachable)
+        first.labyrinth = progress
+
+        let second = try SaveTestSupport.makeSaveStore(directoryURL: directory)
+        #expect(second.labyrinth.hasMap)
+        #expect(second.labyrinth.nodes[firstReachable]?.isCleared == true)
+        #expect(second.labyrinth.worldSeed == 55)
+    }
+
+    @Test func completionGrantsGoldAndClearsNode() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 17)
+        let nodeID = try #require(save.labyrinth.reachableNodeIDs().first)
+        let goldBefore = save.roster.gold
+        LabyrinthCompletion.complete(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            pet: save.roster.activePet,
+            save: &save
+        )
+        #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
+        #expect(save.roster.gold >= goldBefore)
+    }
+
+    @Test func unlockRequiresChapterOneOrAspectFloorFive() {
+        var journey = JourneyProgressState.initial
+        let aspects = PlayerAspectsState.freshStart
+        #expect(!LabyrinthUnlock.isUnlocked(journey: journey, aspects: aspects))
+
+        if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
+            for stage in chapter.stages {
+                journey.completedStageIDs.insert(stage.id)
+            }
+        }
+        #expect(LabyrinthUnlock.isUnlocked(journey: journey, aspects: aspects))
+
+        var aspectProgress = PlayerAspectsState.freshStart
+        aspectProgress.markFloorCleared(5, aspectID: AspectID.ironVein.rawValue)
+        #expect(LabyrinthUnlock.isUnlocked(journey: .initial, aspects: aspectProgress))
+    }
+
+    @Test func recordDefeatIncrementsFailCountWithoutClearing() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 8)
+        let nodeID = try #require(save.labyrinth.reachableNodeIDs().first)
+        LabyrinthCompletion.recordDefeat(nodeID: nodeID, save: &save)
+        #expect(save.labyrinth.nodes[nodeID]?.failCount == 1)
+        #expect(save.labyrinth.nodes[nodeID]?.isCleared == false)
+    }
+}
