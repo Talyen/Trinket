@@ -14,6 +14,7 @@ public enum PlayerSaveSanitizer {
             roster: sanitized.roster,
             inventory: sanitized.inventory
         )
+        sanitized.aspects = sanitizeAspects(save.aspects)
         return sanitized
     }
 
@@ -179,5 +180,20 @@ public enum PlayerSaveSanitizer {
             sanitized.viewedCombatantIDs.insert(PlayerRosterState.starterPetID)
         }
         return sanitized
+    }
+
+    public static func sanitizeAspects(
+        _ aspects: PlayerAspectsState,
+        catalog: [AspectDefinition] = GameContent.aspects
+    ) -> PlayerAspectsState {
+        let validIDs = Set(catalog.map(\.id.rawValue))
+        let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
+        var sanitized: [String: Int] = [:]
+        for (aspectID, floor) in aspects.highestClearedFloorByAspectID {
+            guard validIDs.contains(aspectID) else { continue }
+            let maxFloor = floorCounts[aspectID] ?? 0
+            sanitized[aspectID] = min(max(floor, 0), maxFloor)
+        }
+        return PlayerAspectsState(highestClearedFloorByAspectID: sanitized)
     }
 }

@@ -1,0 +1,67 @@
+import Foundation
+import TrinketContent
+import TrinketCore
+import TrinketPersistence
+
+extension AppState {
+    @discardableResult
+    func startAspectBattle(for floor: AspectFloor) -> StageMapMessage? {
+        guard battle.activeBattle == nil else { return nil }
+
+        guard let aspect = GameContent.aspect(id: floor.aspectID) else {
+            return StageMapMessage(title: "Aspect Missing", message: "This Aspect is not ready yet.")
+        }
+
+        let attunement = AspectAttunement.evaluate(
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            aspect: aspect
+        )
+        guard attunement.isReady else {
+            return StageMapMessage(title: "Not Attuned", message: attunement.message)
+        }
+
+        guard let encounter = ActiveBattleConfiguration.resolvedAspectEncounter(for: floor) else {
+            return StageMapMessage(title: "Encounter Missing", message: "This floor is not ready yet.")
+        }
+
+        battle.preview = nil
+        battle.activeBattle = makeActiveBattleConfiguration(
+            stageID: nil,
+            hero: roster.activeHero,
+            pet: roster.activePet,
+            enemy: encounter.combatant,
+            enemyEncounterLevel: encounter.level,
+            stageReward: floor.rewards,
+            aspectBattle: .init(aspectID: floor.aspectID, floor: floor.floor)
+        )
+        battle.isPaused = selectedTab != .play
+        syncBattleTickLoop()
+        return nil
+    }
+
+    func completeAspectFloor(
+        _ floor: AspectFloor,
+        hero: Combatant,
+        pet: Combatant,
+        battleEarnedGold: Int = 0,
+        materialRewards: [ResourceAmount]? = nil
+    ) {
+        do {
+            try playerSave.performBatchMutation { save in
+                AspectCompletion.complete(
+                    floor: floor,
+                    hero: hero,
+                    pet: pet,
+                    battleEarnedGold: battleEarnedGold,
+                    materialRewards: materialRewards,
+                    save: &save
+                )
+            }
+        } catch {
+            appStateLogger.error(
+                "Failed to persist Aspect floor: \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
+}

@@ -152,8 +152,9 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 ### R-022 — Alternate Game Modes
 - **Area:** Play, Cross-cutting
 - **Status:** scratch
-- **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. Candidates: a dungeon-crawl gauntlet (multi-stage run with persistent damage), a boss-rush mode, or a roguelite mode (procedural picks, permadeath, stacking buffs). Goal: give players a way to level or gear alternate heroes/pets without replaying the same chapters.
-- **Touches:** `AppState`, `BattleSession`, mode selection UI, `TrinketCore` progression
+- **Idea:** Expand beyond the chapter journey with secondary modes for variety and alt-progression. First mode: **Aspects** (affinity floor climbs; player-facing name avoids “Keyword”). Later candidates: Reliquary Gauntlet, Astral Hunt, Wanderer's Labyrinth. Goal: level or gear alternate heroes/pets without replaying chapters.
+- **Plan:** `Docs/Design/AspectsAndModesPlan.md` (Modes shell + Aspects naming, UX, motion, phased implementation).
+- **Touches:** `AppState`, `BattleSession`, Play Home / Modes UI, Aspects catalogs + persistence, `TrinketCore` progression
 
 ---
 

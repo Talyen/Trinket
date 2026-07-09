@@ -171,6 +171,11 @@
 		7D248F5BB9BE2323A395887E /* CollectionSearchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E577362348BCD7E7FAC6B7A /* CollectionSearchUITests.swift */; };
 		6A6D9F8CF6F8C9AB106C2AE8 /* CollectionSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57427D64BFF242B2689B863D /* CollectionSearch.swift */; };
 		D62669127431AA631AEDC41A /* CollectionSearchResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E1B4D461D37CEC6156AB82 /* CollectionSearchResultsView.swift */; };
+		7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2448A72E6894CC74E35A0E /* AppStateAspectsTests.swift */; };
+		E65C7536A54EFEF454A0A837 /* AppState+Aspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */; };
+		5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */; };
+		5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */; };
+		33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DD20B8080EC1342CD43769 /* ModesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -357,6 +362,11 @@
 		5E577362348BCD7E7FAC6B7A /* CollectionSearchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSearchUITests.swift; sourceTree = "<group>"; };
 		57427D64BFF242B2689B863D /* CollectionSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSearch.swift; sourceTree = "<group>"; };
 		C9E1B4D461D37CEC6156AB82 /* CollectionSearchResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionSearchResultsView.swift; sourceTree = "<group>"; };
+		4C2448A72E6894CC74E35A0E /* AppStateAspectsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateAspectsTests.swift; sourceTree = "<group>"; };
+		AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Aspects.swift; sourceTree = "<group>"; };
+		01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectClimbView.swift; sourceTree = "<group>"; };
+		F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectsHubView.swift; sourceTree = "<group>"; };
+		29DD20B8080EC1342CD43769 /* ModesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -671,6 +681,7 @@
 				4F6AB9883576D1098077D401 /* BattleSpectacleModels.swift */,
 				F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */,
 				164D505923452D9A8FADE34F /* ShopEncounterSession.swift */,
+				AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -1166,6 +1177,10 @@
 				5C5F19B9ADFD21BE27B213DC /* ShopEncounterView.swift in Sources */,
 				6A6D9F8CF6F8C9AB106C2AE8 /* CollectionSearch.swift in Sources */,
 				D62669127431AA631AEDC41A /* CollectionSearchResultsView.swift in Sources */,
+				E65C7536A54EFEF454A0A837 /* AppState+Aspects.swift in Sources */,
+				5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */,
+				5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */,
+				33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1200,6 +1215,7 @@
 				15EF7047F50D150A3BDB1BD0 /* AppStateMysteryRecruitTests.swift in Sources */,
 				7859520525DAD899A0CD8809 /* AppStateShopEncounterTests.swift in Sources */,
 				A5DFABA843BC1BFEBCB4F62F /* CollectionSearchTests.swift in Sources */,
+				7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

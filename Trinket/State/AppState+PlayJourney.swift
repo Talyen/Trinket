@@ -75,6 +75,18 @@ extension AppState {
                 battleEarnedGold: battleEarnedGold,
                 materialRewards: materialRewards
             )
+        } else if let aspectBattle = configuration.aspectBattle,
+                  let floor = GameContent.aspectFloor(
+                      aspectID: aspectBattle.aspectID,
+                      floor: aspectBattle.floor
+                  ) {
+            completeAspectFloor(
+                floor,
+                hero: configuration.hero.combatant,
+                pet: configuration.pet.combatant,
+                battleEarnedGold: battleEarnedGold,
+                materialRewards: materialRewards
+            )
         } else if battleEarnedGold > 0 {
             grantBattleEarnedGold(battleEarnedGold)
         }
@@ -160,21 +172,24 @@ extension AppState {
             pet: pet,
             enemy: activeBattle.enemy,
             enemyEncounterLevel: activeBattle.enemyEncounterLevel,
-            stageReward: activeBattle.stageReward
+            stageReward: activeBattle.stageReward,
+            aspectBattle: activeBattle.aspectBattle
         )
         syncBattleTickLoop()
     }
 
-    private func makeActiveBattleConfiguration(
+    func makeActiveBattleConfiguration(
         stageID: String?,
         hero: Combatant,
         pet: Combatant,
         enemy: Combatant?,
         enemyEncounterLevel: Int?,
-        stageReward: StageReward?
+        stageReward: StageReward?,
+        aspectBattle: ActiveBattleConfiguration.AspectBattle? = nil
     ) -> ActiveBattleConfiguration {
         ActiveBattleConfiguration.make(
             stageID: stageID,
+            aspectBattle: aspectBattle,
             rngSeed: UInt64.random(in: UInt64.min ... UInt64.max),
             hero: hero,
             pet: pet,

@@ -219,6 +219,28 @@ extension CollectionAttentionModel {
     }
 }
 
+extension AspectsProgressModel {
+    func toPlayerAspectsState() -> PlayerAspectsState {
+        let rows = floors ?? []
+        var map: [String: Int] = [:]
+        for row in rows where !row.aspectID.isEmpty {
+            map[row.aspectID] = max(0, row.highestClearedFloor)
+        }
+        return PlayerAspectsState(highestClearedFloorByAspectID: map)
+    }
+
+    func update(from state: PlayerAspectsState) {
+        let existing = floors ?? []
+        for row in existing {
+            row.aspects = nil
+        }
+        floors = state.highestClearedFloorByAspectID
+            .sorted { $0.key < $1.key }
+            .map { AspectFloorProgressModel(aspectID: $0.key, highestClearedFloor: max(0, $0.value)) }
+        floors?.linkEach(to: self, parent: \.aspects)
+    }
+}
+
 extension Array {
     func linkEach<Parent>(
         to parent: Parent,

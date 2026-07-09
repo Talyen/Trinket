@@ -8,6 +8,11 @@ enum AccessibilityID {
     }
 
     enum Play {
+        static let modesEntry = "Modes Entry"
+        static let modesScreen = "Modes Screen"
+        static let aspectsHub = "Aspects Hub"
+        static let aspectsModeCard = "Aspects Mode Card"
+
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"
         }
@@ -22,6 +27,18 @@ enum AccessibilityID {
 
         static func chapterLocked(number: Int) -> String {
             "Chapter \(number) Locked"
+        }
+
+        static func aspectRow(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Row"
+        }
+
+        static func aspectClimb(_ aspectID: String) -> String {
+            "Aspect \(aspectID) Climb"
+        }
+
+        static func aspectFloor(_ aspectID: String, floor: Int) -> String {
+            "Aspect \(aspectID) Floor \(floor)"
         }
     }
 

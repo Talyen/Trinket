@@ -12,8 +12,14 @@ struct ActiveBattleConfiguration: Identifiable {
         let modifiers: CombatModifierProfile
     }
 
+    struct AspectBattle: Equatable, Hashable {
+        let aspectID: AspectID
+        let floor: Int
+    }
+
     let id = UUID()
     let stageID: String?
+    let aspectBattle: AspectBattle?
     let rngSeed: UInt64
     let hero: PartyMember
     let pet: PartyMember
@@ -25,6 +31,10 @@ struct ActiveBattleConfiguration: Identifiable {
     let inventoryState: PlayerInventoryState
     let stageReward: StageReward?
     let rewardItemNames: [String]
+
+    var hasProgressionRewards: Bool {
+        stageID != nil || aspectBattle != nil
+    }
 
     func partyMember(for combatantID: String) -> PartyMember? {
         if combatantID == hero.combatant.id { return hero }
@@ -47,9 +57,21 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
+    static func resolvedAspectEncounter(
+        for floor: AspectFloor
+    ) -> (combatant: Combatant, level: Int)? {
+        guard let catalogEnemy = GameContent.enemy(matching: floor.enemyID) else { return nil }
+        let level = AspectCompletion.enemyLevel(for: floor)
+        return (
+            CombatantLevelScaler.scale(enemy: catalogEnemy, level: level),
+            level
+        )
+    }
+
     @MainActor
     static func make(
         stageID: String? = nil,
+        aspectBattle: AspectBattle? = nil,
         rngSeed: UInt64,
         hero: Combatant,
         pet: Combatant,
@@ -62,6 +84,7 @@ struct ActiveBattleConfiguration: Identifiable {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
         return ActiveBattleConfiguration(
             stageID: stageID,
+            aspectBattle: aspectBattle,
             rngSeed: rngSeed,
             hero: partyMember(
                 combatant: hero,

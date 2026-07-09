@@ -1,7 +1,7 @@
 import Foundation
 
 public struct PlayerSave: Equatable, Sendable {
-    public static let currentSchemaVersion = 7
+    public static let currentSchemaVersion = 8
 
     public var schemaVersion: Int
     public var modifiedAt: Date
@@ -11,6 +11,7 @@ public struct PlayerSave: Equatable, Sendable {
     public var inventory: PlayerInventoryState
     public var homestead: PlayerHomesteadState
     public var collectionAttention: PlayerCollectionAttentionState
+    public var aspects: PlayerAspectsState
 
     public static var fresh: PlayerSave {
         PlayerSave(
@@ -21,7 +22,8 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .freshStart,
             inventory: .freshStart,
             homestead: .freshStart,
-            collectionAttention: .freshStart
+            collectionAttention: .freshStart,
+            aspects: .freshStart
         )
     }
 
@@ -34,7 +36,8 @@ public struct PlayerSave: Equatable, Sendable {
             roster: .testSeed,
             inventory: .testSeed,
             homestead: .testSeed,
-            collectionAttention: .testSeed
+            collectionAttention: .testSeed,
+            aspects: .testSeed
         )
     }
 
@@ -46,7 +49,8 @@ public struct PlayerSave: Equatable, Sendable {
         roster: PlayerRosterState,
         inventory: PlayerInventoryState,
         homestead: PlayerHomesteadState = .freshStart,
-        collectionAttention: PlayerCollectionAttentionState = .freshStart
+        collectionAttention: PlayerCollectionAttentionState = .freshStart,
+        aspects: PlayerAspectsState = .freshStart
     ) {
         self.schemaVersion = schemaVersion
         self.modifiedAt = modifiedAt
@@ -56,6 +60,7 @@ public struct PlayerSave: Equatable, Sendable {
         self.inventory = inventory
         self.homestead = homestead
         self.collectionAttention = collectionAttention
+        self.aspects = aspects
     }
 
     public func markedLocalMutation(at date: Date = Date()) -> PlayerSave {
@@ -76,6 +81,7 @@ extension PlayerSave: Codable {
         case inventory
         case homestead
         case collectionAttention
+        case aspects
     }
 
     public init(from decoder: Decoder) throws {
@@ -94,6 +100,10 @@ extension PlayerSave: Codable {
             WireCollectionAttentionState.self,
             forKey: .collectionAttention
         )?.attention() ?? .freshStart
+        aspects = try container.decodeIfPresent(
+            WireAspectsState.self,
+            forKey: .aspects
+        )?.aspects() ?? .freshStart
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -106,5 +116,6 @@ extension PlayerSave: Codable {
         try container.encode(WireInventoryState(inventory), forKey: .inventory)
         try container.encode(WireHomesteadState(homestead), forKey: .homestead)
         try container.encode(WireCollectionAttentionState(collectionAttention), forKey: .collectionAttention)
+        try container.encode(WireAspectsState(aspects), forKey: .aspects)
     }
 }
