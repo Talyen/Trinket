@@ -26,7 +26,7 @@ public struct LockedCardEffectModifier: ViewModifier {
                 }
                 .disabled(true)
                 .accessibilityElement(children: .ignore)
-                .accessibilityLabel(text != nil ? "Locked. \(text!)" : "Locked")
+                .accessibilityLabel(text.map { "Locked. \($0)" } ?? "Locked")
                 .overlay {
                     GeometryReader { proxy in
                         let shortSide = min(proxy.size.width, proxy.size.height)
