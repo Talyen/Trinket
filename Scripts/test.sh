@@ -348,11 +348,15 @@ run_package_tests() {
   local packages=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
   local failed=0
   local max_seconds=0
+  local package
+  local package_status
+  local elapsed
+  local jobs
+  local cpu_count
 
-  for package in "${packages[@]}"; do
-    SECONDS=0
-    local package_status=0
-    local package_args=("$package" --destination "$SIMULATOR_DESTINATION")
+  run_one_package() {
+    local pkg="$1"
+    local package_args=("$pkg" --destination "$SIMULATOR_DESTINATION")
     if [[ "$xcodebuild_action" == "test-without-building" ]]; then
       package_args=(--no-build "${package_args[@]}")
     fi
@@ -362,13 +366,50 @@ run_package_tests() {
     if [[ "$VERBOSE" == "true" ]]; then
       package_args+=(--verbose)
     fi
-    ./Scripts/test-package.sh "${package_args[@]}" || package_status=$?
-    if [[ "$package_status" -ne 0 ]]; then
-      failed=1
+    ./Scripts/test-package.sh "${package_args[@]}"
+  }
+
+  # Building into a shared DerivedData must stay serial (build.db lock).
+  # test-without-building can run packages in parallel.
+  if [[ "$xcodebuild_action" == "test-without-building" ]]; then
+    cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"
+    jobs="$cpu_count"
+    if [[ "$jobs" -gt ${#packages[@]} ]]; then
+      jobs=${#packages[@]}
     fi
-    local elapsed=$SECONDS
-    (( elapsed > max_seconds )) && max_seconds=$elapsed
-  done
+    if [[ "$jobs" -lt 1 ]]; then
+      jobs=1
+    fi
+
+    SECONDS=0
+    printf '%s\n' "${packages[@]}" | xargs -P "$jobs" -I{} bash -c '
+      set -euo pipefail
+      package="$1"
+      destination="$2"
+      quiet="$3"
+      verbose="$4"
+      package_args=(--no-build "$package" --destination "$destination")
+      if [[ "$quiet" == "true" ]]; then
+        package_args+=(--quiet)
+      fi
+      if [[ "$verbose" == "true" ]]; then
+        package_args+=(--verbose)
+      fi
+      ./Scripts/test-package.sh "${package_args[@]}"
+    ' _ {} "$SIMULATOR_DESTINATION" "$QUIET" "$VERBOSE" || failed=1
+    max_seconds=$SECONDS
+  else
+    for package in "${packages[@]}"; do
+      SECONDS=0
+      package_status=0
+      run_one_package "$package" || package_status=$?
+      if [[ "$package_status" -ne 0 ]]; then
+        failed=1
+      fi
+      elapsed=$SECONDS
+      (( elapsed > max_seconds )) && max_seconds=$elapsed
+    done
+  fi
 
   TEST_WALL_SECONDS=$((TEST_WALL_SECONDS + max_seconds))
   return "$failed"

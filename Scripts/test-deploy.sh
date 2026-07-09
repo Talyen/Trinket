@@ -28,6 +28,12 @@ done
 echo "=== Generating Xcode project ==="
 ./Scripts/generate.sh
 
+# Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
+RESULTS_DIR="$PWD/.DerivedData/TestResults"
+mkdir -p "$RESULTS_DIR"
+touch "$RESULTS_DIR/.last-generate.stamp"
+export SKIP_GENERATE=1
+
 echo ""
 echo "=== Assert generated output is committed ==="
 ./Scripts/assert-generated-output.sh

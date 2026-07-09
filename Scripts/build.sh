@@ -38,5 +38,7 @@ ensure_test_simulator
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
-  -destination "$SIMULATOR_DESTINATION"
+  -sdk iphonesimulator \
+  -destination "$SIMULATOR_DESTINATION" \
+  -derivedDataPath "$DERIVED_DATA_PATH"
 

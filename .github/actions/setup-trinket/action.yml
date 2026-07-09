@@ -69,6 +69,12 @@ runs:
           echo "Homebrew helpers already installed."
         fi
 
+    - name: Cache pinned SwiftFormat and SwiftLint
+      uses: actions/cache@v4
+      with:
+        path: .tools
+        key: tools-${{ runner.os }}-${{ hashFiles('Scripts/tool-versions.env') }}
+
     - name: Install pinned SwiftFormat and SwiftLint
       shell: bash
       run: ./Scripts/ensure-ci-tools.sh

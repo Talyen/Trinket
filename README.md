@@ -46,7 +46,9 @@ For manifest, art, music, or SFX edits:
 
 ```sh
 ./Scripts/generate.sh              # validate manifests, codegen, XcodeGen
-./Scripts/build.sh
+./Scripts/build.sh                 # compile into .DerivedData (shared with test.sh)
+./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build
+                                   # preferred full-unit path (mirrors CI: build once, test many)
 ./Scripts/test.sh unit             # TrinketTests + all package test schemes
 ./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
 ./Scripts/test.sh smoke            # local UI canary (Homestead, QuickSmoke)

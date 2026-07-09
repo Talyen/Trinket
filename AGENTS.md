@@ -69,7 +69,7 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 | Pre-merge | `./Scripts/test-deploy.sh` (gate + unit + full UI) |
 | One-screen layout check | `./Scripts/build.sh` or `./Scripts/run-simulator.sh` |
 
-Fast iteration: `--no-build` after a fresh build; `./Scripts/test-iterate.sh <SmokeClass>` or `./Scripts/test.sh smoke <SmokeClass>` for a specific smoke class. Avoid `smoke-full`, `ci-locally.sh`, and `test-deploy.sh` during active coding — prefer `build.sh`, `test.sh unit`, and bare `test.sh smoke`. Full smoke (`smoke-full`) is CI-only unless debugging a smoke failure.
+Fast iteration: `--no-build` after a fresh build; `./Scripts/test-iterate.sh <SmokeClass>` or `./Scripts/test.sh smoke <SmokeClass>` for a specific smoke class. Preferred full-unit path (mirrors CI): `./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build`. Avoid `smoke-full`, `ci-locally.sh`, and `test-deploy.sh` during active coding — prefer `build.sh`, `test.sh unit`, and bare `test.sh smoke`. Full smoke (`smoke-full`) is CI-only unless debugging a smoke failure.
 
 ### Toolchain ladder (cloud / no Xcode 26)
 

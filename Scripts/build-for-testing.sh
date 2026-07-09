@@ -27,6 +27,7 @@ scheme_for_package() {
 
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
 
+# Package schemes share one DerivedData build.db — must stay serial.
 for package in "${PACKAGES[@]}"; do
   scheme="$(scheme_for_package "$package")"
   echo "=== build-for-testing: $package ($scheme) ==="

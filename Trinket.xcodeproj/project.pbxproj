@@ -95,6 +95,7 @@
 		76E82C01E9E1D8478547C4D3 /* AppTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E45F04BF076FEE8AF6123D /* AppTypes.swift */; };
 		7D80BCFC09295EAE8FD68FF4 /* music_menu_4.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 16F1DBD9A4B0ED28C9E417B1 /* music_menu_4.m4a */; };
 		8008A511523BCC8375038FCE /* AppState+PlayJourney.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4315C7392E3C4E239BD2DF5B /* AppState+PlayJourney.swift */; };
+		803FB6F72F292A51D3C0797D /* ArtFocalPoint+UnitPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FF741BB276A469DFCA7E425 /* ArtFocalPoint+UnitPoint.swift */; };
 		806E735E9BF0ED866A0D66EF /* HomesteadProjectSummaryMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC04C4839CB4680EF94D50BF /* HomesteadProjectSummaryMetrics.swift */; };
 		80E0E09456F2EAEFE19FF149 /* AppState+Labyrinth.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D9660D82202C86743D6423 /* AppState+Labyrinth.swift */; };
 		8215ACCE2E1DA5EE428511CA /* AppState+Bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F2F26B475298B085FCE389 /* AppState+Bootstrap.swift */; };
@@ -323,6 +324,7 @@
 		9EB54342F6A6FD993F1FBFCF /* TrinketApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrinketApp.swift; sourceTree = "<group>"; };
 		9F72FEB7E645FFDB20C49A6C /* CollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionView.swift; sourceTree = "<group>"; };
 		9FF5D3F90C0DF1F9954264E7 /* SmokeHeroDetailTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeHeroDetailTests.swift; sourceTree = "<group>"; };
+		9FF741BB276A469DFCA7E425 /* ArtFocalPoint+UnitPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ArtFocalPoint+UnitPoint.swift"; sourceTree = "<group>"; };
 		A036509514F16E54AF1B8F5E /* music_battle_3.m4a */ = {isa = PBXFileReference; path = music_battle_3.m4a; sourceTree = "<group>"; };
 		A12448ADBC56314E9A4F37C4 /* AppStateBattleTickLoopTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateBattleTickLoopTests.swift; sourceTree = "<group>"; };
 		A2AEFB3AF37B08FB51448330 /* CombatantCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CombatantCard.swift; sourceTree = "<group>"; };
@@ -719,6 +721,7 @@
 			isa = PBXGroup;
 			children = (
 				3A5B278493C828E4924FA9CB /* AccessibilityID.swift */,
+				9FF741BB276A469DFCA7E425 /* ArtFocalPoint+UnitPoint.swift */,
 				C1C977B6CD840EBD213B9B05 /* KeywordDescriptionText.swift */,
 				B131800D03D03F5AADA4F764 /* Cards */,
 				5B38279F17AFBCB4BFE99CFA /* Detail */,
@@ -1194,6 +1197,7 @@
 				8008A511523BCC8375038FCE /* AppState+PlayJourney.swift in Sources */,
 				C5E0C9B4A62F0F758A820E15 /* AppState.swift in Sources */,
 				76E82C01E9E1D8478547C4D3 /* AppTypes.swift in Sources */,
+				803FB6F72F292A51D3C0797D /* ArtFocalPoint+UnitPoint.swift in Sources */,
 				B0542EFC6C5A819B3D4CB720 /* AspectClimbView.swift in Sources */,
 				9C92933AA4AFDEE55776A07F /* AspectsHubView.swift in Sources */,
 				12C8D5FF54791EF0A9A26117 /* BattleCardGridLayout.swift in Sources */,

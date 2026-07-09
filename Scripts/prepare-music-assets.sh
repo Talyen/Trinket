@@ -36,7 +36,7 @@ escape_swift_string() {
 
 validate_identifier() {
   local label="$1" value="$2"
-  if [[ ! "$value" =~ '^[A-Za-z0-9_][A-Za-z0-9_-]*$' ]]; then
+  if [[ ! "$value" =~ ^[A-Za-z0-9_][A-Za-z0-9_-]*$ ]]; then
     echo "$label '$value' should use letters, numbers, hyphens, or underscores, and start with a letter, number, or underscore." >&2
     exit 1
   fi
@@ -84,7 +84,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
       ;;
   esac
 
-  if [[ ! "$volume_gain" =~ '^[0-9]+([.][0-9]+)?$' ]]; then
+  if [[ ! "$volume_gain" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
     echo "Volume gain for '$id' must be numeric." >&2
     exit 1
   fi

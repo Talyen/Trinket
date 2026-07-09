@@ -6,6 +6,9 @@ cd "$(dirname "$0")/.."
 echo "=== Gate (generate, style, boundaries) ==="
 ./Scripts/ci-gate.sh
 
+# Gate already ran generate; avoid a second generate in test.sh.
+export SKIP_GENERATE=1
+
 echo ""
 echo "=== Unit tests ==="
 ./Scripts/test.sh unit

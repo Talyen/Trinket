@@ -27,13 +27,13 @@ jobs:
 
       - name: Export build cache key
         id: export-build-cache-key
-        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
+        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
 
       - name: Restore warm build cache
         uses: actions/cache/restore@v4
         with:
           path: .DerivedData
-          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
+          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
           restore-keys: |
             build-
 
@@ -41,6 +41,9 @@ jobs:
         run: ./Scripts/build-for-testing.sh
         env:
           SKIP_GENERATE: 1
+
+      - name: Prune DerivedData before cache save
+        run: ./Scripts/prune-derived-data-cache.sh
 
       - name: Save build cache for test jobs
         uses: actions/cache/save@v4
