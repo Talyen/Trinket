@@ -71,4 +71,57 @@ struct LabyrinthCatalogTests {
         #expect(effects.goldPercent == 20)
         #expect(effects.keywordBiases.contains(.physical))
     }
+
+    @Test func generatorDoesNotEmitEventNodes() {
+        for seed in [1, 7, 42, 99, 1001] as [UInt64] {
+            let generated = LabyrinthGenerator.makeInitialMap(seed: seed)
+            #expect(generated.nodes.values.allSatisfy { $0.type != .event })
+        }
+    }
+
+    @Test func eventTypeCanonicalizesToMystery() {
+        #expect(LabyrinthNodeType.event.canonical == .mystery)
+        #expect(LabyrinthNodeType.event.title == "Mystery")
+        #expect(LabyrinthNodeType.event.primaryActionTitle == "Approach")
+    }
+
+    @Test func threatModifiersAlwaysCarryBountyBump() {
+        // Expand a few maps so deeper bands (multi-modifier) appear, then assert
+        // every cluster with enemy-power threat also has a bounty-style bump.
+        for seed in [3, 11, 42, 77] as [UInt64] {
+            var clusters = LabyrinthGenerator.makeInitialMap(seed: seed).clusters
+            var nodes = LabyrinthGenerator.makeInitialMap(seed: seed).nodes
+            if var gate = nodes.values.first(where: { $0.type == .gate && $0.depth == 1 }) {
+                gate.isCleared = true
+                nodes[gate.id] = gate
+                LabyrinthGenerator.expandBeyondGate(
+                    gateNodeID: gate.id,
+                    clusters: &clusters,
+                    nodes: &nodes,
+                    seed: seed
+                )
+            }
+            for cluster in clusters where cluster.depthBand > 0 {
+                let mods = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
+                let hasThreatPower = mods.contains { $0.enemyPowerPercent > 0 }
+                guard hasThreatPower else { continue }
+                let hasBounty = mods.contains {
+                    $0.goldPercent > 0 || $0.xpPercent > 0 || $0.itemDropBonusPercent > 0
+                        || $0.astralChanceBonusPercent > 0 || $0.category == .bounty
+                        || $0.category == .affinity
+                }
+                #expect(hasBounty, "Cluster \(cluster.id) has threat without bounty")
+            }
+        }
+    }
+
+    @Test func clusterSizeStaysWithinPlanBounds() {
+        for seed in 0 ..< 40 {
+            let generated = LabyrinthGenerator.makeInitialMap(seed: UInt64(seed))
+            for cluster in generated.clusters where cluster.depthBand > 0 {
+                #expect(cluster.nodeIDs.count >= 3)
+                #expect(cluster.nodeIDs.count <= 7)
+            }
+        }
+    }
 }

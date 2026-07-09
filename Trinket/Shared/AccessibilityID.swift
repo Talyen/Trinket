@@ -45,6 +45,16 @@ enum AccessibilityID {
         static let labyrinthMap = "Labyrinth Map"
         static let labyrinthAtlas = "Labyrinth Atlas"
         static let labyrinthEnter = "Labyrinth Enter"
+        static let labyrinthLeave = "Labyrinth Leave"
+        static let labyrinthRest = "Labyrinth Rest"
+        static let labyrinthRestConfirm = "Labyrinth Rest Confirm"
+        static let labyrinthRestLeave = "Labyrinth Rest Leave"
+        static let labyrinthCraft = "Labyrinth Craft"
+        static let labyrinthCraftForge = "Labyrinth Craft Forge"
+        static let labyrinthCraftSkip = "Labyrinth Craft Skip"
+        static let labyrinthCraftLeave = "Labyrinth Craft Leave"
+        static let labyrinthCraftFailure = "Labyrinth Craft Failure"
+        static let labyrinthDepthBadge = "Labyrinth Depth Badge"
 
         static func labyrinthNode(_ nodeID: String) -> String {
             "Labyrinth Node \(nodeID)"
@@ -52,6 +62,10 @@ enum AccessibilityID {
 
         static func labyrinthModifier(_ modifierID: String) -> String {
             "Labyrinth Modifier \(modifierID)"
+        }
+
+        static func labyrinthFogNode(_ nodeID: String) -> String {
+            "Labyrinth Fog \(nodeID)"
         }
     }
 

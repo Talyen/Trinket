@@ -64,4 +64,21 @@ public enum TrinketMotion: Sendable {
             CombatFeedbackRecipes.cardReaction(for: kind)
         }
     }
+
+    /// Wanderer's Labyrinth map motion (R-022c).
+    public enum Labyrinth: Sendable {
+        public static let modifierStagger: TimeInterval = 0.05
+
+        public static var clusterReveal: Animation {
+            .easeOut(duration: 0.28)
+        }
+
+        public static var modifierIn: Animation {
+            .easeOut(duration: 0.22)
+        }
+
+        public static var reduceMotion: Animation {
+            .easeOut(duration: 0.15)
+        }
+    }
 }

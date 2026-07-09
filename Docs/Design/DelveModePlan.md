@@ -2,7 +2,7 @@
 
 Design and product plan for an infinite, procedurally generated dungeon Mode inspired by Path of Exile’s Delve: cluster biomes, stacked cluster modifiers, target farming, and special finds. Expands roadmap **R-022** / **R-022c**. Implements the Modes teaser **Wanderer's Labyrinth** (does not invent a second labyrinth Mode).
 
-**Status:** implementing — Phase 0 preferences locked; domain, persistence, Modes UI, and battle wiring landed on feature branch.  
+**Status:** finishing — Phase 0 locked; domain/persistence/Modes/map/Atlas/battle/shop/mystery landed. Event nodes collapsed into Mystery. Rest/Craft sheets, modifier pairing, map polish, and DoD verification in progress.  
 **Complements:** `AspectsAndModesPlan.md` (Modes shell), `CoreDesignConcepts.md`, `AppVisualFoundation.md`, `AppleNativeGuidelines.md`.  
 **Out of scope for this doc:** combat rule changes, PvP, real-time multiplayer, hand-authored full maps.
 
@@ -233,8 +233,8 @@ UI: glass chips with **title only**; tap → detail (title, epithet, bullets). M
 | **Shop** | Merchant visit | Existing shop; modifiers can bias shelf |
 | **Rest / Shrine** | Heal / small boon | Instant heal crumb and/or minor gold/XP; shrine picker can expand later |
 | **Mystery** | Narrative encounter | Existing pipeline |
-| **Event** | Light choice | Placeholder → expand |
-| **Crafting Altar** | Risk/reward craft beat | Align with roadmap R-020 fantasy; v1 can be a focused sheet that consumes/offers an item for a reroll or guaranteed affix — exact craft rules in a follow-on economy pass, but **node type ships in v1 map mix** |
+| **Event** | *(collapsed)* | Legacy save value only; sanitized/routed as **Mystery** (same pool including recruits) |
+| **Crafting Altar** | Risk/reward craft beat | Thin v1 sheet: spend gold → generated item + material; deeper R-020 economy later |
 | **Gate** | Depth transition | Reveals / generates next cluster band |
 
 ### 5.5 Generation rules (v1)
@@ -477,7 +477,7 @@ Tokens: `TrinketMotion.labyrinth.clusterReveal`, `.modifierIn`, `.depthFocus`, `
 ```text
 BiomeID / BiomeDefinition
 LabyrinthModifierID / ModifierDef     // catalog; player sees title/epithet only
-LabyrinthNodeType                     // battle, elite, warden, shop, rest, mystery, event, craft, gate
+LabyrinthNodeType                     // battle, elite, warden, shop, rest, mystery, craft, gate (+ legacy event → mystery)
 LabyrinthNode                         // id, type, enemyID?, rewards, edges, cleared, failCount?
 BiomeCluster                          // biome, modifiers, nodes, depthBand
 LabyrinthMapState                     // seed, deepestDepth, clusters[], frontier
@@ -513,7 +513,7 @@ LabyrinthAtlas                        // discovered biomes/modifiers, milestones
 
 ### Phase 3 — Node wiring
 
-- Battle/Shop/Mystery/Rest/Event/Craft/Gate; defeat→retry; first-clear rewards
+- Battle/Shop/Mystery/Rest/Craft/Gate; Event collapsed into Mystery; defeat→retry; first-clear rewards
 
 ### Phase 4 — Modifier depth
 
@@ -521,7 +521,7 @@ LabyrinthAtlas                        // discovered biomes/modifiers, milestones
 
 ### Phase 5 — Polish
 
-- Art, motion, milestones; gates/tests (toolchain permitting)
+- Map header biome focus, fog silhouettes, Leave/Atlas, motion tokens, deep links; gates/tests (toolchain permitting)
 
 ---
 

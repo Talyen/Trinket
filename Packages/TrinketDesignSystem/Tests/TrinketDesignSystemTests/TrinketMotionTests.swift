@@ -50,4 +50,9 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateChipStagger > 0)
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
     }
+
+    @Test func labyrinthMotionTokensArePositive() {
+        #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
+        #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
+    }
 }

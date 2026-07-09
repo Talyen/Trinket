@@ -158,10 +158,10 @@ Agents: read this for context and brainstorming. Do not implement items here unl
 
 ### R-022c — Wanderer's Labyrinth (Delve Mode)
 - **Area:** Play, Cross-cutting
-- **Status:** scratch
-- **Idea:** Infinite dungeon Mode inspired by PoE Delve: **persistent** procedurally growing node map, biome clusters, named cluster modifiers (no umbrella player term — titles only, like Item affixes), Keyword-affinity farming, special finds (Wardens, shops, mysteries, rest/shrines, events, crafting altar). Endless node retries on defeat; any party; same idle Hero+Pet battles. Player-facing name: **Wanderer's Labyrinth**.
+- **Status:** implementing
+- **Idea:** Infinite dungeon Mode inspired by PoE Delve: **persistent** procedurally growing node map, biome clusters, named cluster modifiers (no umbrella player term — titles only, like Item affixes), Keyword-affinity farming, special finds (Wardens, shops, mysteries, rest/shrines, crafting altar). Endless node retries on defeat; any party; same idle Hero+Pet battles. Player-facing name: **Wanderer's Labyrinth**. Event nodes collapsed into Mystery (shared pool including recruits).
 - **Plan:** `Docs/Design/DelveModePlan.md` (preferences locked in §12).
-- **Status:** implementing — Phase 0 locked; domain/persistence/UI/battle wiring in progress on feature branch.
+- **Status:** finishing — domain/persistence/UI/battle/shop/mystery landed; rest/craft sheets, modifier depth, map polish, and DoD verification in progress.
 - **Touches:** Modes UI, `AppState` battle source, procedural generator + catalogs, `TrinketPersistence` map/atlas slice, Shop/Mystery/reward/craft reuse
 
 ---

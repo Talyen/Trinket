@@ -127,57 +127,59 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
     case shop
     case rest
     case mystery
+    /// Legacy save value; sanitized to `.mystery`. Do not generate new event nodes.
     case event
     case craft
     case gate
 
+    /// Canonical type after collapsing legacy `.event` into mystery encounters.
+    public var canonical: LabyrinthNodeType {
+        self == .event ? .mystery : self
+    }
+
     public var title: String {
-        switch self {
+        switch canonical {
         case .battle: return "Battle"
         case .elite: return "Elite"
         case .warden: return "Warden"
         case .shop: return "Merchant's Shop"
         case .rest: return "Shrine"
-        case .mystery: return "Mystery"
-        case .event: return "Event"
+        case .mystery, .event: return "Mystery"
         case .craft: return "Crafting Altar"
         case .gate: return "Depth Gate"
         }
     }
 
     public var symbolName: String {
-        switch self {
+        switch canonical {
         case .battle: return "bolt.fill"
         case .elite: return "flame.fill"
         case .warden: return "crown.fill"
         case .shop: return "bag.fill"
         case .rest: return "tent.fill"
-        case .mystery: return "sparkles"
-        case .event: return "questionmark.circle.fill"
+        case .mystery, .event: return "sparkles"
         case .craft: return "hammer.fill"
         case .gate: return "arrow.down.to.line.compact"
         }
     }
 
     public var primaryActionTitle: String {
-        switch self {
+        switch canonical {
         case .battle, .elite, .warden, .gate:
             return "Fight"
         case .shop:
             return "Visit"
         case .rest:
             return "Rest"
-        case .mystery:
+        case .mystery, .event:
             return "Approach"
-        case .event:
-            return "Continue"
         case .craft:
             return "Forge"
         }
     }
 
     public var isCombat: Bool {
-        switch self {
+        switch canonical {
         case .battle, .elite, .warden, .gate:
             return true
         case .shop, .rest, .mystery, .event, .craft:

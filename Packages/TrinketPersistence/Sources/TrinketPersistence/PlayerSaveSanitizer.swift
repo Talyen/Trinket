@@ -232,12 +232,26 @@ public enum PlayerSaveSanitizer {
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
         }
 
-        // Drop dangling outgoing edges.
-        for (id, var node) in sanitized.nodes {
-            node.outgoingIDs = node.outgoingIDs.filter { sanitized.nodes[$0] != nil }
-            node.failCount = max(0, node.failCount)
-            node.depth = max(0, node.depth)
-            sanitized.nodes[id] = node
+        // Drop dangling outgoing edges; collapse legacy `.event` into `.mystery`.
+        for (id, node) in sanitized.nodes {
+            let outgoing = node.outgoingIDs.filter { sanitized.nodes[$0] != nil }
+            let failCount = max(0, node.failCount)
+            let depth = max(0, node.depth)
+            let type = node.type.canonical
+            if type != node.type || outgoing != node.outgoingIDs || failCount != node.failCount
+                || depth != node.depth {
+                sanitized.nodes[id] = LabyrinthNode(
+                    id: node.id,
+                    type: type,
+                    enemyID: node.enemyID,
+                    depth: depth,
+                    clusterID: node.clusterID,
+                    outgoingIDs: outgoing,
+                    isCleared: node.isCleared,
+                    isRevealed: node.isRevealed,
+                    failCount: failCount
+                )
+            }
         }
 
         // If map is corrupt/empty after sanitize but player had entered, rebuild from seed.

@@ -446,7 +446,7 @@ Locked teasers for Gauntlet / Hunt / Labyrinth appear on Modes with no unlock ye
 |------|------------------|--------|
 | Reliquary Gauntlet | Multi-fight run; wounds persist | Encounter types, carry HP between battles |
 | Astral Hunt | Rotating Warden; score damage | Boss enemy, event scoring from battle log |
-| **Wanderer's Labyrinth** | Persistent infinite descent; biome clusters + named modifiers | Mystery/Shop/Rest/Event/Craft + map modifiers; see `DelveModePlan.md` |
+| **Wanderer's Labyrinth** | Persistent infinite descent; biome clusters + named modifiers | Mystery/Shop/Rest/Craft + map modifiers; Event collapsed into Mystery; see `DelveModePlan.md` |
 
 Do not implement Gauntlet/Hunt/Labyrinth in Aspects phases. Labyrinth Phase 0 preferences are locked in `DelveModePlan.md` §12.
 

@@ -5,6 +5,7 @@ import TrinketContent
 struct PlayView: View {
     @Environment(AppState.self) private var appState
     @State private var stageMessage: StageMapMessage?
+    @State private var labyrinthDeepLink: PlayLaunchDestination?
 
     var body: some View {
         @Bindable var battle = appState.battle
@@ -13,6 +14,12 @@ struct PlayView: View {
             onStageTap: handleStageTap,
             onEnemyTap: showEnemyDetails(for:)
         )
+        .navigationDestination(item: $labyrinthDeepLink) { _ in
+            LabyrinthMapView()
+        }
+        .onAppear {
+            applyPendingPlayDestinationIfNeeded()
+        }
         .fullScreenCover(item: activeBattleBinding) { configuration in
             NavigationStack {
                 BattleView(configuration: configuration)
@@ -54,6 +61,30 @@ struct PlayView: View {
             ShopEncounterView(session: session)
                 .interactiveDismissDisabled()
         }
+        .sheet(
+            item: Binding(
+                get: { appState.activeLabyrinthRest },
+                set: { newValue in
+                    if newValue == nil, appState.activeLabyrinthRest != nil {
+                        appState.dismissActiveLabyrinthRestWithoutCompleting()
+                    }
+                }
+            )
+        ) { session in
+            LabyrinthRestView(session: session)
+        }
+        .sheet(
+            item: Binding(
+                get: { appState.activeLabyrinthCraft },
+                set: { newValue in
+                    if newValue == nil, appState.activeLabyrinthCraft != nil {
+                        appState.dismissActiveLabyrinthCraftWithoutCompleting()
+                    }
+                }
+            )
+        ) { session in
+            LabyrinthCraftView(session: session)
+        }
         .alert(item: $stageMessage) { message in
             Alert(
                 title: Text(message.title),
@@ -72,6 +103,14 @@ struct PlayView: View {
                 }
             }
         )
+    }
+
+    private func applyPendingPlayDestinationIfNeeded() {
+        guard appState.consumePendingPlayDestination() == .labyrinthMap else { return }
+        if appState.isLabyrinthUnlocked {
+            _ = appState.enterLabyrinth()
+        }
+        labyrinthDeepLink = .labyrinthMap
     }
 
     private func handleStageTap(_ stage: Stage) {

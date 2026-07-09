@@ -29,4 +29,6 @@ enum LaunchScreen: Equatable {
     case itemDetail(String)
     case options
     case battle
+    case labyrinth
+    case labyrinthMap
 }

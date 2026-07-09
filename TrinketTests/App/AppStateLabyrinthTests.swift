@@ -111,6 +111,77 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
     }
 
+    @Test func startLabyrinthBattlePersistsResumeToken() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
+        _ = state.startLabyrinthBattle(nodeID: combatNodeID)
+        #expect(state.savedBattleResumeToken == .labyrinth(nodeID: combatNodeID))
+        #expect(state.shellSession.activeBattleLabyrinthNodeID == combatNodeID)
+    }
+
+    @Test func labyrinthRestFinishClearsNode() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let restNodeID = try #require(firstReachableNodeID(of: .rest, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: restNodeID) == nil)
+        let session = try #require(state.activeLabyrinthRest)
+        #expect(session.nodeID == restNodeID)
+
+        state.finishActiveLabyrinthRest()
+
+        #expect(state.activeLabyrinthRest == nil)
+        #expect(state.labyrinth.nodes[restNodeID]?.isCleared == true)
+    }
+
+    @Test func labyrinthCraftForgeClearsNodeWhenAffordable() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
+
+        var roster = state.roster.current
+        roster.grantGold(200)
+        state.roster.current = roster
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
+        #expect(state.activeLabyrinthCraft != nil)
+        #expect(state.forgeActiveLabyrinthCraft())
+        #expect(state.activeLabyrinthCraft == nil)
+        #expect(state.labyrinth.nodes[craftNodeID]?.isCleared == true)
+    }
+
+    @Test func legacyEventNodeRoutesToMystery() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinth(on: state)
+        _ = state.enterLabyrinth()
+        let reachableID = try #require(state.labyrinth.reachableNodeIDs().first)
+        var labyrinth = state.labyrinth.current
+        guard var node = labyrinth.nodes[reachableID] else {
+            Issue.record("Missing reachable node")
+            return
+        }
+        node = LabyrinthNode(
+            id: node.id,
+            type: .event,
+            enemyID: nil,
+            depth: node.depth,
+            clusterID: node.clusterID,
+            outgoingIDs: node.outgoingIDs,
+            isCleared: false,
+            isRevealed: true,
+            failCount: 0
+        )
+        labyrinth.nodes[reachableID] = node
+        state.labyrinth = labyrinth
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: reachableID) == nil)
+        #expect(state.activeMysteryEncounter?.labyrinthNodeID == reachableID)
+    }
+
     private func unlockLabyrinth(on appState: AppState) {
         var journey = appState.journey.current
         if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {

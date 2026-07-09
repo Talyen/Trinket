@@ -14,6 +14,12 @@ struct LabyrinthAtlasView: View {
         List {
             Section {
                 LabeledContent("Deepest Depth", value: "\(state.deepestDepth)")
+                if state.deepestDepth >= 10 {
+                    Text("Marked in the Atlas")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
+                }
             }
 
             Section("Biomes") {
