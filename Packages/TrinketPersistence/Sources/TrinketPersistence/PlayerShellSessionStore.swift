@@ -17,7 +17,7 @@ public final class PlayerShellSessionStore {
     public static let currentSchemaVersion = 1
 
     private let context: ModelContext
-    private var record: PlayerShellSession!
+    private var record: PlayerShellSession
     private static let logger = Logger(
         subsystem: PlayerSaveDefaults.loggingSubsystem,
         category: "PlayerShellSession"

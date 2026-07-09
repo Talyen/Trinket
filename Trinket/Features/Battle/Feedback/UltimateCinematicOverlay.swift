@@ -241,7 +241,9 @@ final class PlayerLayerView: UIView {
 
     var playerLayer: AVPlayerLayer {
         // UIStyleCheck: allow - AVPlayerLayer host requires UIView subclass cast
-        // swiftlint:disable:next force_cast
-        layer as! AVPlayerLayer
+        guard let playerLayer = layer as? AVPlayerLayer else {
+            preconditionFailure("PlayerLayerView.layerClass must be AVPlayerLayer")
+        }
+        return playerLayer
     }
 }
