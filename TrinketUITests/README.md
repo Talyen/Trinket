@@ -6,11 +6,12 @@ UI test conventions for Trinket. Agent workflow overview: `AGENTS.md`. Accessibi
 
 | Area | Path | When |
 |------|------|------|
-| Smoke | `Smoke/`, `Smoke.xctestplan` | Tab/screen edits, pre-push (`test.sh smoke`) |
+| Quick smoke | `QuickSmoke.xctestplan` (`SmokeHomesteadTests`) | Local / agents (`test.sh smoke`) |
+| Full smoke | `Smoke/`, `Smoke.xctestplan` | CI / PR (`test.sh smoke-full`); local only when debugging |
 | Exhaustive | `Play/`, `Collection/`, `Battle/` | Pre-merge (`test.sh ui` / `test-deploy.sh`) |
 | Support | `Support/Screens/` | Page objects (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
 
-Smoke classes are lean per-screen checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here.
+Smoke classes are lean per-screen checks: one assertion theme per method; split at ~20 lines. Discover current smoke classes under `Smoke/` rather than hard-coding a count here. Bare `test.sh smoke` runs only the Homestead canary; `test.sh smoke <Class>` filters the full Smoke plan for iteration.
 
 ## Launch args
 

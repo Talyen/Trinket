@@ -99,8 +99,8 @@ jobs:
         with:
           cache-key: ${{ needs.build.outputs.build-cache-key }}
           artifact-name: ui-smoke
-          command: ./Scripts/test.sh smoke --no-build --verbose
-          timing-mode: smoke
+          command: ./Scripts/test.sh smoke-full --no-build --verbose
+          timing-mode: smoke-full
           timing-budget-seconds: '360'
 
   ui-exhaustive:

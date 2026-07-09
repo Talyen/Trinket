@@ -15,12 +15,12 @@ echo "=== Unit timing budget ==="
 ./Scripts/test-timing.sh assert-budget --mode unit --max-wall 60 --skip-if-missing
 
 echo ""
-echo "=== Smoke UI tests ==="
+echo "=== Quick smoke UI canary ==="
 ./Scripts/test.sh smoke
 
 echo ""
 echo "=== Smoke timing budget ==="
-./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 360 --skip-if-missing
+./Scripts/test-timing.sh assert-budget --mode smoke --max-wall 30 --skip-if-missing
 
 echo ""
 echo "=== All checks passed ==="

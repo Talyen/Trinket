@@ -210,7 +210,7 @@ def cmd_record(args: list[str]) -> None:
 
 def cmd_ingest(args: list[str]) -> None:
     if not args:
-        raise SystemExit("ingest requires MODE (unit, smoke, ui, all)")
+        raise SystemExit("ingest requires MODE (unit, smoke, smoke-full, ui, all)")
 
     mode = args[0]
     wall_seconds = None
@@ -279,7 +279,7 @@ def cmd_report(args: list[str]) -> None:
     print("")
     print("Recent runs")
     print("───────────")
-    print(f"{'When':<20} {'Mode':<8} {'Wall':>8} {'Tests':>8} {'Pass':>6} {'Build':>7}  Targets")
+    print(f"{'When':<20} {'Mode':<12} {'Wall':>8} {'Tests':>8} {'Pass':>6} {'Build':>7}  Targets")
     for entry in recent:
         when = entry.get("recorded_at", "")[:19].replace("T", " ")
         mode = entry.get("mode", "?")
@@ -288,7 +288,7 @@ def cmd_report(args: list[str]) -> None:
         passed = entry.get("summary", {}).get("passed", 0)
         build = "no" if entry.get("no_build") else "yes"
         targets = ", ".join(entry.get("targets") or []) or "—"
-        print(f"{when:<20} {mode:<8} {wall:>8} {test_count:>8} {passed:>6} {build:>7}  {targets}")
+        print(f"{when:<20} {mode:<12} {wall:>8} {test_count:>8} {passed:>6} {build:>7}  {targets}")
 
     aggregates: dict[str, dict] = {}
     for entry in entries:

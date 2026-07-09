@@ -35,6 +35,9 @@
          </TestPlanReference>
          <TestPlanReference
             default = "YES"
+            reference = "container:QuickSmoke.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
             reference = "container:Smoke.xctestplan">
          </TestPlanReference>
          <TestPlanReference

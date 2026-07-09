@@ -49,11 +49,12 @@ For manifest, art, music, or SFX edits:
 ./Scripts/build.sh
 ./Scripts/test.sh unit             # TrinketTests + all package test schemes
 ./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
-./Scripts/test.sh smoke            # UI smoke (~2 min)
+./Scripts/test.sh smoke            # local UI canary (Homestead, QuickSmoke)
+./Scripts/test.sh smoke-full       # full Smoke.xctestplan (CI / PR)
 ./Scripts/test-iterate.sh SmokePlayTests   # build once, run one smoke class
 ./Scripts/test.sh style            # format + lint + UI style check
 ./Scripts/ci-gate.sh               # fast gate: generate, assert, boundaries, style
-./Scripts/ci-locally.sh            # pre-push: gate + unit + smoke
+./Scripts/ci-locally.sh            # pre-push: gate + unit + quick smoke
 ./Scripts/test-deploy.sh           # pre-merge: generate, style, unit, full UI
 ./Scripts/run-simulator.sh
 ./Scripts/release.sh --dry-run     # preview changelog + App Store notes (no tests)

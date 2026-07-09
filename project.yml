@@ -5,6 +5,7 @@ options:
     iOS: "26.0"
 fileGroups:
   - Unit.xctestplan
+  - QuickSmoke.xctestplan
   - Smoke.xctestplan
   - FullUI.xctestplan
   - Integration.xctestplan
@@ -96,8 +97,9 @@ schemes:
     test:
       testPlans:
         - path: Unit.xctestplan
-        - path: Smoke.xctestplan
+        - path: QuickSmoke.xctestplan
           defaultPlan: true
+        - path: Smoke.xctestplan
         - path: FullUI.xctestplan
         - path: Integration.xctestplan
       targets:

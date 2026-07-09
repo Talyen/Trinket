@@ -386,6 +386,7 @@
 		F586133A7383F3D2E7BD70A8 /* music_battle_2.m4a */ = {isa = PBXFileReference; path = music_battle_2.m4a; sourceTree = "<group>"; };
 		F5D3EF948D89460BB07123D6 /* BattleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BattleView.swift; sourceTree = "<group>"; };
 		F600F8987D9536A536F5C513 /* ChapterStageSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterStageSelectView.swift; sourceTree = "<group>"; };
+		F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */ = {isa = PBXFileReference; path = QuickSmoke.xctestplan; sourceTree = "<group>"; };
 		F86390BDE7F14CD4871091E4 /* ItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemViews.swift; sourceTree = "<group>"; };
 		F936A07112C96FCAFFE9A414 /* ActivePartyPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivePartyPickerRow.swift; sourceTree = "<group>"; };
 		F9D7159B5F1DC16EA97A4203 /* ActiveBattleConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveBattleConfigurationTests.swift; sourceTree = "<group>"; };
@@ -554,6 +555,7 @@
 			children = (
 				E89691B00998EAF137303F2E /* FullUI.xctestplan */,
 				4058BC1CE8ECD030168E8758 /* Integration.xctestplan */,
+				F860CF8731633D08940B8C94 /* QuickSmoke.xctestplan */,
 				D77B1B572840FE4B65134F04 /* Smoke.xctestplan */,
 				591A93FAF4E4831728073D5B /* Unit.xctestplan */,
 				2844A738FB32D14BF53C79FF /* Packages */,

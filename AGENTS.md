@@ -63,13 +63,13 @@ Trinket is a **2026-native iOS app**. Treat anything targeting iOS 25 or earlier
 | `project.yml` change | `./Scripts/generate.sh` before build/test |
 | Package rules/models | `./Scripts/test-package.sh <Package>` |
 | App orchestration (`AppState`, `BattleSession`, …) | `./Scripts/test.sh unit <Class>` |
-| Tab / screen UI | `./Scripts/test.sh ui Smoke<Area>Tests` |
-| Styling | `./Scripts/check-ui-style.sh` (+ smoke if UI changed) |
-| Pre-push | `./Scripts/ci-locally.sh` (gate + unit + smoke) |
+| Tab / screen UI | `./Scripts/test.sh smoke` (single Homestead canary; **do not** run `smoke-full` / `ui` / `ci-locally` during active coding) |
+| Styling | `./Scripts/check-ui-style.sh` (+ `test.sh smoke` if UI changed) |
+| Pre-push | `./Scripts/ci-locally.sh` (gate + unit + quick smoke) |
 | Pre-merge | `./Scripts/test-deploy.sh` (gate + unit + full UI) |
 | One-screen layout check | `./Scripts/build.sh` or `./Scripts/run-simulator.sh` |
 
-Fast iteration: `--no-build` after a fresh build; `./Scripts/test-iterate.sh <SmokeClass> [ExhaustiveClass]` for UI loops. Avoid `ci-locally.sh` / `test-deploy.sh` during active coding — prefer `build.sh` or filtered unit/smoke.
+Fast iteration: `--no-build` after a fresh build; `./Scripts/test-iterate.sh <SmokeClass>` or `./Scripts/test.sh smoke <SmokeClass>` for a specific smoke class. Avoid `smoke-full`, `ci-locally.sh`, and `test-deploy.sh` during active coding — prefer `build.sh`, `test.sh unit`, and bare `test.sh smoke`. Full smoke (`smoke-full`) is CI-only unless debugging a smoke failure.
 
 ### Toolchain ladder (cloud / no Xcode 26)
 
@@ -143,22 +143,24 @@ Scripts under `./Scripts/` (XcodeGen, `xcodebuild`, Swift Testing, XCTest, Swift
 | Gate | Runs |
 |------|------|
 | `ci-gate.sh` | generate → assert → boundaries → Swift Testing check → style → release-notes validate |
-| `ci-locally.sh` | `ci-gate.sh` → unit → smoke (+ timing budgets) — **pre-push** |
+| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing budgets) — **pre-push** |
 | `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
-| GitHub `pr.yml` | gate → unit + smoke (parallel) on `macos-26` |
-| GitHub `ci.yml` (main) | gate → unit + full UI (parallel) on `macos-26` |
+| GitHub `pr.yml` | gate → unit + full smoke (`smoke-full`) (parallel) on `macos-26` |
+| GitHub `ci.yml` (main) | gate → unit + full smoke + exhaustive UI (parallel) on `macos-26` |
 
 | Tier | Command | When |
 |------|---------|------|
 | Unit | `test.sh unit` | Every logic change |
 | Unit (filtered) | `test.sh unit <Class>` | Focused app logic (`TrinketTests` only) |
 | Package unit | `test-package.sh <Package>` | Focused package logic |
-| UI smoke | `test.sh smoke` | Tab/screen edits, pre-push (`TrinketUITests/Smoke/`) |
-| Targeted UI | `test.sh ui <Class>` | Focused UI iteration |
+| UI smoke canary | `test.sh smoke` | Local / agents — single Homestead canary (`QuickSmoke.xctestplan`) |
+| Targeted smoke | `test.sh smoke <Class>` | Iterate on one smoke class (`Smoke.xctestplan` + filter) |
+| Full smoke | `test.sh smoke-full` | CI / PR only — full `Smoke.xctestplan` |
+| Targeted UI | `test.sh ui <Class>` | Focused exhaustive UI iteration |
 | Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
 | Integration | `test.sh all` | Nightly / manual |
 
-Iteration before merge: **unit** → **smoke class** → **exhaustive class**. Keep diffs focused.
+Iteration before merge: **unit** → **quick smoke** → (CI) **smoke-full** / **exhaustive**. Keep diffs focused.
 
 ## Unit Tests
 
@@ -193,7 +195,7 @@ Mirror production folders under `TrinketTests/`. SwiftUI `Features/*` views → 
 
 ## UI Tests
 
-Smoke lives in `TrinketUITests/Smoke/` (`Smoke.xctestplan`). Exhaustive journeys under `Play/`, `Collection/`, `Battle/` — `test.sh ui` / `test-deploy.sh` only. Page objects: `TrinketUITests/Support/Screens/`.
+Local/agent default: `test.sh smoke` runs the Homestead canary (`QuickSmoke.xctestplan`). Full smoke suite lives in `TrinketUITests/Smoke/` (`Smoke.xctestplan`) and runs via `test.sh smoke-full` on CI/PR only. Exhaustive journeys under `Play/`, `Collection/`, `Battle/` — `test.sh ui` / `test-deploy.sh` only. Page objects: `TrinketUITests/Support/Screens/`.
 
 Default smoke args: `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`. Prefer `-launch-screen` / `-selectedTab` deep links; avoid Play-map scroll loops (`-completed-stages` / `-map-scroll-target`). Assert with `assertExists` on ids from `AccessibilityID` / existing identifiers.
 

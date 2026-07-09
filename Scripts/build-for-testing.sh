@@ -44,6 +44,7 @@ CI_FINGERPRINTS=(
   unit
   unit_TrinketTests
   smoke
+  smoke-full
   ui
   ui_BattleFlowUITests
   ui_TabNavigationUITests_CollectionSearchUITests
