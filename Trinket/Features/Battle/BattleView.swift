@@ -224,9 +224,11 @@ struct BattleView: View {
             maxMana: manaValues.maxMana,
             healthBarPlacement: healthBarPlacement,
             items: battleSession.feedbackItems(for: combatant.id),
-            hitReaction: battleSession.hitReaction(for: combatant.id),
+            hitReaction: battleSession.hitReactionsByTargetID[combatant.id],
             keywordBursts: battleSession.keywordBursts(for: combatant.id),
-            skillCallout: battleSession.skillCallout(for: combatant.id),
+            skillCallout: battleSession.activeSkillCallout?.actorID == combatant.id
+                ? battleSession.activeSkillCallout
+                : nil,
             skillCharge: battleState.skillChargeProjection(of: combatant),
             reduceMotion: reduceMotion,
             cinematicNamespace: cinematicNamespace,

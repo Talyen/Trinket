@@ -43,8 +43,6 @@ final class BattleSession {
     private(set) var state: BattleState?
     var onBattleStateChange: ((ActiveBattleResumeToken?) -> Void)?
 
-    private var feedbackItemsByTargetID: [String: [CombatFeedbackItem]] = [:]
-    private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackEventRecordedAt: [Int: Date] = [:]
     private var presentedFeedbackIDs: Set<Int> = []
     /// Nested overlay + cinematic holds that force `isPaused` until the last hold ends.
@@ -116,18 +114,10 @@ final class BattleSession {
         victorySummary = nil
     }
 
-    func feedbackEvents(for targetID: String) -> [ActionEvent] {
-        feedbackEventsByTargetID[targetID] ?? []
-    }
-
     func feedbackItems(for targetID: String, at date: Date = .now) -> [CombatFeedbackItem] {
-        (feedbackItemsByTargetID[targetID] ?? []).filter { item in
-            date >= item.availableAt && date < item.expiresAt
+        activeFeedbackItems.filter { item in
+            item.targetID == targetID && date >= item.availableAt && date < item.expiresAt
         }
-    }
-
-    func hitReaction(for targetID: String) -> CombatantHitReaction? {
-        hitReactionsByTargetID[targetID]
     }
 
     func keywordBursts(for targetID: String, at date: Date = .now) -> [KeywordBurstRequest] {
@@ -136,17 +126,8 @@ final class BattleSession {
         }
     }
 
-    func skillCallout(for actorID: String) -> SkillCalloutPresentation? {
-        guard let activeSkillCallout, activeSkillCallout.actorID == actorID else { return nil }
-        return activeSkillCallout
-    }
-
     func removeFeedbackEvent(_ id: Int) {
-        if let event = activeFeedbackEvents.first(where: { $0.id == id }) {
-            feedbackEventsByTargetID[event.targetID]?.removeAll { $0.id == id }
-        }
         if let item = activeFeedbackItems.first(where: { $0.id == id }) {
-            feedbackItemsByTargetID[item.targetID]?.removeAll { $0.id == id }
             keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == id }
         }
         activeFeedbackEvents.removeAll { $0.id == id }
@@ -156,7 +137,7 @@ final class BattleSession {
     }
 
     func pruneExpiredFeedback(at date: Date = .now) {
-        promoteDueFeedbackPresentation(at: date)
+        applyImmediatePresentation(for: activeFeedbackItems, at: date)
         let expiredItemIDs = activeFeedbackItems.compactMap { item in
             date >= item.expiresAt ? item.id : nil
         }
@@ -378,16 +359,11 @@ extension BattleSession {
     ) {
         for event in events {
             activeFeedbackEvents.append(event)
-            feedbackEventsByTargetID[event.targetID, default: []].append(event)
             feedbackEventRecordedAt[event.id] = date
         }
 
         let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
-        for item in items {
-            activeFeedbackItems.append(item)
-            feedbackItemsByTargetID[item.targetID, default: []].append(item)
-        }
-
+        activeFeedbackItems.append(contentsOf: items)
         applyImmediatePresentation(for: items, at: date)
     }
 
@@ -414,15 +390,9 @@ extension BattleSession {
         }
     }
 
-    private func promoteDueFeedbackPresentation(at date: Date) {
-        applyImmediatePresentation(for: activeFeedbackItems, at: date)
-    }
-
     private func clearFeedback() {
         activeFeedbackEvents = []
         activeFeedbackItems = []
-        feedbackEventsByTargetID = [:]
-        feedbackItemsByTargetID = [:]
         feedbackEventRecordedAt = [:]
         hitReactionsByTargetID = [:]
         keywordBurstsByTargetID = [:]
