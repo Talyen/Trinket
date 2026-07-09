@@ -2,7 +2,7 @@
 
 Design and implementation plan for the **Play Modes** destination chooser and the first alternate mode, **Aspects** (Keyword-constrained floor climbs). Expands roadmap **R-022**. Complements `CoreDesignConcepts.md` (journey + Keywords), `AppVisualFoundation.md` (chrome + motion), and `AppleNativeGuidelines.md` (SwiftUI / iOS 26 patterns).
 
-**Status:** implementing — Phases 1–4 landed (Modes shell, Aspects catalog/persistence, hub/climb UI, battle wiring). Content uses existing enemy roster; TSV codegen deferred.  
+**Status:** implementing — Phases 1–4 landed; follow-up fixes cover attunement coverage, Aspect battle resume, unlock guards, Warden item rolls, Modes Chapter-1 gate, climb UX. Content uses existing enemy roster; TSV codegen deferred.  
 **Out of scope for v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt / Labyrinth (named as future Modes only)
 
 ---
@@ -452,15 +452,13 @@ Do not implement these in Aspects phases.
 
 ---
 
-## Open decisions (resolve in Phase 0)
+## Open decisions (resolved)
 
-1. Play default root: **Play Home** vs keep Journey as root with a Modes entry control in the journey header.
-2. Unlock beat: Chapter 1 Stage 5 vs Chapter 1 complete.
-3. Item affinity: hint-only vs hard gate for v1.
-4. Replay rewards: full vs diminished.
-5. Whether Resource Keywords ever get climb Aspects or stay economy-only.
-
-**Recommendation defaults:** Play Home root; unlock Modes at Chapter 1 complete (stronger fantasy beat); item hint-only; full replay rewards; no Gold/Mana climbs in v1.
+1. Play default root: Journey remains root with a Modes entry chip on the chapter hero (Play Home deferred until more Modes ship).
+2. Unlock beat: **Chapter 1 complete** unlocks Modes.
+3. Item affinity: **hint-only** on Aspect Climb.
+4. Replay rewards: **full rate**, no stamina.
+5. Resource Keywords: economy-only for v1 (no Gold/Mana climbs).
 
 ---
 

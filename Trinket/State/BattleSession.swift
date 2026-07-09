@@ -37,7 +37,7 @@ final class BattleSession {
     }
 
     private(set) var state: BattleState?
-    var onBattleStateChange: ((String?) -> Void)?
+    var onBattleStateChange: ((ActiveBattleResumeToken?) -> Void)?
 
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]

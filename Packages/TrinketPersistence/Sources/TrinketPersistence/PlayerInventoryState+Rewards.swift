@@ -12,8 +12,11 @@ public extension PlayerInventoryState {
         for stage: Stage,
         using _: inout RNG
     ) {
-        let rewardItem = template.rewardInstance(for: stage.id)
-        guard !items.contains(where: { $0.id == rewardItem.id }) else { return }
-        items.append(rewardItem)
+        appendUniqueItem(template.rewardInstance(for: stage.id))
+    }
+
+    mutating func appendUniqueItem(_ item: InventoryItem) {
+        guard !items.contains(where: { $0.id == item.id }) else { return }
+        items.append(item)
     }
 }

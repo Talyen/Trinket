@@ -31,9 +31,20 @@ struct ActiveBattleConfiguration: Identifiable {
     let inventoryState: PlayerInventoryState
     let stageReward: StageReward?
     let rewardItemNames: [String]
+    let pendingRewardItem: InventoryItem?
 
     var hasProgressionRewards: Bool {
         stageID != nil || aspectBattle != nil
+    }
+
+    var resumeToken: ActiveBattleResumeToken? {
+        if let stageID {
+            return .journey(stageID: stageID)
+        }
+        if let aspectBattle {
+            return .aspect(aspectID: aspectBattle.aspectID, floor: aspectBattle.floor)
+        }
+        return nil
     }
 
     func partyMember(for combatantID: String) -> PartyMember? {
@@ -82,6 +93,12 @@ struct ActiveBattleConfiguration: Identifiable {
         stageReward: StageReward? = nil
     ) -> ActiveBattleConfiguration {
         let enemyBuild = resolvedEnemyBuild(enemy: enemy)
+        var rng = SeededRandomNumberGenerator(seed: rngSeed)
+        let pendingRewardItem = pendingAspectRewardItem(aspectBattle: aspectBattle, using: &rng)
+        let templateNames = rewardItemNames(for: stageReward)
+        let rewardNames = templateNames.isEmpty
+            ? pendingRewardItem.map { [$0.displayName] } ?? []
+            : templateNames
         return ActiveBattleConfiguration(
             stageID: stageID,
             aspectBattle: aspectBattle,
@@ -103,8 +120,23 @@ struct ActiveBattleConfiguration: Identifiable {
             enemyModifiers: enemyBuild.modifiers,
             inventoryState: inventoryState,
             stageReward: stageReward,
-            rewardItemNames: rewardItemNames(for: stageReward)
+            rewardItemNames: rewardNames,
+            pendingRewardItem: pendingRewardItem
         )
+    }
+
+    private static func pendingAspectRewardItem<RNG: RandomNumberGenerator>(
+        aspectBattle: AspectBattle?,
+        using randomNumberGenerator: inout RNG
+    ) -> InventoryItem? {
+        guard let aspectBattle,
+              let floor = GameContent.aspectFloor(
+                  aspectID: aspectBattle.aspectID,
+                  floor: aspectBattle.floor
+              ),
+              floor.isWarden
+        else { return nil }
+        return AspectCompletion.makeWardenItem(for: floor, using: &randomNumberGenerator)
     }
 
     private static func partyMember(

@@ -37,4 +37,19 @@ struct AspectCatalogTests {
                 == .missingPetAffinity
         )
     }
+
+    @Test func everyAspectHasAttunableHeroAndPet() throws {
+        for aspect in GameContent.aspects {
+            let heroes = GameContent.heroes.filter { $0.keywordProfile.contains(aspect.keyword) }
+            let pets = GameContent.pets.filter { $0.keywordProfile.contains(aspect.keyword) }
+            try #expect(!heroes.isEmpty, "\(aspect.title) needs a Hero with \(aspect.keyword.rawValue)")
+            try #expect(!pets.isEmpty, "\(aspect.title) needs a Pet with \(aspect.keyword.rawValue)")
+            let ready = heroes.contains { hero in
+                pets.contains { pet in
+                    AspectAttunement.evaluate(hero: hero, pet: pet, aspect: aspect) == .ready
+                }
+            }
+            try #expect(ready, "\(aspect.title) needs at least one ready Hero+Pet pair")
+        }
+    }
 }

@@ -171,7 +171,7 @@ enum GameContentRosterGenerated {
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
-                skills: [.serratedEdge, .predatorsHaste],
+                skills: [.serratedEdge, .poisonDagger],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 8, agility: 9, toughness: 5, intellect: 3, wisdom: 3),
@@ -198,7 +198,7 @@ enum GameContentRosterGenerated {
             maxHealth: 14,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs],
-                skills: [.serratedEdge, .predatorsHaste],
+                skills: [.graspingVines, .predatorsHaste],
                 ultimates: [.packTactics, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 10, toughness: 5, intellect: 2, wisdom: 4),

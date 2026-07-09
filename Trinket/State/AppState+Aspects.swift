@@ -8,8 +8,30 @@ extension AppState {
     func startAspectBattle(for floor: AspectFloor) -> StageMapMessage? {
         guard battle.activeBattle == nil else { return nil }
 
+        guard ModesUnlock.isUnlocked(journey: journey.current) else {
+            return StageMapMessage(title: "Modes Locked", message: ModesUnlock.unlockHint)
+        }
+
         guard let aspect = GameContent.aspect(id: floor.aspectID) else {
             return StageMapMessage(title: "Aspect Missing", message: "This Aspect is not ready yet.")
+        }
+
+        guard AspectUnlock.isUnlocked(aspect, progress: aspects.current) else {
+            return StageMapMessage(
+                title: "Aspect Locked",
+                message: AspectUnlock.unlockHint(for: aspect)
+            )
+        }
+
+        guard aspects.current.isFloorUnlocked(
+            floor.floor,
+            aspectID: floor.aspectID.rawValue,
+            floorCount: aspect.floorCount
+        ) else {
+            return StageMapMessage(
+                title: "Floor Locked",
+                message: "Clear earlier floors first."
+            )
         }
 
         let attunement = AspectAttunement.evaluate(
@@ -45,7 +67,8 @@ extension AppState {
         hero: Combatant,
         pet: Combatant,
         battleEarnedGold: Int = 0,
-        materialRewards: [ResourceAmount]? = nil
+        materialRewards: [ResourceAmount]? = nil,
+        rewardItem: InventoryItem? = nil
     ) {
         do {
             try playerSave.performBatchMutation { save in
@@ -55,6 +78,7 @@ extension AppState {
                     pet: pet,
                     battleEarnedGold: battleEarnedGold,
                     materialRewards: materialRewards,
+                    rewardItem: rewardItem,
                     save: &save
                 )
             }
