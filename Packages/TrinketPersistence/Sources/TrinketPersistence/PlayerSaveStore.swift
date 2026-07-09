@@ -77,6 +77,11 @@ public final class PlayerSaveStore {
         }
     }
 
+    public var aspects: PlayerAspectsState {
+        get { currentSave.aspects }
+        set { mutate { $0.aspects = PlayerSaveSanitizer.sanitizeAspects(newValue) } }
+    }
+
     public var currentSave: PlayerSave {
         root.toPlayerSave()
     }

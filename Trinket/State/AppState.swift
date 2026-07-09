@@ -38,6 +38,11 @@ final class AppState {
         set { playerSave.homestead = newValue }
     }
 
+    var aspects: PlayerAspectsState {
+        get { playerSave.aspects }
+        set { playerSave.aspects = newValue }
+    }
+
     var collectionAttention: PlayerCollectionAttentionState {
         get { playerSave.collectionAttention }
         set { playerSave.collectionAttention = newValue }

@@ -309,3 +309,31 @@ struct WireCollectionAttentionState: Codable, Equatable {
         )
     }
 }
+
+struct WireAspectsState: Codable, Equatable {
+    var highestClearedFloorByAspectID: [String: Int]
+
+    init(_ aspects: PlayerAspectsState) {
+        highestClearedFloorByAspectID = aspects.highestClearedFloorByAspectID
+    }
+
+    init(highestClearedFloorByAspectID: [String: Int]) {
+        self.highestClearedFloorByAspectID = highestClearedFloorByAspectID
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        highestClearedFloorByAspectID = try container.decodeIfPresent(
+            [String: Int].self,
+            forKey: .highestClearedFloorByAspectID
+        ) ?? [:]
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case highestClearedFloorByAspectID
+    }
+
+    func aspects() -> PlayerAspectsState {
+        PlayerAspectsState(highestClearedFloorByAspectID: highestClearedFloorByAspectID)
+    }
+}

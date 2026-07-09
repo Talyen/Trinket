@@ -31,9 +31,23 @@ struct ChapterJourneyHero: View {
                     .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Chapter \(chapter.number)")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.84))
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("Chapter \(chapter.number)")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.84))
+                            Spacer(minLength: 8)
+                            NavigationLink {
+                                ModesView()
+                            } label: {
+                                Label("Modes", systemImage: "sparkles")
+                                    .font(.subheadline.weight(.semibold))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
+                            .trinketGlassChip()
+                            .accessibilityIdentifier(AccessibilityID.Play.modesEntry)
+                        }
 
                         Text(chapter.title)
                             .font(.largeTitle.weight(.bold))

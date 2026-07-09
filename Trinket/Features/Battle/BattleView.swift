@@ -102,7 +102,7 @@ struct BattleView: View {
     }
 
     private var hasStageProgression: Bool {
-        configuration.stageID != nil
+        configuration.hasProgressionRewards
     }
 
     private func battleActionsMenu(battleSession: BattleSession) -> some View {

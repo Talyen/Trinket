@@ -163,11 +163,13 @@
 		A7C44D4A3DCE64A3D4B87935 /* SmokeMysteryRecruitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CFF7A07C8E438EA39C22FF1 /* SmokeMysteryRecruitTests.swift */; };
 		3B96613C9B5AB1D74A992BAA /* MysteryEncounterSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */; };
 		27F872B27AC4B69B5639C9CC /* MysteryEncounterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57EB0A75D23F98B5FF356CC /* MysteryEncounterView.swift */; };
-<<<<<<< HEAD
 		F88564CC00D5623953F487E1 /* AppStateAttentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3200DD5234D602C4725715DB /* AppStateAttentionTests.swift */; };
-=======
 		15EF7047F50D150A3BDB1BD0 /* AppStateMysteryRecruitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BF8DFBECA9D603876EA2AB /* AppStateMysteryRecruitTests.swift */; };
->>>>>>> 0dc7889 (fix(ci): clear SwiftFormat and SwiftLint gate failures)
+		7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2448A72E6894CC74E35A0E /* AppStateAspectsTests.swift */; };
+		E65C7536A54EFEF454A0A837 /* AppState+Aspects.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */; };
+		5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */; };
+		5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */; };
+		33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29DD20B8080EC1342CD43769 /* ModesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -346,11 +348,13 @@
 		7CFF7A07C8E438EA39C22FF1 /* SmokeMysteryRecruitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeMysteryRecruitTests.swift; sourceTree = "<group>"; };
 		F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysteryEncounterSession.swift; sourceTree = "<group>"; };
 		C57EB0A75D23F98B5FF356CC /* MysteryEncounterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MysteryEncounterView.swift; sourceTree = "<group>"; };
-<<<<<<< HEAD
 		3200DD5234D602C4725715DB /* AppStateAttentionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateAttentionTests.swift; sourceTree = "<group>"; };
-=======
 		39BF8DFBECA9D603876EA2AB /* AppStateMysteryRecruitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateMysteryRecruitTests.swift; sourceTree = "<group>"; };
->>>>>>> 0dc7889 (fix(ci): clear SwiftFormat and SwiftLint gate failures)
+		4C2448A72E6894CC74E35A0E /* AppStateAspectsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateAspectsTests.swift; sourceTree = "<group>"; };
+		AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState+Aspects.swift; sourceTree = "<group>"; };
+		01AEF96EEEBF0FC945F0A8BF /* AspectClimbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectClimbView.swift; sourceTree = "<group>"; };
+		F875A8CEA115E7FE1187A526 /* AspectsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AspectsHubView.swift; sourceTree = "<group>"; };
+		29DD20B8080EC1342CD43769 /* ModesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -677,6 +681,7 @@
 				B9EBCA4863102B3F66332996 /* OptionsStoreTests.swift */,
 				4F6AB9883576D1098077D401 /* BattleSpectacleModels.swift */,
 				F2B64DB5E925966609B59EED /* MysteryEncounterSession.swift */,
+				AFABE2F1444F80FA506010C9 /* AppState+Aspects.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -1158,6 +1163,10 @@
 				4588C56FDFB193A4B7C3CF25 /* UltimateCinematicOverlay.swift in Sources */,
 				3B96613C9B5AB1D74A992BAA /* MysteryEncounterSession.swift in Sources */,
 				27F872B27AC4B69B5639C9CC /* MysteryEncounterView.swift in Sources */,
+				E65C7536A54EFEF454A0A837 /* AppState+Aspects.swift in Sources */,
+				5909CDD711D920EE482ACAE3 /* AspectClimbView.swift in Sources */,
+				5D74B6B74D44293982922EAD /* AspectsHubView.swift in Sources */,
+				33D3D21DD8F27F88CEE036C7 /* ModesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1190,6 +1199,7 @@
 				6D1BCBB52EB1BA5A72534E96 /* OptionsUltimateSkipPolicyTests.swift in Sources */,
 				F88564CC00D5623953F487E1 /* AppStateAttentionTests.swift in Sources */,
 				15EF7047F50D150A3BDB1BD0 /* AppStateMysteryRecruitTests.swift in Sources */,
+				7C370BBBA25A591B1F7D9526 /* AppStateAspectsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

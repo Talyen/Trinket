@@ -9,47 +9,55 @@ struct PlayView: View {
     var body: some View {
         @Bindable var battle = appState.battle
 
-        content
-            .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
-                appState.battle.restorePauseAfterOverlay()
-            }, content: { detail in
-                CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
-                    .presentationDetents([.large])
-                    .presentationContentInteraction(.resizes)
-                    .presentationDragIndicator(.hidden)
-            })
-            .fullScreenCover(
-                item: Binding(
-                    get: { appState.activeMysteryEncounter },
-                    set: { newValue in
-                        if newValue == nil, appState.activeMysteryEncounter != nil {
-                            appState.dismissActiveMysteryEncounterWithoutCompleting()
-                        }
+        ChapterStageSelectView(
+            onStageTap: handleStageTap,
+            onEnemyTap: showEnemyDetails(for:)
+        )
+        .fullScreenCover(item: activeBattleBinding) { configuration in
+            NavigationStack {
+                BattleView(configuration: configuration)
+                    .id(configuration.id)
+            }
+            .interactiveDismissDisabled()
+        }
+        .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
+            appState.battle.restorePauseAfterOverlay()
+        }, content: { detail in
+            CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
+                .presentationDetents([.large])
+                .presentationContentInteraction(.resizes)
+                .presentationDragIndicator(.hidden)
+        })
+        .fullScreenCover(
+            item: Binding(
+                get: { appState.activeMysteryEncounter },
+                set: { newValue in
+                    if newValue == nil, appState.activeMysteryEncounter != nil {
+                        appState.dismissActiveMysteryEncounterWithoutCompleting()
                     }
-                )
-            ) { session in
-                MysteryEncounterView(session: session)
-            }
-            .alert(item: $stageMessage) { message in
-                Alert(
-                    title: Text(message.title),
-                    message: Text(message.message),
-                    dismissButton: .default(Text("OK"))
-                )
-            }
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        if let activeBattle = appState.battle.activeBattle {
-            BattleView(configuration: activeBattle)
-                .id(activeBattle.id)
-        } else {
-            ChapterStageSelectView(
-                onStageTap: handleStageTap,
-                onEnemyTap: showEnemyDetails(for:)
+                }
+            )
+        ) { session in
+            MysteryEncounterView(session: session)
+        }
+        .alert(item: $stageMessage) { message in
+            Alert(
+                title: Text(message.title),
+                message: Text(message.message),
+                dismissButton: .default(Text("OK"))
             )
         }
+    }
+
+    private var activeBattleBinding: Binding<ActiveBattleConfiguration?> {
+        Binding(
+            get: { appState.battle.activeBattle },
+            set: { newValue in
+                if newValue == nil, appState.battle.activeBattle != nil {
+                    // Dismiss only through battle end / abandon — keep interactive dismiss disabled.
+                }
+            }
+        )
     }
 
     private func handleStageTap(_ stage: Stage) {

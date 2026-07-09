@@ -2,7 +2,7 @@
 
 Design and implementation plan for the **Play Modes** destination chooser and the first alternate mode, **Aspects** (Keyword-constrained floor climbs). Expands roadmap **R-022**. Complements `CoreDesignConcepts.md` (journey + Keywords), `AppVisualFoundation.md` (chrome + motion), and `AppleNativeGuidelines.md` (SwiftUI / iOS 26 patterns).
 
-**Status:** design lock candidate — not implemented  
+**Status:** implementing — Phases 1–4 landed (Modes shell, Aspects catalog/persistence, hub/climb UI, battle wiring). Content uses existing enemy roster; TSV codegen deferred.  
 **Out of scope for v1:** PvP, guild modes, Easy/Hard difficulty tiers, Reliquary Gauntlet / Astral Hunt / Labyrinth (named as future Modes only)
 
 ---
