@@ -41,12 +41,11 @@ final class BattleSession {
 
     private var feedbackEventsByTargetID: [String: [ActionEvent]] = [:]
     private var feedbackDisplayedAt: [Int: Date] = [:]
-    private var overlayPauseDepth = 0
-    private var pauseStateBeforeOverlay: Bool?
+    /// Nested overlay + cinematic holds that force `isPaused` until the last hold ends.
+    private var presentationHoldCount = 0
+    private var pauseStateBeforeHold: Bool?
     private var softHoldUntil: Date?
     private var deferredFeedbackEvents: [ActionEvent] = []
-    private var cinematicPauseDepth = 0
-    private var pauseStateBeforeCinematic: Bool?
     private var nextSpectacleID = 0
     /// Actor IDs (Hero/Pet) that already presented a full-screen Ultimate this battle.
     private var actorsWhoPresentedUltimateThisBattle: Set<String> = []
@@ -57,10 +56,6 @@ final class BattleSession {
             isPartyDefeated: state.isPartyDefeated,
             isEnemyDefeated: state.isEnemyDefeated
         )
-    }
-
-    var isCinematicActive: Bool {
-        activeCinematic != nil
     }
 
     func endBattle() {
@@ -83,28 +78,23 @@ final class BattleSession {
 
     func pauseForOverlay() {
         guard activeBattle != nil else { return }
-        if overlayPauseDepth == 0 {
-            pauseStateBeforeOverlay = isPaused
+        if presentationHoldCount == 0 {
+            pauseStateBeforeHold = isPaused
         }
-        overlayPauseDepth += 1
+        presentationHoldCount += 1
         isPaused = true
     }
 
     func restorePauseAfterOverlay() {
-        guard overlayPauseDepth > 0 else { return }
-        overlayPauseDepth -= 1
-        guard overlayPauseDepth == 0 else { return }
+        guard presentationHoldCount > 0 else { return }
+        presentationHoldCount -= 1
+        guard presentationHoldCount == 0 else { return }
         guard activeBattle != nil else {
-            pauseStateBeforeOverlay = nil
+            pauseStateBeforeHold = nil
             return
         }
-        // Keep paused if a cinematic still owns the clock.
-        if cinematicPauseDepth > 0 {
-            pauseStateBeforeOverlay = nil
-            return
-        }
-        isPaused = pauseStateBeforeOverlay ?? false
-        pauseStateBeforeOverlay = nil
+        isPaused = pauseStateBeforeHold ?? false
+        pauseStateBeforeHold = nil
     }
 
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
@@ -272,7 +262,7 @@ extension BattleSession {
         guard let cinematic = activeCinematic else { return }
         actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         activeCinematic = nil
-        restorePauseAfterCinematic()
+        restorePauseAfterOverlay()
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
         recordFeedbackEvents(deferred, at: date)
@@ -286,7 +276,7 @@ extension BattleSession {
 
     private func beginCinematic(from event: ActionEvent, at date: Date) {
         nextSpectacleID += 1
-        pauseForCinematic()
+        pauseForOverlay()
         activeCinematic = BattleCinematicPresentation(
             id: nextSpectacleID,
             actorID: event.actorID,
@@ -329,31 +319,6 @@ extension BattleSession {
         )
     }
 
-    private func pauseForCinematic() {
-        guard activeBattle != nil else { return }
-        if cinematicPauseDepth == 0 {
-            pauseStateBeforeCinematic = isPaused
-        }
-        cinematicPauseDepth += 1
-        isPaused = true
-    }
-
-    private func restorePauseAfterCinematic() {
-        guard cinematicPauseDepth > 0 else { return }
-        cinematicPauseDepth -= 1
-        guard cinematicPauseDepth == 0 else { return }
-        guard activeBattle != nil else {
-            pauseStateBeforeCinematic = nil
-            return
-        }
-        if overlayPauseDepth > 0 {
-            pauseStateBeforeCinematic = nil
-            return
-        }
-        isPaused = pauseStateBeforeCinematic ?? false
-        pauseStateBeforeCinematic = nil
-    }
-
     private func clearAllPresentation() {
         isPaused = false
         clearOutcomePresentation()
@@ -361,10 +326,8 @@ extension BattleSession {
         overlayCombatantDetail = nil
         clearFeedback()
         clearSpectacle()
-        overlayPauseDepth = 0
-        pauseStateBeforeOverlay = nil
-        cinematicPauseDepth = 0
-        pauseStateBeforeCinematic = nil
+        presentationHoldCount = 0
+        pauseStateBeforeHold = nil
     }
 
     private func recordFeedbackEvents(_ events: [ActionEvent], at date: Date = .now) {
@@ -428,8 +391,8 @@ extension BattleSession {
         clearSpectacle()
         clearOutcomePresentation()
         overlayCombatantDetail = nil
-        overlayPauseDepth = 0
-        pauseStateBeforeOverlay = nil
+        presentationHoldCount = 0
+        pauseStateBeforeHold = nil
         isPaused = false
     }
 }
