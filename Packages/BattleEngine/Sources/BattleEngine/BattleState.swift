@@ -59,6 +59,10 @@ public struct BattleState {
     /// When `false`, no log cache is allocated or updated during the battle.
     public let tracksLog: Bool
 
+    /// When `false`, action events are not retained on `events` (still returned from step APIs).
+    /// Use for bulk simulation to avoid unbounded allocation.
+    public let tracksEvents: Bool
+
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
     /// Round index. Advances once per full round (player turn + enemy turn + effect tick).
@@ -109,13 +113,16 @@ public struct BattleState {
         heroDeck: CombatDeck = CombatDeck(),
         petDeck: CombatDeck = CombatDeck(),
         nextCardID: Int = 0,
-        ownersSkippingThisPlayerTurn: Set<BattleParticipant> = []
+        ownersSkippingThisPlayerTurn: Set<BattleParticipant> = [],
+        tracksLog: Bool = false,
+        tracksEvents: Bool = true
     ) {
         hero = roster.hero.combatant
         pet = roster.pet.combatant
         enemy = roster.enemy.combatant
         rngSeed = rng.seed
-        tracksLog = false
+        self.tracksLog = tracksLog
+        self.tracksEvents = tracksEvents
         cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
         self.roster = roster
         self.rng = rng
@@ -151,13 +158,15 @@ public struct BattleState {
         petModifiers: CombatModifierProfile = .zero,
         enemyModifiers: CombatModifierProfile = .zero,
         rngSeed: UInt64? = nil,
-        tracksLog: Bool = true
+        tracksLog: Bool = true,
+        tracksEvents: Bool = true
     ) {
         self.hero = hero
         self.pet = pet
         let resolvedEnemy = enemy ?? Enemy.fallbackCombatant
         self.enemy = resolvedEnemy
         self.tracksLog = tracksLog
+        self.tracksEvents = tracksEvents
         cachedMatchup = BattleMatchup(hero: hero, pet: pet, enemy: resolvedEnemy)
 
         let seed = rngSeed ?? Self.defaultRNGSeed

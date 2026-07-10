@@ -15,12 +15,18 @@ public struct ItemGenerator: Sendable {
         rarity: Rarity,
         fixedAffixCount: Int? = nil,
         keywordBias: Set<Keyword> = [],
+        requireBuildAlignment: Bool = false,
         guaranteedAffixIDs: [String] = [],
         using randomNumberGenerator: inout RNG
     ) -> InventoryItem {
         let eligibleAffixes = affixDefinitions.filter { definition in
-            definition.slot == baseType.slot &&
-                !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
+            guard definition.slot == baseType.slot,
+                  !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
+            else { return false }
+            if requireBuildAlignment {
+                return definition.isAligned(withBuildKeywords: keywordBias)
+            }
+            return true
         }
 
         let guaranteedDefinitions = guaranteedAffixIDs.compactMap { affixID in

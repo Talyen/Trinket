@@ -33,7 +33,9 @@ package extension BattleState {
             appliedEffectSummaries: appliedEffectSummaries,
             milestone: milestone
         )
-        events.append(event)
+        if tracksEvents {
+            events.append(event)
+        }
         return event
     }
 

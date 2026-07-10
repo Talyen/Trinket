@@ -5,6 +5,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 ## Modules
 
 - **BattleEngine** — Core simulation. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
+- **BalanceSweepCLI** — Headless bulk balance sweeps (non-user-facing). See `Docs/Plans/BattleBalanceSimulator.md`.
 
 ## Key types
 
@@ -13,9 +14,19 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 | `BattleState` | Mutable simulation state; `playCard` / `endTurn` drive combat |
 | `BattleCard` / `BattleHand` / `CombatDeck` | Player ability cards drawn from Hero/Pet loadout decks |
 | `BattleCardCombatEngine` | Opening draw, play resolution, enemy turn, end-of-round effect tick |
+| `BattleSimulator` | Headless autoplay loop for balance sweeps |
+| `BalanceSweepRunner` | Stratified Monte Carlo sweep + markdown reports |
 | `BattleEffectHandler` | Protocol for effect application/tick logic |
 | `EffectHandlers` | Registry of all handlers, keyed by `EffectKind` |
 | `CombatantRuntime` | Per-combatant runtime state (HP, mana, active effects) |
+
+## Balance sweep
+
+```sh
+./Scripts/balance-sweep.sh --battles-per-tier 1000 --seed 1
+```
+
+Writes markdown under `BalanceSweepReports/` (gitignored). Requires a local Swift toolchain (Xcode 26+).
 
 ## Adding a new effect
 

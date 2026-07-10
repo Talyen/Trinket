@@ -28,16 +28,19 @@ public struct ThemedGearGenerator: Sendable {
         rarity: Rarity,
         fixedAffixCount: Int,
         idPrefix: String,
+        keywordBias: Set<Keyword>? = nil,
+        requireBuildAlignment: Bool = false,
         using randomNumberGenerator: inout RNG
     ) -> ThemedGearBuild {
-        let keywordBias = combatant.keywordProfile
+        let resolvedBias = keywordBias ?? combatant.keywordProfile
         var inventory: [InventoryItem] = []
         var loadout = EquipmentLoadout()
 
         for slot in combatant.role.equipmentSlots {
             guard let baseType = bestBaseType(
                 for: slot.baseItemSlot,
-                keywordBias: keywordBias,
+                keywordBias: resolvedBias,
+                requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
             ) else {
                 continue
@@ -49,7 +52,8 @@ public struct ThemedGearGenerator: Sendable {
                 baseType: baseType,
                 rarity: rarity,
                 fixedAffixCount: fixedAffixCount,
-                keywordBias: keywordBias,
+                keywordBias: resolvedBias,
+                requireBuildAlignment: requireBuildAlignment,
                 using: &randomNumberGenerator
             )
             inventory.append(item)
@@ -62,9 +66,19 @@ public struct ThemedGearGenerator: Sendable {
     private func bestBaseType<RNG: RandomNumberGenerator>(
         for slot: ItemSlot,
         keywordBias: Set<Keyword>,
+        requireBuildAlignment: Bool,
         using randomNumberGenerator: inout RNG
     ) -> ItemBaseType? {
-        let candidates = baseTypes.filter { $0.slot == slot }
+        var candidates = baseTypes.filter { $0.slot == slot }
+        if requireBuildAlignment {
+            candidates = candidates.filter { baseType in
+                itemGenerator.affixDefinitions.contains { definition in
+                    definition.slot == baseType.slot
+                        && !definition.keywords.isDisjoint(with: baseType.keywordAffinities)
+                        && definition.isAligned(withBuildKeywords: keywordBias)
+                }
+            }
+        }
         guard !candidates.isEmpty else { return nil }
 
         let ranked = candidates.map { baseType -> (ItemBaseType, Int) in

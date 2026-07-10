@@ -124,6 +124,7 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
 | `./Scripts/changed-source-summary.sh` | Summarize authored changes and focused agent route |
 | `./Scripts/verify-changed.sh [--dry-run]` | Run the minimum sequential verification selected from changes |
+| `./Scripts/balance-sweep.sh` | Headless battle balance sweep → `BalanceSweepReports/*.md` |
 
 ### Typical release flow
 

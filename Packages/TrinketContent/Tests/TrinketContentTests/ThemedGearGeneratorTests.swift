@@ -2,7 +2,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-@Suite
 struct ThemedGearGeneratorTests {
     @Test func generatesFixedAffixCountPerSlot() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
@@ -41,5 +40,34 @@ struct ThemedGearGeneratorTests {
         )
 
         try #expect(item.affixes.count == 1)
+    }
+
+    @Test func requireBuildAlignmentRejectsMismatchedDamageAffixes() throws {
+        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let bias = Set(knight.abilityLoadout.abilities.flatMap(\.keywords))
+        #expect(!bias.contains(.poison))
+
+        var rng = SeededRandomNumberGenerator(seed: 7)
+        let build = ThemedGearGenerator().generate(
+            for: knight.withAbilityLoadout(knight.abilityLoadout),
+            rarity: .astral,
+            fixedAffixCount: 3,
+            idPrefix: "aligned",
+            keywordBias: bias,
+            requireBuildAlignment: true,
+            using: &rng
+        )
+
+        let definitions = Dictionary(
+            uniqueKeysWithValues: GameContent.itemAffixDefinitions.map { ($0.id, $0) }
+        )
+        for item in build.inventory {
+            for affix in item.affixes {
+                let definition = try #require(definitions[affix.id])
+                try #expect(definition.isAligned(withBuildKeywords: bias))
+                let damageKeywords = definition.keywords.filter { $0.category == .damageType }
+                try #expect(damageKeywords.isSubset(of: bias))
+            }
+        }
     }
 }
