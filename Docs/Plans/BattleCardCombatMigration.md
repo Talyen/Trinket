@@ -84,4 +84,6 @@ Living tracking doc for migrating Trinket from a tick-based idle auto-battler to
 
 ## Out of scope (later polish)
 
-Card art/layout polish, mana economy, targeting UI, mulligan, enemy cards, haste redesign, rebalancing numbers, new balance simulator, motion redesign beyond wiring existing spectacle.
+Card art/layout polish, mana economy, targeting UI, mulligan, enemy cards, haste redesign, rebalancing numbers, motion redesign beyond wiring existing spectacle.
+
+**Follow-up:** headless balance simulator design lives in [`BattleBalanceSimulator.md`](BattleBalanceSimulator.md).
