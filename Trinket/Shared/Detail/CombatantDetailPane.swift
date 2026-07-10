@@ -16,8 +16,6 @@ struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var hidesNavigationBar = false
 
-    @Environment(\.dismiss) private var dismiss
-
     /// Sub-picker navigation state — owned here at the pane level so the
     /// navigationDestination modifiers are at the root of whatever NavigationStack
     /// is presenting this view. No nested UISheetPresentationControllers.
@@ -50,21 +48,16 @@ struct CombatantDetailPane: View {
     var body: some View {
         DetailHeroScrollShell(
             title: combatant.name,
-            // Sheet hosts use `.presentationContentInteraction(.resizes)`, so swipe
-            // alone won't dismiss — mirror ItemDetailView with an explicit Done.
-            showsDoneButton: !hidesNavigationBar,
-            hidesNavigationBar: hidesNavigationBar,
-            onDone: { dismiss() },
-            header: { baseHeight, overscroll in
-                CombatantHeroHeader(
-                    combatant: combatant,
-                    progression: progression,
-                    baseHeight: baseHeight,
-                    overscroll: overscroll
-                )
-                .accessibilityIdentifier("\(combatant.name) detail hero header")
-            },
-            bodyContent: {
+            hidesNavigationBar: hidesNavigationBar
+        ) { baseHeight, overscroll in
+            CombatantHeroHeader(
+                combatant: combatant,
+                progression: progression,
+                baseHeight: baseHeight,
+                overscroll: overscroll
+            )
+            .accessibilityIdentifier("\(combatant.name) detail hero header")
+        } bodyContent: {
             DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
                 statRow(
                     "Health",
@@ -129,8 +122,7 @@ struct CombatantDetailPane: View {
                 )
                 .padding(.vertical, 4)
             }
-            }
-        )
+        }
         // Sub-picker navigation — declared here so they land at the root of whichever
         // NavigationStack contains this pane (typically the Collection detail sheet).
         // This keeps all presentation at the stack root.
