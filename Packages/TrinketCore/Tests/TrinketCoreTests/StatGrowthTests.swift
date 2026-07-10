@@ -19,7 +19,7 @@ struct StatGrowthTests {
         try #expect(growth.maxMana == 2)
     }
 
-    @Test func enemyGrowthMatchesPlayerHealthAtEqualLevel() throws {
+    @Test func nonBossEnemyGrowthMatchesPlayerGrowth() throws {
         let player = StatGrowth.playerGrowth(archetype: .bruiser, levelsAbove: 4)
         let enemy = StatGrowth.enemyGrowth(
             archetype: .bruiser,
@@ -27,8 +27,7 @@ struct StatGrowthTests {
             levelsAbove: 4,
             identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
         )
-        try #expect(player.maxHealth == 4)
-        try #expect(enemy.maxHealth == 4)
+        try #expect(enemy == player)
     }
 
     @Test func bossGrowthSpikesPrimaryStat() throws {

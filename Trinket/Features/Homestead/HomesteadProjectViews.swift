@@ -59,7 +59,7 @@ struct HomesteadProjectCard: View {
                     }
                 }
 
-            projectSummary(.featured)
+            featuredSummary
         }
         .contentShape(Rectangle())
     }
@@ -74,7 +74,7 @@ struct HomesteadProjectCard: View {
                     cornerRadius: TrinketDesign.Corners.small
                 )
 
-            projectSummary(.compact(isUnlocked: status.isUnlocked))
+            compactSummary
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
@@ -92,33 +92,38 @@ struct HomesteadProjectCard: View {
         .accessibilityIdentifier(AccessibilityID.Homestead.node(title: definition.title))
     }
 
-    private func projectSummary(_ metrics: HomesteadProjectSummaryMetrics) -> some View {
-        VStack(alignment: .leading, spacing: metrics.spacing) {
-            if metrics.showsFeaturedLabel {
-                Text(featuredTitle)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-            }
+    private var featuredSummary: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(featuredTitle)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
 
             projectTitleRow(
-                titleFont: metrics.titleFont,
-                tierFont: metrics.tierFont,
-                titleForeground: metrics.titleForeground
+                titleFont: .title2.weight(.bold),
+                tierFont: .subheadline.monospacedDigit().weight(.semibold)
             )
 
-            if let bonusLineLimit = metrics.bonusLineLimit {
-                bonusDescription(font: metrics.bonusFont)
-                    .lineLimit(bonusLineLimit)
-            } else {
-                bonusDescription(font: metrics.bonusFont)
-            }
+            bonusDescription(font: .subheadline)
+
+            tierPips
+        }
+    }
+
+    private var compactSummary: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            projectTitleRow(
+                titleFont: .headline,
+                tierFont: .caption.monospacedDigit().weight(.semibold),
+                titleForeground: status.isUnlocked ? .primary : .secondary
+            )
+
+            bonusDescription(font: .caption)
+                .lineLimit(2)
 
             tierPips
 
-            if metrics.showsInlineStatusBadge {
-                HomesteadStatusBadge(status: status)
-            }
+            HomesteadStatusBadge(status: status)
         }
     }
 
