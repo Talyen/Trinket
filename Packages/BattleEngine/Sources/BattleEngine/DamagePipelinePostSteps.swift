@@ -16,6 +16,7 @@ package extension DamagePipeline {
         let leechOutcome = HealingEngine.leechFromDamage(
             state.healthLost,
             sourceActorID: sourceActorID,
+            abilityHasLeech: state.abilityHasLeech,
             in: &context
         )
         state.damageEvents.append(contentsOf: leechOutcome.events)

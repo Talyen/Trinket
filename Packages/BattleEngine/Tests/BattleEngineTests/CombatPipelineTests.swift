@@ -161,6 +161,15 @@ struct CombatPipelineTests {
         try #expect(context.roster.hero.currentHealth > before)
     }
 
+    @Test func applyLeechFromDamageWithAbilityKeywordHealsSource() throws {
+        var context = makeContext()
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
+        let before = context.roster.hero.currentHealth
+        let events = context.applyLeechFromDamage(10, sourceActorID: "source", abilityHasLeech: true)
+        try #expect(!(events.isEmpty))
+        try #expect(context.roster.hero.currentHealth == before + 5)
+    }
+
     // MARK: - Heal
 
     @Test func applyHealRestoresHealth() throws {

@@ -60,6 +60,7 @@ package enum HealingEngine {
     static func leechFromDamage(
         _ damage: Int,
         sourceActorID: String,
+        abilityHasLeech: Bool = false,
         in context: inout BattleEngineContext
     ) -> CombatOutcome {
         guard damage > 0,
@@ -68,10 +69,15 @@ package enum HealingEngine {
         else { return .empty }
         let actorCombatant = actor.combatant
 
-        let leechPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { maxPercent, activeEffect in
+        var leechPct = 0.0
+        if abilityHasLeech {
+            leechPct = Effect.abilityLeechPercent
+        }
+        let buffPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { maxPercent, activeEffect in
             if case let .leech(_, percent, _) = activeEffect.effect { return max(maxPercent, percent) }
             return maxPercent
         }
+        leechPct = max(leechPct, buffPct)
         guard leechPct > 0 else { return .empty }
 
         var restored = Int(ceil(Double(damage) * leechPct))

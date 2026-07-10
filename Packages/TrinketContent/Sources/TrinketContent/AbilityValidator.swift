@@ -119,7 +119,7 @@ public enum AbilityValidator {
         let allowed: Set<Int>
         switch tier {
         case .basic:
-            allowed = [1]
+            allowed = [1, 2]
         case .skill:
             allowed = [2, 3]
         case .ultimate:

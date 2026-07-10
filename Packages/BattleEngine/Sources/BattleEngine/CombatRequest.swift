@@ -13,6 +13,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
     public var isRetaliation: Bool
     /// When true, ambush trait bonus may apply on this damage (direct ability hits only).
     public var qualifiesForAmbush: Bool
+    /// When true, heal the attacker for `Effect.abilityLeechPercent` of health lost.
+    public var abilityHasLeech: Bool
 
     public init(
         applyStatBonus: Bool = true,
@@ -21,7 +23,8 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         abilityCriticalChanceBonus: Double = 0,
         guaranteedCriticalIfEnemyBuffed: Bool = false,
         isRetaliation: Bool = false,
-        qualifiesForAmbush: Bool = false
+        qualifiesForAmbush: Bool = false,
+        abilityHasLeech: Bool = false
     ) {
         self.applyStatBonus = applyStatBonus
         self.applyItemBonus = applyItemBonus
@@ -30,6 +33,7 @@ public struct DamageOptions: Equatable, Hashable, Sendable {
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
         self.isRetaliation = isRetaliation
         self.qualifiesForAmbush = qualifiesForAmbush
+        self.abilityHasLeech = abilityHasLeech
     }
 
     /// Direct ability hit: full bonuses and dodge checks. Qualifies for ambush trait bonus.

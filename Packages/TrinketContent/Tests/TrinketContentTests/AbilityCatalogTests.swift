@@ -92,7 +92,7 @@ struct AbilityCatalogTests {
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
         try #expect(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
-        try #expect(ability.summary == "Deal 3 Burn damage and applies Burning.")
+        try #expect(ability.summary == "Deal 3 Burn damage.")
     }
 
     @Test func buffOnlyBuilderProducesGeneratedDescription() throws {
@@ -117,18 +117,29 @@ struct AbilityCatalogTests {
             ],
             effects: [
                 TargetedEffect(.bleed(2)),
-                TargetedEffect(.poison(2)),
-                TargetedEffect(.standardLeechBuff)
-            ]
+                TargetedEffect(.poison(2))
+            ],
+            hasLeech: true
         )
         try #expect(
-            ability.summary == "Deal 2 Nature damage, Deal 2 Bleed damage and applies Bleeding, Deal 2 Poison damage and applies Poisoned and Gain Leech."
+            ability.summary == "Deal 2 Nature damage, Deal 2 Bleed damage and Deal 2 Poison damage. Leech."
         )
     }
 
-    @Test func abilityUsesGeneratedDescription() throws {
-        let ability = Ability.rayOfFrost
-        try #expect(ability.summary == "Deal 1 Freeze damage.")
+    @Test func hemorrhageFormatsBleedDamageWithLeechKeyword() throws {
+        try #expect(Ability.hemorrhage.summary == "Deal 6 Bleed damage. Leech.")
+        try #expect(Ability.hemorrhage.hasLeech)
+        try #expect(Ability.hemorrhage.criticalChanceBonus == 0)
+    }
+
+    @Test func serratedEdgeHasNoCriticalBonus() throws {
+        try #expect(Ability.serratedEdge.summary == "Deal 3 Bleed damage.")
+        try #expect(Ability.serratedEdge.criticalChanceBonus == 0)
+    }
+
+    @Test func stabDealsTwoPhysicalDamage() throws {
+        try #expect(Ability.stab.summary == "Deal 2 Physical damage.")
+        try #expect(Ability.stab.directDamage == 2)
     }
 
     @Test func abilityHealHasNoDamage() throws {

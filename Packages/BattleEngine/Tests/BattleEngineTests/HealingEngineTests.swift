@@ -74,6 +74,21 @@ struct HealingEngineTests {
         try #expect(outcome.events.first?.amount == outcome.healthRestored)
     }
 
+    @Test func abilityLeechHealsHalfOfDamageDealt() throws {
+        var context = makeContext(seed: 1772)
+        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
+        let before = context.roster.hero.currentHealth
+        let outcome = HealingEngine.leechFromDamage(
+            10,
+            sourceActorID: "source",
+            abilityHasLeech: true,
+            in: &context
+        )
+        try #expect(outcome.flags.contains(.leeched))
+        try #expect(outcome.healthRestored == 5)
+        try #expect(context.roster.hero.currentHealth == before + 5)
+    }
+
     @Test func leechFromDamageDoesNotReviveDefeatedSource() throws {
         let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
         var context = makeContext(seed: 1772)

@@ -81,7 +81,8 @@ package enum DamagePipeline {
             abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
             isRetaliation: request.options.isRetaliation,
-            qualifiesForAmbush: request.options.qualifiesForAmbush
+            qualifiesForAmbush: request.options.qualifiesForAmbush,
+            abilityHasLeech: request.options.abilityHasLeech
         )
         state.activeEffects = context.roster.activeEffects(for: request.target)
 

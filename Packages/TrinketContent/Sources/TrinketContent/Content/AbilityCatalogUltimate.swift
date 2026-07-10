@@ -59,10 +59,9 @@ public enum AbilityCatalogUltimate {
         id: "hemorrhage", name: "Hemorrhage", tier: .ultimate,
         damageComponents: [DamageComponent(6, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.bleed(6)),
-            TargetedEffect(.standardLeechBuff)
+            TargetedEffect(.bleed(6))
         ],
-        criticalChanceBonus: 0.15
+        hasLeech: true
     )
     public static let judgment = Ability(
         id: "judgment", name: "Judgment", tier: .ultimate,
@@ -101,7 +100,7 @@ public enum AbilityCatalogUltimate {
         damageComponents: [
             DamageComponent(5, keyword: .physical, bonusAmount: 2, condition: .allyBelowHalfHealth)
         ],
-        targetedEffects: [TargetedEffect(.standardLeechBuff)]
+        hasLeech: true
     )
     public static let panaceaPotion = Ability(
         id: "panacea-potion", name: "Panacea Potion", tier: .ultimate,

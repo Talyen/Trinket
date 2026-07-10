@@ -68,6 +68,9 @@ public enum Effect: Hashable, Sendable {
     case damageKeywordOverride(Keyword, Int, Int)
 
     public static let bleedDoTTickCount = 3
+    /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
+    public static let abilityLeechPercent = 0.50
+    /// Legacy timed-buff leech percent (affix/packbond reactions that still grant a buff).
     public static let standardLeechPercent = 0.10
     public static let standardLeechDuration = 6
     public static let standardThornsDuration = 6

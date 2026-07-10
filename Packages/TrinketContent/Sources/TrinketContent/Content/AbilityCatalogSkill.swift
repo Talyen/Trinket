@@ -21,7 +21,8 @@ public enum AbilityCatalogSkill {
     public static let bloodOffering = Ability(
         id: "blood-offering", name: "Blood Offering", tier: .skill,
         damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
-        targetedEffects: [TargetedEffect(.standardLeechBuff)]
+        targetedEffects: [],
+        hasLeech: true
     )
     public static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
@@ -69,19 +70,19 @@ public enum AbilityCatalogSkill {
         id: "dark-pact", name: "Dark Pact", tier: .skill,
         targetedEffects: [
             TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.standardLeechBuff),
             TargetedEffect(.cleanse(.poison))
         ],
-        manaCost: 2
+        manaCost: 2,
+        hasLeech: true
     )
     public static let gravePact = Ability(
         id: "grave-pact", name: "Grave Pact", tier: .skill,
         targetedEffects: [
             TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.standardLeechBuff),
             TargetedEffect(.purge(nil), target: .enemy)
         ],
-        manaCost: 2
+        manaCost: 2,
+        hasLeech: true
     )
     public static let graspingVines = Ability(
         id: "grasping-vines", name: "Grasping Vines", tier: .skill,
@@ -133,8 +134,7 @@ public enum AbilityCatalogSkill {
     public static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
         damageComponents: [DamageComponent(3, keyword: .bleed)],
-        targetedEffects: [TargetedEffect(.bleed(3))],
-        criticalChanceBonus: 0.15
+        targetedEffects: [TargetedEffect(.bleed(3))]
     )
     public static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,

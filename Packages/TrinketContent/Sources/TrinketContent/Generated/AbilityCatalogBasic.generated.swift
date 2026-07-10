@@ -35,7 +35,7 @@ enum AbilityCatalogBasicGenerated {
 
     static let stab = AbilityBuilder.directHit(
         id: "stab", name: "Stab", tier: .basic,
-        amount: 1, keyword: .physical
+        amount: 2, keyword: .physical
     )
 
     static let gamblersShot = AbilityBuilder.directHit(

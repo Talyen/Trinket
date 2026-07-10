@@ -41,7 +41,7 @@ id	title	slot	keywords	weight	basic_description	astral_description	basic_modifie
 Tab-separated columns:
 
 ```text
-pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components	extras
+pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components	extras	leech
 ```
 
 - `pattern`: `direct_hit`, `buff_only`, or `multi_damage`.
@@ -49,6 +49,7 @@ pattern	symbol	id	name	tier	amount	keyword	description	effects	damage_components
 - `description`: use `\n` for line breaks.
 - `effects` / `extras`: pipe-separated effect DSL (e.g. `shield:block:2:6`, `instant_heal:health:3`).
 - `damage_components`: pipe-separated `amount:keyword` or `amount:keyword:target` tokens.
+- `leech`: `true` when the ability has the Leech keyword (heals for 50% of damage dealt). Empty otherwise.
 
 Custom abilities with unusual targeting, multi-step combos, or description overrides stay in the hand-written tier Swift files.
 
