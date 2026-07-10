@@ -22,21 +22,23 @@ Use compiler/linter output and targeted probes to find unsafe escapes. Fix a bou
 ## Probes
 
 ```bash
+# Always pass an explicit path (`.`) — pathless rg hangs in Cursor cloud shells (readable stdin socket).
+
 # Force cast — target near-0 outside tests/generated
-rg -n '\bas!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+rg -n '\bas!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
 
 # Force try — target near-0 outside tests/generated (save/encode paths are P0)
-rg -n '\btry!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+rg -n '\btry!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
 
 # Force-unwrap candidates (inspect context; this intentionally excludes prefix !)
-rg -n '\b[A-Za-z_][A-Za-z0-9_]*!\s*(\.|\[|\)|,|$)|\]!\s*' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' | head -80
-rg -n '\bfatalError\b|\bpreconditionFailure\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+rg -n '\b[A-Za-z_][A-Za-z0-9_]*!\s*(\.|\[|\)|,|$)|\]!\s*' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' . | head -80
+rg -n '\bfatalError\b|\bpreconditionFailure\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
 
 # Banned legacy observation — must-fix
-rg -n '@EnvironmentObject|ObservableObject|@StateObject|@Published' --type swift -g '!*Tests*'
+rg -n '@EnvironmentObject|ObservableObject|@StateObject|@Published' --type swift -g '!*Tests*' .
 
 # Lint suppressions — ratchet down
-rg -n 'swiftlint:disable' --type swift -g '!*Tests*' -g '!**/Generated/*'
+rg -n 'swiftlint:disable' --type swift -g '!*Tests*' -g '!**/Generated/*' .
 
 # Secondary (optional): existential Any in models/persistence only — not a primary gate
 rg -n '\bAny\b' --type swift \

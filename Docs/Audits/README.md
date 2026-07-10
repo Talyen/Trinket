@@ -47,3 +47,5 @@ Local and CI expect **Xcode 26+**. Cloud or remote agents may lack the simulator
 | Toolchain absent | Correct source/docs fixes still land; state exactly which build/test checks were skipped and why |
 
 Do not fail an audit solely because Instruments, Simulator, or `xcodebuild` is unavailable.
+
+**`rg` path required in Cursor cloud shells:** those environments expose a readable stdin socket, so pathless `rg` waits on stdin forever instead of searching the repo. Always pass an explicit path (usually `.`) or scoped directories on every probe.
