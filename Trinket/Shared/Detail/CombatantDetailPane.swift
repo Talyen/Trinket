@@ -16,6 +16,8 @@ struct CombatantDetailPane: View {
     var activeEffectSummaries: [EffectSummary] = []
     var hidesNavigationBar = false
 
+    @Environment(\.dismiss) private var dismiss
+
     /// Sub-picker navigation state — owned here at the pane level so the
     /// navigationDestination modifiers are at the root of whatever NavigationStack
     /// is presenting this view. No nested UISheetPresentationControllers.
@@ -48,7 +50,11 @@ struct CombatantDetailPane: View {
     var body: some View {
         DetailHeroScrollShell(
             title: combatant.name,
-            hidesNavigationBar: hidesNavigationBar
+            // Sheet hosts use `.presentationContentInteraction(.resizes)`, so swipe
+            // alone won't dismiss — mirror ItemDetailView with an explicit Done.
+            showsDoneButton: !hidesNavigationBar,
+            hidesNavigationBar: hidesNavigationBar,
+            onDone: { dismiss() }
         ) { baseHeight, overscroll in
             CombatantHeroHeader(
                 combatant: combatant,

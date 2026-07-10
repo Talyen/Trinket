@@ -23,7 +23,8 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Wolf"))
         button(AccessibilityID.Mystery.unlockCard(name: "Wolf")).tap()
         assertExists(AccessibilityID.CombatantDetail.header(name: "Wolf"))
-        app.swipeDown()
+        // Detail sheets resize on swipe; dismiss via Done like shop item detail.
+        tapButton("Done")
         _ = button(AccessibilityID.Mystery.continueButton).waitForExistence(timeout: Self.defaultTimeout)
 
         assertExists(AccessibilityID.Mystery.continueButton)
