@@ -1,6 +1,6 @@
 # Audits
 
-Re-runnable, one-shot procedures for coding agents. An audit is neither a project tracker nor standing product requirements. Run one only when the user cites it; do not treat uncited audits as backlog.
+Re-runnable one-shot guides for coding agents. An audit is neither a project tracker nor standing product requirements. Run one only when the user cites it; do not treat uncited audits as backlog.
 
 ## Shared contract
 
@@ -10,7 +10,7 @@ Keep the pass bounded: one cohesive target or a small number of confirmed, indep
 
 Prefer existing gates over aspirational metrics. The only absolute-zero target in this set is a failing enforced boundary gate. Elsewhere, use explicit allowlists and context.
 
-Each audit should contain only its distinct scope, candidate probes, confirmation rules, allowed fixes, and verification. Shared platform policy belongs in `AGENTS.md`; architecture and testing facts belong in the Platform documents.
+Each audit holds only its distinct scope, confirmation rules, domain allowlists, and verify hints. Shared platform policy lives in `AGENTS.md`; architecture and testing facts live in the Platform documents. Agents choose their own probes and process.
 
 ## Ownership
 
@@ -31,11 +31,7 @@ Each audit should contain only its distinct scope, candidate probes, confirmatio
 | Over-engineered / verbose / inelegant agent slop | `InelegantSlopAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
 
-Standing test conventions live in [Testing.md](../Platform/Testing.md); architecture lives in [Architecture.md](../Platform/Architecture.md). Agent workflow: `AGENTS.md`. CloudKit release steps live in [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md).
-
-## Platform baseline
-
-Follow the current platform baseline and command router in `AGENTS.md`; audits do not restate or override them.
+Standing conventions: [Testing.md](../Platform/Testing.md), [Architecture.md](../Platform/Architecture.md), `AGENTS.md`. CloudKit release steps: [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md).
 
 ## Toolchain limits
 
@@ -49,4 +45,4 @@ Local and CI expect **Xcode 26+**. Cloud or remote agents may lack the simulator
 
 Do not fail an audit solely because Instruments, Simulator, or `xcodebuild` is unavailable.
 
-**`rg` path required in Cursor cloud shells:** those environments expose a readable stdin socket, so pathless `rg` waits on stdin forever instead of searching the repo. Always pass an explicit path (usually `.`) or scoped directories on every probe.
+**`rg` path required in Cursor cloud shells:** those environments expose a readable stdin socket, so pathless `rg` waits on stdin forever. Always pass an explicit path (usually `.`) or scoped directories.
