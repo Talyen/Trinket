@@ -3,7 +3,7 @@
 Canonical product + engineering plan for Trinket identity, cross-device progress, and account/data deletion.
 
 **Status:** Finalized (July 2026). **Implementation stubbed** until Apple Developer Program enrollment unlocks live CloudKit (F2).  
-**Related:** [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md), [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase F2, [Architecture.md](../Architecture.md) Persistence.
+**Related:** [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md), [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase F2, [Architecture.md](Architecture.md) Persistence.
 
 ---
 
@@ -193,7 +193,7 @@ Revisit only if product goals change (e.g. friends, shared leaderboards beyond G
 ## Implementation checklist (when unblocking F2)
 
 1. Finish Developer Program + portal container (human).  
-2. Fill `Trinket.entitlements`; flip production `ModelConfiguration` cloud path.  
+2. Fill `Trinket/Trinket.entitlements`; flip production `ModelConfiguration` cloud path.  
 3. Run CloudKit pre-ship checklist (two devices, offline, reset propagation).  
 4. Update Options reset copy + `PrivacyInfo` / questionnaire.  
 5. Optionally surface quiet iCloud status in Options (still no prompts).  

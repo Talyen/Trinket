@@ -20,12 +20,12 @@ Run the probes, confirm unexpected effect ownership, and fix a bounded set of hi
 
 | Effect | Allowed locations |
 |--------|-------------------|
-| Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling), `Packages/TrinketTestSupport/` temp-dir harnesses |
+| Disk / encoder I/O | `Packages/TrinketPersistence/`, `Packages/TrinketTestSupport/` temp-dir harnesses |
 | `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
 | Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Trinket/BattleShell/` player cache + battle cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into `Trinket/Audio/` |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
-| Seeded RNG | `Double.random(using: &…)`, `BattleBalanceTools/`, `BalanceSweepCLI/` |
+| Seeded RNG | `Double.random(using: &…)` in battle/tests; injected RNG seams only |
 | CloudKit / SwiftData sync | `TrinketPersistence` / `ModelConfiguration` wiring |
 | Session / presentation identity (`UUID()`) | Ephemeral `Identifiable` tokens outside `BattleEngine` rule code (battle config, map/rest/craft/shop sessions) — not battle entropy |
 | Persistence timestamps (`Date()`) | `TrinketPersistence` `modifiedAt` / equivalent save metadata |
@@ -46,7 +46,7 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|System
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
 rg -n 'UserDefaults' --type swift -g '!*Tests*' .
 
-# File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/, TrinketTestSupport temp dirs
+# File I/O — allowlist: TrinketPersistence/, TrinketTestSupport temp dirs
 rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*' .
 
 # AV types — triage audio vs video (do not expect a flat zero)

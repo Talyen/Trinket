@@ -330,5 +330,5 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 - [iOS26StackAudit.md](iOS26StackAudit.md) — point-in-time findings
 - [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) — follow-up Apple-native migrations
 - [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md) — dense vs glass surfaces, chrome inventory
-- [AgentMotion.md](../AgentMotion.md) — fluid motion via SwiftUI / `TrinketMotion`
+- [Apple Design skill](../Skills/apple-design/SKILL.md) — fluid motion via SwiftUI / `TrinketMotion`
 - `Scripts/check-ui-style.sh` — enforcement rules

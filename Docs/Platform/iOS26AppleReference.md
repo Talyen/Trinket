@@ -132,9 +132,9 @@ iOS 26 app icons use layered compositions with system-applied effects. When prep
 
 | Concern | Owner | iOS 26 doc |
 |---------|-------|------------|
-| Custom glass / materials | `Packages/TrinketDesignSystem/VisualFoundation.swift` | [iOS26StackAudit.md](iOS26StackAudit.md) § Liquid Glass |
+| Custom glass / materials | `Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift` | [iOS26StackAudit.md](iOS26StackAudit.md) § Liquid Glass |
 | Tab shell | `Trinket/App/ContentView.swift` | This doc § TabView APIs |
 | Style guardrails | `Scripts/check-ui-style.sh` | Route `.glassEffect` / `.buttonStyle(.glass*)` through design system |
 | Visual foundation rules | `Packages/TrinketDesignSystem` (`VisualFoundation.swift`) | Dense vs glass surfaces |
-| Fluid motion / gesture feel | [AgentMotion.md](../AgentMotion.md) | Principles via SwiftUI / `TrinketMotion` |
+| Fluid motion / gesture feel | [Apple Design skill](../Skills/apple-design/SKILL.md) | Principles via SwiftUI / `TrinketMotion` |
 | Concurrency | `project.yml`, `@MainActor` stores | Swift 6 migration guide |
