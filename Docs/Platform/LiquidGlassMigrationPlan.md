@@ -37,13 +37,13 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 | File | Modifier | Notes |
 |------|----------|-------|
-| `CombatFeedbackEventView.swift:78` | `.trinketGlassChip()` | Already glass |
+| `SkillCalloutView.swift:99` | `.trinketGlassChip()` | Already glass (battle feedback) |
 | `HomesteadResourceViews.swift:53` | `.trinketWalletPill()` | Migrates with `WalletPillModifier` |
-| `HomesteadProjectViews.swift:322` | `.trinketStatusBadge()` | Migrates with `StatusBadgeModifier` |
+| `HomesteadProjectViews.swift:291` | `.trinketStatusBadge()` | Migrates with `StatusBadgeModifier` |
 | `HomesteadDetailViews.swift:74` | `.trinketMaterial(.bottomBar)` | Phase 3 — bottom sticky bar |
-| `ActiveStageCard.swift:43` | `.trinketPrimaryActionButton()` | Phase 2 |
-| `HomesteadProjectViews.swift:266` | `.trinketPrimaryActionButton()` | Phase 2 |
-| `BattleOutcomeComponents.swift:52` | `.trinketPrimaryActionButton()` | Phase 2 |
+| `CurrentStageCard.swift:48` | `.trinketPrimaryActionButton()` | Phase 2 |
+| `HomesteadProjectViews.swift:237` | `.trinketPrimaryActionButton()` | Phase 2 |
+| `BattleOutcomeComponents.swift:53` | `.trinketPrimaryActionButton()` | Phase 2 |
 
 ### Primary button (`Modifiers.swift`)
 
@@ -193,7 +193,7 @@ Apply in `HomesteadResourceViews` or parent layout — not on every single chip 
 2. Review `check-ui-style.sh` allow-list comment on line 38–40 (“Debug / Battle Again intentionally use bordered”) — ensure it still matches any one-off bordered buttons after migration.
 
 3. Visual QA on all three call sites:
-   - Play → active stage card CTA (`ActiveStageCard.swift`)
+   - Play → current stage card CTA (`CurrentStageCard.swift`)
    - Homestead → project build CTA (`HomesteadProjectViews.swift`)
    - Battle outcome → “Battle Again” / continue (`BattleOutcomeComponents.swift`)
 

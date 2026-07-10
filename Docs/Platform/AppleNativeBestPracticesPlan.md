@@ -67,7 +67,7 @@ Hold **F2** until Apple Developer Program enrollment. Do not re-open A–E/G unl
 
 1. Add a small design-system or app helper, e.g. `.trinketSensoryFeedback(_:trigger:enabled:)` or pass `enabled: appState.options.hapticsEnabled` at each site.
 2. Update every production call site:
-   - `ActiveStageCard.swift`
+   - `CurrentStageCard.swift`
    - `HomesteadView.swift`
    - `HomesteadDetailViews.swift`
    - `ItemSlotPickerView.swift`

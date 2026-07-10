@@ -12,7 +12,7 @@ Trinket/                    App target — shell, features, presentation glue
   State/                    AppState, BattleSession, OptionsStore
   Models/                   SwiftUI presentation extensions (map, homestead UI, keyword colors)
   Shared/                   Reusable SwiftUI (cards, detail panes, layout, AccessibilityID)
-  Audio/                    Music director and AVFoundation glue
+  Audio/                    MusicPlayer, SFXPlayer, and AVFoundation glue
   Assets.xcassets           Processed art (HEIC) from ArtManifest
   Resources/Music           AAC tracks from MusicManifest
   Resources/SFX             AAC clips from SoundManifest
