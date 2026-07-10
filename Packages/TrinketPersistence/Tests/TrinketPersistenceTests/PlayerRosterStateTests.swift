@@ -24,37 +24,37 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
-            basic: .shieldBash,
-            skill: .spikedShield,
-            ultimate: .plateMail
+            basic: .block,
+            skill: .plateMail,
+            ultimate: .sanctifiedPlate
         )
 
         roster.setLoadout(customLoadout, for: knight)
         let configured = roster.battleConfiguredCombatant(knight)
 
-        try #expect(roster.loadout(for: knight).skill?.id == "spiked-shield")
-        try #expect(configured.abilityLoadout.basic?.id == "shield-bash")
-        try #expect(configured.abilityLoadout.skill?.id == "spiked-shield")
+        try #expect(roster.loadout(for: knight).skill?.id == "plate-mail")
+        try #expect(configured.abilityLoadout.basic?.id == "block")
+        try #expect(configured.abilityLoadout.skill?.id == "plate-mail")
         try #expect(configured.abilityLoadout.ultimate == nil)
-        try #expect(configured.abilities.map(\.id) == ["shield-bash", "spiked-shield"])
+        try #expect(configured.abilities.map(\.id) == ["block", "plate-mail"])
     }
 
     @Test func battleConfiguredCombatantRestoresPlayerAbilityTiersAtUnlockLevels() throws {
         var roster = PlayerRosterState.freshStart
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
         let customLoadout = AbilityLoadout(
-            basic: .shieldBash,
-            skill: .spikedShield,
-            ultimate: .plateMail
+            basic: .block,
+            skill: .plateMail,
+            ultimate: .sanctifiedPlate
         )
         roster.setLoadout(customLoadout, for: knight)
 
         roster.progressions[knight.id] = CombatantProgression(level: 3, currentXP: 0, requiredXP: 220)
-        try #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield"])
+        try #expect(roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["block", "plate-mail"])
 
         roster.progressions[knight.id] = CombatantProgression(level: 6, currentXP: 0, requiredXP: 475)
         try #expect(
-            roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["shield-bash", "spiked-shield", "plate-mail"]
+            roster.battleConfiguredCombatant(knight).abilities.map(\.id) == ["block", "plate-mail", "sanctified-plate"]
         )
     }
 

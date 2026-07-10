@@ -16,7 +16,7 @@ struct LabyrinthAtlasView: View {
                 LabeledContent("Deepest Depth", value: "\(state.deepestDepth)")
                 if state.deepestDepth >= 10 {
                     Text("Marked in the Atlas")
-                        .font(.caption.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
                 }
@@ -33,9 +33,9 @@ struct LabyrinthAtlasView: View {
                     ForEach(biomes) { biome in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(biome.title)
-                                .font(.body.weight(.semibold))
+                                .trinketTypography(.button)
                             Text(biome.epithet)
-                                .font(.caption)
+                                .trinketTypography(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -53,9 +53,9 @@ struct LabyrinthAtlasView: View {
                     ForEach(modifiers) { modifier in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(modifier.title)
-                                .font(.body.weight(.semibold))
+                                .trinketTypography(.button)
                             Text(modifier.epithet)
-                                .font(.caption)
+                                .trinketTypography(.caption)
                                 .foregroundStyle(.secondary)
                         }
                     }

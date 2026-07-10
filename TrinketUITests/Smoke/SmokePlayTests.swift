@@ -20,17 +20,17 @@ final class SmokePlayTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
+        play.assertChapterHeader(number: 1)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
     }
 
-    /// One launch covers Aspects hub, climb begin floor, and Labyrinth unlock.
+    /// One launch covers Mode Hub, Aspects hub/climb, and Labyrinth unlock.
     func testModesAspectsAndLabyrinthWhenChapterOneComplete() {
         launchApp(arguments: chapterOneCompleteArgs)
 
         play.assertLoaded()
-        assertButtonExists(AccessibilityID.Play.modesEntry)
-        app.buttons[AccessibilityID.Play.modesEntry].tap()
-        assertExists(AccessibilityID.Play.modesScreen)
+        play.openModeHub()
+        play.assertModeHub()
 
         app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
         assertExists(AccessibilityID.Play.aspectsHub)
@@ -42,7 +42,7 @@ final class SmokePlayTests: TrinketUITestCase {
         goBack()
         goBack()
 
-        assertExists(AccessibilityID.Play.modesScreen)
+        play.assertModeHub()
         app.buttons[AccessibilityID.Play.labyrinthModeCard].tap()
         assertExists(AccessibilityID.Play.labyrinthMap)
 

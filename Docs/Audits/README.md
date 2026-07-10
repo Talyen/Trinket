@@ -36,6 +36,7 @@ When the user cites an audit (or asks to “run the X audit”), execute that gu
 | Complexity hotspot simplification | `ComplexityReductionAudit.md` |
 | Doc drift | `DocumentationStalenessAudit.md` |
 | UI interaction / a11y / HIG | `UIInteractionFeedbackAudit.md` |
+| Custom layout/typography → Apple/SwiftUI native | `AppleNativeUIAudit.md` |
 | Perf / memory / energy (static) | `PerformanceMemoryEnergyAudit.md` |
 
 Standing test conventions live in `Docs/Testing.md` (not duplicated as an audit). Agent workflow: `AGENTS.md`. CloudKit release steps live in `Docs/Platform/CloudKitPreShipChecklist.md`.
@@ -67,4 +68,4 @@ When the user asks to run several audits in one session, prefer this order (skip
 5. `UnitTestAudit.md` / `E2ETestQualityAudit.md`
 6. `DocumentationStalenessAudit.md`
 
-Opportunistic audits (`BugHunting`, `ComplexityReduction`, `DeadCode`, `Performance`, `UIInteraction`) fit wherever their probes are needed; do not expand one cited audit into a full-repo sweep of every sibling.
+Opportunistic audits (`BugHunting`, `ComplexityReduction`, `DeadCode`, `Performance`, `UIInteraction`, `AppleNativeUI`) fit wherever their probes are needed; do not expand one cited audit into a full-repo sweep of every sibling.

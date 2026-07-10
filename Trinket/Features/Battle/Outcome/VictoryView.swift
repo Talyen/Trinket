@@ -16,7 +16,7 @@ struct VictoryView: View {
             subtitle: "\(enemyName) is defeated.",
             titleAccessibilityIdentifier: "Victory",
             content: {
-                VStack(spacing: 22) {
+                VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                     BattleOutcomeRewardSection(title: "Experience") {
                         experienceContent
                     }
@@ -36,7 +36,7 @@ struct VictoryView: View {
     @ViewBuilder
     private var experienceContent: some View {
         if summary.hasExperienceAwards {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
                 ExperienceBar(
                     combatantName: summary.heroName,
                     pre: summary.heroProgressionBefore,

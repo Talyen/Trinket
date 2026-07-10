@@ -96,6 +96,7 @@ struct LabyrinthMapClusterSection: View {
     let cluster: LabyrinthCluster
     let state: PlayerLabyrinthState
     let onSelectModifier: (LabyrinthModifierDefinition) -> Void
+    let onCombatPrepare: (LabyrinthNode) -> Void
     let onNodeMessage: (StageMapMessage) -> Void
 
     var body: some View {
@@ -103,28 +104,26 @@ struct LabyrinthMapClusterSection: View {
         let modifiers = LabyrinthCatalog.modifiers(ids: cluster.modifierIDs)
         let style = biome?.keywordBias.visualStyle
 
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(biome?.title ?? "Unknown Biome")
-                    .font(.headline)
+                    .trinketTypography(.cardTitle)
                 if let epithet = biome?.epithet {
                     Text(epithet)
-                        .font(.caption)
+                        .trinketTypography(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
 
             if !modifiers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                         ForEach(modifiers) { modifier in
                             Button {
                                 onSelectModifier(modifier)
                             } label: {
                                 Text(modifier.title)
-                                    .font(.caption.weight(.semibold))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
+                                    .trinketTypography(.badge)
                             }
                             .trinketGlassChip()
                             .foregroundStyle(style?.color ?? .primary)
@@ -136,7 +135,7 @@ struct LabyrinthMapClusterSection: View {
                 }
             }
 
-            LazyVStack(spacing: 10) {
+            LazyVStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                 ForEach(LabyrinthMapPresentation.displayNodes(for: cluster, in: state)) { entry in
                     switch entry {
                     case let .revealed(node):
@@ -144,6 +143,7 @@ struct LabyrinthMapClusterSection: View {
                             node: node,
                             tint: style?.color,
                             state: state,
+                            onCombatPrepare: onCombatPrepare,
                             onMessage: onNodeMessage
                         )
                         .id(node.id)
@@ -154,7 +154,6 @@ struct LabyrinthMapClusterSection: View {
                 }
             }
         }
-        .padding(14)
         .trinketSurface(.base)
         .animation(
             reduceMotion ? nil : TrinketMotion.Labyrinth.clusterReveal,
@@ -167,15 +166,14 @@ struct LabyrinthMapFogCard: View {
     let node: LabyrinthNode
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Label("Hidden path", systemImage: "eye.slash")
-                .font(.body.weight(.semibold))
+                .trinketTypography(.button)
                 .foregroundStyle(.secondary)
             Text("Clear a path to reveal")
-                .font(.caption)
+                .trinketTypography(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .trinketSurface(.secondary)
         .opacity(0.55)
@@ -189,6 +187,7 @@ struct LabyrinthMapNodeCard: View {
     let node: LabyrinthNode
     let tint: Color?
     let state: PlayerLabyrinthState
+    let onCombatPrepare: (LabyrinthNode) -> Void
     let onMessage: (StageMapMessage) -> Void
 
     var body: some View {
@@ -196,41 +195,39 @@ struct LabyrinthMapNodeCard: View {
         let deadly = node.depth > max(appState.roster.highestHeroLevel + 2, 3)
         let type = node.type.canonical
 
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             HStack {
                 Label(LabyrinthMapPresentation.nodeTitle(node), systemImage: type.symbolName)
-                    .font(.body.weight(.semibold))
+                    .trinketTypography(.button)
                 Spacer()
                 if node.isCleared {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .accessibilityLabel("Cleared")
-                } else if !reachable {
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Locked")
-                } else if node.failCount > 0 {
+                } else if node.failCount > 0, reachable {
                     Text("Retry")
-                        .font(.caption.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(.orange)
                 }
             }
 
             if type == .warden, reachable, !node.isCleared {
                 Text("Warden")
-                    .font(.caption.weight(.semibold))
+                    .trinketTypography(.badge)
                     .foregroundStyle(.purple)
             }
 
             if deadly, reachable, !node.isCleared, type.isCombat {
                 Text("Deadly")
-                    .font(.caption.weight(.semibold))
+                    .trinketTypography(.badge)
                     .foregroundStyle(.orange)
             }
 
             if reachable, !node.isCleared {
                 Button {
-                    if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
+                    if type.isCombat {
+                        onCombatPrepare(node)
+                    } else if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
                         onMessage(message)
                     }
                 } label: {
@@ -242,8 +239,12 @@ struct LabyrinthMapNodeCard: View {
                 .disabled(appState.battle.activeBattle != nil)
             }
         }
-        .padding(12)
         .trinketSurface(node.isCleared ? .secondary : .elevated)
+        .trinketLockedCardEffect(
+            isLocked: !reachable && !node.isCleared,
+            text: !reachable && !node.isCleared ? "Locked" : nil,
+            cornerRadius: TrinketDesign.Corners.card
+        )
         .opacity(node.isCleared ? 0.72 : 1)
         .accessibilityIdentifier(AccessibilityID.Play.labyrinthNode(node.id))
     }

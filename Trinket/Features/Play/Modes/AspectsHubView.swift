@@ -12,7 +12,7 @@ struct AspectsHubView: View {
         List {
             Section {
                 Text("Attune a Hero and Pet. Climb one Aspect at a time.")
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
                     .listRowBackground(Color.clear)
             }
@@ -46,8 +46,9 @@ struct AspectsHubView: View {
             aspectLabel(
                 aspect,
                 style: style,
-                trailing: AspectUnlock.unlockHint(for: aspect),
-                locked: true
+                trailing: nil,
+                locked: true,
+                lockText: "Locked"
             )
             .accessibilityIdentifier(AccessibilityID.Play.aspectRow(aspect.id.rawValue))
         }
@@ -56,34 +57,39 @@ struct AspectsHubView: View {
     private func aspectLabel(
         _ aspect: AspectDefinition,
         style: Keyword.VisualStyle,
-        trailing: String,
-        locked: Bool = false
+        trailing: String?,
+        locked: Bool = false,
+        lockText: String? = nil
     ) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             Image(systemName: style.symbolName)
-                .font(.body.weight(.semibold))
+                .trinketTypography(.button)
                 .foregroundStyle(style.prefersDarkForeground ? Color.primary : style.color)
                 .frame(width: 28, height: 28)
                 .trinketGlassChip()
-                .opacity(locked ? 0.55 : 1)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(aspect.title)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(locked ? .secondary : .primary)
+                    .trinketTypography(.button)
                 Text(aspect.epithet)
-                    .font(.caption)
+                    .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: TrinketDesign.Metrics.smallSpacing)
 
-            Text(trailing)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
+            if let trailing {
+                Text(trailing)
+                    .trinketTypography(.badge)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+            }
         }
-        .opacity(locked ? 0.8 : 1)
+        .trinketLockedCardEffect(
+            isLocked: locked,
+            text: lockText,
+            cornerRadius: TrinketDesign.Corners.compact
+        )
         .animation(reduceMotion ? nil : .smooth, value: locked)
     }
 

@@ -18,25 +18,25 @@ struct AppStateSessionPersistenceTests {
         let state = try makeState()
 
         #expect(state.selectedTab == .play)
-        #expect(state.activeBattleStageID == nil)
         #expect(state.mapScrollStageID == nil)
     }
 
-    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaults() throws {
+    @Test func migratesPreviouslyStoredTabFromLegacyUserDefaultsButLandsOnPlay() throws {
         context.userDefaults.set(AppTab.homestead.rawValue, forKey: PlayerShellSessionStore.legacySessionTabKey)
 
         let state = try makeState()
 
-        #expect(state.selectedTab == .homestead)
+        #expect(state.selectedTab == .play)
         #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
     }
 
-    @Test func migratesPreviouslyStoredBattleStageIDFromLegacyUserDefaults() throws {
+    @Test func discardsLegacyBattleStageIDFromUserDefaults() throws {
         context.userDefaults.set("chapter-1-stage-3", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
 
         let state = try makeState()
 
-        #expect(state.activeBattleStageID == "chapter-1-stage-3")
+        #expect(state.battle.activeBattle == nil)
+        #expect(context.userDefaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
     }
 
     @Test func migratesPreviouslyStoredMapScrollStageIDFromLegacyUserDefaults() throws {
@@ -47,18 +47,11 @@ struct AppStateSessionPersistenceTests {
         #expect(state.mapScrollStageID == "chapter-2-stage-1")
     }
 
-    @Test func selectedTabPersistsOnChange() throws {
+    @Test func selectedTabPersistsOnChangeButRelaunchLandsOnPlay() throws {
         let state = try makeState()
         state.selectedTab = .options
 
-        #expect(try makeState().selectedTab == .options)
-    }
-
-    @Test func activeBattleStageIDPersistsOnChange() throws {
-        let state = try makeState()
-        state.activeBattleStageID = "chapter-1-stage-5"
-
-        #expect(try makeState().activeBattleStageID == "chapter-1-stage-5")
+        #expect(try makeState().selectedTab == .play)
     }
 
     @Test func mapScrollStageIDPersistsOnChange() throws {
@@ -66,28 +59,6 @@ struct AppStateSessionPersistenceTests {
         state.mapScrollStageID = "chapter-3-gate"
 
         #expect(try makeState().mapScrollStageID == "chapter-3-gate")
-    }
-
-    @Test func clearSessionBattleStateClearsBothBattleAndScrollKeys() throws {
-        let state = try makeState()
-        state.activeBattleStageID = "chapter-1-stage-1"
-        state.mapScrollStageID = "chapter-1-stage-2"
-
-        state.clearSessionBattleState()
-
-        #expect(state.activeBattleStageID == nil)
-        #expect(state.mapScrollStageID == nil)
-    }
-
-    @Test func clearSessionBattleStateLeavesTabIntact() throws {
-        let state = try makeState()
-        state.selectedTab = .homestead
-        state.activeBattleStageID = "chapter-1-stage-1"
-
-        state.clearSessionBattleState()
-
-        #expect(state.selectedTab == .homestead)
-        #expect(state.activeBattleStageID == nil)
     }
 
     @Test func noteMapScrollFocusPersistsTargetAndPublishesFocus() throws {

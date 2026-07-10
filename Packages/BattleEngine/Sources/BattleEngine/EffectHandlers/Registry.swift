@@ -28,7 +28,8 @@ public enum EffectHandlers {
         .marked: MarkedHandler(),
         .criticalChanceBonus: CriticalChanceBonusHandler(),
         .restoreManaOnHit: RestoreManaOnHitHandler(),
-        .damageKeywordOverride: DamageKeywordOverrideHandler()
+        .damageKeywordOverride: DamageKeywordOverrideHandler(),
+        .nextHolyStrike: NextHolyStrikeHandler()
     ]
 
     public static let all: [EffectKind: any BattleEffectHandler] = handlerByKind

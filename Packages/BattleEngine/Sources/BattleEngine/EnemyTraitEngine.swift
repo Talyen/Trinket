@@ -45,19 +45,19 @@ package enum EnemyTraitEngine {
         var effects = context.roster.activeEffects(for: combatant)
         var didErode = false
         for index in effects.indices {
-            guard case let .shield(shieldKeyword, buffer, _) = effects[index].effect else { continue }
-            let remaining = max(0, effects[index].remainingTicks - profile.shieldErosionTicks)
+            guard case let .shield(shieldKeyword, buffer) = effects[index].effect else { continue }
+            let eroded = max(0, buffer - profile.shieldErosionTicks)
             effects[index] = ActiveEffect(
                 id: effects[index].id,
-                effect: .shield(shieldKeyword, buffer, effects[index].effect.durationTicks),
-                remainingTicks: remaining,
+                effect: .shield(shieldKeyword, eroded),
+                remainingTicks: 0,
                 sourceActorID: effects[index].sourceActorID
             )
             didErode = true
         }
         guard didErode else { return }
         effects.removeAll { active in
-            if case .shield = active.effect { return active.remainingTicks <= 0 }
+            if case let .shield(_, buffer) = active.effect { return buffer <= 0 }
             return false
         }
         context.roster.setActiveEffects(effects, for: combatant)

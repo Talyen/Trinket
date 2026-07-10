@@ -9,7 +9,7 @@ struct EmptyAbilitySlotCard: View {
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
@@ -46,7 +46,7 @@ struct EmptyItemSlotCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
@@ -60,7 +60,7 @@ struct EmptyItemSlotCard: View {
                     }
                 }
                 .clipShape(TrinketDesign.cardShape)
-                .trinketLockedCardEffect(isLocked: isLocked, text: lockLabel)
+                .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
                 .trinketCardSurface()
 
             Text(title)

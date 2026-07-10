@@ -293,9 +293,15 @@ extension Ability {
     }
 }
 
+SWIFT
+
+# Quoted heredoc so Swift interpolations and comments are not shell-expanded.
+cat >> "$generated_swift" <<'SWIFT_EXTENSIONS'
 extension InventoryItem {
     public var artReference: ItemArtReference? {
-        ArtCatalog.itemArtByID[id]
+        // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
+        ArtCatalog.itemArtByID[templateID]
+            ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
     }
 }
 
@@ -304,7 +310,7 @@ extension ItemSlot {
         ArtCatalog.slotBackgroundArtByID[self]
     }
 }
-SWIFT
+SWIFT_EXTENSIONS
 
   # Prune orphaned assets
   shopt -s nullglob

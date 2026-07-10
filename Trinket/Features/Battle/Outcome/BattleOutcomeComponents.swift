@@ -19,7 +19,7 @@ struct BattleOutcomeShell<Content: View>: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 22) {
+            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 Image(systemName: symbolName)
                     .font(.system(size: outcomeSymbolSize, weight: .semibold))
                     .foregroundStyle(symbolColor)
@@ -29,13 +29,13 @@ struct BattleOutcomeShell<Content: View>: View {
                         symbolAnimationCount += 1
                     }
 
-                VStack(spacing: 8) {
+                VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     Text(title)
-                        .font(.largeTitle.bold())
+                        .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(titleAccessibilityIdentifier)
 
                     Text(subtitle)
-                        .font(.headline)
+                        .trinketTypography(.cardTitle)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -54,9 +54,9 @@ struct BattleOutcomeShell<Content: View>: View {
                 .tint(primaryButtonTint)
                 .disabled(isCompleting)
                 .accessibilityIdentifier(primaryButtonAccessibilityIdentifier)
-                .padding(.top, 8)
+                .padding(.top, TrinketDesign.Metrics.smallSpacing)
             }
-            .padding(24)
+            .padding(TrinketDesign.Metrics.extraLargeSpacing)
         }
         .frame(maxWidth: .infinity)
     }
@@ -67,12 +67,12 @@ struct BattleOutcomeInfoSection: View {
     let message: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(title)
-                .font(.headline)
+                .trinketTypography(.cardTitle)
 
             Text(message)
-                .font(.subheadline)
+                .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -86,9 +86,9 @@ struct BattleOutcomeRewardSection<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             Text(title)
-                .font(.headline)
+                .trinketTypography(.cardTitle)
                 .accessibilityIdentifier(title)
 
             content
@@ -107,7 +107,7 @@ struct BattleOutcomeRewardRow: View {
     var body: some View {
         Label {
             Text(text)
-                .font(.subheadline)
+                .trinketTypography(.secondaryBody)
         } icon: {
             Image(systemName: symbolName)
                 .foregroundStyle(tint)

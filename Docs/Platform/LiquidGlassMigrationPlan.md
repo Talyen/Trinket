@@ -6,7 +6,7 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 **Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, Homestead chrome, and `TrinketUITestCase.assertAccessibilityAudit`. Does **not** change combat rules, persistence, navigation structure, or art-forward toolbar visibility overrides.
 
-**Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Collection search results, Options forms) via `TrinketDesignSystem` / `VisualFoundation`.
+**Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Options forms) via `TrinketDesignSystem` / `VisualFoundation`.
 
 ---
 
@@ -316,7 +316,7 @@ Phase 5 (UI test guard) can land **independently at any time** — recommend doi
 ## Out of scope
 
 - Card surfaces (`.trinketSurface(.card)`) — stay solid; card art is the hero.
-- Collection / Inventory / Collection search / Options list rows — stay solid (`denseList` background mode).
+- Collection / Inventory / Options list rows — stay solid (`denseList` background mode).
 - Toolbar background visibility on Battle / Play map / combatant detail — intentional art-forward chrome; not migrated.
 - `LockedCardEffectModifier` fixed font sizes — Dynamic Type pass in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase C.
 - StoreKit, GameKit, RealityKit — not applicable today.

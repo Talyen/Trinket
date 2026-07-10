@@ -40,16 +40,8 @@ struct AppStateAspectsTests {
     }
 
     @Test func startAspectBattleSucceedsWhenAttuned() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedState()
+        try attunePhysicalParty(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let message = state.startAspectBattle(for: floor)
@@ -57,23 +49,12 @@ struct AppStateAspectsTests {
         #expect(state.battle.activeBattle?.aspectBattle?.aspectID == .ironVein)
         #expect(state.battle.activeBattle?.aspectBattle?.floor == 1)
         #expect(state.battle.activeBattle?.hasProgressionRewards == true)
-        #expect(state.activeBattleAspectID == AspectID.ironVein.rawValue)
-        #expect(state.activeBattleAspectFloor == 1)
-        #expect(state.activeBattleStageID == nil)
-        #expect(state.isSavedBattleValid())
+        #expect(state.battle.activeBattle?.resumeToken == .aspect(aspectID: .ironVein, floor: 1))
     }
 
     @Test func startAspectBattleRejectsLockedFloor() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedState()
+        try attunePhysicalParty(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 3))
         let message = state.startAspectBattle(for: floor)
@@ -81,16 +62,8 @@ struct AppStateAspectsTests {
     }
 
     @Test func startAspectBattleRejectsClearedFloor() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedState()
+        try attunePhysicalParty(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         state.completeAspectFloor(floor, hero: state.roster.activeHero, pet: state.roster.activePet)
@@ -114,58 +87,44 @@ struct AppStateAspectsTests {
         #expect(state.aspects.highestClearedFloor(for: AspectID.ironVein.rawValue) == 1)
     }
 
-    @Test func resumeSavedAspectBattleRestoresConfiguration() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+    @Test func endAspectBattleClearsLiveBattle() throws {
+        let state = try makeModesUnlockedState()
+        try attunePhysicalParty(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         #expect(state.startAspectBattle(for: floor) == nil)
         state.battle.endBattle()
-        #expect(state.activeBattleAspectID == nil)
-
-        state.shellSession.setAspectBattleResume(aspectID: AspectID.ironVein.rawValue, floor: 1)
-        #expect(state.isSavedBattleValid())
-        #expect(state.resumeSavedBattle() == nil)
-        #expect(state.battle.activeBattle?.aspectBattle?.aspectID == .ironVein)
-        #expect(state.battle.activeBattle?.aspectBattle?.floor == 1)
-    }
-
-    @Test func resumeInvalidAfterFloorCleared() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
-        state.completeAspectFloor(floor, hero: state.roster.activeHero, pet: state.roster.activePet)
-        state.shellSession.setAspectBattleResume(aspectID: AspectID.ironVein.rawValue, floor: 1)
-        #expect(!state.isSavedBattleValid())
+        #expect(state.battle.activeBattle == nil)
     }
 
     @Test func startAspectBattlePreviewsFloorRewardItem() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedState()
+        try attunePhysicalParty(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         #expect(state.startAspectBattle(for: floor) == nil)
         let pending = try #require(state.battle.activeBattle?.pendingRewardItem)
         #expect(pending.baseType.keywordAffinities.contains(.physical))
+    }
+
+    private func makeModesUnlockedState() throws -> AppState {
+        try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+    }
+
+    /// Iron Vein requires Physical on both hero and pet; knight/bear no longer qualify.
+    private func attunePhysicalParty(on state: AppState) throws {
+        var roster = state.roster.current
+        let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
+        let lizard = try #require(GameContent.pets.first { $0.id == "lizard_scout" })
+        roster.unlock(rogue)
+        roster.unlock(lizard)
+        roster.setActiveHero(rogue)
+        roster.setActivePet(lizard)
+        state.roster.current = roster
     }
 }

@@ -48,8 +48,10 @@ public enum Effect: Hashable, Sendable {
     case poison(Int)
     case bleed(Int)
     case controlMeter(Keyword, Int, Int)
-    case shield(Keyword, Int, Int)
-    case mitigation(Keyword, Double, Int)
+    /// Flat Block buffer. Stacks into a single pool; no timed duration.
+    case shield(Keyword, Int)
+    /// Flat Armor points. Stacks into a single pool; no timed duration.
+    case mitigation(Keyword, Int)
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
@@ -68,6 +70,8 @@ public enum Effect: Hashable, Sendable {
     case restoreManaOnHit(Int, Int)
     /// Forces outgoing damage keywords to `keyword` and adds `bonus` damage for `durationTicks`.
     case damageKeywordOverride(Keyword, Int, Int)
+    /// Next outgoing Holy damage instance deals double and applies Burning, then consumes.
+    case nextHolyStrike
 
     public static let bleedDoTTickCount = 3
     /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
@@ -87,8 +91,8 @@ public enum Effect: Hashable, Sendable {
         case .poison: return .poison
         case .bleed: return .bleed
         case let .controlMeter(k, _, _): return k
-        case let .shield(k, _, _): return k
-        case let .mitigation(k, _, _): return k
+        case let .shield(k, _): return k
+        case let .mitigation(k, _): return k
         case let .instantHeal(k, _): return k
         case let .leech(k, _, _): return k
         case let .resourceGain(k, _): return k
@@ -105,6 +109,7 @@ public enum Effect: Hashable, Sendable {
         case .criticalChanceBonus: return .physical
         case .restoreManaOnHit: return .mana
         case let .damageKeywordOverride(k, _, _): return k
+        case .nextHolyStrike: return .holy
         }
     }
 
@@ -118,8 +123,6 @@ public enum Effect: Hashable, Sendable {
     public var durationTicks: Int {
         switch self {
         case .bleed: return Self.bleedDoTTickCount
-        case let .shield(_, _, d): return d
-        case let .mitigation(_, _, d): return d
         case let .leech(_, _, d): return d
         case let .haste(d): return d
         case let .thorns(_, _, d): return d
@@ -128,7 +131,9 @@ public enum Effect: Hashable, Sendable {
         case let .restoreManaOnHit(_, d): return d
         case let .damageKeywordOverride(_, _, d): return d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor: return 0
+             .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor,
+             .shield, .mitigation, .nextHolyStrike:
+            return 0
         }
     }
 
@@ -156,7 +161,8 @@ public enum Effect: Hashable, Sendable {
         case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom, .marked:
             return .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
-             .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
+             .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
+             .damageKeywordOverride, .nextHolyStrike:
             return .actor
         }
     }

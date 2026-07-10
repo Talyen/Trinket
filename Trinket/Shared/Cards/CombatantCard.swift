@@ -8,7 +8,7 @@ struct CombatantCard: View {
     var showsName: Bool = true
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {

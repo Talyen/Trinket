@@ -57,7 +57,7 @@ Root injection uses `.environment(appState)` and `@Environment(AppState.self)` â
 ```
 
 - Modern `Tab(...)` initializer (not legacy `.tabItem`)
-- Product tabs only (Play / Collection / Homestead / Options); Collection owns `.searchable`
+- Product tabs only (Play / Collection / Homestead / Options)
 - Per-tab `NavigationStack` (no `NavigationView`)
 
 ### Change observation

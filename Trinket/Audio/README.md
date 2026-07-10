@@ -16,5 +16,5 @@ Do not migrate to AudioEngine unless product needs spatial audio, real-time effe
 
 - Catalog: `SFXCatalog` from `SoundManifest/sfx.tsv` (AAC in `Trinket/Resources/SFX`).
 - Playback: `SFXPlayer.play(_:volume:)` applies `OptionsStore.effectsVolume` × clip `volumeGain`.
-- Battle routing: `CombatSFXMapper` maps feedback chips to stable IDs; ability play/draw and victory/defeat play from `BattleSession`.
+- Battle routing: `CombatSFXMapper` maps feedback chips to stable IDs (deduped per presentation batch); `ability_draw` plays on opening hand / next-turn draw, and victory/defeat play from `BattleSession`.
 - Wire additional UI cues (confirm/cancel/tap) as surfaces adopt them; prefer catalog IDs over raw URLs.

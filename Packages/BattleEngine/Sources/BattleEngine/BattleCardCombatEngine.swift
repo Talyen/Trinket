@@ -98,6 +98,9 @@ public enum BattleCardCombatEngine {
         }
         context.tickCount += 1
         events.append(contentsOf: EffectTickEngine.tickAll(context: &context, matchup: matchup))
+        for combatant in [context.roster.hero.combatant, context.roster.pet.combatant, context.roster.enemy.combatant] {
+            DefensePoolEngine.decayBlockAtEndOfRound(on: combatant, in: &context)
+        }
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
         if context.isBattleOver {
             context.phase = .ended

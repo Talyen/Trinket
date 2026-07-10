@@ -186,6 +186,13 @@ public enum BattleTurnEngine {
                 }
             }
 
+            let shouldConsumeNextHolyStrike = amount > 0
+                && damageKeyword == .holy
+                && hasNextHolyStrike(for: actor, in: context)
+            if shouldConsumeNextHolyStrike {
+                amount *= 2
+            }
+
             let damageOutcome = context.resolveDamage(
                 DamageRequest(
                     amount: amount,
@@ -203,6 +210,18 @@ public enum BattleTurnEngine {
             let dealt = damageOutcome.healthLost
             let damageEvents = damageOutcome.events
             events.append(contentsOf: damageEvents)
+
+            if shouldConsumeNextHolyStrike {
+                removeNextHolyStrike(for: actor, in: &context)
+                events.append(contentsOf: context.applyDecayingDoT(
+                    keyword: .burn,
+                    potency: amount,
+                    to: damageTarget,
+                    sourceActorID: actor.id,
+                    dealImmediateDamage: true
+                ))
+            }
+
             if amount > 0 {
                 var pairedAmount = amount
                 if damageKeyword == .bleed {
@@ -237,6 +256,25 @@ public enum BattleTurnEngine {
             }
         }
         return nil
+    }
+
+    private static func hasNextHolyStrike(
+        for actor: Combatant,
+        in context: BattleEngineContext
+    ) -> Bool {
+        context.roster.activeEffects(for: actor).contains { active in
+            if case .nextHolyStrike = active.effect { return true }
+            return false
+        }
+    }
+
+    private static func removeNextHolyStrike(
+        for actor: Combatant,
+        in context: inout BattleEngineContext
+    ) {
+        var effects = context.roster.activeEffects(for: actor)
+        effects.removeAll { if case .nextHolyStrike = $0.effect { return true }; return false }
+        context.roster.setActiveEffects(effects, for: actor)
     }
 
     private static func applyTargetedEffects(

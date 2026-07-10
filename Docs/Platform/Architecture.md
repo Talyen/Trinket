@@ -70,7 +70,7 @@ Code mapping:
 | UI label | `AppTab` | Feature folder |
 |----------|----------|----------------|
 | Play | `.play` | `Features/Play` |
-| Collection | `.collection` | `Features/Collection` — Heroes, Pets, Inventory, and in-tab `.searchable` |
+| Collection | `.collection` | `Features/Collection` — Heroes, Pets, and Inventory |
 | Homestead | `.homestead` | `Features/Homestead` |
 | Options | `.options` | `Features/Options` |
 

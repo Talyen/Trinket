@@ -77,6 +77,25 @@ struct ArtCatalogIntegrationTests {
         }
     }
 
+    @Test func sampleInventoryItemsHaveArtReference() throws {
+        for item in GameContent.sampleInventoryItems {
+            _ = try #require(
+                item.artReference,
+                "Missing art for inventory template \(item.templateID)"
+            )
+        }
+    }
+
+    @Test func rewardInstanceItemsKeepArtReference() throws {
+        let template = try #require(GameContent.sampleInventoryItems.first)
+        let rewarded = template.rewardInstance(for: "chapter-1-stage-1")
+        #expect(rewarded.id != rewarded.templateID)
+        _ = try #require(
+            rewarded.artReference,
+            "Missing art after rewardInstance for \(rewarded.templateID)"
+        )
+    }
+
     private func referencedAbilityIDs() -> Set<String> {
         var ids = Set<String>()
         let combatants = GameContent.heroes + GameContent.pets + GameContent.enemies.map(\.combatant)

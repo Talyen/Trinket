@@ -11,7 +11,6 @@ extension AppState {
         let sfxPlayer: SFXPlayer
         let options: OptionsStore
         let selectedTab: AppTab
-        let activeBattleStageID: String?
         let mapScrollStageID: String?
         let pendingCollectionPresentation: LaunchPresentation?
         let pendingPlayDestination: PlayLaunchDestination?
@@ -65,11 +64,7 @@ extension AppState {
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
             sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
-            selectedTab: selectedTab(
-                environment: environment,
-                restoredTab: AppTab(shellSessionTab: resolvedShellSession.selectedTab)
-            ),
-            activeBattleStageID: resolvedShellSession.activeBattleStageID,
+            selectedTab: selectedTab(environment: environment),
             mapScrollStageID: resolvedShellSession.mapScrollStageID,
             pendingCollectionPresentation: launchCollection,
             pendingPlayDestination: launchPlay
@@ -94,9 +89,7 @@ extension AppState {
             break
         }
 
-        battle.onBattleStateChange = { [weak self] token in
-            self?.applyBattleResumeToken(token)
-        }
+        evaluateLaunchLanding()
         installMemoryPressureHandling()
     }
 
@@ -161,14 +154,14 @@ extension AppState {
     private static let launchShopStageID = "chapter-1-stage-4"
     private static let launchMysteryStageID = "chapter-1-stage-2"
 
-    private static func selectedTab(environment: AppEnvironment, restoredTab: AppTab?) -> AppTab {
+    private static func selectedTab(environment: AppEnvironment) -> AppTab {
         if let envTab = environment.launchTab {
             return envTab
         }
         if let launchScreen = environment.launchScreen {
             return tab(for: launchScreen)
         }
-        return restoredTab ?? .play
+        return .play
     }
 
     private static func tab(for launchScreen: LaunchScreen) -> AppTab {

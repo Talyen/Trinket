@@ -1,6 +1,7 @@
 import BattleEngine
 import SwiftUI
 import TrinketContent
+import TrinketPersistence
 
 struct PlayView: View {
     @Environment(AppState.self) private var appState
@@ -13,32 +14,28 @@ struct PlayView: View {
         // Battle stays in-tab (not a fullScreenCover) so the tab bar remains usable mid-fight.
         // Uses the Play tab NavigationStack for BattleView toolbars. Mode deep-link
         // state is preserved on PlayView and reapplied when battle ends.
+        // Active battle always wins over Mode Hub / last-mode restore.
         Group {
             if let configuration = battle.activeBattle {
                 BattleView(configuration: configuration)
                     .id(configuration.id)
             } else {
-                ChapterStageSelectView(
-                    onStageTap: handleStageTap,
-                    onEnemyTap: showEnemyDetails(for:),
-                    onResumeMessage: { stageMessage = $0 }
+                PlayModeHubView(
+                    onOpenCampaign: { openMode(.campaign) },
+                    onOpenAspects: { openMode(.aspects) },
+                    onOpenLabyrinth: { openMode(.labyrinth) }
                 )
                 .navigationDestination(item: $playDeepLink) { destination in
-                    switch destination {
-                    case .labyrinthMap:
-                        LabyrinthMapView()
-                    case let .aspectClimb(aspectID):
-                        AspectClimbView(aspectID: aspectID)
-                    }
+                    destinationView(for: destination)
                 }
             }
         }
         .onAppear {
-            applyPendingPlayDestinationIfNeeded()
+            restorePlayDestinationIfNeeded()
         }
         .onChange(of: battle.activeBattle?.id) { _, newID in
             if newID == nil {
-                applyPendingPlayDestinationIfNeeded()
+                restorePlayDestinationIfNeeded()
             }
         }
         .sheet(item: $battle.overlayCombatantDetail, content: { detail in
@@ -131,15 +128,76 @@ struct PlayView: View {
         }
     }
 
-    private func applyPendingPlayDestinationIfNeeded() {
-        guard let destination = appState.consumePendingPlayDestination() else { return }
+    @ViewBuilder
+    private func destinationView(for destination: PlayLaunchDestination) -> some View {
         switch destination {
+        case .campaign:
+            ChapterStageSelectView(
+                onStageTap: handleStageTap,
+                onEnemyTap: showEnemyDetails(for:)
+            )
+        case .aspectsHub:
+            AspectsHubView()
+        case .labyrinthMap:
+            LabyrinthMapView()
+        case let .aspectClimb(aspectID):
+            AspectClimbView(aspectID: aspectID)
+        }
+    }
+
+    private func openMode(_ mode: PlayerShellSessionPlayMode) {
+        guard canOpen(mode) else { return }
+        appState.rememberPlayMode(mode)
+        playDeepLink = PlayLaunchDestination.restoring(lastMode: mode)
+        if mode == .labyrinth {
+            _ = appState.enterLabyrinth()
+        }
+    }
+
+    private func canOpen(_ mode: PlayerShellSessionPlayMode) -> Bool {
+        switch mode {
+        case .campaign:
+            return true
+        case .aspects:
+            return ModesUnlock.isUnlocked(journey: appState.journey.current)
+        case .labyrinth:
+            return appState.isLabyrinthUnlocked
+        }
+    }
+
+    /// Prefer pending post-battle / launch destinations; otherwise resume last mode.
+    /// Skipped entirely while an active battle is showing.
+    private func restorePlayDestinationIfNeeded() {
+        guard appState.battle.activeBattle == nil else { return }
+
+        if let destination = appState.consumePendingPlayDestination() {
+            apply(destination)
+            return
+        }
+
+        if playDeepLink == nil {
+            let mode = appState.lastPlayMode
+            guard canOpen(mode) else { return }
+            apply(PlayLaunchDestination.restoring(lastMode: mode))
+        }
+    }
+
+    private func apply(_ destination: PlayLaunchDestination) {
+        switch destination {
+        case .campaign:
+            appState.rememberPlayMode(.campaign)
+            playDeepLink = .campaign
+        case .aspectsHub:
+            appState.rememberPlayMode(.aspects)
+            playDeepLink = .aspectsHub
         case .labyrinthMap:
             if appState.isLabyrinthUnlocked {
                 _ = appState.enterLabyrinth()
+                appState.rememberPlayMode(.labyrinth)
+                playDeepLink = .labyrinthMap
             }
-            playDeepLink = .labyrinthMap
         case let .aspectClimb(aspectID):
+            appState.rememberPlayMode(.aspects)
             playDeepLink = .aspectClimb(aspectID)
         }
     }

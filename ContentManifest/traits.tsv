@@ -17,7 +17,7 @@ purifying_wisdom	Purifying Wisdom	Restore 1 Health when Cleansing a debuff.		on_
 unliving_frame	Unliving Frame	Decreases Physical damage taken by 10%.	damage_taken_percent:physical:0.10	
 arcane_reservoir	Arcane Reservoir	Increases Maximum Mana by 3.	maximum_mana:3	
 fae_fortune	Fae Fortune	Restore 1 Health when gaining Gold.		on_gain_gold_heal:1
-iron_carapace	Iron Carapace	Increases Block gained by 1 and Armor gained by 5%.	block_gained:1|armor_gained_percent:0.05	
+iron_carapace	Iron Carapace	Increases Block gained by 1 and Armor gained by 1.	block_gained:1|armor_gained:1	
 unfeeling	Unfeeling	Stun and Freeze buildup is 30% slower.		control_resistance:0.30
 nimble	Nimble	12% increased Dodge chance.		dodge_chance_bonus:0.12
 quagmire	Quagmire	Decreases Physical damage taken by 15%.	damage_taken_percent:physical:0.15	
@@ -25,14 +25,14 @@ amorphous	Amorphous	15% Dodge chance vs Physical damage. Decreases Bleed damage 
 blazing_core	Blazing Core	Decreases Burn damage taken by 40%. Increases Burn damage dealt by 1.	damage_taken_percent:burn:0.40|damage_dealt:burn:1	
 permafrost_shell	Permafrost	Decreases Freeze damage taken by 40%. Increases Freeze damage dealt by 1.	damage_taken_percent:freeze:0.40|damage_dealt:freeze:1	
 ethereal	Ethereal	20% increased Dodge chance. Stun and Freeze buildup is 30% slower.		dodge_chance_bonus:0.20|control_resistance:0.30
-animated_plate	Animated Plate	Increases Block gained by 2 and Armor gained by 10%.	block_gained:2|armor_gained_percent:0.10	
+animated_plate	Animated Plate	Increases Block gained by 2 and Armor gained by 1.	block_gained:2|armor_gained:1	
 ambush	Ambush	First damaging hit each battle deals 2 bonus damage.		ambush_bonus:2
 grave_power	Grave Power	Leech healing is 50% stronger. Hemorrhage applies 1 extra Bleed potency.		leech_healing_multiplier:1.50|hemorrhage_bleed_bonus:1
 miasma	Miasma	Decreases Poison damage taken by 25%.	damage_taken_percent:poison:0.25	
 heartwood_renewal	Heartwood Renewal	Restore 1 Health every 6 seconds. Grasping Vines restores 1 extra Health.		regeneration:1:6|grasping_vines_heal_bonus:1
 living_furnace	Living Furnace	Decreases Burn damage taken by 50%. Molten Bulwark Burn damage is 2 higher. Thorns return 15% of damage taken.	damage_taken_percent:burn:0.50|damage_dealt:burn:2	thorns_percent:0.15
 absolute_zero	Absolute Zero	Decreases Freeze damage taken by 50%. Increases Freeze damage dealt by 2.	damage_taken_percent:freeze:0.50|damage_dealt:freeze:2	
-ironhide	Ironhide	Passive 15% Armor. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_armor:0.15
+ironhide	Ironhide	Passive 2 Armor. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.	damage_taken_percent:bleed:0.50|damage_dealt:stun:1	passive_armor:2
 holy_weakness	Holy Weakness	Takes 30% more Holy damage.	damage_taken_vulnerability:holy:0.30	
 scrawny	Scrawny	Takes 25% more Physical damage.	damage_taken_vulnerability:physical:0.25	
 desiccation	Desiccation	Takes 30% more Burn damage. Burn decays 50% slower on this enemy.	damage_taken_vulnerability:burn:0.30	burn_decay_slow:0.50

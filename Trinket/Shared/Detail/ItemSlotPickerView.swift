@@ -26,18 +26,18 @@ struct ItemSlotPickerView: View {
                         let isSelected = item.id == (selectedItemID ?? equipmentLoadout.itemID(for: slot))
                         HStack(spacing: 14) {
                             ItemCard(item: item, showsAffixCount: false, showsName: false)
-                                .frame(height: 133)
+                                .frame(height: HeroHeaderLayout.pickerRowCardHeight)
 
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(item.displayName)
-                                    .font(.headline.weight(.semibold))
+                                    .trinketTypography(.cardTitle)
                                     .foregroundStyle(.primary)
                                     .multilineTextAlignment(.leading)
 
                                 VStack(alignment: .leading, spacing: 4) {
                                     ForEach(item.affixes.prefix(4)) { affix in
                                         KeywordDescriptionText(text: affix.description)
-                                            .font(.caption)
+                                            .trinketTypography(.caption)
                                             .foregroundStyle(.secondary)
                                             .lineLimit(2)
                                             .multilineTextAlignment(.leading)
@@ -49,7 +49,7 @@ struct ItemSlotPickerView: View {
 
                             if isSelected {
                                 Image(systemName: "checkmark")
-                                    .font(.body.weight(.semibold))
+                                    .trinketTypography(.button)
                                     .foregroundStyle(TrinketDesign.Colors.selection)
                                     .accessibilityHidden(true)
                             }

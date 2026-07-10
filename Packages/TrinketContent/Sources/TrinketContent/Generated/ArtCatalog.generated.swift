@@ -1051,7 +1051,9 @@ extension Ability {
 
 extension InventoryItem {
     public var artReference: ItemArtReference? {
-        ArtCatalog.itemArtByID[id]
+        // Catalog keys are template ids (e.g. crossbow-basic), not per-instance ids.
+        ArtCatalog.itemArtByID[templateID]
+            ?? ArtCatalog.itemArtByID["\(baseType.id)-\(rarity.rawValue)"]
     }
 }
 

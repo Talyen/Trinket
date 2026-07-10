@@ -4,7 +4,7 @@ Goal: Find interaction bugs types miss — broken navigation, stuck states, miss
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-UI **test** speed/tier issues → [E2ETestQualityAudit.md](E2ETestQualityAudit.md).
+UI **test** speed/tier issues → [E2ETestQualityAudit.md](E2ETestQualityAudit.md). Custom layout / typography / Metrics adoption → [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
 
 ## Mission
 
@@ -38,7 +38,7 @@ rg -n 'trinketSurface|trinketMaterial|trinketGlassChip|TrinketDesign' --type swi
 
 Inventory dumps are for triage, not mandatory file-by-file review. Prioritize style-gate failures and controls missing dismiss / identifiers / labels.
 
-Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Homestead, Search, Options — plus one battle start/victory dismiss path.
+Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Homestead, Options — plus one battle start/victory dismiss path.
 
 ## Checks
 
@@ -78,7 +78,7 @@ Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Hom
 
 - Rapid tap debounce on stage start / craft / reward claim
 - Battle pauses on `scenePhase` background
-- Search fields: `.scrollDismissesKeyboard(.immediately)` or equivalent
+- Keyboard dismissal on text fields where applicable: `.scrollDismissesKeyboard(.immediately)` or equivalent
 - Empty states for empty collection/inventory/homestead
 
 ## Verification

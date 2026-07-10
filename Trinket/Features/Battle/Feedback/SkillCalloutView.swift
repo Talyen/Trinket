@@ -96,9 +96,7 @@ struct SkillCalloutView: View {
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .trinketGlassChip()
+                .trinketGlassChip(.utility)
         }
         .frame(maxWidth: 96)
     }

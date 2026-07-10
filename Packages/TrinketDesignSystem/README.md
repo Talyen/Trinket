@@ -39,6 +39,7 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
+| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur (blur skipped under Reduce Transparency), larger secondary-grey lock icon in a liquid glass chip |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |

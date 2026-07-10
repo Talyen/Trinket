@@ -429,12 +429,8 @@ def modifier_token_to_swift(token: str) -> str:
         return f".goldGained({token.split(':', 1)[1]})"
     if token.startswith("block_gained:"):
         return f".blockGained({token.split(':', 1)[1]})"
-    if token.startswith("armor_gained_percent:"):
-        return f".armorGainedPercent({token.split(':', 1)[1]})"
-    if token.startswith("block_duration:"):
-        return f".blockDuration({token.split(':', 1)[1]})"
-    if token.startswith("armor_duration:"):
-        return f".armorDuration({token.split(':', 1)[1]})"
+    if token.startswith("armor_gained:"):
+        return f".armorGained({token.split(':', 1)[1]})"
     if token.startswith("bleed_duration:"):
         return f".bleedDuration({token.split(':', 1)[1]})"
     if token.startswith("damage_taken_percent:"):
@@ -480,7 +476,7 @@ def triggers_swift(raw: str) -> str:
             values["regenerationAmount"] = amount
             values["regenerationIntervalTicks"] = interval
         elif token.startswith("passive_armor:"):
-            values["passiveArmorPercent"] = token.split(":", 1)[1]
+            values["passiveArmorFlat"] = token.split(":", 1)[1]
         elif token.startswith("thorns_percent:"):
             values["thornsPercent"] = token.split(":", 1)[1]
         elif token.startswith("cannot_be_healed:"):
@@ -530,9 +526,7 @@ def triggers_swift(raw: str) -> str:
         elif token.startswith("refresh_bleed_on_reapply:"):
             values["refreshBleedOnReapply"] = token.split(":", 1)[1]
         elif token.startswith("on_block_broken_armor:"):
-            _, percent, duration = token.split(":", 2)
-            values["blockBrokenArmorPercent"] = percent
-            values["blockBrokenArmorDurationTicks"] = duration
+            values["blockBrokenArmorFlat"] = token.split(":", 1)[1]
         elif token.startswith("on_armor_gained_block:"):
             values["armorGainedBlock"] = token.split(":", 1)[1]
         elif token.startswith("on_block_gained_cleanse:"):
@@ -571,7 +565,7 @@ def triggers_swift(raw: str) -> str:
         "ambushBonusDamage",
         "regenerationAmount",
         "regenerationIntervalTicks",
-        "passiveArmorPercent",
+        "passiveArmorFlat",
         "thornsPercent",
         "cannotBeHealed",
         "burnDecaySlowPercent",
@@ -597,8 +591,7 @@ def triggers_swift(raw: str) -> str:
         "damageBelowHealthPercentBonus",
         "damageAfterDodgeBonus",
         "refreshBleedOnReapply",
-        "blockBrokenArmorPercent",
-        "blockBrokenArmorDurationTicks",
+        "blockBrokenArmorFlat",
         "armorGainedBlock",
         "blockGainedCleanseCount",
         "blockGainedCleanseIntervalTicks",
@@ -646,11 +639,25 @@ def parse_effect_token(token: str) -> str:
     elif token.startswith("bleed:"):
         effect = f".bleed({token.split(':', 1)[1]})"
     elif token.startswith("shield:"):
-        _, kind, amount, duration = token.split(":", 3)
-        effect = f".shield(.{kind}, {amount}, {duration})"
+        parts = token.split(":")
+        if len(parts) == 3:
+            _, kind, amount = parts
+            effect = f".shield(.{kind}, {amount})"
+        elif len(parts) == 4:
+            _, kind, amount, _duration = parts
+            effect = f".shield(.{kind}, {amount})"
+        else:
+            raise ValueError(f"Invalid shield token: {token}")
     elif token.startswith("mitigation:"):
-        _, kind, amount, duration = token.split(":", 3)
-        effect = f".mitigation(.{kind}, {amount}, {duration})"
+        parts = token.split(":")
+        if len(parts) == 3:
+            _, kind, amount = parts
+            effect = f".mitigation(.{kind}, {amount})"
+        elif len(parts) == 4:
+            _, kind, amount, _duration = parts
+            effect = f".mitigation(.{kind}, {amount})"
+        else:
+            raise ValueError(f"Invalid mitigation token: {token}")
     elif token.startswith("instant_heal:"):
         _, kind, amount = token.split(":", 2)
         effect = f".instantHeal(.{kind}, {amount})"

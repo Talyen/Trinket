@@ -68,68 +68,17 @@ final class AppState {
         set { shellSession.selectedTab = PlayerShellSessionTab(rawValue: newValue.rawValue) ?? .play }
     }
 
-    var activeBattleStageID: String? {
-        get { shellSession.activeBattleStageID }
-        set { shellSession.activeBattleStageID = newValue }
-    }
-
-    var activeBattleAspectID: String? {
-        get { shellSession.activeBattleAspectID }
-        set { shellSession.activeBattleAspectID = newValue }
-    }
-
-    var activeBattleAspectFloor: Int? {
-        get { shellSession.activeBattleAspectFloor }
-        set { shellSession.activeBattleAspectFloor = newValue }
-    }
-
-    var activeBattleSavedAt: Date? {
-        shellSession.activeBattleSavedAt
-    }
-
-    /// Shell-session resume token assembled from mutually exclusive journey/aspect/labyrinth fields.
-    var savedBattleResumeToken: ActiveBattleResumeToken? {
-        if let stageID = shellSession.activeBattleStageID {
-            return .journey(stageID: stageID)
-        }
-        if let aspectIDRaw = shellSession.activeBattleAspectID,
-           let floor = shellSession.activeBattleAspectFloor {
-            return .aspect(aspectID: AspectID(aspectIDRaw), floor: floor)
-        }
-        if let nodeID = shellSession.activeBattleLabyrinthNodeID {
-            return .labyrinth(nodeID: nodeID)
-        }
-        return nil
-    }
-
-    func applyBattleResumeToken(_ token: ActiveBattleResumeToken?) {
-        switch token {
-        case let .journey(stageID):
-            shellSession.setJourneyBattleResume(stageID: stageID)
-        case let .aspect(aspectID, floor):
-            shellSession.setAspectBattleResume(aspectID: aspectID.rawValue, floor: floor)
-        case let .labyrinth(nodeID):
-            shellSession.setLabyrinthBattleResume(nodeID: nodeID)
-        case .none:
-            shellSession.clearActiveBattleResume()
-        }
-    }
-
     var mapScrollStageID: String? {
         get { shellSession.mapScrollStageID }
         set { shellSession.mapScrollStageID = newValue }
     }
 
-    private(set) var mapScrollFocus: MapScrollFocus?
-
-    var isColdLaunch = true
-    var seamlessWindow: TimeInterval = 120.0
-    var sameSessionWindow: TimeInterval = 3600.0
-    var battleSaveExpiryWindow: TimeInterval = 172800.0
-
-    var showResumeBattleCard: Bool {
-        isSavedBattleValid()
+    var lastPlayMode: PlayerShellSessionPlayMode {
+        get { shellSession.lastPlayMode }
+        set { shellSession.lastPlayMode = newValue }
     }
+
+    private(set) var mapScrollFocus: MapScrollFocus?
 
     init(
         environment: AppEnvironment = .shared,
@@ -159,10 +108,6 @@ final class AppState {
         if shellSession.selectedTab != desiredTab {
             shellSession.selectedTab = desiredTab
         }
-        // Only reassign if changed to avoid re-triggering didSet side effects (e.g. activeBattleSavedAt reset)
-        if shellSession.activeBattleStageID != dependencies.activeBattleStageID {
-            shellSession.activeBattleStageID = dependencies.activeBattleStageID
-        }
         if shellSession.mapScrollStageID != dependencies.mapScrollStageID {
             shellSession.mapScrollStageID = dependencies.mapScrollStageID
         }
@@ -182,17 +127,21 @@ final class AppState {
         return pendingPlayDestination
     }
 
-    /// Queues a Play-tab deep link so Modes navigation can be restored after battle ends.
+    /// Queues a Play-tab deep link so mode navigation can be restored after battle ends.
     func queueReturnToBattleOrigin(from token: ActiveBattleResumeToken?) {
         pendingPlayDestination = PlayLaunchDestination.returning(from: token)
     }
 
-    /// Ends the active battle and restores the Play mode that started it (journey map,
+    /// Ends the active battle and restores the Play mode that started it (Campaign,
     /// Aspects climb, Labyrinth map, …). Switches to the Play tab.
     func endBattleReturningToOrigin() {
         queueReturnToBattleOrigin(from: battle.activeBattle?.resumeToken)
         selectedTab = .play
         battle.endBattle()
+    }
+
+    func rememberPlayMode(_ mode: PlayerShellSessionPlayMode) {
+        lastPlayMode = mode
     }
 
     /// Leaves Options for the live battle on Play and presents the combat log sheet.
@@ -238,7 +187,6 @@ final class AppState {
         activeShopEncounter = nil
         activeLabyrinthRest = nil
         activeLabyrinthCraft = nil
-        clearSessionBattleState()
         shellSession.resetToDefaults(selectingTab: .play)
         return true
     }
@@ -255,10 +203,6 @@ final class AppState {
             return false
         }
         return journey.isActive(stage)
-    }
-
-    func clearSessionBattleState() {
-        shellSession.clearBattleState()
     }
 
     func noteMapScrollFocus(_ targetID: String) {
@@ -321,56 +265,12 @@ final class AppState {
         )
     }
 
-    /// True when a live battle or a shell-session resume token is present (resume card / mid-fight).
-    private var hasLocalBattleActivity: Bool {
-        battle.activeBattle != nil || shellSession.hasActiveBattleResumeToken
-    }
-
-    func evaluateResumeRules() {
-        let now = Date()
-        let isCold = isColdLaunch
-        isColdLaunch = false
-
-        let elapsed = shellSession.lastBackgroundedTime.map { now.timeIntervalSince($0) } ?? .infinity
-
-        if isCold {
-            let hasLaunchOverride = environment.launchTab != nil || environment.launchScreen != nil
-            if !hasLaunchOverride {
-                selectedTab = .play
-            }
-            if !isSavedBattleValid() {
-                shellSession.clearBattleState()
-            }
-            return
-        }
-
-        if hasLocalBattleActivity {
-            resumeLocalBattle(elapsed: elapsed)
-        } else if elapsed >= seamlessWindow {
+    /// Always land on Play unless a UI-test launch override selected another tab/screen.
+    func evaluateLaunchLanding() {
+        let hasLaunchOverride = environment.launchTab != nil || environment.launchScreen != nil
+        if !hasLaunchOverride {
             selectedTab = .play
-            shellSession.clearBattleState()
         }
-        // Else browsing within seamless window: keep the exact tab.
-    }
-
-    private func resumeLocalBattle(elapsed: TimeInterval) {
-        guard isSavedBattleValid() else {
-            if battle.activeBattle != nil {
-                battle.endBattle()
-            }
-            selectedTab = .play
-            shellSession.clearBattleState()
-            return
-        }
-
-        if elapsed < seamlessWindow {
-            if battle.activeBattle == nil {
-                resumeSavedBattle()
-            }
-        } else {
-            discardOrCompleteBattleBeyondSeamlessWindow()
-        }
-        selectedTab = .play
     }
 
     private func handleScenePhaseSideEffects(_ phase: ScenePhase) {
@@ -379,12 +279,11 @@ final class AppState {
             musicPlayer.cancelActiveFades()
             trimMemoryFootprint()
             Task { await playerSave.flushPendingSave() }
-            shellSession.lastBackgroundedTime = Date()
         case .inactive:
             musicPlayer.cancelActiveFades()
             Task { await playerSave.flushPendingSave() }
         case .active:
-            evaluateResumeRules()
+            evaluateLaunchLanding()
         @unknown default:
             break
         }

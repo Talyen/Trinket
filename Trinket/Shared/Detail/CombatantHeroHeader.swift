@@ -22,7 +22,7 @@ struct CombatantHeroHeader: View {
                     startPoint: .top,
                     endPoint: .bottom
                 )
-                .frame(height: 140)
+                .frame(height: HeroHeaderLayout.scrimHeight)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
                 .allowsHitTesting(false)
 

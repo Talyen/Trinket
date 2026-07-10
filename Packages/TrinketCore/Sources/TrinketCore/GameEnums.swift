@@ -71,9 +71,9 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
         case .stun:
             return "Stun damage builds up; at 20% of max HP the target becomes Stunned and loses their next action."
         case .block:
-            return "Damage absorption shield layered on top of health."
+            return "A pooled damage buffer absorbed before Health. Halves at the end of each round."
         case .armor:
-            return "Damage mitigation, reducing incoming damage by a percentage."
+            return "Flat damage reduction up to half of each hit. Decays by 1 whenever damage is taken."
         case .health:
             return "Survivability and health restoration."
         case .gold:

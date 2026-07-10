@@ -50,7 +50,8 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
     public let stackSpacing: CGFloat
     public let chrome: ChipChromeRole
     public let fontWeight: Font.Weight
-    public let fontSize: CGFloat
+    /// Dynamic Type text style for the primary float label (rounded + monospaced digits).
+    public let textStyle: Font.TextStyle
     public let bouncesSymbol: Bool
     public let showsSecondaryCaption: Bool
 
@@ -66,7 +67,7 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         stackSpacing: CGFloat,
         chrome: ChipChromeRole,
         fontWeight: Font.Weight,
-        fontSize: CGFloat,
+        textStyle: Font.TextStyle,
         bouncesSymbol: Bool,
         showsSecondaryCaption: Bool
     ) {
@@ -81,13 +82,14 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         self.stackSpacing = stackSpacing
         self.chrome = chrome
         self.fontWeight = fontWeight
-        self.fontSize = fontSize
+        self.textStyle = textStyle
         self.bouncesSymbol = bouncesSymbol
         self.showsSecondaryCaption = showsSecondaryCaption
     }
 
     public var font: Font {
-        .system(size: fontSize, weight: fontWeight, design: .rounded)
+        .system(textStyle, design: .rounded)
+            .weight(fontWeight)
             .monospacedDigit()
     }
 }

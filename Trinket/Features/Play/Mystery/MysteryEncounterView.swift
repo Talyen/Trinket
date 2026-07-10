@@ -53,18 +53,18 @@ struct MysteryEncounterView: View {
 
     private var readingContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
                 recruitArtwork
                     .opacity(artAppeared ? 1 : 0)
                     .scaleEffect(artAppeared ? 1 : (reduceMotion ? 1 : 0.94))
 
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     Text(session.event.title)
                         .font(.title.bold())
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterTitle)
 
                     Text(session.event.narrative)
-                        .font(.body)
+                        .trinketTypography(.body)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterNarrative)
@@ -89,10 +89,10 @@ struct MysteryEncounterView: View {
                         trigger: welcomeFeedbackTrigger,
                         enabled: appState.options.hapticsEnabled
                     )
-                    .padding(.top, 8)
+                    .padding(.top, TrinketDesign.Metrics.smallSpacing)
                 }
             }
-            .padding(24)
+            .padding(TrinketDesign.Metrics.extraLargeSpacing)
         }
     }
 
@@ -122,7 +122,7 @@ struct MysteryEncounterView: View {
     private func unlockReveal(unlockedID: String) -> some View {
         let combatant = revealCombatant(id: unlockedID)
         ScrollView {
-            VStack(spacing: 22) {
+            VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 Text(combatant.map { $0.role == .pet ? "New Pet" : "New Hero" } ?? "Unlocked")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -136,18 +136,18 @@ struct MysteryEncounterView: View {
                             combatantID: combatant.id
                         )
                     } label: {
-                        VStack(spacing: 12) {
+                        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
                             CombatantCard(combatant: combatant, showsName: false)
                                 .frame(maxWidth: 220)
                                 .scaleEffect(revealCardScale)
                                 .opacity(revealCardOpacity)
 
                             Text(combatant.name)
-                                .font(.largeTitle.bold())
+                                .trinketTypography(.screenTitle)
                                 .accessibilityIdentifier(AccessibilityID.Mystery.unlockName)
 
                             Text("\(combatant.growthArchetype.displayName) · Tap to inspect")
-                                .font(.headline)
+                                .trinketTypography(.cardTitle)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                                 .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
@@ -167,9 +167,9 @@ struct MysteryEncounterView: View {
                 }
                 .trinketPrimaryActionButton()
                 .accessibilityIdentifier(AccessibilityID.Mystery.continueButton)
-                .padding(.top, 8)
+                .padding(.top, TrinketDesign.Metrics.smallSpacing)
             }
-            .padding(24)
+            .padding(TrinketDesign.Metrics.extraLargeSpacing)
             .frame(maxWidth: .infinity)
             .trinketSurface(.reward)
         }

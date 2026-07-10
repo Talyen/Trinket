@@ -5,50 +5,6 @@ import TrinketCore
 import TrinketPersistence
 
 extension AppState {
-    func isSavedBattleValid() -> Bool {
-        guard let savedVersion = shellSession.activeBattleSchemaVersion,
-              savedVersion == PlayerShellSessionStore.currentSchemaVersion else {
-            return false
-        }
-        if let savedAt = shellSession.activeBattleSavedAt {
-            let elapsed = Date.now.timeIntervalSince(savedAt)
-            if elapsed > battleSaveExpiryWindow {
-                return false
-            }
-        }
-        guard let token = savedBattleResumeToken else { return false }
-        return isResumeTokenStillPlayable(token)
-    }
-
-    @discardableResult
-    func resumeSavedBattle() -> StageMapMessage? {
-        guard let token = savedBattleResumeToken else { return nil }
-        switch token {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID) else {
-                return StageMapMessage(
-                    title: "Encounter Missing",
-                    message: "This saved encounter is no longer available."
-                )
-            }
-            return startBattle(for: stage)
-        case let .aspect(aspectID, floorNumber):
-            guard let floor = GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) else {
-                return StageMapMessage(
-                    title: "Encounter Missing",
-                    message: "This saved Aspect floor is no longer available."
-                )
-            }
-            return startAspectBattle(for: floor)
-        case let .labyrinth(nodeID):
-            return startLabyrinthBattle(nodeID: nodeID)
-        }
-    }
-
-    func abandonSavedBattle() {
-        shellSession.clearBattleState()
-    }
-
     @discardableResult
     func completeStage(
         _ stage: Stage,
@@ -137,35 +93,6 @@ extension AppState {
         return persisted
     }
 
-    private func isResumeTokenStillPlayable(_ token: ActiveBattleResumeToken) -> Bool {
-        switch token {
-        case let .journey(stageID):
-            guard let stage = GameContent.stage(id: stageID),
-                  case .battle = stage.encounter else {
-                return false
-            }
-            return !journey.current.hasClaimedRewards(for: stage)
-        case let .aspect(aspectID, floorNumber):
-            guard ModesUnlock.isUnlocked(journey: journey.current),
-                  let aspect = GameContent.aspect(id: aspectID),
-                  AspectUnlock.isUnlocked(aspect, progress: aspects.current),
-                  GameContent.aspectFloor(aspectID: aspectID, floor: floorNumber) != nil
-            else {
-                return false
-            }
-            return aspects.current.isFloorStartable(floorNumber, aspectID: aspectID.rawValue)
-        case let .labyrinth(nodeID):
-            guard isLabyrinthUnlocked, labyrinth.hasMap else { return false }
-            guard let node = labyrinth.node(id: nodeID),
-                  node.type.isCombat,
-                  !node.isCleared
-            else {
-                return false
-            }
-            return labyrinth.isNodeReachable(nodeID) || node.isRevealed
-        }
-    }
-
     @discardableResult
     func grantBattleEarnedGold(_ amount: Int) -> Bool {
         guard amount > 0 else { return true }
@@ -180,39 +107,6 @@ extension AppState {
             )
             return false
         }
-    }
-
-    /// Beyond the seamless resume window, drop the in-memory battle while keeping the
-    /// resume card — unless a terminal victory is already pending, in which case grant
-    /// rewards so the player does not lose an unclaimed win.
-    func discardOrCompleteBattleBeyondSeamlessWindow() {
-        guard let configuration = battle.activeBattle else { return }
-
-        if battle.isShowingVictory || battle.outcome == .victory {
-            let battleGold = battle.victorySummary?.battleGold ?? battle.state?.earnedGold ?? 0
-            let materialRewards = battle.victorySummary?.materialRewards
-            completeActiveBattle(
-                configuration,
-                battleEarnedGold: battleGold,
-                materialRewards: materialRewards
-            )
-            return
-        }
-
-        if battle.isShowingDefeat {
-            if let nodeID = configuration.labyrinthBattle?.nodeID {
-                recordLabyrinthDefeat(nodeID: nodeID)
-            }
-            battle.endBattle()
-            return
-        }
-
-        // Mid-fight: clear live battle UI/state but keep shell session stage ID for the
-        // resume card (same contract as the previous nil-callback clear).
-        let oldChange = battle.onBattleStateChange
-        battle.onBattleStateChange = nil
-        battle.endBattle()
-        battle.onBattleStateChange = oldChange
     }
 
     @discardableResult

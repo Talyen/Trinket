@@ -12,9 +12,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var leechHealingBonus: Int
     public var goldGainedBonus: Int
     public var blockGainedBonus: Int
-    public var armorGainedBonus: Double
-    public var blockDurationBonus: Int
-    public var armorDurationBonus: Int
+    public var armorGainedBonus: Int
     public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
     public var damageTakenReduction: [Keyword: Double]
@@ -29,7 +27,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var ambushBonusDamage: Int
     public var regenerationAmount: Int
     public var regenerationIntervalTicks: Int
-    public var passiveArmorPercent: Double
+    public var passiveArmorFlat: Int
     public var thornsPercent: Double
     public var cannotBeHealed: Bool
     public var burnDecaySlowPercent: Double
@@ -55,8 +53,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var damageBelowHealthPercentBonus: Int
     public var damageAfterDodgeBonus: Int
     public var refreshBleedOnReapply: Bool
-    public var blockBrokenArmorPercent: Double
-    public var blockBrokenArmorDurationTicks: Int
+    public var blockBrokenArmorFlat: Int
     public var armorGainedBlock: Int
     public var blockGainedCleanseCount: Int
     public var blockGainedCleanseIntervalTicks: Int
@@ -86,9 +83,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechHealingBonus: Int = 0,
         goldGainedBonus: Int = 0,
         blockGainedBonus: Int = 0,
-        armorGainedBonus: Double = 0,
-        blockDurationBonus: Int = 0,
-        armorDurationBonus: Int = 0,
+        armorGainedBonus: Int = 0,
         leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
         damageTakenReduction: [Keyword: Double] = [:],
@@ -103,7 +98,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         ambushBonusDamage: Int = 0,
         regenerationAmount: Int = 0,
         regenerationIntervalTicks: Int = 0,
-        passiveArmorPercent: Double = 0,
+        passiveArmorFlat: Int = 0,
         thornsPercent: Double = 0,
         cannotBeHealed: Bool = false,
         burnDecaySlowPercent: Double = 0,
@@ -129,8 +124,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageBelowHealthPercentBonus: Int = 0,
         damageAfterDodgeBonus: Int = 0,
         refreshBleedOnReapply: Bool = false,
-        blockBrokenArmorPercent: Double = 0,
-        blockBrokenArmorDurationTicks: Int = 0,
+        blockBrokenArmorFlat: Int = 0,
         armorGainedBlock: Int = 0,
         blockGainedCleanseCount: Int = 0,
         blockGainedCleanseIntervalTicks: Int = 0,
@@ -156,8 +150,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.goldGainedBonus = goldGainedBonus
         self.blockGainedBonus = blockGainedBonus
         self.armorGainedBonus = armorGainedBonus
-        self.blockDurationBonus = blockDurationBonus
-        self.armorDurationBonus = armorDurationBonus
         self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
         self.damageTakenReduction = damageTakenReduction
@@ -172,7 +164,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.ambushBonusDamage = ambushBonusDamage
         self.regenerationAmount = regenerationAmount
         self.regenerationIntervalTicks = regenerationIntervalTicks
-        self.passiveArmorPercent = passiveArmorPercent
+        self.passiveArmorFlat = passiveArmorFlat
         self.thornsPercent = thornsPercent
         self.cannotBeHealed = cannotBeHealed
         self.burnDecaySlowPercent = burnDecaySlowPercent
@@ -198,8 +190,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.damageBelowHealthPercentBonus = damageBelowHealthPercentBonus
         self.damageAfterDodgeBonus = damageAfterDodgeBonus
         self.refreshBleedOnReapply = refreshBleedOnReapply
-        self.blockBrokenArmorPercent = blockBrokenArmorPercent
-        self.blockBrokenArmorDurationTicks = blockBrokenArmorDurationTicks
+        self.blockBrokenArmorFlat = blockBrokenArmorFlat
         self.armorGainedBlock = armorGainedBlock
         self.blockGainedCleanseCount = blockGainedCleanseCount
         self.blockGainedCleanseIntervalTicks = blockGainedCleanseIntervalTicks
@@ -242,8 +233,6 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         goldGainedBonus += other.goldGainedBonus
         blockGainedBonus += other.blockGainedBonus
         armorGainedBonus += other.armorGainedBonus
-        blockDurationBonus += other.blockDurationBonus
-        armorDurationBonus += other.armorDurationBonus
         leechDurationBonus += other.leechDurationBonus
         bleedDurationBonus += other.bleedDurationBonus
         for (keyword, amount) in other.damageTakenReduction {
@@ -262,7 +251,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         ambushBonusDamage += other.ambushBonusDamage
         regenerationAmount += other.regenerationAmount
         regenerationIntervalTicks = max(regenerationIntervalTicks, other.regenerationIntervalTicks)
-        passiveArmorPercent += other.passiveArmorPercent
+        passiveArmorFlat += other.passiveArmorFlat
         thornsPercent += other.thornsPercent
         cannotBeHealed = cannotBeHealed || other.cannotBeHealed
         burnDecaySlowPercent += other.burnDecaySlowPercent
@@ -288,8 +277,7 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
         damageAfterDodgeBonus += other.damageAfterDodgeBonus
         refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply
-        blockBrokenArmorPercent += other.blockBrokenArmorPercent
-        blockBrokenArmorDurationTicks = max(blockBrokenArmorDurationTicks, other.blockBrokenArmorDurationTicks)
+        blockBrokenArmorFlat += other.blockBrokenArmorFlat
         armorGainedBlock += other.armorGainedBlock
         blockGainedCleanseCount += other.blockGainedCleanseCount
         blockGainedCleanseIntervalTicks = max(blockGainedCleanseIntervalTicks, other.blockGainedCleanseIntervalTicks)

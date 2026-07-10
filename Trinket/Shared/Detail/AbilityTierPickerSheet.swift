@@ -28,15 +28,15 @@ struct AbilityTierPickerSheet: View {
                         let isSelected = ability.id == (selectedAbilityID ?? selectedAbility?.id)
                         HStack(spacing: 14) {
                             AbilityChoiceCard(ability: ability, showsName: false)
-                                .frame(height: 133)
+                                .frame(height: HeroHeaderLayout.pickerRowCardHeight)
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(ability.name)
-                                    .font(.headline.weight(.semibold))
+                                    .trinketTypography(.cardTitle)
                                     .foregroundStyle(.primary)
 
                                 KeywordDescriptionText(text: ability.summary)
-                                    .font(.subheadline)
+                                    .trinketTypography(.secondaryBody)
                                     .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -45,7 +45,7 @@ struct AbilityTierPickerSheet: View {
 
                             if isSelected {
                                 Image(systemName: "checkmark")
-                                    .font(.body.weight(.semibold))
+                                    .trinketTypography(.button)
                                     .foregroundStyle(TrinketDesign.Colors.selection)
                                     .accessibilityHidden(true)
                             }

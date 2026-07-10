@@ -194,7 +194,7 @@ struct CombatantRuntimeTests {
         runtime.setEffects([
             ActiveEffect(id: 1, effect: .burn(3), remainingTicks: 0),
             ActiveEffect(id: 2, effect: .poison(2), remainingTicks: 0),
-            ActiveEffect(id: 3, effect: .shield(.block, 5, 6), remainingTicks: 6)
+            ActiveEffect(id: 3, effect: .shield(.block, 5), remainingTicks: 6)
         ])
         runtime.removeEffects { $0.effect.isDecayingDoT }
         try #expect(runtime.activeEffects.count == 1)

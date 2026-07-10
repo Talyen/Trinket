@@ -24,7 +24,7 @@ struct HomesteadNodeDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
                 HomesteadDetailHeader(definition: definition, status: status)
 
                 if !status.isUnlocked {
@@ -42,9 +42,9 @@ struct HomesteadNodeDetailView: View {
                         bonus: nextTier.bonus
                     )
 
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                         Text("Requirements")
-                            .font(.headline)
+                            .trinketTypography(.cardTitle)
                         HomesteadRequirementList(
                             cost: nextTier.cost,
                             status: status
@@ -53,14 +53,14 @@ struct HomesteadNodeDetailView: View {
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, 12)
+            .padding(.top, TrinketDesign.Metrics.mediumSpacing)
             .padding(.bottom, 120)
         }
         .trinketScreenBackground(.homestead)
         .navigationTitle(definition.title)
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
+            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                 HomesteadProjectActionFooter(
                     status: status,
                     isBuilding: build.isBuilding,
@@ -69,8 +69,8 @@ struct HomesteadNodeDetailView: View {
                 )
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.top, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.bottom, TrinketDesign.Metrics.smallSpacing)
             .trinketMaterial(.bottomBar, cornerRadius: 0)
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
@@ -108,7 +108,11 @@ struct HomesteadDetailHeader: View {
         ZStack(alignment: .bottomLeading) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                .trinketLockedCardEffect(isLocked: !status.isUnlocked, text: status.isUnlocked ? nil : status.statusTitle)
+                .trinketLockedCardEffect(
+                    isLocked: !status.isUnlocked,
+                    text: status.isUnlocked ? nil : "Locked",
+                    cornerRadius: TrinketDesign.Corners.small
+                )
                 .overlay {
                     LinearGradient(
                         colors: [.clear, .black.opacity(0.58)],
@@ -117,8 +121,10 @@ struct HomesteadDetailHeader: View {
                     )
                 }
 
-            VStack(alignment: .leading, spacing: 10) {
-                HomesteadStatusBadge(status: status)
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                if status.isUnlocked {
+                    HomesteadStatusBadge(status: status)
+                }
 
                 Text(definition.title)
                     .font(.title.weight(.bold))
@@ -133,7 +139,7 @@ struct HomesteadDetailHeader: View {
                     labelColor: .white.opacity(0.82)
                 )
             }
-            .padding(16)
+            .padding(TrinketDesign.Metrics.largeSpacing)
         }
         .trinketCardSurface()
         .accessibilityElement(children: .combine)
@@ -146,18 +152,18 @@ struct HomesteadPrerequisiteSection: View {
     let homestead: PlayerHomesteadState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             Text("Path")
-                .font(.headline)
+                .trinketTypography(.cardTitle)
 
-            VStack(spacing: 8) {
+            VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                 ForEach(definition.prerequisites, id: \.nodeID) { requirement in
-                    HStack(spacing: 10) {
+                    HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                         Image(systemName: isMet(requirement) ? "checkmark.circle.fill" : "lock.fill")
                             .foregroundStyle(isMet(requirement) ? TrinketDesign.Colors.success : .secondary)
                             .frame(width: 22)
                         Text(title(for: requirement.nodeID))
-                            .font(.subheadline)
+                            .trinketTypography(.secondaryBody)
                         Spacer()
                         Text("\(homestead.tier(for: requirement.nodeID)) / \(requirement.minimumTier)")
                             .font(.subheadline.monospacedDigit().weight(.semibold))
@@ -187,7 +193,7 @@ struct HomesteadBonusSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(.headline)
+                .trinketTypography(.cardTitle)
             HomesteadBonusCopy(bonus: bonus)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .trinketSurface(.secondary)
@@ -200,15 +206,15 @@ struct HomesteadRequirementList: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             ForEach(cost) { amount in
                 let balance = status.balance(for: amount)
-                HStack(spacing: 10) {
+                HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     Image(systemName: amount.resource.symbolName)
                         .foregroundStyle(amount.resource.tint)
                         .frame(width: 22)
                     Text(amount.resource.displayName)
-                        .font(.subheadline)
+                        .trinketTypography(.secondaryBody)
                     Spacer()
                     HomesteadRequirementCountText(
                         balance: balance,

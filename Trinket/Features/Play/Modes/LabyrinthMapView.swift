@@ -8,7 +8,8 @@ struct LabyrinthMapView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
-    @State private var partyPicker: PartyPickerKind?
+    @State private var prepareCombatNode: LabyrinthNode?
+    @State private var pendingCombatStart = PendingLabyrinthCombatStart()
     @State private var nodeMessage: StageMapMessage?
     @State private var selectedModifier: LabyrinthModifierDefinition?
 
@@ -49,12 +50,17 @@ struct LabyrinthMapView: View {
                 _ = appState.enterLabyrinth()
             }
         }
-        .sheet(item: $partyPicker) { picker in
-            PartyPickerSheet(
-                kind: picker,
-                combatants: combatants(for: picker),
-                onSelect: { combatant in
-                    select(combatant, for: picker)
+        .sheet(item: $prepareCombatNode, onDismiss: startPendingCombatIfNeeded) { node in
+            BattlePartySheet(
+                title: LabyrinthMapPresentation.nodeTitle(node),
+                subtitle: "Depth \(node.depth)",
+                accentColor: focusedCluster
+                    .flatMap { GameContent.labyrinthBiome(id: $0.biomeID)?.keywordBias.visualStyle.color },
+                initialHero: appState.roster.activeHero,
+                initialPet: appState.roster.activePet,
+                onStart: {
+                    pendingCombatStart.nodeID = node.id
+                    prepareCombatNode = nil
                 }
             )
             .presentationDetents([.large])
@@ -65,7 +71,7 @@ struct LabyrinthMapView: View {
                 List {
                     Section {
                         Text(modifier.epithet)
-                            .font(.subheadline)
+                            .trinketTypography(.secondaryBody)
                             .foregroundStyle(.secondary)
                     }
                     Section("Effects") {
@@ -106,26 +112,21 @@ struct LabyrinthMapView: View {
 
     private var mapContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                 header
-                ActivePartyPickerRow(
-                    hero: appState.roster.activeHero,
-                    pet: appState.roster.activePet,
-                    onHeroPicker: { partyPicker = .hero },
-                    onPetPicker: { partyPicker = .pet }
-                )
 
                 ForEach(visibleClusters) { cluster in
                     LabyrinthMapClusterSection(
                         cluster: cluster,
                         state: state,
                         onSelectModifier: { selectedModifier = $0 },
+                        onCombatPrepare: { prepareCombatNode = $0 },
                         onNodeMessage: { nodeMessage = $0 }
                     )
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, 16)
+            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
         }
     }
 
@@ -135,43 +136,39 @@ struct LabyrinthMapView: View {
         let modifiers = LabyrinthCatalog.modifiers(ids: focus?.modifierIDs ?? [])
         let style = biome?.keywordBias.visualStyle
 
-        return VStack(alignment: .leading, spacing: 10) {
+        return VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             HStack(alignment: .firstTextBaseline) {
                 Text("Depth \(state.deepestDepth)")
                     .font(.title2.weight(.semibold))
                     .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
                 if state.deepestDepth >= 10 {
                     Text("Atlas marked")
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .trinketGlassChip()
+                        .trinketTypography(.badge)
+                        .trinketGlassChip(.compact)
                 }
             }
 
             if let biome {
                 Text(biome.title)
-                    .font(.headline)
+                    .trinketTypography(.cardTitle)
                 Text(biome.epithet)
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
             } else {
                 Text("The path remembers. Choose a way forward.")
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
             }
 
             if !modifiers.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                         ForEach(Array(modifiers.enumerated()), id: \.element.id) { index, modifier in
                             Button {
                                 selectedModifier = modifier
                             } label: {
                                 Text(modifier.title)
-                                    .font(.caption.weight(.semibold))
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
+                                    .trinketTypography(.badge)
                             }
                             .trinketGlassChip()
                             .foregroundStyle(style?.color ?? .primary)
@@ -214,21 +211,16 @@ struct LabyrinthMapView: View {
             .sorted { $0.depthBand < $1.depthBand }
     }
 
-    private func combatants(for picker: PartyPickerKind) -> [Combatant] {
-        switch picker {
-        case .hero: return appState.roster.heroes
-        case .pet: return appState.roster.pets
+    private func startPendingCombatIfNeeded() {
+        guard let nodeID = pendingCombatStart.nodeID else { return }
+        pendingCombatStart.nodeID = nil
+        if let message = appState.handleLabyrinthNodeAction(nodeID: nodeID) {
+            nodeMessage = message
         }
     }
+}
 
-    private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
-        var updatedRoster = appState.roster.current
-        switch picker {
-        case .hero:
-            updatedRoster.setActiveHero(combatant)
-        case .pet:
-            updatedRoster.setActivePet(combatant)
-        }
-        appState.roster.current = updatedRoster
-    }
+@MainActor
+private final class PendingLabyrinthCombatStart {
+    var nodeID: String?
 }

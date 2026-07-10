@@ -140,7 +140,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.enemy) <= 95)
     }
 
-    @Test func avatarOfJusticeAppliesConsecratedBlockAndArmor() throws {
+    @Test func avatarOfJusticeAppliesNextHolyStrike() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -158,17 +158,7 @@ struct AbilityEffectIntegrationTests {
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case let .damageKeywordOverride(keyword, bonus, _) = active.effect {
-                return keyword == .holy && bonus == 3 && active.remainingTicks == 6
-            }
-            return false
-        })
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .shield(.block, _, _) = active.effect { return true }
-            return false
-        })
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .mitigation(.armor, _, _) = active.effect { return true }
+            if case .nextHolyStrike = active.effect { return true }
             return false
         })
     }

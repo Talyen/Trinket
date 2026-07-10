@@ -160,8 +160,8 @@ private struct SurfaceStyle {
             shadow = palette.shadow
         case .card:
             fill = palette.panelSurface
-            stroke = palette.subtleStroke
-            strokeWidth = 1
+            stroke = .clear
+            strokeWidth = 0
             padding = 0
             cornerRadius = TrinketDesign.Corners.card
             shadow = palette.shadow
@@ -325,6 +325,8 @@ public struct GlassChipModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         content
+            .padding(.horizontal, role.horizontalPadding)
+            .padding(.vertical, role.verticalPadding)
             .overlay {
                 if role == .emphasis {
                     Capsule(style: .continuous)
@@ -336,6 +338,26 @@ public struct GlassChipModifier: ViewModifier {
                 shape: Capsule(style: .continuous),
                 solidFill: ThemePalette.apple.elevatedBackground
             ))
+    }
+}
+
+extension ChipChromeRole {
+    var horizontalPadding: CGFloat {
+        switch self {
+        case .standard: TrinketDesign.Metrics.chipPaddingHorizontal
+        case .compact: TrinketDesign.Metrics.chipCompactPaddingHorizontal
+        case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingHorizontal
+        case .utility: TrinketDesign.Metrics.chipUtilityPaddingHorizontal
+        }
+    }
+
+    var verticalPadding: CGFloat {
+        switch self {
+        case .standard: TrinketDesign.Metrics.chipPaddingVertical
+        case .compact: TrinketDesign.Metrics.chipCompactPaddingVertical
+        case .emphasis: TrinketDesign.Metrics.chipEmphasisPaddingVertical
+        case .utility: TrinketDesign.Metrics.chipUtilityPaddingVertical
+        }
     }
 }
 
@@ -355,43 +377,27 @@ public struct CombatFloatTextModifier: ViewModifier {
 
 public struct StatusBadgeModifier: ViewModifier {
     public func body(content: Content) -> some View {
-        content.modifier(TrinketGlassBackgroundModifier(
-            glass: .regular,
-            shape: Capsule(style: .continuous),
-            solidFill: ThemePalette.apple.panelSurface
-        ))
+        content
+            .padding(.horizontal, TrinketDesign.Metrics.chipCompactPaddingHorizontal)
+            .padding(.vertical, TrinketDesign.Metrics.chipCompactPaddingVertical)
+            .modifier(TrinketGlassBackgroundModifier(
+                glass: .regular,
+                shape: Capsule(style: .continuous),
+                solidFill: ThemePalette.apple.panelSurface
+            ))
     }
 }
 
 public struct WalletPillModifier: ViewModifier {
     public func body(content: Content) -> some View {
-        content.modifier(TrinketGlassBackgroundModifier(
-            glass: .regular,
-            shape: Capsule(style: .continuous),
-            solidFill: ThemePalette.apple.secondaryBackground
-        ))
-    }
-}
-
-public struct BattleHealthScrimGradient: View {
-    public enum Placement {
-        case top
-        case bottom
-    }
-
-    let placement: Placement
-
-    public init(placement: Placement) {
-        self.placement = placement
-    }
-
-    public var body: some View {
-        LinearGradient(
-            colors: [Color.black.opacity(0.42), .clear],
-            startPoint: placement == .top ? .top : .bottom,
-            endPoint: placement == .top ? .bottom : .top
-        )
-        .frame(height: 54)
+        content
+            .padding(.horizontal, TrinketDesign.Metrics.chipPaddingHorizontal)
+            .padding(.vertical, TrinketDesign.Metrics.chipPaddingVertical)
+            .modifier(TrinketGlassBackgroundModifier(
+                glass: .regular,
+                shape: Capsule(style: .continuous),
+                solidFill: ThemePalette.apple.secondaryBackground
+            ))
     }
 }
 

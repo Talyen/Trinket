@@ -54,7 +54,7 @@ public extension AffixModifier {
             profile.goldGainedBonus += amount
         case let .blockGained(amount):
             profile.blockGainedBonus += amount
-        case let .armorGainedPercent(amount):
+        case let .armorGained(amount):
             profile.armorGainedBonus += amount
         case let .damageTakenPercent(keyword, amount):
             profile.damageTakenReduction[keyword, default: 0] += amount
@@ -70,10 +70,6 @@ public extension AffixModifier {
 
     private func applyDurationBonus(to profile: inout CombatModifierProfile) {
         switch self {
-        case let .blockDuration(amount):
-            profile.blockDurationBonus += amount
-        case let .armorDuration(amount):
-            profile.armorDurationBonus += amount
         case let .leechDuration(amount):
             profile.leechDurationBonus += amount
         case let .bleedDuration(amount):

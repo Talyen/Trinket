@@ -10,7 +10,6 @@ ui_equip	sfx_ui_equip	Raw Assets/Sound Effects/Items/clothing movement 1.wav	1.0
 ui_unequip	sfx_ui_unequip	Raw Assets/Sound Effects/Materials/wood_small_pickup.wav	1.0
 ui_buy_sell	sfx_ui_buy_sell	Raw Assets/Sound Effects/Items/DSGNTonl_USABLE-Magic Coin_HY_PC-001.wav	1.0
 ability_draw	sfx_ability_draw	Raw Assets/Sound Effects/Card and Board/card_draw_2.wav	1.0
-ability_play	sfx_ability_play	Raw Assets/Sound Effects/Spells/MAGSpel_CAST-Energy Noise_HY_PC-001.wav	1.0
 hit	sfx_hit	Raw Assets/Sound Effects/Attacks and Combat/Hit 1.wav	1.0
 hit_burn	sfx_hit_burn	Raw Assets/Sound Effects/Spells/Fireball 1.ogg	1.0
 hit_freeze	sfx_hit_freeze	Raw Assets/Sound Effects/Spells/Ice Throw 1.ogg	1.0

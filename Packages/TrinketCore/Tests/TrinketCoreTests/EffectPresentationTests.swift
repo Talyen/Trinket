@@ -33,17 +33,17 @@ struct EffectPresentationTests {
         try #expect(EffectPresentation.activePhrase(for: active) == "Death's Door")
     }
 
-    @Test func applyPhraseFormatsBlockWithAmountAndDuration() throws {
+    @Test func applyPhraseFormatsBlockWithAmount() throws {
         try #expect(
-            EffectPresentation.applyPhrase(for: .shield(.block, 5, 6))
-                == "gain 5 Block for 6 turns"
+            EffectPresentation.applyPhrase(for: .shield(.block, 5))
+                == "gain 5 Block"
         )
     }
 
-    @Test func applyPhraseFormatsArmorWithAmountAndDuration() throws {
+    @Test func applyPhraseFormatsArmorWithAmount() throws {
         try #expect(
-            EffectPresentation.applyPhrase(for: .mitigation(.armor, 0.15, 6))
-                == "gain 15% Armor for 6 turns"
+            EffectPresentation.applyPhrase(for: .mitigation(.armor, 2))
+                == "gain 2 Armor"
         )
     }
 

@@ -14,6 +14,13 @@ public enum TrinketDesign {
         public static let healthTrailingDamage = Color.red.opacity(0.35)
         public static let healthRestore = Color.green
 
+        /// Muted red fill for battle card bottom-edge health chrome.
+        public static let battleHealth = Color.red.opacity(0.55)
+        /// Subtle empty track behind battle health fill.
+        public static let battleHealthTrack = Color.black.opacity(0.28)
+        /// Lagging damage remnant on battle health bars.
+        public static let battleHealthTrailingDamage = Color.red.opacity(0.28)
+
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
         public static let encounterEvent = DesignAssetColors.named("EncounterEvent")
         public static let encounterShop = DesignAssetColors.named("EncounterShop")
@@ -26,8 +33,11 @@ public enum TrinketDesign {
         public static let mediumSpacing: CGFloat = 12
         public static let largeSpacing: CGFloat = 16
         public static let extraLargeSpacing: CGFloat = 24
+        /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
         public static let statBarHeight: CGFloat = 7
+        /// Thin strip height for battle card bottom-edge health chrome.
+        public static let battleHealthBarHeight: CGFloat = 3
         public static let contentMargin: CGFloat = 20
         public static let contentTopPadding: CGFloat = 24
         public static let compactContentTopPadding: CGFloat = 16
@@ -37,6 +47,41 @@ public enum TrinketDesign {
         public static let collectionShelfHorizontalMargin: CGFloat = contentMargin
         public static let collectionShelfCardSpacing: CGFloat = 16
         public static let collectionShelfPeekRatio: CGFloat = 0.08
+
+        /// Standard glass chip / wallet / badge inset (baked into chip modifiers).
+        public static let chipPaddingHorizontal: CGFloat = 10
+        public static let chipPaddingVertical: CGFloat = 6
+        public static let chipCompactPaddingHorizontal: CGFloat = 8
+        public static let chipCompactPaddingVertical: CGFloat = 4
+        public static let chipEmphasisPaddingHorizontal: CGFloat = 14
+        public static let chipEmphasisPaddingVertical: CGFloat = 9
+        public static let chipUtilityPaddingHorizontal: CGFloat = 6
+        public static let chipUtilityPaddingVertical: CGFloat = 3
+
+        public static let collectionGridMinimum: CGFloat = 150
+        public static let collectionGridMaximum: CGFloat = 190
+        public static let partyPickerGridMinimum: CGFloat = 120
+        public static let partyPickerGridMaximum: CGFloat = 160
+
+        /// Shared adaptive columns for collection / shop item grids.
+        public static var collectionGridItems: [GridItem] {
+            [
+                GridItem(
+                    .adaptive(minimum: collectionGridMinimum, maximum: collectionGridMaximum),
+                    spacing: largeSpacing
+                )
+            ]
+        }
+
+        /// Compact adaptive columns for party picker sheets.
+        public static var partyPickerGridItems: [GridItem] {
+            [
+                GridItem(
+                    .adaptive(minimum: partyPickerGridMinimum, maximum: partyPickerGridMaximum),
+                    spacing: largeSpacing
+                )
+            ]
+        }
     }
 
     public enum Corners {

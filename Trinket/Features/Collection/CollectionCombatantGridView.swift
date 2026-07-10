@@ -8,9 +8,7 @@ struct CollectionCombatantGridView: View {
 
     let kind: CombatantDetailContext.Kind
 
-    private let columns = [
-        GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
-    ]
+    private let columns = TrinketDesign.Metrics.collectionGridItems
 
     private var title: String {
         switch kind {
@@ -37,8 +35,8 @@ struct CollectionCombatantGridView: View {
                 .padding(TrinketDesign.Metrics.contentMargin)
                 .accessibilityIdentifier("Collection combatants empty state")
             } else {
-                VStack(alignment: .leading, spacing: 24) {
-                    LazyVGrid(columns: columns, spacing: 16) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
+                    LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
                         ForEach(combatants) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,

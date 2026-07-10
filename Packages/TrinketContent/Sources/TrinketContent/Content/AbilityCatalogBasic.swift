@@ -46,7 +46,7 @@ public enum AbilityCatalogBasic {
         id: "mana-crystals", name: "Mana Crystals", tier: .basic,
         targetedEffects: [
             TargetedEffect(.resourceGain(.mana, 1)),
-            TargetedEffect(.shield(.block, 1, 6))
+            TargetedEffect(.shield(.block, 1))
         ]
     )
     public static let pixieDust = Ability(
@@ -63,7 +63,7 @@ public enum AbilityCatalogBasic {
     public static let shieldBash = Ability(
         id: "shield-bash", name: "Shield Bash", tier: .basic,
         damageComponents: [DamageComponent(1, keyword: .stun)],
-        targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
+        targetedEffects: [TargetedEffect(.shield(.block, 1))]
     )
     public static let sniffOut = Ability(
         id: "sniff-out", name: "Sniff Out", tier: .basic,

@@ -4,8 +4,6 @@ import TrinketCore
 
 /// Item-affix combat reactions that fire from shared hook sites.
 package enum CombatReactionEngine {
-    private static let standardBlockDurationTicks = 6
-
     package static func refreshBleedOnReapplyIfNeeded(
         to target: Combatant,
         sourceActorID: String,
@@ -214,24 +212,18 @@ package extension CombatReactionEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let profile = context.modifiers(for: target.id)
-        guard profile.blockBrokenArmorPercent > 0,
-              profile.blockBrokenArmorDurationTicks > 0
-        else { return [] }
+        guard profile.blockBrokenArmorFlat > 0 else { return [] }
 
-        let adjusted = context.adjustedOutgoingEffect(
-            .mitigation(.armor, profile.blockBrokenArmorPercent, profile.blockBrokenArmorDurationTicks),
-            sourceID: target.id
-        )
-        guard case let .mitigation(keyword, percent, duration) = adjusted else { return [] }
-        context.appendEffect(.mitigation(keyword, percent, duration), to: target, sourceID: target.id, remainingTicks: duration)
+        let amount = profile.blockBrokenArmorFlat + profile.armorGainedBonus
+        DefensePoolEngine.addArmor(amount, to: target, in: &context)
         return [context.nextEvent(
             kind: .effect,
             effectKind: .mitigationApplied,
             actorName: target.name,
             abilityName: "Cascading",
             target: target,
-            amount: Int(percent * 100),
-            keyword: keyword
+            amount: amount,
+            keyword: .armor
         )]
     }
 
@@ -243,7 +235,6 @@ package extension CombatReactionEngine {
         guard amount > 0 else { return [] }
         return applyBlock(
             amount: amount,
-            durationTicks: standardBlockDurationTicks,
             to: target,
             source: target,
             abilityName: "Undergird",
@@ -410,7 +401,6 @@ package extension CombatReactionEngine {
         else { return [] }
         return applyBlock(
             amount: amount,
-            durationTicks: standardBlockDurationTicks,
             to: actor,
             source: actor,
             abilityName: "Deathgrip",
@@ -420,18 +410,17 @@ package extension CombatReactionEngine {
 
     private static func applyBlock(
         amount: Int,
-        durationTicks: Int,
         to target: Combatant,
         source: Combatant,
         abilityName: String,
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         let adjusted = context.adjustedOutgoingEffect(
-            .shield(.block, amount, durationTicks),
+            .shield(.block, amount),
             sourceID: source.id
         )
-        guard case let .shield(keyword, buffer, duration) = adjusted else { return [] }
-        context.appendEffect(.shield(keyword, buffer, duration), to: target, sourceID: source.id, remainingTicks: duration)
+        guard case let .shield(keyword, buffer) = adjusted else { return [] }
+        DefensePoolEngine.addBlock(buffer, to: target, keyword: keyword, in: &context)
         var events = [context.nextEvent(
             kind: .effect,
             effectKind: .shieldApplied,

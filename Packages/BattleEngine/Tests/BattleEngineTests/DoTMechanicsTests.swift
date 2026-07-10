@@ -161,8 +161,8 @@ struct DoTMechanicsTests {
             pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
             enemy: BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100),
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 20, 5), remainingTicks: 5),
-                ActiveEffect(id: 2, effect: .mitigation(.armor, 0.50, 5), remainingTicks: 5)
+                ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 5),
+                ActiveEffect(id: 2, effect: .mitigation(.armor, 3), remainingTicks: 5)
             ]
         )
 

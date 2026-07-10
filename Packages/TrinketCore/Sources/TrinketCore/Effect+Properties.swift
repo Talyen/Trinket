@@ -26,6 +26,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case criticalChanceBonus
     case restoreManaOnHit
     case damageKeywordOverride
+    case nextHolyStrike
 }
 
 public extension Effect {
@@ -55,6 +56,7 @@ public extension Effect {
         case .criticalChanceBonus: return .criticalChanceBonus
         case .restoreManaOnHit: return .restoreManaOnHit
         case .damageKeywordOverride: return .damageKeywordOverride
+        case .nextHolyStrike: return .nextHolyStrike
         }
     }
 
@@ -66,7 +68,8 @@ public extension Effect {
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge,
              .instantHeal, .resourceGain, .drawCards, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
-             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
+             .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
+             .nextHolyStrike:
             return false
         }
     }
@@ -76,7 +79,7 @@ public extension Effect {
     var isRemovableBuff: Bool {
         switch self {
         case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
-             .damageKeywordOverride:
+             .damageKeywordOverride, .nextHolyStrike:
             return true
         default:
             return false
@@ -89,10 +92,11 @@ public extension Effect {
     var isTickable: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter,
-             .shield, .mitigation, .leech, .deathsDoor,
+             .leech, .deathsDoor,
              .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return true
-        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
+        case .shield, .mitigation, .nextHolyStrike,
+             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
             return false
         }

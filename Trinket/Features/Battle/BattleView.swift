@@ -102,60 +102,29 @@ struct BattleView: View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
-            VStack(spacing: 0) {
-                ZStack {
-                    BattlefieldView(
-                        layout: layout,
-                        enemyPane: combatantPane(
-                            for: battleState.enemy,
-                            health: battleState.health(of: battleState.enemy),
-                            healthBarPlacement: .bottom,
-                            battleState: battleState,
-                            battleSession: battleSession
-                        ),
-                        heroPane: combatantPane(
-                            for: battleState.hero,
-                            health: battleState.health(of: battleState.hero),
-                            healthBarPlacement: .top,
-                            battleState: battleState,
-                            battleSession: battleSession
-                        ),
-                        petPane: combatantPane(
-                            for: battleState.pet,
-                            health: battleState.health(of: battleState.pet),
-                            healthBarPlacement: .top,
-                            battleState: battleState,
-                            battleSession: battleSession
-                        )
+            ZStack(alignment: .bottom) {
+                BattlefieldView(
+                    layout: layout,
+                    enemyPane: combatantPane(
+                        for: battleState.enemy,
+                        health: battleState.health(of: battleState.enemy),
+                        battleState: battleState,
+                        battleSession: battleSession
+                    ),
+                    heroPane: combatantPane(
+                        for: battleState.hero,
+                        health: battleState.health(of: battleState.hero),
+                        battleState: battleState,
+                        battleSession: battleSession
+                    ),
+                    petPane: combatantPane(
+                        for: battleState.pet,
+                        health: battleState.health(of: battleState.pet),
+                        battleState: battleState,
+                        battleSession: battleSession
                     )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
-                    if let cinematic = battleSession.activeCinematic {
-                        UltimateCinematicOverlay(
-                            cinematic: cinematic,
-                            reduceMotion: reduceMotion,
-                            canSkip: appState.options.canSkipUltimateCinematic(),
-                            effectsVolume: appState.options.effectsVolume,
-                            namespace: cinematicNamespace,
-                            onPlaying: {
-                                battleSession.markCinematicPlaying()
-                            },
-                            onRequestSkip: {
-                                battleSession.requestSkipCinematic()
-                            },
-                            onAutoFinish: {
-                                battleSession.beginCinematicCollapse()
-                            },
-                            onCollapseFinished: {
-                                battleSession.completeCinematicCollapse()
-                            }
-                        )
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .transition(.opacity)
-                        .zIndex(10)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 BattleHandView(
                     cards: battleSession.hand,
@@ -168,12 +137,38 @@ struct BattleView: View {
                     }
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
+                .zIndex(1)
                 .onAppear {
                     wireAutoEndTurn(battleSession)
                     battleSession.considerAutoEndTurn(
                         journey: appState.journey,
                         homestead: appState.homestead
                     )
+                }
+
+                if let cinematic = battleSession.activeCinematic {
+                    UltimateCinematicOverlay(
+                        cinematic: cinematic,
+                        reduceMotion: reduceMotion,
+                        canSkip: appState.options.canSkipUltimateCinematic(),
+                        effectsVolume: appState.options.effectsVolume,
+                        namespace: cinematicNamespace,
+                        onPlaying: {
+                            battleSession.markCinematicPlaying()
+                        },
+                        onRequestSkip: {
+                            battleSession.requestSkipCinematic()
+                        },
+                        onAutoFinish: {
+                            battleSession.beginCinematicCollapse()
+                        },
+                        onCollapseFinished: {
+                            battleSession.completeCinematicCollapse()
+                        }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .transition(.opacity)
+                    .zIndex(10)
                 }
             }
         }
@@ -200,7 +195,6 @@ struct BattleView: View {
     private func combatantPane(
         for combatant: Combatant,
         health: Int,
-        healthBarPlacement: BattleCombatantPane.HealthBarPlacement,
         battleState: BattleState,
         battleSession: BattleSession
     ) -> BattleCombatantPane {
@@ -210,7 +204,6 @@ struct BattleView: View {
             maxHealth: battleState.maxHealth(of: combatant),
             mana: 0,
             maxMana: 0,
-            healthBarPlacement: healthBarPlacement,
             items: battleSession.feedbackItems(for: combatant.id),
             hitReaction: battleSession.hitReactionsByTargetID[combatant.id],
             keywordBursts: battleSession.keywordBursts(for: combatant.id),

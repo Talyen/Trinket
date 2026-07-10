@@ -1,12 +1,12 @@
 id	name	role	max_health	max_mana	growth_archetype	basics	skills	ultimates	strength	agility	toughness	intellect	wisdom	trait_id
-knight	Knight	hero	17	0	tank	bash,shieldBash	smite,spikedShield	avatarOfJustice,plateMail	9	3	11	2	4	oathbound
+knight	Knight	hero	17	0	tank	bash,block	smite,plateMail	avatarOfJustice,sanctifiedPlate	9	3	11	2	4	oathbound
 rogue	Rogue	hero	14	0	assassin	stab,blackjack	poisonDagger,serratedEdge	hemorrhage,concussiveShot	5	11	4	3	6	cutpurse
 wizard	Wizard	hero	14	10	mage	kindling,rayOfFrost	fireball,frostbolt	meteor,glacialWard	2	4	3	12	3	arcane_focus
 alchemist	Alchemist	hero	15	8	support	causticJab,block	acidPotion,healthPotion	panaceaPotion,luckPotion	2	5	5	8	10	reinforced_formula
 druid	Druid	hero	17	8	support	kindling,fangs	briarShield,graspingVines	bloodthorn,thornMail	3	4	8	4	11	thornskin
 ranger	Ranger	hero	14	0	assassin	bountyShot,fireArrow	venomArrow,sapArrow	packTactics,concussiveShot	6	10	4	2	6	pack_leader
 warlock	Warlock	hero	16	9	mage	stab,fangs	bloodOffering,darkPact	combustion,faustianBargain	3	5	4	10	7	soul_siphon
-bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	plateMail,thornMail	9	3	10	2	4	thick_hide
+bear	Bear	pet	17	0	tank	bash,block	spikedShield,sunderArmor	crystalBulwark,thornMail	9	3	10	2	4	thick_hide
 frost_whelp	Frost Whelp	pet	14	8	mage	rayOfFrost,iceShot	frostbolt,coldSnap	glacialWard,blizzard	2	6	4	10	4	permafrost
 lizard_scout	Lizard Scout	pet	14	0	assassin	stab,blackjack	serratedEdge,poisonDagger	hemorrhage,steal	5	10	4	4	5	cold_blood
 panther	Panther	pet	15	0	bruiser	rendingSlash,fangs	serratedEdge,poisonDagger	packTactics,hemorrhage	8	9	5	3	3	razor_claws

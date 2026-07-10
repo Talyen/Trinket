@@ -75,9 +75,9 @@ struct StatIntegrationTests {
         let events = BattleTestFixtures.endTurn(on: &battle)
         let event = BattleTestFixtures.firstAbilityEvent(in: events)
 
-        let expectedTaken = Int(ceil(Double(1) * (1 - 0.5)))
-        try #expect(event?.amount == expectedTaken)
-        try #expect(battle.health(of: battle.hero) == initial - expectedTaken)
+        // Slash deals 1; flat Armor cap is floor(1/2)=0, so Toughness cannot reduce it.
+        try #expect(event?.amount == 1)
+        try #expect(battle.health(of: battle.hero) == initial - 1)
     }
 
     @Test func toughnessReducesFireballAndBurnDamage() throws {
@@ -97,8 +97,8 @@ struct StatIntegrationTests {
         var battle = BattleTestFixtures.statBattle(hero: hero, enemy: enemy)
 
         let initial = battle.health(of: battle.hero)
-        // Enemy fireball (2 burn hit → 1 after 50% toughness) then end-of-round burn tick
-        // (potency 2 → 1, then 50% toughness → 1). Total lost: 2.
+        // Fireball 2 → Armor effectiveness 10, cap floor(2/2)=1 → take 1.
+        // Burn tick potency 2 → same cap → take 1. Total lost: 2.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
         try #expect(initial - battle.health(of: battle.hero) == 2)

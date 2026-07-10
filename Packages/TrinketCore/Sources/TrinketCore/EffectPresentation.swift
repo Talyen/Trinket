@@ -26,10 +26,10 @@ public enum EffectPresentation {
                 return keyword.statusAlias ?? keyword.rawValue
             }
             return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
-        case let .shield(keyword, buffer, _):
-            return "\(keyword.rawValue): \(buffer) buffer"
-        case let .mitigation(keyword, percent, _):
-            return "\(keyword.rawValue): \(Int(percent * 100))%"
+        case let .shield(keyword, buffer):
+            return "\(keyword.rawValue): \(buffer)"
+        case let .mitigation(keyword, points):
+            return "\(keyword.rawValue): \(points)"
         case .leech:
             return "Leech"
         case .deathsDoor:
@@ -46,6 +46,8 @@ public enum EffectPresentation {
             return "Mana Shield"
         case .damageKeywordOverride:
             return "Consecrated"
+        case .nextHolyStrike:
+            return "Next Holy Strike"
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }
@@ -75,14 +77,16 @@ public enum EffectPresentation {
 
     private static func defensivePhrase(for effect: Effect) -> String? {
         switch effect {
-        case let .shield(.block, buffer, durationTicks):
-            return "gain \(buffer) Block \(durationPhrase(ticks: durationTicks))"
-        case let .mitigation(.armor, percent, durationTicks):
-            return "gain \(Int(percent * 100))% Armor \(durationPhrase(ticks: durationTicks))"
+        case let .shield(.block, buffer):
+            return "gain \(buffer) Block"
+        case let .mitigation(.armor, points):
+            return "gain \(points) Armor"
         case .haste:
             return "gain Haste"
         case .thorns:
             return "gain Thorns"
+        case .nextHolyStrike:
+            return "your next Holy attack deals double damage and applies Burning"
         default:
             return nil
         }

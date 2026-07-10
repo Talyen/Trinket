@@ -22,12 +22,10 @@ public extension PrimaryStats {
         min(0.75, 0.05 + Double(agility) * 0.005)
     }
 
-    /// Percentage of incoming damage absorbed passively by toughness, as a
-    /// fraction in `[0, 1)`. Mirrors the prior
-    /// `BattleState.toughnessMitigationPct(for:)` formula.
-    var toughnessMitigationPct: Double {
-        let t = Double(toughness)
-        return t / (t + 50.0)
+    /// Flat Armor effectiveness bonus from Toughness. Mirrors the damage-stat
+    /// `/ 5` pattern used by Strength / Agility / Intellect / Wisdom.
+    var armorEffectivenessBonus: Int {
+        toughness / 5
     }
 
     /// Stun/freeze control-meter buildup threshold for a combatant with the given

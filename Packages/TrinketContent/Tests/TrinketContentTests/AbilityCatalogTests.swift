@@ -100,9 +100,9 @@ struct AbilityCatalogTests {
             id: "block",
             name: "Block",
             tier: .basic,
-            effects: [.shield(.block, 2, 6)]
+            effects: [.shield(.block, 2)]
         )
-        try #expect(ability.summary == "Gain 2 Block for 6 seconds.")
+        try #expect(ability.summary == "Gain 2 Block.")
     }
 
     @Test func multiDamageBuilderFormatsSummary() throws {

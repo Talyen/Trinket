@@ -12,6 +12,9 @@ enum AccessibilityID {
         static let modesScreen = "Modes Screen"
         static let aspectsHub = "Aspects Hub"
         static let aspectsModeCard = "Aspects Mode Card"
+        static let campaignModeCard = "Campaign Mode Card"
+        static let battlePartySheet = "Battle Party Sheet"
+        static let battlePartyStart = "Battle Party Start"
 
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"
@@ -89,7 +92,6 @@ enum AccessibilityID {
         static let encounterArt = "Shop Encounter Art"
         static let goldBalance = "Shop Gold Balance"
         static let purchaseConfirmation = "Shop Purchase Confirmation"
-        static let brokeHint = "Shop Broke Hint"
         static let leaveButton = "Shop Leave Button"
         static let detailBuyButton = "Shop Detail Buy Button"
         static let purchaseError = "Shop Purchase Error"
@@ -131,8 +133,6 @@ enum AccessibilityID {
         static let inventoryEmptyState = "Inventory Empty State"
         static let inventoryNoResults = "Inventory No Results"
         static let inventoryFilter = "Inventory filter"
-        static let searchResults = "Collection Search Results"
-        static let searchNoResults = "Collection Search No Results"
     }
 
     enum Homestead {

@@ -111,14 +111,13 @@ struct AppStateLabyrinthTests {
         #expect(state.labyrinth.nodes[mysteryNodeID]?.isCleared == true)
     }
 
-    @Test func startLabyrinthBattlePersistsResumeToken() throws {
+    @Test func startLabyrinthBattleSetsInMemoryOrigin() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         unlockLabyrinth(on: state)
         _ = state.enterLabyrinth()
         let combatNodeID = try #require(firstReachableCombatNodeID(in: state))
         _ = state.startLabyrinthBattle(nodeID: combatNodeID)
-        #expect(state.savedBattleResumeToken == .labyrinth(nodeID: combatNodeID))
-        #expect(state.shellSession.activeBattleLabyrinthNodeID == combatNodeID)
+        #expect(state.battle.activeBattle?.resumeToken == .labyrinth(nodeID: combatNodeID))
     }
 
     @Test func labyrinthRestFinishClearsNode() throws {

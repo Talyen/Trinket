@@ -77,31 +77,6 @@ package extension DamagePipeline {
         state.markedBonusApplied = true
     }
 
-    static func applyMitigation(
-        to state: inout DamageResolutionState,
-        in context: inout BattleEngineContext
-    ) {
-        let effects = context.roster.activeEffects(for: state.combatant)
-        let profile = context.modifiers(for: state.combatant.id)
-        var armorPct = effects.reduce(0.0) { sum, ae in
-            if case let .mitigation(_, p, _) = ae.effect { return sum + p }
-            return sum
-        }
-        armorPct += profile.passiveArmorPercent
-        if let runtime = context.roster.runtime(for: state.combatant),
-           runtime.mitigationShredUntilTick > context.tickCount {
-            armorPct *= runtime.mitigationShredMultiplier
-        }
-        if profile.armorEffectivenessPenaltyPercent > 0 {
-            armorPct *= max(0, 1 - profile.armorEffectivenessPenaltyPercent)
-        }
-        let toughnessPct = state.combatant.primaryStats.toughnessMitigationPct
-        let combinedPct = max(0, min(1, armorPct + toughnessPct))
-        if combinedPct > 0 {
-            state.remaining = Int(ceil(Double(state.remaining) * (1 - combinedPct)))
-        }
-    }
-
     static func applyItemReduction(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
@@ -123,7 +98,6 @@ package extension DamagePipeline {
         if vulnerability > 0 {
             state.remaining = Int(ceil(Double(state.remaining) * (1 + vulnerability)))
         }
-        // Provisional until CriticalMultiply finalizes post-mitigation damage.
         state.buildupDamage = state.remaining
     }
 
@@ -141,50 +115,84 @@ package extension DamagePipeline {
         state.buildupDamage = state.remaining
     }
 
+    /// Flat Armor: reduce by `min(effectiveArmor, floor(incoming/2))`, then decay Armor pool by 1.
+    static func applyMitigation(
+        to state: inout DamageResolutionState,
+        in context: inout BattleEngineContext
+    ) {
+        guard state.remaining > 0 else { return }
+
+        let effects = context.roster.activeEffects(for: state.combatant)
+        let profile = context.modifiers(for: state.combatant.id)
+        let effective = DefensePoolEngine.effectiveArmor(
+            for: state.combatant,
+            effects: effects,
+            profile: profile,
+            in: context
+        )
+        let poolArmor = DefensePoolEngine.armorPoints(in: effects)
+        let maxReduction = state.remaining / 2
+        let reduction = min(effective, maxReduction)
+        if reduction > 0 {
+            state.remaining -= reduction
+        }
+        state.buildupDamage = state.remaining
+
+        // Decay the real Armor pool by 1 whenever damage is taken (even if reduction was 0
+        // due to zero effective armor — only when there is a pool or passive to track).
+        // Spec: Armor decays by 1 for each instance of damage taken.
+        if poolArmor > 0 {
+            DefensePoolEngine.setArmor(poolArmor - 1, on: state.combatant, in: &context)
+            state.activeEffects = context.roster.activeEffects(for: state.combatant)
+        } else if effective > 0 {
+            // Passive/Toughness-only effective armor still "takes" the hit; nothing to decay.
+        }
+    }
+
     static func applyShieldAbsorption(
         to state: inout DamageResolutionState,
         in context: inout BattleEngineContext
     ) {
         var effects = context.roster.activeEffects(for: state.combatant)
-        var shieldIndexes: [Int] = []
-
-        for (index, ae) in effects.enumerated() {
-            if case let .shield(keyword, buffer, _) = ae.effect {
-                let absorbed = min(state.remaining, buffer)
-                state.remaining -= absorbed
-                if absorbed > 0 {
-                    state.damageEvents.append(context.nextEvent(
-                        kind: .effect,
-                        effectKind: .shieldAbsorbed,
-                        actorName: keyword.rawValue,
-                        abilityName: keyword.rawValue,
-                        target: state.combatant,
-                        amount: absorbed,
-                        keyword: keyword,
-                        appliedEffectSummaries: [],
-                        milestone: nil
-                    ))
-                    let newBuffer = buffer - absorbed
-                    let newEffect: Effect = .shield(keyword, newBuffer, ae.effect.durationTicks)
-                    effects[index] = ActiveEffect(
-                        id: ae.id,
-                        effect: newEffect,
-                        remainingTicks: ae.remainingTicks,
-                        sourceActorID: ae.sourceActorID
-                    )
-                    if newBuffer <= 0 {
-                        shieldIndexes.append(index)
-                    }
-                }
-            }
+        guard let index = effects.firstIndex(where: { if case .shield = $0.effect { return true }; return false }),
+              case let .shield(keyword, buffer) = effects[index].effect,
+              buffer > 0,
+              state.remaining > 0
+        else {
+            state.activeEffects = effects
+            return
         }
 
-        for index in shieldIndexes.reversed() {
+        let absorbed = min(state.remaining, buffer)
+        state.remaining -= absorbed
+        state.damageEvents.append(context.nextEvent(
+            kind: .effect,
+            effectKind: .shieldAbsorbed,
+            actorName: keyword.rawValue,
+            abilityName: keyword.rawValue,
+            target: state.combatant,
+            amount: absorbed,
+            keyword: keyword,
+            appliedEffectSummaries: [],
+            milestone: nil
+        ))
+
+        let newBuffer = buffer - absorbed
+        var blockBroken = false
+        if newBuffer <= 0 {
             effects.remove(at: index)
+            blockBroken = true
+        } else {
+            effects[index] = ActiveEffect(
+                id: effects[index].id,
+                effect: .shield(keyword, newBuffer),
+                remainingTicks: 0,
+                sourceActorID: effects[index].sourceActorID
+            )
         }
+        context.roster.setActiveEffects(effects, for: state.combatant)
         state.activeEffects = effects
-        if !shieldIndexes.isEmpty {
-            context.roster.setActiveEffects(effects, for: state.combatant)
+        if blockBroken {
             state.damageEvents.append(contentsOf: CombatReactionEngine.afterBlockBroken(
                 on: state.combatant,
                 in: &context

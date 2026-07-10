@@ -15,11 +15,11 @@ struct MitigationIntegrationTests {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 5, 10), remainingTicks: 10)
+                ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0)
             ]
         )
 
-        BattleTestFixtures.endTurns(3, on: &battle)
+        _ = BattleTestFixtures.endTurn(on: &battle)
 
         try #expect(battle.health(of: battle.hero) == hero.maxHealth)
     }
@@ -35,11 +35,11 @@ struct MitigationIntegrationTests {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 10), remainingTicks: 10)
+                ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
             ]
         )
 
-        // One enemy Judgment hit with 50% armor: 6 → 3 damage.
+        // One enemy Judgment hit with flat Armor 3: 6 → reduce by min(3, floor(6/2))=3 → 3 damage.
         _ = BattleTestFixtures.endTurn(on: &battle)
 
         try #expect(battle.health(of: battle.hero) == 17)
@@ -56,7 +56,7 @@ struct MitigationIntegrationTests {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 10), remainingTicks: 10)
+                ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
             ]
         )
 
@@ -76,14 +76,14 @@ struct MitigationIntegrationTests {
             pet: pet,
             enemy: enemy,
             activeEnemyEffects: [
-                ActiveEffect(id: 1, effect: .mitigation(.armor, 0.40, 6), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 6)
             ]
         )
 
         _ = try BattleTestFixtures.playCardNamed("Sunder Armor", owner: .pet, on: &battle)
 
         try #expect(battle.hasEnemyEffect { effect in
-            if case .mitigation(.armor, 0.20, _) = effect { return true }
+            if case .mitigation(.armor, 1) = effect { return true }
             return false
         })
     }

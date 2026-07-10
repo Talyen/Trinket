@@ -87,4 +87,23 @@ struct ShopOfferGeneratorTests {
         let ids = offers.map(\.id)
         #expect(Set(ids).count == ids.count)
     }
+
+    @Test func shopOfferItemsResolveArtByTemplateID() {
+        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 1)
+        let offers = ShopOfferGenerator.generateOffers(
+            stageID: "chapter-1-stage-4",
+            using: &randomNumberGenerator
+        )
+
+        for offer in offers {
+            #expect(
+                offer.item.id != offer.item.templateID,
+                "Shop offers use instance ids distinct from template ids"
+            )
+            #expect(
+                offer.item.artReference != nil,
+                "Missing art for shop offer template \(offer.item.templateID)"
+            )
+        }
+    }
 }

@@ -133,8 +133,8 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "iron_carapace",
             name: "Iron Carapace",
-            description: "Increases Block gained by 1 and Armor gained by 5%.",
-            modifiers: [.blockGained(1), .armorGainedPercent(0.05)],
+            description: "Increases Block gained by 1 and Armor gained by 1.",
+            modifiers: [.blockGained(1), .armorGained(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -189,8 +189,8 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "animated_plate",
             name: "Animated Plate",
-            description: "Increases Block gained by 2 and Armor gained by 10%.",
-            modifiers: [.blockGained(2), .armorGainedPercent(0.10)],
+            description: "Increases Block gained by 2 and Armor gained by 1.",
+            modifiers: [.blockGained(2), .armorGained(1)],
             triggers: CombatTraitTriggers()
         ),
         CombatantTraitDefinition(
@@ -238,9 +238,9 @@ enum GameContentTraitsGenerated {
         CombatantTraitDefinition(
             id: "ironhide",
             name: "Ironhide",
-            description: "Passive 15% Armor. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.",
+            description: "Passive 2 Armor. Decreases Bleed damage taken by 50%. Increases Stun damage dealt by 1.",
             modifiers: [.damageTakenPercent(.bleed, 0.50), .damageDealt(.stun, 1)],
-            triggers: CombatTraitTriggers(passiveArmorPercent: 0.15)
+            triggers: CombatTraitTriggers(passiveArmorFlat: 2)
         ),
         CombatantTraitDefinition(
             id: "holy_weakness",

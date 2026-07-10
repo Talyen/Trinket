@@ -85,7 +85,7 @@ struct ControlMeterIntegrationTests {
 
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
         try #expect(battle.hasHeroEffect { effect in
-            if case let .shield(.block, buffer, _) = effect, buffer > 0 { return true }
+            if case let .shield(.block, buffer) = effect, buffer > 0 { return true }
             return false
         })
 

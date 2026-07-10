@@ -2,56 +2,49 @@ import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
 
+/// Single-stage Campaign screen — current chapter + the stage in front of you.
 struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var partyPicker: PartyPickerKind?
-    @State private var heroOverscroll: CGFloat = 0
-    @State private var scrollPosition: String?
+
+    @State private var prepareBattleStage: Stage?
+    /// Reference box so dismiss observers can read the queued stage (plain `@State`
+    /// Optional can still be stale in the same update that clears the sheet item).
+    @State private var pendingBattleStart = PendingBattleStart()
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
-    var onResumeMessage: ((StageMapMessage) -> Void)?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                ChapterJourneyHero(
-                    chapter: appState.playChapter,
-                    overscroll: heroOverscroll
+        Group {
+            if let stage = activeStage {
+                stageContent(stage)
+                    .id(stage.id)
+                    .transition(stageTransition)
+            } else {
+                ContentUnavailableView(
+                    "Chapter Complete",
+                    systemImage: "flag.checkered",
+                    description: Text("You've cleared every stage in this chapter.")
                 )
-
-                PlayTabDashboardHeaderView(onResumeMessage: onResumeMessage)
-
-                LazyVStack(alignment: .leading, spacing: 14) {
-                    ForEach(journeyRows) { row in
-                        rowView(row)
-                            .id(row.id)
-                            .modifier(JourneyScrollTransition(isEnabled: !reduceMotion))
-                    }
-                }
             }
-            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.top, 18)
-            .padding(.bottom, 28)
         }
-        .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollIndicators(.hidden)
-        .ignoresSafeArea(edges: .top)
+        .animation(stageAnimation, value: activeStage?.id)
+        .navigationTitle(chapterTitle)
+        .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.playJourney)
         .accessibilityIdentifier(AccessibilityID.Screen.play)
-        .onScrollGeometryChange(for: CGFloat.self) { geometry in
-            HeroHeaderLayout.overscroll(
-                contentOffsetY: geometry.contentOffset.y,
-                topInset: geometry.contentInsets.top
-            )
-        } action: { _, overscroll in
-            heroOverscroll = overscroll
+        .overlay(alignment: .topLeading) {
+            Text(chapterTitle)
+                .accessibilityIdentifier(
+                    AccessibilityID.Play.chapterHeader(number: appState.playChapter.number)
+                )
+                .accessibilityAddTraits(.isHeader)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .accessibilityHidden(false)
         }
         .onAppear {
-            if let target = resolvedScrollTargetID() {
-                applyScrollFocus(target, animated: false)
-            }
             updateMusicPreview()
         }
         .onChange(of: appState.journey.current) { _, _ in
@@ -60,93 +53,25 @@ struct ChapterStageSelectView: View {
         .onDisappear {
             appState.battle.setMusicPreview(for: nil)
         }
-        .onChange(of: appState.mapScrollFocus) { _, focus in
-            guard let focus else { return }
-            applyScrollFocus(focus.stageID, animated: true)
-        }
-        .sheet(item: $partyPicker) { picker in
-            PartyPickerSheet(
-                kind: picker,
-                combatants: combatants(for: picker),
-                onSelect: { combatant in
-                    select(combatant, for: picker)
+        .sheet(item: $prepareBattleStage, onDismiss: startPendingBattleIfNeeded) { stage in
+            BattlePartySheet(
+                title: stage.encounterSubjectName,
+                subtitle: stage.mapLabel,
+                accentColor: stage.encounter.mapTint,
+                initialHero: appState.roster.activeHero,
+                initialPet: appState.roster.activePet,
+                onStart: {
+                    pendingBattleStart.stage = stage
+                    prepareBattleStage = nil
                 }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .trinketScreenBackground(.playJourney)
-        .toolbar(.hidden, for: .navigationBar)
-        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
 
-    private var journeyRows: [ChapterJourneyRow] {
-        let rows = JourneyMapPresentation.chapterRows(
-            chapters: GameContent.chapters,
-            chapter: appState.playChapter,
-            progress: appState.journey.current
-        )
-        if appState.showResumeBattleCard, let activeStageID = appState.activeBattleStageID {
-            return rows.filter { row in
-                switch row {
-                case let .stage(stage, _):
-                    return stage.id != activeStageID
-                case .chapterGate:
-                    return true
-                }
-            }
-        }
-        return rows
-    }
-
-    @ViewBuilder
-    private func rowView(_ row: ChapterJourneyRow) -> some View {
-        switch row {
-        case let .stage(stage, state):
-            JourneyStageRow(
-                stage: stage,
-                state: state,
-                activeHero: appState.roster.activeHero,
-                activePet: appState.roster.activePet,
-                onHeroPicker: { partyPicker = .hero },
-                onPetPicker: { partyPicker = .pet },
-                onEnemyTap: { onEnemyTap(stage) },
-                onPrimaryAction: { onStageTap(stage) }
-            )
-        case let .chapterGate(chapter):
-            JourneyChapterGate(chapter: chapter)
-        }
-    }
-
-    private func resolvedScrollTargetID() -> String? {
-        if let saved = appState.mapScrollStageID,
-           AppState.shouldRestoreMapScroll(saved, journey: appState.journey.current) {
-            return saved
-        }
-        return JourneyMapPresentation.scrollFocusID(
-            for: appState.journey.current,
-            chapter: appState.playChapter,
-            chapters: GameContent.chapters
-        )
-    }
-
-    private func applyScrollFocus(_ stageID: String, animated: Bool) {
-        let assignPosition = {
-            if scrollPosition == stageID {
-                scrollPosition = nil
-                Task { @MainActor in
-                    scrollPosition = stageID
-                }
-            } else {
-                scrollPosition = stageID
-            }
-        }
-
-        if animated, let scrollAnimation {
-            withAnimation(scrollAnimation, assignPosition)
-        } else {
-            assignPosition()
-        }
+    private var chapterTitle: String {
+        "Chapter \(appState.playChapter.number)"
     }
 
     private var activeStage: Stage? {
@@ -154,31 +79,57 @@ struct ChapterStageSelectView: View {
         return GameContent.stage(id: stageID)
     }
 
+    @ViewBuilder
+    private func stageContent(_ stage: Stage) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                CurrentStageCard(
+                    stage: stage,
+                    onEnemyTap: { onEnemyTap(stage) },
+                    onPrimaryAction: { handlePrimaryAction(stage) }
+                )
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private func handlePrimaryAction(_ stage: Stage) {
+        if stage.encounter.battleEnemyID != nil {
+            prepareBattleStage = stage
+        } else {
+            onStageTap(stage)
+        }
+    }
+
+    private func startPendingBattleIfNeeded() {
+        guard let stage = pendingBattleStart.stage else { return }
+        pendingBattleStart.stage = nil
+        onStageTap(stage)
+    }
+
     private func updateMusicPreview() {
         appState.battle.setMusicPreview(for: activeStage)
     }
 
-    private var scrollAnimation: Animation? {
-        reduceMotion ? nil : .snappy(duration: 0.42, extraBounce: 0.04)
+    private var stageAnimation: Animation? {
+        reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.9)
     }
 
-    private func combatants(for picker: PartyPickerKind) -> [Combatant] {
-        switch picker {
-        case .hero:
-            return appState.roster.heroes
-        case .pet:
-            return appState.roster.pets
-        }
+    private var stageTransition: AnyTransition {
+        reduceMotion
+            ? .opacity
+            : .asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .trailing)),
+                removal: .opacity.combined(with: .move(edge: .leading))
+            )
     }
+}
 
-    private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
-        var updatedRoster = appState.roster.current
-        switch picker {
-        case .hero:
-            updatedRoster.setActiveHero(combatant)
-        case .pet:
-            updatedRoster.setActivePet(combatant)
-        }
-        appState.roster.current = updatedRoster
-    }
+/// Mutable box for a stage queued across party-sheet dismiss (avoids `@State` staleness).
+@MainActor
+private final class PendingBattleStart {
+    var stage: Stage?
 }

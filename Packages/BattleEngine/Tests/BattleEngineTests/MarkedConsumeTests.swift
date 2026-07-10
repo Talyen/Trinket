@@ -9,7 +9,7 @@ struct MarkedConsumeTests {
     @Test func markedConsumedWhenFullyShielded() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 50, 6), remainingTicks: 6, sourceActorID: hero.id)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 50), remainingTicks: 6, sourceActorID: hero.id)
         let mark = ActiveEffect(id: 2, effect: .marked(5, 6), remainingTicks: 6, sourceActorID: hero.id)
 
         let heroRuntime = CombatantRuntime(combatant: hero)

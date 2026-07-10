@@ -9,31 +9,31 @@ struct BattleHandView: View {
     let onTap: (BattleCard) -> Void
     let onPlay: (BattleCard) -> Void
 
-    private let playDragThreshold: CGFloat = 80
-
     var body: some View {
         GeometryReader { geometry in
-            let count = max(cards.count, 1)
-            let cardWidth = min(144, max(104, (geometry.size.width - 24) / CGFloat(min(count, 6))))
-            let cardHeight = cardWidth * 4.0 / 3.0
-            let overlap = cards.count > 1
-                ? min(cardWidth * 0.55, (geometry.size.width - cardWidth - 16) / CGFloat(cards.count - 1))
-                : 0
-            let totalWidth = cardWidth + overlap * CGFloat(max(cards.count - 1, 0))
-            let startX = (geometry.size.width - totalWidth) / 2
+            let layout = BattleHandLayout.metrics(
+                containerWidth: geometry.size.width,
+                cardCount: cards.count
+            )
 
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
                     BattleAbilityCardView(
                         card: card,
                         isPlayable: isPlayable(card),
-                        width: cardWidth,
-                        height: cardHeight,
-                        playDragThreshold: playDragThreshold,
+                        width: layout.cardWidth,
+                        height: layout.cardHeight,
+                        playDragThreshold: BattleHandLayout.playDragThreshold,
                         onTap: { onTap(card) },
                         onPlay: { onPlay(card) }
                     )
-                    .offset(x: startX + CGFloat(index) * overlap - geometry.size.width / 2 + cardWidth / 2)
+                    .offset(
+                        x: BattleHandLayout.cardOffsetX(
+                            index: index,
+                            metrics: layout,
+                            containerWidth: geometry.size.width
+                        )
+                    )
                     .zIndex(Double(index))
                 }
             }
@@ -66,7 +66,7 @@ struct BattleAbilityCardView: View {
             .opacity(isPlayable ? 1 : 0.45)
             .offset(y: -dragOffset)
             .gesture(
-                DragGesture(minimumDistance: 12)
+                DragGesture(minimumDistance: BattleHandLayout.dragMinimumDistance)
                     .updating($isDragging) { _, state, _ in
                         state = true
                     }

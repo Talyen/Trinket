@@ -15,8 +15,6 @@ public final class PlayerShellSessionStore {
     /// Cleared on migrate only — Collection attention was removed; do not restore into session state.
     public static let legacyViewedCombatantIDsKey = "session.viewedCombatantIDs"
 
-    public static let currentSchemaVersion = 1
-
     private let context: ModelContext
     private var record: PlayerShellSession
     private static let logger = Logger(
@@ -28,67 +26,12 @@ public final class PlayerShellSessionStore {
         didSet { persistSelectedTab() }
     }
 
-    public var activeBattleStageID: String? {
-        didSet {
-            persistBattleStageID()
-            touchBattleMetadataIfNeeded()
-        }
-    }
-
-    public var activeBattleAspectID: String? {
-        didSet {
-            persistBattleAspectID()
-            touchBattleMetadataIfNeeded()
-        }
-    }
-
-    public var activeBattleAspectFloor: Int? {
-        didSet {
-            persistBattleAspectFloor()
-            touchBattleMetadataIfNeeded()
-        }
-    }
-
-    public var activeBattleLabyrinthNodeID: String? {
-        didSet {
-            persistBattleLabyrinthNodeID()
-            touchBattleMetadataIfNeeded()
-        }
-    }
-
     public var mapScrollStageID: String? {
         didSet { persistMapScrollStageID() }
     }
 
-    public var hasActiveBattleResumeToken: Bool {
-        activeBattleStageID != nil || activeBattleAspectID != nil || activeBattleLabyrinthNodeID != nil
-    }
-
-    public var activeBattleSavedAt: Date? {
-        get { record.activeBattleSavedAt }
-        set {
-            record.activeBattleSavedAt = newValue
-            record.updatedAt = .now
-            saveContext()
-        }
-    }
-
-    public var activeBattleSchemaVersion: Int? {
-        get { record.activeBattleSchemaVersion }
-        set {
-            record.activeBattleSchemaVersion = newValue
-            record.updatedAt = .now
-            saveContext()
-        }
-    }
-
-    public var lastBackgroundedTime: Date? {
-        get { record.lastBackgroundedTime }
-        set {
-            record.lastBackgroundedTime = newValue
-            record.updatedAt = .now
-            saveContext()
-        }
+    public var lastPlayMode: PlayerShellSessionPlayMode = .campaign {
+        didSet { persistLastPlayMode() }
     }
 
     public init(
@@ -128,11 +71,20 @@ public final class PlayerShellSessionStore {
         record = loadResult.record
         let resolvedTab = Self.tab(from: record.selectedTabRaw) ?? .play
         selectedTab = resolvedTab
-        activeBattleStageID = record.activeBattleStageID
-        activeBattleAspectID = record.activeBattleAspectID
-        activeBattleAspectFloor = record.activeBattleAspectFloor
-        activeBattleLabyrinthNodeID = record.activeBattleLabyrinthNodeID
         mapScrollStageID = record.mapScrollStageID
+        lastPlayMode = PlayerShellSessionPlayMode(rawValue: record.lastPlayModeRaw) ?? .campaign
+
+        // Drop any leftover battle-resume fields from older builds.
+        let hadStaleBattleResume = record.activeBattleStageID != nil
+            || record.activeBattleAspectID != nil
+            || record.activeBattleAspectFloor != nil
+            || record.activeBattleLabyrinthNodeID != nil
+            || record.activeBattleSavedAt != nil
+            || record.activeBattleSchemaVersion != nil
+            || record.lastBackgroundedTime != nil
+        if hadStaleBattleResume {
+            clearStaleBattleResumeFields()
+        }
 
         // Property observers do not run during init; rewrite remapped legacy tabs
         // (e.g. "search" → collection) and first-create records explicitly.
@@ -185,46 +137,15 @@ public final class PlayerShellSessionStore {
         }
     }
 
-    public func clearBattleState() {
-        clearActiveBattleResume()
+    public func clearMapScrollState() {
         mapScrollStageID = nil
-        lastBackgroundedTime = nil
-    }
-
-    public func clearActiveBattleResume() {
-        activeBattleStageID = nil
-        activeBattleAspectID = nil
-        activeBattleAspectFloor = nil
-        activeBattleLabyrinthNodeID = nil
-        activeBattleSavedAt = nil
-        activeBattleSchemaVersion = nil
-    }
-
-    /// Journey, Aspect, and Labyrinth resume tokens are mutually exclusive.
-    public func setJourneyBattleResume(stageID: String) {
-        activeBattleAspectID = nil
-        activeBattleAspectFloor = nil
-        activeBattleLabyrinthNodeID = nil
-        activeBattleStageID = stageID
-    }
-
-    public func setAspectBattleResume(aspectID: String, floor: Int) {
-        activeBattleStageID = nil
-        activeBattleLabyrinthNodeID = nil
-        activeBattleAspectID = aspectID
-        activeBattleAspectFloor = floor
-    }
-
-    public func setLabyrinthBattleResume(nodeID: String) {
-        activeBattleStageID = nil
-        activeBattleAspectID = nil
-        activeBattleAspectFloor = nil
-        activeBattleLabyrinthNodeID = nodeID
     }
 
     public func resetToDefaults(selectingTab tab: PlayerShellSessionTab = .play) {
         selectedTab = tab
-        clearBattleState()
+        clearMapScrollState()
+        lastPlayMode = .campaign
+        clearStaleBattleResumeFields()
     }
 
     public static func clearLegacyKeys(from defaults: UserDefaults) {
@@ -251,24 +172,24 @@ public final class PlayerShellSessionStore {
            let tab = Self.tab(from: rawTab) {
             selectedTab = tab
         }
-        if let battleStageID = defaults.string(forKey: Self.legacyActiveBattleStageIDKey) {
-            activeBattleStageID = battleStageID
-        }
         if let scrollStageID = defaults.string(forKey: Self.legacyMapScrollStageIDKey) {
             mapScrollStageID = scrollStageID
         }
-        if let savedAtVal = defaults.object(forKey: Self.legacyActiveBattleSavedAtKey) as? Double {
-            activeBattleSavedAt = Date(timeIntervalSince1970: savedAtVal)
-        }
-        if defaults.object(forKey: Self.legacyActiveBattleSchemaVersionKey) != nil {
-            // `integer(forKey:)` bridges NSNumber; `as? Int` on `object(forKey:)` does not.
-            activeBattleSchemaVersion = defaults.integer(forKey: Self.legacyActiveBattleSchemaVersionKey)
-        }
-        if let lastBgVal = defaults.object(forKey: Self.legacyLastBackgroundedTimeKey) as? Double {
-            lastBackgroundedTime = Date(timeIntervalSince1970: lastBgVal)
-        }
+        // Legacy battle-resume / backgrounded keys are intentionally discarded.
 
         Self.clearLegacyKeys(from: defaults)
+    }
+
+    private func clearStaleBattleResumeFields() {
+        record.activeBattleStageID = nil
+        record.activeBattleAspectID = nil
+        record.activeBattleAspectFloor = nil
+        record.activeBattleLabyrinthNodeID = nil
+        record.activeBattleSavedAt = nil
+        record.activeBattleSchemaVersion = nil
+        record.lastBackgroundedTime = nil
+        record.updatedAt = .now
+        saveContext()
     }
 
     private func persistSelectedTab() {
@@ -277,44 +198,14 @@ public final class PlayerShellSessionStore {
         saveContext()
     }
 
-    private func persistBattleStageID() {
-        record.activeBattleStageID = activeBattleStageID
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistBattleAspectID() {
-        record.activeBattleAspectID = activeBattleAspectID
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistBattleAspectFloor() {
-        record.activeBattleAspectFloor = activeBattleAspectFloor
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func persistBattleLabyrinthNodeID() {
-        record.activeBattleLabyrinthNodeID = activeBattleLabyrinthNodeID
-        record.updatedAt = .now
-        saveContext()
-    }
-
-    private func touchBattleMetadataIfNeeded() {
-        if hasActiveBattleResumeToken {
-            activeBattleSavedAt = Date.now
-            activeBattleSchemaVersion = Self.currentSchemaVersion
-        } else if activeBattleStageID == nil,
-                  activeBattleAspectID == nil,
-                  activeBattleLabyrinthNodeID == nil {
-            activeBattleSavedAt = nil
-            activeBattleSchemaVersion = nil
-        }
-    }
-
     private func persistMapScrollStageID() {
         record.mapScrollStageID = mapScrollStageID
+        record.updatedAt = .now
+        saveContext()
+    }
+
+    private func persistLastPlayMode() {
+        record.lastPlayModeRaw = lastPlayMode.rawValue
         record.updatedAt = .now
         saveContext()
     }

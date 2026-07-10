@@ -37,8 +37,7 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 | `ToolbarSpacer` | Group related toolbar actions (e.g. battle menus) |
 | `.sharedBackgroundVisibility(.hidden)` | Separate avatar or status items from grouped toolbar chrome |
 | `.badge()` | Notification or milestone indicators on toolbar items |
-| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Search) — best-practices plan Phase D |
-| `.searchable` | Collection-scoped search on `CollectionView` (not a Search tab) |
+| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Inventory) — best-practices plan Phase D |
 | `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (see `check-ui-style.sh`) |
 | `.glassEffectID(_:in:)` + `@Namespace` | Morphing transitions between related glass chips |
 
@@ -51,7 +50,7 @@ From [Adopting Liquid Glass](https://developer.apple.com/documentation/technolog
 3. **Respect accessibility** — Liquid Glass adapts to Reduce Transparency and Reduce Motion; keep solid fallbacks (already patterned in `GlassChipModifier`).
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
-Trinket's dense Collection / Inventory / Search surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem` / `VisualFoundation`); glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem` / `VisualFoundation`); glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
 ---
 

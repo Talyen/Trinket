@@ -143,9 +143,15 @@ struct AppStatePlayFlowTests {
         #expect(scrollTarget == "chapter-1-stage-2")
     }
 
-    // MARK: - Session state restoration
+    // MARK: - Launch landing
 
-    @Test func sessionTabRestored() throws {
+    @Test func launchLandingDefaultsToPlay() throws {
+        let state = try context.makeAppState()
+
+        #expect(state.selectedTab == .play)
+    }
+
+    @Test func launchLandingIgnoresPersistedShellTab() throws {
         context.userDefaults.set(
             AppTab.homestead.rawValue,
             forKey: PlayerShellSessionStore.legacySessionTabKey
@@ -153,10 +159,10 @@ struct AppStatePlayFlowTests {
 
         let state = try context.makeAppState()
 
-        #expect(state.selectedTab == .homestead)
+        #expect(state.selectedTab == .play)
     }
 
-    @Test func sessionTabOverriddenByEnv() throws {
+    @Test func launchLandingHonorsSelectedTabOverride() throws {
         context.userDefaults.set(
             AppTab.homestead.rawValue,
             forKey: PlayerShellSessionStore.legacySessionTabKey
@@ -167,75 +173,28 @@ struct AppStatePlayFlowTests {
         #expect(state.selectedTab == .options)
     }
 
-    @Test func sessionTabDefaultWhenNoSavedState() throws {
-        let state = try context.makeAppState()
-
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func selectedTabPersistsToSessionState() throws {
+    @Test func evaluateLaunchLandingForcesPlayWithoutOverride() throws {
         let state = try context.makeAppState()
         state.selectedTab = .homestead
-        #expect(state.selectedTab == .homestead)
 
-        let state2 = try context.makeAppState()
-        #expect(state2.selectedTab == .homestead)
-    }
+        state.evaluateLaunchLanding()
 
-    @Test func sessionBattleRestoredAsResumeCardOnColdLaunch() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
-        )
-        context.userDefaults.set(
-            Date().timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
-
-        let state = try context.makeAppState()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.showResumeBattleCard)
         #expect(state.selectedTab == .play)
     }
 
-    @Test func foregroundResumeWithinSeamlessWindowResumesBattle() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
-        )
-        context.userDefaults.set(
-            Date().timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
+    @Test func evaluateLaunchLandingKeepsLaunchOverrideTab() throws {
+        let state = try context.makeAppState(arguments: ["-selectedTab", "options"])
+        #expect(state.selectedTab == .options)
 
-        let state = try context.makeAppState()
+        state.evaluateLaunchLanding()
 
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-30)
-
-        state.evaluateResumeRules()
-
-        let activeBattle = try #require(state.battle.activeBattle)
-        #expect(activeBattle.stageID == "chapter-1-stage-1")
+        #expect(state.selectedTab == .options)
     }
 
-    @Test func foregroundResumeBeyondSeamlessWindowLandsOnPlayTabWithCard() throws {
+    @Test func legacyBattleResumeKeysDoNotRestoreBattle() throws {
         context.userDefaults.set(
             "chapter-1-stage-1",
             forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
         )
         context.userDefaults.set(
             Date().timeIntervalSince1970,
@@ -244,103 +203,8 @@ struct AppStatePlayFlowTests {
 
         let state = try context.makeAppState()
 
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
-
-        state.evaluateResumeRules()
-
         #expect(state.battle.activeBattle == nil)
-        #expect(state.showResumeBattleCard)
         #expect(state.selectedTab == .play)
-    }
-
-    @Test func foregroundResumeBeyondSeamlessWindowCompletesPendingVictory() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        let configuration = try #require(state.battle.activeBattle)
-        let initialGold = state.roster.current.gold
-
-        state.battle.victorySummary = try BattleVictorySummary.make(
-            configuration: configuration,
-            state: #require(state.battle.state),
-            homestead: state.homestead.current
-        )
-        state.battle.isShowingVictory = true
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
-
-        state.evaluateResumeRules()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(!(state.showResumeBattleCard))
-        #expect(state.journey.current.completedStageIDs.contains(stage.id))
-        #expect(state.roster.current.gold > initialGold)
-        #expect(state.selectedTab == .play)
-    }
-
-    @Test func foregroundResumeBeyondSeamlessWindowClearsOverlayOnMidFightDiscard() throws {
-        let state = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = state.startBattle(for: stage)
-        state.battle.presentCombatantDetail(CombatantCardDetail(combatant: state.roster.activeHero))
-        #expect(state.battle.overlayCombatantDetail != nil)
-
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
-        state.evaluateResumeRules()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.battle.overlayCombatantDetail == nil)
-        #expect(state.showResumeBattleCard)
-    }
-
-    @Test func foregroundResumeBeyondExpiryWindowDiscardsSave() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
-        )
-        context.userDefaults.set(
-            Date().addingTimeInterval(-86400 * 3).timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
-
-        let state = try context.makeAppState()
-
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-300)
-
-        state.evaluateResumeRules()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(!state.showResumeBattleCard)
-        #expect(state.activeBattleStageID == nil)
-    }
-
-    @Test func sessionBattleNotRestoredWhenRewardsAlreadyClaimed() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
-        )
-        context.userDefaults.set(
-            Date().timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
-
-        let state = try context.makeAppState(arguments: ["-completed-stages", "chapter-1-stage-1"])
-
-        state.evaluateResumeRules()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.activeBattleStageID == nil)
     }
 
     @Test func completeStageUpdatesSessionMapScrollTarget() throws {
@@ -361,60 +225,15 @@ struct AppStatePlayFlowTests {
         #expect(AppState.shouldRestoreMapScroll("chapter-1-stage-2", journey: journey))
     }
 
-    @Test func sessionBattleNotRestoredWhenLaunchScreenBattle() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-
+    @Test func launchScreenBattleStartsHardcodedStage() throws {
         let state = try context.makeAppState(arguments: ["-launch-screen", "battle"])
 
-        // launch-screen battle uses the hardcoded stage, not the session one
         let activeBattle = try #require(state.battle.activeBattle)
         #expect(activeBattle.stageID == "chapter-1-stage-1")
+        #expect(state.selectedTab == .play)
     }
 
-    @Test func sessionStaleStageIDIgnored() throws {
-        context.userDefaults.set(
-            "nonexistent-stage",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-
-        let state = try context.makeAppState()
-        state.evaluateResumeRules()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.activeBattleStageID == nil)
-    }
-
-    @Test func sessionBattleClearedOnEndBattle() throws {
-        context.userDefaults.set(
-            "chapter-1-stage-1",
-            forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey
-        )
-        context.userDefaults.set(
-            PlayerShellSessionStore.currentSchemaVersion,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSchemaVersionKey
-        )
-        context.userDefaults.set(
-            Date().timeIntervalSince1970,
-            forKey: PlayerShellSessionStore.legacyActiveBattleSavedAtKey
-        )
-
-        let state = try context.makeAppState()
-        state.isColdLaunch = false
-        state.shellSession.lastBackgroundedTime = Date().addingTimeInterval(-30)
-        state.evaluateResumeRules()
-
-        _ = try #require(state.battle.activeBattle)
-
-        state.battle.endBattle()
-
-        #expect(state.battle.activeBattle == nil)
-        #expect(state.activeBattleStageID == nil)
-    }
-
-    @Test func resetGameplayProgressClearsSessionBattleState() throws {
+    @Test func resetGameplayProgressClearsBattleAndScroll() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
@@ -423,21 +242,20 @@ struct AppStatePlayFlowTests {
         state.resetGameplayProgress()
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.activeBattleStageID == nil)
         #expect(state.mapScrollStageID == nil)
+        #expect(state.selectedTab == .play)
     }
 
-    @Test func sessionBattleStageIDSetOnStartBattle() throws {
+    @Test func startBattleSetsInMemoryJourneyOrigin() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
-        #expect(state.activeBattleStageID == nil)
 
         _ = state.startBattle(for: stage)
 
-        #expect(state.activeBattleStageID == "chapter-1-stage-1")
+        #expect(state.battle.activeBattle?.resumeToken == .journey(stageID: stage.id))
     }
 
-    @Test func endBattleReturningToOriginFromJourneySwitchesToPlayWithoutDeepLink() throws {
+    @Test func endBattleReturningToOriginFromJourneyQueuesCampaignDeepLink() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
@@ -447,20 +265,12 @@ struct AppStatePlayFlowTests {
 
         #expect(state.battle.activeBattle == nil)
         #expect(state.selectedTab == .play)
-        #expect(state.consumePendingPlayDestination() == nil)
+        #expect(state.consumePendingPlayDestination() == .campaign)
     }
 
     @Test func endBattleReturningToOriginFromAspectQueuesClimbDeepLink() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedStateForReturnTests()
+        try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         #expect(state.startAspectBattle(for: floor) == nil)
@@ -489,16 +299,8 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func completeActiveBattleQueuesAspectReturnDestination() throws {
-        let state = try context.makeAppState(arguments: [
-            "-reset-state",
-            "-seed-test-progress",
-            "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
-        ])
-        var roster = state.roster.current
-        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
-        roster.setActivePet(bear)
-        state.roster.current = roster
+        let state = try makeModesUnlockedStateForReturnTests()
+        try attunePhysicalPartyForReturnTests(on: state)
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         #expect(state.startAspectBattle(for: floor) == nil)
@@ -523,7 +325,10 @@ struct AppStatePlayFlowTests {
 
     @Test func playLaunchDestinationMapsResumeTokens() {
         #expect(PlayLaunchDestination.returning(from: nil) == nil)
-        #expect(PlayLaunchDestination.returning(from: .journey(stageID: "chapter-1-stage-1")) == nil)
+        #expect(
+            PlayLaunchDestination.returning(from: .journey(stageID: "chapter-1-stage-1"))
+                == .campaign
+        )
         #expect(
             PlayLaunchDestination.returning(from: .aspect(aspectID: .ironVein, floor: 2))
                 == .aspectClimb(.ironVein)
@@ -531,6 +336,26 @@ struct AppStatePlayFlowTests {
         #expect(
             PlayLaunchDestination.returning(from: .labyrinth(nodeID: "node-1")) == .labyrinthMap
         )
+    }
+
+    private func makeModesUnlockedStateForReturnTests() throws -> AppState {
+        try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+    }
+
+    private func attunePhysicalPartyForReturnTests(on state: AppState) throws {
+        var roster = state.roster.current
+        let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
+        let lizard = try #require(GameContent.pets.first { $0.id == "lizard_scout" })
+        roster.unlock(rogue)
+        roster.unlock(lizard)
+        roster.setActiveHero(rogue)
+        roster.setActivePet(lizard)
+        state.roster.current = roster
     }
 
     private func unlockLabyrinthForReturnTests(on state: AppState) {

@@ -31,7 +31,7 @@ final class BattleSession {
     @ObservationIgnored
     var options: OptionsStore?
 
-    /// Optional SFX player for combat feedback and ability cues. Injected by AppState.
+    /// Optional SFX player for combat feedback and draw cues. Injected by AppState.
     @ObservationIgnored
     var sfxPlayer: SFXPlayer?
 
@@ -43,7 +43,6 @@ final class BattleSession {
         didSet {
             if let activeBattle {
                 resetRun(from: activeBattle)
-                onBattleStateChange?(activeBattle.resumeToken)
             } else {
                 clearRunState()
             }
@@ -51,7 +50,6 @@ final class BattleSession {
     }
 
     private(set) var state: BattleState?
-    var onBattleStateChange: ((ActiveBattleResumeToken?) -> Void)?
 
     private var feedbackEventRecordedAt: [Int: Date] = [:]
     private var presentedFeedbackIDs: Set<Int> = []
@@ -100,7 +98,6 @@ final class BattleSession {
         cancelPendingAutoEnd()
         activeBattle = nil
         clearAllPresentation()
-        onBattleStateChange?(nil)
     }
 
     /// Schedules a delayed end turn when nothing in hand is playable.
@@ -234,8 +231,6 @@ final class BattleSession {
         do {
             let events = try battleState.playCard(cardID: cardID, rebuildLog: false)
             state = battleState
-            playSFX(SFXID.abilityPlay)
-            playSFX(SFXID.abilityDraw) // discard / send-to-bottom reuses draw clip
             presentResolvedEvents(events, at: date)
             let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
             if earnedGold == nil {
@@ -264,7 +259,10 @@ final class BattleSession {
 
         let events = battleState.endTurn(rebuildLog: false)
         state = battleState
-        playSFX(SFXID.abilityDraw) // per-turn draw
+        // Draw SFX only when the round completed and cards were dealt for the next turn.
+        if battleState.phase == .playerTurn {
+            playSFX(SFXID.abilityDraw)
+        }
         presentResolvedEvents(events, at: date)
         let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
         if earnedGold == nil {
@@ -466,11 +464,12 @@ extension BattleSession {
         let due = items.filter { $0.availableAt <= date && !presentedFeedbackIDs.contains($0.id) }
         guard !due.isEmpty else { return }
 
+        for clipID in CombatSFXMapper.uniqueClipIDs(for: due) {
+            playSFX(clipID)
+        }
+
         for item in due {
             presentedFeedbackIDs.insert(item.id)
-            if let clipID = CombatSFXMapper.clipID(for: item) {
-                playSFX(clipID)
-            }
             if let reaction = CombatFeedbackPresenter.reaction(for: [item]) {
                 hitReactionsByTargetID[item.targetID] = reaction
             }
@@ -562,6 +561,7 @@ extension BattleSession {
         overlayCombatantDetail = nil
         overlayAbilityDetail = nil
         isShowingBattleLog = false
+        playSFX(SFXID.abilityDraw) // opening hand
         BattleCinematicPlayer.shared.warmLoadout(
             heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
             petUltimateID: configuration.pet.combatant.abilityLoadout.ultimate?.id

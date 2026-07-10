@@ -27,13 +27,13 @@ struct AspectCatalogTests {
 
     @Test func attunementRequiresMatchingAbilityKeywords() throws {
         let ironVein = try #require(GameContent.aspect(id: .ironVein))
-        let knight = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let bear = try #require(GameContent.pets.first { $0.id == "bear" })
         let frostWhelp = try #require(GameContent.pets.first { $0.id == "frost_whelp" })
 
-        try #expect(AspectAttunement.evaluate(hero: knight, pet: bear, aspect: ironVein) == .ready)
+        try #expect(AspectAttunement.evaluate(hero: rogue, pet: bear, aspect: ironVein) == .ready)
         try #expect(
-            AspectAttunement.evaluate(hero: knight, pet: frostWhelp, aspect: ironVein)
+            AspectAttunement.evaluate(hero: rogue, pet: frostWhelp, aspect: ironVein)
                 == .missingPetAffinity
         )
     }

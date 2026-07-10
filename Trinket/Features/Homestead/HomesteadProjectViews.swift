@@ -44,17 +44,19 @@ struct HomesteadProjectCard: View {
     }
 
     private var featuredLinkContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             HomesteadBuildingArtwork(definition: definition)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .homesteadLockedArtworkStyle(
-                    isUnlocked: status.isUnlocked,
-                    lockedSaturation: 0.16,
-                    lockedOpacity: 0.62
+                .trinketLockedCardEffect(
+                    isLocked: !status.isUnlocked,
+                    text: status.isUnlocked ? nil : "Locked",
+                    cornerRadius: TrinketDesign.Corners.small
                 )
                 .overlay(alignment: .topLeading) {
-                    HomesteadStatusBadge(status: status)
-                        .padding(12)
+                    if status.isUnlocked {
+                        HomesteadStatusBadge(status: status)
+                            .padding(12)
+                    }
                 }
 
             projectSummary(.featured)
@@ -63,13 +65,13 @@ struct HomesteadProjectCard: View {
     }
 
     private func compactLinkContent(isRecentlyUpgraded: Bool) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             HomesteadBuildingArtwork(definition: definition)
                 .frame(width: 78, height: 78)
-                .homesteadLockedArtworkStyle(
-                    isUnlocked: status.isUnlocked,
-                    lockedSaturation: 0.12,
-                    lockedOpacity: 0.58
+                .trinketLockedCardEffect(
+                    isLocked: !status.isUnlocked,
+                    text: status.isUnlocked ? nil : "Locked",
+                    cornerRadius: TrinketDesign.Corners.small
                 )
 
             projectSummary(.compact(isUnlocked: status.isUnlocked))
@@ -125,7 +127,7 @@ struct HomesteadProjectCard: View {
         tierFont: Font,
         titleForeground: Color = .primary
     ) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
             Text(definition.title)
                 .font(titleFont)
                 .foregroundStyle(titleForeground)
@@ -191,7 +193,7 @@ struct HomesteadTierSummary: View {
     var labelColor: Color = .secondary
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             HomesteadTierPips(
                 currentTier: currentTier,
                 maxTier: maxTier,
@@ -220,7 +222,7 @@ struct HomesteadProjectActionFooter: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(TrinketDesign.Colors.success)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
         } else {
             HomesteadMissingSummary(status: status)
         }
@@ -252,12 +254,12 @@ struct HomesteadProjectSection: View {
     let onSelect: (HomesteadNodeDefinition) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.mediumSpacing) {
             Text(category.rawValue)
                 .font(.headline)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
 
-            VStack(spacing: 10) {
+            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                 ForEach(definitions) { definition in
                     HomesteadProjectCard(
                         definition: definition,
@@ -286,8 +288,6 @@ struct HomesteadStatusBadge: View {
             .foregroundStyle(status.statusColor)
             .lineLimit(1)
             .minimumScaleFactor(0.78)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
             .trinketStatusBadge()
             .accessibilityLabel(status.statusTitle)
     }
@@ -297,7 +297,7 @@ struct HomesteadMissingSummary: View {
     let status: HomesteadProjectStatus
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             Image(systemName: status.statusSymbolName)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(status.statusColor)

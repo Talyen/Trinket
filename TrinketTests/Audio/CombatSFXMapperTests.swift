@@ -14,7 +14,12 @@ struct CombatSFXMapperTests {
     }
 
     @Test func criticalUsesSameHitClip() {
-        let item = feedbackItem(feedbackClass: .critical, keyword: .physical, text: "-10", secondary: "CRIT")
+        let item = feedbackItem(
+            feedbackClass: .critical,
+            keyword: .physical,
+            text: "-10",
+            secondary: "CRIT"
+        )
         #expect(CombatSFXMapper.clipID(for: item) == SFXID.hit)
     }
 
@@ -111,7 +116,7 @@ struct CombatSFXMapperTests {
         let expected = [
             SFXID.uiTap, SFXID.uiConfirm, SFXID.uiCancel, SFXID.uiDecline, SFXID.uiDeny,
             SFXID.uiToggleOn, SFXID.uiToggleOff, SFXID.uiEquip, SFXID.uiUnequip, SFXID.uiBuySell,
-            SFXID.abilityDraw, SFXID.abilityPlay,
+            SFXID.abilityDraw,
             SFXID.hit, SFXID.hitBurn, SFXID.hitFreeze,
             SFXID.heal, SFXID.buff, SFXID.block,
             SFXID.controlFreeze, SFXID.controlStun,
@@ -122,22 +127,65 @@ struct CombatSFXMapperTests {
             #expect(SFXCatalog.clipsByID[id] != nil, "Missing clip \(id)")
         }
         #expect(SFXCatalog.clips.count == expected.count)
+        #expect(SFXCatalog.clipsByID["ability_play"] == nil)
+    }
+
+    @Test func uniqueClipIDsDedupesIdenticalClips() {
+        let items = [
+            feedbackItem(id: 1, feedbackClass: .buff, keyword: .stun, text: "Cleanse Stunned"),
+            feedbackItem(id: 2, feedbackClass: .heal, keyword: .health, text: "+1 Health"),
+            feedbackItem(id: 3, feedbackClass: .buff, keyword: .block, text: "+4 Block"),
+            feedbackItem(id: 4, feedbackClass: .buff, keyword: .armor, text: "+22% Armor"),
+        ]
+        #expect(CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.heal, SFXID.block])
+    }
+
+    @Test func uniqueClipIDsPrefersTypedHitOverGenericPhysicalHit() {
+        let items = [
+            feedbackItem(id: 1, feedbackClass: .directDamage, keyword: .physical, text: "-6"),
+            feedbackItem(id: 2, feedbackClass: .dot, keyword: .burn, text: "-2"),
+        ]
+        #expect(CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn])
+    }
+
+    @Test func uniqueClipIDsKeepsPoisonHitAlongsideBurn() {
+        let items = [
+            feedbackItem(id: 1, feedbackClass: .dot, keyword: .burn, text: "-2"),
+            feedbackItem(id: 2, feedbackClass: .dot, keyword: .poison, text: "-1"),
+        ]
+        #expect(
+            CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn, SFXID.hit]
+        )
+    }
+
+    @Test func uniqueClipIDsKeepsOneBurnAcrossMultipleTargets() {
+        let items = [
+            feedbackItem(id: 1, targetID: "enemy", feedbackClass: .dot, keyword: .burn, text: "-2"),
+            feedbackItem(id: 2, targetID: "hero", feedbackClass: .dot, keyword: .burn, text: "-2"),
+            feedbackItem(id: 3, targetID: "pet", feedbackClass: .dot, keyword: .burn, text: "-1"),
+            feedbackItem(id: 4, targetID: "enemy", feedbackClass: .dot, keyword: .poison, text: "-3"),
+        ]
+        #expect(
+            CombatSFXMapper.uniqueClipIDs(for: items) == [SFXID.hitBurn, SFXID.hit]
+        )
     }
 
     private func feedbackItem(
+        id: Int = 1,
+        targetID: String = "target",
         feedbackClass: CombatFeedbackClass,
         keyword: Keyword,
         text: String,
         secondary: String? = nil
     ) -> CombatFeedbackItem {
         CombatFeedbackItem(
-            id: 1,
-            targetID: "target",
+            id: id,
+            targetID: targetID,
             feedbackClass: feedbackClass,
             keyword: keyword,
             text: text,
             secondaryText: secondary,
-            spawnSeed: 1,
+            spawnSeed: id,
             lifetime: 0.8,
             availableAt: .now,
             expiresAt: .now.addingTimeInterval(0.8),

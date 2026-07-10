@@ -30,13 +30,10 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
 
 struct InventoryGridView: View {
     @Environment(AppState.self) private var appState
-    @State private var searchText = ""
     @State private var selectedFilter: InventoryFilter = .all
     @State private var selectedItem: InventoryItem?
 
-    private let columns = [
-        GridItem(.adaptive(minimum: 150, maximum: 190), spacing: 16)
-    ]
+    private let columns = TrinketDesign.Metrics.collectionGridItems
 
     var body: some View {
         let inventoryState = appState.inventory.current
@@ -47,8 +44,8 @@ struct InventoryGridView: View {
                 inventoryEmptyState(inventoryState: inventoryState)
                     .padding(TrinketDesign.Metrics.contentMargin)
             } else {
-                VStack(alignment: .leading, spacing: 24) {
-                    LazyVGrid(columns: columns, spacing: 16) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionSpacing) {
+                    LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.largeSpacing) {
                         ForEach(items) { item in
                             Button {
                                 selectedItem = item
@@ -66,12 +63,10 @@ struct InventoryGridView: View {
                 .padding(TrinketDesign.Metrics.contentMargin)
             }
         }
-        .scrollDismissesKeyboard(.interactively)
         .trinketScreenBackground(.collection)
         .scrollEdgeEffectStyle(.soft, for: .top)
         .navigationTitle("Inventory")
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, prompt: "Search items")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -99,12 +94,7 @@ struct InventoryGridView: View {
 
     private func filteredItems(from inventoryState: PlayerInventoryState) -> [InventoryItem] {
         inventoryState.items.filter { item in
-            let matchesSlot = selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
-            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-            let matchesSearch = query.isEmpty
-                || CollectionSearch.matchesItem(item, query: query, includeAffixes: true)
-
-            return matchesSlot && matchesSearch
+            selectedFilter.slot.map { $0 == item.baseType.slot } ?? true
         }
     }
 
@@ -115,8 +105,8 @@ struct InventoryGridView: View {
         if isFilteredEmpty {
             ContentUnavailableView(
                 "No Matching Items",
-                systemImage: "magnifyingglass",
-                description: Text("Try a different search or filter.")
+                systemImage: "line.3.horizontal.decrease",
+                description: Text("Try a different filter.")
             )
             .accessibilityIdentifier(AccessibilityID.Collection.inventoryNoResults)
         } else {
@@ -166,59 +156,26 @@ struct ItemDetailView: View {
     }
 
     var body: some View {
-        List {
-            Section {
-                VStack(spacing: 16) {
-                    HStack {
-                        Spacer()
-
-                        ItemCard(item: item, showsAffixCount: false, showsName: false)
-                            .frame(maxWidth: 220)
-
-                        Spacer()
-                    }
-
-                    Text(item.displayName)
-                        .font(.title.weight(.bold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-                }
-                .listRowBackground(Color.clear)
-            }
-
-            Section("Affixes") {
-                ForEach(item.affixes.prefix(4)) { affix in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(affix.title)
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.primary)
-
+        DetailHeroScrollShell(
+            title: item.displayName,
+            showsDoneButton: true,
+            onDone: { dismiss() }
+        ) { baseHeight, overscroll in
+            ItemHeroHeader(
+                item: item,
+                baseHeight: baseHeight,
+                overscroll: overscroll
+            )
+            .accessibilityIdentifier("\(item.displayName) detail hero header")
+        } bodyContent: {
+            DetailSection("Affixes") {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                    ForEach(item.affixes.prefix(4)) { affix in
                         KeywordDescriptionText(text: affix.description)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-
-                        HStack(spacing: 8) {
-                            ForEach(affix.sortedKeywords) { keyword in
-                                Label(keyword.rawValue, systemImage: keyword.visualStyle.symbolName)
-                                    .font(.caption)
-                                    .foregroundStyle(keyword.visualStyle.color)
-                            }
-                        }
+                            .accessibilityElement(children: .combine)
                     }
-                    .accessibilityElement(children: .combine)
-                }
-            }
-        }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .trinketScreenBackground(.denseList)
-        .navigationTitle(item.displayName)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    dismiss()
                 }
             }
         }

@@ -8,6 +8,8 @@ enum BattleCardGridLayout {
     static let cardSpacing: CGFloat = gutter
     /// Reserved bottom band for the ability hand (art cards ~2× prior mechanical size).
     static let handReservedHeight: CGFloat = 230
+    /// Extra battlefield height reclaimed under the hand so combatants fill side gutters on typical phones.
+    static let handOverlapAllowance: CGFloat = 112
 
     struct Metrics: Equatable {
         let enemySize: CGSize
@@ -19,7 +21,10 @@ enum BattleCardGridLayout {
 
     static func metrics(in containerSize: CGSize, handReservedHeight: CGFloat = handReservedHeight) -> Metrics {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
-        let innerHeight = max(containerSize.height - 2 * outerPadding - handReservedHeight, 0)
+        let innerHeight = max(
+            containerSize.height - 2 * outerPadding - handReservedHeight + handOverlapAllowance,
+            0
+        )
         guard innerWidth > 0, innerHeight > 0 else {
             return Metrics(
                 enemySize: .zero,

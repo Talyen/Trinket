@@ -6,7 +6,6 @@ final class SmokeCollectionTests: TrinketUITestCase {
         collection.assertLoaded()
         assertExists(AccessibilityID.Collection.petsCategory)
         assertExists(AccessibilityID.Collection.inventoryCategory)
-        assertExists(collection.searchField)
     }
 
     func testFreshStartCollectionHidesInventorySection() {

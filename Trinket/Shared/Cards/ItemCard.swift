@@ -7,25 +7,12 @@ struct ItemCard: View {
     var showsAffixCount: Bool
     var showsName: Bool = true
     var reservesLabelSpace: Bool = true
+    /// When false, art is clipped only — no panel fill/stroke/shadow (shop offer tiles).
+    var appliesCardSurface: Bool = true
 
     var body: some View {
-        VStack(spacing: 8) {
-            TrinketDesign.cardShape
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .overlay {
-                    Group {
-                        if let imageName = item.artReference?.imageName {
-                            Image(imageName)
-                                .resizable()
-                                .scaledToFill()
-                        } else {
-                            TrinketDesign.cardShape
-                                .fill(Color(.secondarySystemBackground))
-                        }
-                    }
-                    .clipShape(TrinketDesign.cardShape)
-                }
-                .trinketCardSurface()
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
+            artTile
 
             if showsName {
                 VStack(spacing: 2) {
@@ -48,6 +35,30 @@ struct ItemCard: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(item.displayName), \(item.baseType.slot.rawValue)")
+    }
+
+    @ViewBuilder
+    private var artTile: some View {
+        let tile = TrinketDesign.cardShape
+            .fill(Color(.secondarySystemBackground))
+            .aspectRatio(3.0 / 4.0, contentMode: .fit)
+            .overlay {
+                Group {
+                    if let imageName = item.artReference?.thumbnailImageName
+                        ?? item.artReference?.imageName {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                    }
+                }
+                .clipShape(TrinketDesign.cardShape)
+            }
+
+        if appliesCardSurface {
+            tile.trinketCardSurface()
+        } else {
+            tile.clipShape(TrinketDesign.cardShape)
+        }
     }
 }
 

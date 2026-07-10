@@ -6,12 +6,12 @@ enum AbilityCatalogUltimateGenerated {
     static let blessedAegis = AbilityBuilder.directHit(
         id: "blessed-aegis", name: "Blessed Aegis", tier: .ultimate,
         amount: 6, keyword: .holy,
-        extras: [TargetedEffect(.shield(.block, 4, 6))]
+        extras: [TargetedEffect(.shield(.block, 4))]
     )
 
     static let avatarOfJustice = AbilityBuilder.buffOnly(
         id: "avatar-of-justice", name: "Avatar of Justice", tier: .ultimate,
-        effects: [.shield(.block, 5, 6), .mitigation(.armor, 0.15, 6), .damageKeywordOverride(.holy, 3, 6)]
+        effects: [.shield(.block, 5), .mitigation(.armor, 2), .damageKeywordOverride(.holy, 3, 6)]
     )
 
     static let holyRadiance = AbilityBuilder.directHit(
@@ -31,14 +31,9 @@ enum AbilityCatalogUltimateGenerated {
         effects: [.resourceGain(.gold, 3), .instantHeal(.health, 2)]
     )
 
-    static let plateMail = AbilityBuilder.buffOnly(
-        id: "plate-mail", name: "Plate Mail", tier: .ultimate,
-        effects: [.shield(.block, 4, 6), .mitigation(.armor, 0.22, 6)]
-    )
-
     static let sanctifiedPlate = AbilityBuilder.buffOnly(
         id: "sanctified-plate", name: "Sanctified Plate", tier: .ultimate,
-        effects: [.mitigation(.armor, 0.30, 6), .instantHeal(.health, 2)]
+        effects: [.mitigation(.armor, 3), .instantHeal(.health, 2)]
     )
 
     static let bloodthorn = AbilityBuilder.multiDamage(
@@ -60,7 +55,6 @@ enum AbilityCatalogUltimateGenerated {
         holyRadiance,
         sunburst,
         luckPotion,
-        plateMail,
         sanctifiedPlate,
         bloodthorn,
         faustianBargain

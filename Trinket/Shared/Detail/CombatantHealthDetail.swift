@@ -2,9 +2,18 @@ import SwiftUI
 import TrinketDesignSystem
 
 struct CombatHealthBar: View {
+    enum Style {
+        /// Capsule bar used for general combatant detail chrome.
+        case standard
+        /// Full-bleed rectangular strip for battle card bottom-edge chrome.
+        case battleBorder
+    }
+
     let health: Int
     let maxHealth: Int
     let fillColor: Color
+    var style: Style = .standard
+    var height: CGFloat = TrinketDesign.Metrics.statBarHeight
     var reduceMotion: Bool = false
 
     @State private var displayedHealth: Double
@@ -12,10 +21,19 @@ struct CombatHealthBar: View {
     @State private var restoreHealth: Double
     @State private var restoreOpacity = 0.0
 
-    init(health: Int, maxHealth: Int, fillColor: Color, reduceMotion: Bool = false) {
+    init(
+        health: Int,
+        maxHealth: Int,
+        fillColor: Color,
+        style: Style = .standard,
+        height: CGFloat = TrinketDesign.Metrics.statBarHeight,
+        reduceMotion: Bool = false
+    ) {
         self.health = health
         self.maxHealth = maxHealth
         self.fillColor = fillColor
+        self.style = style
+        self.height = height
         self.reduceMotion = reduceMotion
         let initialHealth = Double(health)
         _displayedHealth = State(initialValue: initialHealth)
@@ -28,25 +46,36 @@ struct CombatHealthBar: View {
             let width = geometry.size.width
 
             ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(.quaternary)
-
-                Capsule()
-                    .fill(TrinketDesign.Colors.healthRestore)
-                    .frame(width: width * restoreFraction)
-                    .opacity(restoreOpacity)
-
-                Capsule()
-                    .fill(TrinketDesign.Colors.healthTrailingDamage)
-                    .frame(width: width * trailingFraction)
-
-                Capsule()
-                    .fill(fillColor)
-                    .frame(width: width * displayedFraction)
+                switch style {
+                case .standard:
+                    Capsule().fill(.quaternary)
+                    Capsule()
+                        .fill(TrinketDesign.Colors.healthRestore)
+                        .frame(width: width * restoreFraction)
+                        .opacity(restoreOpacity)
+                    Capsule()
+                        .fill(TrinketDesign.Colors.healthTrailingDamage)
+                        .frame(width: width * trailingFraction)
+                    Capsule()
+                        .fill(fillColor)
+                        .frame(width: width * displayedFraction)
+                case .battleBorder:
+                    Rectangle().fill(TrinketDesign.Colors.battleHealthTrack)
+                    Rectangle()
+                        .fill(TrinketDesign.Colors.healthRestore)
+                        .frame(width: width * restoreFraction)
+                        .opacity(restoreOpacity)
+                    Rectangle()
+                        .fill(TrinketDesign.Colors.battleHealthTrailingDamage)
+                        .frame(width: width * trailingFraction)
+                    Rectangle()
+                        .fill(fillColor)
+                        .frame(width: width * displayedFraction)
+                }
             }
         }
-        .frame(height: TrinketDesign.Metrics.statBarHeight)
-        .clipShape(Capsule())
+        .frame(height: height)
+        .modifier(CombatHealthBarClipModifier(style: style))
         .onChange(of: health) { oldValue, newValue in
             animateHealthChange(from: oldValue, to: newValue)
         }
@@ -102,6 +131,19 @@ struct CombatHealthBar: View {
             displayedHealth = newHealth
             trailingHealth = newHealth
             restoreHealth = newHealth
+        }
+    }
+}
+
+private struct CombatHealthBarClipModifier: ViewModifier {
+    let style: CombatHealthBar.Style
+
+    func body(content: Content) -> some View {
+        switch style {
+        case .standard:
+            content.clipShape(Capsule())
+        case .battleBorder:
+            content.clipShape(Rectangle())
         }
     }
 }

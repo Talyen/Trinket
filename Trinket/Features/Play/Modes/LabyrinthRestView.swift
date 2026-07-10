@@ -10,14 +10,14 @@ struct LabyrinthRestView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 Text("A quiet shrine waits in the stone.")
-                    .font(.body)
+                    .trinketTypography(.body)
                     .foregroundStyle(.secondary)
 
                 LabeledContent("Depth", value: "\(session.depth)")
                 LabeledContent("Gold crumb", value: "\(session.goldCrumb)")
 
                 Text("Rest here to claim a small stipend and continue the path.")
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
 
                 Spacer(minLength: 0)

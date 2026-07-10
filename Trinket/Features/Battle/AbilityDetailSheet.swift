@@ -17,10 +17,10 @@ struct AbilityDetailSheet: View {
                 Text(ability.name)
                     .font(.title2.weight(.semibold))
                 Text(ability.tier.rawValue)
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
                 Text(ability.summary)
-                    .font(.body)
+                    .trinketTypography(.body)
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

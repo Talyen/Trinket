@@ -6,7 +6,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
-        play.openStage(chapter: 1, stage: 1)
+        play.startBattle(chapter: 1, stage: 1)
 
         // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
         if battle.waitForMidBattleOrVictory() {

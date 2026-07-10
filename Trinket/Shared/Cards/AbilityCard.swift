@@ -15,7 +15,7 @@ struct AbilityChoiceCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
             TrinketDesign.cardShape
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
@@ -36,7 +36,7 @@ struct AbilityChoiceCard: View {
                         }
                     }
                 }
-                .trinketLockedCardEffect(isLocked: isLocked, text: lockLabel)
+                .trinketLockedCardEffect(isLocked: isLocked, text: isLocked ? "Locked" : nil)
                 .trinketCardSurface()
 
             if showsName {

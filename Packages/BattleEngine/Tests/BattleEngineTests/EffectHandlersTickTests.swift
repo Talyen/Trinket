@@ -78,27 +78,27 @@ struct EffectHandlersTickTests {
         try #expect(!(outcome.removeAfter))
     }
 
-    @Test func defaultTickDecrementsDurationForTickableBuffs() throws {
+    @Test func defaultTickLeavesDurationlessBlockUntouched() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6, sourceActorID: "hero")
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0, sourceActorID: "hero")
         let outcome = EffectHandlersTestSupport.dispatchTick(shield, target: battle.enemy, battle: &battle)
         try #expect(outcome.events.isEmpty)
-        try #expect(outcome.updatedStack?.remainingTicks == 5)
+        try #expect(outcome.updatedStack == nil)
         try #expect(!(outcome.removeAfter))
     }
 
-    @Test func mitigationTickExpiresAtZeroRemainingTicks() throws {
+    @Test func mitigationTickLeavesDurationlessArmorUntouched() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let mitigation = ActiveEffect(
             id: 1,
-            effect: .mitigation(.armor, 0.25, 3),
-            remainingTicks: 1,
+            effect: .mitigation(.armor, 2),
+            remainingTicks: 0,
             sourceActorID: "hero"
         )
         let outcome = EffectHandlersTestSupport.dispatchTick(mitigation, target: battle.enemy, battle: &battle)
         try #expect(outcome.events.isEmpty)
-        try #expect(outcome.updatedStack?.remainingTicks == 0)
-        try #expect(outcome.removeAfter)
+        try #expect(outcome.updatedStack == nil)
+        try #expect(!(outcome.removeAfter))
     }
 
     @Test func leechTickDecrementsRemainingDuration() throws {

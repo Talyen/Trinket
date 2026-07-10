@@ -40,24 +40,4 @@ struct CollectionScreen {
         XCTAssertTrue(option.waitForExistence(timeout: 2), "Inventory filter option '\(slot)' not found", file: file, line: line)
         option.tap()
     }
-
-    var searchField: XCUIElement {
-        app.searchFields.firstMatch
-    }
-
-    func assertSearchNoResults(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        let element = app.descendants(matching: .any)[AccessibilityID.Collection.searchNoResults]
-        let title = app.staticTexts["No Results Found"]
-        let found = element.waitForExistence(timeout: timeout) || title.waitForExistence(timeout: timeout)
-        XCTAssertTrue(
-            found,
-            "Collection search no-results state not found",
-            file: file,
-            line: line
-        )
-    }
 }

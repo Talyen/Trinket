@@ -34,68 +34,64 @@ final class PlayerShellSessionStoreTests {
         let store = try PlayerShellSessionStore(storeURL: storeURL, legacyUserDefaults: defaults)
 
         try #expect(store.selectedTab == .homestead)
-        try #expect(store.activeBattleStageID == "chapter-1-stage-2")
         try #expect(defaults.string(forKey: PlayerShellSessionStore.legacySessionTabKey) == nil)
+        try #expect(defaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
     }
 
-    @Test func clearBattleStateRemovesBattleAndScrollTargets() throws {
+    @Test func clearMapScrollStateRemovesScrollTarget() throws {
         let storeURL = directoryURL.appending(path: "clear-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL)
-        store.activeBattleStageID = "chapter-1-stage-1"
-        store.setAspectBattleResume(aspectID: "ironVein", floor: 2)
         store.mapScrollStageID = "chapter-1-stage-2"
 
-        store.clearBattleState()
+        store.clearMapScrollState()
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(reloaded.activeBattleStageID == nil)
-        try #expect(reloaded.activeBattleAspectID == nil)
-        try #expect(reloaded.activeBattleAspectFloor == nil)
         try #expect(reloaded.mapScrollStageID == nil)
         try #expect(reloaded.selectedTab == store.selectedTab)
     }
 
-    @Test func aspectBattleResumePersistsAcrossReload() throws {
-        let storeURL = directoryURL.appending(path: "aspect-shell.store")
-        let store = try PlayerShellSessionStore(storeURL: storeURL)
-        store.setAspectBattleResume(aspectID: "cinderSpire", floor: 4)
-
-        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
-        try #expect(reloaded.activeBattleStageID == nil)
-        try #expect(reloaded.activeBattleAspectID == "cinderSpire")
-        try #expect(reloaded.activeBattleAspectFloor == 4)
-        try #expect(reloaded.hasActiveBattleResumeToken)
-    }
-
-    @Test func resetToDefaultsClearsBattleState() throws {
+    @Test func resetToDefaultsClearsMapScroll() throws {
         let storeURL = directoryURL.appending(path: "reset-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL)
         store.selectedTab = .collection
-        store.activeBattleStageID = "chapter-1-stage-1"
         store.mapScrollStageID = "chapter-1-stage-2"
-        store.lastBackgroundedTime = Date(timeIntervalSince1970: 1_700_000_000)
 
         store.resetToDefaults(selectingTab: .homestead)
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.selectedTab == .homestead)
-        try #expect(reloaded.activeBattleStageID == nil)
         try #expect(reloaded.mapScrollStageID == nil)
-        try #expect(reloaded.activeBattleSavedAt == nil)
-        try #expect(reloaded.activeBattleSchemaVersion == nil)
-        try #expect(reloaded.lastBackgroundedTime == nil)
     }
 
-    @Test func persistsMapScrollAndBackgroundedTimeAcrossReload() throws {
+    @Test func persistsMapScrollAcrossReload() throws {
         let storeURL = directoryURL.appending(path: "scroll-shell.store")
         let store = try PlayerShellSessionStore(storeURL: storeURL)
-        let backgroundedAt = Date(timeIntervalSince1970: 1_700_000_123)
         store.mapScrollStageID = "chapter-1-stage-3"
-        store.lastBackgroundedTime = backgroundedAt
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.mapScrollStageID == "chapter-1-stage-3")
-        try #expect(reloaded.lastBackgroundedTime == backgroundedAt)
+    }
+
+    @Test func persistsLastPlayModeAcrossReload() throws {
+        let storeURL = directoryURL.appending(path: "play-mode-shell.store")
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(store.lastPlayMode == .campaign)
+
+        store.lastPlayMode = .labyrinth
+
+        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(reloaded.lastPlayMode == .labyrinth)
+    }
+
+    @Test func resetToDefaultsRestoresCampaignPlayMode() throws {
+        let storeURL = directoryURL.appending(path: "reset-play-mode-shell.store")
+        let store = try PlayerShellSessionStore(storeURL: storeURL)
+        store.lastPlayMode = .aspects
+
+        store.resetToDefaults(selectingTab: .play)
+
+        let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
+        try #expect(reloaded.lastPlayMode == .campaign)
     }
 
     @Test func migratesExtendedLegacyUserDefaultsOnFirstLaunch() throws {
@@ -114,13 +110,10 @@ final class PlayerShellSessionStoreTests {
         let store = try PlayerShellSessionStore(storeURL: storeURL, legacyUserDefaults: defaults)
 
         try #expect(store.selectedTab == .collection)
-        try #expect(store.activeBattleStageID == "chapter-1-stage-4")
         try #expect(store.mapScrollStageID == "chapter-1-stage-5")
-        try #expect(store.activeBattleSavedAt == savedAt)
-        try #expect(store.activeBattleSchemaVersion == 2)
-        try #expect(store.lastBackgroundedTime == backgroundedAt)
         try #expect(defaults.string(forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey) == nil)
         try #expect(defaults.object(forKey: PlayerShellSessionStore.legacyViewedCombatantIDsKey) == nil)
+        try #expect(defaults.string(forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey) == nil)
     }
 
     @Test func remapsPersistedLegacySearchTabToCollection() throws {
@@ -139,5 +132,31 @@ final class PlayerShellSessionStoreTests {
 
         let reloaded = try PlayerShellSessionStore(storeURL: storeURL)
         try #expect(reloaded.selectedTab == .collection)
+    }
+
+    @Test func clearsStaleBattleResumeFieldsOnLoad() throws {
+        let storeURL = directoryURL.appending(path: "stale-battle-shell.store")
+        let schema = Schema([PlayerShellSession.self])
+        let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
+        let container = try ModelContainer(for: schema, configurations: [config])
+        let context = ModelContext(container)
+        let record = PlayerShellSession()
+        record.selectedTabRaw = "play"
+        record.activeBattleStageID = "chapter-1-stage-1"
+        record.activeBattleSavedAt = Date()
+        record.activeBattleSchemaVersion = 1
+        record.lastBackgroundedTime = Date()
+        context.insert(record)
+        try context.save()
+
+        _ = try PlayerShellSessionStore(storeURL: storeURL)
+
+        let reloadedContext = ModelContext(try ModelContainer(for: schema, configurations: [config]))
+        let descriptor = FetchDescriptor<PlayerShellSession>()
+        let reloaded = try #require(try reloadedContext.fetch(descriptor).first { $0.id == "current" })
+        try #expect(reloaded.activeBattleStageID == nil)
+        try #expect(reloaded.activeBattleSavedAt == nil)
+        try #expect(reloaded.activeBattleSchemaVersion == nil)
+        try #expect(reloaded.lastBackgroundedTime == nil)
     }
 }

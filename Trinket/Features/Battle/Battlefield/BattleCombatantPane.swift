@@ -5,17 +5,11 @@ import TrinketCore
 import TrinketDesignSystem
 
 struct BattleCombatantPane: View {
-    enum HealthBarPlacement {
-        case top
-        case bottom
-    }
-
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
-    let healthBarPlacement: HealthBarPlacement
     let items: [CombatFeedbackItem]
     let hitReaction: CombatantHitReaction?
     let keywordBursts: [KeywordBurstRequest]
@@ -33,8 +27,6 @@ struct BattleCombatantPane: View {
             ZStack {
                 reactiveArtwork
 
-                healthScrim
-
                 healthBar
 
                 ForEach(keywordBursts) { burst in
@@ -46,8 +38,8 @@ struct BattleCombatantPane: View {
                     reduceMotion: reduceMotion
                 )
                 .padding(.horizontal, 8)
-                .padding(.bottom, feedbackBottomInset)
-                .padding(.top, feedbackTopInset)
+                .padding(.bottom, 12)
+                .padding(.top, 8)
 
                 if let skillCallout {
                     SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
@@ -76,14 +68,6 @@ struct BattleCombatantPane: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityIdentifier("\(combatant.name) card")
-    }
-
-    private var feedbackTopInset: CGFloat {
-        healthBarPlacement == .top ? 44 : 8
-    }
-
-    private var feedbackBottomInset: CGFloat {
-        healthBarPlacement == .bottom ? 44 : 12
     }
 
     @ViewBuilder
@@ -131,8 +115,17 @@ struct BattleCombatantPane: View {
         }
     }
 
+    private var isDefeated: Bool {
+        health <= 0
+    }
+
     private var artworkLayer: some View {
         CombatantArtwork(combatant: combatant, variant: .battle)
+            .saturation(isDefeated ? 0 : 1)
+            .animation(
+                reduceMotion ? nil : .easeOut(duration: TrinketMotion.Battle.reduceMotionFade),
+                value: isDefeated
+            )
     }
 
     private var accessibilityLabel: String {
@@ -147,13 +140,17 @@ struct BattleCombatantPane: View {
     }
 
     private var healthBar: some View {
-        healthChrome {
+        VStack {
+            Spacer(minLength: 0)
+
             if hasMana {
-                HStack(spacing: 4) {
+                HStack(spacing: 0) {
                     CombatHealthBar(
                         health: health,
                         maxHealth: maxHealth,
                         fillColor: combatant.healthBarColor,
+                        style: .battleBorder,
+                        height: TrinketDesign.Metrics.battleHealthBarHeight,
                         reduceMotion: reduceMotion
                     )
 
@@ -161,44 +158,19 @@ struct BattleCombatantPane: View {
                         mana: mana,
                         maxMana: maxMana
                     )
+                    .frame(height: TrinketDesign.Metrics.battleHealthBarHeight)
                 }
                 .accessibilityHidden(true)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
             } else {
                 CombatHealthBar(
                     health: health,
                     maxHealth: maxHealth,
                     fillColor: combatant.healthBarColor,
+                    style: .battleBorder,
+                    height: TrinketDesign.Metrics.battleHealthBarHeight,
                     reduceMotion: reduceMotion
                 )
                 .accessibilityHidden(true)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-            }
-        }
-    }
-
-    private var healthScrim: some View {
-        healthChrome {
-            BattleHealthScrimGradient(
-                placement: healthBarPlacement == .top ? .top : .bottom
-            )
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
-
-    private func healthChrome<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack {
-            if healthBarPlacement == .bottom {
-                Spacer(minLength: 0)
-            }
-
-            content()
-
-            if healthBarPlacement == .top {
-                Spacer(minLength: 0)
             }
         }
     }

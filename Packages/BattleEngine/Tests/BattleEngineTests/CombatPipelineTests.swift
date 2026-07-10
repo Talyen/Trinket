@@ -54,7 +54,7 @@ struct CombatPipelineTests {
     // MARK: - Shield absorption
 
     @Test func applyDamageShieldAbsorbsFully() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 3), remainingTicks: 3)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 3)
         var context = makeContext(targetEffects: [shield])
         let initial = context.roster.enemy.currentHealth
         let (lost, events) = context.applyTestDamage(10, to: context.roster.enemy.combatant)
@@ -64,7 +64,7 @@ struct CombatPipelineTests {
     }
 
     @Test func applyDamageShieldAbsorbsPartially() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 3), remainingTicks: 3)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 3)
         var context = makeContext(targetEffects: [shield])
         let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         try #expect(lost > 0)
@@ -74,7 +74,7 @@ struct CombatPipelineTests {
     @Test func applyDamageShieldAbsorptionPreservesSourceActorID() throws {
         let shield = ActiveEffect(
             id: 1,
-            effect: .shield(.block, 10, 3),
+            effect: .shield(.block, 10),
             remainingTicks: 3,
             sourceActorID: "caster"
         )
@@ -83,7 +83,7 @@ struct CombatPipelineTests {
 
         let updatedShield = context.roster.enemy.activeEffects.first { $0.id == 1 }
         try #expect(updatedShield?.sourceActorID == "caster")
-        if case let .shield(_, buffer, _) = updatedShield?.effect {
+        if case let .shield(_, buffer) = updatedShield?.effect {
             try #expect(buffer == 6)
         } else {
             Issue.record("Expected partial shield to remain")
@@ -91,43 +91,43 @@ struct CombatPipelineTests {
     }
 
     @Test func applyDamageShieldRemovedWhenDepleted() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5, 3), remainingTicks: 3)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 3)
         var context = makeContext(targetEffects: [shield])
         _ = context.applyTestDamage(10, to: context.roster.enemy.combatant)
         let effects = context.roster.enemy.activeEffects
         try #expect(!(effects.contains { $0.id == 1 }))
     }
 
-    @Test func applyDamageMultipleShieldsConsumedInOrder() throws {
-        let s1 = ActiveEffect(id: 1, effect: .shield(.block, 5, 3), remainingTicks: 3)
-        let s2 = ActiveEffect(id: 2, effect: .shield(.block, 10, 3), remainingTicks: 3)
-        var context = makeContext(targetEffects: [s1, s2])
+    @Test func applyDamageSingleBlockPoolAbsorbsFully() throws {
+        let block = ActiveEffect(id: 1, effect: .shield(.block, 15), remainingTicks: 0)
+        var context = makeContext(targetEffects: [block])
         let (lost, _) = context.applyTestDamage(12, to: context.roster.enemy.combatant)
-        // First shield absorbs 5, second absorbs 7, remaining 0 health lost from shield
-        // Then damage: 12 - 5 - 7 = 0 dealt past shields
-        // Wait: remaining starts at 12. s1 absorbs min(12,5)=5, remaining=7. s2 absorbs min(7,10)=7, remaining=0.
         try #expect(lost == 0)
+        let remaining = context.roster.enemy.activeEffects.compactMap { active -> Int? in
+            guard case let .shield(_, buffer) = active.effect else { return nil }
+            return buffer
+        }.first
+        try #expect(remaining == 3)
     }
 
     // MARK: - Mitigation
 
     @Test func applyDamageMitigationReducesDamage() throws {
         let start = 20
-        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 0.25, 6), remainingTicks: 6)
+        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 0)
         var context = makeContext(targetEffects: [mit])
         let (lost, _) = context.applyTestDamage(start, to: context.roster.enemy.combatant)
-        // 25% mitigation → 20 * 0.75 = 15
-        try #expect(lost == 15)
+        // Flat Armor 2, capped at floor(20/2)=10 → reduce by 2 → 18
+        try #expect(lost == 18)
     }
 
     @Test func applyDamageToughnessMitigationStacksWithArmor() throws {
-        let stats = PrimaryStats(toughness: 50) // 50/(50+50) = 50% mitigation
-        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 0.25, 6), remainingTicks: 6)
+        let stats = PrimaryStats(toughness: 50) // armorEffectivenessBonus = 10
+        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 0)
         var context = makeContext(targetPrimaryStats: stats, targetEffects: [mit])
         let (lost, _) = context.applyTestDamage(20, to: context.roster.enemy.combatant)
-        // combined = min(1, 0.25 + 0.50) = 0.75
-        // 20 * 0.25 = 5
-        try #expect(lost == 5)
+        // effective Armor 12, capped at floor(20/2)=10 → reduce by 10 → 10
+        try #expect(lost == 10)
     }
 
     // MARK: - Stat and item bonuses
@@ -324,7 +324,7 @@ struct CombatPipelineTests {
     }
 
     @Test func stunBuildupUsesPostMitigationDamage() throws {
-        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 0.50, 6), remainingTicks: 6)
+        let mit = ActiveEffect(id: 1, effect: .mitigation(.armor, 3), remainingTicks: 0)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [mit], seed: 1772)
         _ = context.applyTestDamage(
             20,
@@ -335,11 +335,12 @@ struct CombatPipelineTests {
 
         let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
         let amount = buildup?.effect.controlMeterValues?.amount
-        try #expect(amount == 10, "50% mitigation should halve stun buildup from 20 to 10")
+        // Flat Armor 3 vs 20 → remaining 17 for stun buildup
+        try #expect(amount == 17)
     }
 
     @Test func stunBuildupAppliesWhenShieldAbsorbsAllDamage() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
         let (lost, _) = context.applyTestDamage(
             5,
@@ -357,7 +358,7 @@ struct CombatPipelineTests {
     }
 
     @Test func criticalHitIsAbsorbedByShieldBeforeHealth() throws {
-        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20, 6), remainingTicks: 6)
+        let shield = ActiveEffect(id: 1, effect: .shield(.block, 20), remainingTicks: 6)
         var context = makeContext(targetMaxHealth: 100, targetEffects: [shield], seed: 1772)
         let (lost, events) = context.applyTestDamage(
             5,
@@ -371,7 +372,7 @@ struct CombatPipelineTests {
         try #expect(events.contains { $0.effectKind == .criticalApplied })
         try #expect(lost == 0, "Crit should multiply before shields absorb the final amount")
         let remainingBuffer = context.roster.enemy.activeEffects.compactMap { active -> Int? in
-            guard case let .shield(_, buffer, _) = active.effect else { return nil }
+            guard case let .shield(_, buffer) = active.effect else { return nil }
             return buffer
         }.first
         try #expect(remainingBuffer == 10, "5 damage crit to 10 should consume 10 shield")
@@ -386,9 +387,9 @@ struct CombatPipelineTests {
             "DamageBonus",
             "Hexmark",
             "MarkedBonus",
-            "Mitigation",
             "ItemReduction",
             "CriticalMultiply",
+            "Mitigation",
             "ShieldAbsorption",
             "TakeDamage",
             "MarkedConsume",

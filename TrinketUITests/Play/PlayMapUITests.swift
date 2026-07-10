@@ -22,10 +22,19 @@ final class PlayMapUITests: TrinketUITestCase {
 
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
         XCTAssertFalse(button(AccessibilityID.Play.stageNode(chapter: 1, stage: 2)).exists)
-        XCTAssertFalse(app.alerts.element.exists)
     }
 
-    func testFinalStageShowsLockedNextChapter() {
+    func testBattleOpensPartySheet() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+
+        play.assertLoaded()
+        play.openStage(chapter: 1, stage: 1)
+
+        assertExists(AccessibilityID.Play.battlePartySheet)
+        assertExists(AccessibilityID.Play.battlePartyStart)
+    }
+
+    func testFinalStageOfChapterAutoAdvancesWithoutGate() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs
             + TestLaunchArg.completedStages([
                 "chapter-1-stage-1",
@@ -37,17 +46,11 @@ final class PlayMapUITests: TrinketUITestCase {
                 "chapter-1-stage-7",
                 "chapter-1-stage-8",
                 "chapter-1-stage-9"
-            ])
-            + TestLaunchArg.mapScrollTarget("chapter-gate-placeholder-2"))
+            ]))
 
+        play.assertLoaded()
+        play.assertChapterHeader(number: 1)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 10))
-        assertExists(AccessibilityID.Play.chapterLocked(number: 2))
-    }
-
-    func testHomesteadNodeDetail() {
-        launchApp(arguments: TestLaunchArg.allForTab("homestead"))
-        homestead.assertLoaded()
-        homestead.openNode(named: "Wheat Field")
-        homestead.assertNodeDetail(named: "Wheat Field")
+        assertDoesNotExist(AccessibilityID.Play.chapterLocked(number: 2))
     }
 }

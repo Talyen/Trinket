@@ -10,7 +10,7 @@ struct LabyrinthCraftView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Offer gold to the altar. The stone answers with a forged find.")
-                    .font(.body)
+                    .trinketTypography(.body)
                     .foregroundStyle(.secondary)
 
                 LabeledContent("Depth", value: "\(session.depth)")
@@ -19,7 +19,7 @@ struct LabyrinthCraftView: View {
 
                 if let failure = session.failureMessage {
                     Text(failure)
-                        .font(.subheadline)
+                        .trinketTypography(.secondaryBody)
                         .foregroundStyle(.orange)
                         .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftFailure)
                 }

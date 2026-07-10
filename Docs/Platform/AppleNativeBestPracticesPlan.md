@@ -166,7 +166,7 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
    - Evaluate against existing `scrollTransition` / `ignoresSafeArea`.
    - Keep Reduce Transparency / Reduce Motion paths intact.
 
-3. **`.scrollEdgeEffectStyle(...)`** on dense scroll surfaces: Collection shelves, Search results, Inventory lists, Options `Form`.
+3. **`.scrollEdgeEffectStyle(...)`** on dense scroll surfaces: Collection shelves, Inventory lists, Options `Form`.
    - Prefer automatic/system defaults first; tune only if legibility fails over artwork.
 
 **Out of scope:** Changing `.toolbarBackgroundVisibility` / `.toolbarBackground` on Battle, Play map, combatant detail (see top of this doc).

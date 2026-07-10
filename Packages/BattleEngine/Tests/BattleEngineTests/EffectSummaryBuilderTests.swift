@@ -48,18 +48,18 @@ struct EffectSummaryBuilderTests {
 
     @Test func shieldSummary() throws {
         let effects = [
-            ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6)
+            ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Block: 5 buffer, 6 turns left.")
+        try #expect(summaries.first?.text == "Block: 5.")
     }
 
     @Test func mitigationSummary() throws {
         let effects = [
-            ActiveEffect(id: 1, effect: .mitigation(.armor, 0.25, 3), remainingTicks: 3)
+            ActiveEffect(id: 1, effect: .mitigation(.armor, 2), remainingTicks: 0)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Armor: 25% mitigation, 3 turns left.")
+        try #expect(summaries.first?.text == "Armor: 2.")
     }
 
     // MARK: - Prevention / build-up
@@ -139,8 +139,8 @@ struct EffectSummaryBuilderTests {
 
     @Test func multipleKeywordsYieldMultipleSummaries() throws {
         let effects = [
-            ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6),
-            ActiveEffect(id: 2, effect: .mitigation(.armor, 0.25, 3), remainingTicks: 3)
+            ActiveEffect(id: 1, effect: .shield(.block, 5), remainingTicks: 6),
+            ActiveEffect(id: 2, effect: .mitigation(.armor, 2), remainingTicks: 3)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
         try #expect(summaries.count == 2)

@@ -12,7 +12,7 @@ struct HomesteadResourceWallet: View {
     var body: some View {
         ScrollView(.horizontal) {
             GlassEffectContainer {
-                HStack(spacing: 8) {
+                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
                     ForEach(resources) { resource in
                         HomesteadResourcePill(
                             resource: resource,
@@ -50,8 +50,6 @@ struct HomesteadResourcePill: View {
                 .font(.subheadline.monospacedDigit().weight(.semibold))
                 .contentTransition(.numericText())
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
         .trinketWalletPill()
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(resource.displayName), \(balance)")

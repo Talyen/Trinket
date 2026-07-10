@@ -24,10 +24,11 @@ struct PrimaryStatsRulesTests {
         try #expect(abs((PrimaryStats(agility: 1000).dodgeChance) - (0.75)) < 0.0001)
     }
 
-    @Test func toughnessMitigationPctMatchesFormula() throws {
-        try #expect(abs((PrimaryStats(toughness: 0).toughnessMitigationPct) - (0.0)) < 0.0001)
-        try #expect(abs((PrimaryStats(toughness: 50).toughnessMitigationPct) - (0.5)) < 0.0001)
-        try #expect(abs((PrimaryStats(toughness: 100).toughnessMitigationPct) - (100.0 / 150.0)) < 0.0001)
+    @Test func armorEffectivenessBonusMatchesFormula() throws {
+        try #expect(PrimaryStats(toughness: 0).armorEffectivenessBonus == 0)
+        try #expect(PrimaryStats(toughness: 5).armorEffectivenessBonus == 1)
+        try #expect(PrimaryStats(toughness: 50).armorEffectivenessBonus == 10)
+        try #expect(PrimaryStats(toughness: 100).armorEffectivenessBonus == 20)
     }
 
     @Test func controlMeterThresholdScalesWithAgility() throws {
@@ -62,7 +63,7 @@ struct PrimaryStatsRulesTests {
         let stats = PrimaryStats()
         try #expect(stats.statBonusForDamage(keyword: .physical) == 0)
         try #expect(abs((stats.dodgeChance) - (0.05)) < 0.0001)
-        try #expect(abs((stats.toughnessMitigationPct) - (0.0)) < 0.0001)
+        try #expect(stats.armorEffectivenessBonus == 0)
     }
 
     @Test func negativeStatInputsTruncateTowardZeroForDamageBonus() throws {

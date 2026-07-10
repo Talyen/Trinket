@@ -16,7 +16,6 @@ enum SFXID {
     static let uiUnequip = "ui_unequip"
     static let uiBuySell = "ui_buy_sell"
     static let abilityDraw = "ability_draw"
-    static let abilityPlay = "ability_play"
     static let hit = "hit"
     static let hitBurn = "hit_burn"
     static let hitFreeze = "hit_freeze"

@@ -21,18 +21,17 @@ package enum DamagePipeline {
         let apply: @Sendable (inout DamageResolutionState, inout BattleEngineContext) -> Void
     }
 
-    /// Canonical damage resolution order. Critical multiplication runs after
-    /// mitigation/item reduction and before shield absorption so crits scale
-    /// post-mitigation damage and shields absorb the final hit amount.
+    /// Canonical damage resolution order. Flat Armor runs after item mods and
+    /// crit so it mitigates the final pre-Block hit amount; Block absorbs last.
     package static let steps: [Step] = [
         Step(name: "DodgeGate", phase: .stochastic, apply: applyDodgeGate),
         Step(name: "CriticalGate", phase: .stochastic, apply: applyCriticalGate),
         Step(name: "DamageBonus", phase: .resolution, apply: applyDamageBonus),
         Step(name: "Hexmark", phase: .resolution, apply: applyHexmark),
         Step(name: "MarkedBonus", phase: .resolution, apply: applyMarkedBonus),
-        Step(name: "Mitigation", phase: .resolution, apply: applyMitigation),
         Step(name: "ItemReduction", phase: .resolution, apply: applyItemReduction),
         Step(name: "CriticalMultiply", phase: .resolution, apply: applyCriticalMultiply),
+        Step(name: "Mitigation", phase: .resolution, apply: applyMitigation),
         Step(name: "ShieldAbsorption", phase: .resolution, apply: applyShieldAbsorption),
         Step(name: "TakeDamage", phase: .resolution, apply: applyTakeDamage),
         Step(name: "MarkedConsume", phase: .resolution, apply: applyMarkedConsume),

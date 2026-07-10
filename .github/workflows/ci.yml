@@ -133,7 +133,7 @@ jobs:
           - shard: exhaustive-battle
             command: ./Scripts/test.sh ui BattleFlowUITests --no-build --verbose
           - shard: exhaustive-collection
-            command: ./Scripts/test.sh ui TabNavigationUITests CollectionSearchUITests --no-build --verbose
+            command: ./Scripts/test.sh ui TabNavigationUITests --no-build --verbose
           - shard: exhaustive-play
             command: ./Scripts/test.sh ui PlayMapUITests MysteryRecruitUITests --no-build --verbose
     steps:

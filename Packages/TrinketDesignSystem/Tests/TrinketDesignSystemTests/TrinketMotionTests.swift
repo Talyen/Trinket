@@ -32,9 +32,8 @@ struct TrinketMotionTests {
         let critical = TrinketMotion.Battle.chip(for: .critical)
         let dot = TrinketMotion.Battle.chip(for: .dot)
         #expect(critical.lifetime > dot.lifetime)
-        #expect(critical.fontSize > dot.fontSize)
-        #expect(critical.fontSize >= 34)
-        #expect(dot.fontSize >= 20)
+        #expect(critical.textStyle == .title)
+        #expect(dot.textStyle == .footnote)
         #expect(critical.showsSecondaryCaption)
     }
 

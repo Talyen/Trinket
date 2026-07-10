@@ -41,7 +41,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 28,
         chrome: .standard,
         fontWeight: .bold,
-        fontSize: 28,
+        textStyle: .title2,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -74,7 +74,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 32,
         chrome: .emphasis,
         fontWeight: .heavy,
-        fontSize: 34,
+        textStyle: .title,
         bouncesSymbol: true,
         showsSecondaryCaption: true
     )
@@ -102,7 +102,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .compact,
         fontWeight: .semibold,
-        fontSize: 20,
+        textStyle: .footnote,
         bouncesSymbol: false,
         showsSecondaryCaption: false
     )
@@ -130,7 +130,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 26,
         chrome: .standard,
         fontWeight: .bold,
-        fontSize: 26,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -158,7 +158,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .compact,
         fontWeight: .bold,
-        fontSize: 22,
+        textStyle: .callout,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -191,7 +191,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .utility,
         fontWeight: .bold,
-        fontSize: 22,
+        textStyle: .callout,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -219,7 +219,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .utility,
         fontWeight: .bold,
-        fontSize: 22,
+        textStyle: .callout,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -247,7 +247,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .standard,
         fontWeight: .semibold,
-        fontSize: 22,
+        textStyle: .callout,
         bouncesSymbol: false,
         showsSecondaryCaption: false
     )
@@ -275,7 +275,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 22,
         chrome: .standard,
         fontWeight: .bold,
-        fontSize: 22,
+        textStyle: .callout,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )
@@ -303,7 +303,7 @@ enum CombatFeedbackChipRecipes {
         stackSpacing: 26,
         chrome: .emphasis,
         fontWeight: .heavy,
-        fontSize: 26,
+        textStyle: .title3,
         bouncesSymbol: true,
         showsSecondaryCaption: false
     )

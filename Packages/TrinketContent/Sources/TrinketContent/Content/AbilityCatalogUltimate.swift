@@ -2,6 +2,11 @@ import Foundation
 import TrinketCore
 
 public enum AbilityCatalogUltimate {
+    public static let avatarOfJustice = Ability(
+        id: "avatar-of-justice", name: "Avatar of Justice", tier: .ultimate,
+        description: "Your next Holy attack deals double damage and applies Burn.",
+        targetedEffects: [TargetedEffect(.nextHolyStrike)]
+    )
     public static let blizzard = Ability(
         id: "blizzard", name: "Blizzard", tier: .ultimate,
         damageComponents: [
@@ -26,8 +31,8 @@ public enum AbilityCatalogUltimate {
     public static let crystalBulwark = Ability(
         id: "crystal-bulwark", name: "Crystal Bulwark", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4, 6)),
-            TargetedEffect(.mitigation(.armor, 0.30, 6))
+            TargetedEffect(.shield(.block, 4)),
+            TargetedEffect(.mitigation(.armor, 3))
         ]
     )
     public static let exorcism = Ability(
@@ -42,7 +47,7 @@ public enum AbilityCatalogUltimate {
         description: "Gain Block and deal 3 Freeze damage.",
         damageComponents: [DamageComponent(3, keyword: .freeze)],
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4, 6)),
+            TargetedEffect(.shield(.block, 4)),
             TargetedEffect(.instantHeal(.health, 2), condition: .enemyFrozen)
         ],
         manaCost: 3
@@ -50,7 +55,7 @@ public enum AbilityCatalogUltimate {
     public static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.mitigation(.armor, 0.30, 6)),
+            TargetedEffect(.mitigation(.armor, 3)),
             TargetedEffect(.resourceGain(.gold, 4)),
             TargetedEffect(.instantHeal(.health, 2))
         ]
@@ -67,13 +72,13 @@ public enum AbilityCatalogUltimate {
         id: "judgment", name: "Judgment", tier: .ultimate,
         description: "Deal 6 Holy damage.\nGain 1 Block.",
         damageComponents: [DamageComponent(6, keyword: .holy)],
-        targetedEffects: [TargetedEffect(.shield(.block, 1, 6))]
+        targetedEffects: [TargetedEffect(.shield(.block, 1))]
     )
     public static let manaBulwark = Ability(
         id: "mana-bulwark", name: "Mana Bulwark", tier: .ultimate,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4, 6)),
-            TargetedEffect(.mitigation(.armor, 0.30, 6)),
+            TargetedEffect(.shield(.block, 4)),
+            TargetedEffect(.mitigation(.armor, 3)),
             TargetedEffect(.resourceGain(.mana, 2)),
             TargetedEffect(.burn(2))
         ],
@@ -91,7 +96,7 @@ public enum AbilityCatalogUltimate {
         description: "Gain Block and deal 3 Burn damage.",
         damageComponents: [DamageComponent(3, keyword: .burn)],
         targetedEffects: [
-            TargetedEffect(.shield(.block, 4, 6)),
+            TargetedEffect(.shield(.block, 4)),
             TargetedEffect(.burn(3))
         ]
     )
@@ -131,13 +136,14 @@ public enum AbilityCatalogUltimate {
         id: "thorn-mail", name: "Thorn Mail", tier: .ultimate,
         description: "Gain Armor and Thorns.",
         targetedEffects: [
-            TargetedEffect(.mitigation(.armor, 0.25, 6)),
+            TargetedEffect(.mitigation(.armor, 2)),
             TargetedEffect(.thorns(.bleed, 2, 6)),
             TargetedEffect(.bleed(1))
         ]
     )
 
     public static let all: [Ability] = [
+        avatarOfJustice,
         blizzard,
         combustion,
         concussiveShot,

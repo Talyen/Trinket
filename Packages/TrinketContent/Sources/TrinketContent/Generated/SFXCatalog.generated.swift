@@ -78,12 +78,6 @@ public enum SFXCatalog {
             volumeGain: 1.0
         ),
         SFXClip(
-            id: "ability_play",
-            resourceName: "sfx_ability_play",
-            fileExtension: "m4a",
-            volumeGain: 1.0
-        ),
-        SFXClip(
             id: "hit",
             resourceName: "sfx_hit",
             fileExtension: "m4a",

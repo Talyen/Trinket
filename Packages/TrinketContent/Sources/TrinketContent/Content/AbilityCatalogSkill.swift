@@ -30,8 +30,8 @@ public enum AbilityCatalogSkill {
     public static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 3, 6)),
-            TargetedEffect(.mitigation(.armor, 0.25, 6)),
+            TargetedEffect(.shield(.block, 3)),
+            TargetedEffect(.mitigation(.armor, 2)),
             TargetedEffect(.instantHeal(.health, 1))
         ],
         manaCost: 2
@@ -93,13 +93,13 @@ public enum AbilityCatalogSkill {
         id: "mana-potion", name: "Mana Potion", tier: .skill,
         targetedEffects: [
             TargetedEffect(.resourceGain(.mana, 2)),
-            TargetedEffect(.shield(.block, 2, 6))
+            TargetedEffect(.shield(.block, 2))
         ]
     )
     public static let manaShield = Ability(
         id: "mana-shield", name: "Mana Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 3, 6)),
+            TargetedEffect(.shield(.block, 3)),
             TargetedEffect(.restoreManaOnHit(1, 6))
         ]
     )
@@ -129,15 +129,13 @@ public enum AbilityCatalogSkill {
     )
     public static let smite = Ability(
         id: "smite", name: "Smite", tier: .skill,
-        damageComponents: [
-            DamageComponent(3, keyword: .holy, bonusAmount: 1, condition: .enemyStunnedOrFrozen)
-        ]
+        damageComponents: [DamageComponent(3, keyword: .holy)]
     )
     public static let spikedShield = Ability(
         id: "spiked-shield", name: "Spiked Shield", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.shield(.block, 2, 6)),
-            TargetedEffect(.mitigation(.armor, 0.22, 6)),
+            TargetedEffect(.shield(.block, 2)),
+            TargetedEffect(.mitigation(.armor, 2)),
             TargetedEffect(.thorns(.physical, 1, 6))
         ]
     )

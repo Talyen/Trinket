@@ -11,18 +11,12 @@ package extension BattleState {
     func adjustedOutgoingEffect(_ effect: Effect, sourceID: String) -> Effect {
         let profile = modifiers(for: sourceID)
         switch effect {
-        case let .shield(keyword, buffer, durationTicks):
+        case let .shield(keyword, buffer):
             return .shield(
-                keyword,
-                buffer + profile.blockGainedBonus,
-                durationTicks + profile.blockDurationBonus
-            )
-        case let .mitigation(keyword, percent, durationTicks):
+                keyword, buffer + profile.blockGainedBonus)
+        case let .mitigation(keyword, points):
             return .mitigation(
-                keyword,
-                percent + profile.armorGainedBonus,
-                durationTicks + profile.armorDurationBonus
-            )
+                keyword, points + profile.armorGainedBonus)
         case let .leech(keyword, percent, durationTicks):
             return .leech(
                 keyword,

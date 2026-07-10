@@ -23,6 +23,7 @@ struct UltimateCinematicOverlay: View {
     @State private var showVideo = false
     @State private var skipHintVisible = false
     @State private var didFinish = false
+    @ScaledMetric(relativeTo: .largeTitle) private var fallbackStarSize: CGFloat = 64
 
     private var ability: Ability? {
         AbilityCatalog.ability(id: cinematic.abilityID)
@@ -43,7 +44,7 @@ struct UltimateCinematicOverlay: View {
                     isSource: false
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, reduceMotion ? 24 : 0)
+                .padding(.horizontal, reduceMotion ? TrinketDesign.Metrics.extraLargeSpacing : 0)
 
             if canSkip, skipHintVisible, cinematic.phase == .playing {
                 VStack {
@@ -51,9 +52,7 @@ struct UltimateCinematicOverlay: View {
                     Text("Tap to skip")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.white.opacity(0.9))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .trinketGlassChip()
+                        .trinketGlassChip(.emphasis)
                         .padding(.bottom, 36)
                 }
                 .transition(.opacity)
@@ -117,7 +116,7 @@ struct UltimateCinematicOverlay: View {
             ZStack {
                 cinematic.keyword.visualStyle.color.opacity(0.35)
                 Image(systemName: "star.fill")
-                    .font(.system(size: 64, weight: .bold))
+                    .font(.system(size: fallbackStarSize, weight: .bold))
                     .foregroundStyle(.white)
             }
         }

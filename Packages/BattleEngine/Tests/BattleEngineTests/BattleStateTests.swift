@@ -161,7 +161,7 @@ struct BattleStateTests {
         let ability = Ability.judgment
         try #expect(ability.damageKeyword == .holy)
         let hasBlock = ability.effects.contains {
-            if case .shield(.block, _, _) = $0 { return true }
+            if case .shield(.block, _) = $0 { return true }
             return false
         }
         let hasStunDamage = ability.damageComponents.contains { $0.keyword == .stun }
@@ -249,7 +249,7 @@ struct BattleStateTests {
         let source = battle.hero
         let target = battle.enemy
         let outcome = EffectHandlersTestSupport.dispatch(
-            .shield(.block, 5, 3),
+            .shield(.block, 5),
             ability: CombatantFixtures.ability(),
             source: source,
             target: target,

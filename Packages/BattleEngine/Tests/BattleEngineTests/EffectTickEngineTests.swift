@@ -36,7 +36,7 @@ struct EffectTickEngineTests {
     @Test func doTTickPreservesShieldDepletionThroughTickAll() throws {
         let shield = ActiveEffect(
             id: 1,
-            effect: .shield(.block, 5, 5),
+            effect: .shield(.block, 5),
             remainingTicks: 5,
             sourceActorID: "caster"
         )
@@ -52,7 +52,7 @@ struct EffectTickEngineTests {
         context.roster.setActiveEffects(result.updated, for: enemy)
 
         let shields = context.roster.activeEffects(for: enemy).compactMap { activeEffect -> Int? in
-            guard case let .shield(_, buffer, _) = activeEffect.effect else { return nil }
+            guard case let .shield(_, buffer) = activeEffect.effect else { return nil }
             return buffer
         }
         try #expect(shields == [3], "Burn tick should erode the shield buffer before HP damage")

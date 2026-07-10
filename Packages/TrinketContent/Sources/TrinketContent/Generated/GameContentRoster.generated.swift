@@ -32,9 +32,9 @@ enum GameContentRosterGenerated {
             role: .hero,
             maxHealth: 17,
             abilityChoices: AbilityChoices(
-                basics: [.bash, .shieldBash],
-                skills: [.smite, .spikedShield],
-                ultimates: [.avatarOfJustice, .plateMail]
+                basics: [.bash, .block],
+                skills: [.smite, .plateMail],
+                ultimates: [.avatarOfJustice, .sanctifiedPlate]
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 11, intellect: 2, wisdom: 4),
             growthArchetype: .tank
@@ -132,7 +132,7 @@ enum GameContentRosterGenerated {
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block],
                 skills: [.spikedShield, .sunderArmor],
-                ultimates: [.plateMail, .thornMail]
+                ultimates: [.crystalBulwark, .thornMail]
             ),
             primaryStats: PrimaryStats(strength: 9, agility: 3, toughness: 10, intellect: 2, wisdom: 4),
             growthArchetype: .tank

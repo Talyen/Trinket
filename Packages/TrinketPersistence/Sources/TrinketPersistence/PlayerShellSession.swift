@@ -10,6 +10,8 @@ public final class PlayerShellSession {
     public var activeBattleAspectFloor: Int?
     public var activeBattleLabyrinthNodeID: String?
     public var mapScrollStageID: String?
+    /// Last Play mode the player entered (campaign / aspects / labyrinth).
+    public var lastPlayModeRaw: String = PlayerShellSessionPlayMode.campaign.rawValue
     public var activeBattleSavedAt: Date?
     public var activeBattleSchemaVersion: Int?
     public var lastBackgroundedTime: Date?
@@ -25,4 +27,11 @@ public enum PlayerShellSessionTab: String, CaseIterable, Sendable {
     case collection
     case homestead
     case options
+}
+
+/// Peer Play destinations under the Mode Hub.
+public enum PlayerShellSessionPlayMode: String, CaseIterable, Sendable {
+    case campaign
+    case aspects
+    case labyrinth
 }

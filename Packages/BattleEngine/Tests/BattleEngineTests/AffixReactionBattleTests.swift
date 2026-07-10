@@ -118,16 +118,16 @@ struct AffixReactionBattleTests {
             pet: passivePet(maxHealth: 1),
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .shield(.block, 1, 6), remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .shield(.block, 1), remainingTicks: 6)
             ],
-            heroModifiers: CombatModifierProfile(blockBrokenArmorPercent: 0.05, blockBrokenArmorDurationTicks: 2)
+            heroModifiers: CombatModifierProfile(blockBrokenArmorFlat: 1)
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
 
         let armor = battle.activeEffects(of: battle.hero).first { active in
-            if case let .mitigation(keyword, percent, duration) = active.effect {
-                return keyword == .armor && percent == 0.05 && duration == 2
+            if case let .mitigation(keyword, points) = active.effect {
+                return keyword == .armor && points == 1
             }
             return false
         }

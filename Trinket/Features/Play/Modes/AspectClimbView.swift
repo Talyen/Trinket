@@ -7,7 +7,8 @@ import TrinketPersistence
 struct AspectClimbView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var partyPicker: PartyPickerKind?
+    @State private var prepareFloor: AspectFloor?
+    @State private var pendingFloorStart = PendingAspectFloorStart()
     @State private var floorMessage: StageMapMessage?
     @State private var scrollTarget: String?
 
@@ -25,25 +26,9 @@ struct AspectClimbView: View {
         appState.aspects.current
     }
 
-    private var attunement: AspectAttunement {
-        guard let aspect else { return .missingHeroAffinity }
-        return AspectAttunement.evaluate(
-            hero: appState.roster.activeHero,
-            pet: appState.roster.activePet,
-            aspect: aspect
-        )
-    }
-
     private var activeFloorNumber: Int {
         guard let aspect else { return 1 }
         return progress.activeFloor(for: aspectID.rawValue, floorCount: aspect.floorCount)
-    }
-
-    private var showsItemAffinityHint: Bool {
-        guard let aspect else { return false }
-        let heroItems = equippedKeywords(for: appState.roster.activeHero)
-        let petItems = equippedKeywords(for: appState.roster.activePet)
-        return !heroItems.contains(aspect.keyword) && !petItems.contains(aspect.keyword)
     }
 
     var body: some View {
@@ -58,12 +43,17 @@ struct AspectClimbView: View {
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.playJourney)
         .accessibilityIdentifier(AccessibilityID.Play.aspectClimb(aspectID.rawValue))
-        .sheet(item: $partyPicker) { picker in
-            PartyPickerSheet(
-                kind: picker,
-                combatants: combatants(for: picker),
-                onSelect: { combatant in
-                    select(combatant, for: picker)
+        .sheet(item: $prepareFloor, onDismiss: startPendingFloorIfNeeded) { floor in
+            BattlePartySheet(
+                title: floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)",
+                subtitle: GameContent.enemy(matching: floor.enemyID)?.combatant.name,
+                aspect: aspect,
+                accentColor: aspect?.keyword.visualStyle.color,
+                initialHero: appState.roster.activeHero,
+                initialPet: appState.roster.activePet,
+                onStart: {
+                    pendingFloorStart.floor = floor
+                    prepareFloor = nil
                 }
             )
             .presentationDetents([.large])
@@ -88,30 +78,21 @@ struct AspectClimbView: View {
     private func climbContent(_ aspect: AspectDefinition) -> some View {
         let style = aspect.keyword.visualStyle
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                     Label(aspect.epithet, systemImage: style.symbolName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(style.color)
-                    Text(attunement.message)
+                    Text("Attune a Hero and Pet that match this Aspect.")
                         .font(.footnote)
-                        .foregroundStyle(attunement.isReady ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
-                    if showsItemAffinityHint {
-                        Text("Affinity gear helps — not required.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                        .foregroundStyle(.secondary)
+                    Text("Affinity gear helps — not required.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 4)
 
-                ActivePartyPickerRow(
-                    hero: appState.roster.activeHero,
-                    pet: appState.roster.activePet,
-                    onHeroPicker: { partyPicker = .hero },
-                    onPetPicker: { partyPicker = .pet }
-                )
-
-                LazyVStack(spacing: 12) {
+                LazyVStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
                     ForEach(floors) { floor in
                         floorCard(floor, aspect: aspect, style: style)
                             .id(floor.id)
@@ -119,7 +100,7 @@ struct AspectClimbView: View {
                 }
             }
             .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-            .padding(.vertical, 16)
+            .padding(.vertical, TrinketDesign.Metrics.largeSpacing)
             .scrollTargetLayout()
         }
         .scrollPosition(id: $scrollTarget, anchor: .center)
@@ -140,8 +121,9 @@ struct AspectClimbView: View {
             floorCount: aspect.floorCount
         )
         let isActive = startable
+        let isLocked = !startable && !cleared
 
-        VStack(alignment: .leading, spacing: isActive || !cleared ? 12 : 6) {
+        VStack(alignment: .leading, spacing: isActive || !cleared ? TrinketDesign.Metrics.mediumSpacing : 6) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)")
@@ -162,67 +144,42 @@ struct AspectClimbView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
                         .accessibilityLabel("Cleared")
-                } else if !startable {
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Locked")
                 }
             }
 
             if startable {
                 Button {
-                    beginFloor(floor)
+                    prepareFloor = floor
                 } label: {
                     Text("Begin Floor")
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
                 .tint(style.color)
-                .disabled(!attunement.isReady || appState.battle.activeBattle != nil)
+                .disabled(appState.battle.activeBattle != nil)
             }
         }
-        .padding(isActive ? 16 : 14)
+        .padding(isActive ? TrinketDesign.Metrics.largeSpacing : 14)
         .trinketSurface(isActive ? .elevated : (cleared || unlocked ? .elevated : .denseRow))
-        .opacity(startable || cleared ? 1 : 0.7)
+        .trinketLockedCardEffect(
+            isLocked: isLocked,
+            text: isLocked ? "Locked" : nil,
+            cornerRadius: TrinketDesign.Corners.card
+        )
         .accessibilityIdentifier(AccessibilityID.Play.aspectFloor(aspect.id.rawValue, floor: floor.floor))
         .animation(reduceMotion ? nil : .smooth, value: startable)
     }
 
-    private func beginFloor(_ floor: AspectFloor) {
+    private func startPendingFloorIfNeeded() {
+        guard let floor = pendingFloorStart.floor else { return }
+        pendingFloorStart.floor = nil
         if let message = appState.startAspectBattle(for: floor) {
             floorMessage = message
         }
     }
+}
 
-    private func combatants(for picker: PartyPickerKind) -> [Combatant] {
-        switch picker {
-        case .hero:
-            return appState.roster.heroes
-        case .pet:
-            return appState.roster.pets
-        }
-    }
-
-    private func select(_ combatant: Combatant, for picker: PartyPickerKind) {
-        var updatedRoster = appState.roster.current
-        switch picker {
-        case .hero:
-            updatedRoster.setActiveHero(combatant)
-        case .pet:
-            updatedRoster.setActivePet(combatant)
-        }
-        appState.roster.current = updatedRoster
-    }
-
-    private func equippedKeywords(for combatant: Combatant) -> Set<Keyword> {
-        let loadout = appState.roster.equipmentLoadout(for: combatant)
-        var keywords = Set<Keyword>()
-        for slot in combatant.role.equipmentSlots {
-            guard let itemID = loadout.itemID(for: slot),
-                  let item = appState.inventory.item(matching: itemID)
-            else { continue }
-            keywords.formUnion(item.baseType.keywordAffinities)
-        }
-        return keywords
-    }
+@MainActor
+private final class PendingAspectFloorStart {
+    var floor: AspectFloor?
 }

@@ -103,7 +103,7 @@ struct CombatFeedbackEventView: View {
         let style = item.feedbackVisualStyle
         return HStack(spacing: 5) {
             Image(systemName: style.symbolName)
-                .font(.system(size: max(14, recipe.fontSize * 0.55), weight: .bold))
+                .font(.caption.weight(.bold))
                 .modifier(SymbolBounceModifier(
                     enabled: recipe.bouncesSymbol && !reduceMotion,
                     trigger: item.id
@@ -116,7 +116,7 @@ struct CombatFeedbackEventView: View {
 
                 if recipe.showsSecondaryCaption, let secondary = item.secondaryText {
                     Text(secondary)
-                        .font(.system(size: max(11, recipe.fontSize * 0.38), weight: .bold, design: .rounded))
+                        .font(.system(.footnote, design: .rounded).weight(.bold))
                         .opacity(0.92)
                 }
             }

@@ -17,13 +17,10 @@ public struct HalveMitigationHandler: BattleEffectHandler {
         var currentEffects = context.roster.activeEffects(for: target)
         var didHalve = false
         for index in currentEffects.indices {
-            if case let .mitigation(mitigationKeyword, percent, duration) = currentEffects[index].effect,
+            if case let .mitigation(mitigationKeyword, points) = currentEffects[index].effect,
                mitigationKeyword == keyword {
                 currentEffects[index].effect = .mitigation(
-                    mitigationKeyword,
-                    percent / 2,
-                    duration
-                )
+                    mitigationKeyword, points / 2)
                 didHalve = true
             }
         }

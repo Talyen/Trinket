@@ -3,44 +3,33 @@ import TrinketContent
 import TrinketDesignSystem
 import TrinketPersistence
 
-struct ModesView: View {
+/// Peer mode picker for the Play tab — Campaign, Aspects, and Labyrinth are equals.
+struct PlayModeHubView: View {
     @Environment(AppState.self) private var appState
+
+    let onOpenCampaign: () -> Void
+    let onOpenAspects: () -> Void
+    let onOpenLabyrinth: () -> Void
 
     private var modesUnlocked: Bool {
         ModesUnlock.isUnlocked(journey: appState.journey.current)
     }
 
     var body: some View {
-        Group {
-            if modesUnlocked {
-                unlockedList
-            } else {
-                ContentUnavailableView(
-                    "Modes Locked",
-                    systemImage: "lock.fill",
-                    description: Text(ModesUnlock.unlockHint)
-                )
-            }
-        }
-        .navigationTitle("Modes")
-        .navigationBarTitleDisplayMode(.large)
-        .trinketScreenBackground(.denseList)
-        .accessibilityIdentifier(AccessibilityID.Play.modesScreen)
-    }
-
-    private var unlockedList: some View {
         List {
             Section {
-                NavigationLink {
-                    AspectsHubView()
-                } label: {
+                Button(action: onOpenCampaign) {
                     modeRow(
-                        title: "Aspects",
-                        subtitle: aspectsSubtitle,
-                        systemImage: "sparkles"
+                        title: "Campaign",
+                        subtitle: campaignSubtitle,
+                        systemImage: "map.fill"
                     )
                 }
-                .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.Play.campaignModeCard)
+
+                aspectsRow
+                labyrinthRow
 
                 lockedModeRow(
                     title: "Reliquary Gauntlet",
@@ -54,11 +43,46 @@ struct ModesView: View {
                     systemImage: "scope"
                 )
                 .disabled(true)
-
-                labyrinthRow
             } footer: {
-                Text("Other paths. Same battles. Different reasons to fight.")
+                Text("Choose a path. Same battles. Different reasons to fight.")
             }
+        }
+        .navigationTitle("Play")
+        .navigationBarTitleDisplayMode(.large)
+        .trinketScreenBackground(.denseList)
+        .accessibilityIdentifier(AccessibilityID.Play.modesScreen)
+    }
+
+    private var campaignSubtitle: String {
+        let chapter = appState.playChapter
+        if let stageID = appState.journey.current.activeStageID,
+           let stage = GameContent.stage(id: stageID) {
+            return "Chapter \(chapter.number) · \(stage.mapLabel)"
+        }
+        return "Chapter \(chapter.number) · Complete"
+    }
+
+    @ViewBuilder
+    private var aspectsRow: some View {
+        if modesUnlocked {
+            Button(action: onOpenAspects) {
+                modeRow(
+                    title: "Aspects",
+                    subtitle: aspectsSubtitle,
+                    systemImage: "sparkles"
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
+        } else {
+            lockedModeRow(
+                title: "Aspects",
+                subtitle: "Climb by affinity. Attune a Hero and Pet.",
+                systemImage: "sparkles",
+                accessibilityHint: ModesUnlock.unlockHint
+            )
+            .disabled(true)
+            .accessibilityIdentifier(AccessibilityID.Play.aspectsModeCard)
         }
     }
 
@@ -85,9 +109,7 @@ struct ModesView: View {
         let unlocked = appState.isLabyrinthUnlocked
         let depth = appState.labyrinth.deepestDepth
         if unlocked {
-            NavigationLink {
-                LabyrinthMapView()
-            } label: {
+            Button(action: onOpenLabyrinth) {
                 modeRow(
                     title: "The Labyrinth",
                     subtitle: depth > 0
@@ -96,15 +118,17 @@ struct ModesView: View {
                     systemImage: "point.topleft.down.to.point.bottomright.curvepath"
                 )
             }
+            .buttonStyle(.plain)
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
         } else {
             lockedModeRow(
                 title: "The Labyrinth",
-                subtitle: LabyrinthUnlock.unlockHint(
+                subtitle: "An endless descent. Biomes, modifiers, finds.",
+                systemImage: "point.topleft.down.to.point.bottomright.curvepath",
+                accessibilityHint: LabyrinthUnlock.unlockHint(
                     journey: appState.journey.current,
                     aspects: appState.aspects.current
-                ),
-                systemImage: "point.topleft.down.to.point.bottomright.curvepath"
+                )
             )
             .disabled(true)
             .accessibilityIdentifier(AccessibilityID.Play.labyrinthModeCard)
@@ -115,9 +139,9 @@ struct ModesView: View {
         Label {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.body.weight(.semibold))
+                    .trinketTypography(.button)
                 Text(subtitle)
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(.secondary)
             }
         } icon: {
@@ -125,9 +149,18 @@ struct ModesView: View {
         }
     }
 
-    private func lockedModeRow(title: String, subtitle: String, systemImage: String) -> some View {
+    private func lockedModeRow(
+        title: String,
+        subtitle: String,
+        systemImage: String,
+        accessibilityHint: String? = nil
+    ) -> some View {
         modeRow(title: title, subtitle: subtitle, systemImage: systemImage)
-            .foregroundStyle(.secondary)
-            .opacity(0.72)
+            .trinketLockedCardEffect(
+                isLocked: true,
+                text: "Locked",
+                cornerRadius: TrinketDesign.Corners.compact
+            )
+            .accessibilityHint(accessibilityHint ?? subtitle)
     }
 }
