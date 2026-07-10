@@ -55,7 +55,6 @@ Wrapper verification that can run XcodeGen must be sequential: `test.sh` may gen
 
 - Repo graph, persistence, and generation: `Docs/Platform/Architecture.md`
 - Test ownership and definition of done: `Docs/Platform/Testing.md`
-- Battle migration: `Docs/Plans/BattleCardCombatMigration.md`
 - UI HIG/chrome: `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md`
 - Commits, release, and gates: `Scripts/README.md`
 

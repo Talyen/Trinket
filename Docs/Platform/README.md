@@ -12,4 +12,4 @@ Curated Apple platform guidance and Trinket-specific stack audits. Use these whe
 | [IdentityPlan.md](IdentityPlan.md) | Guest-first identity: iCloud = cross-device progress; no login splash / SIWA / Google (stub until F2) |
 | [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Device-led workflow for diagnosing a reported performance, memory, or energy regression |
 
-Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design system / chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid motion: `TrinketMotion` in `Packages/TrinketDesignSystem/`. Active plans: [BattleCardCombatMigration.md](../Plans/BattleCardCombatMigration.md).
+Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design system / chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid motion: `TrinketMotion` in `Packages/TrinketDesignSystem/`. Balance tooling plan: [BattleBalanceSimulator.md](../Plans/BattleBalanceSimulator.md).

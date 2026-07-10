@@ -3,7 +3,7 @@
 Headless, non-user-facing battle simulator that runs bulk matchups through `BattleEngine` and surfaces win-rate / power anomalies across Heroes, Pets, Enemies, Abilities, and Item Affixes at Early / Mid / Late scopes.
 
 **Status:** Implemented — identity sweeps, parallel jobs, paired ability/affix contrasts; CLI ready where Swift/Xcode is available  
-**Related:** Scaffolding in `SimulationTierProfile.swift` / `SimulationResults.swift`; prior tooling removed in `BattleCardCombatMigration.md` Phase 1
+**Related:** Scaffolding in `SimulationTierProfile.swift` / `SimulationResults.swift`
 
 ---
 
