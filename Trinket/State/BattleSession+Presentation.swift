@@ -26,7 +26,7 @@ extension BattleSession {
         presentationHoldCount = max(0, presentationHoldCount - 1)
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
-        recordFeedbackEvents(deferred, at: date, stagger: CombatFeedbackTiming.ultimateChipStagger)
+        recordFeedbackEvents(deferred, at: date, stagger: TrinketMotion.Battle.ultimateChipStagger)
         scheduleAutoEndIfNeeded()
     }
 

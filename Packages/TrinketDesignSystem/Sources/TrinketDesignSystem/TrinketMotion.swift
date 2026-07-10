@@ -62,11 +62,11 @@ public enum TrinketMotion: Sendable {
         }
 
         public static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackMotionRecipe {
-            CombatFeedbackRecipes.chip(for: feedbackClass)
+            CombatFeedbackChipRecipes.chip(for: feedbackClass)
         }
 
         public static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {
-            CombatFeedbackRecipes.cardReaction(for: kind)
+            CombatFeedbackCardRecipes.cardReaction(for: kind)
         }
     }
 

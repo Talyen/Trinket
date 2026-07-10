@@ -32,17 +32,17 @@ struct CombatFeedbackEventView: View {
                 .offset(y: stackY)
                 .task(id: item.id) {
                     let clock = SuspendingClock()
-                    withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeIn)) {
+                    withAnimation(.easeOut(duration: TrinketMotion.Battle.reduceMotionChipFadeIn)) {
                         rmOpacity = 1.0
                     }
                     let hold = max(
                         0.05,
                         item.lifetime
-                            - CombatFeedbackTiming.reduceMotionFadeIn
-                            - CombatFeedbackTiming.reduceMotionFadeOut
+                            - TrinketMotion.Battle.reduceMotionChipFadeIn
+                            - TrinketMotion.Battle.reduceMotionChipFadeOut
                     )
                     try? await clock.sleep(for: .seconds(hold), tolerance: .milliseconds(25))
-                    withAnimation(.easeOut(duration: CombatFeedbackTiming.reduceMotionFadeOut)) {
+                    withAnimation(.easeOut(duration: TrinketMotion.Battle.reduceMotionChipFadeOut)) {
                         rmOpacity = 0.0
                     }
                 }
