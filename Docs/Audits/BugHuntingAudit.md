@@ -44,10 +44,10 @@ Do **not** re-run sibling audits’ full suites — only chase hits from these p
 ### 1. Retain cycle & lifetime
 
 ```bash
-rg -n '\.on\w+\s*=\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
-rg -n 'Task\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
-rg -n 'Timer\b|CADisplayLink|ContinuousClock|SuspendingClock|Task\.sleep' --type swift -g '!*Tests*' -g '!*UITests*'
-rg -n '(var|let)\s+\w+Delegate\??\s*:\s*\w+' --type swift -g '!*Tests*' -g '!*UITests*'
+rg -n '\.on\w+\s*=\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
+rg -n 'Task\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
+rg -n 'Timer\b|CADisplayLink|ContinuousClock|SuspendingClock|Task\.sleep' --type swift -g '!*Tests*' -g '!*UITests*' .
+rg -n '(var|let)\s+\w+Delegate\??\s*:\s*\w+' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
 
 Check: stored closures release with owner; Tasks cancelled; delegates `weak`.
@@ -55,11 +55,11 @@ Check: stored closures release with owner; Tasks cancelled; delegates `weak`.
 ### 2. API misuse & silent failure
 
 ```bash
-rg -n 'try\?\s+' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' \
+rg -n 'try\?\s+' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' . \
   | rg -v '(Task\.sleep|decode|encode|audioSession|setActive|setCategory|from:)'
-rg -n '(didSet|willSet)\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' -B1 -A5
-rg -n 'NotificationCenter|addObserver|\.publisher\(for:' --type swift -g '!*Tests*' -g '!*UITests*'
-rg -n '\.task\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -A8
+rg -n '(didSet|willSet)\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' -B1 -A5 .
+rg -n 'NotificationCenter|addObserver|\.publisher\(for:' --type swift -g '!*Tests*' -g '!*UITests*' .
+rg -n '\.task\s*\{' --type swift -g '!*Tests*' -g '!*UITests*' -A8 .
 ```
 
 Suspect silent `try?` on save / battle outcome / state transitions. `.task` subtasks must not outlive cancellation.
@@ -67,9 +67,9 @@ Suspect silent `try?` on save / battle outcome / state transitions. `.task` subt
 ### 3. Edge cases / bounds
 
 ```bash
-rg -n '\[(\w+)\s*\+\s*1\]|\[(\w+)\s*-\s*1\]' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
-rg -n '\.first!' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
-rg -n 'grant|reward|completeStage|claim' --type swift -g '!*Tests*' -g '!*UITests*' -B2 -A2
+rg -n '\[(\w+)\s*\+\s*1\]|\[(\w+)\s*-\s*1\]' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
+rg -n '\.first!' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
+rg -n 'grant|reward|completeStage|claim' --type swift -g '!*Tests*' -g '!*UITests*' -B2 -A2 .
 ```
 
 ### 4. Regression coverage

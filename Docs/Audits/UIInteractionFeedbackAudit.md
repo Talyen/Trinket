@@ -26,10 +26,10 @@ UI **test** speed/tier issues → [E2ETestQualityAudit.md](E2ETestQualityAudit.m
 ## Probes
 
 ```bash
-rg -n 'sheet|popover|fullScreenCover|alert|confirmationDialog|menu|contextMenu' --type swift -g '!*Tests*'
-rg -n 'onTapGesture|onLongPressGesture|DragGesture|magnificationGesture' --type swift -g '!*Tests*'
-rg -n '\.accessibilityIdentifier' --type swift
-rg -n 'AccessibilityReduceMotion|accessibilityLabel|scrollDismissesKeyboard' --type swift -g '!*Tests*' | head -40
+rg -n 'sheet|popover|fullScreenCover|alert|confirmationDialog|menu|contextMenu' --type swift -g '!*Tests*' .
+rg -n 'onTapGesture|onLongPressGesture|DragGesture|magnificationGesture' --type swift -g '!*Tests*' .
+rg -n '\.accessibilityIdentifier' --type swift .
+rg -n 'AccessibilityReduceMotion|accessibilityLabel|scrollDismissesKeyboard' --type swift -g '!*Tests*' . | head -40
 ```
 
 Inventory dumps are for triage, not mandatory file-by-file review. Prioritize a confirmed missing dismiss, stuck state, inaccessible control, or gesture conflict.

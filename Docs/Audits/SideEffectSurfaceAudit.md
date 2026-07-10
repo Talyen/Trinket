@@ -44,16 +44,16 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|System
 # Flag unseeded .random(), UUID(), Date() in BattleEngine rule paths
 
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
-rg -n 'UserDefaults' --type swift -g '!*Tests*'
+rg -n 'UserDefaults' --type swift -g '!*Tests*' .
 
 # File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/, TrinketTestSupport temp dirs
-rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*'
+rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*' .
 
 # AV types — triage audio vs video (do not expect a flat zero)
-rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*'
+rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*' .
 
 # CloudKit symbols — expect TrinketPersistence (or none if SwiftData-only wiring)
-rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
+rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*' .
 ```
 
 **AV triage:** `AVAudioPlayer` / engine / music-player types belong only in `Trinket/Audio/`. `AVPlayer` / `AVPlayerLayer` hits in the Ultimate cinematic path are allowlisted when they go through `UltimateCinematicCatalog` — accept those; do not invent a video package solely to clear the probe.
