@@ -31,7 +31,7 @@ Implementation plan to close the remaining Apple-native gaps identified in the J
 |------|-------------------------------|
 | Local SwiftData saves, in-memory tests, `-disable-cloud-sync` | **No** |
 | Privacy manifest, Options/`AppStorage` migration, haptics, Dynamic Type, iOS 26 chrome APIs | **No** |
-| Filling `Trinket.entitlements` with iCloud/CloudKit keys that match a real container | **Yes** — container ID is created in the Apple Developer portal |
+| Filling `Trinket/Trinket.entitlements` with iCloud/CloudKit keys that match a real container | **Yes** — container ID is created in the Apple Developer portal |
 | Device/Simulator sync against a real `iCloud.com…` container | **Yes** |
 | TestFlight / App Store with iCloud sync | **Yes** |
 
@@ -99,7 +99,7 @@ Hold **F2** until Apple Developer Program enrollment. Do not re-open A–E/G unl
 - Remove duplicated `defaults.set` / `defaults.object` in `didSet` once `AppStorage` owns persistence.
 - Keep `AppState+Bootstrap.clearResetStateDefaults` clearing the same keys (reset must still wipe options when product requires it — today reset copy says settings are kept; preserve that product rule).
 
-**Do not migrate into SwiftData/CloudKit** unless product later requires synced settings across devices ([Architecture.md](../Architecture.md) intentionally keeps options local).
+**Do not migrate into SwiftData/CloudKit** unless product later requires synced settings across devices ([Architecture.md](Architecture.md) intentionally keeps options local).
 
 **Tests:**
 
@@ -205,7 +205,7 @@ Manual: Accessibility → Larger Accessibility Sizes; icons grow without clippin
 **Do now (no account):**
 
 1. Keep runtime default: CloudKit **off** unless `-enable-cloud-sync` (already true on Simulator in `AppEnvironment`).
-2. Document in `Trinket.entitlements` / `project.yml` a **commented or docs-only** target entitlement shape — do **not** commit invalid entitlement keys that break signing for local/team builds. Prefer a short section in this plan + checklist over a broken empty-vs-fake entitlements file.
+2. Document in `Trinket/Trinket.entitlements` / `project.yml` a **commented or docs-only** target entitlement shape — do **not** commit invalid entitlement keys that break signing for local/team builds. Prefer a short section in this plan + checklist over a broken empty-vs-fake entitlements file.
 3. Confirm SwiftData models remain CloudKit-compatible (optional relationships, defaults, no `@Attribute(.unique)`) — already required by [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md).
 4. Add/adjust unit tests that always use `disableCloudSync: true` / in-memory containers (already the norm).
 5. Soften user-facing copy that asserts iCloud deletion if sync is not actually provisioned (Options reset alert currently mentions iCloud). Gate copy on “cloud sync configured” or say “on this device” until F2.
@@ -246,7 +246,7 @@ Update after code lands:
 | [iOS26StackAudit.md](iOS26StackAudit.md) | Mark A–E/G complete; remove toolbar Phase 4 gap; point here for remaining F2 |
 | [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md) | Already drops Phase 4; status = complete |
 | [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md) | Link this plan; note haptics + AppStorage patterns |
-| [Architecture.md](../Architecture.md) | Options/`AppStorage`; CloudKit gated on Developer Program |
+| [Architecture.md](Architecture.md) | Options/`AppStorage`; CloudKit gated on Developer Program |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Split “prep without account” vs “portal required” |
 | [Platform README](README.md) | Link this plan |
 
@@ -296,6 +296,6 @@ Update after code lands:
 - [LiquidGlassMigrationPlan.md](LiquidGlassMigrationPlan.md)
 - [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md)
 - [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md)
-- [AgentMotion.md](../AgentMotion.md)
+- [Apple Design skill](../Skills/apple-design/SKILL.md) — fluid motion via SwiftUI / `TrinketMotion`
 - WWDC25-323 — background extension, scroll edge (tab minimize deliberately omitted)
 - [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) — glass on controls; toolbar overrides intentionally retained for art screens

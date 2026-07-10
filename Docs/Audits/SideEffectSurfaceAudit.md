@@ -20,11 +20,11 @@ Run the probes, confirm unexpected effect ownership, and fix a bounded set of hi
 
 | Effect | Allowed locations |
 |--------|-------------------|
-| Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling) |
+| Disk / encoder I/O | `Packages/TrinketPersistence/` |
 | `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
-| Seeded RNG | `Double.random(using: &…)`, `BattleBalanceTools/`, `BalanceSweepCLI/` |
+| Seeded RNG | `Double.random(using: &…)` in battle/tests; injected RNG seams only |
 | CloudKit / SwiftData sync | `TrinketPersistence` / `ModelConfiguration` wiring |
 
 ## Probes
@@ -43,7 +43,7 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|System
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
 rg -n 'UserDefaults' --type swift -g '!*Tests*'
 
-# File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/
+# File I/O — allowlist: TrinketPersistence/
 rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*'
 
 # AV types outside Trinket/Audio/ — expect 0 (app uses AVAudioPlayer in Audio/)

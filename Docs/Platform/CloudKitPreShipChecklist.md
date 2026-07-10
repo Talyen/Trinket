@@ -8,7 +8,7 @@ Do not check boxes into git as durable state — leave items unchecked in the co
 
 **Apple Developer Program:** A paid membership is required to create the CloudKit container, fill production entitlements, and verify multi-device sync. Local SwiftData, privacy-manifest prep, and `-disable-cloud-sync` testing do **not** require an account — see [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phases F1 vs F2.
 
-**Current ship posture (F1 done, F2 blocked):** Progress is **local-only**. Simulator and tests keep CloudKit off unless `-enable-cloud-sync` is passed. `Trinket.entitlements` stays empty until portal provisioning. Options reset copy refers to this device only. Re-enable iCloud user copy and `UIBackgroundModes: remote-notification` only when F2 lands.
+**Current ship posture (F1 done, F2 blocked):** Progress is **local-only**. Simulator and tests keep CloudKit off unless `-enable-cloud-sync` is passed. `Trinket/Trinket.entitlements` stays empty until portal provisioning. Options reset copy refers to this device only. Re-enable iCloud user copy and `UIBackgroundModes: remote-notification` only when F2 lands.
 
 **Identity:** Cross-device progress uses this CloudKit private container — not Sign in with Apple / Google. Guest-first, no login UI. See [IdentityPlan.md](IdentityPlan.md).
 
@@ -36,7 +36,7 @@ Confirm in source / CI config (expected true after best-practices F1):
 
 - [ ] Enrolled in the **Apple Developer Program**
 - [ ] App ID `com.ryanmcintire.Trinket` has **iCloud** capability enabled
-- [ ] CloudKit container **`iCloud.com.ryanmcintire.Trinket`** exists and matches `Trinket.entitlements`
+- [ ] CloudKit container **`iCloud.com.ryanmcintire.Trinket`** exists and matches `Trinket/Trinket.entitlements`
 - [ ] Entitlements include `com.apple.developer.icloud-services = CloudKit` and `com.apple.developer.icloud-container-identifiers = iCloud.com.ryanmcintire.Trinket`
 - [ ] SwiftData CloudKit schema validates in Development for the full player object graph (`PlayerSaveRoot`, journey, roster, inventory, homestead, aspects, labyrinth children)
 - [ ] Schema review: CloudKit-compatible SwiftData constraints (optional relationships, defaults/optionals on scalars, no `@Attribute(.unique)`)

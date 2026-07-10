@@ -161,7 +161,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type
 
 ## Tech stack
 
-Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([README](Platform/README.md)).
+Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([README](README.md)).
 
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
@@ -174,7 +174,7 @@ Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([REA
 
 ## Migration status
 
-Swift package extraction (phases 0–6) is **complete**. Boundary tightening and content-pipeline expansion are in progress:
+Swift package extraction (phases 0–6) is **complete**. Boundary tightening and content-pipeline expansion landed with it:
 
 - ✅ Explicit package imports in the app (no blanket re-exports)
 - ✅ Manifest-driven item bases and encounter art

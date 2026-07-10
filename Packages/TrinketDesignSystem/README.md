@@ -46,4 +46,4 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
 
-Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/AgentMotion.md`. Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays (`VisualFoundation.swift` surface roles above).
+Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/Skills/apple-design/SKILL.md` (`TrinketMotion`). Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays (`VisualFoundation.swift` surface roles above).

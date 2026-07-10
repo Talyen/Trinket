@@ -32,7 +32,7 @@ rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this po
 rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
 ```
 
-Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Testing, AgentMotion, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
+Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (**Platform**, AgentContext, Audits, Skills, Plans, Product), package READMEs, manifest READMEs, `Scripts/README.md`.
 
 ## Workflow
 
