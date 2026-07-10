@@ -54,16 +54,17 @@ struct CombatantDetailPane: View {
             // alone won't dismiss — mirror ItemDetailView with an explicit Done.
             showsDoneButton: !hidesNavigationBar,
             hidesNavigationBar: hidesNavigationBar,
-            onDone: { dismiss() }
-        ) { baseHeight, overscroll in
-            CombatantHeroHeader(
-                combatant: combatant,
-                progression: progression,
-                baseHeight: baseHeight,
-                overscroll: overscroll
-            )
-            .accessibilityIdentifier("\(combatant.name) detail hero header")
-        } bodyContent: {
+            onDone: { dismiss() },
+            header: { baseHeight, overscroll in
+                CombatantHeroHeader(
+                    combatant: combatant,
+                    progression: progression,
+                    baseHeight: baseHeight,
+                    overscroll: overscroll
+                )
+                .accessibilityIdentifier("\(combatant.name) detail hero header")
+            },
+            bodyContent: {
             DetailSection("Stats", sectionID: AccessibilityID.CombatantDetail.statsSection) {
                 statRow(
                     "Health",
@@ -128,7 +129,8 @@ struct CombatantDetailPane: View {
                 )
                 .padding(.vertical, 4)
             }
-        }
+            }
+        )
         // Sub-picker navigation — declared here so they land at the root of whichever
         // NavigationStack contains this pane (typically the Collection detail sheet).
         // This keeps all presentation at the stack root.
