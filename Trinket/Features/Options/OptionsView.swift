@@ -1,6 +1,5 @@
 import SwiftUI
 import TrinketDesignSystem
-import TrinketPersistence
 
 struct OptionsView: View {
     @Environment(AppState.self) private var appState

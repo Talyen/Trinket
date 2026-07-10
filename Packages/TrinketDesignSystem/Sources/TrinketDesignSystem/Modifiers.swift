@@ -1,24 +1,24 @@
 import SwiftUI
 
-public struct CardSurfaceModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct CardSurfaceModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .trinketSurface(.card)
             .clipShape(TrinketDesign.cardShape)
     }
 }
 
-public struct LockedCardEffectModifier: ViewModifier {
-    public let isLocked: Bool
-    public let text: String?
-    public let cornerRadius: CGFloat
+struct LockedCardEffectModifier: ViewModifier {
+    let isLocked: Bool
+    let text: String?
+    let cornerRadius: CGFloat
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private static let lockedBlurRadius: CGFloat = 1
     private static let lockedSaturation: Double = 0.35
 
-    public init(
+    init(
         isLocked: Bool,
         text: String? = nil,
         cornerRadius: CGFloat = TrinketDesign.Corners.card
@@ -32,7 +32,7 @@ public struct LockedCardEffectModifier: ViewModifier {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         if isLocked {
             content
                 .saturation(Self.lockedSaturation)
@@ -62,13 +62,13 @@ public struct LockedCardEffectModifier: ViewModifier {
     }
 }
 
-public struct CardLabelSpaceModifier: ViewModifier {
-    public let isReserved: Bool
+struct CardLabelSpaceModifier: ViewModifier {
+    let isReserved: Bool
 
     @ScaledMetric(relativeTo: .subheadline)
     private var reservedHeight: CGFloat = TrinketDesign.Metrics.cardLabelReservedHeight
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         if isReserved {
             content
                 .frame(minHeight: reservedHeight, alignment: .center)
@@ -78,8 +78,8 @@ public struct CardLabelSpaceModifier: ViewModifier {
     }
 }
 
-public struct PrimaryActionButtonModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct PrimaryActionButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .buttonStyle(.glassProminent)
             .controlSize(.large)

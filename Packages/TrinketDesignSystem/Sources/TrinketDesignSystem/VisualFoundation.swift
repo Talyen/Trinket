@@ -79,26 +79,26 @@ public enum TypographyRole: Sendable {
     }
 }
 
-public struct TrinketScreenBackground: View {
+struct TrinketScreenBackground: View {
     private let mode: BackgroundMode
     private let elementTint: Color?
 
-    public init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
+    init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
         self.mode = mode
         self.elementTint = elementTint
     }
 
-    public var body: some View {
+    var body: some View {
         Color(.systemBackground)
             .ignoresSafeArea()
     }
 }
 
-public struct ScreenBackgroundModifier: ViewModifier {
+struct ScreenBackgroundModifier: ViewModifier {
     let mode: BackgroundMode
     let elementTint: Color?
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .background {
                 TrinketScreenBackground(mode: mode, elementTint: elementTint)
@@ -106,11 +106,11 @@ public struct ScreenBackgroundModifier: ViewModifier {
     }
 }
 
-public struct SurfaceModifier: ViewModifier {
+struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         let style = SurfaceStyle(role: role, palette: ThemePalette.apple)
 
         content
@@ -222,13 +222,13 @@ private struct SurfaceStyle {
     }
 }
 
-public struct MaterialRoleModifier: ViewModifier {
+struct MaterialRoleModifier: ViewModifier {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     let role: MaterialRole
     let shape: RoundedRectangle
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         switch MaterialRoleStyle(role: role) {
         case .none:
             content
@@ -308,22 +308,22 @@ struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     }
 }
 
-public struct TypographyModifier: ViewModifier {
+struct TypographyModifier: ViewModifier {
     let role: TypographyRole
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content.font(role.font)
     }
 }
 
-public struct GlassChipModifier: ViewModifier {
+struct GlassChipModifier: ViewModifier {
     let role: ChipChromeRole
 
-    public init(role: ChipChromeRole = .standard) {
+    init(role: ChipChromeRole = .standard) {
         self.role = role
     }
 
-    public func body(content: Content) -> some View {
+    func body(content: Content) -> some View {
         content
             .padding(.horizontal, role.horizontalPadding)
             .padding(.vertical, role.verticalPadding)
@@ -362,10 +362,8 @@ extension ChipChromeRole {
 }
 
 /// Dark outline + soft bloom so floating combat numbers stay readable on busy art.
-public struct CombatFloatTextModifier: ViewModifier {
-    public init() {}
-
-    public func body(content: Content) -> some View {
+struct CombatFloatTextModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .shadow(color: .black.opacity(0.95), radius: 0, x: 0, y: 1)
             .shadow(color: .black.opacity(0.9), radius: 0, x: 0, y: -1)
@@ -375,8 +373,8 @@ public struct CombatFloatTextModifier: ViewModifier {
     }
 }
 
-public struct StatusBadgeModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct StatusBadgeModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .padding(.horizontal, TrinketDesign.Metrics.chipCompactPaddingHorizontal)
             .padding(.vertical, TrinketDesign.Metrics.chipCompactPaddingVertical)
@@ -388,8 +386,8 @@ public struct StatusBadgeModifier: ViewModifier {
     }
 }
 
-public struct WalletPillModifier: ViewModifier {
-    public func body(content: Content) -> some View {
+struct WalletPillModifier: ViewModifier {
+    func body(content: Content) -> some View {
         content
             .padding(.horizontal, TrinketDesign.Metrics.chipPaddingHorizontal)
             .padding(.vertical, TrinketDesign.Metrics.chipPaddingVertical)
