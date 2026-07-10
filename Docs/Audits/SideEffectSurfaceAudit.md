@@ -20,12 +20,15 @@ Run the probes, confirm unexpected effect ownership, and fix a bounded set of hi
 
 | Effect | Allowed locations |
 |--------|-------------------|
-| Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling) |
+| Disk / encoder I/O | `Packages/TrinketPersistence/`, `BalanceSweepCLI/` (tooling), `Packages/TrinketTestSupport/` temp-dir harnesses |
 | `UserDefaults` | Options store + ephemeral shell session keys (tab/battle) — not `PlayerSave` |
 | Audio (`AVAudioPlayer`, etc.) | `Trinket/Audio/` only |
+| Ultimate cinematic video (`AVPlayer` / `AVPlayerLayer`) | `Trinket/BattleShell/` player cache + battle cinematic overlay host; resolve URLs via `UltimateCinematicCatalog` — do not treat as an audio-seam leak or move into `Trinket/Audio/` |
 | Unseeded / wall-clock randomness | Outside `BattleEngine` rule code; battle uses injected RNG |
 | Seeded RNG | `Double.random(using: &…)`, `BattleBalanceTools/`, `BalanceSweepCLI/` |
 | CloudKit / SwiftData sync | `TrinketPersistence` / `ModelConfiguration` wiring |
+| Session / presentation identity (`UUID()`) | Ephemeral `Identifiable` tokens outside `BattleEngine` rule code (battle config, map/rest/craft/shop sessions) — not battle entropy |
+| Persistence timestamps (`Date()`) | `TrinketPersistence` `modifiedAt` / equivalent save metadata |
 
 ## Probes
 
@@ -43,15 +46,19 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|System
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
 rg -n 'UserDefaults' --type swift -g '!*Tests*'
 
-# File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/
+# File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/, TrinketTestSupport temp dirs
 rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*'
 
-# AV types outside Trinket/Audio/ — expect 0 (app uses AVAudioPlayer in Audio/)
+# AV types — triage audio vs video (do not expect a flat zero)
 rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*'
 
 # CloudKit symbols — expect TrinketPersistence (or none if SwiftData-only wiring)
 rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 ```
+
+**AV triage:** `AVAudioPlayer` / engine / music-player types belong only in `Trinket/Audio/`. `AVPlayer` / `AVPlayerLayer` hits in the Ultimate cinematic path are allowlisted when they go through `UltimateCinematicCatalog` — accept those; do not invent a video package solely to clear the probe.
+
+**File I/O triage:** Accept `FileManager` in `Packages/TrinketTestSupport/` when it only creates/removes temporary harness directories.
 
 **CloudKit note:** OS-managed SwiftData CloudKit may not import `CloudKit` directly. Absence of `CKRecord` is not a failure if sync is configured via `ModelConfiguration` / container ID in persistence.
 
@@ -66,13 +73,14 @@ rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 ### Persistence boundaries
 
 - Disk/CloudKit writes route through `PlayerSaveStore` / `TrinketPersistence`
-- Domain stores mutate memory then delegate — no direct `FileManager` / encoder outside persistence
+- Domain stores mutate memory then delegate — no direct `FileManager` / encoder outside persistence (test-support temp dirs excepted)
 - `UserDefaults` only for options + ephemeral shell session keys (tab/battle) — not `PlayerSave`
 
 ### Audio
 
-- Sole seam: `Trinket/Audio/`
+- Sole **audio** seam: `Trinket/Audio/`
 - Feature views use catalog types from `TrinketContent`, not raw URLs
+- Ultimate cinematic **video** may use `AVPlayer` outside `Trinket/Audio/` when catalog-backed (see allowlist)
 
 ### UI / orchestration
 
