@@ -294,6 +294,7 @@ extension BattleSession {
 
     func clearRunState() {
         cancelPendingAutoEnd()
+        onTurnAutoEnded = nil
         autoEndJourney = nil
         autoEndHomestead = nil
         state = nil

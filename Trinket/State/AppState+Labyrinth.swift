@@ -97,8 +97,8 @@ extension AppState {
 
     func finishActiveLabyrinthRest() {
         guard let session = activeLabyrinthRest else { return }
+        guard completeLabyrinthNode(nodeID: session.nodeID) else { return }
         activeLabyrinthRest = nil
-        completeLabyrinthNode(nodeID: session.nodeID)
     }
 
     func dismissActiveLabyrinthRestWithoutCompleting() {
@@ -136,8 +136,8 @@ extension AppState {
 
     func leaveActiveLabyrinthCraftWithoutForging() {
         guard let session = activeLabyrinthCraft else { return }
+        guard completeLabyrinthNode(nodeID: session.nodeID) else { return }
         activeLabyrinthCraft = nil
-        completeLabyrinthNode(nodeID: session.nodeID)
     }
 
     func dismissActiveLabyrinthCraftWithoutCompleting() {
