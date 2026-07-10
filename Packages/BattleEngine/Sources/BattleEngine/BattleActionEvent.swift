@@ -22,6 +22,7 @@ public struct ActionEvent: Identifiable, Equatable {
     public enum EffectKind: Equatable {
         case instantHeal
         case resourceGain
+        case cardsDrawn
         case leechHeal
         case shieldApplied
         case mitigationApplied

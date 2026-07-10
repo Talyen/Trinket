@@ -20,9 +20,12 @@ public enum AbilityCatalogSkill {
     )
     public static let bloodOffering = Ability(
         id: "blood-offering", name: "Blood Offering", tier: .skill,
-        damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
-        targetedEffects: [],
-        hasLeech: true
+        description: "Lose 2 Health. Deal 4 Bleed damage.",
+        damageComponents: [
+            DamageComponent(2, keyword: .physical, target: .actor),
+            DamageComponent(4, keyword: .bleed)
+        ],
+        targetedEffects: [TargetedEffect(.bleed(4))]
     )
     public static let briarShield = Ability(
         id: "briar-shield", name: "Briar Shield", tier: .skill,
@@ -68,21 +71,9 @@ public enum AbilityCatalogSkill {
     )
     public static let darkPact = Ability(
         id: "dark-pact", name: "Dark Pact", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.cleanse(.poison))
-        ],
-        manaCost: 2,
-        hasLeech: true
-    )
-    public static let gravePact = Ability(
-        id: "grave-pact", name: "Grave Pact", tier: .skill,
-        targetedEffects: [
-            TargetedEffect(.instantHeal(.health, 3)),
-            TargetedEffect(.purge(nil), target: .enemy)
-        ],
-        manaCost: 2,
-        hasLeech: true
+        description: "Lose 2 Health. Draw 2 cards.",
+        damageComponents: [DamageComponent(2, keyword: .physical, target: .actor)],
+        targetedEffects: [TargetedEffect(.drawCards(2))]
     )
     public static let graspingVines = Ability(
         id: "grasping-vines", name: "Grasping Vines", tier: .skill,
@@ -189,7 +180,6 @@ public enum AbilityCatalogSkill {
         cleanse,
         coldSnap,
         darkPact,
-        gravePact,
         graspingVines,
         heal,
         manaPotion,

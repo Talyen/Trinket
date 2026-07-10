@@ -71,6 +71,21 @@ struct BattleCardCombatTests {
         try #expect(battle.heroDeck.abilities.last?.id == abilityID)
     }
 
+    @Test func darkPactDrawsTwoCardsForOwner() throws {
+        var battle = makeBattle(
+            heroAbilities: [.darkPact, .slash, .heal, .smite],
+            petAbilities: [.bash, .fangs, .bloodthorn],
+            enemyMaxHealth: 500
+        )
+        let handBefore = battle.hand.count
+        let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
+
+        // Dark Pact costs 1 hand card to play, then draws 2 → net +1.
+        try #expect(battle.hand.count == handBefore + 1)
+        try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
+        try #expect(battle.health(of: battle.hero) == 48)
+    }
+
     @Test func handSoftCapSkipsDrawAtEight() throws {
         // Loadouts only hold 3 abilities, so seed the hand to the soft cap directly.
         var battle = makeBattle(

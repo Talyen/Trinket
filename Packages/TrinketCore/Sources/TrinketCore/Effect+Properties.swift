@@ -13,6 +13,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case instantHeal
     case leech
     case resourceGain
+    case drawCards
     case cleanse
     case cleanseRandom
     case purge
@@ -41,6 +42,7 @@ public extension Effect {
         case .instantHeal: return .instantHeal
         case .leech: return .leech
         case .resourceGain: return .resourceGain
+        case .drawCards: return .drawCards
         case .cleanse: return .cleanse
         case .cleanseRandom: return .cleanseRandom
         case .purge: return .purge
@@ -63,7 +65,7 @@ public extension Effect {
         case .burn, .poison, .bleed, .controlMeter, .marked:
             return true
         case .shield, .mitigation, .leech, .cleanse, .purge,
-             .instantHeal, .resourceGain, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
+             .instantHeal, .resourceGain, .drawCards, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
              .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return false
         }
@@ -90,7 +92,7 @@ public extension Effect {
              .shield, .mitigation, .leech, .deathsDoor,
              .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return true
-        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
             return false
         }
@@ -100,7 +102,7 @@ public extension Effect {
     /// on the combatant.
     var isInstant: Bool {
         switch self {
-        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
             return true
         default:

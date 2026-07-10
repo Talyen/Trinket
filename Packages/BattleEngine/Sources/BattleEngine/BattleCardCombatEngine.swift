@@ -120,6 +120,25 @@ public enum BattleCardCombatEngine {
 
     // MARK: - Private
 
+    /// Draws up to `count` cards for `owner` from their deck into the hand.
+    /// Returns how many cards were actually drawn (soft-cap / empty deck may reduce this).
+    @discardableResult
+    public static func drawCards(
+        count: Int,
+        for owner: BattleParticipant,
+        context: inout BattleEngineContext
+    ) -> Int {
+        var drawn = 0
+        for _ in 0 ..< count {
+            if drawOne(owner: owner, context: &context) {
+                drawn += 1
+            } else {
+                break
+            }
+        }
+        return drawn
+    }
+
     private static func resolveEnemyTurn(
         matchup: BattleMatchup,
         context: inout BattleEngineContext
@@ -156,17 +175,14 @@ public enum BattleCardCombatEngine {
     }
 
     private static func drawCards(heroCount: Int, petCount: Int, context: inout BattleEngineContext) {
-        for _ in 0 ..< heroCount {
-            drawOne(owner: .hero, context: &context)
-        }
-        for _ in 0 ..< petCount {
-            drawOne(owner: .pet, context: &context)
-        }
+        _ = drawCards(count: heroCount, for: .hero, context: &context)
+        _ = drawCards(count: petCount, for: .pet, context: &context)
     }
 
-    private static func drawOne(owner: BattleParticipant, context: inout BattleEngineContext) {
-        guard context.roster[owner].isAlive else { return }
-        guard !context.hand.isAtSoftCap else { return }
+    @discardableResult
+    private static func drawOne(owner: BattleParticipant, context: inout BattleEngineContext) -> Bool {
+        guard context.roster[owner].isAlive else { return false }
+        guard !context.hand.isAtSoftCap else { return false }
 
         let ability: Ability?
         switch owner {
@@ -177,10 +193,11 @@ public enum BattleCardCombatEngine {
         case .enemy:
             ability = nil
         }
-        guard let ability else { return }
+        guard let ability else { return false }
 
         context.nextCardID += 1
         context.hand.append(BattleCard(id: context.nextCardID, ability: ability, owner: owner))
+        return true
     }
 
     private static func putAbilityOnBottom(

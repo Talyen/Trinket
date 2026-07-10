@@ -16,6 +16,7 @@ public enum EffectHandlers {
         .instantHeal: InstantHealHandler(),
         .leech: LeechHandler(),
         .resourceGain: ResourceGainHandler(),
+        .drawCards: DrawCardsHandler(),
         .cleanse: CleanseHandler(),
         .cleanseRandom: CleanseRandomHandler(),
         .purge: PurgeHandler(),

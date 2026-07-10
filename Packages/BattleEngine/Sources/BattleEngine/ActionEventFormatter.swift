@@ -76,6 +76,8 @@ public enum ActionEventFormatter {
             return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .resourceGain:
             return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
+        case .cardsDrawn:
+            return cardsDrawnDisplay(for: event)
         case .leechHeal:
             return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .shieldApplied:
@@ -120,6 +122,16 @@ public enum ActionEventFormatter {
             emphasis: .deathsDoor,
             keyword: .deathsDoor,
             text: Keyword.deathsDoor.rawValue,
+            secondaryText: nil
+        )
+    }
+
+    private static func cardsDrawnDisplay(for event: ActionEvent) -> ActionEventDisplay {
+        let text = event.amount == 1 ? "+1 Card" : "+\(event.amount) Cards"
+        return ActionEventDisplay(
+            emphasis: .resourceGain,
+            keyword: event.keyword,
+            text: text,
             secondaryText: nil
         )
     }

@@ -238,7 +238,7 @@ enum GameContentRosterGenerated {
             maxHealth: 15,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .blackjack],
-                skills: [.gravePact, .sunderArmor],
+                skills: [.bloodOffering, .sunderArmor],
                 ultimates: [.faustianBargain, .hemorrhage]
             ),
             primaryStats: PrimaryStats(strength: 7, agility: 5, toughness: 7, intellect: 5, wisdom: 4),

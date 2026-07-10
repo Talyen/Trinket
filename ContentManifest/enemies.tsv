@@ -2,7 +2,7 @@ id	name	max_health	max_mana	is_boss	is_elite	growth_archetype	abilities	strength
 living_armor	Living Armor	15	0	false	true	tank	bash,spikedShield,crystalBulwark	7	2	10	1	2	animated_plate	hollow_shell
 mimic	Mimic	14	0	false	true	assassin	stab,serratedEdge,hemorrhage	5	7	4	2	5	ambush	splintering_frame
 mud_elemental	Mud Elemental	15	0	false	false	tank	block,briarShield,crystalBulwark	4	2	11	3	4	quagmire	desiccation
-necromancer	Necromancer	13	8	false	true	mage	manaBerries,gravePact,hemorrhage	2	5	3	8	6	grave_power	mortalfied
+necromancer	Necromancer	13	8	false	true	mage	manaBerries,bloodOffering,hemorrhage	2	5	3	8	6	grave_power	mortalfied
 plague_doctor	Plague Doctor	12	0	false	true	support	fangs,venomFangs,serratedArrowhead	3	6	4	4	9	miasma	frail_vessel
 skeleton	Skeleton	12	0	false	false	bruiser	slash,smite,blessedAegis	5	4	4	2	2	unfeeling	holy_weakness
 the_blight_treant	The Blight Treant	24	6	true	false	tank	fangs,graspingVines,bloodthorn	6	3	14	5	11	heartwood_renewal	dryads_bane
