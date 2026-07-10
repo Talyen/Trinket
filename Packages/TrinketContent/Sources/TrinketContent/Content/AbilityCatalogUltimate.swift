@@ -2,11 +2,6 @@ import Foundation
 import TrinketCore
 
 public enum AbilityCatalogUltimate {
-    public static let avatarOfJustice = Ability(
-        id: "avatar-of-justice", name: "Avatar of Justice", tier: .ultimate,
-        description: "Your next Holy attack deals double damage and applies Burn.",
-        targetedEffects: [TargetedEffect(.nextHolyStrike)]
-    )
     public static let blizzard = Ability(
         id: "blizzard", name: "Blizzard", tier: .ultimate,
         damageComponents: [
@@ -143,7 +138,6 @@ public enum AbilityCatalogUltimate {
     )
 
     public static let all: [Ability] = [
-        avatarOfJustice,
         blizzard,
         combustion,
         concussiveShot,

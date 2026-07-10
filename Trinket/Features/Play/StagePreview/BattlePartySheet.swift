@@ -124,7 +124,6 @@ struct BattlePartySheet: View {
         .accessibilityIdentifier(AccessibilityID.Play.battlePartySheet)
     }
 
-    @ViewBuilder
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)

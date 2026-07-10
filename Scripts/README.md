@@ -76,10 +76,10 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 | Gate | Runs |
 |------|------|
 | `ci-gate.sh` | generate → assert → boundaries → Swift Testing check → style → release-notes validate |
-| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing budgets) — **pre-push** |
+| `ci-locally.sh` | `ci-gate.sh` → unit → quick smoke (+ timing reports) — **pre-push** |
 | `test-deploy.sh` | gate-style checks → unit → full UI — **pre-merge** |
-| GitHub `pr.yml` | gate → unit + full smoke (`smoke-full`) (parallel) on `macos-26` |
-| GitHub `ci.yml` (main) | gate → unit + full smoke + exhaustive UI (parallel) on `macos-26` |
+| GitHub `pr.yml` | gate → one self-contained build → unit + full smoke (`smoke-full`) on `macos-26` |
+| GitHub `ci.yml` (main) | PR verification shape plus one self-contained exhaustive UI job on `macos-26` |
 
 | Tier | Command | When |
 |------|---------|------|
@@ -93,7 +93,13 @@ Task → script routing for day-to-day work lives in `AGENTS.md`. This section o
 | Full UI | `test.sh ui` | Pre-merge (includes exhaustive) |
 | Integration | `test.sh all` | Nightly / manual |
 
-`test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). Pin format/lint with `./Scripts/ensure-ci-tools.sh`.
+For agent or local task handoffs, `./Scripts/changed-source-summary.sh` lists only
+authored changes and suggests the smallest context cards and verification route.
+Run `./Scripts/verify-changed.sh --dry-run` to inspect the exact sequential plan;
+without `--dry-run`, it generates inputs once and runs the selected focused checks.
+It intentionally does not replace the pre-push or pre-merge gates.
+
+`test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). CI reports timing regressions from per-run artifacts, but does not fail a passing suite solely because hosted-runner session overhead exceeds a wall-clock budget. Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`.
 
 ### Toolchain ladder (cloud / no Xcode 26)
 
@@ -116,6 +122,8 @@ Local and CI expect **Xcode 26+**. Without the simulator toolchain:
 | `./Scripts/release-notes-user.sh` | Generate App Store notes + `.prompt.md` |
 | `./Scripts/release.sh` | Full release orchestration |
 | `./Scripts/validate-commit-msg.sh` | Advisory commit message check |
+| `./Scripts/changed-source-summary.sh` | Summarize authored changes and focused agent route |
+| `./Scripts/verify-changed.sh [--dry-run]` | Run the minimum sequential verification selected from changes |
 
 ### Typical release flow
 

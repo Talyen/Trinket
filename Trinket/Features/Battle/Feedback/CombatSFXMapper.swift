@@ -7,13 +7,13 @@ enum CombatSFXMapper {
     /// when that `hit` is only covering non-keyword damage (physical, etc.).
     private static let typedHitClipIDs: Set<String> = [
         SFXID.hitBurn,
-        SFXID.hitFreeze,
+        SFXID.hitFreeze
     ]
 
     /// Keywords that use the generic `hit` clip as their identity SFX (no typed clip).
     private static let hitAsKeywordIdentity: Set<Keyword> = [
         .poison,
-        .bleed,
+        .bleed
     ]
 
     static func clipID(for item: CombatFeedbackItem) -> String? {

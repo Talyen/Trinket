@@ -140,7 +140,7 @@ struct AbilityEffectIntegrationTests {
         try #expect(battle.health(of: battle.enemy) <= 95)
     }
 
-    @Test func avatarOfJusticeAppliesNextHolyStrike() throws {
+    @Test func avatarOfJusticeAppliesManifestDefensiveEffects() throws {
         let hero = Combatant(
             id: "hero",
             name: "Hero",
@@ -152,14 +152,17 @@ struct AbilityEffectIntegrationTests {
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
 
-        _ = try #require(
+        let events = try #require(
             try BattleTestFixtures.playUntilAbility("Avatar of Justice", on: &battle),
             "Expected Avatar of Justice to resolve in battle"
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .nextHolyStrike = active.effect { return true }
+            if case .damageKeywordOverride(.holy, 3, 6) = active.effect { return true }
             return false
         })
+        try #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })
+        try #expect(events.contains { $0.effectKind == .mitigationApplied && $0.amount == 2 })
+        try #expect(events.contains { $0.effectKind == .damageKeywordOverrideApplied && $0.amount == 3 })
     }
 }

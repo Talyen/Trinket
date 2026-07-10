@@ -7,8 +7,11 @@ RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
 
 source "$SCRIPT_DIR/build-stamp.sh"
+# shellcheck source=build-inputs.sh
+source "$SCRIPT_DIR/build-inputs.sh"
 
 mkdir -p "$RESULTS_DIR"
+prepare_generated_inputs "$RESULTS_DIR"
 
 echo "=== build-for-testing: Trinket app and test bundles ==="
 xcodebuild build-for-testing \
@@ -18,27 +21,20 @@ xcodebuild build-for-testing \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath "$DERIVED_DATA_PATH"
 
-scheme_for_package() {
-  case "$1" in
-    BattleEngine) echo "BattleEngine-Package" ;;
-    *) echo "$1" ;;
-  esac
-}
-
 PACKAGES=(TrinketCore TrinketContent BattleEngine TrinketPersistence TrinketDesignSystem)
 
 # Package schemes share one DerivedData build.db — must stay serial.
 for package in "${PACKAGES[@]}"; do
-  scheme="$(scheme_for_package "$package")"
-  echo "=== build-for-testing: $package ($scheme) ==="
+  echo "=== build-for-testing: $package ==="
   (
     cd "Packages/$package"
     xcodebuild build-for-testing \
-      -scheme "$scheme" \
+      -scheme "$package" \
       -sdk iphonesimulator \
       -destination 'generic/platform=iOS Simulator' \
       -derivedDataPath "$DERIVED_DATA_PATH"
   )
+  touch_build_stamp "$RESULTS_DIR" "package_$package"
 done
 
 CI_FINGERPRINTS=(

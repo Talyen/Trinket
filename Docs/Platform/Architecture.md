@@ -80,7 +80,7 @@ Code mapping:
 
 1. Validate `ContentManifest` TSV files
 2. Regenerate content catalogs (emits `public` directly from `content_codegen.py`)
-3. Optionally prepare art, music, and SFX catalogs (`--assets`)
+3. Optionally prepare art, music, SFX, and cinematic catalogs (`--assets`)
 4. Run XcodeGen
 
 **Drift check:** `./Scripts/assert-generated-output.sh` (CI runs this after `generate.sh`).
@@ -94,7 +94,7 @@ After editing `ContentManifest/` or custom ability catalog files under `Packages
 git add Packages/TrinketContent/Sources/TrinketContent/Generated/
 ```
 
-After editing art, music, or SFX manifests:
+After editing art, music, SFX, or cinematic manifests:
 
 ```sh
 ./Scripts/generate.sh --assets

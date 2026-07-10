@@ -33,7 +33,7 @@ struct PlayScreen {
 
     func openModeHub() {
         // Last mode restores into a pushed destination; pop back to the hub root.
-        for _ in 0..<4 {
+        for _ in 0 ..< 4 {
             let back = app.navigationBars.buttons.element(boundBy: 0)
             guard back.waitForExistence(timeout: 1), back.isHittable else { break }
             back.tap()

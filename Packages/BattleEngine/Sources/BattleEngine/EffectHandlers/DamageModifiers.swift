@@ -20,7 +20,8 @@ public struct HalveMitigationHandler: BattleEffectHandler {
             if case let .mitigation(mitigationKeyword, points) = currentEffects[index].effect,
                mitigationKeyword == keyword {
                 currentEffects[index].effect = .mitigation(
-                    mitigationKeyword, points / 2)
+                    mitigationKeyword, points / 2
+                )
                 didHalve = true
             }
         }

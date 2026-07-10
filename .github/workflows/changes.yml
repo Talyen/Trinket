@@ -7,7 +7,7 @@ on:
         description: Whether app, package, test, or manifest sources changed
         value: ${{ jobs.changes.outputs.code }}
       assets:
-        description: Whether art or music manifests changed
+        description: Whether any processed asset input changed
         value: ${{ jobs.changes.outputs.assets }}
 
 jobs:
@@ -18,8 +18,8 @@ jobs:
       code: ${{ steps.filter.outputs.code }}
       assets: ${{ steps.filter.outputs.assets }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050 # v3
         id: filter
         with:
           filters: |
@@ -31,6 +31,9 @@ jobs:
               - 'ContentManifest/**'
               - 'ArtManifest/**'
               - 'MusicManifest/**'
+              - 'SoundManifest/**'
+              - 'CinematicManifest/**'
+              - 'Raw Assets/**'
               - 'Scripts/**'
               - 'project.yml'
               - 'Package.resolved'
@@ -39,16 +42,15 @@ jobs:
               - '.swiftformat'
               # Workflow/action changes that affect build/test behavior.
               - '.github/actions/**'
-              - '.github/workflows/ci.yml'
-              - '.github/workflows/pr.yml'
-              - '.github/workflows/gate.yml'
-              - '.github/workflows/nightly.yml'
-              - '.github/workflows/changes.yml'
+              - '.github/workflows/**'
             assets:
               - 'ArtManifest/**'
               - 'MusicManifest/**'
+              - 'SoundManifest/**'
+              - 'CinematicManifest/**'
               - 'Raw Assets/**'
               - 'Scripts/prepare-art-assets.sh'
               - 'Scripts/prepare-music-assets.sh'
               - 'Scripts/prepare-sfx-assets.sh'
+              - 'Scripts/prepare-cinematic-assets.sh'
               - 'Scripts/prepare-app-icon.sh'

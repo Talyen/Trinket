@@ -14,8 +14,12 @@ fi
 echo "=== Pruning DerivedData cache bulk under $DERIVED_DATA_PATH ==="
 
 # Index / symbol stores are rebuildable and dominate cache size.
-# Keep Build/, ModuleCache, and SourcePackages so --no-build stays warm.
+# Keep Build/Products, ModuleCache, and SourcePackages so --no-build stays warm.
+# Intermediates are only needed for incremental compilation and add substantial
+# transfer cost to every fan-out test job.
 rm -rf \
+  "$DERIVED_DATA_PATH/Build/Intermediates.noindex" \
+  "$DERIVED_DATA_PATH/Build/ProfileData" \
   "$DERIVED_DATA_PATH/Index.noindex" \
   "$DERIVED_DATA_PATH/Index" \
   "$DERIVED_DATA_PATH/SymbolCache" \

@@ -7,8 +7,8 @@ runs:
     - name: Select Xcode Version
       shell: bash
       run: |
-        # Prefer the newest exact Xcode 26.x install. Fail clearly if none is present.
-        preferred_versions=(26.5.0 26.5 26.4.0 26.4 26.2.0 26.2 26)
+        # DerivedData and generated project output depend on this exact toolchain.
+        preferred_versions=(26.5.0)
         xcode_path=""
         for version in "${preferred_versions[@]}"; do
           for path in "/Applications/Xcode_${version}.app" "/Applications/Xcode_${version}"*.app; do
@@ -19,16 +19,7 @@ runs:
           done
         done
         if [ -z "$xcode_path" ]; then
-          # Fall back to any Xcode 26.app variant on the image.
-          for path in /Applications/Xcode_26*.app /Applications/Xcode.app; do
-            if [ -d "$path" ]; then
-              xcode_path="$path"
-              break
-            fi
-          done
-        fi
-        if [ -z "$xcode_path" ]; then
-          echo "Xcode 26.x is required but was not found on this runner." >&2
+          echo "Xcode 26.5.0 is required but was not found on this runner." >&2
           echo "Installed Xcode apps:" >&2
           ls -1 /Applications/Xcode*.app 2>/dev/null || true
           exit 1
@@ -38,44 +29,13 @@ runs:
         xcodebuild -version
         echo "XCODE_PATH=$xcode_path" >> "$GITHUB_ENV"
 
-    - name: Cache Homebrew (xcodegen / ripgrep / xcbeautify)
-      uses: actions/cache@v4
-      with:
-        path: ~/Library/Caches/Homebrew
-        key: brew-${{ runner.os }}-xcodegen-rg-xcbeautify-1
-
-    - name: Install Homebrew helpers
-      shell: bash
-      env:
-        HOMEBREW_NO_AUTO_UPDATE: 1
-        HOMEBREW_NO_INSTALL_CLEANUP: 1
-      run: |
-        missing_tools=()
-        for tool in xcodegen rg xcbeautify; do
-          if ! command -v "$tool" &>/dev/null; then
-            case "$tool" in
-              rg) missing_tools+=("ripgrep") ;;
-              *) missing_tools+=("$tool") ;;
-            esac
-          fi
-        done
-        if [ ${#missing_tools[@]} -gt 0 ]; then
-          echo "Installing missing tools: ${missing_tools[*]}"
-          brew install "${missing_tools[@]}"
-          for formula in "${missing_tools[@]}"; do
-            brew link --overwrite "$formula" 2>/dev/null || true
-          done
-        else
-          echo "Homebrew helpers already installed."
-        fi
-
-    - name: Cache pinned SwiftFormat and SwiftLint
-      uses: actions/cache@v4
+    - name: Cache pinned CI tools
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: .tools
-        key: tools-${{ runner.os }}-${{ hashFiles('Scripts/tool-versions.env') }}
+        key: tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Scripts/tool-versions.env') }}
 
-    - name: Install pinned SwiftFormat and SwiftLint
+    - name: Install pinned CI tools
       shell: bash
       run: ./Scripts/ensure-ci-tools.sh
 
@@ -87,6 +47,8 @@ runs:
         export PATH="$PWD/.tools:$PATH"
         actual_swiftformat="$(swiftformat --version)"
         actual_swiftlint="$(swiftlint version)"
+        actual_xcodegen="$(xcodegen --version | awk '{print $NF}')"
+        actual_ripgrep="$(rg --version | head -n 1 | awk '{print $2}')"
         if [ "$actual_swiftformat" != "$SWIFTFORMAT_VERSION" ]; then
           echo "SwiftFormat version mismatch: expected $SWIFTFORMAT_VERSION, found $actual_swiftformat" >&2
           exit 1
@@ -95,5 +57,13 @@ runs:
           echo "SwiftLint version mismatch: expected $SWIFTLINT_VERSION, found $actual_swiftlint" >&2
           exit 1
         fi
-        echo "SwiftFormat $actual_swiftformat and SwiftLint $actual_swiftlint verified."
+        if [ "$actual_xcodegen" != "$XCODEGEN_VERSION" ]; then
+          echo "XcodeGen version mismatch: expected $XCODEGEN_VERSION, found $actual_xcodegen" >&2
+          exit 1
+        fi
+        if [ "$actual_ripgrep" != "$RIPGREP_VERSION" ]; then
+          echo "ripgrep version mismatch: expected $RIPGREP_VERSION, found $actual_ripgrep" >&2
+          exit 1
+        fi
+        echo "SwiftFormat $actual_swiftformat, SwiftLint $actual_swiftlint, XcodeGen $actual_xcodegen, and ripgrep $actual_ripgrep verified."
         echo "PATH=$PWD/.tools:$PATH" >> "$GITHUB_ENV"

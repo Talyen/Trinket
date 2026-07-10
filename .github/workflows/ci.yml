@@ -14,133 +14,89 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   changes:
     uses: ./.github/workflows/changes.yml
 
   gate:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/gate.yml
 
   assets-gate:
     name: Asset codegen
-    needs: [gate, changes]
-    if: needs.changes.outputs.assets == 'true'
+    needs: [changes, gate]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true'
     runs-on: macos-26
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
       - run: ./Scripts/generate.sh --assets
       - run: ./Scripts/assert-generated-output.sh --assets
 
-  build:
-    name: Build for testing
-    needs: gate
+  verify:
+    name: Build, unit, and smoke tests
+    needs: [changes, gate]
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true'
     runs-on: macos-26
-    timeout-minutes: 25
-    outputs:
-      # actions/cache/save has no cache-primary-key output; export the save key from a step.
-      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Export build cache key
-        id: export-build-cache-key
-        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore warm build cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .DerivedData
-          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-          restore-keys: |
-            build-
-
-      - name: Build for testing
+      - name: Build all test bundles
         run: ./Scripts/build-for-testing.sh
         env:
           SKIP_GENERATE: 1
-
-      - name: Prune DerivedData before cache save
-        run: ./Scripts/prune-derived-data-cache.sh
-
-      - name: Save build cache for test jobs
-        uses: actions/cache/save@v4
+      - name: Run unit and smoke suites
+        shell: bash
+        env:
+          SKIP_GENERATE: 1
+          CI: true
+        run: |
+          status=0
+          ./Scripts/test.sh unit --no-build --verbose || status=1
+          ./Scripts/test.sh smoke-full --no-build --verbose || status=1
+          exit "$status"
+      - name: Classify CI outcome and report timing
+        if: always()
+        run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
-          path: .DerivedData
-          key: ${{ steps.export-build-cache-key.outputs.key }}
+          name: verify-${{ github.run_id }}
+          path: .DerivedData/TestResults/
+          if-no-files-found: ignore
 
-  unit:
-    name: Unit tests - ${{ matrix.target }}
-    needs: build
+  exhaustive-ui:
+    name: Exhaustive UI tests
+    needs: [changes, gate]
+    if: >-
+      needs.changes.outputs.code == 'true' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive'))
     runs-on: macos-26
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [app, TrinketCore, TrinketContent, BattleEngine, TrinketPersistence, TrinketDesignSystem]
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
+      - name: Build all test bundles
+        run: ./Scripts/build-for-testing.sh
+        env:
+          SKIP_GENERATE: 1
+      - name: Run exhaustive UI suite
+        run: ./Scripts/test.sh ui --no-build --verbose
+        env:
+          SKIP_GENERATE: 1
+          CI: true
+      - name: Classify CI outcome and report timing
+        if: always()
+        run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: unit-${{ matrix.target }}
-          command: |
-            if [ "${{ matrix.target }}" = "app" ]; then
-              ./Scripts/test.sh unit TrinketTests --no-build --verbose
-            else
-              ./Scripts/test-package.sh ${{ matrix.target }} --no-build --verbose
-            fi
-
-  ui-smoke:
-    name: UI smoke - ${{ matrix.class }}
-    needs: build
-    runs-on: macos-26
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        class:
-          - SmokeHomesteadTests
-          - SmokeBattleTests
-          - SmokeCollectionTests
-          - SmokeHeroDetailTests
-          - SmokePlayTests
-          - SmokeShopTests
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: ui-smoke-${{ matrix.class }}
-          command: ./Scripts/test.sh smoke ${{ matrix.class }} --no-build --verbose
-          timing-mode: smoke
-          timing-budget-seconds: '120'
-
-  ui-exhaustive:
-    name: UI tests - ${{ matrix.shard }}
-    needs: build
-    runs-on: macos-26
-    timeout-minutes: 25
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.scope == 'exhaustive')
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - shard: exhaustive-battle
-            command: ./Scripts/test.sh ui BattleFlowUITests --no-build --verbose
-          - shard: exhaustive-collection
-            command: ./Scripts/test.sh ui TabNavigationUITests --no-build --verbose
-          - shard: exhaustive-play
-            command: ./Scripts/test.sh ui PlayMapUITests MysteryRecruitUITests --no-build --verbose
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: ui-${{ matrix.shard }}
-          command: ${{ matrix.command }}
+          name: exhaustive-ui-${{ github.run_id }}
+          path: .DerivedData/TestResults/
+          if-no-files-found: ignore

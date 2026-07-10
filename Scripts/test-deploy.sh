@@ -3,6 +3,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+# shellcheck source=build-inputs.sh
+source ./Scripts/build-inputs.sh
+
 # Full deploy gate. Runs CI gate checks plus unit and full UI tests.
 # Intended for pre-merge / nightly runs, not the local iteration loop.
 #
@@ -25,13 +28,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "=== Generating Xcode project ==="
-./Scripts/generate.sh
-
-# Align with build.sh / test.sh stamp so subsequent test.sh skips a second generate.
 RESULTS_DIR="$PWD/.DerivedData/TestResults"
-mkdir -p "$RESULTS_DIR"
-touch "$RESULTS_DIR/.last-generate.stamp"
+echo "=== Preparing generated build inputs ==="
+prepare_generated_inputs "$RESULTS_DIR"
 export SKIP_GENERATE=1
 
 echo ""

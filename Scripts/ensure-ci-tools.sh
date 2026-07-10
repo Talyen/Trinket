@@ -136,8 +136,98 @@ install_swiftlint() {
   fi
 }
 
+install_xcodegen() {
+  # XcodeGen writes the committed project, so use a checksummed release rather
+  # than whichever Homebrew formula happens to be current on the runner.
+  [[ "$os" == "darwin" ]] || return 0
+
+  local bin="$TOOLS_DIR/xcodegen"
+  if [[ -x "$bin" ]] && [[ "$("$bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
+    return 0
+  fi
+
+  local tmpdir archive actual_sha install_dir
+  tmpdir="$(mktemp -d)"
+  archive="$tmpdir/xcodegen.zip"
+  install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
+
+  curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$archive"
+  actual_sha="$(shasum -a 256 "$archive" | awk '{print $1}')"
+  if [[ "$actual_sha" != "$XCODEGEN_SHA256" ]]; then
+    echo "XcodeGen checksum mismatch: expected $XCODEGEN_SHA256, found $actual_sha" >&2
+    rm -rf "$tmpdir"
+    exit 1
+  fi
+
+  rm -rf "$install_dir"
+  unzip -qo "$archive" -d "$tmpdir"
+  mv "$tmpdir/xcodegen" "$install_dir"
+  ln -sfn "xcodegen-$XCODEGEN_VERSION/bin/xcodegen" "$bin"
+  rm -rf "$tmpdir"
+
+  local actual
+  actual="$("$bin" --version | awk '{print $NF}')"
+  if [[ "$actual" != "$XCODEGEN_VERSION" ]]; then
+    echo "XcodeGen version mismatch after install: expected $XCODEGEN_VERSION, found $actual" >&2
+    exit 1
+  fi
+}
+
+install_ripgrep() {
+  local bin="$TOOLS_DIR/rg"
+  if [[ -x "$bin" ]] && [[ "$("$bin" --version 2>/dev/null | head -n 1 | awk '{print $2}' || true)" == "$RIPGREP_VERSION" ]]; then
+    return 0
+  fi
+
+  local target checksum tmpdir archive actual_sha candidate
+  case "$os-$arch" in
+    darwin-arm64 | darwin-aarch64)
+      target="aarch64-apple-darwin"
+      checksum="$RIPGREP_DARWIN_ARM64_SHA256"
+      ;;
+    darwin-x86_64 | darwin-amd64)
+      target="x86_64-apple-darwin"
+      checksum="$RIPGREP_DARWIN_X86_64_SHA256"
+      ;;
+    linux-arm64 | linux-aarch64)
+      target="aarch64-unknown-linux-gnu"
+      checksum="$RIPGREP_LINUX_ARM64_SHA256"
+      ;;
+    linux-x86_64 | linux-amd64)
+      target="x86_64-unknown-linux-musl"
+      checksum="$RIPGREP_LINUX_X86_64_SHA256"
+      ;;
+    *)
+      echo "Unsupported OS/architecture for ripgrep: $os/$arch" >&2
+      exit 1
+      ;;
+  esac
+
+  tmpdir="$(mktemp -d)"
+  archive="$tmpdir/ripgrep.tar.gz"
+  curl -fsSL "https://github.com/BurntSushi/ripgrep/releases/download/${RIPGREP_VERSION}/ripgrep-${RIPGREP_VERSION}-${target}.tar.gz" -o "$archive"
+  actual_sha="$(shasum -a 256 "$archive" | awk '{print $1}')"
+  if [[ "$actual_sha" != "$checksum" ]]; then
+    echo "ripgrep checksum mismatch: expected $checksum, found $actual_sha" >&2
+    rm -rf "$tmpdir"
+    exit 1
+  fi
+
+  tar -xzf "$archive" -C "$tmpdir"
+  candidate="$(find "$tmpdir" -type f -name rg -print -quit)"
+  if [[ -z "$candidate" ]]; then
+    echo "ripgrep binary not found in release archive." >&2
+    rm -rf "$tmpdir"
+    exit 1
+  fi
+  install -m 755 "$candidate" "$bin"
+  rm -rf "$tmpdir"
+}
+
 install_swiftformat
 install_swiftlint
+install_xcodegen
+install_ripgrep
 
 export PATH="$TOOLS_DIR:$PATH"
-echo "CI tools ready: SwiftFormat $($TOOLS_DIR/swiftformat --version), SwiftLint $($TOOLS_DIR/swiftlint version)"
+echo "CI tools ready: SwiftFormat $($TOOLS_DIR/swiftformat --version), SwiftLint $($TOOLS_DIR/swiftlint version), XcodeGen $($TOOLS_DIR/xcodegen --version 2>/dev/null | awk '{print $NF}' || echo unavailable), ripgrep $($TOOLS_DIR/rg --version | head -n 1)"

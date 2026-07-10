@@ -8,6 +8,8 @@ SCRIPT_DIR="$(dirname "$0")"
 
 # shellcheck source=build-stamp.sh
 source "$SCRIPT_DIR/build-stamp.sh"
+# shellcheck source=build-inputs.sh
+source "$SCRIPT_DIR/build-inputs.sh"
 
 # Parse arguments
 MODE="unit"
@@ -76,35 +78,8 @@ if [[ "$MODE" == "style" ]]; then
 fi
 
 mkdir -p "$RESULTS_DIR"
-GENERATE_STAMP="$RESULTS_DIR/.last-generate.stamp"
-if [[ "$NO_BUILD" == "false" && "${SKIP_GENERATE:-0}" != "1" ]]; then
-  if [[ -f "$GENERATE_STAMP" ]]; then
-    content_changed="$(find ContentManifest Scripts/content_codegen.py -newer "$GENERATE_STAMP" -print -quit 2>/dev/null)"
-    project_changed=""
-    if [[ -f project.yml && project.yml -nt "$GENERATE_STAMP" ]]; then
-      project_changed="project.yml"
-    fi
-    if [[ -z "$content_changed" && -z "$project_changed" ]]; then
-      echo "Content sources unchanged; skipping generate."
-    else
-      GENERATE_ARGS=()
-      if [[ -z "$project_changed" ]]; then
-        echo "=== Content manifests changed; running generate (skipping xcodegen) ==="
-        GENERATE_ARGS+=(--skip-xcodegen)
-      else
-        echo "=== Content or project sources changed; running generate ==="
-      fi
-      if [[ ${#GENERATE_ARGS[@]} -gt 0 ]]; then
-        ./Scripts/generate.sh "${GENERATE_ARGS[@]}"
-      else
-        ./Scripts/generate.sh
-      fi
-    fi
-  else
-    echo "=== Running generate ==="
-    ./Scripts/generate.sh
-  fi
-  touch "$GENERATE_STAMP"
+if [[ "$NO_BUILD" == "false" ]]; then
+  prepare_generated_inputs "$RESULTS_DIR"
 fi
 
 # shellcheck source=ensure-simulator.sh
@@ -129,22 +104,28 @@ run_xcodebuild() {
       fi
     elif command -v xcbeautify &>/dev/null; then
       set +e
-      "$@" | xcbeautify
+      "$@" 2>&1 | tee "$log_file" | xcbeautify
       exit_code=${PIPESTATUS[0]}
       set -e
       if [[ "$exit_code" -eq 0 ]]; then
         return 0
       fi
     else
-      if "$@"; then
+      set +e
+      "$@" 2>&1 | tee "$log_file"
+      exit_code=${PIPESTATUS[0]}
+      set -e
+      if [[ "$exit_code" -eq 0 ]]; then
         return 0
       fi
-      exit_code=$?
     fi
 
-    if [[ "$exit_code" -eq 70 && "$attempt" -lt "$max_attempts" ]]; then
-      echo "xcodebuild destination error (exit 70); re-preparing simulator and retrying..." >&2
-      ensure_test_simulator force
+    if (( attempt < max_attempts )) && retryable_xcodebuild_infrastructure_failure "$exit_code" "$log_file"; then
+      echo "xcodebuild infrastructure failure; re-preparing simulator and retrying once..." >&2
+      if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+        echo "::warning title=Xcode infrastructure retry::Destination or simulator service failed; retrying once."
+      fi
+      ensure_test_simulator_logged force
       ((attempt++))
       continue
     fi
@@ -159,6 +140,17 @@ run_xcodebuild() {
   done
 
   return "$exit_code"
+}
+
+retryable_xcodebuild_infrastructure_failure() {
+  local exit_code="$1"
+  local log_file="$2"
+
+  [[ "$exit_code" -eq 70 ]] && return 0
+  [[ -d "$RESULT_BUNDLE_PATH" ]] && return 1
+  rg -qi \
+    'Unable to boot|CoreSimulator|DTServiceHub|destination.*not available|no matching destination|launchd_sim|Simulator.*failed' \
+    "$log_file"
 }
 
 xcresult_failed() {
@@ -186,7 +178,7 @@ if [[ "$MODE" == "unit" ]]; then
     echo "Running only unit tests (TrinketTests)..."
     TEST_TARGET_FLAG=(-testPlan Unit -only-testing:TrinketTests)
   fi
-  ensure_test_simulator
+  ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "smoke" ]]; then
   # Bare smoke = local canary (QuickSmoke). With targets, use full Smoke plan + filters.
@@ -204,7 +196,7 @@ elif [[ "$MODE" == "smoke" ]]; then
     TEST_TARGET_FLAG=(-testPlan QuickSmoke)
     echo "Running quick UI smoke canary via QuickSmoke test plan..."
   fi
-  ensure_test_simulator
+  ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "smoke-full" ]]; then
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -214,7 +206,7 @@ elif [[ "$MODE" == "smoke-full" ]]; then
   fi
   TEST_TARGET_FLAG=(-testPlan Smoke)
   echo "Running full UI smoke suite via Smoke test plan..."
-  ensure_test_simulator
+  ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 elif [[ "$MODE" == "ui" ]]; then
   TEST_TARGET_FLAG=(-testPlan FullUI)
@@ -231,7 +223,7 @@ elif [[ "$MODE" == "ui" ]]; then
     echo "Running only UI tests (TrinketUITests)..."
     TEST_TARGET_FLAG=(-testPlan FullUI -only-testing:TrinketUITests)
   fi
-  ensure_test_simulator
+  ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 else
   if [[ ${#TARGETS[@]} -gt 0 ]]; then
@@ -241,7 +233,7 @@ else
   fi
   echo "Running all tests via Xcode Test Plan..."
   TEST_TARGET_FLAG=(-testPlan Integration)
-  ensure_test_simulator
+  ensure_test_simulator_logged
   PARALLEL_FLAGS=(-parallel-testing-enabled NO)
 fi
 
@@ -278,64 +270,13 @@ record_timing() {
 assert_no_build_is_fresh() {
   echo "Running without building. This only reruns the previously built '$RUN_FINGERPRINT' test binary."
 
-  if [[ "${CI:-}" == "true" ]]; then
-    echo "CI environment detected; skipping source freshness scan."
-    return 0
-  fi
-
-  if [[ ! -f "$BUILD_STAMP" ]]; then
-    echo "No prior built test stamp found for '$RUN_FINGERPRINT'. Run without --no-build first." >&2
-    exit 1
-  fi
-
   local built_app="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
   if [[ ! -d "$built_app" ]]; then
     echo "Built app is missing from DerivedData. Run without --no-build first." >&2
     exit 1
   fi
 
-  local newer_files=()
-
-  # Fast-path: if stamp is < 30s old, skip the scan — nothing changed at human speed
-  local stamp_age=999
-  if [[ -f "$BUILD_STAMP" ]]; then
-    stamp_age=$(($(date +%s) - $(stat -f %m "$BUILD_STAMP" 2>/dev/null || echo 0)))
-  fi
-  if [[ "$stamp_age" -lt 30 ]]; then
-    echo "Build stamp is < 30s old; sources unchanged."
-    return 0
-  fi
-
-  local source_roots=(Trinket TrinketTests TrinketUITests Packages/TrinketCore Packages/TrinketContent Packages/BattleEngine Packages/TrinketPersistence Packages/TrinketDesignSystem)
-  local existing_roots=()
-  for root in "${source_roots[@]}"; do
-    [[ -d "$root" ]] && existing_roots+=("$root")
-  done
-  if [[ ${#existing_roots[@]} -gt 0 ]]; then
-    while IFS= read -r file; do
-      newer_files+=("$file")
-      if [[ ${#newer_files[@]} -ge 10 ]]; then
-        break
-      fi
-    done < <(find "${existing_roots[@]}" -type f \( -name "*.swift" -o -name "*.plist" -o -name "*.xctestplan" \) -newer "$BUILD_STAMP" -print)
-  fi
-
-  local project_files=(project.yml Package.resolved)
-  local file
-  for file in "${project_files[@]}"; do
-    if [[ -f "$file" && "$file" -nt "$BUILD_STAMP" ]]; then
-      newer_files+=("$file")
-    fi
-  done
-
-  if [[ ${#newer_files[@]} -gt 0 ]]; then
-    echo "--no-build refused because sources changed after the last built '$RUN_FINGERPRINT' test binary:" >&2
-    for file in "${newer_files[@]}"; do
-      echo "  $file" >&2
-    done
-    echo "Run without --no-build to rebuild app and test bundles." >&2
-    exit 1
-  fi
+  assert_no_build_inputs_are_fresh "$BUILD_STAMP" "$RUN_FINGERPRINT"
 }
 
 if [[ "$NO_BUILD" == "true" ]]; then
@@ -353,31 +294,25 @@ run_package_tests() {
   local package_status
   local jobs
   local cpu_count
-  local scheme
-
-  scheme_for_package() {
-    case "$1" in
-      BattleEngine) echo "BattleEngine-Package" ;;
-      *) echo "$1" ;;
-    esac
-  }
 
   # Shared DerivedData build.db cannot be written in parallel — build serially first
   # when this is a full `test` action, then always run package tests with --no-build.
   if [[ "$xcodebuild_action" != "test-without-building" ]]; then
     SECONDS=0
     for package in "${packages[@]}"; do
-      scheme="$(scheme_for_package "$package")"
-      echo "Building $package package tests ($scheme)..."
+      echo "Building $package package tests..."
       package_status=0
       (
         cd "Packages/$package"
         xcodebuild build-for-testing \
-          -scheme "$scheme" \
+          -scheme "$package" \
           -sdk iphonesimulator \
           -destination "$SIMULATOR_DESTINATION" \
           -derivedDataPath "$DERIVED_DATA_PATH"
       ) || package_status=$?
+      if [[ "$package_status" -eq 0 ]]; then
+        touch_build_stamp "$RESULTS_DIR" "package_$package"
+      fi
       if [[ "$package_status" -ne 0 ]]; then
         failed=1
       fi

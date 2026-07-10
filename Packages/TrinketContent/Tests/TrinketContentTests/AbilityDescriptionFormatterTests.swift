@@ -33,10 +33,10 @@ struct AbilityDescriptionFormatterTests {
         )
     }
 
-    @Test func avatarOfJusticeDescribesNextHolyStrike() throws {
+    @Test func avatarOfJusticeDescribesManifestEffects() throws {
         try #expect(
             Ability.avatarOfJustice.summary
-                == "Your next Holy attack deals double damage and applies Burn."
+                == "Gain 5 Block, Gain 2 Armor and Your attacks become Holy damage and deal +3 for 6 turns."
         )
     }
 

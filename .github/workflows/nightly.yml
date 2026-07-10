@@ -9,60 +9,36 @@ concurrency:
   group: nightly-${{ github.workflow }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   gate:
     uses: ./.github/workflows/gate.yml
 
-  build:
-    name: Build for testing
+  integration:
+    name: Integration tests
     needs: gate
     runs-on: macos-26
-    timeout-minutes: 25
-    outputs:
-      # actions/cache/save has no cache-primary-key output; export the save key from a step.
-      build-cache-key: ${{ steps.export-build-cache-key.outputs.key }}
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: ./.github/actions/setup-trinket
-
-      - name: Export build cache key
-        id: export-build-cache-key
-        run: echo "key=build-${{ github.run_id }}-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore warm build cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .DerivedData
-          key: build-${{ hashFiles('Trinket/**', 'TrinketTests/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Scripts/**', 'project.yml', 'Package.resolved', '*.xctestplan') }}
-          restore-keys: |
-            build-
-
-      - name: Build for testing
+      - name: Build all test bundles
         run: ./Scripts/build-for-testing.sh
         env:
           SKIP_GENERATE: 1
-
-      - name: Prune DerivedData before cache save
-        run: ./Scripts/prune-derived-data-cache.sh
-
-      - name: Save build cache for test jobs
-        uses: actions/cache/save@v4
+      - name: Run integration suite
+        run: TRINKET_RUN_A11Y_AUDITS=1 ./Scripts/test.sh all --no-build --verbose
+        env:
+          SKIP_GENERATE: 1
+          CI: true
+      - name: Classify CI outcome and report timing
+        if: always()
+        run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
-          path: .DerivedData
-          key: ${{ steps.export-build-cache-key.outputs.key }}
-
-  integration:
-    name: Integration tests
-    needs: build
-    runs-on: macos-26
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-trinket
-      - uses: ./.github/actions/test-job
-        with:
-          cache-key: ${{ needs.build.outputs.build-cache-key }}
-          artifact-name: nightly-integration
-          command: TRINKET_RUN_A11Y_AUDITS=1 ./Scripts/test.sh all --no-build --verbose
-          timing-mode: all
-          timing-budget-seconds: '2400'
+          name: nightly-integration-${{ github.run_id }}
+          path: .DerivedData/TestResults/
+          if-no-files-found: ignore

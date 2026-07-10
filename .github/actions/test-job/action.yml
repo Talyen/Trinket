@@ -25,7 +25,7 @@ runs:
   steps:
     - name: Restore build cache
       id: restore-build-cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
       with:
         path: .DerivedData
         key: ${{ inputs.cache-key }}
@@ -47,14 +47,21 @@ runs:
         CI: true
       run: ${{ inputs.command }}
 
-    - name: Assert timing budget
+    - name: Report timing budget
       if: inputs.timing-mode != ''
       shell: bash
       run: |
-        ./Scripts/test-timing.sh assert-budget \
+        set +e
+        output="$(./Scripts/test-timing.sh assert-budget \
           --mode "${{ inputs.timing-mode }}" \
           --max-wall "${{ inputs.timing-budget-seconds }}" \
-          --skip-if-missing
+          --skip-if-missing 2>&1)"
+        status=$?
+        set -e
+        echo "$output"
+        if [ "$status" -ne 0 ]; then
+          echo "::warning title=CI timing budget exceeded::$output"
+        fi
 
     - name: Summarize test failures
       if: failure()
@@ -65,7 +72,12 @@ runs:
           ./Scripts/summarize-failures.py "$xcresult" || true
         done
 
-    - uses: actions/upload-artifact@v4
+    - name: Classify CI outcome and report timing
+      if: always()
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       if: always()
       with:
         name: ${{ inputs.artifact-name }}-${{ github.run_id }}

@@ -7,7 +7,6 @@ public extension Ability {
     public static let antivenomPotion = AbilityCatalogSkill.antivenomPotion
     public static let anvil = AbilityCatalogBasicGenerated.anvil
     public static let apple = AbilityCatalogBasic.apple
-    public static let avatarOfJustice = AbilityCatalogUltimate.avatarOfJustice
     public static let avatarOfJustice = AbilityCatalogUltimateGenerated.avatarOfJustice
     public static let bash = AbilityCatalogBasicGenerated.bash
     public static let blackjack = AbilityCatalogBasic.blackjack

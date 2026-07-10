@@ -6,12 +6,16 @@ cd "$(dirname "$0")/.."
 BUNDLE_ID="com.ryanmcintire.Trinket"
 DERIVED_DATA_PATH="$PWD/.DerivedData"
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
+RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
+
+# shellcheck source=build-inputs.sh
+source ./Scripts/build-inputs.sh
+prepare_generated_inputs "$RESULTS_DIR"
 
 # shellcheck source=ensure-simulator.sh
 source ./Scripts/ensure-simulator.sh
 ensure_test_simulator
 
-xcodegen generate
 xcodebuild build \
   -project Trinket.xcodeproj \
   -scheme Trinket \
@@ -27,5 +31,5 @@ xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" 2>/dev/null || true
 xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 # Installing a normal app bundle replaces the XCTest-installed app container, so
 # invalidate test-without-building stamps that depend on that simulator state.
-rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp(N) 2>/dev/null || true
+rm -f "$DERIVED_DATA_PATH"/TestResults/.last-build-*.stamp 2>/dev/null || true
 xcrun simctl launch "$SIMULATOR_UDID" "$BUNDLE_ID" -- -appearance dark

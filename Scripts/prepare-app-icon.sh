@@ -13,13 +13,15 @@ fi
 
 echo "=== Preparing app icon ==="
 
-declare -A variants=(
-  ["Trinket-Icon-v1-iOS-Default-1024x1024@1x.png"]="AppIcon-Default.png"
-  ["Trinket-Icon-v1-iOS-Dark-1024x1024@1x.png"]="AppIcon-Dark.png"
+sources=(
+  "Trinket-Icon-v1-iOS-Default-1024x1024@1x.png"
+  "Trinket-Icon-v1-iOS-Dark-1024x1024@1x.png"
 )
+destinations=("AppIcon-Default.png" "AppIcon-Dark.png")
 
-for src in "${!variants[@]}"; do
-  dst="${variants[$src]}"
+for index in "${!sources[@]}"; do
+  src="${sources[$index]}"
+  dst="${destinations[$index]}"
   if [[ ! -f "$source_dir/$src" ]]; then
     echo "  WARNING: Missing source $src, skipping" >&2
     continue

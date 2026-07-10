@@ -7,6 +7,11 @@ DERIVED_DATA_PATH="$PWD/.DerivedData"
 RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
 SCRIPT_DIR="$(dirname "$0")"
 
+# shellcheck source=build-stamp.sh
+source "$SCRIPT_DIR/build-stamp.sh"
+# shellcheck source=build-inputs.sh
+source "$SCRIPT_DIR/build-inputs.sh"
+
 ACTION="test"
 DESTINATION=""
 PACKAGES=()
@@ -73,7 +78,7 @@ fi
 source "$SCRIPT_DIR/ensure-simulator.sh"
 
 if [[ -z "$DESTINATION" ]]; then
-  ensure_test_simulator
+  ensure_test_simulator_logged
   DESTINATION="$SIMULATOR_DESTINATION"
 fi
 
@@ -96,6 +101,12 @@ for package in "${PACKAGES[@]}"; do
   scheme="$(scheme_for_package "$package")"
   result_bundle="$RESULTS_DIR/${package}.xcresult"
   log_file="$RESULTS_DIR/${package}-xcodebuild.log"
+
+  if [[ "$ACTION" == "test-without-building" ]]; then
+    assert_no_build_inputs_are_fresh \
+      "$(build_stamp_path "$RESULTS_DIR" "package_$package")" \
+      "package_$package"
+  fi
 
   rm -rf "$result_bundle"
 
@@ -146,5 +157,9 @@ for package in "${PACKAGES[@]}"; do
       grep -E -A 2 -i "error:|warning:|failed:" "$log_file" | head -n 40 || tail -n 40 "$log_file"
     fi
     exit "$package_status"
+  fi
+
+  if [[ "$ACTION" == "test" ]]; then
+    touch_build_stamp "$RESULTS_DIR" "package_$package"
   fi
 done

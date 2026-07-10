@@ -7,8 +7,9 @@ set -euo pipefail
 #   SIMULATOR_UDID
 #   SIMULATOR_DESTINATION   e.g. platform=iOS Simulator,id=...
 
-SIMULATOR_NAME="Trinket CI"
+SIMULATOR_NAME="${TRINKET_SIMULATOR_NAME:-Trinket CI}"
 SIMULATOR_PREFERRED_DEVICE="iPhone 17 Pro"
+SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 
 resolve_or_create_simulator() {
   SIMULATOR_UDID="$(xcrun simctl list devices available -j 2>/dev/null | python3 -c '
@@ -93,7 +94,7 @@ PY
 
   if [[ -z "${resolved:-}" || "$resolved" != *$'\t'* ]]; then
     echo "Error: Failed to resolve and create compatible simulator." >&2
-    exit 1
+    return 1
   fi
 
   SIMULATOR_UDID="${resolved%%$'\t'*}"
@@ -125,47 +126,80 @@ sys.exit(1)
   echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
   xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
 
-  # Bootstatus with timeout to avoid hanging CI (120s)
+  # simctl has no timeout flag, so supervise bootstatus ourselves. Use SECONDS
+  # rather than a sleep counter so a busy runner cannot silently extend it.
   xcrun simctl bootstatus "$SIMULATOR_UDID" -b &
   local boot_pid=$!
-  local wait_seconds=0
-  while kill -0 "$boot_pid" 2>/dev/null && (( wait_seconds < 120 )); do
-    sleep 2
-    ((wait_seconds+=2))
+  local started_at=$SECONDS
+  while kill -0 "$boot_pid" 2>/dev/null && (( SECONDS - started_at < SIMULATOR_BOOT_TIMEOUT_SECONDS )); do
+    sleep 1
   done
   if kill -0 "$boot_pid" 2>/dev/null; then
     kill "$boot_pid" 2>/dev/null || true
     wait "$boot_pid" 2>/dev/null || true
-    echo "Error: Simulator boot timed out after 120s" >&2
-    exit 1
+    echo "Error: Simulator boot timed out after ${SIMULATOR_BOOT_TIMEOUT_SECONDS}s" >&2
+    return 1
   fi
   wait "$boot_pid" 2>/dev/null || {
     echo "Error: Simulator boot failed" >&2
-    exit 1
+    return 1
   }
   echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
 }
 
 ensure_test_simulator() {
   local force="${1:-}"
+  local attempt=1
+  local max_attempts=2
 
   if [[ -n "${SIMULATOR_UDID:-}" && -z "$force" ]]; then
-    boot_simulator
-    SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
-    return 0
+    if boot_simulator; then
+      SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+      return 0
+    fi
   fi
 
-  if [[ -n "$force" && -n "${SIMULATOR_UDID:-}" ]]; then
+  if [[ -n "${SIMULATOR_UDID:-}" ]]; then
     echo "Force-resetting simulator: $SIMULATOR_NAME ($SIMULATOR_UDID)"
     xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
     xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
     SIMULATOR_UDID=""
   fi
 
-  resolve_or_create_simulator
-  boot_simulator
-  SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
-  echo "Simulator ready: $SIMULATOR_DESTINATION"
+  while (( attempt <= max_attempts )); do
+    if resolve_or_create_simulator && boot_simulator; then
+      SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+      echo "Simulator ready: $SIMULATOR_DESTINATION"
+      return 0
+    fi
+
+    if (( attempt < max_attempts )); then
+      echo "Simulator setup failed; deleting it and retrying once..." >&2
+      if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+        echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying once with a new simulator."
+      fi
+      if [[ -n "${SIMULATOR_UDID:-}" ]]; then
+        xcrun simctl shutdown "$SIMULATOR_UDID" 2>/dev/null || true
+        xcrun simctl delete "$SIMULATOR_UDID" 2>/dev/null || true
+        SIMULATOR_UDID=""
+      fi
+    fi
+    ((attempt++))
+  done
+
+  echo "Error: Simulator setup failed after ${max_attempts} attempts." >&2
+  return 1
+}
+
+ensure_test_simulator_logged() {
+  local results_dir="${TRINKET_SIMULATOR_LOG_DIR:-${RESULTS_DIR:-}}"
+  if [[ -z "$results_dir" ]]; then
+    ensure_test_simulator "$@"
+    return
+  fi
+
+  mkdir -p "$results_dir"
+  ensure_test_simulator "$@" > >(tee -a "$results_dir/simulator.log") 2>&1
 }
 
 destination_for_udid() {

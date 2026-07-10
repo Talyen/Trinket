@@ -36,7 +36,7 @@ Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1 git push` when needed.
 ./Scripts/run-simulator.sh
 ```
 
-For manifest, art, music, or SFX edits:
+For content, art, music, SFX, or cinematic edits:
 
 ```sh
 ./Scripts/generate.sh --assets
@@ -48,7 +48,7 @@ For manifest, art, music, or SFX edits:
 ./Scripts/generate.sh              # validate manifests, codegen, XcodeGen
 ./Scripts/build.sh                 # compile into .DerivedData (shared with test.sh)
 ./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build
-                                   # preferred full-unit path (mirrors CI: build once, test many)
+                                   # preferred full-unit path; validates/generates inputs first
 ./Scripts/test.sh unit             # TrinketTests + all package test schemes
 ./Scripts/test-package.sh TrinketDesignSystem  # one package scheme from its package dir
 ./Scripts/test.sh smoke            # local UI canary (Homestead, QuickSmoke)
@@ -63,21 +63,23 @@ For manifest, art, music, or SFX edits:
 ./Scripts/release.sh               # cut a release (runs test-deploy.sh unless --skip-tests)
 ```
 
-Agent workflow: `AGENTS.md`. Test conventions: `Docs/Testing.md`.
+Agent workflow: `AGENTS.md`. Test conventions: `Docs/Platform/Testing.md`.
 
 ## Docs
 
-Start with **`Docs/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
+Start with **`Docs/Platform/Architecture.md`** for the repo map, module ownership, and tab/code mapping.
 
 - Agent workflow: `AGENTS.md`
-- Testing conventions: `Docs/Testing.md`
+- Testing conventions: `Docs/Platform/Testing.md`
 - UI test launch args / speed: `TrinketUITests/README.md`
-- Product tabs / repo map: `Docs/Architecture.md`
+- Product tabs / repo map: `Docs/Platform/Architecture.md`
 - Content pipeline: `ContentManifest/README.md`
 - Art pipeline: `ArtManifest/README.md`
 - Music pipeline: `MusicManifest/README.md`
+- Sound pipeline: `SoundManifest/README.md`
+- Cinematic pipeline: `CinematicManifest/README.md`
 - Design system / chrome: `Packages/TrinketDesignSystem/README.md`
 - Apple platform notes: `Docs/Platform/iOS26AppleReference.md`
-- Fluid motion (SwiftUI): `Docs/AgentMotion.md`
+- Fluid motion (SwiftUI): `Packages/TrinketDesignSystem/` (`TrinketMotion`)
 - CloudKit pre-ship checklist: `Docs/Platform/CloudKitPreShipChecklist.md`
 - Release pipeline: `Scripts/README.md`

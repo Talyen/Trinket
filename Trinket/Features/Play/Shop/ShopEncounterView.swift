@@ -187,7 +187,6 @@ struct ShopEncounterView: View {
         }
     }
 
-    @ViewBuilder
     private func buyButtonLabel(offer: ShopOffer, soldOut: Bool, canBuy: Bool) -> some View {
         HStack(spacing: 5) {
             if soldOut {

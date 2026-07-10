@@ -79,7 +79,6 @@ struct ChapterStageSelectView: View {
         return GameContent.stage(id: stageID)
     }
 
-    @ViewBuilder
     private func stageContent(_ stage: Stage) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
