@@ -24,9 +24,13 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 ```sh
 ./Scripts/balance-sweep.sh --battles-per-tier 1000 --seed 1
+./Scripts/balance-sweep.sh --mode ability-contrast --battles-per-tier 200
+./Scripts/balance-sweep.sh --mode affix-contrast --tiers middle,lateGame
+./Scripts/balance-sweep.sh --mode all --jobs 8
 ```
 
 Writes markdown under `BalanceSweepReports/` (gitignored). Requires a local Swift toolchain (Xcode 26+).
+Modes: `identity` (default), `ability-contrast`, `affix-contrast`, `all`.
 
 ## Adding a new effect
 

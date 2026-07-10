@@ -2,7 +2,7 @@
 
 Headless, non-user-facing battle simulator that runs bulk matchups through `BattleEngine` and surfaces win-rate / power anomalies across Heroes, Pets, Enemies, Abilities, and Item Affixes at Early / Mid / Late scopes.
 
-**Status:** Implemented (v1) — decisions locked; CLI ready where Swift/Xcode is available  
+**Status:** Implemented — identity sweeps, parallel jobs, paired ability/affix contrasts; CLI ready where Swift/Xcode is available  
 **Related:** Scaffolding in `SimulationTierProfile.swift` / `SimulationResults.swift`; prior tooling removed in `BattleCardCombatMigration.md` Phase 1
 
 ---
@@ -152,7 +152,7 @@ public enum BattleSimulator {
 1. `tracksLog: false` + `tracksEvents: false` + `rebuildLog: false`
 2. No `BattleSession`
 3. Round/action caps; timeouts counted separately
-4. Optional parallelism later; v1 may be sequential if 1k/tier is already fast enough
+4. Parallel by default (`--jobs`, CPU count); use `--jobs 1` for sequential debugging
 
 ---
 
@@ -189,11 +189,13 @@ Markdown under `BalanceSweepReports/<timestamp>-seed<N>.md`:
 - [x] `BalanceSweepCLI` + `Scripts/balance-sweep.sh`
 - [x] `.gitignore` entry for report folder
 
-### Phase 4 — Optional later
+### Phase 4 — Throughput + causal contrasts
 
-- [ ] Parallel sweep
-- [ ] Paired ability/affix contrasts
-- [ ] Journey/aspect modes
+- [x] Parallel sweep (`--jobs`, default CPU count)
+- [x] Paired ability contrasts (`--mode ability-contrast`)
+- [x] Paired affix contrasts (`--mode affix-contrast`)
+- [x] Richer identity metrics (avg rounds / HP remaining)
+- [ ] Journey/aspect modes (still deferred)
 
 ---
 
@@ -211,7 +213,9 @@ Markdown under `BalanceSweepReports/<timestamp>-seed<N>.md`:
 ```sh
 ./Scripts/balance-sweep.sh --battles-per-tier 1000 --seed 1
 # optional:
+#   --mode identity|ability-contrast|affix-contrast|all
 #   --tiers early,middle,lateGame
+#   --jobs 8
 #   --output-dir BalanceSweepReports
 ```
 

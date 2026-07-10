@@ -4,6 +4,21 @@ import TrinketCore
 
 /// Assembles leveled, loadout-selected, optionally geared matchups for balance sweeps.
 public enum SimulationMatchupBuilder {
+    public struct GearOverride: Equatable, Sendable {
+        public var inventory: [InventoryItem]
+        public var loadout: EquipmentLoadout
+
+        public init(inventory: [InventoryItem], loadout: EquipmentLoadout) {
+            self.inventory = inventory
+            self.loadout = loadout
+        }
+
+        public init(_ build: ThemedGearBuild) {
+            inventory = build.inventory
+            loadout = build.loadout
+        }
+    }
+
     public static func build(
         hero: Combatant,
         pet: Combatant,
@@ -13,27 +28,30 @@ public enum SimulationMatchupBuilder {
         petLoadout: AbilityLoadout,
         seed: UInt64,
         loadoutSampleIndex: Int = 0,
+        heroGear: GearOverride? = nil,
+        petGear: GearOverride? = nil,
+        gearKeywordBias: Set<Keyword>? = nil,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator()
     ) -> ConfiguredSimulationMatchup {
         var rng = SeededRandomNumberGenerator(seed: seed)
         let progression = Self.progression(level: tier.level)
+        let requestBase = PartyPrepareRequest(
+            progression: progression,
+            tier: tier,
+            gearKeywordBias: gearKeywordBias,
+            gearGenerator: gearGenerator
+        )
 
         let heroPrepared = preparePartyMember(
             hero,
             loadout: heroLoadout,
-            progression: progression,
-            tier: tier,
-            idPrefix: "sim-hero",
-            gearGenerator: gearGenerator,
+            request: requestBase.with(idPrefix: "sim-hero", gearOverride: heroGear),
             using: &rng
         )
         let petPrepared = preparePartyMember(
             pet,
             loadout: petLoadout,
-            progression: progression,
-            tier: tier,
-            idPrefix: "sim-pet",
-            gearGenerator: gearGenerator,
+            request: requestBase.with(idPrefix: "sim-pet", gearOverride: petGear),
             using: &rng
         )
 
@@ -78,12 +96,54 @@ public enum SimulationMatchupBuilder {
             .unlocked(for: progression)
     }
 
-    private static func progression(level: Int) -> CombatantProgression {
+    public static func generateAlignedGear<RNG: RandomNumberGenerator>(
+        for combatant: Combatant,
+        tier: SimulationPowerTier,
+        keywordBias: Set<Keyword>,
+        idPrefix: String,
+        gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
+        using randomNumberGenerator: inout RNG
+    ) -> GearOverride? {
+        guard tier.includesGear,
+              let rarity = tier.rarity,
+              let affixCount = tier.fixedAffixCount
+        else { return nil }
+
+        let scaled = CombatantLevelScaler.scale(combatant: combatant, level: tier.level)
+        let gear = gearGenerator.generate(
+            for: scaled,
+            rarity: rarity,
+            fixedAffixCount: affixCount,
+            idPrefix: idPrefix,
+            keywordBias: keywordBias,
+            requireBuildAlignment: true,
+            using: &randomNumberGenerator
+        )
+        return GearOverride(gear)
+    }
+
+    public static func progression(level: Int) -> CombatantProgression {
         CombatantProgression(
             level: level,
             currentXP: 0,
             requiredXP: CombatantProgression.requiredXP(forLevel: level)
         )
+    }
+
+    private struct PartyPrepareRequest {
+        var progression: CombatantProgression
+        var tier: SimulationPowerTier
+        var idPrefix: String = ""
+        var gearOverride: GearOverride?
+        var gearKeywordBias: Set<Keyword>?
+        var gearGenerator: ThemedGearGenerator
+
+        func with(idPrefix: String, gearOverride: GearOverride?) -> PartyPrepareRequest {
+            var copy = self
+            copy.idPrefix = idPrefix
+            copy.gearOverride = gearOverride
+            return copy
+        }
     }
 
     private struct PreparedPartyMember {
@@ -95,19 +155,27 @@ public enum SimulationMatchupBuilder {
     private static func preparePartyMember<RNG: RandomNumberGenerator>(
         _ combatant: Combatant,
         loadout: AbilityLoadout,
-        progression: CombatantProgression,
-        tier: SimulationPowerTier,
-        idPrefix: String,
-        gearGenerator: ThemedGearGenerator,
+        request: PartyPrepareRequest,
         using randomNumberGenerator: inout RNG
     ) -> PreparedPartyMember {
-        let unlocked = loadout.unlocked(for: progression)
+        let unlocked = loadout.unlocked(for: request.progression)
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(unlocked)
-        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: tier.level)
+        let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: request.tier.level)
 
-        guard tier.includesGear,
-              let rarity = tier.rarity,
-              let affixCount = tier.fixedAffixCount
+        if let gearOverride = request.gearOverride {
+            let sanitized = gearOverride.loadout.sanitized(for: scaled, inventory: gearOverride.inventory)
+            let build = CombatBuildResolver.build(
+                combatant: scaled,
+                equipmentLoadout: sanitized,
+                inventory: gearOverride.inventory
+            )
+            let affixIDs = gearOverride.inventory.flatMap { $0.affixes.map(\.id) }
+            return PreparedPartyMember(build: build, loadout: unlocked, affixIDs: affixIDs)
+        }
+
+        guard request.tier.includesGear,
+              let rarity = request.tier.rarity,
+              let affixCount = request.tier.fixedAffixCount
         else {
             let build = CombatBuildResolver.build(
                 combatant: scaled,
@@ -117,12 +185,12 @@ public enum SimulationMatchupBuilder {
             return PreparedPartyMember(build: build, loadout: unlocked, affixIDs: [])
         }
 
-        let buildKeywords = Set(scaled.abilities.flatMap(\.keywords))
-        let gear = gearGenerator.generate(
+        let buildKeywords = request.gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
+        let gear = request.gearGenerator.generate(
             for: scaled,
             rarity: rarity,
             fixedAffixCount: affixCount,
-            idPrefix: idPrefix,
+            idPrefix: request.idPrefix,
             keywordBias: buildKeywords,
             requireBuildAlignment: true,
             using: &randomNumberGenerator

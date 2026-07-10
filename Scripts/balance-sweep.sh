@@ -7,7 +7,8 @@ set -euo pipefail
 # Examples:
 #   ./Scripts/balance-sweep.sh
 #   ./Scripts/balance-sweep.sh --battles-per-tier 100 --seed 42
-#   ./Scripts/balance-sweep.sh --tiers early --battles-per-tier 50
+#   ./Scripts/balance-sweep.sh --mode ability-contrast --battles-per-tier 200 --tiers early
+#   ./Scripts/balance-sweep.sh --mode all --jobs 8 --battles-per-tier 1000
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

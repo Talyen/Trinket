@@ -9,13 +9,12 @@ struct BattleSimulatorTests {
         let pet = try #require(GameContent.pets.first)
         let enemy = try #require(GameContent.enemies.first)
 
-        let loadout = hero.abilityLoadout
         let matchup = SimulationMatchupBuilder.build(
             hero: hero,
             pet: pet,
             enemy: enemy,
             tier: .early,
-            heroLoadout: loadout,
+            heroLoadout: hero.abilityLoadout,
             petLoadout: pet.abilityLoadout,
             seed: 42
         )
@@ -75,18 +74,84 @@ struct BattleSimulatorTests {
         #expect(!(matchup.context.heroAffixIDs.isEmpty))
     }
 
-    @Test func tinySweepProducesMarkdown() {
+    @Test func earlyTierOmitsUltimateWhenLocked() throws {
+        let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
+        var rng = SeededRandomNumberGenerator(seed: 5)
+        let loadout = SimulationMatchupBuilder.sampleLoadout(for: hero, level: 1, using: &rng)
+        #expect(loadout.ultimate == nil)
+        #expect(loadout.basic != nil)
+        #expect(loadout.skill != nil)
+    }
+
+    @Test func identitySweepProducesMarkdownWithSecondaryMetrics() {
         let report = BalanceSweepRunner.run(
             config: BalanceSweepConfig(
-                battlesPerTier: 2,
+                mode: .identity,
+                battlesPerTier: 4,
                 seed: 3,
-                tiers: [.early]
+                tiers: [.early],
+                jobs: 1
             )
         )
-        #expect(report.records.count == 2)
+        #expect(report.records.count == 4)
         let markdown = BalanceMarkdownReporter.render(report)
         #expect(markdown.contains("# Balance Sweep Report"))
         #expect(markdown.contains("### Heroes"))
+        #expect(markdown.contains("Avg rounds"))
+    }
+
+    @Test func parallelIdentityMatchesSequentialOutcomes() {
+        let sequential = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .identity,
+                battlesPerTier: 6,
+                seed: 11,
+                tiers: [.early],
+                jobs: 1
+            )
+        )
+        let parallel = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .identity,
+                battlesPerTier: 6,
+                seed: 11,
+                tiers: [.early],
+                jobs: 4
+            )
+        )
+        #expect(sequential.records.map(\.result) == parallel.records.map(\.result))
+        #expect(sequential.records.map(\.seed) == parallel.records.map(\.seed))
+    }
+
+    @Test func abilityContrastProducesLiftRows() {
+        let report = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .abilityContrast,
+                battlesPerTier: 8,
+                seed: 21,
+                tiers: [.early],
+                jobs: 2
+            )
+        )
+        #expect(report.records.isEmpty)
+        #expect(!(report.abilityContrasts.isEmpty))
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("Ability Contrasts"))
+    }
+
+    @Test func affixContrastProducesLiftRowsOnMidTier() {
+        let report = BalanceSweepRunner.run(
+            config: BalanceSweepConfig(
+                mode: .affixContrast,
+                battlesPerTier: 6,
+                seed: 22,
+                tiers: [.middle],
+                jobs: 2
+            )
+        )
+        #expect(!(report.affixContrasts.isEmpty))
+        let markdown = BalanceMarkdownReporter.render(report)
+        #expect(markdown.contains("Affix Contrasts"))
     }
 
     @Test func wilsonIntervalContainsPointEstimate() {

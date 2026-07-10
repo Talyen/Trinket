@@ -19,6 +19,9 @@ public struct BalanceTierStats: Sendable {
     public var battles: Int
     public var wins: Int
     public var timeouts: Int
+    public var averageRounds: Double
+    public var averagePartyHPOnWin: Double
+    public var averageEnemyHPOnLoss: Double
     public var heroes: [WinRateSummary]
     public var pets: [WinRateSummary]
     public var enemies: [WinRateSummary]
@@ -34,12 +37,18 @@ public enum BalanceStatsAggregator {
             let records = report.records.filter { $0.tier == tier }
             let overallRate = winRate(records)
             let threshold = report.config.peerDeltaFlagThreshold
+            let wins = records.filter(\.result.isVictory)
 
             return BalanceTierStats(
                 tier: tier,
                 battles: records.count,
-                wins: records.filter(\.result.isVictory).count,
+                wins: wins.count,
                 timeouts: records.filter(\.result.timedOut).count,
+                averageRounds: average(records.map { Double($0.result.rounds) }),
+                averagePartyHPOnWin: average(wins.map(\.result.partyHPRemainingFraction)),
+                averageEnemyHPOnLoss: average(
+                    records.filter { !$0.result.isVictory }.map(\.result.enemyHPRemainingFraction)
+                ),
                 heroes: margin(
                     records: records,
                     ids: { [$0.heroID] },
@@ -52,7 +61,7 @@ public enum BalanceStatsAggregator {
                     peerRate: overallRate,
                     threshold: threshold
                 ),
-                enemies: enemyMargins(records: records, threshold: threshold),
+                enemies: enemyMargins(records: records),
                 abilities: margin(
                     records: records,
                     ids: { $0.heroAbilityIDs + $0.petAbilityIDs },
@@ -109,8 +118,7 @@ public enum BalanceStatsAggregator {
     }
 
     private static func enemyMargins(
-        records: [BalanceBattleRecord],
-        threshold _: Double
+        records: [BalanceBattleRecord]
     ) -> [WinRateSummary] {
         var buckets: [String: (wins: Int, battles: Int, boss: Bool)] = [:]
         for record in records {
@@ -169,6 +177,11 @@ public enum BalanceStatsAggregator {
     private static func winRate(_ records: [BalanceBattleRecord]) -> Double {
         guard !records.isEmpty else { return 0 }
         return Double(records.filter(\.result.isVictory).count) / Double(records.count)
+    }
+
+    private static func average(_ values: [Double]) -> Double {
+        guard !values.isEmpty else { return 0 }
+        return values.reduce(0, +) / Double(values.count)
     }
 
     /// Wilson score interval at ~95% confidence.

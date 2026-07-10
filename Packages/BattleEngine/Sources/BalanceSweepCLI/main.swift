@@ -13,7 +13,11 @@ enum BalanceSweepCLI {
             }
             let config = try parseConfig(arguments)
             FileHandle.standardError.write(Data(
-                "Running balance sweep: \(config.battlesPerTier)/tier seed=\(config.seed) …\n".utf8
+                """
+                Running balance sweep mode=\(config.mode.rawValue) \
+                \(config.battlesPerTier)/tier seed=\(config.seed) jobs=\(config.resolvedJobs) …
+
+                """.utf8
             ))
 
             let report = BalanceSweepRunner.run(config: config)
@@ -35,9 +39,12 @@ enum BalanceSweepCLI {
         """
         Usage: BalanceSweepCLI [options]
 
-          --battles-per-tier <n>   Battles per power tier (default: 1000)
+          --mode <name>            identity | ability-contrast | affix-contrast | all
+                                   (default: identity)
+          --battles-per-tier <n>   Battles/pairs per power tier (default: 1000)
           --seed <n>               Sweep seed (default: 1)
           --tiers <list>           Comma list: early,middle,lateGame (default: all)
+          --jobs <n>               Parallel workers (default: CPU count; 1 = sequential)
           --output-dir <path>      Markdown output directory (default: BalanceSweepReports)
           --max-rounds <n>         Stall cap rounds (default: 100)
           --max-actions <n>        Stall cap actions (default: 500)
@@ -47,17 +54,25 @@ enum BalanceSweepCLI {
     }
 
     private static func parseConfig(_ arguments: [String]) throws -> BalanceSweepConfig {
+        var mode: BalanceSweepMode = .identity
         var battlesPerTier = BalanceSweepConfig.defaultBattlesPerTier
         var seed: UInt64 = 1
         var tiers = SimulationPowerTier.allCases
         var outputDirectory = BalanceSweepConfig.defaultOutputDirectory
         var maxRounds = BattleSimulator.defaultMaxRounds
         var maxActions = BattleSimulator.defaultMaxActions
+        var jobs = 0
 
         var index = 0
         while index < arguments.count {
             let arg = arguments[index]
             switch arg {
+            case "--mode":
+                let raw = try stringValue(after: arg, in: arguments, index: &index)
+                guard let parsed = BalanceSweepMode(rawValue: raw) else {
+                    throw CLIError.invalidMode(raw)
+                }
+                mode = parsed
             case "--battles-per-tier":
                 battlesPerTier = try intValue(after: arg, in: arguments, index: &index)
             case "--seed":
@@ -65,6 +80,8 @@ enum BalanceSweepCLI {
             case "--tiers":
                 let raw = try stringValue(after: arg, in: arguments, index: &index)
                 tiers = try parseTiers(raw)
+            case "--jobs":
+                jobs = try intValue(after: arg, in: arguments, index: &index)
             case "--output-dir":
                 outputDirectory = try stringValue(after: arg, in: arguments, index: &index)
             case "--max-rounds":
@@ -78,12 +95,14 @@ enum BalanceSweepCLI {
         }
 
         return BalanceSweepConfig(
+            mode: mode,
             battlesPerTier: battlesPerTier,
             seed: seed,
             tiers: tiers,
             maxRounds: maxRounds,
             maxActions: maxActions,
-            outputDirectory: outputDirectory
+            outputDirectory: outputDirectory,
+            jobs: jobs
         )
     }
 
@@ -145,6 +164,7 @@ private enum CLIError: Error, CustomStringConvertible {
     case missingValue(String)
     case invalidInt(String, String)
     case invalidTier(String)
+    case invalidMode(String)
 
     var description: String {
         switch self {
@@ -156,6 +176,8 @@ private enum CLIError: Error, CustomStringConvertible {
             return "\(flag) invalid integer \(raw)"
         case let .invalidTier(raw):
             return "invalid tiers \(raw)"
+        case let .invalidMode(raw):
+            return "invalid mode \(raw)"
         }
     }
 }
