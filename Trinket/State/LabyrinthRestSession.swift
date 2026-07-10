@@ -1,5 +1,4 @@
 import Foundation
-import TrinketContent
 
 /// Thin shrine rest encounter for The Labyrinth.
 @MainActor

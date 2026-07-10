@@ -1,5 +1,4 @@
 import Foundation
-import TrinketContent
 
 /// Thin Crafting Altar encounter for The Labyrinth (gold → generated item).
 @MainActor
