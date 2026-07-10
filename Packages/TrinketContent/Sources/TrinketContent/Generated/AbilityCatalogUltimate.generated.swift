@@ -44,7 +44,8 @@ enum AbilityCatalogUltimateGenerated {
     static let bloodthorn = AbilityBuilder.multiDamage(
         id: "bloodthorn", name: "Bloodthorn", tier: .ultimate,
         damageComponents: [DamageComponent(2, keyword: .nature), DamageComponent(2, keyword: .bleed), DamageComponent(2, keyword: .poison)],
-        effects: [TargetedEffect(.bleed(2)), TargetedEffect(.poison(2)), TargetedEffect(.standardLeechBuff)]
+        effects: [TargetedEffect(.bleed(2)), TargetedEffect(.poison(2))],
+        hasLeech: true
     )
 
     static let faustianBargain = AbilityBuilder.multiDamage(

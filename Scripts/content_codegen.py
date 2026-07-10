@@ -103,6 +103,7 @@ class AbilityRow:
     effects: str = ""
     damage_components: str = ""
     extras: str = ""
+    leech: str = ""
 
 
 @dataclass
@@ -249,6 +250,7 @@ def parse_ability_rows() -> list[AbilityRow]:
         "effects",
         "damage_components",
         "extras",
+        "leech",
     ]
     if header != expected:
         raise ValueError(f"{path} header mismatch: {header}")
@@ -629,9 +631,7 @@ def parse_effect_token(token: str) -> str:
     else:
         target_name = None
 
-    if token == "standard_leech_buff":
-        effect = ".standardLeechBuff"
-    elif token == "cleanse_random":
+    if token == "cleanse_random":
         effect = ".cleanseRandom"
     elif token == "purge":
         effect = ".purge(nil)"
@@ -712,24 +712,31 @@ def optional_description(description: str) -> str:
     return f',\n        description: "{escaped}"'
 
 
+def optional_leech(leech: str) -> str:
+    if leech.strip().lower() in {"1", "true", "yes"}:
+        return ",\n        hasLeech: true"
+    return ""
+
+
 def render_direct_hit(row: AbilityRow) -> str:
     amount = row.amount or "0"
     keyword = row.keyword or "physical"
     extras = targeted_effects_swift(row.extras)
     description = optional_description(row.description)
+    leech = optional_leech(row.leech)
     if extras:
         extras_arg = ", ".join(extras)
         return (
             f"    static let {row.symbol} = AbilityBuilder.directHit(\n"
             f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
             f"        amount: {amount}, keyword: .{keyword}{description},\n"
-            f"        extras: [{extras_arg}]\n"
+            f"        extras: [{extras_arg}]{leech}\n"
             f"    )"
         )
     return (
         f"    static let {row.symbol} = AbilityBuilder.directHit(\n"
         f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        amount: {amount}, keyword: .{keyword}{description}\n"
+        f"        amount: {amount}, keyword: .{keyword}{description}{leech}\n"
         f"    )"
     )
 
@@ -742,10 +749,11 @@ def effect_swift(token: str) -> str:
 def render_buff_only(row: AbilityRow) -> str:
     effects = ", ".join(effect_swift(token) for token in row.effects.split("|") if token.strip())
     description = optional_description(row.description)
+    leech = optional_leech(row.leech)
     return (
         f"    static let {row.symbol} = AbilityBuilder.buffOnly(\n"
         f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        effects: [{effects}]{description}\n"
+        f"        effects: [{effects}]{description}{leech}\n"
         f"    )"
     )
 
@@ -754,11 +762,12 @@ def render_multi_damage(row: AbilityRow) -> str:
     damage = ", ".join(damage_components_swift(row.damage_components))
     effects = ", ".join(targeted_effects_swift(row.effects))
     description = optional_description(row.description)
+    leech = optional_leech(row.leech)
     effects_clause = f",\n        effects: [{effects}]" if effects else ""
     return (
         f"    static let {row.symbol} = AbilityBuilder.multiDamage(\n"
         f'        id: "{row.id}", name: "{swift_escape(row.name)}", tier: .{row.tier},\n'
-        f"        damageComponents: [{damage}]{effects_clause}{description}\n"
+        f"        damageComponents: [{damage}]{effects_clause}{description}{leech}\n"
         f"    )"
     )
 

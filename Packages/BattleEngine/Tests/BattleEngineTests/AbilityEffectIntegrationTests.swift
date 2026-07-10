@@ -53,6 +53,9 @@ struct AbilityEffectIntegrationTests {
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(hero: hero, pet: pet, enemy: enemy)
+        battle.withEngineContext { context in
+            context.roster.mutateRuntime(for: hero) { $0.currentHealth = 10 }
+        }
 
         _ = try #require(
             try BattleTestFixtures.playUntilAbility("Bloodthorn", on: &battle),
@@ -60,11 +63,12 @@ struct AbilityEffectIntegrationTests {
         )
 
         // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
-        // before any end-of-round DoT tick.
+        // before any end-of-round DoT tick. Ability Leech heals 50% of damage dealt.
         try #expect(battle.health(of: battle.enemy) == 94)
         try #expect(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
         try #expect(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
-        try #expect(battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
+        try #expect(battle.health(of: battle.hero) > 10)
+        try #expect(!battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
     }
 
     @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() throws {

@@ -13,6 +13,8 @@ public enum AbilityValidator {
 
     public static let descriptionOverrideIDs: Set<String> = [
         "blackjack",
+        "blood-offering",
+        "dark-pact",
         "grasping-vines",
         "judgment",
         "glacial-ward",
@@ -119,7 +121,7 @@ public enum AbilityValidator {
         let allowed: Set<Int>
         switch tier {
         case .basic:
-            allowed = [1]
+            allowed = [1, 2]
         case .skill:
             allowed = [2, 3]
         case .ultimate:
@@ -140,6 +142,8 @@ public enum AbilityValidator {
         switch abilityID {
         case "bloodthorn":
             return total == 6
+        case "blood-offering":
+            return total == 4
         case "acid-potion", "ice-shot":
             return total == 2
         case "blizzard", "pack-tactics":

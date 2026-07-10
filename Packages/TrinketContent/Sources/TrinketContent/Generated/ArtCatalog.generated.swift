@@ -391,10 +391,6 @@ public enum ArtCatalog {
             imageName: "ability_golden_plate_thumb",
             accessibilityLabel: "Ability art for Golden Plate"
         ),
-        "grave-pact": AbilityArtReference(
-            imageName: "ability_grave_pact_thumb",
-            accessibilityLabel: "Ability art for Grave Pact"
-        ),
         "grasping-vines": AbilityArtReference(
             imageName: "ability_grasping_vines_thumb",
             accessibilityLabel: "Ability art for Grasping Vines"

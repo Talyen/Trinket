@@ -38,7 +38,6 @@ public extension Ability {
     public static let glacialWard = AbilityCatalogUltimate.glacialWard
     public static let goldenPlate = AbilityCatalogUltimate.goldenPlate
     public static let graspingVines = AbilityCatalogSkill.graspingVines
-    public static let gravePact = AbilityCatalogSkill.gravePact
     public static let haste = AbilityCatalogSkillGenerated.haste
     public static let heal = AbilityCatalogSkill.heal
     public static let healthPotion = AbilityCatalogSkillGenerated.healthPotion

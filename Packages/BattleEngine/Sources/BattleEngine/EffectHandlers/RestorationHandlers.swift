@@ -77,3 +77,37 @@ public struct ResourceGainHandler: BattleEffectHandler {
         return EffectApplyOutcome(events: events, didApply: true)
     }
 }
+
+public struct DrawCardsHandler: BattleEffectHandler {
+    public let kind: EffectKind = .drawCards
+
+    public func apply(
+        _ effect: Effect,
+        ability: Ability,
+        source: Combatant,
+        target _: Combatant,
+        action _: ActionApplyContext,
+        in context: inout BattleEngineContext
+    ) -> EffectApplyOutcome {
+        guard case let .drawCards(count) = effect, count > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let drawn = BattleCardCombatEngine.drawCards(count: count, for: owner, context: &context)
+        guard drawn > 0 else {
+            return EffectApplyOutcome(events: [], didApply: false)
+        }
+        let event = context.nextEvent(
+            kind: .effect,
+            effectKind: .cardsDrawn,
+            actorName: source.name,
+            abilityName: ability.name,
+            target: source,
+            amount: drawn,
+            keyword: .physical
+        )
+        return EffectApplyOutcome(events: [event], didApply: true)
+    }
+}

@@ -46,7 +46,7 @@ public enum EffectPresentation {
             return "Mana Shield"
         case .damageKeywordOverride:
             return "Consecrated"
-        case .instantHeal, .resourceGain, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
+        case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
         }
     }
@@ -98,6 +98,8 @@ public enum EffectPresentation {
             return "steal \(amount) Gold"
         case let .resourceGain(.mana, amount):
             return "restore \(amount) Mana"
+        case let .drawCards(count):
+            return count == 1 ? "draw 1 card" : "draw \(count) cards"
         default:
             return nil
         }

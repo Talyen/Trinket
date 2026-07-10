@@ -16,7 +16,8 @@ package extension BattleState {
             abilityCriticalChanceBonus: request.options.abilityCriticalChanceBonus,
             guaranteedCriticalIfEnemyBuffed: request.options.guaranteedCriticalIfEnemyBuffed,
             isRetaliation: request.options.isRetaliation,
-            qualifiesForAmbush: request.options.qualifiesForAmbush
+            qualifiesForAmbush: request.options.qualifiesForAmbush,
+            abilityHasLeech: request.options.abilityHasLeech
         )
         state.activeEffects = roster.activeEffects(for: request.target)
 
@@ -29,8 +30,17 @@ package extension BattleState {
         HealingEngine.resolveHeal(request, in: &self)
     }
 
-    mutating func applyLeechFromDamage(_ damage: Int, sourceActorID: String) -> [ActionEvent] {
-        HealingEngine.leechFromDamage(damage, sourceActorID: sourceActorID, in: &self).events
+    mutating func applyLeechFromDamage(
+        _ damage: Int,
+        sourceActorID: String,
+        abilityHasLeech: Bool = false
+    ) -> [ActionEvent] {
+        HealingEngine.leechFromDamage(
+            damage,
+            sourceActorID: sourceActorID,
+            abilityHasLeech: abilityHasLeech,
+            in: &self
+        ).events
     }
 
     mutating func applyControlMeter(

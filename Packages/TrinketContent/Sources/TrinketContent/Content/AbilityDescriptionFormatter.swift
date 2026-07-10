@@ -15,7 +15,7 @@ public enum AbilityDescriptionFormatter {
 
         let enemyDamage = ability.damageComponents.filter { $0.target == .abilityTarget }
         if !enemyDamage.isEmpty {
-            clauses.append(contentsOf: formatEnemyDamage(enemyDamage, effects: ability.targetedEffects))
+            clauses.append(contentsOf: formatEnemyDamage(enemyDamage))
         }
 
         for targetedEffect in ability.targetedEffects {
@@ -31,22 +31,21 @@ public enum AbilityDescriptionFormatter {
             clauses.append("gain +\(Int(ability.criticalChanceBonus * 100))% Critical chance")
         }
 
-        return joinClauses(clauses)
+        let body = joinClauses(clauses)
+        if ability.hasLeech {
+            return body.isEmpty ? "Leech." : "\(body) Leech."
+        }
+        return body
     }
 
     private static func formatEnemyDamage(
-        _ components: [DamageComponent],
-        effects: [TargetedEffect]
+        _ components: [DamageComponent]
     ) -> [String] {
         var clauses: [String] = []
         for component in components {
             var text = "deal \(component.amount) \(component.keyword.rawValue) damage"
             if component.bonusAmount > 0, let condition = component.condition {
                 text += ". If \(conditionPhrase(condition)), deal \(component.bonusAmount) extra \(component.keyword.rawValue) damage"
-            }
-            if let alias = component.keyword.statusAlias,
-               effects.contains(where: { matchesDoT($0.effect, keyword: component.keyword, potency: component.amount) }) {
-                text += " and applies \(alias)"
             }
             clauses.append(text)
         }
@@ -82,15 +81,6 @@ public enum AbilityDescriptionFormatter {
     private static func isPairedDoT(_ effect: Effect, in damage: [DamageComponent]) -> Bool {
         guard let potency = effect.potency else { return false }
         return damage.contains { $0.keyword == effect.keyword && $0.amount == potency }
-    }
-
-    private static func matchesDoT(_ effect: Effect, keyword: Keyword, potency: Int) -> Bool {
-        switch effect {
-        case let .burn(amount): return keyword == .burn && amount == potency
-        case let .poison(amount): return keyword == .poison && amount == potency
-        case let .bleed(amount): return keyword == .bleed && amount == potency
-        default: return false
-        }
     }
 
     private static func listPhrase(_ items: [String]) -> String {

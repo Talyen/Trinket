@@ -91,6 +91,29 @@ struct EffectHandlersApplyTests {
         try #expect(leechStacks.count == 1)
     }
 
+    @Test func drawCardsHandlerDrawsIntoHandAndEmitsEvent() throws {
+        var battle = EffectHandlersTestSupport.makeBattle(
+            hero: Combatant(
+                id: "hero",
+                name: "Hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [.slash, .heal, .smite, .darkPact]
+            )
+        )
+        let handBefore = battle.hand.count
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawCards(2),
+            ability: .darkPact,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.hand.count == handBefore + 2)
+        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
+    }
+
     @Test func cleanseWithoutDebuffsDoesNotApply() throws {
         var battle = EffectHandlersTestSupport.makeBattle()
         let outcome = EffectHandlersTestSupport.dispatch(.cleanse(.poison), ability: CombatantFixtures.ability(), source: battle.hero, target: battle.hero, battle: &battle)

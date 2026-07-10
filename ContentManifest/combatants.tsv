@@ -14,7 +14,7 @@ phoenix	Phoenix	pet	14	8	mage	kindling,bash	fireball,cinderbloom	phoenixFeather,
 wolf	Wolf	pet	14	0	assassin	rendingSlash,fangs	graspingVines,predatorsHaste	packTactics,hemorrhage	7	10	5	2	4	pack_ferocity
 golden_retriever	Golden Retriever	pet	16	0	support	apple,sniffOut	stoneskinPotion,tithe	luckPotion,goldenPlate	3	6	7	3	9	loyal_comfort
 library_owl	Library Owl	pet	14	8	support	wiseFrost,stargaze	sageHeal,cleanse	panaceaPotion,exorcism	2	6	5	7	10	purifying_wisdom
-risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	gravePact,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4	unliving_frame
+risen_skeleton	Risen Skeleton	pet	15	0	bruiser	slash,blackjack	bloodOffering,sunderArmor	faustianBargain,hemorrhage	7	5	7	5	4	unliving_frame
 mana_moth	Mana Moth	pet	14	11	mage	manaBerries,manaCrystals	manaPotion,manaShield	manaBulwark,combustion	3	7	4	9	7	arcane_reservoir
 pixie	Pixie	pet	14	7	support	pixieDust,kindling	cleanse,heal	panaceaPotion,sunburst	2	8	4	6	8	fae_fortune
 shield_scarab	Shield Scarab	pet	16	0	tank	block,shieldBash	spikedShield,stoneskinPotion	thornMail,blessedAegis	5	4	12	2	4	iron_carapace

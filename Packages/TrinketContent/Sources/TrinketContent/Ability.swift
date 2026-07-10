@@ -11,6 +11,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
     public let manaCost: Int
     public let criticalChanceBonus: Double
     public let guaranteedCriticalIfEnemyBuffed: Bool
+    /// When true, damage from this ability heals the attacker for `Effect.abilityLeechPercent`
+    /// of health lost (Leech keyword — not a lasting buff).
+    public let hasLeech: Bool
 
     public var effects: [Effect] {
         targetedEffects.map(\.effect)
@@ -26,7 +29,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
         targetedEffects: [TargetedEffect]? = nil,
         manaCost: Int = 0,
         criticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false
+        guaranteedCriticalIfEnemyBuffed: Bool = false,
+        hasLeech: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -36,6 +40,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
         self.manaCost = manaCost
         self.criticalChanceBonus = criticalChanceBonus
         self.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
+        self.hasLeech = hasLeech
         if let targetedEffects {
             self.targetedEffects = targetedEffects
         } else {
@@ -54,7 +59,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
         targetedEffects: [TargetedEffect]? = nil,
         manaCost: Int = 0,
         criticalChanceBonus: Double = 0,
-        guaranteedCriticalIfEnemyBuffed: Bool = false
+        guaranteedCriticalIfEnemyBuffed: Bool = false,
+        hasLeech: Bool = false
     ) {
         let components = directDamage > 0
             ? [DamageComponent(directDamage, keyword: damageKeyword)]
@@ -69,7 +75,8 @@ public struct Ability: Identifiable, Hashable, Sendable {
             targetedEffects: targetedEffects,
             manaCost: manaCost,
             criticalChanceBonus: criticalChanceBonus,
-            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
+            hasLeech: hasLeech
         )
     }
 
@@ -108,6 +115,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
         var result = damageComponents.map(\.keyword)
         for targetedEffect in targetedEffects {
             result.append(targetedEffect.effect.keyword)
+        }
+        if hasLeech {
+            result.append(.leech)
         }
         return result
     }

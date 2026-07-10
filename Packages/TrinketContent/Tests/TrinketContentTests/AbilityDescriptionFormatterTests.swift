@@ -12,12 +12,12 @@ struct AbilityDescriptionFormatterTests {
     @Test func fireArrowIncludesConditionalBurnRefresh() throws {
         let description = AbilityDescriptionFormatter.format(.fireArrow)
         try #expect(description.contains("Deal 1 Burn damage"))
-        try #expect(description.contains("applies Burning"))
+        try #expect(!description.contains("applies Burning"))
     }
 
     @Test func fangsPairsBleedDamageWithStatusPhrase() throws {
         try #expect(
-            AbilityDescriptionFormatter.format(.fangs) == "Deal 1 Bleed damage and applies Bleeding."
+            AbilityDescriptionFormatter.format(.fangs) == "Deal 1 Bleed damage."
         )
     }
 

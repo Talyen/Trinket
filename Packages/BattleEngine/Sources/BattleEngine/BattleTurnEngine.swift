@@ -195,7 +195,8 @@ public enum BattleTurnEngine {
                     options: DamageOptions(
                         abilityCriticalChanceBonus: ability.criticalChanceBonus,
                         guaranteedCriticalIfEnemyBuffed: ability.guaranteedCriticalIfEnemyBuffed,
-                        qualifiesForAmbush: true
+                        qualifiesForAmbush: true,
+                        abilityHasLeech: ability.hasLeech
                     )
                 )
             )
@@ -306,6 +307,7 @@ public enum BattleTurnEngine {
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
         if case .resourceGain(.gold, _) = effect { return false }
+        if case .drawCards = effect { return false }
         return true
     }
 

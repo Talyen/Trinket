@@ -40,7 +40,15 @@ struct RestorationIntegrationTests {
     }
 
     @Test func leechHealsAttackerOnDamageDealt() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [.slash])
+        let leechSlash = Ability(
+            id: "leech-slash",
+            name: "Leech Slash",
+            tier: .basic,
+            directDamage: 2,
+            damageKeyword: .physical,
+            hasLeech: true
+        )
+        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [leechSlash])
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy)
         var battle = BattleTestFixtures.standardParty(
@@ -48,17 +56,16 @@ struct RestorationIntegrationTests {
             pet: pet,
             enemy: enemy,
             activeHeroEffects: [
-                ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0),
-                ActiveEffect(id: 2, effect: .standardLeechBuff, remainingTicks: 6)
+                ActiveEffect(id: 1, effect: .burn(5), remainingTicks: 0)
             ]
         )
 
         _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(battle.health(of: battle.hero) == 8)
 
-        let events = try BattleTestFixtures.playCardNamed("Slash", owner: .hero, on: &battle)
+        let events = try BattleTestFixtures.playCardNamed("Leech Slash", owner: .hero, on: &battle)
 
-        // 10% leech of 1 damage → ceil(0.1) = 1 heal.
+        // 50% leech of 2 damage → 1 heal.
         try #expect(battle.health(of: battle.hero) == 9)
         try #expect(events.contains { $0.effectKind == .leechHeal && $0.keyword == .leech })
     }

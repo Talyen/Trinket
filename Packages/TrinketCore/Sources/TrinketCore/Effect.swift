@@ -53,6 +53,8 @@ public enum Effect: Hashable, Sendable {
     case instantHeal(Keyword, Int)
     case leech(Keyword, Double, Int)
     case resourceGain(Keyword, Int)
+    /// Draw `Int` cards for the actor's deck (hero or pet). No-op for enemies.
+    case drawCards(Int)
     case cleanse(Keyword?)
     case cleanseRandom
     case purge(Keyword?)
@@ -68,6 +70,9 @@ public enum Effect: Hashable, Sendable {
     case damageKeywordOverride(Keyword, Int, Int)
 
     public static let bleedDoTTickCount = 3
+    /// Fraction of health lost healed when an ability with the Leech keyword deals damage.
+    public static let abilityLeechPercent = 0.50
+    /// Legacy timed-buff leech percent (affix/packbond reactions that still grant a buff).
     public static let standardLeechPercent = 0.10
     public static let standardLeechDuration = 6
     public static let standardThornsDuration = 6
@@ -87,6 +92,7 @@ public enum Effect: Hashable, Sendable {
         case let .instantHeal(k, _): return k
         case let .leech(k, _, _): return k
         case let .resourceGain(k, _): return k
+        case .drawCards: return .physical
         case let .cleanse(k?): return k
         case .cleanse(nil), .cleanseRandom: return .health
         case let .purge(k?): return k
@@ -121,7 +127,7 @@ public enum Effect: Hashable, Sendable {
         case let .criticalChanceBonus(_, d): return d
         case let .restoreManaOnHit(_, d): return d
         case let .damageKeywordOverride(_, _, d): return d
-        case .burn, .poison, .instantHeal, .resourceGain, .cleanse, .cleanseRandom,
+        case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor: return 0
         }
     }
@@ -149,7 +155,7 @@ public enum Effect: Hashable, Sendable {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom, .marked:
             return .abilityTarget
-        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .cleanse, .cleanseRandom,
+        case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
             return .actor
         }
