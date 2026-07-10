@@ -10,5 +10,6 @@ Curated Apple platform guidance and Trinket-specific stack audits. Use these whe
 | [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) | Follow-up plan: haptics, AppStorage, Dynamic Type, iOS 26 chrome APIs, privacy manifest, CloudKit prep |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Pre-ship CloudKit / App Store checklist (F1 local prep vs F2 Developer Program enablement) |
 | [IdentityPlan.md](IdentityPlan.md) | Guest-first identity: iCloud = cross-device progress; no login splash / SIWA / Google (stub until F2) |
+| [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Device-led workflow for diagnosing a reported performance, memory, or energy regression |
 
 Related agent audits: [Docs/Audits/README.md](../Audits/README.md). Design system / chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md). Fluid motion: `TrinketMotion` in `Packages/TrinketDesignSystem/`. Active plans: [BattleCardCombatMigration.md](../Plans/BattleCardCombatMigration.md).

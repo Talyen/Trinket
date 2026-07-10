@@ -1,16 +1,16 @@
-# E2E / UI Test Quality & Speed Audit
+# UI Test Reliability & Signal Audit
 
-Goal: Improve UI smoke and exhaustive tests — speed, tier fit, duplication, assertion quality — then **fix** the top issues and commit.
+Goal: Improve confirmed UI-test reliability, signal, and tier fit without weakening product coverage.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append improvement plans or Done tables to this file.
 
 Unit/package tests → [UnitTestAudit.md](UnitTestAudit.md).  
 Interaction / a11y product bugs → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md).  
-Conventions → `Docs/Testing.md` + `TrinketUITests/README.md`.
+Conventions → `Docs/Platform/Testing.md` + `TrinketUITests/README.md`.
 
 ## Mission
 
-Run UI-focused probes, triage P0–P2, implement up to **5** fixes (deep links, timeout slimming, smoke/exhaustive split, flaky waits), verify with smoke (and targeted UI if needed), commit. Put the scored plan in the commit/PR body only.
+Run UI-focused probes, confirm P0–P2 candidates with a focused current run, then make a bounded set of fixes. A clean pass is valid. Put evidence and any skipped candidates in the commit/PR body only.
 
 ## Hard stops
 
@@ -20,7 +20,7 @@ Run UI-focused probes, triage P0–P2, implement up to **5** fixes (deep links, 
 - Do not change `project.yml` schemes/test plans unless required for a fix you are implementing.
 - Do not expand into unit XCTest→Testing migration (see UnitTestAudit + `./Scripts/check-swift-testing-migration.sh`).
 - Mid-battle interaction tests: enter via Play map — not `-launch-screen battle` with extreme tick intervals (per `TrinketUITests/README.md`).
-- Do not invent wall-clock budgets that conflict with `Docs/Testing.md` / `AGENTS.md` (smoke is a short UI-only plan).
+- Do not invent wall-clock budgets that conflict with `Docs/Platform/Testing.md` / `AGENTS.md` (smoke is a short UI-only plan).
 
 ## Probes
 
@@ -34,6 +34,8 @@ rg -n 'waitForExistence\(timeout:\s*[3-9]' --type swift TrinketUITests || true
 rg -n 'assertExistsAfterScroll' --type swift TrinketUITests || true
 rg -n 'openHeroesCategory|openPetsCategory|openStage' --type swift TrinketUITests || true
 ```
+
+Timing history is a lead, not proof: confirm a slow or flaky class with a focused current run before changing it.
 
 ### Assertion / quality
 
@@ -112,7 +114,7 @@ Do **not** add `performAccessibilityAudit()` in this audit unless a screen is al
 ./Scripts/test.sh ui <ClassName>
 ```
 
-Confirm: no identifier removals; no battle RNG changes; recommendations match `Docs/Testing.md` / `TrinketUITests/README.md`. Skip smoke/UI when the simulator toolchain is absent; note skips in the commit body.
+Confirm: no identifier removals; no battle RNG changes; recommendations match `Docs/Platform/Testing.md` / `TrinketUITests/README.md`. Skip smoke/UI when the simulator toolchain is absent; note skips in the commit body.
 
 ## Commit
 

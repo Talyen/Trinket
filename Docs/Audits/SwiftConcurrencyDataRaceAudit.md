@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Run the probes, triage P0–P2 first, fix up to **5** issues, verify, commit.
+Start with a strict-concurrency build when available, then use probes to investigate its diagnostics and high-risk candidates. Fix a bounded set of confirmed issues; a clean pass is valid.
 
 ## Hard stops
 
@@ -24,7 +24,7 @@ Run the probes, triage P0–P2 first, fix up to **5** issues, verify, commit.
 rg -n 'static var\s+\w+\s*(:\s*[^\{]+)?\s*=' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 ```
 
-Triage: actor-isolated, locked/`Mutex`, or convert to `static let`.
+Triage: actor-isolated (including `@MainActor` where appropriate), locked/`Mutex`, immutable, or otherwise proven safe.
 
 ### 2. Compiler safety bypasses
 
@@ -48,7 +48,7 @@ Prefer `@MainActor` / `MainActor.run` / actor isolation over `DispatchQueue.main
 rg -n '\bsleep\(|\busleep\(|\bThread\.sleep\(|\bData\(contentsOf:' --type swift -g '!*Tests*' -g '!*UITests*'
 ```
 
-Replace with `Task.sleep` / async I/O off the cooperative hot path.
+Establish the current executor and call frequency before changing blocking I/O; use async or off-actor work only when the hot path requires it.
 
 ### 5. Unstructured tasks & isolation hotspots
 
@@ -64,7 +64,16 @@ rg -n '@MainActor|@Observable' --type swift \
 
 Check: unstructured `Task { }` on `@Observable` / store types cancel on teardown; prefer structured children; document any required `Task.detached`.
 
-### 6. Project concurrency configuration
+### 6. Other isolation escapes
+
+```bash
+rg -n '@preconcurrency|MainActor\.assumeIsolated|withUnsafeContinuation|withCheckedContinuation|AsyncStream|TaskGroup' \
+  --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+```
+
+Confirm the lifetime, cancellation, and executor assumptions for every candidate; the presence of one is not itself a defect.
+
+### 7. Project concurrency configuration
 
 ```bash
 rg -n 'SWIFT_STRICT_CONCURRENCY|SWIFT_TREAT_WARNINGS_AS_ERRORS' project.yml Packages/*/Package.swift
@@ -78,7 +87,7 @@ Expect `SWIFT_STRICT_CONCURRENCY: complete` (or equivalent package setting). Do 
 |-----|-------------|--------|
 | P0 | Unsynchronized shared mutable state on hot paths | Fix now |
 | P1 | Undocumented `@unchecked` / `nonisolated(unsafe)` | Document or refactor |
-| P2 | Blocking call on actor/main; leaking unstructured Task | Offload / async / cancel |
+| P2 | Blocking call on actor/main; leaking unstructured Task | Establish the correct executor, ownership, and cancellation; do not convert APIs to async by default |
 | P3 | `DispatchQueue` legacy bridge | Modernize when touching |
 | P4 | Unnecessary `Task.detached` | Prefer structured Task |
 
@@ -104,9 +113,9 @@ SwiftUI `.task` is cancelled when the view goes away. Do **not** reflexively add
 ## Verification
 
 ```sh
+./Scripts/build.sh   # toolchain permitting — primary check for Sendable/isolation errors
 ./Scripts/check-module-boundaries.sh
 ./Scripts/lint.sh
-./Scripts/build.sh   # toolchain permitting — confirm no new Sendable/isolation errors
 # Narrow when the diff is focused:
 ./Scripts/test.sh unit <FocusedClass>
 ./Scripts/test-package.sh TrinketPersistence   # if stores touched

@@ -1,6 +1,6 @@
-# Behavior Hardening Audit
+# Persistence & Transition Correctness Audit
 
-Goal: Strengthen correctness at persistence, state-machine, and error-handling boundaries.
+Goal: Strengthen confirmed correctness gaps at persistence and player-state transition boundaries.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
@@ -10,7 +10,7 @@ I/O / RNG seams → [SideEffectSurfaceAudit.md](SideEffectSurfaceAudit.md).
 
 ## Mission
 
-Probe persistence and orchestration boundaries, triage by user impact, fix up to **5** high-confidence issues (idempotency, silent save failure, corrupt-save handling), verify, commit.
+Probe persistence and transition boundaries, then fix a small, cohesive set of confirmed high-impact issues. A clean pass is valid; do not add guards or logs solely to create work.
 
 ## Hard stops
 
@@ -18,7 +18,7 @@ Probe persistence and orchestration boundaries, triage by user impact, fix up to
 - Do not change `accessibilityIdentifier` strings unless removing the control.
 - Do not weaken battle test determinism.
 - Do not run full-repo concurrency or type-safety sweeps here — link out.
-- Audio playback `try?` + log is acceptable.
+- Audio playback handling belongs to [SideEffectSurfaceAudit.md](SideEffectSurfaceAudit.md).
 
 ## Probes
 
@@ -62,7 +62,7 @@ Deep `Task` / clock / Sendable probes belong to [SwiftConcurrencyDataRaceAudit.m
 
 - `BattleSession` stage completion / reward grant: double “Continue” must not double-grant
 - `PlayerHomesteadState.adjustedMaterialRewards` is pure for the same inputs
-- SwiftUI `.task` re-entrance: appear/disappear/reappear must not leak duplicate work
+- Completion and recovery paths remain correct when a transition is retried or interrupted
 
 ### Swallowed errors
 
@@ -82,10 +82,10 @@ Deep `Task` / clock / Sendable probes belong to [SwiftConcurrencyDataRaceAudit.m
 |----------|----------|
 | P0 | Double reward grant, silent save failure, crash on corrupt save |
 | P1 | Non-idempotent completion, lost persistence error |
-| P2 | Missing log on recoverable failure |
+| P2 | Recovery hides a meaningful failure from both the player and diagnostics |
 | P3 | Style-only error handling churn |
 
-Fix P0–P1 first; cap at 5 fixes.
+Fix P0–P1 first; stop when the bounded transition or persistence area is clean.
 
 ## Verification
 

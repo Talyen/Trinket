@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Discover markdown from the repo (do not trust a hardcoded file count). Fix **Critical** and **Moderate** issues found in this pass, capped at a sensible blast radius (**≤15** doc files or one coherent doc area).
+Discover markdown from the repository (do not trust a hardcoded file count). Fix confirmed Critical and Moderate drift within one coherent doc area or a modest blast radius. A pass with no contradiction is valid.
 
 ## Hard stops
 
@@ -18,20 +18,18 @@ Discover markdown from the repo (do not trust a hardcoded file count). Fix **Cri
 ## Discover targets
 
 ```bash
-# Authoritative inventory — update nothing by hand-counting
-find . -name '*.md' \
-  -not -path './.DerivedData/*' \
-  -not -path './.git/*' \
-  -not -path './Raw Assets/*' \
-  | sort
+# Authoritative inventory — respects agent do-not-read trees
+rg --files -g '*.md' \
+  -g '!**/.git/**' -g '!**/.DerivedData/**' -g '!**/.build/**' \
+  -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' | sort
 
 # Probes
-rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/|SoundManifest/)' --type md -g '!.DerivedData/'
-rg -n '\([^)]*\.md[#)]' --type md -g '!.DerivedData/'
-rg -n 'https?://' --type md -g '!.DerivedData/'
-rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)' --type md
-rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this point|phase \d|soon|upcoming|planned|scratch|parked)' --type md -i
-rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md
+rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/|SoundManifest/)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n '\([^)]*\.md[#)]' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n 'https?://' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this point|phase \d|soon|upcoming|planned|scratch|parked)' --type md -i -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
 ```
 
 Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Testing, AgentMotion, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
@@ -64,7 +62,7 @@ Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, 
 
 - Internal `.md` links must resolve **relative to the source file** (not only from repo root)
 - Heading anchors still exist
-- External URLs: spot-check Apple docs (expect 200/302)
+- External URLs: check only when the cited source is being changed and network access is available; do not fail solely on an unavailable or bot-protected endpoint
 
 ### Versions / counts (sources of truth)
 
@@ -75,7 +73,7 @@ Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, 
 
 ### Terminology
 
-Canonical names from `Docs/Architecture.md` / source: `AppTab` cases, `BattleSession` / `ActiveBattleConfiguration` / `BattleVictorySummary`, store names, manifest directory names (`SoundManifest/` included).
+Canonical names from `Docs/Platform/Architecture.md` / source: `AppTab` cases, `BattleSession` / `ActiveBattleConfiguration` / `BattleVictorySummary`, store names, manifest directory names (`SoundManifest/` included).
 
 ### Audit hygiene
 
@@ -88,7 +86,7 @@ Canonical names from `Docs/Architecture.md` / source: `AppTab` cases, `BattleSes
 | Deleted path / type | Update or delete the paragraph |
 | Broken link | Fix target or remove |
 | Stale version / count | Match source of truth |
-| Time-sensitive language | Present-tense fact or remove |
+| Time-sensitive language contradicted by source | Present-tense fact or remove |
 | Inconsistent term | Prefer Architecture.md / source |
 | Tracker residue in audits | Delete residue; keep probes/workflow |
 
@@ -102,7 +100,7 @@ root = os.getcwd()
 pat = re.compile(r'\[[^\]]*\]\(([^)]+)\)')
 broken = []
 for dirpath, _, files in os.walk(root):
-    if any(p in dirpath for p in ('/.git', '/.DerivedData', '/Raw Assets')):
+    if any(p in dirpath for p in ('/.git', '/.DerivedData', '/.build', '/.tools', '/Generated', '/Raw Assets')):
         continue
     for name in files:
         if not name.endswith('.md'):

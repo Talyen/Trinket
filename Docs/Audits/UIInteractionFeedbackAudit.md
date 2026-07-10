@@ -1,44 +1,40 @@
-# UI Interaction & Feedback Audit
+# UI Interaction & Accessibility Audit
 
-Goal: Find interaction bugs types miss — broken navigation, stuck states, missing feedback, accessibility gaps, HIG / DesignSystem violations.
+Goal: Find confirmed interaction, feedback, and accessibility defects that static types do not catch.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-UI **test** speed/tier issues → [E2ETestQualityAudit.md](E2ETestQualityAudit.md). Custom layout / typography / Metrics adoption → [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
+UI **test** speed/tier issues → [E2ETestQualityAudit.md](E2ETestQualityAudit.md). Layout, typography, and DesignSystem adoption → [AppleNativeUIAudit.md](AppleNativeUIAudit.md).
 
 ## Mission
 
-1. Run `./Scripts/check-ui-style.sh` (primary automated gate) and the code probes below
-2. Triage: only chase missing dismiss, identifier gaps, style-gate failures, stuck loading, clear a11y gaps
-3. Optionally exercise tabs in Simulator if available
-4. Fix up to **5** clear issues
-5. Verify style gate + smoke as needed
-6. Commit
+1. Select one affected flow and run the relevant probes
+2. Confirm a navigation, feedback, or accessibility defect by exercising the flow or using focused UI-test evidence
+3. Make a bounded set of clear fixes; a clean pass is valid
+4. Verify the affected flow and its matching smoke/UI test
+5. Commit
 
 ## Hard stops
 
 - Do not restyle unrelated chrome.
 - Do not change `accessibilityIdentifier` strings unless removing the control.
-- Do not hand-roll materials/button styles — use `TrinketDesignSystem` (`./Scripts/check-ui-style.sh`).
+- Do not expand into layout, typography, or DesignSystem migrations; [AppleNativeUIAudit.md](AppleNativeUIAudit.md) owns those.
 - iPhone portrait-first; skip iPad-only hover work unless product scope expands.
 - Do not expand into UI test rewrites (E2E audit owns those).
-- Full-tab manual Simulator pass is **optional** — skip without failing in cloud agents.
+- Do not expand a selected-flow check into a full-tab manual pass; skip unavailable Simulator/device checks without failing the audit.
 
 ## Probes
 
 ```bash
-./Scripts/check-ui-style.sh
-
 rg -n 'sheet|popover|fullScreenCover|alert|confirmationDialog|menu|contextMenu' --type swift -g '!*Tests*'
 rg -n 'onTapGesture|onLongPressGesture|DragGesture|magnificationGesture' --type swift -g '!*Tests*'
 rg -n '\.accessibilityIdentifier' --type swift
 rg -n 'AccessibilityReduceMotion|accessibilityLabel|scrollDismissesKeyboard' --type swift -g '!*Tests*' | head -40
-rg -n 'trinketSurface|trinketMaterial|trinketGlassChip|TrinketDesign' --type swift Trinket/ -g '!*Tests*' | head -40
 ```
 
-Inventory dumps are for triage, not mandatory file-by-file review. Prioritize style-gate failures and controls missing dismiss / identifiers / labels.
+Inventory dumps are for triage, not mandatory file-by-file review. Prioritize a confirmed missing dismiss, stuck state, inaccessible control, or gesture conflict.
 
-Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Homestead, Options — plus one battle start/victory dismiss path.
+Manual (when Simulator available): exercise only the selected flow, including its entry and exit path.
 
 ## Checks
 
@@ -58,12 +54,11 @@ Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Hom
 ### Tap feedback & loading
 
 - Interactive elements are `Button`s (preferred) or gestures with visible feedback
-- Route chrome through DesignSystem — **not** raw `.buttonStyle(.borderedProminent)` / `.glass` (flagged by `check-ui-style.sh`)
 - Long `Task` work shows progress; victory/defeat screens always dismissible
 
 ### Accessibility
 
-- Interactive controls have `accessibilityLabel` and/or `accessibilityIdentifier`
+- Controls expose an accessible name through their visible label or explicit accessibility label; use identifiers only when UI-test targeting needs a stable semantic control ID
 - Dynamic Type reflows without truncation
 - Reduce Motion: respect `AccessibilityReduceMotion` / SwiftUI transaction disabling — **not** UIKit `UIView.animate` bridges
 - Reduce Transparency / material fallbacks: use DesignSystem surfaces (`trinketSurface` / `trinketMaterial`) — “fallback” means accessibility, not older iOS
@@ -84,7 +79,6 @@ Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Hom
 ## Verification
 
 ```sh
-./Scripts/check-ui-style.sh
 ./Scripts/lint.sh
 ./Scripts/test.sh smoke   # if identifiers or tab flows changed; toolchain permitting
 ```
@@ -95,7 +89,7 @@ Manual (when Simulator available): Play, Collection (Heroes/Pets/Inventory), Hom
 fix(ui): <imperative interaction fix>
 
 - <what>
-- check-ui-style + smoke as needed
+- focused flow verification + smoke as needed
 
 User-Facing: yes
 ```

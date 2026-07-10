@@ -1,6 +1,6 @@
-# Type Safety Density Audit
+# Unsafe Escape Audit
 
-Goal: Reduce clear unsafe typing escapes in non-test, non-generated source — with allowlists, not absolute-zero noise hunts.
+Goal: Remove confirmed unsafe typing escapes in non-test, non-generated source without replacing valid invariants with vague fallbacks.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
@@ -9,7 +9,7 @@ Concurrency bypasses → [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyData
 
 ## Mission
 
-Probe force casts, force tries, high-signal unwraps, and banned observation patterns. Fix up to **5** clear escapes; leave generated allowlists alone.
+Use compiler/linter output and targeted probes to find unsafe escapes. Fix a bounded set of confirmed issues; a clean pass is valid.
 
 ## Hard stops
 
@@ -28,8 +28,8 @@ rg -n '\bas!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 # Force try — target near-0 outside tests/generated (save/encode paths are P0)
 rg -n '\btry!\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 
-# High-signal force unwraps (tighter than \w+! which is extremely noisy)
-rg -n '!\.|!\[|!\)|as!' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' | head -80
+# Force-unwrap candidates (inspect context; this intentionally excludes prefix !)
+rg -n '\b[A-Za-z_][A-Za-z0-9_]*!\s*(\.|\[|\)|,|$)|\]!\s*' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' | head -80
 rg -n '\bfatalError\b|\bpreconditionFailure\b' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 
 # Banned legacy observation — must-fix
@@ -48,9 +48,8 @@ rg -n '\bAny\b' --type swift \
 
 ### Force cast / try / unwrap
 
-- `as!` → `as?` + `guard` / early return + log
-- `try!` → `do/catch` with surfaced or logged error (especially save/encode paths)
-- Force unwrap → `guard let` / `??` only when a default is semantically valid
+- `as!`, `try!`, and force unwraps need an input-appropriate validation or failure path; do not introduce a default unless it is semantically valid
+- Treat linter/compiler diagnostics as primary evidence; grep hits are review candidates
 - Triage `fatalError` / `preconditionFailure`: package inits may keep hard failures; orchestration should not crash on corrupt input
 
 ### Observation / environment

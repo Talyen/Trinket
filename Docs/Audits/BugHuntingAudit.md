@@ -10,9 +10,9 @@ Persistence hardening → [BehaviorHardeningAudit.md](BehaviorHardeningAudit.md)
 
 ## Mission
 
-Run the probes below, triage by severity × fix confidence, fix **3–5** highest-value bugs, verify, commit. Summarize in the commit/PR body.
+Run targeted probes, confirm candidate defects, and fix up to three highest-value bugs. A pass with no confirmed defect is successful. Summarize evidence and any intentional non-fixes in the commit/PR body.
 
-Read `AGENTS.md` and `Docs/Architecture.md` before editing.
+Read `AGENTS.md` and `Docs/Platform/Architecture.md` before editing.
 
 Do **not** re-run sibling audits’ full suites — only chase hits from these probes. Defer P4/P5 to the owning audit by default.
 
@@ -32,9 +32,9 @@ Do **not** re-run sibling audits’ full suites — only chase hits from these p
 
 ## Workflow
 
-1. Probe (parallel where possible)
-2. Triage P0–P5
-3. Select 3–5 fixes (P0–P2 only unless a P3 is trivial)
+1. Probe a bounded area
+2. Confirm the candidate with a reproducer, failing test, state-transition trace, or direct ownership proof
+3. Select up to three P0–P2 fixes (a trivial P3 is optional)
 4. Apply smallest correct diffs
 5. Verify (§ Verification)
 6. Commit + report in commit body
@@ -72,20 +72,9 @@ rg -n '\.first!' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
 rg -n 'grant|reward|completeStage|claim' --type swift -g '!*Tests*' -g '!*UITests*' -B2 -A2
 ```
 
-### 4. Test gap × churn (optional — skip by default)
+### 4. Regression coverage
 
-Only if a P0–P2 fix needs a regression test and no existing test covers it:
-
-```bash
-for f in \
-  Trinket/State/AppState.swift \
-  Trinket/State/BattleSession.swift \
-  Trinket/BattleShell/ActiveBattleConfiguration.swift; do
-  echo "$f: $(git log --oneline --diff-filter=M -- "$f" | wc -l) mods"
-done
-```
-
-Only add a unit test when it would catch a real bug class UI tests miss. Do not add existence-only tests. SwiftUI views are covered by smoke/UI, not unit companions.
+Add a focused regression only when it distinguishes the defect from existing coverage and will catch its recurrence. SwiftUI rendering belongs in smoke/UI coverage, not existence-only unit companions.
 
 ## Severity
 
@@ -93,8 +82,8 @@ Only add a unit test when it would catch a real bug class UI tests miss. Do not 
 |-----|----------|---------------------|
 | P0 | Crash / data loss / double reward / save corruption | Fix now |
 | P1 | Wrong battle/progress/UI state | Fix now |
-| P2 | Degraded UX (stuck spinner, missing dismiss) | Fix now (within 3–5 cap) |
-| P3 | Silent failure that should log | Fix only if trivial |
+| P2 | Degraded UX (stuck spinner, missing dismiss) | Fix when confirmed and scoped |
+| P3 | Confirmed recoverable failure without appropriate diagnostics or surfaced state | Fix only if trivial |
 | P4 | Maintainability (orphaned state) | Defer to [DeadCodeRatioAudit.md](DeadCodeRatioAudit.md) |
 | P5 | Future concurrency risk | Defer to [SwiftConcurrencyDataRaceAudit.md](SwiftConcurrencyDataRaceAudit.md) |
 

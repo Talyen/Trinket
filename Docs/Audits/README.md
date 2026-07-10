@@ -1,26 +1,18 @@
 # Audits
 
-Re-runnable one-shot guides for coding agents. Each audit is a **procedure**, not a project tracker and not standing product requirements.
+Re-runnable, one-shot procedures for coding agents. An audit is neither a project tracker nor standing product requirements. Run one only when the user cites it; do not treat uncited audits as backlog.
 
-When the user cites an audit (or asks to “run the X audit”), execute that guide, fix in scope, verify, and commit. Do **not** treat uncited audits as active backlog.
+## Shared contract
 
-## Contract (every `*Audit.md`)
+Every finding must state the candidate, confirming evidence, user or maintenance impact, smallest safe fix, and matching verification. A probe hit is not a finding. **Zero findings is a successful audit result.** Never invent a fix to satisfy a quota.
 
-| Section | Purpose |
-|---------|---------|
-| Goal | One sentence outcome |
-| Mission / Hard stops | What to do and what not to touch |
-| Probes / Targets | Concrete `rg` / script commands |
-| Triage | Severity or selection rules; **cap blast radius** (one target or N fixes) |
-| Fixes | Allowed remediations |
-| Verification | Scripts that must pass |
-| Commit / Report | Message format; summarize in the commit/PR body |
+Keep the pass bounded: one cohesive target or a small number of confirmed, independent fixes. Use the verification row in `AGENTS.md`; do not run unrelated full-repo sweeps. Record outcomes in the commit or PR body, never in an audit. Do not append run logs, Done tables, or dated status to these guides.
 
-**Do not** append run results, “Done” tables, “Last execution”, or dated findings into the audit file. That turns the guide into a stale tracker. Put outcomes in the commit message or PR description.
+Prefer existing gates over aspirational metrics. The only absolute-zero target in this set is a failing enforced boundary gate. Elsewhere, use explicit allowlists and context.
 
-**Prefer** existing gates (`./Scripts/check-module-boundaries.sh`, `lint.sh`, `check-ui-style.sh`, `test.sh`, `test-package.sh`) over aspirational absolute-zero metrics. Soften “zero X” goals with allowlists.
+Each audit should contain only its distinct scope, candidate probes, confirmation rules, allowed fixes, and verification. Shared platform policy belongs in `AGENTS.md`; architecture and testing facts belong in the Platform documents.
 
-**Link** sibling audits instead of copying the same probes. Ownership:
+## Ownership
 
 | Concern | Owner audit |
 |---------|-------------|
@@ -33,39 +25,25 @@ When the user cites an audit (or asks to “run the X audit”), execute that gu
 | Unit test quality & gaps | `UnitTestAudit.md` |
 | UI / smoke / exhaustive test quality | `E2ETestQualityAudit.md` |
 | Opportunistic defect hunt | `BugHuntingAudit.md` |
-| Complexity hotspot simplification | `ComplexityReductionAudit.md` |
 | Doc drift | `DocumentationStalenessAudit.md` |
 | UI interaction / a11y / HIG | `UIInteractionFeedbackAudit.md` |
 | Custom layout/typography → Apple/SwiftUI native | `AppleNativeUIAudit.md` |
-| Perf / memory / energy (static) | `PerformanceMemoryEnergyAudit.md` |
+| Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
 
-Standing test conventions live in `Docs/Testing.md` (not duplicated as an audit). Agent workflow: `AGENTS.md`. CloudKit release steps live in `Docs/Platform/CloudKitPreShipChecklist.md`.
+Standing test conventions live in [Testing.md](../Platform/Testing.md); architecture lives in [Architecture.md](../Platform/Architecture.md). Agent workflow: `AGENTS.md`. CloudKit release steps live in [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md).
 
 ## Platform baseline
 
-Audits must match current product rules: iOS 26+, Swift 6, `@Observable` / `@Environment` (not `ObservableObject` / `@EnvironmentObject`), `TrinketDesignSystem` chrome (see `./Scripts/check-ui-style.sh`), Swift Testing for unit targets, XCTest for `TrinketUITests` only.
+Follow the current platform baseline and command router in `AGENTS.md`; audits do not restate or override them.
 
-## Cloud / no-Xcode toolchain
+## Toolchain limits
 
 Local and CI expect **Xcode 26+**. Cloud or remote agents may lack the simulator toolchain.
 
 | Available | Run |
 |-----------|-----|
-| Always (when scripts exist) | Probes in the cited audit; `./Scripts/check-module-boundaries.sh`; `./Scripts/lint.sh`; `./Scripts/check-ui-style.sh` / `./Scripts/check-swift-testing-migration.sh` when relevant |
-| When Xcode / simulator present | `./Scripts/build.sh`, `./Scripts/test.sh`, `./Scripts/test-package.sh` as the audit’s Verification table requires |
-| When toolchain absent | Still land correct source/docs fixes from probes; **skip** build/test steps; state in the commit/PR body which verification was skipped and why |
+| Always | The cited audit’s static probes and relevant lightweight gates |
+| Xcode / simulator present | The task-router build/test command for the changed code |
+| Toolchain absent | Correct source/docs fixes still land; state exactly which build/test checks were skipped and why |
 
 Do not fail an audit solely because Instruments, Simulator, or `xcodebuild` is unavailable.
-
-## Suggested multi-audit order
-
-When the user asks to run several audits in one session, prefer this order (skip uncited ones):
-
-1. `ImportCouplingBoundaryAudit.md`
-2. `TypeSafetyAudit.md` / `SwiftConcurrencyDataRaceAudit.md`
-3. `SideEffectSurfaceAudit.md`
-4. `BehaviorHardeningAudit.md`
-5. `UnitTestAudit.md` / `E2ETestQualityAudit.md`
-6. `DocumentationStalenessAudit.md`
-
-Opportunistic audits (`BugHunting`, `ComplexityReduction`, `DeadCode`, `Performance`, `UIInteraction`, `AppleNativeUI`) fit wherever their probes are needed; do not expand one cited audit into a full-repo sweep of every sibling.

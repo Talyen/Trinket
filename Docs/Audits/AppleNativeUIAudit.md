@@ -1,14 +1,14 @@
-# Apple Native UI Audit
+# Native UI Layout & Typography Audit
 
 Goal: Find custom sizing, layout, typography, padding, fonts, and scale patterns that diverge from Apple/SwiftUI-native APIs (or from tokens already in `TrinketDesignSystem`), then migrate the highest-ROI cluster toward platform standards without losing justified game UI.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findings to this file.
 
-UI interaction / a11y / HIG chrome routing → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md). Complexity hotspots that are not layout/typography → [ComplexityReductionAudit.md](ComplexityReductionAudit.md).
+UI interaction and accessibility → [UIInteractionFeedbackAudit.md](UIInteractionFeedbackAudit.md). General simplification belongs in normal change review, not a separate autonomous audit.
 
 ## Mission
 
-1. Read `AGENTS.md`, `Packages/TrinketDesignSystem/README.md`, and (when present) `.cursor/skills/apple-design/SKILL.md` / `Skills/apple-design/SKILL.md`
+1. Read `AGENTS.md`, `Packages/TrinketDesignSystem/README.md`, and `Docs/Platform/iOS26AppleReference.md`
 2. Run the probes below; inventory custom vs tokenized vs justified-custom
 3. Pick **one** cluster (see Triage) — prefer adopting existing DesignSystem tokens over inventing new systems
 4. Fix that cluster only (cap blast radius)
@@ -91,7 +91,7 @@ Inventory dumps are for triage, not mandatory file-by-file review.
 ### DesignSystem first
 
 - Prefer `TrinketDesign.Metrics`, `Corners`, `.trinketTypography`, `.trinketSurface`, `.trinketGlassChip`, `.trinketPrimaryActionButton`, `collectionShelfCardWidth()`
-- New tokens only when the same literal appears **≥3** times or is baked into a shared modifier
+- Add a new token only when an existing token cannot express a recurring semantic role or a shared modifier owns the value
 - Surfaces already pad (role-dependent); do not stack `.padding(12/14)` then `.trinketSurface` unless the role is `.card` (padding 0)
 
 ### Typography & scale
@@ -123,12 +123,12 @@ Inventory dumps are for triage, not mandatory file-by-file review.
 # Package chrome / motion / typography changes:
 ./Scripts/test-package.sh TrinketDesignSystem
 # App layout helpers / orchestration:
-./Scripts/test.sh unit <RelevantTestClass>   # e.g. BattleCardGridLayoutTests
+./Scripts/test.sh unit <RelevantTestClass>
 # If tab chrome or identifiers changed (toolchain permitting):
 ./Scripts/test.sh smoke
 ```
 
-Cloud / no-Xcode: still land source fixes; skip build/test; state skips in the commit body (see [README.md](README.md)).
+When a Simulator or device is available, inspect the chosen screen at its relevant Dynamic Type size and compare the changed layout before declaring success. Cloud / no-Xcode: still land source fixes; skip visual/build/test checks and state skips in the commit body (see [README.md](README.md)).
 
 ## Commit
 

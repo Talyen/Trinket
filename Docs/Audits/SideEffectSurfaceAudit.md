@@ -6,7 +6,7 @@ Re-runnable one-shot guide. See [README.md](README.md). Do **not** append findin
 
 ## Mission
 
-Run the probes, triage unexpected hits, fix the highest-value seam violations (cap **5** fixes), verify, commit.
+Run the probes, confirm unexpected effect ownership, and fix a bounded set of high-value seam violations. A clean pass is valid; do not introduce an abstraction merely to move a harmless hit.
 
 ## Hard stops
 
@@ -33,7 +33,7 @@ Run from repo root. Use simple hit lists, then triage — do **not** rely on var
 
 ```bash
 # Non-determinism candidates in core rule packages — triage each hit
-rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)' \
+rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|SystemRandomNumberGenerator|ContinuousClock' \
   --type swift -g '!*Tests*' -g '!**/Generated/*' \
   Packages/BattleEngine/Sources/BattleEngine Packages/TrinketCore/
 
@@ -44,7 +44,7 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)' \
 rg -n 'UserDefaults' --type swift -g '!*Tests*'
 
 # File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/
-rg -n 'FileManager|write\(to:|\.write\(' --type swift -g '!*Tests*' -g '!**/Generated/*'
+rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*'
 
 # AV types outside Trinket/Audio/ — expect 0 (app uses AVAudioPlayer in Audio/)
 rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*'
@@ -84,6 +84,7 @@ rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
 
 - Inject RNG / clock / store instead of globals
 - Push effects to the owning seam (persistence, audio, battle seed)
+- Keep a direct call when the effect is already owned, deterministic for its use, and does not create a testing or transaction boundary
 - Do **not** use `// UIStyleCheck: allow` for side-effect exceptions (that bypass is UI-style only)
 
 ## Verification

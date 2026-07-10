@@ -1,15 +1,15 @@
-# Unit Test Audit
+# Unit Test Value Audit
 
-Goal: Improve unit/package test coverage, quality, and speed — then **fix** the top issues and commit.
+Goal: Improve the regression value, correctness, and speed of unit/package tests.
 
 Re-runnable one-shot guide. See [README.md](README.md). Do **not** append plans, Done tables, or “Last execution” notes to this file.
 
-Standing conventions: `Docs/Testing.md`. UI/smoke/exhaustive → [E2ETestQualityAudit.md](E2ETestQualityAudit.md).  
+Standing conventions: `Docs/Platform/Testing.md`. UI/smoke/exhaustive → [E2ETestQualityAudit.md](E2ETestQualityAudit.md).
 Battle test ownership: `Packages/BattleEngine/Tests/README.md`.
 
 ## Mission
 
-Run probes, triage, implement up to **5** Tier-1 / clear Tier-2 fixes, verify with `./Scripts/test.sh unit` (toolchain permitting), commit. Summarize the plan in the commit/PR body only.
+Run probes, then make a bounded set of Tier-1 or clear Tier-2 improvements with demonstrated regression value. A clean pass is valid. Summarize evidence in the commit/PR body only.
 
 ## Hard stops
 
@@ -41,10 +41,6 @@ rg -n 'as!|try!' --type swift TrinketTests Packages/*/Tests || true
 # Swift Testing presence (expect widespread)
 rg -c '@Test' --type swift TrinketTests Packages/*/Tests | sort -t: -k2 -rn | head -30
 
-# MainActor annotation gaps
-rg -l 'PlayerSaveStore|AppState|BattleSession' --type swift TrinketTests Packages/*/Tests \
-  | while read -r f; do head -40 "$f" | rg -q '@MainActor' || echo "MISSING @MainActor: $f"; done
-
 # Timing
 ./Scripts/test-timing.sh report --top 30 --by-class || true
 ```
@@ -53,13 +49,13 @@ rg -l 'PlayerSaveStore|AppState|BattleSession' --type swift TrinketTests Package
 
 ### Coverage / ownership
 
-Use `Docs/Architecture.md` and package test READMEs (especially BattleEngine Tests README). Spot-check:
+Use `Docs/Platform/Architecture.md` and package test READMEs (especially BattleEngine Tests README). Spot-check:
 
 - Every `EffectKind` covered in handler/apply tests
 - New `Player*Store` APIs have write-through persistence tests
 - Integration files in BattleEngine stay thin (3–6 tests)
 
-Refresh file counts with `find` each run — do not trust stale tables in old commits.
+Refresh file counts with `find` each run — do not trust stale tables in old commits, and do not select work merely because a module has fewer files.
 
 ### Shared fixtures (prefer these over duplicating)
 
@@ -78,18 +74,19 @@ Refresh file counts with `find` each run — do not trust stale tables in old co
 
 ### Concurrency in tests
 
-- Types touching stores / app state: `@MainActor` on suite or tests
+- Add `@MainActor` only where the tested API or compiler isolation diagnostics require it
 - No shared `static var` mutable fixtures
-- Await Tasks; no multi-second sleeps — inject short intervals
+- Await Tasks; replace multi-second production-delay sleeps with injected intervals and polling
 
 ### Speed
 
+- Treat historical timing output as a lead; confirm a hotspot in a focused current run
 - Flag unit methods >> 1s (except multi-tick integration)
 - Budget: keep full `./Scripts/test.sh unit` CI-friendly; use `test-timing.sh assert-budget` when configured
 
 ## Fix priority
 
-**Tier 1 (do now, within 5-fix cap):** ratchet failures from `check-swift-testing-migration.sh`, leftover XCTest asserts in unit targets, `Task.sleep`, empty/commented tests, missing `@MainActor`, silent `try?`.
+**Tier 1:** ratchet failures from `check-swift-testing-migration.sh`, leftover XCTest asserts in unit targets, empty/commented tests, silent `try?`, and demonstrated actor-isolation errors or multi-second waits.
 
 **Tier 2:** split oversized suites, extract duplicated setup, fill clear module gaps (e.g. missing store roundtrip).
 
