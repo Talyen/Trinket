@@ -66,6 +66,30 @@ public enum StatGrowth {
         max(0, level - 1)
     }
 
+    private enum RankedPrimaryStat: CaseIterable {
+        case strength, agility, toughness, intellect, wisdom
+
+        func value(in stats: PrimaryStats) -> Int {
+            switch self {
+            case .strength: return stats.strength
+            case .agility: return stats.agility
+            case .toughness: return stats.toughness
+            case .intellect: return stats.intellect
+            case .wisdom: return stats.wisdom
+            }
+        }
+
+        func apply(_ amount: Int, to delta: inout StatGrowthDelta) {
+            switch self {
+            case .strength: delta.strength += amount
+            case .agility: delta.agility += amount
+            case .toughness: delta.toughness += amount
+            case .intellect: delta.intellect += amount
+            case .wisdom: delta.wisdom += amount
+            }
+        }
+    }
+
     private static func every(_ levelsAbove: Int, interval: Int, amount: Int) -> Int {
         guard interval > 0, amount != 0, levelsAbove > 0 else { return 0 }
         return (levelsAbove / interval) * amount
@@ -115,51 +139,17 @@ public enum StatGrowth {
         identityStats: PrimaryStats
     ) -> StatGrowthDelta {
         guard levelsAbove > 0 else { return .zero }
-
         if isBoss {
             return bossGrowth(levelsAbove: levelsAbove, identityStats: identityStats)
         }
-
-        var delta = StatGrowthDelta(maxHealth: levelsAbove)
-        let archetypeGrowth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
-        delta.strength = archetypeGrowth.strength
-        delta.agility = archetypeGrowth.agility
-        delta.toughness = archetypeGrowth.toughness
-        delta.intellect = archetypeGrowth.intellect
-        delta.wisdom = archetypeGrowth.wisdom
-        delta.maxMana = archetypeGrowth.maxMana
-        return delta
+        return playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
     }
 
     private static func bossGrowth(
         levelsAbove: Int,
         identityStats: PrimaryStats
     ) -> StatGrowthDelta {
-        enum StatKey: CaseIterable {
-            case strength, agility, toughness, intellect, wisdom
-
-            func value(in stats: PrimaryStats) -> Int {
-                switch self {
-                case .strength: return stats.strength
-                case .agility: return stats.agility
-                case .toughness: return stats.toughness
-                case .intellect: return stats.intellect
-                case .wisdom: return stats.wisdom
-                }
-            }
-
-            func apply(_ amount: Int, to delta: inout StatGrowthDelta) {
-                switch self {
-                case .strength: delta.strength += amount
-                case .agility: delta.agility += amount
-                case .toughness: delta.toughness += amount
-                case .intellect: delta.intellect += amount
-                case .wisdom: delta.wisdom += amount
-                }
-            }
-        }
-
-        let ranked = StatKey.allCases.sorted {
+        let ranked = RankedPrimaryStat.allCases.sorted {
             $0.value(in: identityStats) > $1.value(in: identityStats)
         }
 
@@ -174,32 +164,10 @@ public enum StatGrowth {
     }
 
     public static func enemyLateGameBracketBonus(identityStats: PrimaryStats) -> StatGrowthDelta {
-        enum StatKey: CaseIterable {
-            case strength, agility, toughness, intellect, wisdom
-
-            func value(in stats: PrimaryStats) -> Int {
-                switch self {
-                case .strength: return stats.strength
-                case .agility: return stats.agility
-                case .toughness: return stats.toughness
-                case .intellect: return stats.intellect
-                case .wisdom: return stats.wisdom
-                }
-            }
-
-            func apply(_ amount: Int, to delta: inout StatGrowthDelta) {
-                switch self {
-                case .strength: delta.strength += amount
-                case .agility: delta.agility += amount
-                case .toughness: delta.toughness += amount
-                case .intellect: delta.intellect += amount
-                case .wisdom: delta.wisdom += amount
-                }
-            }
-        }
-
         var delta = StatGrowthDelta(toughness: 2)
-        if let topStat = StatKey.allCases.max(by: { $0.value(in: identityStats) < $1.value(in: identityStats) }) {
+        if let topStat = RankedPrimaryStat.allCases.max(by: {
+            $0.value(in: identityStats) < $1.value(in: identityStats)
+        }) {
             topStat.apply(1, to: &delta)
         }
         return delta
