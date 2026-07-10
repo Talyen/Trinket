@@ -31,7 +31,7 @@ Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1 git push` when needed.
 ## First Run
 
 ```sh
-./Scripts/generate.sh    # validate manifests, codegen, XcodeGen — run before first build
+./Scripts/generate.sh    # validate manifests, codegen, cached XcodeGen — run before first build
 ./Scripts/build.sh
 ./Scripts/run-simulator.sh
 ```
@@ -45,7 +45,7 @@ For content, art, music, SFX, or cinematic edits:
 ## Common Commands
 
 ```sh
-./Scripts/generate.sh              # validate manifests, codegen, XcodeGen
+./Scripts/generate.sh              # validate manifests, codegen, cached XcodeGen
 ./Scripts/build.sh                 # compile into .DerivedData (shared with test.sh)
 ./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build
                                    # preferred full-unit path; validates/generates inputs first

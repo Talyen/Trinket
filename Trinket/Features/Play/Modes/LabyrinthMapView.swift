@@ -8,10 +8,14 @@ struct LabyrinthMapView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
-    @State private var prepareCombatNode: LabyrinthNode?
-    @State private var pendingCombatStart = PendingLabyrinthCombatStart()
     @State private var nodeMessage: StageMapMessage?
     @State private var selectedModifier: LabyrinthModifierDefinition?
+
+    let onBattleStart: () -> Void
+
+    init(onBattleStart: @escaping () -> Void = {}) {
+        self.onBattleStart = onBattleStart
+    }
 
     private var state: PlayerLabyrinthState {
         appState.labyrinth.current
@@ -49,22 +53,6 @@ struct LabyrinthMapView: View {
             if appState.isLabyrinthUnlocked, !state.hasMap {
                 _ = appState.enterLabyrinth()
             }
-        }
-        .sheet(item: $prepareCombatNode, onDismiss: startPendingCombatIfNeeded) { node in
-            BattlePartySheet(
-                title: LabyrinthMapPresentation.nodeTitle(node),
-                subtitle: "Depth \(node.depth)",
-                accentColor: focusedCluster
-                    .flatMap { GameContent.labyrinthBiome(id: $0.biomeID)?.keywordBias.visualStyle.color },
-                initialHero: appState.roster.activeHero,
-                initialPet: appState.roster.activePet,
-                onStart: {
-                    pendingCombatStart.nodeID = node.id
-                    prepareCombatNode = nil
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
         }
         .sheet(item: $selectedModifier) { modifier in
             NavigationStack {
@@ -120,7 +108,7 @@ struct LabyrinthMapView: View {
                         cluster: cluster,
                         state: state,
                         onSelectModifier: { selectedModifier = $0 },
-                        onCombatPrepare: { prepareCombatNode = $0 },
+                        onBattleStart: onBattleStart,
                         onNodeMessage: { nodeMessage = $0 }
                     )
                 }
@@ -210,17 +198,4 @@ struct LabyrinthMapView: View {
             }
             .sorted { $0.depthBand < $1.depthBand }
     }
-
-    private func startPendingCombatIfNeeded() {
-        guard let nodeID = pendingCombatStart.nodeID else { return }
-        pendingCombatStart.nodeID = nil
-        if let message = appState.handleLabyrinthNodeAction(nodeID: nodeID) {
-            nodeMessage = message
-        }
-    }
-}
-
-@MainActor
-private final class PendingLabyrinthCombatStart {
-    var nodeID: String?
 }

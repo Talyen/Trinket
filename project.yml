@@ -1,6 +1,7 @@
 name: Trinket
 options:
   bundleIdPrefix: com.ryanmcintire
+  projectFormat: xcode16_0
   deploymentTarget:
     iOS: "26.0"
 fileGroups:
@@ -35,6 +36,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Trinket
+        type: syncedFolder
         excludes:
           - PrivacyInfo.xcprivacy
           - "**/*.md"
@@ -62,8 +64,12 @@ targets:
     platform: iOS
     deploymentTarget: "26.0"
     sources:
-      - TrinketUITests
-      - path: Trinket/Shared/AccessibilityID.swift
+      - path: TrinketUITests
+        type: syncedFolder
+      - path: Trinket/Shared
+        type: syncedFolder
+        includes:
+          - AccessibilityID.swift
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
@@ -74,7 +80,8 @@ targets:
     platform: iOS
     deploymentTarget: "26.0"
     sources:
-      - TrinketTests
+      - path: TrinketTests
+        type: syncedFolder
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

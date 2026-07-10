@@ -96,7 +96,7 @@ struct LabyrinthMapClusterSection: View {
     let cluster: LabyrinthCluster
     let state: PlayerLabyrinthState
     let onSelectModifier: (LabyrinthModifierDefinition) -> Void
-    let onCombatPrepare: (LabyrinthNode) -> Void
+    let onBattleStart: () -> Void
     let onNodeMessage: (StageMapMessage) -> Void
 
     var body: some View {
@@ -143,7 +143,7 @@ struct LabyrinthMapClusterSection: View {
                             node: node,
                             tint: style?.color,
                             state: state,
-                            onCombatPrepare: onCombatPrepare,
+                            onBattleStart: onBattleStart,
                             onMessage: onNodeMessage
                         )
                         .id(node.id)
@@ -187,7 +187,7 @@ struct LabyrinthMapNodeCard: View {
     let node: LabyrinthNode
     let tint: Color?
     let state: PlayerLabyrinthState
-    let onCombatPrepare: (LabyrinthNode) -> Void
+    let onBattleStart: () -> Void
     let onMessage: (StageMapMessage) -> Void
 
     var body: some View {
@@ -224,9 +224,17 @@ struct LabyrinthMapNodeCard: View {
             }
 
             if reachable, !node.isCleared {
+                if type.isCombat {
+                    BattlePartyInlinePicker(accentColor: tint ?? .accentColor)
+                }
+
                 Button {
                     if type.isCombat {
-                        onCombatPrepare(node)
+                        if let message = appState.startLabyrinthBattle(nodeID: node.id) {
+                            onMessage(message)
+                        } else {
+                            onBattleStart()
+                        }
                     } else if let message = appState.handleLabyrinthNodeAction(nodeID: node.id) {
                         onMessage(message)
                     }

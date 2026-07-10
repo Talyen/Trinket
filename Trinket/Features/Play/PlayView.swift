@@ -137,20 +137,33 @@ struct PlayView: View {
                 onEnemyTap: showEnemyDetails(for:)
             )
         case .aspectsHub:
-            AspectsHubView()
+            AspectsHubView(onBattleStart: refreshBattlePresentation)
         case .labyrinthMap:
-            LabyrinthMapView()
+            LabyrinthMapView(onBattleStart: refreshBattlePresentation)
         case let .aspectClimb(aspectID):
-            AspectClimbView(aspectID: aspectID)
+            AspectClimbView(aspectID: aspectID, onBattleStart: refreshBattlePresentation)
         }
     }
 
     private func openMode(_ mode: PlayerShellSessionPlayMode) {
         guard canOpen(mode) else { return }
         appState.rememberPlayMode(mode)
-        playDeepLink = PlayLaunchDestination.restoring(lastMode: mode)
-        if mode == .labyrinth {
+        let destination: PlayLaunchDestination
+        switch mode {
+        case .campaign:
+            destination = .campaign
+        case .aspects:
+            destination = .aspectsHub
+        case .labyrinth:
+            destination = .labyrinthMap
             _ = appState.enterLabyrinth()
+        }
+
+        // A manual back navigation can leave the item binding holding the previous
+        // destination. Clear it first so reopening the same mode publishes a change.
+        playDeepLink = nil
+        Task { @MainActor in
+            playDeepLink = destination
         }
     }
 
@@ -207,8 +220,14 @@ struct PlayView: View {
             appState.noteMapScrollFocus(stage.id)
             if let message = appState.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
+            } else if stage.encounter.battleEnemyID != nil {
+                refreshBattlePresentation()
             }
         }
+    }
+
+    private func refreshBattlePresentation() {
+        playDeepLink = nil
     }
 
     private func showEnemyDetails(for stage: Stage) {

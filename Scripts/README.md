@@ -99,7 +99,7 @@ Run `./Scripts/verify-changed.sh --dry-run` to inspect the exact sequential plan
 without `--dry-run`, it generates inputs once and runs the selected focused checks.
 It intentionally does not replace the pre-push or pre-merge gates.
 
-`test.sh` runs `generate.sh` then builds then tests (unless `--no-build`). CI reports timing regressions from per-run artifacts, but does not fail a passing suite solely because hosted-runner session overhead exceeds a wall-clock budget. Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`.
+`test.sh` runs the generation preflight, then builds and tests (unless `--no-build`). XcodeGen uses its cache so unchanged project inputs do not rewrite the project, and the app/test source roots are Xcode synchronized folders so ordinary source-file additions and deletions do not require regeneration. CI reports timing regressions from per-run artifacts, but does not fail a passing suite solely because hosted-runner session overhead exceeds a wall-clock budget. Pin format/lint/XcodeGen with `./Scripts/ensure-ci-tools.sh`.
 
 ### Toolchain ladder (cloud / no Xcode 26)
 

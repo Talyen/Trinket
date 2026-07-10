@@ -13,8 +13,17 @@ enum AccessibilityID {
         static let aspectsHub = "Aspects Hub"
         static let aspectsModeCard = "Aspects Mode Card"
         static let campaignModeCard = "Campaign Mode Card"
-        static let battlePartySheet = "Battle Party Sheet"
-        static let battlePartyStart = "Battle Party Start"
+        static let battlePartyInlinePicker = "Battle Party Inline Picker"
+        static let battlePartyHeroControl = "Battle Party Hero Control"
+        static let battlePartyPetControl = "Battle Party Pet Control"
+
+        static func battlePartyPickerSheet(for role: String) -> String {
+            "Battle Party \(role) Picker Sheet"
+        }
+
+        static func battlePartyOption(for role: String, combatantName: String) -> String {
+            "Battle Party \(role) Option \(combatantName)"
+        }
 
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"

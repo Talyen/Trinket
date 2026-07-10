@@ -16,20 +16,10 @@ public enum EffectPresentation {
     }
 
     public static func activePhrase(for active: ActiveEffect) -> String {
+        if let phrase = activeStatusPhrase(for: active.effect) { return phrase }
+        if let phrase = activeRecoveryPhrase(for: active.effect) { return phrase }
+
         switch active.effect {
-        case .burn, .poison:
-            return active.effect.keyword.statusAlias ?? active.effect.keyword.rawValue
-        case let .bleed(potency):
-            return bleedActivePhrase(potency: potency, keyword: active.effect.keyword)
-        case let .controlMeter(keyword, amount, threshold):
-            if amount >= threshold {
-                return keyword.statusAlias ?? keyword.rawValue
-            }
-            return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
-        case let .shield(keyword, buffer):
-            return "\(keyword.rawValue): \(buffer)"
-        case let .mitigation(keyword, points):
-            return "\(keyword.rawValue): \(points)"
         case .leech:
             return "Leech"
         case .deathsDoor:
@@ -48,8 +38,38 @@ public enum EffectPresentation {
             return "Consecrated"
         case .nextHolyStrike:
             return "Next Holy Strike"
+        case .burn, .poison, .bleed, .controlMeter, .shield, .mitigation,
+             .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
+            return ""
+        }
+    }
+
+    private static func activeStatusPhrase(for effect: Effect) -> String? {
+        switch effect {
+        case .burn, .poison:
+            return effect.keyword.statusAlias ?? effect.keyword.rawValue
+        case let .bleed(potency):
+            return bleedActivePhrase(potency: potency, keyword: effect.keyword)
+        case let .controlMeter(keyword, amount, threshold):
+            if amount >= threshold {
+                return keyword.statusAlias ?? keyword.rawValue
+            }
+            return "\(keyword.rawValue) Build-up: \(amount)/\(threshold)"
+        case let .shield(keyword, buffer):
+            return "\(keyword.rawValue): \(buffer)"
+        case let .mitigation(keyword, points):
+            return "\(keyword.rawValue): \(points)"
+        default:
+            return nil
+        }
+    }
+
+    private static func activeRecoveryPhrase(for effect: Effect) -> String? {
+        switch effect {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
             return ""
+        default:
+            return nil
         }
     }
 

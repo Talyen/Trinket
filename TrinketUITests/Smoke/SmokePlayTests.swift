@@ -32,6 +32,11 @@ final class SmokePlayTests: TrinketUITestCase {
         play.openModeHub()
         play.assertModeHub()
 
+        app.buttons[AccessibilityID.Play.campaignModeCard].tap()
+        play.assertChapterHeader(number: 2)
+        goBack()
+
+        play.assertModeHub()
         app.buttons[AccessibilityID.Play.aspectsModeCard].tap()
         assertExists(AccessibilityID.Play.aspectsHub)
         assertExists(AccessibilityID.Play.aspectRow("ironVein"))

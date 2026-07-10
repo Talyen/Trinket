@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Sync folder-scanned Swift sources in Trinket.xcodeproj/project.pbxproj.
+"""Sync legacy folder-scanned Swift sources in Trinket.xcodeproj/project.pbxproj.
 
 XcodeGen normally regenerates this file. On Linux we patch the committed project
 so CI assert-generated-output stays green when test files are added or removed.
+
+Projects generated with Xcode 16 synchronized folders own source membership from
+the filesystem, so they must be left untouched by this compatibility fallback.
 """
 
 from __future__ import annotations
@@ -289,6 +292,11 @@ def sync_app_target(text: str) -> str:
 
 def main() -> int:
     text = read_pbx()
+
+    if "PBXFileSystemSynchronizedRootGroup" in text:
+        print("Synchronized-folder project detected; leaving source membership to Xcode.")
+        return 0
+
     text = sync_target(text, "TrinketTests", TARGET_SOURCE_PHASES["TrinketTests"])
     text = sync_target(text, "TrinketUITests", TARGET_SOURCE_PHASES["TrinketUITests"])
     text = sync_app_target(text)

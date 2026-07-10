@@ -7,12 +7,16 @@ import TrinketPersistence
 struct AspectClimbView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var prepareFloor: AspectFloor?
-    @State private var pendingFloorStart = PendingAspectFloorStart()
     @State private var floorMessage: StageMapMessage?
     @State private var scrollTarget: String?
 
     let aspectID: AspectID
+    let onBattleStart: () -> Void
+
+    init(aspectID: AspectID, onBattleStart: @escaping () -> Void = {}) {
+        self.aspectID = aspectID
+        self.onBattleStart = onBattleStart
+    }
 
     private var aspect: AspectDefinition? {
         GameContent.aspect(id: aspectID)
@@ -43,22 +47,6 @@ struct AspectClimbView: View {
         .navigationBarTitleDisplayMode(.large)
         .trinketScreenBackground(.playJourney)
         .accessibilityIdentifier(AccessibilityID.Play.aspectClimb(aspectID.rawValue))
-        .sheet(item: $prepareFloor, onDismiss: startPendingFloorIfNeeded) { floor in
-            BattlePartySheet(
-                title: floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)",
-                subtitle: GameContent.enemy(matching: floor.enemyID)?.combatant.name,
-                aspect: aspect,
-                accentColor: aspect?.keyword.visualStyle.color,
-                initialHero: appState.roster.activeHero,
-                initialPet: appState.roster.activePet,
-                onStart: {
-                    pendingFloorStart.floor = floor
-                    prepareFloor = nil
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
         .alert(item: $floorMessage) { message in
             Alert(
                 title: Text(message.title),
@@ -148,15 +136,7 @@ struct AspectClimbView: View {
             }
 
             if startable {
-                Button {
-                    prepareFloor = floor
-                } label: {
-                    Text("Begin Floor")
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton()
-                .tint(style.color)
-                .disabled(appState.battle.activeBattle != nil)
+                floorBattleControls(floor, aspect: aspect, tint: style.color)
             }
         }
         .padding(isActive ? TrinketDesign.Metrics.largeSpacing : 14)
@@ -170,16 +150,36 @@ struct AspectClimbView: View {
         .animation(reduceMotion ? nil : .smooth, value: startable)
     }
 
-    private func startPendingFloorIfNeeded() {
-        guard let floor = pendingFloorStart.floor else { return }
-        pendingFloorStart.floor = nil
-        if let message = appState.startAspectBattle(for: floor) {
-            floorMessage = message
-        }
-    }
-}
+    @ViewBuilder
+    private func floorBattleControls(
+        _ floor: AspectFloor,
+        aspect: AspectDefinition,
+        tint: Color
+    ) -> some View {
+        BattlePartyInlinePicker(
+            aspect: aspect,
+            accentColor: tint
+        )
 
-@MainActor
-private final class PendingAspectFloorStart {
-    var floor: AspectFloor?
+        Button {
+            if let message = appState.startAspectBattle(for: floor) {
+                floorMessage = message
+            } else {
+                onBattleStart()
+            }
+        } label: {
+            Text("Begin Floor")
+                .frame(maxWidth: .infinity)
+        }
+        .trinketPrimaryActionButton()
+        .tint(tint)
+        .disabled(
+            appState.battle.activeBattle != nil
+                || !AspectAttunement.evaluate(
+                    hero: appState.roster.activeHero,
+                    pet: appState.roster.activePet,
+                    aspect: aspect
+                ).isReady
+        )
+    }
 }

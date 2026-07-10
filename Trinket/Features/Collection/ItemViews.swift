@@ -159,26 +159,24 @@ struct ItemDetailView: View {
         DetailHeroScrollShell(
             title: item.displayName,
             showsDoneButton: true,
-            onDone: { dismiss() }
-        ) { baseHeight, overscroll in
-            ItemHeroHeader(
-                item: item,
-                baseHeight: baseHeight,
-                overscroll: overscroll
-            )
-            .accessibilityIdentifier("\(item.displayName) detail hero header")
-        } bodyContent: {
-            DetailSection("Affixes") {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    ForEach(item.affixes.prefix(4)) { affix in
-                        KeywordDescriptionText(text: affix.description)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .accessibilityElement(children: .combine)
+            onDone: { dismiss() },
+            header: {
+                ItemHeroHeader(item: item, baseHeight: $0, overscroll: $1)
+                    .accessibilityIdentifier("\(item.displayName) detail hero header")
+            },
+            bodyContent: {
+                DetailSection("Affixes") {
+                    VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
+                        ForEach(item.affixes.prefix(4)) { affix in
+                            KeywordDescriptionText(text: affix.description)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .accessibilityElement(children: .combine)
+                        }
                     }
                 }
             }
-        }
+        )
         .safeAreaInset(edge: .bottom) {
             if let purchasePrice, let onPurchase {
                 Button {

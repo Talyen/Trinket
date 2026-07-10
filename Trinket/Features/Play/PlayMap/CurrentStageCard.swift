@@ -34,6 +34,10 @@ struct CurrentStageCard: View {
                     .padding(.top, 4)
             }
 
+            if stage.encounter.battleEnemyID != nil {
+                BattlePartyInlinePicker(accentColor: stage.encounter.mapTint)
+            }
+
             Button {
                 actionFeedbackTrigger += 1
                 onPrimaryAction()

@@ -5,6 +5,33 @@ cd "$(dirname "$0")/.."
 
 INCLUDE_ASSETS=false
 SKIP_XCODEGEN=false
+GENERATION_LOCK_DIR="$PWD/.DerivedData/.generate.lock"
+XCODEGEN_CACHE_PATH="$PWD/.DerivedData/XcodeGen.cache"
+
+cleanup_generation_lock() {
+  rm -rf "$GENERATION_LOCK_DIR"
+}
+
+acquire_generation_lock() {
+  mkdir -p "$PWD/.DerivedData"
+
+  while ! mkdir "$GENERATION_LOCK_DIR" 2>/dev/null; do
+    local lock_pid=""
+    if [[ -f "$GENERATION_LOCK_DIR/pid" ]]; then
+      read -r lock_pid < "$GENERATION_LOCK_DIR/pid" || true
+    fi
+
+    if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+      rm -rf "$GENERATION_LOCK_DIR"
+      continue
+    fi
+
+    sleep 1
+  done
+
+  printf '%s\n' "$$" > "$GENERATION_LOCK_DIR/pid"
+  trap cleanup_generation_lock EXIT INT TERM
+}
 
 usage() {
   cat <<'EOF'
@@ -43,6 +70,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+acquire_generation_lock
+
 echo "=== Validating content manifests ==="
 python3 Scripts/content_codegen.py validate
 
@@ -69,9 +98,11 @@ fi
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
   if command -v xcodegen >/dev/null 2>&1; then
-    xcodegen generate
+    xcodegen generate \
+      --use-cache \
+      --cache-path "$XCODEGEN_CACHE_PATH"
   else
-    echo "xcodegen not found; syncing test sources into project.pbxproj"
+    echo "xcodegen not found; syncing legacy project sources into project.pbxproj"
     python3 Scripts/sync-xcodeproj-sources.py
   fi
 fi

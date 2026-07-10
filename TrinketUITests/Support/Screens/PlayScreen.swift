@@ -56,20 +56,22 @@ struct PlayScreen {
         openStage(AccessibilityID.Play.stageNode(chapter: chapter, stage: stage))
     }
 
-    /// Battle stages open a party sheet first — Start to begin the fight.
+    /// Battle stages expose inline party controls and start directly from the stage CTA.
     func startBattle(chapter: Int, stage: Int) {
-        openStage(chapter: chapter, stage: stage)
-        let sheet = app.descendants(matching: .any)[AccessibilityID.Play.battlePartySheet]
-        XCTAssertTrue(sheet.waitForExistence(timeout: TrinketUITestCase.defaultTimeout))
-        let start = app.descendants(matching: .any)[AccessibilityID.Play.battlePartyStart]
-        XCTAssertTrue(start.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle Party Start not found")
+        let hero = app.descendants(matching: .any)[AccessibilityID.Play.battlePartyHeroControl]
+        let pet = app.descendants(matching: .any)[AccessibilityID.Play.battlePartyPetControl]
+        XCTAssertTrue(hero.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle Hero control not found")
+        XCTAssertTrue(pet.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle Pet control not found")
+
+        let start = app.buttons[AccessibilityID.Play.stageNode(chapter: chapter, stage: stage)]
+        XCTAssertTrue(start.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle CTA not found")
         start.tap()
 
-        // Party sheet must dismiss and hand off to live battle chrome.
+        // The stage CTA must hand off directly to live battle chrome.
         let hand = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
         let victory = app.descendants(matching: .any)[AccessibilityID.Battle.victory]
-        let launched = hand.waitForExistence(timeout: TrinketUITestCase.defaultTimeout)
-            || victory.waitForExistence(timeout: 1)
+        let launched = hand.waitForExistence(timeout: 8)
+            || victory.waitForExistence(timeout: 2)
         XCTAssertTrue(launched, "Start did not launch battle chrome")
     }
 }

@@ -8,6 +8,12 @@ struct AspectsHubView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    let onBattleStart: () -> Void
+
+    init(onBattleStart: @escaping () -> Void = {}) {
+        self.onBattleStart = onBattleStart
+    }
+
     var body: some View {
         List {
             Section {
@@ -37,7 +43,7 @@ struct AspectsHubView: View {
 
         if unlocked {
             NavigationLink {
-                AspectClimbView(aspectID: aspect.id)
+                AspectClimbView(aspectID: aspect.id, onBattleStart: onBattleStart)
             } label: {
                 aspectLabel(aspect, style: style, trailing: floorLabel(cleared: cleared, floorCount: aspect.floorCount))
             }

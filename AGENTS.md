@@ -14,10 +14,15 @@ Portrait-first iOS fantasy turn-based card combat. Read this file first; then re
 
 ## Generated and protected paths
 
-- Edit manifests, never `Packages/**/Generated/`; run `./Scripts/generate.sh` after content or `project.yml` edits, and `./Scripts/generate.sh --assets` after art/music/SFX/cinematic input edits.
+- Edit manifests, never `Packages/**/Generated/`; run `./Scripts/generate.sh` after content or `project.yml` edits, and `./Scripts/generate.sh --assets` after art/music/SFX/cinematic input edits. App and test source roots use Xcode synchronized folders, so ordinary Swift additions/deletions do not require project-file edits or regeneration.
 - Never hand-edit processed assets/resources, `.DerivedData/`, `.tools/`, or `Trinket.xcodeproj/project.pbxproj`. Use `project.yml` and generation.
 - Review only the expected generated diff after generation; for asset work also verify processed paths with `git status --short`.
 - Do not edit `CHANGELOG.md` per commit or treat audit documents as a backlog. Avoid drive-by changes.
+
+## Skills
+
+- [Apple Design](Docs/Skills/apple-design/SKILL.md) — fluid motion, materials,
+  typography, accessibility, and gesture feedback.
 
 ## Start with the smallest relevant context card
 
@@ -44,6 +49,7 @@ Use `./Scripts/changed-source-summary.sh` before a handoff or review. It reports
 - Pre-push: `./Scripts/ci-locally.sh`; pre-merge: `./Scripts/test-deploy.sh`.
 
 Wrapper verification that can run XcodeGen must be sequential: `test.sh` may generate the project, so do not run wrapper tests in parallel. Without Xcode 26/simulator, run applicable generation, generated-output, boundary, style, and CI-gate checks; clearly state skipped build/test work.
+`SKIP_GENERATE=1` is an explicit escape hatch for CI or iteration after generation; do not use it to bypass an unknown or stale project/spec state.
 
 ## Further reference
 

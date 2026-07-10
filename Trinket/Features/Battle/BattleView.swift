@@ -146,31 +146,28 @@ struct BattleView: View {
                     )
                 }
 
-                if let cinematic = battleSession.activeCinematic {
-                    UltimateCinematicOverlay(
-                        cinematic: cinematic,
-                        reduceMotion: reduceMotion,
-                        canSkip: appState.options.canSkipUltimateCinematic(),
-                        effectsVolume: appState.options.effectsVolume,
-                        namespace: cinematicNamespace,
-                        onPlaying: {
-                            battleSession.markCinematicPlaying()
-                        },
-                        onRequestSkip: {
-                            battleSession.requestSkipCinematic()
-                        },
-                        onAutoFinish: {
-                            battleSession.beginCinematicCollapse()
-                        },
-                        onCollapseFinished: {
-                            battleSession.completeCinematicCollapse()
-                        }
-                    )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(.opacity)
-                    .zIndex(10)
-                }
+                cinematicOverlay(for: battleSession)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func cinematicOverlay(for battleSession: BattleSession) -> some View {
+        if let cinematic = battleSession.activeCinematic {
+            UltimateCinematicOverlay(
+                cinematic: cinematic,
+                reduceMotion: reduceMotion,
+                canSkip: appState.options.canSkipUltimateCinematic(),
+                effectsVolume: appState.options.effectsVolume,
+                namespace: cinematicNamespace,
+                onPlaying: { battleSession.markCinematicPlaying() },
+                onRequestSkip: { battleSession.requestSkipCinematic() },
+                onAutoFinish: { battleSession.beginCinematicCollapse() },
+                onCollapseFinished: { battleSession.completeCinematicCollapse() }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
+            .zIndex(10)
         }
     }
 

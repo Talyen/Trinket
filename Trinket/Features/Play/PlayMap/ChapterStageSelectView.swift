@@ -7,11 +7,6 @@ struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    @State private var prepareBattleStage: Stage?
-    /// Reference box so dismiss observers can read the queued stage (plain `@State`
-    /// Optional can still be stale in the same update that clears the sheet item).
-    @State private var pendingBattleStart = PendingBattleStart()
-
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
 
@@ -53,21 +48,6 @@ struct ChapterStageSelectView: View {
         .onDisappear {
             appState.battle.setMusicPreview(for: nil)
         }
-        .sheet(item: $prepareBattleStage, onDismiss: startPendingBattleIfNeeded) { stage in
-            BattlePartySheet(
-                title: stage.encounterSubjectName,
-                subtitle: stage.mapLabel,
-                accentColor: stage.encounter.mapTint,
-                initialHero: appState.roster.activeHero,
-                initialPet: appState.roster.activePet,
-                onStart: {
-                    pendingBattleStart.stage = stage
-                    prepareBattleStage = nil
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
     }
 
     private var chapterTitle: String {
@@ -96,16 +76,6 @@ struct ChapterStageSelectView: View {
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
-        if stage.encounter.battleEnemyID != nil {
-            prepareBattleStage = stage
-        } else {
-            onStageTap(stage)
-        }
-    }
-
-    private func startPendingBattleIfNeeded() {
-        guard let stage = pendingBattleStart.stage else { return }
-        pendingBattleStart.stage = nil
         onStageTap(stage)
     }
 
@@ -125,10 +95,4 @@ struct ChapterStageSelectView: View {
                 removal: .opacity.combined(with: .move(edge: .leading))
             )
     }
-}
-
-/// Mutable box for a stage queued across party-sheet dismiss (avoids `@State` staleness).
-@MainActor
-private final class PendingBattleStart {
-    var stage: Stage?
 }

@@ -543,7 +543,7 @@ extension BattleSession {
         pendingAutoEndTask = nil
     }
 
-    private func resetRun(from configuration: ActiveBattleConfiguration) {
+    func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
         state = BattleState(
             hero: configuration.hero.combatant,
@@ -568,7 +568,7 @@ extension BattleSession {
         )
     }
 
-    private func clearRunState() {
+    func clearRunState() {
         cancelPendingAutoEnd()
         autoEndJourney = nil
         autoEndHomestead = nil
