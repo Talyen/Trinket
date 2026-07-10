@@ -28,6 +28,7 @@ Each audit should contain only its distinct scope, candidate probes, confirmatio
 | Doc drift | `DocumentationStalenessAudit.md` |
 | UI interaction / a11y / HIG | `UIInteractionFeedbackAudit.md` |
 | Custom layout/typography → Apple/SwiftUI native | `AppleNativeUIAudit.md` |
+| Over-engineered / verbose / inelegant agent slop | `InelegantSlopAudit.md` |
 | Device-led performance investigation | [PerformanceInvestigationPlaybook.md](../Platform/PerformanceInvestigationPlaybook.md) |
 
 Standing test conventions live in [Testing.md](../Platform/Testing.md); architecture lives in [Architecture.md](../Platform/Architecture.md). Agent workflow: `AGENTS.md`. CloudKit release steps live in [CloudKitPreShipChecklist.md](../Platform/CloudKitPreShipChecklist.md).
