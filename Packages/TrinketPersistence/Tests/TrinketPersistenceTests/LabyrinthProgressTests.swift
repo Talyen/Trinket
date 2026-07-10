@@ -85,6 +85,61 @@ struct LabyrinthProgressTests {
         #expect(save.roster.gold >= goldBefore)
     }
 
+    @Test func nonCombatCompletionDoesNotGrantBattleExperience() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 23)
+        let restID = "labyrinth-audit-rest"
+        save.labyrinth.nodes[restID] = LabyrinthNode(
+            id: restID,
+            type: .rest,
+            enemyID: nil,
+            depth: 2,
+            clusterID: "audit",
+            outgoingIDs: [],
+            isCleared: false,
+            isRevealed: true,
+            failCount: 0
+        )
+        if var entrance = save.labyrinth.nodes[LabyrinthGenerator.entranceNodeID] {
+            entrance.outgoingIDs.append(restID)
+            save.labyrinth.nodes[entrance.id] = entrance
+        }
+
+        let heroXPBefore = save.roster.progression(for: save.roster.activeHero)
+        let petXPBefore = save.roster.progression(for: save.roster.activePet)
+        LabyrinthCompletion.complete(
+            nodeID: restID,
+            hero: save.roster.activeHero,
+            pet: save.roster.activePet,
+            save: &save
+        )
+        #expect(save.labyrinth.nodes[restID]?.isCleared == true)
+        #expect(save.roster.progression(for: save.roster.activeHero) == heroXPBefore)
+        #expect(save.roster.progression(for: save.roster.activePet) == petXPBefore)
+    }
+
+    @Test func combatCompletionGrantsBattleExperience() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 31)
+        let combatID = try #require(
+            save.labyrinth.reachableNodeIDs().first(where: {
+                save.labyrinth.nodes[$0]?.type.isCombat == true
+            })
+        )
+        let heroXPBefore = save.roster.progression(for: save.roster.activeHero)
+        LabyrinthCompletion.complete(
+            nodeID: combatID,
+            hero: save.roster.activeHero,
+            pet: save.roster.activePet,
+            save: &save
+        )
+        let heroXPAfter = save.roster.progression(for: save.roster.activeHero)
+        #expect(
+            heroXPAfter.level > heroXPBefore.level
+                || heroXPAfter.currentXP > heroXPBefore.currentXP
+        )
+    }
+
     @Test func unlockRequiresChapterOneOrAspectFloorFive() {
         var journey = JourneyProgressState.initial
         let aspects = PlayerAspectsState.freshStart

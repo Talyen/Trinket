@@ -182,8 +182,9 @@ struct BattleView: View {
     }
 
     private func wireAutoEndTurn(_ battleSession: BattleSession) {
-        battleSession.onTurnAutoEnded = { [appState] earnedGold in
-            guard let earnedGold,
+        battleSession.onTurnAutoEnded = { [weak appState] earnedGold in
+            guard let appState,
+                  let earnedGold,
                   let configuration = appState.battle.activeBattle else { return }
             _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
         }

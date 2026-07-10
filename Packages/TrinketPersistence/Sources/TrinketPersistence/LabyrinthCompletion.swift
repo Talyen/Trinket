@@ -85,8 +85,11 @@ public enum LabyrinthCompletion {
         let encounterLevel = enemyLevel(for: node, effects: effects)
 
         save.roster.grantGold(reward.gold + battleEarnedGold)
-        grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: hero, roster: &save.roster)
-        grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: pet, roster: &save.roster)
+        // Battle XP is combat-only; rest/shop/mystery/craft grant gold/materials without XP.
+        if node.type.isCombat {
+            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: hero, roster: &save.roster)
+            grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: pet, roster: &save.roster)
+        }
 
         let resolvedMaterials = materialRewards
             ?? save.homestead.adjustedMaterialRewards(reward.materialRewards)
@@ -128,8 +131,7 @@ public enum LabyrinthCompletion {
         let effects = save.labyrinth.effects(for: nodeID)
         grantGeneratedItem(nodeID: nodeID, effects: effects, save: &save)
         save.homestead.grant([ResourceAmount(.wood, 1)])
-        // Rest/craft clear paths still grant XP crumbs via complete() for combat nodes only;
-        // altar forge is gold→item, so skip battle XP here.
+        // Craft is non-combat: complete()/forge never grant battle XP here.
         save.labyrinth.markCleared(nodeID: nodeID)
         claimMilestonesIfNeeded(save: &save)
         _ = hero
