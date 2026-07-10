@@ -9,6 +9,11 @@ struct OptionsView: View {
 
     var body: some View {
         @Bindable var options = appState.options
+        let battleSession = appState.battle
+        let isInActiveBattle = battleSession.activeBattle != nil
+        let canRetreat = isInActiveBattle
+            && !battleSession.isShowingVictory
+            && !battleSession.isShowingDefeat
 
         Form {
             if let message = appState.persistenceStatusMessage {
@@ -50,6 +55,12 @@ struct OptionsView: View {
                     }
                 }
                 .accessibilityIdentifier("Haptics Toggle")
+                .onChange(of: options.hapticsEnabled) { _, isEnabled in
+                    appState.sfxPlayer.play(
+                        isEnabled ? SFXID.uiToggleOn : SFXID.uiToggleOff,
+                        volume: options.effectsVolume
+                    )
+                }
             }
 
             Section("Battle") {
@@ -59,6 +70,25 @@ struct OptionsView: View {
                     }
                 }
                 .accessibilityIdentifier("Ultimate Skip Policy Picker")
+
+                if isInActiveBattle {
+                    Button {
+                        appState.presentCombatLogFromOptions()
+                    } label: {
+                        Label("Combat Log", systemImage: "list.bullet.rectangle")
+                    }
+                    .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
+
+                    if canRetreat {
+                        Button(role: .destructive) {
+                            appState.endBattleReturningToOrigin()
+                        } label: {
+                            Label("Retreat", systemImage: "figure.run")
+                        }
+                        .tint(TrinketDesign.Colors.destructive)
+                        .accessibilityIdentifier(AccessibilityID.Battle.retreat)
+                    }
+                }
             }
 
             Section("Game Data") {

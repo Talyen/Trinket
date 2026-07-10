@@ -8,6 +8,7 @@ extension AppState {
         let playerSave: PlayerSaveStore
         let shellSession: PlayerShellSessionStore
         let musicPlayer: MusicPlayer
+        let sfxPlayer: SFXPlayer
         let options: OptionsStore
         let selectedTab: AppTab
         let activeBattleStageID: String?
@@ -62,6 +63,7 @@ extension AppState {
             playerSave: resolvedPlayerSave,
             shellSession: resolvedShellSession,
             musicPlayer: MusicPlayer(isDisabled: environment.disableAudio),
+            sfxPlayer: SFXPlayer(isDisabled: environment.disableAudio),
             options: resolvedOptions,
             selectedTab: selectedTab(
                 environment: environment,
@@ -94,10 +96,8 @@ extension AppState {
 
         battle.onBattleStateChange = { [weak self] token in
             self?.applyBattleResumeToken(token)
-            self?.syncBattleTickLoop()
         }
         installMemoryPressureHandling()
-        syncBattleTickLoop()
     }
 
     private static func clearResetStateDefaults(from defaults: UserDefaults) {
@@ -145,7 +145,6 @@ extension AppState {
             homestead: homestead.current
         )
         battle.isShowingVictory = true
-        battle.isPaused = true
     }
 
     private func startLaunchShop() {

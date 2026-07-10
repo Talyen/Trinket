@@ -14,16 +14,14 @@ struct ItemModifierBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            actionIntervalTicks: 2,
             abilities: [.slash]
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 100,
             abilities: []
         )
 
@@ -34,8 +32,7 @@ struct ItemModifierBattleTests {
             heroModifiers: modifiers
         )
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
@@ -49,17 +46,15 @@ struct ItemModifierBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: 10,
-            actionIntervalTicks: 100,
             abilities: [],
             primaryStats: PrimaryStats(toughness: 0)
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, actionIntervalTicks: 100, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 10, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 10,
-            actionIntervalTicks: 100,
             abilities: []
         )
 
@@ -90,7 +85,6 @@ struct ItemModifierBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            actionIntervalTicks: 2,
             abilities: [.slash],
             primaryStats: PrimaryStats(strength: 4)
         )
@@ -101,13 +95,12 @@ struct ItemModifierBattleTests {
         )
         var battle = BattleStateTestFactory.makeBattle(
             hero: configuration.combatant,
-            pet: Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: []),
-            enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, actionIntervalTicks: 100, abilities: []),
+            pet: Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: []),
+            enemy: Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100, abilities: []),
             heroModifiers: configuration.modifiers
         )
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(100 - battle.health(of: battle.enemy) == 2)
     }
@@ -120,16 +113,14 @@ struct ItemModifierBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: 20,
-            actionIntervalTicks: 1,
             abilities: [.fangs]
         )
-        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, actionIntervalTicks: 100, abilities: [])
+        let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [])
         let enemy = Combatant(
             id: "enemy",
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 100,
             abilities: []
         )
         var battle = BattleStateTestFactory.makeBattle(
@@ -139,7 +130,7 @@ struct ItemModifierBattleTests {
             heroModifiers: modifiers
         )
 
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(100 - battle.health(of: battle.enemy) == 2)
     }

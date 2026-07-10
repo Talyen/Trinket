@@ -101,9 +101,9 @@ struct CombatFeedbackEventView: View {
 
     private var feedbackLabel: some View {
         let style = item.feedbackVisualStyle
-        return HStack(spacing: recipe.chrome == .compact ? 4 : 6) {
+        return HStack(spacing: 5) {
             Image(systemName: style.symbolName)
-                .font(.system(size: max(11, recipe.fontSize - 4), weight: .bold))
+                .font(.system(size: max(14, recipe.fontSize * 0.55), weight: .bold))
                 .modifier(SymbolBounceModifier(
                     enabled: recipe.bouncesSymbol && !reduceMotion,
                     trigger: item.id
@@ -116,33 +116,13 @@ struct CombatFeedbackEventView: View {
 
                 if recipe.showsSecondaryCaption, let secondary = item.secondaryText {
                     Text(secondary)
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
-                        .opacity(0.9)
+                        .font(.system(size: max(11, recipe.fontSize * 0.38), weight: .bold, design: .rounded))
+                        .opacity(0.92)
                 }
             }
         }
         .foregroundStyle(style.color)
-        .padding(.horizontal, chipHorizontalPadding)
-        .padding(.vertical, chipVerticalPadding)
-        .trinketGlassChip(recipe.chrome)
-    }
-
-    private var chipHorizontalPadding: CGFloat {
-        switch recipe.chrome {
-        case .standard: return 12
-        case .compact: return 8
-        case .emphasis: return 14
-        case .utility: return 10
-        }
-    }
-
-    private var chipVerticalPadding: CGFloat {
-        switch recipe.chrome {
-        case .standard: return 8
-        case .compact: return 5
-        case .emphasis: return 9
-        case .utility: return 6
-        }
+        .trinketCombatFloatText()
     }
 }
 

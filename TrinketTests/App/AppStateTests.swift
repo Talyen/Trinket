@@ -101,7 +101,6 @@ struct AppStateTests {
         #expect(activeBattle.stageID == "chapter-1-stage-1")
         #expect(state.battle.isShowingVictory)
         #expect(state.battle.victorySummary != nil)
-        #expect(state.battle.isPaused)
         #expect(state.selectedTab == .play)
     }
 

@@ -339,6 +339,20 @@ public struct GlassChipModifier: ViewModifier {
     }
 }
 
+/// Dark outline + soft bloom so floating combat numbers stay readable on busy art.
+public struct CombatFloatTextModifier: ViewModifier {
+    public init() {}
+
+    public func body(content: Content) -> some View {
+        content
+            .shadow(color: .black.opacity(0.95), radius: 0, x: 0, y: 1)
+            .shadow(color: .black.opacity(0.9), radius: 0, x: 0, y: -1)
+            .shadow(color: .black.opacity(0.9), radius: 0, x: 1, y: 0)
+            .shadow(color: .black.opacity(0.9), radius: 0, x: -1, y: 0)
+            .shadow(color: .black.opacity(0.55), radius: 3, x: 0, y: 1.5)
+    }
+}
+
 public struct StatusBadgeModifier: ViewModifier {
     public func body(content: Content) -> some View {
         content.modifier(TrinketGlassBackgroundModifier(
@@ -406,6 +420,10 @@ public extension View {
 
     func trinketGlassChip(_ role: ChipChromeRole = .standard) -> some View {
         modifier(GlassChipModifier(role: role))
+    }
+
+    func trinketCombatFloatText() -> some View {
+        modifier(CombatFloatTextModifier())
     }
 
     func trinketStatusBadge() -> some View {

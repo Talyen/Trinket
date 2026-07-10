@@ -91,10 +91,14 @@ struct EnemyTraitBattleTests {
 
         let heroHealthBefore = context.roster.health(for: hero)
         let matchup = BattleMatchup(hero: hero, pet: pet, enemy: necromancer.combatant)
+        let turnNumber = enemyRuntime.actionCount + 1
+        let ability = try #require(
+            BattleTurnEngine.selectedEnemyAbility(for: necromancer.combatant, turnNumber: turnNumber)
+        )
 
-        _ = BattleTurnEngine.performAction(
+        _ = BattleTurnEngine.performAbility(
+            ability,
             actor: necromancer.combatant,
-            abilityTarget: hero,
             matchup: matchup,
             context: &context
         )

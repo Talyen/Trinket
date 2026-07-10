@@ -51,7 +51,7 @@ struct EffectSummaryBuilderTests {
             ActiveEffect(id: 1, effect: .shield(.block, 5, 6), remainingTicks: 6)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Block: 5 buffer, 6 seconds left.")
+        try #expect(summaries.first?.text == "Block: 5 buffer, 6 turns left.")
     }
 
     @Test func mitigationSummary() throws {
@@ -59,7 +59,7 @@ struct EffectSummaryBuilderTests {
             ActiveEffect(id: 1, effect: .mitigation(.armor, 0.25, 3), remainingTicks: 3)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Armor: 25% mitigation, 3 seconds left.")
+        try #expect(summaries.first?.text == "Armor: 25% mitigation, 3 turns left.")
     }
 
     // MARK: - Prevention / build-up
@@ -106,7 +106,7 @@ struct EffectSummaryBuilderTests {
             ActiveEffect(id: 1, effect: .leech(.leech, 0.10, 6), remainingTicks: 6)
         ]
         let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Leech: 10% leech, 6 seconds left.")
+        try #expect(summaries.first?.text == "Leech: 10% leech, 6 turns left.")
     }
 
     @Test func deathsDoorSummary() throws {

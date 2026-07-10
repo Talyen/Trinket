@@ -22,6 +22,7 @@ final class AppState {
     let playerSave: PlayerSaveStore
     let shellSession: PlayerShellSessionStore
     let musicPlayer: MusicPlayer
+    let sfxPlayer: SFXPlayer
     var shellScenePhase: ScenePhase = .active
     var roster: PlayerRosterState {
         get { playerSave.roster }
@@ -61,8 +62,6 @@ final class AppState {
 
     private(set) var pendingCollectionPresentation: LaunchPresentation?
     private(set) var pendingPlayDestination: PlayLaunchDestination?
-
-    var battleTickTask: Task<Void, Never>?
 
     var selectedTab: AppTab {
         get { AppTab(shellSessionTab: shellSession.selectedTab) ?? .play }
@@ -151,6 +150,7 @@ final class AppState {
         self.playerSave = dependencies.playerSave
         shellSession = dependencies.shellSession
         musicPlayer = dependencies.musicPlayer
+        sfxPlayer = dependencies.sfxPlayer
         options = dependencies.options
         pendingCollectionPresentation = dependencies.pendingCollectionPresentation
         pendingPlayDestination = dependencies.pendingPlayDestination
@@ -168,13 +168,8 @@ final class AppState {
         }
         battle = BattleSession()
         battle.options = options
+        battle.sfxPlayer = sfxPlayer
         finishBootstrap(environment: environment)
-    }
-
-    // Concurrency-Safety: isolated deinit runs on MainActor so cancelling the
-    // battle tick Task does not touch MainActor-isolated state from a nonisolated deinit.
-    isolated deinit {
-        battleTickTask?.cancel()
     }
 
     func consumePendingCollectionPresentation() -> LaunchPresentation? {
@@ -185,6 +180,25 @@ final class AppState {
     func consumePendingPlayDestination() -> PlayLaunchDestination? {
         defer { pendingPlayDestination = nil }
         return pendingPlayDestination
+    }
+
+    /// Queues a Play-tab deep link so Modes navigation can be restored after battle ends.
+    func queueReturnToBattleOrigin(from token: ActiveBattleResumeToken?) {
+        pendingPlayDestination = PlayLaunchDestination.returning(from: token)
+    }
+
+    /// Ends the active battle and restores the Play mode that started it (journey map,
+    /// Aspects climb, Labyrinth map, …). Switches to the Play tab.
+    func endBattleReturningToOrigin() {
+        queueReturnToBattleOrigin(from: battle.activeBattle?.resumeToken)
+        selectedTab = .play
+        battle.endBattle()
+    }
+
+    /// Leaves Options for the live battle on Play and presents the combat log sheet.
+    func presentCombatLogFromOptions() {
+        selectedTab = .play
+        battle.presentBattleLog()
     }
 
     var persistenceStatusMessage: String? {
@@ -258,30 +272,18 @@ final class AppState {
 
         switch trigger {
         case .appeared:
-            if battle.activeBattle != nil, selectedTab != .play {
-                battle.isPaused = true
-            }
+            break
         case .tabChanged:
-            if battle.activeBattle != nil {
-                // Leaving Play pauses combat; returning stays paused until the player resumes.
-                battle.isPaused = true
-            }
+            break
         case let .activeBattleChanged(started):
-            if started {
-                battle.isPaused = selectedTab != .play
-            } else {
-                battle.isPaused = false
+            if !started {
                 musicPlayer.clearEncounterResumePositions()
             }
         case .scenePhaseChanged:
-            if scenePhase != .active, battle.activeBattle != nil {
-                battle.isPaused = true
-            }
             handleScenePhaseSideEffects(scenePhase)
         }
 
         refreshMusic(scenePhase: scenePhase)
-        syncBattleTickLoop()
     }
 
     private var memoryPressureObserver: NotificationToken?
@@ -303,6 +305,7 @@ final class AppState {
     func trimMemoryFootprint() {
         battle.trimMemoryFootprint(releaseBattleLog: true)
         musicPlayer.trimMemoryFootprint()
+        sfxPlayer.stopAll()
     }
 
     func refreshMusic(scenePhase: ScenePhase) {

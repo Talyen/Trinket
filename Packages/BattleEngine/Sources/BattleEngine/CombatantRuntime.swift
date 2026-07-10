@@ -2,10 +2,7 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-/// Mutable per-combatant state for the duration of a single battle. Replaces
-/// the triplicated `heroHealth`/`petHealth`/`enemyHealth`, three effect arrays,
-/// three action speeds, three next-ready ticks, and three action counters
-/// that previously lived directly on `BattleState`.
+/// Mutable per-combatant state for the duration of a single battle.
 ///
 /// The `Combatant` itself is treated as an immutable definition; the runtime
 /// tracks how that definition's state has evolved during the battle.
@@ -22,17 +19,6 @@ public struct CombatantRuntime: Hashable {
     /// Currently active status effects, in insertion order.
     public var activeEffects: [ActiveEffect]
 
-    /// Action speed configuration. The effective interval is recomputed on
-    /// read; `intervalModifier` is mutated by stat changes in future stages.
-    public var actionSpeed: ActionSpeed
-
-    /// The tick at which this combatant is next eligible to act.
-    public var nextReadyAtTick: Int
-
-    /// Interval (in ticks) used when `nextReadyAtTick` was last scheduled.
-    /// Used for action-charge progress so mid-cycle haste changes do not desync the wipe.
-    public var scheduledActionInterval: Int
-
     /// Number of times this combatant has acted so far in the battle.
     public var actionCount: Int
 
@@ -45,7 +31,7 @@ public struct CombatantRuntime: Hashable {
     /// True after this combatant has triggered Death's Door once this battle.
     public var hasConsumedDeathsDoor: Bool
 
-    /// Tick when Death's Door expired; lethal protection lasts through that tick.
+    /// Round when Death's Door expired; lethal protection lasts through that round.
     public var deathsDoorExpiredAtTick: Int?
 
     /// True after this combatant's ambush trait has added its first-strike bonus.
@@ -66,10 +52,10 @@ public struct CombatantRuntime: Hashable {
     /// Number of burn ticks this combatant has sourced this battle.
     public var burnTickCount: Int
 
-    /// Last battle tick where Ablution cleansed a debuff for this combatant.
+    /// Last battle round where Ablution cleansed a debuff for this combatant.
     public var lastAblutionTick: Int?
 
-    /// Tick until which mitigation from armor effects is reduced by `mitigationShredMultiplier`.
+    /// Round until which mitigation from armor effects is reduced by `mitigationShredMultiplier`.
     public var mitigationShredUntilTick: Int
 
     /// Multiplier applied to armor mitigation while shred is active (e.g. 0.5 halves armor).
@@ -80,8 +66,6 @@ public struct CombatantRuntime: Hashable {
         initialHealth: Int? = nil,
         initialMana: Int? = nil,
         initialActiveEffects: [ActiveEffect] = [],
-        initialActionSpeed: ActionSpeed? = nil,
-        initialNextReadyAtTick: Int? = nil,
         maximumHealthBonus: Int = 0,
         maximumManaBonus: Int = 0,
         hasConsumedDeathsDoor: Bool = false,
@@ -113,13 +97,6 @@ public struct CombatantRuntime: Hashable {
         currentHealth = initialHealth ?? (combatant.maxHealth + combatant.primaryStats.toughness + maximumHealthBonus)
         currentMana = initialMana ?? (combatant.hasMana ? combatant.maxMana + combatant.primaryStats.intellect + maximumManaBonus : 0)
         activeEffects = initialActiveEffects
-
-        let speed = initialActionSpeed ?? CombatantRuntime.defaultActionSpeed(for: combatant)
-        actionSpeed = speed
-        let readyAt = initialNextReadyAtTick ?? speed.effectiveInterval
-        nextReadyAtTick = readyAt
-        // First cycle runs from tick 0 to `nextReadyAtTick`.
-        scheduledActionInterval = max(1, readyAt)
         actionCount = 0
     }
 
@@ -162,13 +139,6 @@ public struct CombatantRuntime: Hashable {
         currentHealth > 0
     }
 
-    // MARK: - State queries
-
-    /// True if this combatant can act on the given tick.
-    public func isReady(atTick tick: Int) -> Bool {
-        isAlive && nextReadyAtTick <= tick
-    }
-
     // MARK: - State mutations
 
     /// Subtracts `amount` from `currentHealth`, clamped at 0. Returns the
@@ -208,17 +178,9 @@ public struct CombatantRuntime: Hashable {
         return actual
     }
 
-    /// Records that this combatant just acted on `tick` and schedules the
-    /// next ready tick.
-    public mutating func markActed(atTick tick: Int, activeEffects: [ActiveEffect] = []) {
+    /// Records that this combatant just acted.
+    public mutating func markActed() {
         actionCount += 1
-        let hasteReduction = activeEffects.contains { active in
-            if case .haste = active.effect { return active.remainingTicks > 0 }
-            return false
-        } ? 1 : 0
-        let interval = max(1, actionSpeed.effectiveInterval - hasteReduction)
-        scheduledActionInterval = interval
-        nextReadyAtTick = tick + interval
     }
 
     public mutating func setEffects(_ effects: [ActiveEffect]) {
@@ -227,24 +189,5 @@ public struct CombatantRuntime: Hashable {
 
     public mutating func removeEffects(matching predicate: (ActiveEffect) -> Bool) {
         activeEffects.removeAll(where: predicate)
-    }
-
-    // MARK: - Defaults
-
-    /// Default action speed for a combatant of the given role, using the
-    /// `BattleState` baseline intervals (hero/pet: 2 ticks, enemy: 6 ticks).
-    /// When the combatant provides a non-nil `actionIntervalTicks` that
-    /// value is used instead. Agility is applied as a negative modifier.
-    public static func defaultActionSpeed(for combatant: Combatant) -> ActionSpeed {
-        let base: Int
-        switch combatant.role {
-        case .hero: base = BattleTiming.heroActionIntervalTicks
-        case .pet: base = BattleTiming.petActionIntervalTicks
-        case .enemy: base = BattleTiming.enemyActionIntervalTicks
-        }
-        let resolvedBase = combatant.actionIntervalTicks ?? base
-        var speed = ActionSpeed(baseIntervalTicks: resolvedBase)
-        speed.intervalModifier = -combatant.primaryStats.agility / 5
-        return speed
     }
 }

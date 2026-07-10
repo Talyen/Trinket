@@ -61,8 +61,10 @@ IMPORT_RULES: list[tuple[str, list[str]]] = [
         [
             r"\bBattleState\b",
             r"\bBattleActionEvent\b",
-            r"\bBattleLoopEngine\b",
-            r"\bBattleSimulator\b",
+            r"\bBattleCardCombatEngine\b",
+            r"\bBattleCard\b",
+            r"\bBattleHand\b",
+            r"\bCombatDeck\b",
             r"\bBattleOutcome\b",
             r"\bCombatOutcome\b",
             r"\bActionEvent\b",

@@ -31,11 +31,16 @@ public enum TrinketMotion: Sendable {
         public static let ultimateChipStagger: TimeInterval = 0.055
 
         /// Default chip display duration (direct damage). Prefer per-class recipes.
-        public static let chipDisplayDuration: TimeInterval = 1.0
+        public static let chipDisplayDuration: TimeInterval = 0.7
 
-        public static let reduceMotionChipFadeIn: TimeInterval = 0.15
-        public static let reduceMotionChipHold: TimeInterval = 0.7
-        public static let reduceMotionChipFadeOut: TimeInterval = 0.15
+        /// Longest chip lifetime (+ buffer) for delayed memory prune after recording.
+        public static var maxChipLifetime: TimeInterval {
+            chip(for: .critical).lifetime + 0.05
+        }
+
+        public static let reduceMotionChipFadeIn: TimeInterval = 0.12
+        public static let reduceMotionChipHold: TimeInterval = 0.4
+        public static let reduceMotionChipFadeOut: TimeInterval = 0.12
 
         /// Max concurrent keyword particle bursts per combatant pane.
         public static let maxKeywordBurstsPerPane = 2

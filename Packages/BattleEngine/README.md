@@ -1,22 +1,21 @@
 # BattleEngine
 
-Combat simulation for Trinket. Owns `BattleState`, effect handlers, and the turn loop.
+Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handlers, decks/hand, and the player/enemy turn loop.
 
 ## Modules
 
-- **BattleEngine** — Core simulation. `BattleState.advanceOneStep()` is the single entry point. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
-- **BattleBalanceTools** — Balance analysis helpers and sweep infrastructure.
-- **BalanceSweepCLI** — CLI for parameter sweeps.
+- **BattleEngine** — Core simulation. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
 
 ## Key types
 
 | Type | Role |
 |------|------|
-| `BattleState` | Mutable simulation state; call `advanceOneStep()` per tick |
-| `BattleSimulator` | Runs a battle to completion (used by tests and previews) |
+| `BattleState` | Mutable simulation state; `playCard` / `endTurn` drive combat |
+| `BattleCard` / `BattleHand` / `CombatDeck` | Player ability cards drawn from Hero/Pet loadout decks |
+| `BattleCardCombatEngine` | Opening draw, play resolution, enemy turn, end-of-round effect tick |
 | `BattleEffectHandler` | Protocol for effect application/tick logic |
 | `EffectHandlers` | Registry of all handlers, keyed by `EffectKind` |
-| `CombatantRuntime` | Per-combatant runtime state (mana, active effects, cooldowns) |
+| `CombatantRuntime` | Per-combatant runtime state (HP, mana, active effects) |
 
 ## Adding a new effect
 
@@ -33,4 +32,4 @@ See `Tests/README.md` for test ownership and conventions.
 ./Scripts/test-package.sh BattleEngine
 ```
 
-Golden path tests use `BattleStateTestFactory.makeBattle(...)` with `rngSeed: 0` for deterministic outcomes.
+Use `BattleStateTestFactory.makeBattle(...)` with a fixed seed for deterministic outcomes.

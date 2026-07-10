@@ -20,6 +20,7 @@ struct ItemSlotPickerView: View {
                     Button {
                         selectedItemID = item.id
                         equipmentLoadout.equip(item, in: slot)
+                        appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
                         dismiss()
                     } label: {
                         let isSelected = item.id == (selectedItemID ?? equipmentLoadout.itemID(for: slot))

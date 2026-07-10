@@ -5,14 +5,13 @@ import TrinketContent
 struct PlayView: View {
     @Environment(AppState.self) private var appState
     @State private var stageMessage: StageMapMessage?
-    @State private var labyrinthDeepLink: PlayLaunchDestination?
+    @State private var playDeepLink: PlayLaunchDestination?
 
     var body: some View {
         @Bindable var battle = appState.battle
 
-        // Battle stays in-tab (not a fullScreenCover) so the tab bar remains usable for
-        // mid-fight Collection/Homestead pauses while combat stays paused in session state.
-        // Uses the Play tab NavigationStack for BattleView toolbars. Labyrinth deep-link
+        // Battle stays in-tab (not a fullScreenCover) so the tab bar remains usable mid-fight.
+        // Uses the Play tab NavigationStack for BattleView toolbars. Mode deep-link
         // state is preserved on PlayView and reapplied when battle ends.
         Group {
             if let configuration = battle.activeBattle {
@@ -24,22 +23,54 @@ struct PlayView: View {
                     onEnemyTap: showEnemyDetails(for:),
                     onResumeMessage: { stageMessage = $0 }
                 )
-                .navigationDestination(item: $labyrinthDeepLink) { _ in
-                    LabyrinthMapView()
+                .navigationDestination(item: $playDeepLink) { destination in
+                    switch destination {
+                    case .labyrinthMap:
+                        LabyrinthMapView()
+                    case let .aspectClimb(aspectID):
+                        AspectClimbView(aspectID: aspectID)
+                    }
                 }
             }
         }
         .onAppear {
             applyPendingPlayDestinationIfNeeded()
         }
-        .sheet(item: $battle.overlayCombatantDetail, onDismiss: {
-            appState.battle.restorePauseAfterOverlay()
-        }, content: { detail in
+        .onChange(of: battle.activeBattle?.id) { _, newID in
+            if newID == nil {
+                applyPendingPlayDestinationIfNeeded()
+            }
+        }
+        .sheet(item: $battle.overlayCombatantDetail, content: { detail in
             CombatantDetailPane(snapshot: detail, hidesNavigationBar: true)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)
         })
+        .sheet(item: Binding(
+            get: { battle.overlayAbilityDetail.map { AbilityDetailSheetItem(ability: $0) } },
+            set: { newValue in
+                if newValue == nil {
+                    battle.clearAbilityDetail()
+                }
+            }
+        ), content: { item in
+            AbilityDetailSheet(ability: item.ability)
+                .presentationDetents([.medium])
+        })
+        .sheet(isPresented: Binding(
+            get: { battle.isShowingBattleLog },
+            set: { isShowing in
+                if !isShowing {
+                    battle.clearBattleLog()
+                }
+            }
+        )) {
+            BattleLogSheet(
+                entries: battle.state?.log ?? []
+            )
+            .presentationDetents([.medium])
+        }
         .fullScreenCover(
             item: Binding(
                 get: { appState.activeMysteryEncounter },
@@ -101,11 +132,16 @@ struct PlayView: View {
     }
 
     private func applyPendingPlayDestinationIfNeeded() {
-        guard appState.consumePendingPlayDestination() == .labyrinthMap else { return }
-        if appState.isLabyrinthUnlocked {
-            _ = appState.enterLabyrinth()
+        guard let destination = appState.consumePendingPlayDestination() else { return }
+        switch destination {
+        case .labyrinthMap:
+            if appState.isLabyrinthUnlocked {
+                _ = appState.enterLabyrinth()
+            }
+            playDeepLink = .labyrinthMap
+        case let .aspectClimb(aspectID):
+            playDeepLink = .aspectClimb(aspectID)
         }
-        labyrinthDeepLink = .labyrinthMap
     }
 
     private func handleStageTap(_ stage: Stage) {

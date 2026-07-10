@@ -66,6 +66,7 @@ if [[ "$INCLUDE_ASSETS" == true ]]; then
     "Packages/TrinketContent/Sources/TrinketContent/Generated/UltimateCinematicCatalog.generated.swift"
     "Trinket/Assets.xcassets"
     "Trinket/Resources/Music"
+    "Trinket/Resources/SFX"
     "Trinket/Resources/Cinematics"
   )
 fi

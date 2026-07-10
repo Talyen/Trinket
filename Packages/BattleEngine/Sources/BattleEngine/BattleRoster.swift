@@ -7,27 +7,23 @@ public enum BattleParticipant: CaseIterable, Sendable {
     case pet
     case enemy
 
-    /// Participants in effect-tick order for each global battle step.
+    /// Participants in effect-tick order for each end-of-round pass.
     public static let effectTickOrder: [BattleParticipant] = [.enemy, .hero, .pet]
 
-    /// Tiebreaker for ready-actor selection when schedule and interval tie:
-    /// hero (0) < pet (1) < enemy (2).
-    public var turnPriority: Int {
+    public var isPartyMember: Bool {
         switch self {
-        case .hero: return 0
-        case .pet: return 1
-        case .enemy: return 2
+        case .hero, .pet: return true
+        case .enemy: return false
         }
     }
 }
 
 /// Collection of the three `CombatantRuntime`s participating in a battle:
 /// the hero, the pet, and the enemy. Provides dispatch by role or by
-/// `Combatant` identity, plus the ready-actor picker used by the turn loop.
+/// `Combatant` identity.
 ///
 /// The roster is the single source of truth for per-combatant mutable state
-/// (health, active effects, action schedules, action counts). `BattleState`
-/// delegates to it.
+/// (health, active effects, action counts). `BattleState` delegates to it.
 public struct BattleRoster {
     public var hero: CombatantRuntime
     public var pet: CombatantRuntime
@@ -108,56 +104,6 @@ public struct BattleRoster {
         runtime(for: combatant)?.maxHealth ?? 0
     }
 
-    // MARK: - Ready-actor picker
-
-    /// Returns the highest-priority runtime eligible to act on `tick`, if any.
-    public func nextReadyRuntime(atTick tick: Int) -> CombatantRuntime? {
-        var best: (runtime: CombatantRuntime, turnPriority: Int)?
-
-        for participant in BattleParticipant.allCases {
-            let runtime = self[participant]
-            guard runtime.isReady(atTick: tick) else { continue }
-
-            guard let current = best else {
-                best = (runtime, participant.turnPriority)
-                continue
-            }
-
-            if runtime.nextReadyAtTick < current.runtime.nextReadyAtTick {
-                best = (runtime, participant.turnPriority)
-            } else if runtime.nextReadyAtTick == current.runtime.nextReadyAtTick {
-                if runtime.actionSpeed.effectiveInterval > current.runtime.actionSpeed.effectiveInterval {
-                    best = (runtime, participant.turnPriority)
-                } else if runtime.actionSpeed.effectiveInterval == current.runtime.actionSpeed.effectiveInterval,
-                          participant.turnPriority < current.turnPriority {
-                    best = (runtime, participant.turnPriority)
-                }
-            }
-        }
-
-        return best?.runtime
-    }
-
-    /// Returns the runtimes that are eligible to act on `tick`, sorted by
-    /// `(nextReadyAtTick ascending, effectiveInterval descending, turnPriority
-    /// ascending)`. `turnPriority` uses `BattleParticipant.turnPriority`
-    /// (hero < pet < enemy).
-    public func readyCombatants(atTick tick: Int) -> [CombatantRuntime] {
-        BattleParticipant.allCases
-            .map { (runtime: self[$0], turnPriority: $0.turnPriority) }
-            .filter { $0.runtime.isReady(atTick: tick) }
-            .sorted { lhs, rhs in
-                if lhs.runtime.nextReadyAtTick != rhs.runtime.nextReadyAtTick {
-                    return lhs.runtime.nextReadyAtTick < rhs.runtime.nextReadyAtTick
-                }
-                if lhs.runtime.actionSpeed.effectiveInterval != rhs.runtime.actionSpeed.effectiveInterval {
-                    return lhs.runtime.actionSpeed.effectiveInterval > rhs.runtime.actionSpeed.effectiveInterval
-                }
-                return lhs.turnPriority < rhs.turnPriority
-            }
-            .map(\.runtime)
-    }
-
     // MARK: - Targeting
 
     /// The combatant the enemy prefers to attack: the living party member with
@@ -180,13 +126,13 @@ public struct BattleRoster {
     }
 
     /// True when `combatant` has any stun/freeze control meter at threshold,
-    /// waiting to consume its next scheduled action.
+    /// waiting to consume its next action opportunity.
     public func hasPendingActionSkip(for combatant: Combatant) -> Bool {
         activeEffects(for: combatant).contains(where: \.effect.isActionSkipPending)
     }
 
     /// True when `combatant` has a full control meter for `keyword`, waiting
-    /// to consume its next scheduled action.
+    /// to consume its next action opportunity.
     public func hasPendingActionSkip(for combatant: Combatant, keyword: Keyword) -> Bool {
         activeEffects(for: combatant).contains { activeEffect in
             activeEffect.keyword == keyword && activeEffect.effect.isActionSkipPending

@@ -149,9 +149,9 @@ public enum EffectPresentation {
         }
     }
 
-    /// Battle ticks are player-facing seconds (1 tick = 1 second).
+    /// Duration values are player-facing turns (1 former tick = 1 turn).
     private static func durationPhrase(ticks: Int) -> String {
-        ticks == 1 ? "for 1 second" : "for \(ticks) seconds"
+        ticks == 1 ? "for 1 turn" : "for \(ticks) turns"
     }
 
     private static func statusPhrase(for keyword: Keyword, amount _: Int) -> String {

@@ -6,36 +6,23 @@ public struct HasteHandler: BattleEffectHandler {
     public let kind: EffectKind = .haste
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
-        let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .haste(duration) = effect { return duration }
-            return nil
-        }
-        guard maxTicks > 0 else { return nil }
-        return EffectSummary(keyword: keyword, text: "Hasted: acts sooner, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
+        // Haste has no combat effect in turn-based card combat (action intervals removed).
+        _ = stacks
+        _ = keyword
+        return nil
     }
 
     public func apply(
         _ effect: Effect,
-        ability: Ability,
-        source: Combatant,
-        target: Combatant,
+        ability _: Ability,
+        source _: Combatant,
+        target _: Combatant,
         action _: ActionApplyContext,
-        in context: inout BattleEngineContext
+        in _: inout BattleEngineContext
     ) -> EffectApplyOutcome {
-        guard case let .haste(durationTicks) = effect else { return EffectApplyOutcome(events: [], didApply: false) }
-        let agilityBonus = source.primaryStats.agility / 10
-        let duration = durationTicks + agilityBonus
-        context.appendEffect(.haste(duration), to: target, sourceID: source.id, remainingTicks: duration)
-        let event = context.nextEvent(
-            kind: .effect,
-            effectKind: .hasteApplied,
-            actorName: source.name,
-            abilityName: ability.name,
-            target: target,
-            amount: duration,
-            keyword: .physical
-        )
-        return EffectApplyOutcome(events: [event], didApply: true)
+        // No-op: haste previously shortened action intervals, which no longer exist.
+        guard case .haste = effect else { return EffectApplyOutcome(events: [], didApply: false) }
+        return EffectApplyOutcome(events: [], didApply: false)
     }
 }
 

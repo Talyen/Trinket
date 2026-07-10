@@ -26,7 +26,7 @@ Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift`; parsed by `AppE
 - `-completed-stages`, `-map-scroll-target`, `-battle-tick-interval`
 - `-disable-audio`, `-appearance` (see `AppEnvironment.parse`)
 
-Keep default launch args unless testing persistence. Prefer ids from `AccessibilityID` (e.g. `AccessibilityID.Play.stageNode(chapter:stage:)`, `AccessibilityID.Battle.pauseButton`); assert with `assertExists`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
+Keep default launch args unless testing persistence. Prefer ids from `AccessibilityID` (e.g. `AccessibilityID.Play.stageNode(chapter:stage:)`, `AccessibilityID.Battle.hand`); assert with `assertExists`. UI tests tap tab **labels** (`"Homestead"`, `"Collection"`), not `AppTab` raw values.
 
 ## Speed
 

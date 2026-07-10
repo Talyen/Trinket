@@ -436,4 +436,123 @@ struct AppStatePlayFlowTests {
 
         #expect(state.activeBattleStageID == "chapter-1-stage-1")
     }
+
+    @Test func endBattleReturningToOriginFromJourneySwitchesToPlayWithoutDeepLink() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        state.selectedTab = .options
+
+        state.endBattleReturningToOrigin()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.selectedTab == .play)
+        #expect(state.consumePendingPlayDestination() == nil)
+    }
+
+    @Test func endBattleReturningToOriginFromAspectQueuesClimbDeepLink() throws {
+        let state = try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+        var roster = state.roster.current
+        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+        roster.setActivePet(bear)
+        state.roster.current = roster
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        #expect(state.startAspectBattle(for: floor) == nil)
+        state.selectedTab = .options
+
+        state.endBattleReturningToOrigin()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.selectedTab == .play)
+        #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
+    }
+
+    @Test func endBattleReturningToOriginFromLabyrinthQueuesMapDeepLink() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        unlockLabyrinthForReturnTests(on: state)
+        _ = state.enterLabyrinth()
+        let combatNodeID = try #require(firstReachableCombatNodeIDForReturnTests(in: state))
+        #expect(state.startLabyrinthBattle(nodeID: combatNodeID) == nil)
+        state.selectedTab = .options
+
+        state.endBattleReturningToOrigin()
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.selectedTab == .play)
+        #expect(state.consumePendingPlayDestination() == .labyrinthMap)
+    }
+
+    @Test func completeActiveBattleQueuesAspectReturnDestination() throws {
+        let state = try context.makeAppState(arguments: [
+            "-reset-state",
+            "-seed-test-progress",
+            "-completed-stages",
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+        ])
+        var roster = state.roster.current
+        let bear = try #require(GameContent.pets.first { $0.id == "bear" })
+        roster.setActivePet(bear)
+        state.roster.current = roster
+
+        let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
+        #expect(state.startAspectBattle(for: floor) == nil)
+        let configuration = try #require(state.battle.activeBattle)
+
+        #expect(state.completeActiveBattle(configuration, battleEarnedGold: 1))
+        #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
+    }
+
+    @Test func presentCombatLogFromOptionsSwitchesToPlayAndShowsLog() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        state.selectedTab = .options
+
+        state.presentCombatLogFromOptions()
+
+        #expect(state.selectedTab == .play)
+        #expect(state.battle.isShowingBattleLog)
+        #expect(state.battle.activeBattle != nil)
+    }
+
+    @Test func playLaunchDestinationMapsResumeTokens() {
+        #expect(PlayLaunchDestination.returning(from: nil) == nil)
+        #expect(PlayLaunchDestination.returning(from: .journey(stageID: "chapter-1-stage-1")) == nil)
+        #expect(
+            PlayLaunchDestination.returning(from: .aspect(aspectID: .ironVein, floor: 2))
+                == .aspectClimb(.ironVein)
+        )
+        #expect(
+            PlayLaunchDestination.returning(from: .labyrinth(nodeID: "node-1")) == .labyrinthMap
+        )
+    }
+
+    private func unlockLabyrinthForReturnTests(on state: AppState) {
+        var journey = state.journey.current
+        if let chapter = GameContent.chapters.first(where: { $0.id == "chapter-1" }) {
+            for stage in chapter.stages {
+                journey.completedStageIDs.insert(stage.id)
+            }
+        }
+        state.journey.current = journey
+    }
+
+    private func firstReachableCombatNodeIDForReturnTests(in state: AppState) -> String? {
+        for _ in 0 ..< 24 {
+            if let matchID = state.labyrinth.reachableNodeIDs().first(where: { id in
+                state.labyrinth.node(id: id)?.type.isCombat == true
+            }) {
+                return matchID
+            }
+            guard let next = state.labyrinth.reachableNodeIDs().first else { return nil }
+            state.completeLabyrinthNode(nodeID: next)
+        }
+        return nil
+    }
 }

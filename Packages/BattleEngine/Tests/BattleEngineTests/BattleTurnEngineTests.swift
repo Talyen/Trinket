@@ -13,14 +13,12 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 2,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
-            actionIntervalTicks: 2,
             abilities: [.slash]
         )
         let roster = BattleRoster(
@@ -51,13 +49,11 @@ struct BattleTurnEngineTests {
 
         let events = BattleTurnEngine.consumeActionSkip(for: enemy, context: &context)
 
-        try #expect(events.count == 1)
-        try #expect(events[0].effectKind == .controlActionSkipped)
-        try #expect(events[0].keyword == .stun)
+        try #expect(events.contains { $0.effectKind == .controlActionSkipped && $0.keyword == .stun })
         try #expect(!(context.roster.hasPendingActionSkip(for: enemy, keyword: .stun)))
     }
 
-    @Test func consumeActionSkipRecordsActionForScheduling() throws {
+    @Test func consumeActionSkipRecordsAction() throws {
         var (context, _) = makeContext(actorEffects: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
         ])
@@ -70,11 +66,17 @@ struct BattleTurnEngineTests {
         try #expect(context.actionCount == 1)
     }
 
-    @Test func actPerformsAbilityWhenNoSkipPending() throws {
+    @Test func performAbilityResolvesWhenNoSkipPending() throws {
         var (context, matchup) = makeContext()
         let enemy = context.roster.enemy.combatant
+        let ability = try #require(enemy.abilityLoadout.basic)
 
-        let events = BattleTurnEngine.act(actor: enemy, matchup: matchup, context: &context)
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: enemy,
+            matchup: matchup,
+            context: &context
+        )
 
         try #expect(events.contains { $0.kind == .ability })
         try #expect(!(events.contains { $0.effectKind == .controlActionSkipped }))
@@ -84,11 +86,10 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 2,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, actionIntervalTicks: 100)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy)
         var context = BattleEngineContext(
             roster: BattleRoster(
                 hero: CombatantRuntime(
@@ -112,9 +113,8 @@ struct BattleTurnEngineTests {
             petModifiers: .zero,
             enemyModifiers: .zero
         )
-        let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
 
-        let events = BattleTurnEngine.act(actor: hero, matchup: matchup, context: &context)
+        let events = BattleTurnEngine.consumeActionSkip(for: hero, context: &context)
 
         try #expect(events.contains { $0.effectKind == .controlActionSkipped })
         try #expect(!events.contains { $0.abilityName == "Deathgrip" })
@@ -126,8 +126,14 @@ struct BattleTurnEngineTests {
     @Test func abilityEventIncludesActorAbilityAndTier() throws {
         var (context, matchup) = makeContext()
         let enemy = context.roster.enemy.combatant
+        let ability = try #require(enemy.abilityLoadout.basic)
 
-        let events = BattleTurnEngine.act(actor: enemy, matchup: matchup, context: &context)
+        let events = BattleTurnEngine.performAbility(
+            ability,
+            actor: enemy,
+            matchup: matchup,
+            context: &context
+        )
         let abilityEvent = try #require(events.first { $0.kind == .ability })
 
         #expect(abilityEvent.actorID == enemy.id)
@@ -136,7 +142,7 @@ struct BattleTurnEngineTests {
         #expect(abilityEvent.abilityTier == Ability.slash.tier)
     }
 
-    @Test func performActionSkipsCorpseTargetedEffectsAfterLethalHit() throws {
+    @Test func performAbilitySkipsCorpseTargetedEffectsAfterLethalHit() throws {
         let killAndMark = Ability(
             id: "kill-mark",
             name: "Kill Mark",
@@ -148,15 +154,13 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 2,
             abilities: [killAndMark]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
-            maxHealth: 5,
-            actionIntervalTicks: 100
+            maxHealth: 5
         )
         var context = BattleEngineContext(
             roster: BattleRoster(
@@ -176,9 +180,9 @@ struct BattleTurnEngineTests {
         )
         let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
 
-        let events = BattleTurnEngine.performAction(
+        let events = BattleTurnEngine.performAbility(
+            killAndMark,
             actor: hero,
-            abilityTarget: enemy,
             matchup: matchup,
             context: &context
         )
@@ -189,7 +193,7 @@ struct BattleTurnEngineTests {
         try #expect(!(abilityEvent.appliedEffectSummaries.contains { $0.localizedCaseInsensitiveContains("mark") }))
     }
 
-    @Test func performActionStillGrantsGoldAfterLethalHit() throws {
+    @Test func performAbilityStillGrantsGoldAfterLethalHit() throws {
         let killAndGold = Ability(
             id: "kill-gold",
             name: "Kill Gold",
@@ -201,15 +205,13 @@ struct BattleTurnEngineTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 2,
             abilities: [killAndGold]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet)
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
-            maxHealth: 5,
-            actionIntervalTicks: 100
+            maxHealth: 5
         )
         var context = BattleEngineContext(
             roster: BattleRoster(
@@ -229,14 +231,23 @@ struct BattleTurnEngineTests {
         )
         let matchup = BattleMatchup(hero: hero, pet: pet, enemy: enemy)
 
-        _ = BattleTurnEngine.performAction(
+        _ = BattleTurnEngine.performAbility(
+            killAndGold,
             actor: hero,
-            abilityTarget: enemy,
             matchup: matchup,
             context: &context
         )
 
         try #expect(context.roster.health(for: enemy) == 0)
         try #expect(context.gold == 3)
+    }
+
+    @Test func preferredTierFollowsEnemyCadence() throws {
+        try #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
+        try #expect(BattleTurnEngine.preferredTier(for: 2) == .basic)
+        try #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
+        try #expect(BattleTurnEngine.preferredTier(for: 6) == .ultimate)
+        try #expect(BattleTurnEngine.preferredTier(for: 9) == .skill)
+        try #expect(BattleTurnEngine.preferredTier(for: 12) == .ultimate)
     }
 }

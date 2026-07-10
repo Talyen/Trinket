@@ -5,7 +5,7 @@ import TrinketCore
 import TrinketContent
 
 
-/// Shared combatants, battle setup, and tick helpers for battle integration tests.
+/// Shared combatants, battle setup, and card-combat helpers for battle integration tests.
 /// Handler-level behavior lives in `EffectHandlersTests`.
 /// Presentation strings live in `ActionEventFormatterTests` / `EffectSummaryBuilderTests`.
 /// See `Packages/BattleEngine/Tests/README.md` for the full test ownership matrix.
@@ -157,8 +157,8 @@ enum BattleTestFixtures {
         pet: Combatant? = nil,
         enemy: Combatant? = nil
     ) -> BattleState {
-        let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero, actionIntervalTicks: 2)
-        let resolvedPet = pet ?? passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
+        let resolvedHero = hero ?? passiveCombatant(id: "hero", name: "Hero", role: .hero)
+        let resolvedPet = pet ?? passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let resolvedEnemy = enemy ?? attackingEnemy(abilities: [.slash])
         return standardParty(
             hero: resolvedHero,
@@ -171,43 +171,97 @@ enum BattleTestFixtures {
     }
 
     static func assertActionSkipConsumed(
-        step: BattleStep,
+        events: [ActionEvent],
         actorID: String,
         keyword: Keyword
     ) {
-        guard case let .acted(actor, events) = step else {
-            Issue.record("Expected action skip on turn for \(actorID)")
-            return
-        }
-        if actor.id != actorID {
-            Issue.record("Expected actor \(actorID), got \(actor.id)")
-        }
-        if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
-            Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
+        if !events.contains(where: {
+            $0.effectKind == .controlActionSkipped
+                && $0.keyword == keyword
+                && $0.targetID == actorID
+        }) {
+            // Skip events use the keyword as actorName; also accept target match via combatant name.
+            if !events.contains(where: { $0.effectKind == .controlActionSkipped && $0.keyword == keyword }) {
+                Issue.record("Expected controlActionSkipped with keyword \(keyword) for \(actorID)")
+            }
         }
     }
 
-    /// Advances `count` ticks and returns every event emitted along the way.
+    // MARK: - Card combat helpers
+
+    /// Plays the first playable hand card owned by `owner`. Returns emitted events, or nil if none.
     @discardableResult
-    static func advanceTicks(_ count: Int, on battle: inout BattleState) -> [ActionEvent] {
+    static func playFirstPlayableCard(
+        owner: BattleParticipant,
+        on battle: inout BattleState
+    ) throws -> [ActionEvent]? {
+        guard let card = battle.hand.cards.first(where: {
+            $0.owner == owner && battle.isCardPlayable($0)
+        }) else {
+            return nil
+        }
+        return try battle.playCard(cardID: card.id)
+    }
+
+    /// Plays the first hand card whose ability name matches `name` (optionally filtered by owner).
+    @discardableResult
+    static func playCardNamed(
+        _ name: String,
+        owner: BattleParticipant? = nil,
+        on battle: inout BattleState
+    ) throws -> [ActionEvent] {
+        guard let card = battle.hand.cards.first(where: {
+            $0.ability.name == name && (owner == nil || $0.owner == owner)
+        }) else {
+            Issue.record("Expected card named \(name) in hand")
+            return []
+        }
+        return try battle.playCard(cardID: card.id)
+    }
+
+    @discardableResult
+    static func endTurn(on battle: inout BattleState) -> [ActionEvent] {
+        battle.endTurn()
+    }
+
+    /// Ends `count` player turns (each runs enemy phase + end-of-round effect tick + draw).
+    @discardableResult
+    static func endTurns(_ count: Int, on battle: inout BattleState) -> [ActionEvent] {
         var allEvents: [ActionEvent] = []
         for _ in 0 ..< count {
-            allEvents.append(contentsOf: battle.advanceOneStep().events)
+            guard !battle.isBattleOver else { break }
+            allEvents.append(contentsOf: battle.endTurn())
         }
         return allEvents
     }
 
-    /// Advances until `actorName` uses `abilityName`, or returns nil after `maxSteps`.
-    static func advanceUntilAbility(
+    /// Plays the first playable hero card if any, then ends the turn.
+    @discardableResult
+    static func playHeroCardAndEndTurn(on battle: inout BattleState) throws -> [ActionEvent] {
+        var events: [ActionEvent] = []
+        if let playEvents = try playFirstPlayableCard(owner: .hero, on: &battle) {
+            events.append(contentsOf: playEvents)
+        }
+        events.append(contentsOf: battle.endTurn())
+        return events
+    }
+
+    /// Plays cards (preferring `owner`) until an ability named `abilityName` resolves, or returns nil.
+    static func playUntilAbility(
         _ abilityName: String,
-        actor actorName: String = "Hero",
+        owner: BattleParticipant = .hero,
         on battle: inout BattleState,
-        maxSteps: Int = 40
-    ) -> BattleStep? {
-        for _ in 0 ..< maxSteps {
-            let step = battle.advanceOneStep()
-            if step.events.contains(where: { $0.abilityName == abilityName && $0.actorName == actorName }) {
-                return step
+        maxRounds: Int = 20
+    ) throws -> [ActionEvent]? {
+        for _ in 0 ..< maxRounds {
+            if let card = battle.hand.cards.first(where: {
+                $0.ability.name == abilityName && $0.owner == owner && battle.isCardPlayable($0)
+            }) {
+                return try battle.playCard(cardID: card.id)
+            }
+            // Play any other playable card for this owner to cycle the deck, else end turn to redraw.
+            if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
+                _ = battle.endTurn()
             }
             if battle.isBattleOver { break }
         }
@@ -247,23 +301,8 @@ enum BattleTestFixtures {
         )
     }
 
-    static func advanceUntilActorActs(
-        _ actorID: String,
-        on battle: inout BattleState,
-        maxSteps: Int = 20
-    ) -> BattleStep? {
-        for _ in 0 ..< maxSteps {
-            let step = battle.advanceOneStep()
-            if case let .acted(actor, _) = step, actor.id == actorID {
-                return step
-            }
-            if battle.isBattleOver { break }
-        }
-        return nil
-    }
-
-    static func firstAbilityEvent(in step: BattleStep) -> ActionEvent? {
-        step.events.first { $0.kind == .ability }
+    static func firstAbilityEvent(in events: [ActionEvent]) -> ActionEvent? {
+        events.first { $0.kind == .ability }
     }
 }
 

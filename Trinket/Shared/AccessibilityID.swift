@@ -146,14 +146,17 @@ enum AccessibilityID {
     }
 
     enum Battle {
-        static let pauseButton = "Battle Pause Button"
-        static let menu = "Battle Menu"
+        static let hand = "Battle Hand"
         static let combatLog = "Combat Log"
         static let retreat = "Retreat"
         static let victory = "Victory"
         static let experience = "Experience"
         static let rewards = "Rewards"
         static let continueButton = "Continue Button"
+
+        static func handCard(_ abilityID: String) -> String {
+            "Battle Hand Card \(abilityID)"
+        }
     }
 
     enum Equipment {

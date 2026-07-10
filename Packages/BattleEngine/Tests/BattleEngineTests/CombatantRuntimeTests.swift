@@ -46,48 +46,19 @@ struct CombatantRuntimeTests {
         try #expect(runtime.activeEffects == initial)
     }
 
-    @Test func actionSpeedAppliesAgilityModifier() throws {
-        let combatant = makeCombatant(actionIntervalTicks: 10, agility: 25)
+    @Test func initialManaAccountsForIntellect() throws {
+        let combatant = Combatant(
+            id: "mage",
+            name: "Mage",
+            role: .hero,
+            maxHealth: 20,
+            maxMana: 10,
+            abilities: [],
+            primaryStats: PrimaryStats(intellect: 5)
+        )
         let runtime = CombatantRuntime(combatant: combatant)
-        // intervalModifier = -agility / 5 = -5 → effectiveInterval = max(1, 10-5) = 5
-        try #expect(runtime.actionSpeed.effectiveInterval == 5)
-    }
-
-    @Test func nextReadyAtTickDefaultsToEffectiveInterval() throws {
-        let combatant = makeCombatant(actionIntervalTicks: 3)
-        let runtime = CombatantRuntime(combatant: combatant)
-        try #expect(runtime.nextReadyAtTick == 3)
-    }
-
-    // MARK: - Role defaults
-
-    @Test func defaultActionSpeedUsesRoleBaselineWhenNoOverride() throws {
-        let hero = makeCombatant(role: .hero, actionIntervalTicks: nil)
-        let pet = makeCombatant(role: .pet, actionIntervalTicks: nil)
-        let enemy = makeCombatant(role: .enemy, actionIntervalTicks: nil)
-
-        // Baseline intervals from BattleState: hero 2, pet 2, enemy 6
-        try #expect(CombatantRuntime(combatant: hero).actionSpeed.effectiveInterval == 2)
-        try #expect(CombatantRuntime(combatant: pet).actionSpeed.effectiveInterval == 2)
-        try #expect(CombatantRuntime(combatant: enemy).actionSpeed.effectiveInterval == 6)
-    }
-
-    // MARK: - isReady
-
-    @Test func isReadyRequiresAliveAndOnOrAfterReadyTick() throws {
-        let combatant = makeCombatant(actionIntervalTicks: 4)
-        var runtime = CombatantRuntime(combatant: combatant)
-        try #expect(!(runtime.isReady(atTick: 0)))
-        try #expect(!(runtime.isReady(atTick: 3)))
-        try #expect(runtime.isReady(atTick: 4))
-        try #expect(runtime.isReady(atTick: 100))
-    }
-
-    @Test func isReadyReturnsFalseForDefeatedCombatant() throws {
-        let combatant = makeCombatant(actionIntervalTicks: 4)
-        var runtime = CombatantRuntime(combatant: combatant)
-        runtime.takeRawDamage(99)
-        try #expect(!(runtime.isReady(atTick: 100)))
+        try #expect(runtime.currentMana == 15)
+        try #expect(runtime.maxMana == 15)
     }
 
     // MARK: - takeRawDamage
@@ -131,7 +102,6 @@ struct CombatantRuntimeTests {
 
     @Test func healIncludesWisdomBonus() throws {
         let combatant = makeCombatant(maxHealth: 20, toughness: 0)
-        // Combatant has no wisdom by default; bump it explicitly.
         let wisCombatant = Combatant(
             id: combatant.id,
             name: combatant.name,
@@ -156,21 +126,54 @@ struct CombatantRuntimeTests {
         try #expect(runtime.currentHealth == 10)
     }
 
+    // MARK: - mana
+
+    @Test func spendManaSubtractsAndClamps() throws {
+        let combatant = Combatant(
+            id: "mage",
+            name: "Mage",
+            role: .hero,
+            maxHealth: 20,
+            maxMana: 10,
+            abilities: []
+        )
+        var runtime = CombatantRuntime(combatant: combatant)
+        let spent = runtime.spendMana(4)
+        try #expect(spent == 4)
+        try #expect(runtime.currentMana == 6)
+        let overspend = runtime.spendMana(100)
+        try #expect(overspend == 6)
+        try #expect(runtime.currentMana == 0)
+    }
+
+    @Test func restoreManaCapsAtMax() throws {
+        let combatant = Combatant(
+            id: "mage",
+            name: "Mage",
+            role: .hero,
+            maxHealth: 20,
+            maxMana: 10,
+            abilities: []
+        )
+        var runtime = CombatantRuntime(combatant: combatant)
+        _ = runtime.spendMana(5)
+        let restored = runtime.restoreMana(100)
+        try #expect(restored == 5)
+        try #expect(runtime.currentMana == 10)
+    }
+
     // MARK: - markActed
 
-    @Test func markActedAdvancesScheduleAndIncrementsCount() throws {
-        let combatant = makeCombatant(actionIntervalTicks: 4)
+    @Test func markActedIncrementsActionCount() throws {
+        let combatant = makeCombatant()
         var runtime = CombatantRuntime(combatant: combatant)
         try #expect(runtime.actionCount == 0)
-        try #expect(runtime.nextReadyAtTick == 4)
 
-        runtime.markActed(atTick: 4)
+        runtime.markActed()
         try #expect(runtime.actionCount == 1)
-        try #expect(runtime.nextReadyAtTick == 8)
 
-        runtime.markActed(atTick: 8)
+        runtime.markActed()
         try #expect(runtime.actionCount == 2)
-        try #expect(runtime.nextReadyAtTick == 12)
     }
 
     // MARK: - Effect storage

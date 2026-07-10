@@ -10,75 +10,80 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSpectacleSessionTests {
-    @Test func skillCastSoftHoldsTickAdvancementAndShowsCallout() throws {
+    @Test func playingSkillCardShowsCallout() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
             abilities: [.slash, .fireball]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: []),
+            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 200,
-                actionIntervalTicks: 100,
                 abilities: []
             )
         )
 
-        // actionCount 0 → turn 1 basic; 1 → turn 2 basic; 2 → turn 3 skill
-        _ = session.advanceOneStep()
-        _ = session.advanceOneStep()
         let now = Date()
-        _ = session.advanceOneStep(at: now)
+        _ = BattleSessionTestSupport.playAbility(
+            Ability.fireball.id,
+            on: session,
+            at: now
+        )
 
         let callout = try #require(session.activeSkillCallout)
         #expect(callout.actorID == "hero")
         #expect(callout.abilityID == Ability.fireball.id)
         #expect(callout.abilityName == Ability.fireball.name)
-        #expect(session.canAutoAdvanceTick(at: now) == false)
-        #expect(session.canAutoAdvanceTick(at: now.addingTimeInterval(TrinketMotion.Battle.skillSoftHold + 0.05)))
+        #expect(callout.expiresAt > now)
     }
 
-    @Test func heroUltimateDefersFeedbackUntilCinematicCompletes() throws {
+    @Test func playingHeroUltimateDefersFeedbackUntilCinematicCompletes() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
             abilities: [.slash, .fireball, .bloodthorn]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: []),
+            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 500,
-                actionIntervalTicks: 100,
                 abilities: []
             )
         )
-        let options = try OptionsStore(defaults: #require(UserDefaults(suiteName: "BattleSpectacleSessionTests.\(UUID().uuidString)")))
+        let options = try OptionsStore(
+            defaults: #require(UserDefaults(suiteName: "BattleSpectacleSessionTests.\(UUID().uuidString)"))
+        )
         options.ultimateCinematicSkipPolicy = .always
         session.options = options
 
-        // Turns 1–5: basics/skills; turn 6: ultimate
-        for _ in 0 ..< 5 {
-            _ = session.advanceOneStep()
-        }
-        let beforeFeedbackCount = session.activeFeedbackEvents.count
         let now = Date()
-        _ = session.advanceOneStep(at: now)
+        let ultimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.bloodthorn.id,
+                on: session,
+                at: now
+            )
+        )
+        let beforeFeedbackCount = session.activeFeedbackEvents.count
+        _ = session.playCard(
+            cardID: ultimate.id,
+            at: now,
+            journey: .initial,
+            homestead: .freshStart
+        )
 
         let cinematic = try #require(session.activeCinematic)
         #expect(cinematic.abilityID == Ability.bloodthorn.id)
         #expect(cinematic.actorID == "hero")
         #expect(session.activeFeedbackEvents.count == beforeFeedbackCount)
-        #expect(session.canAutoAdvanceTick(at: now) == false)
-        #expect(session.isPaused)
+        #expect(session.canEndTurn == false)
 
         session.markCinematicPlaying()
         session.requestSkipCinematic(at: now.addingTimeInterval(TrinketMotion.Battle.ultimateSkipLockout + 0.01))
@@ -103,17 +108,15 @@ struct BattleSpectacleSessionTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
             abilities: [.slash, .fireball, .bloodthorn]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
             hero: hero,
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: []),
+            pet: CombatantFixtures.combatant(id: "pet", role: .pet, abilities: []),
             enemy: CombatantFixtures.combatant(
                 id: "enemy",
                 role: .enemy,
                 maxHealth: 2000,
-                actionIntervalTicks: 100,
                 abilities: []
             )
         )
@@ -123,29 +126,34 @@ struct BattleSpectacleSessionTests {
         options.ultimateCinematicSkipPolicy = .oncePerBattle
         session.options = options
 
-        // First Ultimate (turn 6)
-        for _ in 0 ..< 5 {
-            _ = session.advanceOneStep()
-        }
         let firstUltimateAt = Date()
-        _ = session.advanceOneStep(at: firstUltimateAt)
+        _ = BattleSessionTestSupport.playAbility(
+            Ability.bloodthorn.id,
+            on: session,
+            at: firstUltimateAt
+        )
         #expect(session.activeCinematic?.actorID == "hero")
         session.markCinematicPlaying()
         session.beginCinematicCollapse()
         session.completeCinematicCollapse(at: firstUltimateAt.addingTimeInterval(1))
 
-        // Next Ultimate for same hero (turn 12) should auto-skip cinematic.
-        // Intervening skill casts may leave a soft-hold; advance past it before asserting.
-        for _ in 0 ..< 5 {
-            _ = session.advanceOneStep()
-        }
         let secondUltimateAt = Date()
+        let secondUltimate = try #require(
+            BattleSessionTestSupport.drawUntilPlayable(
+                Ability.bloodthorn.id,
+                on: session,
+                at: secondUltimateAt
+            )
+        )
         let feedbackBefore = session.activeFeedbackEvents.count
-        _ = session.advanceOneStep(at: secondUltimateAt)
+        _ = session.playCard(
+            cardID: secondUltimate.id,
+            at: secondUltimateAt,
+            journey: .initial,
+            homestead: .freshStart
+        )
         #expect(session.activeCinematic == nil)
         #expect(session.activeFeedbackEvents.count > feedbackBefore)
-        let afterSoftHold = secondUltimateAt.addingTimeInterval(TrinketMotion.Battle.skillSoftHold + 0.05)
-        #expect(session.canAutoAdvanceTick(at: afterSoftHold))
     }
 
     @Test func enemyUltimateUsesSkillCalloutNotCinematic() throws {
@@ -153,19 +161,28 @@ struct BattleSpectacleSessionTests {
             id: "enemy",
             role: .enemy,
             maxHealth: 200,
-            actionIntervalTicks: 1,
             abilities: [.slash, .fireball, .bloodthorn]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(
-            hero: CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 200, actionIntervalTicks: 100, abilities: []),
-            pet: CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 200, actionIntervalTicks: 100, abilities: []),
+            hero: CombatantFixtures.combatant(
+                id: "hero",
+                role: .hero,
+                maxHealth: 200,
+                abilities: []
+            ),
+            pet: CombatantFixtures.combatant(
+                id: "pet",
+                role: .pet,
+                maxHealth: 200,
+                abilities: []
+            ),
             enemy: enemy
         )
 
-        for _ in 0 ..< 5 {
-            _ = session.advanceOneStep()
+        // Enemy ultimate cadence is every 6th action.
+        for _ in 0 ..< 6 {
+            _ = session.endTurn(journey: .initial, homestead: .freshStart)
         }
-        _ = session.advanceOneStep()
 
         #expect(session.activeCinematic == nil)
         let callout = try #require(session.activeSkillCallout)

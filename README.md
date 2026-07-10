@@ -1,6 +1,6 @@
 # Trinket
 
-Portrait-first **iOS 26+** native fantasy idle auto-battler. Built with **Swift 6**, **SwiftUI**, and **SwiftData** using Apple's 2026 platform APIs. Requires **Xcode 26+**.
+Portrait-first **iOS 26+** native fantasy turn-based card combat (deckbuilder). Built with **Swift 6**, **SwiftUI**, and **SwiftData** using Apple's 2026 platform APIs. Requires **Xcode 26+**.
 
 ## Requirements
 

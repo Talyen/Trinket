@@ -62,6 +62,7 @@ extension AppState {
         guard let offer = session.offers.first(where: { $0.id == offerID }) else { return false }
         guard !session.isSoldOut(offerID) else {
             session.markPurchaseFailed(message: "That item is already sold.")
+            sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
             return false
         }
 
@@ -95,10 +96,12 @@ extension AppState {
 
         if let purchasedItem {
             session.markPurchaseFinished(offerID: offerID, itemName: purchasedItem.displayName)
+            sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
             return true
         }
 
         session.markPurchaseFailed(message: failureMessage ?? "Purchase failed.")
+        sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
         return false
     }
 
@@ -164,6 +167,7 @@ extension AppState {
             combatant: GameContent.combatant(forMysteryEvent: event),
             labyrinthNodeID: labyrinthNodeID
         )
+        sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
         return nil
     }
 

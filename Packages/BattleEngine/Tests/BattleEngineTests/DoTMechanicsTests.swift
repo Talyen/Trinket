@@ -8,8 +8,7 @@ struct DoTMechanicsTests {
     private func isolatedBattle(
         heroAbilities: [Ability] = [],
         enemyEffects: [ActiveEffect] = [],
-        heroEffects: [ActiveEffect] = [],
-        heroActionIntervalTicks: Int = 4
+        heroEffects: [ActiveEffect] = []
     ) -> BattleState {
         BattleStateTestFactory.makeBattle(
             hero: Combatant(
@@ -17,7 +16,6 @@ struct DoTMechanicsTests {
                 name: "Hero",
                 role: .hero,
                 maxHealth: 20,
-                actionIntervalTicks: heroActionIntervalTicks,
                 abilities: heroAbilities
             ),
             pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
@@ -55,41 +53,40 @@ struct DoTMechanicsTests {
     @Test func burnFourDealsFourThenTwoThenOne() throws {
         var battle = isolatedBattle(heroAbilities: [burnAbility(potency: 4)])
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        let applyStep = battle.advanceOneStep()
-        try #expect(statusAmounts(from: applyStep.events, keyword: .burn) == [4])
+        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
+        try #expect(statusAmounts(from: applyEvents, keyword: .burn) == [4])
         try #expect(burnPotency(on: battle) == 4)
 
-        let tickOne = battle.advanceOneStep()
-        try #expect(statusAmounts(from: tickOne.events, keyword: .burn) == [2])
+        let tickOne = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(statusAmounts(from: tickOne, keyword: .burn) == [2])
         try #expect(burnPotency(on: battle) == 2)
 
-        let tickTwo = battle.advanceOneStep()
-        try #expect(statusAmounts(from: tickTwo.events, keyword: .burn) == [1])
+        let tickTwo = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(statusAmounts(from: tickTwo, keyword: .burn) == [1])
         try #expect(burnPotency(on: battle) == 1)
 
-        let tickThree = battle.advanceOneStep()
-        try #expect(statusAmounts(from: tickThree.events, keyword: .burn).isEmpty)
+        let tickThree = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(statusAmounts(from: tickThree, keyword: .burn).isEmpty)
         try #expect(burnPotency(on: battle) == nil)
     }
 
     @Test func burnStacksMergeAndDecayTogether() throws {
         var battle = isolatedBattle(
             heroAbilities: [burnAbility(potency: 2)],
-            enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)],
-            heroActionIntervalTicks: 2
+            enemyEffects: [ActiveEffect(id: 1, effect: .burn(4), remainingTicks: 0)]
         )
 
-        _ = battle.advanceOneStep()
+        // End of round: burn 4 → 2.
+        _ = BattleTestFixtures.endTurn(on: &battle)
         try #expect(burnPotency(on: battle) == 2)
 
-        _ = battle.advanceOneStep()
-        try #expect(burnPotency(on: battle) == 3)
+        // Play merges +2 onto the remaining stack → 4.
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        try #expect(burnPotency(on: battle) == 4)
 
-        _ = battle.advanceOneStep()
-        try #expect(burnPotency(on: battle) == 1)
+        // Next end of round: burn 4 → 2.
+        _ = BattleTestFixtures.endTurn(on: &battle)
+        try #expect(burnPotency(on: battle) == 2)
     }
 
     @Test func poisonEightDecaysToZero() throws {
@@ -99,8 +96,8 @@ struct DoTMechanicsTests {
 
         var amounts: [Int] = []
         for _ in 0 ..< 8 {
-            let step = battle.advanceOneStep()
-            amounts.append(contentsOf: statusAmounts(from: step.events, keyword: .poison))
+            let events = BattleTestFixtures.endTurn(on: &battle)
+            amounts.append(contentsOf: statusAmounts(from: events, keyword: .poison))
             if battle.activeEffects(of: battle.enemy).contains(where: { $0.keyword == .poison }) == false {
                 break
             }
@@ -113,12 +110,9 @@ struct DoTMechanicsTests {
     @Test func poisonAppliesInitialDamage() throws {
         var battle = isolatedBattle(heroAbilities: [poisonAbility(potency: 8)])
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        let applyStep = battle.advanceOneStep()
+        let applyEvents = try #require(try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle))
 
-        try #expect(statusAmounts(from: applyStep.events, keyword: .poison) == [8])
+        try #expect(statusAmounts(from: applyEvents, keyword: .poison) == [8])
         try #expect(
             battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }?.effect.potency == 8
         )
@@ -127,15 +121,12 @@ struct DoTMechanicsTests {
     @Test func bleedFourInstancesDealSixteenTotal() throws {
         var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 4)])
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         var amounts: [Int] = []
         for _ in 0 ..< 3 {
-            let step = battle.advanceOneStep()
-            amounts.append(contentsOf: statusAmounts(from: step.events, keyword: .bleed))
+            let events = BattleTestFixtures.endTurn(on: &battle)
+            amounts.append(contentsOf: statusAmounts(from: events, keyword: .bleed))
         }
 
         try #expect(amounts == [4, 4, 4])
@@ -144,15 +135,16 @@ struct DoTMechanicsTests {
     }
 
     @Test func bleedInstancesTrackIndependently() throws {
-        var battle = isolatedBattle(
-            heroAbilities: [bleedAbility(potency: 6)],
-            heroActionIntervalTicks: 2
-        )
+        var battle = isolatedBattle(heroAbilities: [bleedAbility(potency: 6)])
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        // Recycle: played card goes to bottom; opening hand had 2 copies from single-ability deck.
+        if let second = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) {
+            _ = second
+        } else {
+            _ = BattleTestFixtures.endTurn(on: &battle)
+            _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        }
 
         try #expect(battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }.count == 2)
     }
@@ -164,7 +156,6 @@ struct DoTMechanicsTests {
                 name: "Hero",
                 role: .hero,
                 maxHealth: 20,
-                actionIntervalTicks: 2,
                 abilities: [burnAbility(potency: 4)]
             ),
             pet: BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet),
@@ -175,8 +166,8 @@ struct DoTMechanicsTests {
             ]
         )
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        _ = BattleTestFixtures.endTurn(on: &battle)
 
         try #expect(battle.health(of: battle.enemy) == 100)
     }
@@ -185,12 +176,10 @@ struct DoTMechanicsTests {
         let cleanse = Ability(id: "cleanse", name: "Cleanse", tier: .basic, directDamage: 0, description: "Cleanse", effects: [.cleanse(.poison)])
         var battle = isolatedBattle(
             heroAbilities: [cleanse],
-            heroEffects: [ActiveEffect(id: 1, effect: .poison(6), remainingTicks: 0)],
-            heroActionIntervalTicks: 2
+            heroEffects: [ActiveEffect(id: 1, effect: .poison(6), remainingTicks: 0)]
         )
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains {
             if case .poison = $0.effect { return true }

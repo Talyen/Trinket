@@ -3,31 +3,28 @@ import TrinketContent
 import TrinketCore
 
 /// Mutation surface passed to rule engines. Same storage as `BattleState`.
-///
-/// `tickCount` is advanced by `BattleLoopEngine.advanceOneStep` at the start
-/// of each step; callers should not increment it manually.
 public typealias BattleEngineContext = BattleState
 
 /// The state of a single battle. `BattleState` is the top-level facade
-/// drivers (UI, simulation) interact with: it exposes per-combatant
-/// read-only views and the single mutable entry point `advanceOneStep()`
-/// that ticks the simulation forward by one step.
+/// drivers (UI) interact with: it exposes per-combatant read-only views and
+/// the mutable entry points `playCard(cardID:)` / `endTurn()` that drive
+/// turn-based card combat.
 ///
 /// **Public surface (read-only views):**
 /// - Combatant definitions: `hero`, `pet`, `enemy`
 /// - Per-combatant state: `health(of:)`, `mana(of:)`, `maxMana(of:)`,
 ///   `maxHealth(of:)`, `actionCount(of:)`, `activeEffects(of:)`,
 ///   `effectSummaries(of:)`, `modifiers(for:)`
-/// - Global state: `tickCount`, `actionCount`, `events`, `gold`, `earnedGold`,
-///   `rngSeed`
+/// - Global state: `tickCount` (round index), `actionCount`, `events`, `gold`,
+///   `earnedGold`, `rngSeed`, `phase`, `hand`
 /// - Derived: `log` (empty when `tracksLog` is `false`)
 /// - Booleans: `isHeroAlive`, `isPetAlive`, `isEnemyDefeated`,
 ///   `isPartyDefeated`, `isBattleOver`
 /// - AI helper: `enemyAttackTarget`
 ///
 /// **Public surface (mutations):**
-/// - `init(...)` — construct a battle
-/// - `advanceOneStep() -> BattleStep` — drive the simulation by one tick
+/// - `init(...)` — construct a battle (opens with 2 Hero + 2 Pet cards)
+/// - `playCard(cardID:)` / `endTurn()` — drive card combat
 /// - `syncLog()` / `releaseLogProjection()` — log cache lifecycle
 ///
 /// **Engine-facing mutations** (`package`, in `BattleState+*.swift`):
@@ -42,15 +39,15 @@ public typealias BattleEngineContext = BattleState
 ///
 /// **Event semantics:**
 /// - `events` is the cumulative append-only stream for the whole battle.
-/// - `BattleStep.events` is the delta emitted during that step only.
-/// - Metrics and per-tick consumers should use `BattleStep.events`; replay
-///   and log projection use `events`.
+/// - Method return values hold the delta emitted during that call only.
+/// - Metrics consumers should use the returned delta; replay and log
+///   projection use `events`.
 ///
 /// **Internal:**
 /// - Rule engines mutate battle state in place during each step
 /// - Optional `BattleLogProjection` holds the cached combat log when
 ///   `tracksLog` is enabled
-/// - Turn orchestration lives in `BattleLoopEngine`
+/// - Turn orchestration lives in `BattleCardCombatEngine`
 public struct BattleState {
     public let hero: Combatant
     public let pet: Combatant
@@ -64,6 +61,7 @@ public struct BattleState {
 
     public var roster: BattleRoster
     public var rng: SeededRandomNumberGenerator
+    /// Round index. Advances once per full round (player turn + enemy turn + effect tick).
     public var tickCount: Int
     public var nextEffectID: Int
     public var nextEventID: Int
@@ -76,6 +74,14 @@ public struct BattleState {
     public var actionCount: Int
     public var hasLoggedDefeat: Bool
     public var hasLoggedPartyDefeat: Bool
+
+    public var phase: BattlePhase
+    public var hand: BattleHand
+    public var heroDeck: CombatDeck
+    public var petDeck: CombatDeck
+    public var nextCardID: Int
+    /// Party owners whose cards are unplayable this player turn due to control skip.
+    public var ownersSkippingThisPlayerTurn: Set<BattleParticipant>
 
     /// Matchup snapshot; module-internal so `BattleState+*.swift` can read it.
     let cachedMatchup: BattleMatchup
@@ -97,7 +103,13 @@ public struct BattleState {
         enemyModifiers: CombatModifierProfile,
         actionCount: Int = 0,
         hasLoggedDefeat: Bool = false,
-        hasLoggedPartyDefeat: Bool = false
+        hasLoggedPartyDefeat: Bool = false,
+        phase: BattlePhase = .playerTurn,
+        hand: BattleHand = BattleHand(),
+        heroDeck: CombatDeck = CombatDeck(),
+        petDeck: CombatDeck = CombatDeck(),
+        nextCardID: Int = 0,
+        ownersSkippingThisPlayerTurn: Set<BattleParticipant> = []
     ) {
         hero = roster.hero.combatant
         pet = roster.pet.combatant
@@ -119,6 +131,12 @@ public struct BattleState {
         self.actionCount = actionCount
         self.hasLoggedDefeat = hasLoggedDefeat
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
+        self.phase = phase
+        self.hand = hand
+        self.heroDeck = heroDeck
+        self.petDeck = petDeck
+        self.nextCardID = nextCardID
+        self.ownersSkippingThisPlayerTurn = ownersSkippingThisPlayerTurn
     }
 
     public init(
@@ -178,8 +196,16 @@ public struct BattleState {
         actionCount = 0
         hasLoggedDefeat = false
         hasLoggedPartyDefeat = false
+        phase = .playerTurn
+        hand = BattleHand()
+        heroDeck = CombatDeck()
+        petDeck = CombatDeck()
+        nextCardID = 0
+        ownersSkippingThisPlayerTurn = []
 
         _ = appendMilestone(.battleStarted, matchup: cachedMatchup)
+
+        BattleCardCombatEngine.bootstrapDecksAndOpeningHand(context: &self)
 
         if tracksLog {
             var projection = BattleLogProjection()
@@ -208,19 +234,35 @@ public struct BattleState {
         roster.setActiveEffects(effects, for: combatant)
     }
 
-    // MARK: - Turn loop
+    // MARK: - Card combat
 
     @discardableResult
-    public mutating func advanceOneStep(rebuildLog: Bool = true) -> BattleStep {
-        guard !isBattleOver else { return .ended(events: []) }
-
-        let step = BattleLoopEngine.advanceOneStep(matchup: cachedMatchup, context: &self)
+    public mutating func playCard(cardID: Int, rebuildLog: Bool = true) throws -> [ActionEvent] {
+        guard !isBattleOver else { throw BattlePlayError.battleOver }
+        // Events are already appended via `nextEvent` during resolution; return value is the delta.
+        let events = try BattleCardCombatEngine.playCard(
+            cardID: cardID,
+            matchup: cachedMatchup,
+            context: &self
+        )
         finishMutation(rebuildLog: rebuildLog)
-        return step
+        return events
+    }
+
+    @discardableResult
+    public mutating func endTurn(rebuildLog: Bool = true) -> [ActionEvent] {
+        guard !isBattleOver else { return [] }
+        let events = BattleCardCombatEngine.endTurn(matchup: cachedMatchup, context: &self)
+        finishMutation(rebuildLog: rebuildLog)
+        return events
+    }
+
+    public func isCardPlayable(_ card: BattleCard) -> Bool {
+        BattleCardCombatEngine.isCardPlayable(card, in: self)
     }
 
     /// Brings `log` in sync with `events`. Creates the projection on demand when
-    /// `tracksLog` was disabled during auto-ticks.
+    /// `tracksLog` was disabled during play.
     public mutating func syncLog() {
         if logProjection == nil {
             var projection = BattleLogProjection()

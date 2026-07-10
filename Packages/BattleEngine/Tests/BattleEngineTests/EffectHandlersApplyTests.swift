@@ -351,7 +351,7 @@ struct EffectHandlersApplyTests {
 
     // MARK: - Timed buffs
 
-    @Test func hasteHandlerAppliesHasteAndEmitsEvent() throws {
+    @Test func hasteHandlerIsNoOpInCardCombat() throws {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
@@ -365,17 +365,12 @@ struct EffectHandlersApplyTests {
             target: battle.hero,
             battle: &battle
         )
-        let expectedDuration = Effect.standardHasteDuration + 2
-        try #expect(outcome.didApply)
-        try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case let .haste(duration) = active.effect {
-                return duration == expectedDuration && active.remainingTicks == expectedDuration
-            }
+        try #expect(!outcome.didApply)
+        try #expect(!battle.activeEffects(of: battle.hero).contains { active in
+            if case .haste = active.effect { return true }
             return false
         })
-        try #expect(outcome.events.contains {
-            $0.effectKind == .hasteApplied && $0.amount == expectedDuration
-        })
+        try #expect(outcome.events.isEmpty)
     }
 
     @Test func thornsHandlerAppliesThornsAndEmitsEvent() throws {

@@ -58,4 +58,22 @@ struct OptionsScreen {
         let element = app.descendants(matching: .any)[AccessibilityID.Screen.options]
         XCTAssertTrue(element.waitForExistence(timeout: timeout), "Options screen not found", file: file, line: line)
     }
+
+    func assertCombatLogVisible(
+        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) {
+        let log = app.descendants(matching: .any)[AccessibilityID.Battle.combatLog]
+        XCTAssertTrue(log.waitForExistence(timeout: timeout), "Combat log not found", file: file, line: line)
+    }
+
+    func assertRetreatUnavailable(file: StaticString = #file, line: UInt = #line) {
+        XCTAssertFalse(
+            app.buttons[AccessibilityID.Battle.retreat].exists,
+            "Retreat should be unavailable after victory",
+            file: file,
+            line: line
+        )
+    }
 }

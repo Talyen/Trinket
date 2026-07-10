@@ -6,7 +6,6 @@ import TrinketDesignSystem
 
 struct BattleView: View {
     @Environment(AppState.self) private var appState
-    @State private var isShowingBattleLog = false
     @State private var persistFailureMessage: StageMapMessage?
     @Namespace private var cinematicNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -25,34 +24,20 @@ struct BattleView: View {
     }
 
     private func bodyContent(battleSession: BattleSession, battleState: BattleState) -> some View {
-        outcomeContent(battleSession: battleSession, battleState: battleState)
+        let isShowingOutcome = battleSession.isShowingVictory || battleSession.isShowingDefeat
+
+        return outcomeContent(battleSession: battleSession, battleState: battleState)
             .trinketScreenBackground(.battle)
             .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackgroundVisibility(battleSession.isShowingVictory || battleSession.isShowingDefeat ? .automatic : .hidden, for: .navigationBar)
-            .toolbar {
-                battleViewToolbar(battleSession: battleSession)
-            }
-            .sheet(isPresented: $isShowingBattleLog, onDismiss: {
-                appState.battle.restorePauseAfterOverlay()
-            }, content: {
-                BattleLogSheet(
-                    entries: battleSession.state?.log ?? []
-                )
-                .presentationDetents([.medium])
-            })
+            .toolbarBackgroundVisibility(isShowingOutcome ? .automatic : .hidden, for: .navigationBar)
+            .toolbarVisibility(isShowingOutcome ? .automatic : .hidden, for: .navigationBar)
             .alert(item: $persistFailureMessage) { message in
                 Alert(
                     title: Text(message.title),
                     message: Text(message.message),
                     dismissButton: .default(Text("OK"))
                 )
-            }
-            .onChange(of: isShowingBattleLog) { _, isShowing in
-                if isShowing {
-                    appState.battle.pauseForOverlay()
-                    appState.battle.syncLogForDisplay()
-                }
             }
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
@@ -93,7 +78,7 @@ struct BattleView: View {
                     primaryButtonTitle: "Return to Map",
                     onPrimaryAction: {
                         appState.recordLabyrinthDefeat(nodeID: labyrinthNodeID)
-                        appState.battle.endBattle()
+                        appState.endBattleReturningToOrigin()
                     }
                 )
             } else {
@@ -109,118 +94,106 @@ struct BattleView: View {
         }
     }
 
-    @ToolbarContentBuilder
-    private func battleViewToolbar(battleSession: BattleSession) -> some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            HStack(spacing: 4) {
-                if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
-                    Button {
-                        battleSession.isPaused.toggle()
-                    } label: {
-                        Image(systemName: battleSession.isPaused ? "play.fill" : "pause.fill")
-                            .contentTransition(.symbolEffect(.replace))
-                    }
-                    .accessibilityIdentifier(AccessibilityID.Battle.pauseButton)
-                    .accessibilityLabel(battleSession.isPaused ? "Resume battle" : "Pause battle")
-                }
-
-                battleActionsMenu(battleSession: battleSession)
-            }
-        }
-    }
-
     private var hasStageProgression: Bool {
         configuration.hasProgressionRewards
-    }
-
-    private func battleActionsMenu(battleSession: BattleSession) -> some View {
-        Menu {
-            Button {
-                isShowingBattleLog = true
-            } label: {
-                Label("Combat Log", systemImage: "list.bullet.rectangle")
-            }
-            .accessibilityIdentifier("Combat Log")
-
-            if !battleSession.isShowingVictory, !battleSession.isShowingDefeat {
-                Divider()
-
-                Button(role: .destructive) {
-                    appState.battle.endBattle()
-                } label: {
-                    Label("Retreat", systemImage: "figure.run")
-                }
-                .tint(TrinketDesign.Colors.destructive)
-                .accessibilityIdentifier("Retreat")
-            }
-        } label: {
-            Label {
-                Text("Battle actions")
-            } icon: {
-                Image(systemName: "ellipsis")
-            }
-            .labelStyle(.iconOnly)
-        }
-        .accessibilityLabel("Battle Menu")
-        .accessibilityIdentifier("Battle Menu")
     }
 
     private func battlefield(battleSession: BattleSession, battleState: BattleState) -> some View {
         GeometryReader { geometry in
             let layout = BattleCardGridLayout.metrics(in: geometry.size)
 
-            ZStack {
-                BattlefieldView(
-                    layout: layout,
-                    enemyPane: combatantPane(
-                        for: battleState.enemy,
-                        health: battleState.health(of: battleState.enemy),
-                        healthBarPlacement: .bottom,
-                        battleState: battleState,
-                        battleSession: battleSession
-                    ),
-                    heroPane: combatantPane(
-                        for: battleState.hero,
-                        health: battleState.health(of: battleState.hero),
-                        healthBarPlacement: .top,
-                        battleState: battleState,
-                        battleSession: battleSession
-                    ),
-                    petPane: combatantPane(
-                        for: battleState.pet,
-                        health: battleState.health(of: battleState.pet),
-                        healthBarPlacement: .top,
-                        battleState: battleState,
-                        battleSession: battleSession
+            VStack(spacing: 0) {
+                ZStack {
+                    BattlefieldView(
+                        layout: layout,
+                        enemyPane: combatantPane(
+                            for: battleState.enemy,
+                            health: battleState.health(of: battleState.enemy),
+                            healthBarPlacement: .bottom,
+                            battleState: battleState,
+                            battleSession: battleSession
+                        ),
+                        heroPane: combatantPane(
+                            for: battleState.hero,
+                            health: battleState.health(of: battleState.hero),
+                            healthBarPlacement: .top,
+                            battleState: battleState,
+                            battleSession: battleSession
+                        ),
+                        petPane: combatantPane(
+                            for: battleState.pet,
+                            health: battleState.health(of: battleState.pet),
+                            healthBarPlacement: .top,
+                            battleState: battleState,
+                            battleSession: battleSession
+                        )
                     )
-                )
-                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .center)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-                if let cinematic = battleSession.activeCinematic {
-                    UltimateCinematicOverlay(
-                        cinematic: cinematic,
-                        reduceMotion: reduceMotion,
-                        canSkip: appState.options.canSkipUltimateCinematic(),
-                        effectsVolume: appState.options.effectsVolume,
-                        namespace: cinematicNamespace,
-                        onPlaying: {
-                            battleSession.markCinematicPlaying()
-                        },
-                        onRequestSkip: {
-                            battleSession.requestSkipCinematic()
-                        },
-                        onAutoFinish: {
-                            battleSession.beginCinematicCollapse()
-                        },
-                        onCollapseFinished: {
-                            battleSession.completeCinematicCollapse()
-                        }
+                    if let cinematic = battleSession.activeCinematic {
+                        UltimateCinematicOverlay(
+                            cinematic: cinematic,
+                            reduceMotion: reduceMotion,
+                            canSkip: appState.options.canSkipUltimateCinematic(),
+                            effectsVolume: appState.options.effectsVolume,
+                            namespace: cinematicNamespace,
+                            onPlaying: {
+                                battleSession.markCinematicPlaying()
+                            },
+                            onRequestSkip: {
+                                battleSession.requestSkipCinematic()
+                            },
+                            onAutoFinish: {
+                                battleSession.beginCinematicCollapse()
+                            },
+                            onCollapseFinished: {
+                                battleSession.completeCinematicCollapse()
+                            }
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(.opacity)
+                        .zIndex(10)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                BattleHandView(
+                    cards: battleSession.hand,
+                    isPlayable: { battleSession.isCardPlayable($0) },
+                    onTap: { card in
+                        battleSession.presentAbilityDetail(card.ability)
+                    },
+                    onPlay: { card in
+                        playCard(cardID: card.id)
+                    }
+                )
+                .frame(height: BattleCardGridLayout.handReservedHeight)
+                .onAppear {
+                    wireAutoEndTurn(battleSession)
+                    battleSession.considerAutoEndTurn(
+                        journey: appState.journey,
+                        homestead: appState.homestead
                     )
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .transition(.opacity)
-                    .zIndex(10)
                 }
             }
+        }
+    }
+
+    private func playCard(cardID: Int) {
+        if let earnedGold = appState.battle.playCard(
+            cardID: cardID,
+            journey: appState.journey,
+            homestead: appState.homestead
+        ), let configuration = appState.battle.activeBattle {
+            _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
+        }
+    }
+
+    private func wireAutoEndTurn(_ battleSession: BattleSession) {
+        battleSession.onTurnAutoEnded = { [appState] earnedGold in
+            guard let earnedGold,
+                  let configuration = appState.battle.activeBattle else { return }
+            _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
         }
     }
 
@@ -231,13 +204,12 @@ struct BattleView: View {
         battleState: BattleState,
         battleSession: BattleSession
     ) -> BattleCombatantPane {
-        let manaValues = battleState.manaBarValues(for: combatant)
-        return BattleCombatantPane(
+        BattleCombatantPane(
             combatant: combatant,
             health: health,
             maxHealth: battleState.maxHealth(of: combatant),
-            mana: manaValues.mana,
-            maxMana: manaValues.maxMana,
+            mana: 0,
+            maxMana: 0,
             healthBarPlacement: healthBarPlacement,
             items: battleSession.feedbackItems(for: combatant.id),
             hitReaction: battleSession.hitReactionsByTargetID[combatant.id],
@@ -260,14 +232,5 @@ struct BattleView: View {
                 activeEffectSummaries: battleState.effectSummaries(of: combatant)
             )
         )
-    }
-}
-
-private extension BattleState {
-    func manaBarValues(for combatant: Combatant) -> (mana: Int, maxMana: Int) {
-        guard combatant.id == hero.id || combatant.id == pet.id else {
-            return (0, 0)
-        }
-        return (mana(of: combatant), maxMana(of: combatant))
     }
 }

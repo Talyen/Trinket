@@ -131,6 +131,7 @@ extension AppState {
         }
 
         if persisted {
+            queueReturnToBattleOrigin(from: configuration.resumeToken)
             battle.endBattle()
         }
         return persisted
@@ -296,8 +297,6 @@ extension AppState {
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward
         )
-        battle.isPaused = selectedTab != .play
-        syncBattleTickLoop()
     }
 
     @discardableResult

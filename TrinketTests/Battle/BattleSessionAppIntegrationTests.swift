@@ -47,19 +47,6 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.preview?.enemyID == "skeleton")
     }
 
-    @Test func pauseForOverlayRestoresPreviousPauseStateWhenOverlayDismissed() throws {
-        let appState = try context.makeAppState()
-        let stage = try #require(GameContent.chapters[0].stages.first)
-        _ = appState.startBattle(for: stage)
-        appState.battle.isPaused = false
-
-        appState.battle.pauseForOverlay()
-        #expect(appState.battle.isPaused)
-
-        appState.battle.restorePauseAfterOverlay()
-        #expect(!(appState.battle.isPaused))
-    }
-
     @Test func restartBattleRefreshesProgressionFromRosterWhenRosterUpdated() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
@@ -75,13 +62,12 @@ struct BattleSessionAppIntegrationTests {
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 25)
     }
 
-    @Test func presentCombatantDetailWithoutActiveBattleDoesNotPauseSession() throws {
+    @Test func presentCombatantDetailSetsOverlayWithoutActiveBattle() throws {
         let appState = try context.makeAppState()
         let enemy = try #require(GameContent.enemy(matching: "skeleton")?.combatant)
 
         appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: enemy))
 
-        #expect(!(appState.battle.isPaused))
         _ = try #require(appState.battle.overlayCombatantDetail)
     }
 
@@ -89,15 +75,38 @@ struct BattleSessionAppIntegrationTests {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
-        appState.battle.isPaused = true
         appState.battle.preview = BattleMusicPreview(stageID: stage.id, enemyID: "skeleton")
+        appState.battle.presentAbilityDetail(.slash)
+        appState.battle.presentBattleLog()
 
         appState.battle.endBattle()
 
         #expect(appState.battle.activeBattle == nil)
-        #expect(!(appState.battle.isPaused))
         #expect(appState.battle.preview == nil)
         #expect(appState.battle.overlayCombatantDetail == nil)
+        #expect(appState.battle.overlayAbilityDetail == nil)
+        #expect(appState.battle.isShowingBattleLog == false)
+        #expect(appState.battle.hand.isEmpty)
+    }
+
+    @Test func presentBattleLogSetsFlagAndSyncsLog() throws {
+        let appState = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = appState.startBattle(for: stage)
+        let card = try #require(appState.battle.hand.first(where: { appState.battle.isCardPlayable($0) }))
+        _ = appState.battle.playCard(
+            cardID: card.id,
+            journey: appState.journey.current,
+            homestead: appState.homestead.current
+        )
+
+        appState.battle.presentBattleLog()
+
+        #expect(appState.battle.isShowingBattleLog)
+        #expect(!(appState.battle.state?.log.isEmpty ?? true))
+
+        appState.battle.clearBattleLog()
+        #expect(appState.battle.isShowingBattleLog == false)
     }
 
     @Test func startBattleReturnsMessageWhenEnemyMissing() throws {
@@ -132,29 +141,28 @@ struct BattleSessionAppIntegrationTests {
         #expect(restarted.id != original.id)
     }
 
-    @Test func presentCombatantDetailPausesBattleAndSetsOverlayWhenBattleActive() throws {
+    @Test func presentCombatantDetailSetsOverlayWhenBattleActive() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
-        appState.battle.isPaused = false
         let detail = CombatantCardDetail(combatant: appState.roster.activeHero)
 
         appState.battle.presentCombatantDetail(detail)
 
-        #expect(appState.battle.isPaused)
         _ = try #require(appState.battle.overlayCombatantDetail)
+        #expect(appState.battle.canEndTurn)
     }
 
-    @Test func restorePauseAfterOverlayPreservesPriorPausedStateWhenAlreadyPaused() throws {
+    @Test func presentAbilityDetailSetsOverlayWhenBattleActive() throws {
         let appState = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = appState.startBattle(for: stage)
-        appState.battle.isPaused = true
-        appState.battle.presentCombatantDetail(CombatantCardDetail(combatant: appState.roster.activeHero))
 
-        appState.battle.restorePauseAfterOverlay()
+        appState.battle.presentAbilityDetail(.slash)
 
-        #expect(appState.battle.isPaused)
+        #expect(appState.battle.overlayAbilityDetail?.id == Ability.slash.id)
+        appState.battle.clearAbilityDetail()
+        #expect(appState.battle.overlayAbilityDetail == nil)
     }
 
     @Test func setMusicPreviewClearsWhenBattleActive() throws {
@@ -175,5 +183,15 @@ struct BattleSessionAppIntegrationTests {
         appState.battle.setMusicPreview(for: shopStage)
 
         #expect(appState.battle.preview == nil)
+    }
+
+    @Test func startBattleDealsOpeningHand() throws {
+        let appState = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+
+        _ = appState.startBattle(for: stage)
+
+        #expect(!(appState.battle.hand.isEmpty))
+        #expect(appState.battle.canEndTurn)
     }
 }

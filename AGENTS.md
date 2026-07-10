@@ -1,8 +1,8 @@
 # AGENTS.md
 
-Canonical agent operating manual for Trinket — any coding agent or harness (not IDE-specific). Portrait-first iOS fantasy idle auto-battler.
+Canonical agent operating manual for Trinket — any coding agent or harness (not IDE-specific). Portrait-first iOS fantasy turn-based card combat (deckbuilder).
 
-Repo map, modules, persistence, generate: **`Docs/Architecture.md`**. Testing conventions: **`Docs/Testing.md`**. This file is workflow, contracts, and verification — not a second architecture or testing guide.
+Repo map, modules, persistence, generate: **`Docs/Platform/Architecture.md`**. Testing conventions: **`Docs/Platform/Testing.md`**. Battle card migration tracking: **`Docs/Plans/BattleCardCombatMigration.md`**. This file is workflow, contracts, and verification — not a second architecture or testing guide.
 
 ## Platform Baseline (read first)
 
@@ -41,11 +41,11 @@ rg 'pattern' --type swift -g '!**/Generated/*' -g '!**/project.pbxproj'
 
 ## Contracts
 
-- **Style:** Route reusable chrome through `Packages/TrinketDesignSystem/`; `./Scripts/check-ui-style.sh` enforces materials/button styles. Prefer fixing SwiftLint over new `swiftlint:disable`. UI guidance: `Packages/TrinketDesignSystem/README.md` + `Docs/Platform/iOS26AppleReference.md`. Fluid motion: **`Docs/AgentMotion.md`** (SwiftUI / `TrinketMotion`).
+- **Style:** Route reusable chrome through `Packages/TrinketDesignSystem/`; `./Scripts/check-ui-style.sh` enforces materials/button styles. Prefer fixing SwiftLint over new `swiftlint:disable`. UI guidance: `Packages/TrinketDesignSystem/README.md` + `Docs/Platform/iOS26AppleReference.md`. Fluid motion: **`TrinketMotion`** in `Packages/TrinketDesignSystem/` (SwiftUI).
 - **Content:** Read/edit TSV manifests (`ContentManifest/`, `ArtManifest/`, `MusicManifest/`, `SoundManifest/`, `CinematicManifest/`). Do **not** open `*Catalog.generated.swift` to understand or change content. After `./Scripts/generate.sh`, review `git diff` on `Generated/` only, then stage.
 - **Xcode project:** Edit `project.yml`, then `./Scripts/generate.sh` — do not hand-edit or explore `Trinket.xcodeproj/project.pbxproj`.
 - **Packages** must not import the `Trinket` app. `TrinketDesignSystem` → `TrinketCore` only (not `BattleEngine` or `TrinketContent`).
-- **App layers:** `BattleShell/` ↛ `Features/`; `State/` ↛ feature views; `Models/` ↛ `State/` or `Features/`. Full graph: `Docs/Architecture.md`.
+- **App layers:** `BattleShell/` ↛ `Features/`; `State/` ↛ feature views; `Models/` ↛ `State/` or `Features/`. Full graph: `Docs/Platform/Architecture.md`.
 - **Hub containment:** keep `BattleState` and `PlayerSaveStore` thin — handlers/engines, `Player*Store` slices, or `BattleState+*.swift` / value-type models (Architecture “Extension policy”).
 
 ### Hard do-not-touch / do-not-read
@@ -53,7 +53,7 @@ rg 'pattern' --type swift -g '!**/Generated/*' -g '!**/project.pbxproj'
 **Do not edit:**
 
 - Hand-edit `Generated/`, `.DerivedData/`, or `.tools/`
-- Edit processed `Trinket/Assets.xcassets`, `Trinket/Resources/Music`, or `Trinket/Resources/Cinematics` except via `./Scripts/generate.sh --assets`
+- Edit processed `Trinket/Assets.xcassets`, `Trinket/Resources/Music`, `Trinket/Resources/SFX`, or `Trinket/Resources/Cinematics` except via `./Scripts/generate.sh --assets`
 - Edit `CHANGELOG.md` per commit — `./Scripts/release.sh` owns it
 - Treat `Docs/Audits/*Audit.md` as standing backlog, or append run results into an audit file
 - Drive-by refactors, unsolicited markdown, or scope beyond the asked task
@@ -62,7 +62,7 @@ rg 'pattern' --type swift -g '!**/Generated/*' -g '!**/project.pbxproj'
 
 - `Packages/**/Generated/` — manifests + generate only; open Generated solely for post-generate `git diff` / staging
 - `Trinket.xcodeproj/project.pbxproj` — use `project.yml`
-- Binary / processed media under `Trinket/Assets.xcassets/`, `Trinket/Resources/Music/`, `Trinket/Resources/Cinematics/`
+- Binary / processed media under `Trinket/Assets.xcassets/`, `Trinket/Resources/Music/`, `Trinket/Resources/SFX/`, `Trinket/Resources/Cinematics/`
 - Build trees: `.DerivedData/`, `**/.build/`, `.tools/`
 
 ## Task → Command Router
@@ -80,7 +80,7 @@ rg 'pattern' --type swift -g '!**/Generated/*' -g '!**/project.pbxproj'
 | Pre-merge | `./Scripts/test-deploy.sh` |
 | One-screen layout check | `./Scripts/build.sh` or `./Scripts/run-simulator.sh` |
 
-Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <SmokeClass>` or `test-iterate.sh` for one smoke class. Preferred full-unit path: `./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build`. During active coding prefer `build.sh`, `test.sh unit` / `test-package.sh`, and bare `test.sh smoke` — `smoke-full` is CI-only unless debugging a smoke failure. Gate/tier details: `Scripts/README.md`. Verification ladder detail: **`Docs/Testing.md`**.
+Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <SmokeClass>` or `test-iterate.sh` for one smoke class. Preferred full-unit path: `./Scripts/build-for-testing.sh && ./Scripts/test.sh unit --no-build`. During active coding prefer `build.sh`, `test.sh unit` / `test-package.sh`, and bare `test.sh smoke` — `smoke-full` is CI-only unless debugging a smoke failure. Gate/tier details: `Scripts/README.md`. Verification ladder detail: **`Docs/Platform/Testing.md`**.
 
 **No Xcode 26 / simulator:** land correct source/docs; run `generate.sh`, `assert-generated-output.sh`, `check-module-boundaries.sh`, `check-ui-style.sh`, `ci-gate.sh` as applicable; skip `build.sh` / `test.sh`; state skips in the commit/PR body. When the toolchain is present, router verification is mandatory before claiming done.
 
@@ -88,13 +88,14 @@ Fast iteration: `--no-build` after a fresh build; `./Scripts/test.sh smoke <Smok
 
 | Need | Doc |
 |------|-----|
-| Repo map, packages, tabs, generate, persistence, hubs | `Docs/Architecture.md` |
-| Unit / UI test conventions, DoD detail | `Docs/Testing.md` |
+| Repo map, packages, tabs, generate, persistence, hubs | `Docs/Platform/Architecture.md` |
+| Unit / UI test conventions, DoD detail | `Docs/Platform/Testing.md` |
+| Battle card combat migration | `Docs/Plans/BattleCardCombatMigration.md` |
 | UI launch args / speed | `TrinketUITests/README.md` |
 | Setup / first run | `README.md` |
 | Release / commit contract / gates | `Scripts/README.md` |
 | Apple HIG / native UI / chrome | `Packages/TrinketDesignSystem/README.md`, `Docs/Platform/iOS26AppleReference.md` |
-| Fluid motion / gesture feel | `Docs/AgentMotion.md` |
+| Fluid motion / gesture feel | `Packages/TrinketDesignSystem/` (`TrinketMotion`) |
 | Content / art / music pipelines | `ContentManifest/README.md`, `ArtManifest/README.md`, `MusicManifest/README.md` |
 
 Cited-only (Audits, Identity, Liquid Glass, other Platform notes): open only when the user cites them or the task requires them — see Hard do-not-touch.
@@ -112,4 +113,4 @@ Commits: `<type>(<scope>): <imperative subject ≤72 chars>` plus optional bulle
 
 ## Testing (summary)
 
-Swift Testing for unit/package targets; XCTest for `TrinketUITests/` only. New features: follow the definition of done in **`Docs/Testing.md`**. Package-only changes: `./Scripts/test-package.sh <Package>`. App orchestration: `./Scripts/test.sh unit <Class>` (or full unit when cross-cutting). UI smoke canary: `./Scripts/test.sh smoke`.
+Swift Testing for unit/package targets; XCTest for `TrinketUITests/` only. New features: follow the definition of done in **`Docs/Platform/Testing.md`**. Package-only changes: `./Scripts/test-package.sh <Package>`. App orchestration: `./Scripts/test.sh unit <Class>` (or full unit when cross-cutting). UI smoke canary: `./Scripts/test.sh smoke`.

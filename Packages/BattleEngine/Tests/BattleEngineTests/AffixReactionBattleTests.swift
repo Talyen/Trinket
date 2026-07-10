@@ -7,7 +7,6 @@ import TrinketContent
 struct AffixReactionBattleTests {
     private func hero(
         abilities: [Ability],
-        actionIntervalTicks: Int = 1,
         maxHealth: Int = 20
     ) -> Combatant {
         Combatant(
@@ -15,7 +14,6 @@ struct AffixReactionBattleTests {
             name: "Hero",
             role: .hero,
             maxHealth: maxHealth,
-            actionIntervalTicks: actionIntervalTicks,
             abilities: abilities
         )
     }
@@ -58,7 +56,7 @@ struct AffixReactionBattleTests {
             heroModifiers: CombatModifierProfile(onBleedApplyPoison: 1)
         )
 
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         let poison = battle.activeEffects(of: battle.enemy).first { $0.keyword == .poison }
         try #expect(poison?.effect.potency == 1)
@@ -72,8 +70,11 @@ struct AffixReactionBattleTests {
             heroModifiers: CombatModifierProfile(refreshBleedOnReapply: true)
         )
 
-        _ = battle.advanceOneStep()
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        if try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle) == nil {
+            _ = BattleTestFixtures.endTurn(on: &battle)
+            _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
+        }
 
         let bleeds = battle.activeEffects(of: battle.enemy).filter { $0.keyword == .bleed }
         try #expect(bleeds.count == 1)
@@ -82,7 +83,7 @@ struct AffixReactionBattleTests {
 
     @Test func frostburnDealsFreezeDamageEveryThirdBurnTick() throws {
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], actionIntervalTicks: 100),
+            hero: hero(abilities: []),
             pet: passivePet(),
             enemy: passiveEnemy(),
             activeEnemyEffects: [
@@ -96,7 +97,7 @@ struct AffixReactionBattleTests {
 
         var events: [ActionEvent] = []
         for _ in 0 ..< 3 {
-            events.append(contentsOf: battle.advanceOneStep().events)
+            events.append(contentsOf: BattleTestFixtures.endTurn(on: &battle))
         }
 
         try #expect(events.contains { $0.kind == .status && $0.keyword == .freeze && $0.amount == 1 })
@@ -108,13 +109,12 @@ struct AffixReactionBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [
                 Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 2, damageKeyword: .physical)
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], actionIntervalTicks: 100),
+            hero: hero(abilities: []),
             pet: passivePet(maxHealth: 1),
             enemy: enemy,
             activeHeroEffects: [
@@ -123,7 +123,7 @@ struct AffixReactionBattleTests {
             heroModifiers: CombatModifierProfile(blockBrokenArmorPercent: 0.05, blockBrokenArmorDurationTicks: 2)
         )
 
-        _ = battle.advanceOneStep()
+        _ = BattleTestFixtures.endTurn(on: &battle)
 
         let armor = battle.activeEffects(of: battle.hero).first { active in
             if case let .mitigation(keyword, percent, duration) = active.effect {
@@ -140,13 +140,12 @@ struct AffixReactionBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [
                 Ability(id: "strike", name: "Strike", tier: .basic, directDamage: 5, damageKeyword: .physical)
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [healAbility(amount: 10)], actionIntervalTicks: 2),
+            hero: hero(abilities: [healAbility(amount: 10)]),
             pet: passivePet(maxHealth: 20),
             enemy: enemy,
             activePetEffects: [
@@ -155,9 +154,10 @@ struct AffixReactionBattleTests {
             heroModifiers: CombatModifierProfile(petHealSharePercent: 0.50)
         )
 
-        _ = battle.advanceOneStep()
+        // Enemy strike + bleed tick damage the pet during endTurn.
+        _ = BattleTestFixtures.endTurn(on: &battle)
         let damagedPetHealth = battle.health(of: battle.pet)
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(battle.health(of: battle.pet) > damagedPetHealth)
     }
@@ -168,14 +168,13 @@ struct AffixReactionBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [
                 // Non-lethal: drop below 25% without killing so Death's Door does not own the hit.
                 Ability(id: "chip", name: "Chip", tier: .basic, directDamage: 16, damageKeyword: .physical)
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], actionIntervalTicks: 100, maxHealth: 20),
+            hero: hero(abilities: [], maxHealth: 20),
             pet: passivePet(maxHealth: 1),
             enemy: enemy,
             heroModifiers: CombatModifierProfile(
@@ -184,13 +183,13 @@ struct AffixReactionBattleTests {
             )
         )
 
-        let first = battle.advanceOneStep()
-        let second = battle.advanceOneStep()
+        let first = BattleTestFixtures.endTurn(on: &battle)
+        let second = BattleTestFixtures.endTurn(on: &battle)
 
-        try #expect(first.events.contains { $0.abilityName == "Second Wind" && $0.amount == 3 })
-        try #expect(!second.events.contains { $0.abilityName == "Second Wind" })
+        try #expect(first.contains { $0.abilityName == "Second Wind" && $0.amount == 3 })
+        try #expect(!second.contains { $0.abilityName == "Second Wind" })
         // Second chip is lethal after the heal; Death's Door owns that hit and leaves 1 HP.
-        try #expect(second.events.contains { $0.effectKind == .deathsDoorTriggered })
+        try #expect(second.contains { $0.effectKind == .deathsDoorTriggered })
         try #expect(battle.health(of: battle.hero) == 1)
     }
 
@@ -200,13 +199,12 @@ struct AffixReactionBattleTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [
                 Ability(id: "execute", name: "Execute", tier: .basic, directDamage: 40, damageKeyword: .physical)
             ]
         )
         var battle = BattleStateTestFactory.makeBattle(
-            hero: hero(abilities: [], actionIntervalTicks: 100, maxHealth: 20),
+            hero: hero(abilities: [], maxHealth: 20),
             pet: passivePet(maxHealth: 1),
             enemy: enemy,
             heroModifiers: CombatModifierProfile(
@@ -215,11 +213,11 @@ struct AffixReactionBattleTests {
             )
         )
 
-        let step = battle.advanceOneStep()
+        let events = BattleTestFixtures.endTurn(on: &battle)
 
         try #expect(battle.health(of: battle.hero) == 1)
-        try #expect(step.events.contains { $0.effectKind == .deathsDoorTriggered })
-        try #expect(!step.events.contains { $0.abilityName == "Second Wind" })
+        try #expect(events.contains { $0.effectKind == .deathsDoorTriggered })
+        try #expect(!events.contains { $0.abilityName == "Second Wind" })
     }
 
     @Test func shatterAddsFreezeDamageWhileEnemyIsFrozen() throws {
@@ -235,7 +233,7 @@ struct AffixReactionBattleTests {
             heroModifiers: CombatModifierProfile(freezeDamageWhileFrozenBonus: 1)
         )
 
-        _ = battle.advanceOneStep()
+        _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(100 - battle.health(of: battle.enemy) == 2)
     }

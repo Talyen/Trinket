@@ -33,9 +33,18 @@ struct TrinketMotionTests {
         let dot = TrinketMotion.Battle.chip(for: .dot)
         #expect(critical.lifetime > dot.lifetime)
         #expect(critical.fontSize > dot.fontSize)
-        #expect(critical.chrome == .emphasis)
-        #expect(dot.chrome == .compact)
+        #expect(critical.fontSize >= 34)
+        #expect(dot.fontSize >= 20)
         #expect(critical.showsSecondaryCaption)
+    }
+
+    @Test func chipLifetimesAreBrief() {
+        for feedbackClass in CombatFeedbackClass.allCases {
+            let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
+            #expect(recipe.lifetime <= 0.9)
+            #expect(recipe.lifetime >= 0.5)
+        }
+        #expect(TrinketMotion.Battle.maxChipLifetime > TrinketMotion.Battle.chipDisplayDuration)
     }
 
     @Test func cardReactionsCoverAllKinds() {

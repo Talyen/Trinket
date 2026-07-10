@@ -8,36 +8,30 @@ public enum BattleTurnEngine {
         subsystem: "com.ryanmcintire.Trinket",
         category: "BattleTurnEngine"
     )
-    public static func readyCombatants(in context: BattleEngineContext) -> [Combatant] {
-        context.roster.readyCombatants(atTick: context.tickCount).map(\.combatant)
-    }
 
-    /// Acts on `actor` for one turn. If the actor has stun/freeze buildup at
-    /// threshold, the skip is consumed and the actor's schedule still advances.
-    /// Otherwise the actor's selected ability is performed against
-    /// `context.roster.enemyAttackTarget` (or `matchup.enemy` for non-enemy actors).
-    public static func act(
+    /// Resolves an explicit ability for `actor` against the standard ability target.
+    public static func performAbility(
+        _ ability: Ability,
         actor: Combatant,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleEngineContext,
+        spendMana: Bool = false
     ) -> [ActionEvent] {
         let abilityTarget = actor.role == .enemy ? context.roster.enemyAttackTarget : matchup.enemy
         var events: [ActionEvent] = []
-        if context.roster.hasPendingActionSkip(for: actor) {
-            events.append(contentsOf: consumeActionSkip(for: actor, context: &context))
-            return events
-        }
-        // Deathgrip / start-of-action reactions only fire when the action is taken.
         events.append(contentsOf: CombatReactionEngine.atStartOfAction(by: actor, in: &context))
         events.append(contentsOf: performAction(
+            ability: ability,
             actor: actor,
             abilityTarget: abilityTarget,
             matchup: matchup,
-            context: &context
+            context: &context,
+            spendMana: spendMana
         ))
         return events
     }
 
+    /// Consumes a pending stun/freeze skip for `actor` and records the action.
     public static func consumeActionSkip(
         for actor: Combatant,
         context: inout BattleEngineContext
@@ -67,19 +61,16 @@ public enum BattleTurnEngine {
     }
 
     public static func performAction(
+        ability: Ability,
         actor: Combatant,
         abilityTarget: Combatant,
         matchup: BattleMatchup,
-        context: inout BattleEngineContext
+        context: inout BattleEngineContext,
+        spendMana: Bool
     ) -> [ActionEvent] {
-        let turnNumber = (context.roster.runtime(for: actor)?.actionCount ?? 0) + 1
-        let currentMana = context.roster.runtime(for: actor)?.currentMana ?? 0
-
-        guard let ability = selectedAbility(for: actor, turnNumber: turnNumber, currentMana: currentMana) else {
-            return recordAction(for: actor, context: &context)
+        if spendMana {
+            spendManaIfNeeded(for: ability, actor: actor, context: &context)
         }
-
-        spendManaIfNeeded(for: ability, actor: actor, context: &context)
 
         var events: [ActionEvent] = []
         let damageOutcome = applyDamageComponents(
@@ -122,11 +113,29 @@ public enum BattleTurnEngine {
         return events
     }
 
+    /// Enemy ability selection by action cadence (Basic / Skill@3 / Ultimate@6). Mana is ignored.
+    public static func selectedEnemyAbility(for actor: Combatant, turnNumber: Int) -> Ability? {
+        let tier = preferredTier(for: turnNumber)
+        return actor.abilityLoadout.ability(for: tier)
+            ?? actor.abilityLoadout.basic
+            ?? actor.abilities.first
+    }
+
+    public static func preferredTier(for turnNumber: Int) -> AbilityTier {
+        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) { return .ultimate }
+        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) { return .skill }
+        return .basic
+    }
+
+    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) {
+        guard ability.manaCost > 0, actor.hasMana else { return }
+        _ = context.spendMana(ability.manaCost, for: actor)
+    }
+
     private struct DamageComponentOutcome {
         let events: [ActionEvent]
         let pairedDirectDamage: [(Keyword, Int)]
         let totalDealtToAbilityTarget: Int
-        /// Keyword used for the ability log line when damage was rewritten by an override buff.
         let logDamageKeyword: Keyword?
     }
 
@@ -265,8 +274,6 @@ public enum BattleTurnEngine {
                 context: context
             )
 
-            // Resource gains (gold/mana) and self-buffs on the actor may still apply after a
-            // lethal hit; skip only corpse-targeted combat effects.
             if shouldSkipEffectOnDefeatedTarget(effect, target: effectTarget, actor: actor, context: context) {
                 continue
             }
@@ -298,8 +305,6 @@ public enum BattleTurnEngine {
         context: BattleEngineContext
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
-        // Gold is party currency and must still grant on a killing blow even when the
-        // effect's declared target is the defeated combatant.
         if case .resourceGain(.gold, _) = effect { return false }
         return true
     }
@@ -310,8 +315,7 @@ public enum BattleTurnEngine {
     ) -> [ActionEvent] {
         context.actionCount += 1
         guard var runtime = context.roster.runtime(for: actor) else { return [] }
-        let activeEffects = context.roster.activeEffects(for: actor)
-        runtime.markActed(atTick: context.tickCount, activeEffects: activeEffects)
+        runtime.markActed()
         context.roster.update(runtime)
         if actor.id == context.roster.pet.id {
             return CombatReactionEngine.afterPetActed(in: &context)
@@ -345,36 +349,5 @@ public enum BattleTurnEngine {
             }
             return BattleConditionEvaluator.lowestHealthAlly(hero: hero, pet: pet, context: context)
         }
-    }
-
-    /// Ability that will fire on the combatant's next action, including mana fallback.
-    public static func selectedAbility(
-        for actor: Combatant,
-        turnNumber: Int,
-        currentMana: Int
-    ) -> Ability? {
-        let tier = preferredTier(for: turnNumber)
-        let preferred = actor.abilityLoadout.ability(for: tier)
-            ?? actor.abilityLoadout.basic
-            ?? actor.abilities.first
-
-        guard let preferred else { return nil }
-        guard preferred.manaCost > 0, actor.hasMana else { return preferred }
-
-        if currentMana >= preferred.manaCost {
-            return preferred
-        }
-        return actor.abilityLoadout.basic ?? actor.abilities.first
-    }
-
-    public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) {
-        guard ability.manaCost > 0, actor.hasMana else { return }
-        _ = context.spendMana(ability.manaCost, for: actor)
-    }
-
-    public static func preferredTier(for turnNumber: Int) -> AbilityTier {
-        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) { return .ultimate }
-        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) { return .skill }
-        return .basic
     }
 }

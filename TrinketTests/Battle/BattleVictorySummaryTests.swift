@@ -11,7 +11,12 @@ struct BattleVictorySummaryTests {
     @Test func makeVictorySummaryIncludesStageAndBattleRewardsWhenVictory() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 2, currentXP: 10, requiredXP: 155)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
@@ -28,9 +33,7 @@ struct BattleVictorySummaryTests {
         let session = BattleSession()
         session.activeBattle = configuration
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
@@ -54,7 +57,12 @@ struct BattleVictorySummaryTests {
     @Test func makeVictorySummaryScalesExperienceWhenEncounterLevelDiffers() throws {
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
         var rosterState = PlayerRosterState.freshStart
         rosterState.progressions[hero.id] = CombatantProgression(level: 15, currentXP: 0, requiredXP: 100)
         rosterState.progressions[pet.id] = CombatantProgression(level: 1, currentXP: 0, requiredXP: 100)
@@ -70,9 +78,7 @@ struct BattleVictorySummaryTests {
         let session = BattleSession()
         session.activeBattle = configuration
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
@@ -92,11 +98,15 @@ struct BattleVictorySummaryTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, abilities: [])
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             stageID: "chapter-1-stage-1",
             rngSeed: 0,
@@ -108,9 +118,7 @@ struct BattleVictorySummaryTests {
         let session = BattleSession()
         session.activeBattle = configuration
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(
@@ -128,11 +136,15 @@ struct BattleVictorySummaryTests {
         let hero = CombatantFixtures.combatant(
             id: "hero",
             role: .hero,
-            actionIntervalTicks: 1,
             abilities: [.slash]
         )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, actionIntervalTicks: 100, abilities: [])
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 1, actionIntervalTicks: 100, abilities: [])
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, abilities: [])
+        let enemy = CombatantFixtures.combatant(
+            id: "enemy",
+            role: .enemy,
+            maxHealth: 1,
+            abilities: []
+        )
         let configuration = try ActiveBattleConfigurationTestSupport.make(
             rngSeed: 0,
             hero: hero,
@@ -148,9 +160,7 @@ struct BattleVictorySummaryTests {
         session.activeBattle = configuration
         let homestead = PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         let state = try #require(session.state)
         let summary = try BattleVictorySummary.make(

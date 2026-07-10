@@ -108,7 +108,7 @@ while IFS=$'\t' read -r kind id asset_name source_path boss_enemy_id looping vol
 
   output_file="$resources_dir/$asset_name.m4a"
 
-  local needs_convert=true
+  needs_convert=true
   if [[ -f "$output_file" && "$source_path" -ot "$output_file" ]]; then
     needs_convert=false
   fi
@@ -179,14 +179,16 @@ $(cat "$boss_temp")
 SWIFT
 
   # Prune orphaned music assets
-  for file in "$resources_dir"/*.m4a(N); do
+  shopt -s nullglob
+  for file in "$resources_dir"/*.m4a; do
     [[ -f "$file" ]] || continue
-    local filename=$(basename "$file")
+    filename=$(basename "$file")
     if ! grep -qx "$filename" "$active_tracks_temp"; then
       echo "Pruning orphaned music track: $filename"
       rm -f "$file"
     fi
   done
+  shopt -u nullglob
 
 rm -f "$tracks_temp" "$menu_temp" "$battle_temp" "$boss_temp" "$seen_ids_temp" "$seen_assets_temp" "$active_tracks_temp"
 

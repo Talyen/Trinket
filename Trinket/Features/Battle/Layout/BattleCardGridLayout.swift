@@ -6,19 +6,28 @@ enum BattleCardGridLayout {
     static let gutter: CGFloat = 8
     static let outerPadding: CGFloat = gutter
     static let cardSpacing: CGFloat = gutter
+    /// Reserved bottom band for the ability hand (art cards ~2× prior mechanical size).
+    static let handReservedHeight: CGFloat = 230
 
     struct Metrics: Equatable {
         let enemySize: CGSize
         let partySize: CGSize
         let outerPadding: CGFloat
         let cardSpacing: CGFloat
+        let handReservedHeight: CGFloat
     }
 
-    static func metrics(in containerSize: CGSize) -> Metrics {
+    static func metrics(in containerSize: CGSize, handReservedHeight: CGFloat = handReservedHeight) -> Metrics {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
-        let innerHeight = max(containerSize.height - 2 * outerPadding, 0)
+        let innerHeight = max(containerSize.height - 2 * outerPadding - handReservedHeight, 0)
         guard innerWidth > 0, innerHeight > 0 else {
-            return Metrics(enemySize: .zero, partySize: .zero, outerPadding: outerPadding, cardSpacing: cardSpacing)
+            return Metrics(
+                enemySize: .zero,
+                partySize: .zero,
+                outerPadding: outerPadding,
+                cardSpacing: cardSpacing,
+                handReservedHeight: handReservedHeight
+            )
         }
 
         let maxPartyWidthForAvailableWidth = max((innerWidth - cardSpacing) / 2, 0)
@@ -39,7 +48,8 @@ enum BattleCardGridLayout {
             enemySize: CGSize(width: partyRowWidth, height: partyRowWidth / enemyAspectRatio),
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
-            cardSpacing: cardSpacing
+            cardSpacing: cardSpacing,
+            handReservedHeight: handReservedHeight
         )
     }
 }

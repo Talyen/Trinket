@@ -9,7 +9,7 @@ import TrinketTestSupport
 
 @MainActor
 struct BattleSessionSimulationTests {
-    @Test func advanceAutoTickShowsVictorySummaryWhenEnemyDefeated() throws {
+    @Test func playCardShowsVictorySummaryWhenEnemyDefeated() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let session = BattleSession()
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
@@ -19,16 +19,14 @@ struct BattleSessionSimulationTests {
             enemy: party.enemy
         )
 
-        while session.outcome == nil {
-            _ = session.advanceAutoTick(journey: .initial, homestead: .freshStart)
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.isShowingVictory)
         _ = try #require(session.victorySummary)
         #expect(!(session.isShowingDefeat))
     }
 
-    @Test func advanceAutoTickCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
+    @Test func playCardCompletesImmediatelyWhenStageRewardsAlreadyClaimed() throws {
         let party = BattlePartyFixtures.quickWinParty()
         let stage = try #require(GameContent.chapters[0].stages.first)
         var journey = JourneyProgressState.initial
@@ -42,32 +40,24 @@ struct BattleSessionSimulationTests {
             enemy: party.enemy
         )
 
-        var earnedGold: Int?
-        while session.outcome == nil {
-            earnedGold = session.advanceAutoTick(journey: journey, homestead: .freshStart)
-            if earnedGold != nil { break }
-        }
+        let earnedGold = BattleSessionTestSupport.driveUntilOutcome(session, journey: journey)
 
         #expect(earnedGold == session.state?.earnedGold ?? 0)
         #expect(!(session.isShowingVictory))
         #expect(session.victorySummary == nil)
     }
 
-    @Test func advanceAutoTickDoesNotAdvanceWhenBattlePaused() throws {
-        let party = BattlePartyFixtures.quickWinParty(enemyMaxHealth: 100)
-        let session = BattleSession()
-        session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
-            hero: party.hero,
-            pet: party.pet,
-            enemy: party.enemy
-        )
-        session.isPaused = true
-        let tickBefore = session.state?.tickCount ?? 0
+    @Test func endTurnDoesNothingWhenBattleAlreadyOver() throws {
+        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
+        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 0)
+        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
+        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
+        #expect(session.canEndTurn == false)
 
-        _ = session.advanceAutoTick(journey: .initial, homestead: .freshStart)
+        let result = session.endTurn(journey: .initial, homestead: .freshStart)
 
-        #expect(session.state?.tickCount == tickBefore)
+        #expect(result == nil)
+        #expect(session.outcome == .victory)
     }
 
     @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
@@ -96,29 +86,29 @@ struct BattleSessionSimulationTests {
         #expect(session.victorySummary == nil)
     }
 
-    @Test func advanceOneStepAppendsNonMilestoneEventsWhenStepAdvances() throws {
+    @Test func playCardAppendsNonMilestoneEventsWhenCardPlays() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.advanceOneStep()
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
 
         #expect(!(session.activeFeedbackEvents.isEmpty))
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
-    @Test func advanceOneStepExcludesMilestonesWhenBattleEnds() throws {
+    @Test func endTurnExcludesMilestonesWhenBattleEnds() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
         let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 1, abilities: [])
         let enemy = CombatantFixtures.combatant(
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [.slash]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
         while !(session.state?.isBattleOver ?? true) {
-            _ = session.advanceOneStep()
+            _ = session.endTurn(journey: .initial, homestead: .freshStart)
         }
 
         #expect(session.state?.isPartyDefeated == true)
@@ -132,9 +122,9 @@ struct BattleSessionSimulationTests {
             pet: party.pet,
             enemy: party.enemy
         )
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.advanceOneStep()
-        _ = session.advanceOneStep()
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
         #expect(!(session.activeFeedbackEvents.isEmpty))
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) ?? 0 < 100)
 
@@ -152,8 +142,9 @@ struct BattleSessionSimulationTests {
 
     @Test func removeFeedbackEventRemovesByIDWhenMatchingID() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.advanceOneStep()
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
         let eventID = try #require(session.activeFeedbackEvents.first?.id)
 
         session.removeFeedbackEvent(eventID)
@@ -163,8 +154,9 @@ struct BattleSessionSimulationTests {
 
     @Test func pruneExpiredFeedbackRemovesEventsWhenPastDisplayDuration() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.advanceOneStep()
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
         let item = try #require(session.activeFeedbackItems.first)
         let now = item.availableAt
 
@@ -177,8 +169,9 @@ struct BattleSessionSimulationTests {
 
     @Test func outcomeReportsOngoingWhenBattleInProgress() throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
 
-        _ = session.advanceOneStep()
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
 
         #expect(session.outcome == nil)
     }
@@ -187,9 +180,7 @@ struct BattleSessionSimulationTests {
         let party = BattlePartyFixtures.quickWinParty()
         let session = try BattleSessionTestSupport.makeConfiguredSession(enemy: party.enemy)
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .victory)
     }
@@ -201,14 +192,11 @@ struct BattleSessionSimulationTests {
             id: "enemy",
             role: .enemy,
             maxHealth: 100,
-            actionIntervalTicks: 1,
             abilities: [.slash]
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .defeat)
     }
@@ -219,7 +207,6 @@ struct BattleSessionSimulationTests {
             name: "Warlock",
             role: .hero,
             maxHealth: 3,
-            actionIntervalTicks: 1,
             abilities: [.faustianBargain]
         )
         let pet = Combatant(
@@ -227,7 +214,6 @@ struct BattleSessionSimulationTests {
             name: "Pet",
             role: .pet,
             maxHealth: 20,
-            actionIntervalTicks: 100,
             abilities: []
         )
         let enemy = Combatant(
@@ -235,14 +221,11 @@ struct BattleSessionSimulationTests {
             name: "Enemy",
             role: .enemy,
             maxHealth: 6,
-            actionIntervalTicks: 100,
             abilities: []
         )
         let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, pet: pet, enemy: enemy)
 
-        while session.outcome == nil {
-            _ = session.advanceOneStep()
-        }
+        BattleSessionTestSupport.driveUntilOutcome(session)
 
         #expect(session.outcome == .victory)
         #expect(!(session.state?.isPartyDefeated ?? true))
@@ -281,5 +264,60 @@ struct BattleSessionSimulationTests {
         #expect(
             session.state?.modifiers(for: enemy.combatant.id).controlResistancePercent ?? 0 > 0
         )
+    }
+
+    @Test func openingHandIsDealtAndCanEndTurnWhilePlayerTurn() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+
+        #expect(!(session.hand.isEmpty))
+        #expect(session.canEndTurn)
+        #expect(session.hasPlayableCard)
+    }
+
+    @Test func autoEndsTurnAfterDelayWhenNoPlayableCardsRemain() async throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
+
+        while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
+            let earned = session.playCard(
+                cardID: card.id,
+                journey: .initial,
+                homestead: .freshStart
+            )
+            if earned != nil || session.outcome != nil { return }
+        }
+
+        #expect(session.canEndTurn)
+        #expect(!session.hasPlayableCard)
+        let tickBefore = try #require(session.state?.tickCount)
+
+        try await Task.sleep(for: .seconds(BattleSession.autoEndTurnDelay + 0.15))
+
+        #expect(session.state?.tickCount == tickBefore + 1)
+    }
+
+    @Test func doesNotAutoEndTurnWhilePlayableCardsRemain() async throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        #expect(session.hasPlayableCard)
+        let tickBefore = try #require(session.state?.tickCount)
+
+        session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
+        try await Task.sleep(for: .seconds(BattleSession.autoEndTurnDelay + 0.15))
+
+        #expect(session.state?.tickCount == tickBefore)
+        #expect(session.canEndTurn)
+    }
+
+    @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {
+        let session = try BattleSessionTestSupport.makeConfiguredSession()
+        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
+        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
+        session.syncLogForDisplay()
+        #expect(!(session.state?.log.isEmpty ?? true))
+
+        session.trimMemoryFootprint(releaseBattleLog: true)
+
+        #expect(session.state?.log.isEmpty ?? false)
+        #expect(!(session.state?.events.isEmpty ?? true))
     }
 }

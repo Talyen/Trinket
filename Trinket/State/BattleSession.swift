@@ -11,12 +11,14 @@ import TrinketPersistence
 @MainActor
 @Observable
 final class BattleSession {
-    var isPaused = false
     var isShowingVictory = false
     var isShowingDefeat = false
     var victorySummary: BattleVictorySummary?
     var preview: BattleMusicPreview?
     var overlayCombatantDetail: CombatantCardDetail?
+    var overlayAbilityDetail: Ability?
+    /// Presented from Play (not Options) so the log overlays the live battlefield.
+    var isShowingBattleLog = false
     var activeFeedbackItems: [CombatFeedbackItem] = []
     /// Compatibility mirror of underlying events for tests that inspect event kinds.
     var activeFeedbackEvents: [ActionEvent] = []
@@ -28,6 +30,14 @@ final class BattleSession {
     /// Optional Options store for Ultimate skip policy. Injected by AppState when available.
     @ObservationIgnored
     var options: OptionsStore?
+
+    /// Optional SFX player for combat feedback and ability cues. Injected by AppState.
+    @ObservationIgnored
+    var sfxPlayer: SFXPlayer?
+
+    /// Fired when a delayed auto-end resolves; carries earned gold for already-claimed stages.
+    @ObservationIgnored
+    var onTurnAutoEnded: ((Int?) -> Void)?
 
     var activeBattle: ActiveBattleConfiguration? {
         didSet {
@@ -45,14 +55,23 @@ final class BattleSession {
 
     private var feedbackEventRecordedAt: [Int: Date] = [:]
     private var presentedFeedbackIDs: Set<Int> = []
-    /// Nested overlay + cinematic holds that force `isPaused` until the last hold ends.
     private var presentationHoldCount = 0
-    private var pauseStateBeforeHold: Bool?
     private var softHoldUntil: Date?
     private var deferredFeedbackEvents: [ActionEvent] = []
     private var nextSpectacleID = 0
     /// Actor IDs (Hero/Pet) that already presented a full-screen Ultimate this battle.
     private var actorsWhoPresentedUltimateThisBattle: Set<String> = []
+    @ObservationIgnored
+    private var pendingAutoEndTask: Task<Void, Never>?
+    @ObservationIgnored
+    private var pendingFeedbackPruneTask: Task<Void, Never>?
+    @ObservationIgnored
+    private var autoEndJourney: JourneyProgressState?
+    @ObservationIgnored
+    private var autoEndHomestead: PlayerHomesteadState?
+
+    /// Beat after the last playable card so feedback can show before the turn advances.
+    static let autoEndTurnDelay: TimeInterval = 0.4
 
     var outcome: BattleSimulationOutcome? {
         guard let state else { return nil }
@@ -62,10 +81,36 @@ final class BattleSession {
         )
     }
 
+    var hand: [BattleCard] {
+        state?.hand.cards ?? []
+    }
+
+    var canEndTurn: Bool {
+        guard let state else { return false }
+        return state.phase == .playerTurn && !state.isBattleOver
+            && activeCinematic == nil
+            && !isShowingVictory && !isShowingDefeat
+    }
+
+    var hasPlayableCard: Bool {
+        hand.contains { isCardPlayable($0) }
+    }
+
     func endBattle() {
+        cancelPendingAutoEnd()
         activeBattle = nil
         clearAllPresentation()
         onBattleStateChange?(nil)
+    }
+
+    /// Schedules a delayed end turn when nothing in hand is playable.
+    func considerAutoEndTurn(
+        journey: JourneyProgressState,
+        homestead: PlayerHomesteadState
+    ) {
+        autoEndJourney = journey
+        autoEndHomestead = homestead
+        scheduleAutoEndIfNeeded()
     }
 
     func setMusicPreview(for stage: Stage?) {
@@ -80,32 +125,25 @@ final class BattleSession {
         preview = BattleMusicPreview(stageID: stage.id, enemyID: enemyID)
     }
 
-    func pauseForOverlay() {
-        guard activeBattle != nil else { return }
-        if presentationHoldCount == 0 {
-            pauseStateBeforeHold = isPaused
-        }
-        presentationHoldCount += 1
-        isPaused = true
-    }
-
-    func restorePauseAfterOverlay() {
-        guard presentationHoldCount > 0 else { return }
-        presentationHoldCount -= 1
-        guard presentationHoldCount == 0 else { return }
-        guard activeBattle != nil else {
-            pauseStateBeforeHold = nil
-            return
-        }
-        isPaused = pauseStateBeforeHold ?? false
-        pauseStateBeforeHold = nil
-    }
-
     func presentCombatantDetail(_ detail: CombatantCardDetail) {
-        if activeBattle != nil {
-            pauseForOverlay()
-        }
         overlayCombatantDetail = detail
+    }
+
+    func presentAbilityDetail(_ ability: Ability) {
+        overlayAbilityDetail = ability
+    }
+
+    func clearAbilityDetail() {
+        overlayAbilityDetail = nil
+    }
+
+    func presentBattleLog() {
+        syncLogForDisplay()
+        isShowingBattleLog = true
+    }
+
+    func clearBattleLog() {
+        isShowingBattleLog = false
     }
 
     func clearOutcomePresentation() {
@@ -144,9 +182,7 @@ final class BattleSession {
         for eventID in expiredItemIDs {
             removeFeedbackEvent(eventID)
         }
-        // Raw events that were filtered from chips (e.g. critical labels, -0 abilities)
-        // still need a lifetime so activeFeedbackEvents cannot grow unbounded.
-        let maxRawLifetime = TrinketMotion.Battle.chip(for: .critical).lifetime + 0.05
+        let maxRawLifetime = TrinketMotion.Battle.maxChipLifetime
         let expiredRawIDs = feedbackEventRecordedAt.compactMap { eventID, recordedAt in
             date.timeIntervalSince(recordedAt) >= maxRawLifetime ? eventID : nil
         }
@@ -173,52 +209,68 @@ final class BattleSession {
         self.state = state
     }
 
-    func canAutoAdvanceTick(at date: Date = .now) -> Bool {
-        pruneSoftHold(at: date)
-        pruneExpiredSkillCallout(at: date)
-        guard let state, !state.isBattleOver, !isPaused else { return false }
-        guard !isShowingVictory, !isShowingDefeat else { return false }
-        guard activeCinematic == nil else { return false }
-        if let softHoldUntil, date < softHoldUntil { return false }
-        return true
+    func isCardPlayable(_ card: BattleCard) -> Bool {
+        state?.isCardPlayable(card) ?? false
     }
 
-    /// Advances one battle tick when unpaused. Returns earned gold when an already-claimed stage
+    /// Plays a card from hand. Returns earned gold when an already-claimed stage
     /// victory should auto-complete without showing the victory screen.
     @discardableResult
-    func advanceAutoTick(
+    func playCard(
+        cardID: Int,
         at date: Date = .now,
         journey: JourneyProgressState,
         homestead: PlayerHomesteadState
     ) -> Int? {
+        cancelPendingAutoEnd()
         pruneExpiredFeedback(at: date)
-        guard canAutoAdvanceTick(at: date),
-              let configuration = activeBattle else { return nil }
+        autoEndJourney = journey
+        autoEndHomestead = homestead
+        guard activeCinematic == nil,
+              !isShowingVictory,
+              !isShowingDefeat,
+              var battleState = state else { return nil }
 
-        advanceOneStep(at: date)
-
-        switch outcome {
-        case .victory:
-            if Self.stageRewardsAlreadyClaimed(
-                stageID: configuration.stageID,
-                journey: journey
-            ) {
-                return state?.earnedGold ?? 0
+        do {
+            let events = try battleState.playCard(cardID: cardID, rebuildLog: false)
+            state = battleState
+            playSFX(SFXID.abilityPlay)
+            playSFX(SFXID.abilityDraw) // discard / send-to-bottom reuses draw clip
+            presentResolvedEvents(events, at: date)
+            let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
+            if earnedGold == nil {
+                scheduleAutoEndIfNeeded()
             }
-            guard let battleState = state else { return nil }
-            victorySummary = BattleVictorySummary.make(
-                configuration: configuration,
-                state: battleState,
-                homestead: homestead
-            )
-            isShowingVictory = true
-            return nil
-        case .defeat:
-            isShowingDefeat = true
-            return nil
-        case .none, .tickLimit:
+            return earnedGold
+        } catch {
+            playSFX(SFXID.uiDeny)
             return nil
         }
+    }
+
+    /// Ends the player turn (enemy acts, effects tick, draw). Returns earned gold
+    /// when an already-claimed stage victory should auto-complete.
+    @discardableResult
+    func endTurn(
+        at date: Date = .now,
+        journey: JourneyProgressState,
+        homestead: PlayerHomesteadState
+    ) -> Int? {
+        cancelPendingAutoEnd()
+        pruneExpiredFeedback(at: date)
+        autoEndJourney = journey
+        autoEndHomestead = homestead
+        guard canEndTurn, var battleState = state else { return nil }
+
+        let events = battleState.endTurn(rebuildLog: false)
+        state = battleState
+        playSFX(SFXID.abilityDraw) // per-turn draw
+        presentResolvedEvents(events, at: date)
+        let earnedGold = handleOutcomeIfNeeded(at: date, journey: journey, homestead: homestead)
+        if earnedGold == nil {
+            scheduleAutoEndIfNeeded()
+        }
+        return earnedGold
     }
 
     static func stageRewardsAlreadyClaimed(
@@ -228,41 +280,6 @@ final class BattleSession {
         guard let stageID,
               let stage = GameContent.stage(id: stageID) else { return false }
         return journey.hasClaimedRewards(for: stage)
-    }
-
-    @discardableResult
-    func advanceOneStep(at date: Date = .now) -> BattleStep? {
-        guard var state else { return nil }
-        let step = state.advanceOneStep(rebuildLog: false)
-        self.state = state
-
-        let nonMilestone = step.events.filter { $0.kind != .milestone }
-        let heroID = state.hero.id
-        let petID = state.pet.id
-
-        if let ultimate = nonMilestone.first(where: {
-            BattleSpectaclePolicy.shouldPresentUltimateCinematic(
-                for: $0,
-                heroID: heroID,
-                petID: petID
-            )
-        }) {
-            let autoSkip = options?.shouldAutoSkipUltimateCinematic(
-                actorID: ultimate.actorID,
-                actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
-            ) ?? false
-            if autoSkip {
-                recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
-                return step
-            }
-            deferredFeedbackEvents = nonMilestone
-            beginCinematic(from: ultimate, at: date)
-            return step
-        }
-
-        recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
-        presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
-        return step
     }
 }
 
@@ -284,10 +301,11 @@ extension BattleSession {
         guard let cinematic = activeCinematic else { return }
         actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         activeCinematic = nil
-        restorePauseAfterOverlay()
+        presentationHoldCount = max(0, presentationHoldCount - 1)
         let deferred = deferredFeedbackEvents
         deferredFeedbackEvents = []
         recordFeedbackEvents(deferred, at: date, stagger: CombatFeedbackTiming.ultimateChipStagger)
+        scheduleAutoEndIfNeeded()
     }
 
     func beginCinematicCollapse() {
@@ -296,9 +314,74 @@ extension BattleSession {
         activeCinematic = cinematic
     }
 
+    private func handleOutcomeIfNeeded(
+        at _: Date,
+        journey: JourneyProgressState,
+        homestead: PlayerHomesteadState
+    ) -> Int? {
+        guard let configuration = activeBattle else { return nil }
+        switch outcome {
+        case .victory:
+            if Self.stageRewardsAlreadyClaimed(
+                stageID: configuration.stageID,
+                journey: journey
+            ) {
+                return state?.earnedGold ?? 0
+            }
+            guard let battleState = state else { return nil }
+            victorySummary = BattleVictorySummary.make(
+                configuration: configuration,
+                state: battleState,
+                homestead: homestead
+            )
+            isShowingVictory = true
+            playSFX(SFXID.victory)
+            return nil
+        case .defeat:
+            isShowingDefeat = true
+            playSFX(SFXID.defeat)
+            return nil
+        case .none:
+            return nil
+        }
+    }
+
+    private func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
+        let nonMilestone = events.filter { $0.kind != .milestone }
+        guard let state else {
+            recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+            return
+        }
+        let heroID = state.hero.id
+        let petID = state.pet.id
+
+        if let ultimate = nonMilestone.first(where: {
+            BattleSpectaclePolicy.shouldPresentUltimateCinematic(
+                for: $0,
+                heroID: heroID,
+                petID: petID
+            )
+        }) {
+            let autoSkip = options?.shouldAutoSkipUltimateCinematic(
+                actorID: ultimate.actorID,
+                actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
+            ) ?? false
+            if autoSkip {
+                recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+                return
+            }
+            deferredFeedbackEvents = nonMilestone
+            beginCinematic(from: ultimate, at: date)
+            return
+        }
+
+        recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+        presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
+    }
+
     private func beginCinematic(from event: ActionEvent, at date: Date) {
         nextSpectacleID += 1
-        pauseForOverlay()
+        presentationHoldCount += 1
         activeCinematic = BattleCinematicPresentation(
             id: nextSpectacleID,
             actorID: event.actorID,
@@ -342,14 +425,14 @@ extension BattleSession {
     }
 
     private func clearAllPresentation() {
-        isPaused = false
         clearOutcomePresentation()
         preview = nil
         overlayCombatantDetail = nil
+        overlayAbilityDetail = nil
+        isShowingBattleLog = false
         clearFeedback()
         clearSpectacle()
         presentationHoldCount = 0
-        pauseStateBeforeHold = nil
     }
 
     private func recordFeedbackEvents(
@@ -365,6 +448,18 @@ extension BattleSession {
         let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
         activeFeedbackItems.append(contentsOf: items)
         applyImmediatePresentation(for: items, at: date)
+        scheduleFeedbackPruneIfNeeded(at: date)
+    }
+
+    private func scheduleFeedbackPruneIfNeeded(at date: Date) {
+        pendingFeedbackPruneTask?.cancel()
+        guard let latestExpiry = activeFeedbackItems.map(\.expiresAt).max() else { return }
+        let delay = max(0, latestExpiry.timeIntervalSince(date)) + 0.02
+        pendingFeedbackPruneTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard let self, !Task.isCancelled else { return }
+            self.pruneExpiredFeedback()
+        }
     }
 
     private func applyImmediatePresentation(for items: [CombatFeedbackItem], at date: Date) {
@@ -373,6 +468,9 @@ extension BattleSession {
 
         for item in due {
             presentedFeedbackIDs.insert(item.id)
+            if let clipID = CombatSFXMapper.clipID(for: item) {
+                playSFX(clipID)
+            }
             if let reaction = CombatFeedbackPresenter.reaction(for: [item]) {
                 hitReactionsByTargetID[item.targetID] = reaction
             }
@@ -390,7 +488,14 @@ extension BattleSession {
         }
     }
 
+    private func playSFX(_ id: String) {
+        guard let sfxPlayer else { return }
+        sfxPlayer.play(id, volume: options?.effectsVolume ?? 0)
+    }
+
     private func clearFeedback() {
+        pendingFeedbackPruneTask?.cancel()
+        pendingFeedbackPruneTask = nil
         activeFeedbackEvents = []
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]
@@ -418,7 +523,29 @@ extension BattleSession {
         self.softHoldUntil = nil
     }
 
+    private func scheduleAutoEndIfNeeded() {
+        cancelPendingAutoEnd()
+        guard canEndTurn, !hasPlayableCard,
+              let journey = autoEndJourney,
+              let homestead = autoEndHomestead else { return }
+
+        let delay = Self.autoEndTurnDelay
+        pendingAutoEndTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard let self, !Task.isCancelled else { return }
+            guard self.canEndTurn, !self.hasPlayableCard else { return }
+            let earnedGold = self.endTurn(journey: journey, homestead: homestead)
+            self.onTurnAutoEnded?(earnedGold)
+        }
+    }
+
+    private func cancelPendingAutoEnd() {
+        pendingAutoEndTask?.cancel()
+        pendingAutoEndTask = nil
+    }
+
     private func resetRun(from configuration: ActiveBattleConfiguration) {
+        cancelPendingAutoEnd()
         state = BattleState(
             hero: configuration.hero.combatant,
             pet: configuration.pet.combatant,
@@ -432,8 +559,9 @@ extension BattleSession {
         clearFeedback()
         clearSpectacle()
         clearOutcomePresentation()
-        isPaused = false
         overlayCombatantDetail = nil
+        overlayAbilityDetail = nil
+        isShowingBattleLog = false
         BattleCinematicPlayer.shared.warmLoadout(
             heroUltimateID: configuration.hero.combatant.abilityLoadout.ultimate?.id,
             petUltimateID: configuration.pet.combatant.abilityLoadout.ultimate?.id
@@ -441,13 +569,16 @@ extension BattleSession {
     }
 
     private func clearRunState() {
+        cancelPendingAutoEnd()
+        autoEndJourney = nil
+        autoEndHomestead = nil
         state = nil
         clearFeedback()
         clearSpectacle()
         clearOutcomePresentation()
         overlayCombatantDetail = nil
+        overlayAbilityDetail = nil
+        isShowingBattleLog = false
         presentationHoldCount = 0
-        pauseStateBeforeHold = nil
-        isPaused = false
     }
 }

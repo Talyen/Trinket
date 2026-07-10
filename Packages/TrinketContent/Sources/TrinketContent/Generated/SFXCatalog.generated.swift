@@ -11,7 +11,156 @@ public struct SFXClip: Identifiable, Hashable, Sendable {
 
 public enum SFXCatalog {
     public static let clips: [SFXClip] = [
-        // Add rows to SoundManifest/sfx.tsv when sound sources are ready.
+        SFXClip(
+            id: "ui_tap",
+            resourceName: "sfx_ui_tap",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_confirm",
+            resourceName: "sfx_ui_confirm",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_cancel",
+            resourceName: "sfx_ui_cancel",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_decline",
+            resourceName: "sfx_ui_decline",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_deny",
+            resourceName: "sfx_ui_deny",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_toggle_on",
+            resourceName: "sfx_ui_toggle_on",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_toggle_off",
+            resourceName: "sfx_ui_toggle_off",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_equip",
+            resourceName: "sfx_ui_equip",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_unequip",
+            resourceName: "sfx_ui_unequip",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ui_buy_sell",
+            resourceName: "sfx_ui_buy_sell",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ability_draw",
+            resourceName: "sfx_ability_draw",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "ability_play",
+            resourceName: "sfx_ability_play",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit",
+            resourceName: "sfx_hit",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_burn",
+            resourceName: "sfx_hit_burn",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "hit_freeze",
+            resourceName: "sfx_hit_freeze",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "heal",
+            resourceName: "sfx_heal",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "buff",
+            resourceName: "sfx_buff",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "block",
+            resourceName: "sfx_block",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "control_freeze",
+            resourceName: "sfx_control_freeze",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "control_stun",
+            resourceName: "sfx_control_stun",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "purge",
+            resourceName: "sfx_purge",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "deaths_door",
+            resourceName: "sfx_deaths_door",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "victory",
+            resourceName: "sfx_victory",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "defeat",
+            resourceName: "sfx_defeat",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
+        SFXClip(
+            id: "mystery_event",
+            resourceName: "sfx_mystery_event",
+            fileExtension: "m4a",
+            volumeGain: 1.0
+        ),
     ]
 
     public static let clipsByID: [String: SFXClip] = {

@@ -1,9 +1,9 @@
 import XCTest
 
 final class BattleFlowUITests: TrinketUITestCase {
-    /// Mid-battle interactions: enter via Play map with a moderate tick so chrome stays visible.
-    func testMidBattleCombatantDetailAndTabPause() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.25", in: TestLaunchArg.testLaunchArgs))
+    /// Mid-battle interactions: enter via Play map and assert turn-based chrome stays visible.
+    func testMidBattleCombatantDetailAndHandChrome() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
         play.openStage(chapter: 1, stage: 1)
@@ -16,13 +16,11 @@ final class BattleFlowUITests: TrinketUITestCase {
         // Knight is the card we open; Wolf may already be downed / off-layout mid-fight.
         assertExists(AccessibilityID.CombatantDetail.battleCard(name: "Knight"))
 
-        // Pause immediately so the rest of the mid-battle checks are stable.
-        if battle.pauseButton.waitForExistence(timeout: 1) {
-            battle.pauseButton.tap()
-        }
+        // Turn-based chrome: hand should be present mid-battle.
+        battle.assertActive()
+        assertExists(AccessibilityID.Battle.hand)
 
-        // Leave Play to pause the battle, then return and inspect a combatant.
-        _ = battle.menu.waitForExistence(timeout: Self.defaultTimeout)
+        // Leave Play, then return and inspect a combatant.
         tabBar.selectCollection()
         assertExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
         tabBar.selectPlay()
@@ -32,18 +30,15 @@ final class BattleFlowUITests: TrinketUITestCase {
         }
 
         battle.assertPresented()
+        battle.assertActive()
         battle.openCombatantCard(named: "Knight")
         combatantDetail.assertSeededHeroHeaderSummary(for: "Knight")
         assertCombatantDetailSections()
         dismissSheet()
-
-        // Resume after tab-switch pause so the battle can continue if needed.
-        if battle.pauseButton.exists {
-            battle.pauseButton.tap()
-        }
     }
 
-    /// Victory path deep-links to outcome chrome; no live combat simulation.
+    /// Victory path deep-links to outcome chrome; Combat Log remains available under Options
+    /// (tapping it returns to Play and presents the log over the battle).
     func testBattleVictorySummaryAndPostVictoryMenu() {
         launchApp(arguments: TestLaunchArg.allForBattleVictory())
 
@@ -53,8 +48,9 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.rewards)
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
-        battle.openMenu()
-        battle.assertCombatLogVisible()
-        battle.assertRetreatUnavailable()
+        tabBar.selectOptions()
+        options.assertLoaded()
+        options.assertCombatLogVisible()
+        options.assertRetreatUnavailable()
     }
 }

@@ -36,21 +36,21 @@ struct EffectPresentationTests {
     @Test func applyPhraseFormatsBlockWithAmountAndDuration() throws {
         try #expect(
             EffectPresentation.applyPhrase(for: .shield(.block, 5, 6))
-                == "gain 5 Block for 6 seconds"
+                == "gain 5 Block for 6 turns"
         )
     }
 
     @Test func applyPhraseFormatsArmorWithAmountAndDuration() throws {
         try #expect(
             EffectPresentation.applyPhrase(for: .mitigation(.armor, 0.15, 6))
-                == "gain 15% Armor for 6 seconds"
+                == "gain 15% Armor for 6 turns"
         )
     }
 
     @Test func applyPhraseFormatsDamageKeywordOverride() throws {
         try #expect(
             EffectPresentation.applyPhrase(for: .damageKeywordOverride(.holy, 3, 6))
-                == "your attacks become Holy damage and deal +3 for 6 seconds"
+                == "your attacks become Holy damage and deal +3 for 6 turns"
         )
     }
 

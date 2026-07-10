@@ -3,7 +3,7 @@ import BattleEngine
 import TrinketCore
 import TrinketContent
 
-/// Integration tests for cleanse abilities through full battle ticks.
+/// Integration tests for cleanse abilities through card combat.
 @Suite
 struct CleanseIntegrationTests {
     @Test func cleanseAllRemovesDebuffsWhenAbilityFires() throws {
@@ -12,9 +12,9 @@ struct CleanseIntegrationTests {
             name: "Hero",
             role: .hero,
             maxHealth: 10,
-            abilities: [.slash, .cleanse, .smite]
+            abilities: [.cleanse]
         )
-        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet, actionIntervalTicks: 2)
+        let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
         let enemy = BattleTestFixtures.passiveCombatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 100)
         var battle = BattleTestFixtures.standardParty(
             hero: hero,
@@ -26,7 +26,7 @@ struct CleanseIntegrationTests {
             ]
         )
 
-        BattleTestFixtures.advanceTicks(6, on: &battle)
+        _ = try BattleTestFixtures.playUntilAbility("Cleanse", on: &battle)
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains(where: \.effect.isRemovableDebuff))
     }
@@ -42,7 +42,6 @@ struct CleanseIntegrationTests {
         )
         let hero = Combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
-            actionIntervalTicks: 2,
             abilities: [cleansePoison]
         )
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
@@ -57,10 +56,9 @@ struct CleanseIntegrationTests {
             ]
         )
 
-        _ = battle.advanceOneStep()
-        let step = battle.advanceOneStep()
+        let events = try BattleTestFixtures.playCardNamed("Cleanse Poison", owner: .hero, on: &battle)
 
-        try #expect(step.events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
+        try #expect(events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
         try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
         try #expect(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
     }
@@ -76,7 +74,6 @@ struct CleanseIntegrationTests {
         )
         let hero = Combatant(
             id: "hero", name: "Hero", role: .hero, maxHealth: 20,
-            actionIntervalTicks: 2,
             abilities: [cleanseAll]
         )
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
@@ -92,10 +89,9 @@ struct CleanseIntegrationTests {
             ]
         )
 
-        _ = battle.advanceOneStep()
-        let step = battle.advanceOneStep()
+        let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
 
-        try #expect(step.events.contains { $0.effectKind == .cleanseApplied })
+        try #expect(events.contains { $0.effectKind == .cleanseApplied })
         try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
         try #expect(!(battle.hasHeroEffect { if case .burn = $0 { return true }; return false }))
         try #expect(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
@@ -115,7 +111,6 @@ struct CleanseIntegrationTests {
             name: "Hero",
             role: .hero,
             maxHealth: 50,
-            actionIntervalTicks: 1,
             abilities: [cleanseAbility]
         )
         let pet = BattleTestFixtures.passiveCombatant(id: "pet", name: "Pet", role: .pet)
@@ -129,7 +124,7 @@ struct CleanseIntegrationTests {
             ]
         )
 
-        BattleTestFixtures.advanceTicks(1, on: &battle)
+        _ = try BattleTestFixtures.playCardNamed("Test Cleanse", owner: .hero, on: &battle)
 
         try #expect(!battle.hasHeroEffect { $0.isControlMeter }, "Cleanse removed buildup")
     }

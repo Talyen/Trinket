@@ -3,12 +3,8 @@ import XCTest
 struct BattleScreen {
     let app: XCUIApplication
 
-    var pauseButton: XCUIElement {
-        app.buttons[AccessibilityID.Battle.pauseButton]
-    }
-
-    var menu: XCUIElement {
-        app.descendants(matching: .any)[AccessibilityID.Battle.menu]
+    var hand: XCUIElement {
+        app.descendants(matching: .any)[AccessibilityID.Battle.hand]
     }
 
     var victory: XCUIElement {
@@ -26,9 +22,13 @@ struct BattleScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        // Battle Menu stays in the toolbar for the whole cover (including victory/defeat).
+        // Active combat shows the hand; outcome screens show Victory chrome.
+        let handChrome = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
+        if handChrome.waitForExistence(timeout: timeout) {
+            return
+        }
         XCTAssertTrue(
-            menu.waitForExistence(timeout: timeout),
+            victory.waitForExistence(timeout: 1),
             "Battle chrome not found",
             file: file,
             line: line
@@ -40,11 +40,10 @@ struct BattleScreen {
         file: StaticString = #file,
         line: UInt = #line
     ) {
-        // Pause is only present during active combat — do not fall back to menu (also on victory).
-        let pause = app.descendants(matching: .any)[AccessibilityID.Battle.pauseButton]
+        let handChrome = app.descendants(matching: .any)[AccessibilityID.Battle.hand]
         XCTAssertTrue(
-            pause.waitForExistence(timeout: timeout),
-            "Battle pause control not found",
+            handChrome.waitForExistence(timeout: timeout),
+            "Battle hand chrome not found",
             file: file,
             line: line
         )
@@ -74,27 +73,5 @@ struct BattleScreen {
 
     func openCombatantCard(named name: String) {
         app.buttons[AccessibilityID.CombatantDetail.battleCard(name: name)].tap()
-    }
-
-    func openMenu() {
-        menu.tap()
-    }
-
-    func assertCombatLogVisible(
-        timeout: TimeInterval = TrinketUITestCase.defaultTimeout,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) {
-        let log = app.descendants(matching: .any)[AccessibilityID.Battle.combatLog]
-        XCTAssertTrue(log.waitForExistence(timeout: timeout), "Combat log not found", file: file, line: line)
-    }
-
-    func assertRetreatUnavailable(file: StaticString = #file, line: UInt = #line) {
-        XCTAssertFalse(
-            app.buttons[AccessibilityID.Battle.retreat].exists,
-            "Retreat should be unavailable after victory",
-            file: file,
-            line: line
-        )
     }
 }

@@ -63,31 +63,26 @@ struct BattleMechanicsTests {
         )
     }
 
-    @Test func insufficientManaFallsBackToBasic() throws {
+    @Test func enemyAbilityCadenceSelectsSkillOnThirdTurn() throws {
         let basic = Ability(id: "basic", name: "Basic", tier: .basic, directDamage: 1, description: "Basic")
-        let skill = Ability(id: "mana-skill", name: "Mana Skill", tier: .skill, directDamage: 5, description: "Skill", manaCost: 3)
-        let wizard = Combatant(
-            id: "wizard",
-            name: "Wizard",
-            role: .hero,
-            maxHealth: 20,
-            maxMana: 5,
-            abilities: [basic, skill]
-        )
-        let pet = CombatantFixtures.combatant(id: "pet", role: .pet, maxHealth: 20)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
-        let context = makeContext(hero: wizard, pet: pet, enemy: enemy, heroMana: 0)
-
-        let ability = BattleTurnEngine.selectedAbility(
-            for: wizard,
-            turnNumber: 3,
-            currentMana: context.roster.runtime(for: wizard)?.currentMana ?? 0
+        let skill = Ability(id: "skill", name: "Skill", tier: .skill, directDamage: 5, description: "Skill")
+        let ultimate = Ability(id: "ult", name: "Ult", tier: .ultimate, directDamage: 9, description: "Ult")
+        let enemy = Combatant(
+            id: "enemy",
+            name: "Enemy",
+            role: .enemy,
+            maxHealth: 30,
+            abilities: [basic, skill, ultimate]
         )
 
-        try #expect(ability?.id == wizard.abilityLoadout.basic?.id)
+        try #expect(BattleTurnEngine.preferredTier(for: 1) == .basic)
+        try #expect(BattleTurnEngine.preferredTier(for: 3) == .skill)
+        try #expect(BattleTurnEngine.preferredTier(for: 6) == .ultimate)
+        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 3)?.id == skill.id)
+        try #expect(BattleTurnEngine.selectedEnemyAbility(for: enemy, turnNumber: 6)?.id == ultimate.id)
     }
 
-    @Test func predatorsHasteAppliesHasteBuff() throws {
+    @Test func predatorsHasteIsNoOp() throws {
         // Wolf lists Predator's Haste in skill choices; withAbilityLoadout resolves
         // selections against choices, so panther cannot select this skill.
         let baseWolf = try #require(GameContent.pets.first { $0.id == "wolf" })
@@ -101,20 +96,22 @@ struct BattleMechanicsTests {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
         let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 30)
         var context = makeContext(hero: hero, pet: wolf, enemy: enemy)
-        var wolfRuntime = try #require(context.roster.runtime(for: wolf))
-        wolfRuntime.actionCount = 2
-        context.roster.update(wolfRuntime)
         let matchup = BattleMatchup(hero: hero, pet: wolf, enemy: enemy)
+        let ability = try #require(wolf.abilityLoadout.skill)
 
-        _ = BattleTurnEngine.performAction(
+        _ = BattleTurnEngine.performAbility(
+            ability,
             actor: wolf,
-            abilityTarget: enemy,
             matchup: matchup,
-            context: &context
+            context: &context,
+            spendMana: false
         )
 
         try #expect(
-            context.roster.activeEffects(for: wolf).contains { if case .haste = $0.effect { return true }; return false }
+            !context.roster.activeEffects(for: wolf).contains {
+                if case .haste = $0.effect { return true }
+                return false
+            }
         )
     }
 }
