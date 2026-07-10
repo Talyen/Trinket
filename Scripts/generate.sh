@@ -97,6 +97,10 @@ fi
 
 if [[ "$SKIP_XCODEGEN" == false ]]; then
   echo "=== Generating Xcode project ==="
+  # Prefer pinned .tools XcodeGen when present so local output matches CI.
+  if [[ -x "$PWD/.tools/xcodegen" ]]; then
+    export PATH="$PWD/.tools:$PATH"
+  fi
   if command -v xcodegen >/dev/null 2>&1; then
     xcodegen generate \
       --use-cache \

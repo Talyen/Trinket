@@ -142,14 +142,30 @@ install_xcodegen() {
   [[ "$os" == "darwin" ]] || return 0
 
   local bin="$TOOLS_DIR/xcodegen"
-  if [[ -x "$bin" ]] && [[ "$("$bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
+  local install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
+  local real_bin="$install_dir/bin/xcodegen"
+
+  write_xcodegen_wrapper() {
+    # XcodeGen resolves SettingPresets from argv[0]/../share/xcodegen. A plain
+    # symlink at .tools/xcodegen makes that lookup miss the presets and strip
+    # default SDK/runpath settings from project.pbxproj (CI assert drift).
+    # Remove any existing symlink first so we do not overwrite the real binary.
+    rm -f "$bin"
+    cat >"$bin" <<EOF
+#!/usr/bin/env bash
+exec "$real_bin" "\$@"
+EOF
+    chmod +x "$bin"
+  }
+
+  if [[ -x "$real_bin" ]] && [[ "$("$real_bin" --version 2>/dev/null | awk '{print $NF}' || true)" == "$XCODEGEN_VERSION" ]]; then
+    write_xcodegen_wrapper
     return 0
   fi
 
-  local tmpdir archive actual_sha install_dir
+  local tmpdir archive actual_sha
   tmpdir="$(mktemp -d)"
   archive="$tmpdir/xcodegen.zip"
-  install_dir="$TOOLS_DIR/xcodegen-$XCODEGEN_VERSION"
 
   curl -fsSL "https://github.com/yonaskolb/XcodeGen/releases/download/${XCODEGEN_VERSION}/xcodegen.zip" -o "$archive"
   actual_sha="$(shasum -a 256 "$archive" | awk '{print $1}')"
@@ -162,7 +178,7 @@ install_xcodegen() {
   rm -rf "$install_dir"
   unzip -qo "$archive" -d "$tmpdir"
   mv "$tmpdir/xcodegen" "$install_dir"
-  ln -sfn "xcodegen-$XCODEGEN_VERSION/bin/xcodegen" "$bin"
+  write_xcodegen_wrapper
   rm -rf "$tmpdir"
 
   local actual
