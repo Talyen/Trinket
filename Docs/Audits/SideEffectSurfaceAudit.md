@@ -41,16 +41,16 @@ rg -n '\.random\(|randomElement\(|\.shuffle\(|UUID\(\)|Date\(\)|Date\.now|System
 # Flag unseeded .random(), UUID(), Date() in BattleEngine rule paths
 
 # UserDefaults — allowlist: OptionsStore, AppState session keys / wiring
-rg -n 'UserDefaults' --type swift -g '!*Tests*'
+rg -n 'UserDefaults' --type swift -g '!*Tests*' .
 
 # File I/O — allowlist: TrinketPersistence/, BalanceSweepCLI/
-rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*'
+rg -n 'FileManager|Data\(contentsOf:|write\(to:' --type swift -g '!*Tests*' -g '!**/Generated/*' .
 
 # AV types outside Trinket/Audio/ — expect 0 (app uses AVAudioPlayer in Audio/)
-rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*'
+rg -n 'AVPlayer|AVAudioEngine|AVAudioPlayer|MPMusicPlayer' --type swift -g '!*Tests*' .
 
 # CloudKit symbols — expect TrinketPersistence (or none if SwiftData-only wiring)
-rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*'
+rg -n 'import CloudKit|CKContainer|CKRecord' --type swift -g '!*Tests*' .
 ```
 
 **CloudKit note:** OS-managed SwiftData CloudKit may not import `CloudKit` directly. Absence of `CKRecord` is not a failure if sync is configured via `ModelConfiguration` / container ID in persistence.

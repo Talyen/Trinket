@@ -25,7 +25,7 @@ Probe persistence and transition boundaries, then fix a small, cohesive set of c
 ```bash
 # Save / sync seams (primary)
 rg -n 'modifiedAt|lastSynced|lastPersistenceError|disableCloudSync|cloudKitContainer|PlayerSaveStore|PlayerSaveSanitizer' \
-  --type swift -g '!*Tests*'
+  --type swift -g '!*Tests*' .
 
 # Debounced / coalesced writes
 rg -n 'debounce|coalesc|scheduleWrite|persist\(|save\(' --type swift \

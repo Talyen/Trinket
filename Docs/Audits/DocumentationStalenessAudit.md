@@ -19,17 +19,18 @@ Discover markdown from the repository (do not trust a hardcoded file count). Fix
 
 ```bash
 # Authoritative inventory — respects agent do-not-read trees
+# Always pass an explicit path (`.`) — pathless rg hangs in Cursor cloud shells.
 rg --files -g '*.md' \
   -g '!**/.git/**' -g '!**/.DerivedData/**' -g '!**/.build/**' \
-  -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' | sort
+  -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' . | sort
 
 # Probes
-rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/|SoundManifest/)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
-rg -n '\([^)]*\.md[#)]' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
-rg -n 'https?://' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
-rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
-rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this point|phase \d|soon|upcoming|planned|scratch|parked)' --type md -i -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
-rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**'
+rg -n '(Trinket/|Packages/|Scripts/|Docs/|ContentManifest/|ArtManifest/|MusicManifest/|SoundManifest/)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
+rg -n '\([^)]*\.md[#)]' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
+rg -n 'https?://' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
+rg -n '(iOS |Swift |Xcode |MARKETING_VERSION|CURRENT_PROJECT_VERSION|swift-tools-version)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
+rg -n '(currently|yet|not yet|in progress|eventually|so far|right now|at this point|phase \d|soon|upcoming|planned|scratch|parked)' --type md -i -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
+rg -n '(Status:|R-\d{3}|Last execution|Last verified|\*\*Done\*\*|Audit run:)' --type md -g '!**/.DerivedData/**' -g '!**/.build/**' -g '!**/.tools/**' -g '!**/Generated/**' -g '!Raw Assets/**' .
 ```
 
 Expect groups including: root (`README`, `AGENTS`, …), `Docs/` (Architecture, Testing, AgentMotion, **Platform**, Audits), package READMEs, manifest READMEs, `Scripts/README.md`.
@@ -126,7 +127,7 @@ PY
 ls -1 TrinketUITests/Smoke/Smoke*.swift | wc -l
 rg -n 'deploymentTarget|SWIFT_VERSION' project.yml | head -20
 rg -n 'swift-tools-version' Packages/*/Package.swift
-rg -n 'iOS [0-9]|Swift [0-9]|MARKETING_VERSION' --type md -g '!.DerivedData/' | head -40
+rg -n 'iOS [0-9]|Swift [0-9]|MARKETING_VERSION' --type md -g '!.DerivedData/' . | head -40
 ```
 
 ## Commit

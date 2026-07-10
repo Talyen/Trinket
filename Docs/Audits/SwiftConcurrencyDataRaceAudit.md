@@ -21,7 +21,7 @@ Start with a strict-concurrency build when available, then use probes to investi
 ### 1. Mutable shared static state
 
 ```bash
-rg -n 'static var\s+\w+\s*(:\s*[^\{]+)?\s*=' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+rg -n 'static var\s+\w+\s*(:\s*[^\{]+)?\s*=' --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
 ```
 
 Triage: actor-isolated (including `@MainActor` where appropriate), locked/`Mutex`, immutable, or otherwise proven safe.
@@ -29,7 +29,7 @@ Triage: actor-isolated (including `@MainActor` where appropriate), locked/`Mutex
 ### 2. Compiler safety bypasses
 
 ```bash
-rg -n '@unchecked Sendable|nonisolated\(unsafe\)' --type swift -g '!*Tests*' -g '!*UITests*'
+rg -n '@unchecked Sendable|nonisolated\(unsafe\)' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
 
 Each bypass needs documented synchronization. Prefer removing the bypass when types allow.
@@ -37,7 +37,7 @@ Each bypass needs documented synchronization. Prefer removing the bypass when ty
 ### 3. Legacy Dispatch bridging
 
 ```bash
-rg -n 'DispatchQueue\.(main|global)' --type swift -g '!*Tests*' -g '!*UITests*'
+rg -n 'DispatchQueue\.(main|global)' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
 
 Prefer `@MainActor` / `MainActor.run` / actor isolation over `DispatchQueue.main.async`.
@@ -45,7 +45,7 @@ Prefer `@MainActor` / `MainActor.run` / actor isolation over `DispatchQueue.main
 ### 4. Cooperative pool blocking
 
 ```bash
-rg -n '\bsleep\(|\busleep\(|\bThread\.sleep\(|\bData\(contentsOf:' --type swift -g '!*Tests*' -g '!*UITests*'
+rg -n '\bsleep\(|\busleep\(|\bThread\.sleep\(|\bData\(contentsOf:' --type swift -g '!*Tests*' -g '!*UITests*' .
 ```
 
 Establish the current executor and call frequency before changing blocking I/O; use async or off-actor work only when the hot path requires it.
@@ -68,7 +68,7 @@ Check: unstructured `Task { }` on `@Observable` / store types cancel on teardown
 
 ```bash
 rg -n '@preconcurrency|MainActor\.assumeIsolated|withUnsafeContinuation|withCheckedContinuation|AsyncStream|TaskGroup' \
-  --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*'
+  --type swift -g '!*Tests*' -g '!*UITests*' -g '!**/Generated/*' .
 ```
 
 Confirm the lifetime, cancellation, and executor assumptions for every candidate; the presence of one is not itself a defect.
