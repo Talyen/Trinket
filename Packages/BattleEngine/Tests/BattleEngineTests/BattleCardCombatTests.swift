@@ -77,6 +77,12 @@ struct BattleCardCombatTests {
             petAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
+        // Loadouts hold at most one card per tier (basic/skill/ultimate), so
+        // this hero's real deck is only 2 cards (Slash + Dark Pact) and the
+        // opening hand draw exhausts it. Pad the deck so playing Dark Pact
+        // has enough supply left to draw a full 2 cards.
+        battle.heroDeck.putOnBottom(.heal)
+        battle.heroDeck.putOnBottom(.smite)
         let handBefore = battle.hand.count
         let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 

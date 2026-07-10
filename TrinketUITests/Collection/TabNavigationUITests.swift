@@ -15,16 +15,16 @@ final class TabNavigationUITests: TrinketUITestCase {
             app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
             "Basic ability picker not found"
         )
-        button("Basic Shield Bash ability card").tap()
-        assertExists("Shield Bash")
+        button("Basic Bash ability card").tap()
+        assertExists("Bash")
 
         button(AccessibilityID.Equipment.basicAbilitySlot).tap()
         XCTAssertTrue(
             app.navigationBars["Basic"].waitForExistence(timeout: Self.defaultTimeout),
             "Basic ability picker not found"
         )
-        button("Basic Bash ability card").tap()
-        assertExists("Bash")
+        button("Basic Block ability card").tap()
+        assertExists("Block")
 
         // 2. Items section (lower on screen)
         scrollUntilVisible(button(AccessibilityID.Equipment.weaponSlot), swipingUp: true)
@@ -47,12 +47,19 @@ final class TabNavigationUITests: TrinketUITestCase {
             TestLaunchArg.disableCloudSync
         ] + TestLaunchArg.screen("hero:knight"))
 
-        scrollUntilVisible(app.descendants(matching: .any)[AccessibilityID.Equipment.weaponSlot], swipingUp: true)
-        assertExists(AccessibilityID.Equipment.findWeaponToUnlock)
-        assertExists(AccessibilityID.Equipment.findArmorToUnlock)
-        assertExists(AccessibilityID.Equipment.findTrinketToUnlock)
+        let weaponSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.weaponSlot]
+        let armorSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.armorSlot]
+        let trinketSlot = app.descendants(matching: .any)[AccessibilityID.Equipment.trinketSlot]
+        scrollUntilVisible(weaponSlot, swipingUp: true)
 
-        app.descendants(matching: .any)[AccessibilityID.Equipment.weaponSlot].tap()
+        // Locked slots combine into a single element; the unlock instructions now live
+        // in that element's accessibility label rather than as a standalone element.
+        XCTAssertTrue(weaponSlot.waitForExistence(timeout: Self.defaultTimeout))
+        XCTAssertTrue(weaponSlot.label.contains(AccessibilityID.Equipment.findWeaponToUnlock))
+        XCTAssertTrue(armorSlot.label.contains(AccessibilityID.Equipment.findArmorToUnlock))
+        XCTAssertTrue(trinketSlot.label.contains(AccessibilityID.Equipment.findTrinketToUnlock))
+
+        weaponSlot.tap()
         XCTAssertFalse(app.navigationBars[AccessibilityID.Equipment.equipWeapon].waitForExistence(timeout: 1))
     }
 

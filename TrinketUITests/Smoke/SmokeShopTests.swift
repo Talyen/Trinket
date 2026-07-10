@@ -30,7 +30,7 @@ final class SmokeShopTests: TrinketUITestCase {
         )
         offerCards.element(boundBy: 0).tap()
         assertExists(AccessibilityID.Shop.detailBuyButton)
-        app.swipeDown()
+        tapButton("Done")
         _ = button(AccessibilityID.Shop.leaveButton).waitForExistence(timeout: Self.defaultTimeout)
 
         let buyButtons = app.buttons.matching(
@@ -45,6 +45,13 @@ final class SmokeShopTests: TrinketUITestCase {
             }
         }
 
+        // Offer grid can grow taller than the viewport; scroll the Leave button into view
+        // before tapping so a covered/off-screen element doesn't swallow the tap.
+        for _ in 0 ..< 6 {
+            let leaveButton = button(AccessibilityID.Shop.leaveButton)
+            if leaveButton.exists, leaveButton.isHittable { break }
+            app.swipeUp()
+        }
         tapButton(AccessibilityID.Shop.leaveButton)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
     }

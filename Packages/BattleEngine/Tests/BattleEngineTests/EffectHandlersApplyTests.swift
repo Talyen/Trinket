@@ -101,6 +101,12 @@ struct EffectHandlersApplyTests {
                 abilities: [.slash, .heal, .smite, .darkPact]
             )
         )
+        // Loadouts hold at most one card per tier (basic/skill/ultimate), so
+        // this hero's real deck is only 2 cards and the opening hand draw
+        // exhausts it. Pad the deck so this handler-level test can exercise
+        // a full 2-card draw independent of that capacity limit.
+        battle.heroDeck.putOnBottom(.smite)
+        battle.heroDeck.putOnBottom(.heal)
         let handBefore = battle.hand.count
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawCards(2),
