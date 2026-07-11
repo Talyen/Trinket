@@ -79,7 +79,7 @@ struct EffectHandlersApplyBuffDebuffTests {
             battle: &battle
         )
         try #expect(!(outcome.didApply))
-        try #expect(!(battle.activeEffects(of: battle.enemy).contains { $0.effect.isDecayingDoT }))
+        try #expect(!(battle.activeEffects(of: battle.enemy).contains(where: \.effect.isDecayingDoT)))
     }
 
     @Test func deathsDoorHandlerApplyIsNoOp() throws {

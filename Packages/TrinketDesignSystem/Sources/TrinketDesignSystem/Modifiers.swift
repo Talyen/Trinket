@@ -15,6 +15,9 @@ struct LockedCardEffectModifier: ViewModifier {
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
+    @ScaledMetric(relativeTo: .body)
+    private var lockIconSize: CGFloat = 25.5
+
     private static let lockedBlurRadius: CGFloat = 1
     private static let lockedSaturation: Double = 0.35
 
@@ -56,9 +59,9 @@ struct LockedCardEffectModifier: ViewModifier {
 
     private var lockBadgeOverlay: some View {
         Image(systemName: "lock.fill")
+            .font(.system(size: lockIconSize))
             .symbolRenderingMode(.hierarchical)
             .foregroundStyle(.secondary)
-            .trinketGlassChip(.compact)
     }
 }
 
@@ -111,32 +114,6 @@ public struct NavigationRowButtonStyle: ButtonStyle {
     }
 }
 
-public struct HomesteadActionButtonModifier: ViewModifier {
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.colorScheme) private var colorScheme
-
-    public init() {}
-
-    public func body(content: Content) -> some View {
-        content
-            .font(.body.weight(.semibold))
-            .foregroundStyle(isEnabled ? HomesteadPalette.accent : HomesteadPalette.mutedText(for: colorScheme))
-            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-            .padding(.vertical, 10)
-            .background(
-                isEnabled ? HomesteadPalette.accent.opacity(0.15) : Color.primary.opacity(0.055),
-                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous)
-                    .stroke(
-                        isEnabled ? HomesteadPalette.accent.opacity(0.72) : Color.secondary.opacity(0.28),
-                        lineWidth: 1
-                    )
-            }
-    }
-}
-
 public extension View {
     func trinketCardSurface() -> some View {
         modifier(CardSurfaceModifier())
@@ -160,10 +137,6 @@ public extension View {
 
     func trinketNavigationRowButtonStyle() -> some View {
         buttonStyle(NavigationRowButtonStyle())
-    }
-
-    func trinketHomesteadActionButton() -> some View {
-        modifier(HomesteadActionButtonModifier())
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.

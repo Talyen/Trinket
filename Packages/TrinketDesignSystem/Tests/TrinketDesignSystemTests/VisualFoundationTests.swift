@@ -51,9 +51,9 @@ struct VisualFoundationTests {
         }
 
         if case let .glass(_, solidFill) = MaterialRoleStyle(role: .homesteadFooter, colorScheme: .dark) {
-            try #expect(solidFill == HomesteadPalette.elevatedPanel(for: .dark))
+            try #expect(solidFill == HomesteadPalette.walletPanel)
         } else {
-            Issue.record("homesteadFooter should use tinted glass")
+            Issue.record("homesteadFooter should use wallet panel glass")
         }
     }
 
@@ -67,5 +67,7 @@ struct VisualFoundationTests {
         try #expect(HomesteadPalette.background(for: .dark) != HomesteadPalette.background(for: .light))
         try #expect(HomesteadPalette.panel(for: .dark) != HomesteadPalette.panel(for: .light))
         try #expect(HomesteadPalette.stroke(for: .dark) != HomesteadPalette.stroke(for: .light))
+        try #expect(HomesteadPalette.accent != .clear)
+        try #expect(HomesteadPalette.walletPanel != .clear)
     }
 }

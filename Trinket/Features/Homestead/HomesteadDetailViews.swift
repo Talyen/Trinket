@@ -9,8 +9,13 @@ struct HomesteadNodeDetailView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var build = HomesteadBuildControl()
     @State private var highlightedTier: Int?
+    @State private var viewportSize: CGSize = .zero
+    @State private var walletHeight: CGFloat = 0
 
     let definition: HomesteadNodeDefinition
+
+    private let bodyTopPadding: CGFloat = 10
+    private let bodyStackSpacing: CGFloat = 18
 
     private var homestead: PlayerHomesteadState {
         appState.homestead.current
@@ -22,6 +27,19 @@ struct HomesteadNodeDetailView: View {
 
     private var status: HomesteadProjectStatus {
         HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster)
+    }
+
+    /// Leftover band under the cinematic hero for the tier path (wallet + padding excluded).
+    private var tierPathMinHeight: CGFloat {
+        guard viewportSize.height > 0 else { return 0 }
+        let heroHeight = HeroHeaderLayout.HeightPolicy.cinematicLandscape
+            .height(forWidth: max(viewportSize.width, 1))
+        let reserved = heroHeight
+            + walletHeight
+            + bodyTopPadding
+            + TrinketDesign.Metrics.extraLargeSpacing
+            + bodyStackSpacing
+        return max(viewportSize.height - reserved, 0)
     }
 
     var body: some View {
@@ -37,36 +55,31 @@ struct HomesteadNodeDetailView: View {
                 overscroll: overscroll
             )
         } bodyContent: {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: bodyStackSpacing) {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-
-                if !status.isUnlocked {
-                    HomesteadPrerequisiteSection(definition: definition, homestead: homestead)
-                }
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { _, height in
+                        walletHeight = height
+                    }
 
                 HomesteadTierPath(
                     definition: definition,
                     status: status,
-                    highlightedTier: highlightedTier
+                    highlightedTier: highlightedTier,
+                    minHeight: tierPathMinHeight,
+                    isBuilding: build.isBuilding,
+                    onBuild: buildOrUpgrade
                 )
             }
-            .padding(.top, 10)
+            .padding(.top, bodyTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
         }
-        .safeAreaInset(edge: .bottom) {
-            HomesteadProjectActionFooter(
-                status: status,
-                isBuilding: build.isBuilding,
-                onBuild: buildOrUpgrade
-            )
-            .trinketMaterial(.homesteadFooter)
-            .overlay {
-                TrinketDesign.cardShape
-                    .stroke(HomesteadPalette.accent.opacity(0.42), lineWidth: 1)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { _, size in
+            viewportSize = size
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .trinketSensoryFeedback(
@@ -142,79 +155,41 @@ struct HomesteadDetailHero: View {
     }
 }
 
-struct HomesteadPrerequisiteSection: View {
-    let definition: HomesteadNodeDefinition
-    let homestead: PlayerHomesteadState
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            Text("Prerequisites")
-                .trinketTypography(.sectionDisplay)
-
-            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                ForEach(definition.prerequisites, id: \.nodeID) { requirement in
-                    HStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
-                        Image(systemName: isMet(requirement) ? "checkmark.circle.fill" : "lock.fill")
-                            .foregroundStyle(isMet(requirement) ? TrinketDesign.Colors.success : .secondary)
-                            .frame(width: 22)
-
-                        Text(title(for: requirement.nodeID))
-                            .trinketTypography(.secondaryBody)
-
-                        Spacer(minLength: 0)
-
-                        Text("Tier \(homestead.tier(for: requirement.nodeID))/\(requirement.minimumTier)")
-                            .font(.subheadline.monospacedDigit().weight(.semibold))
-                            .foregroundStyle(isMet(requirement) ? TrinketDesign.Colors.success : .secondary)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(
-                        "\(title(for: requirement.nodeID)), tier \(homestead.tier(for: requirement.nodeID)) of \(requirement.minimumTier)"
-                    )
-                }
-            }
-            .trinketSurface(.secondary)
-        }
-        .accessibilityIdentifier(AccessibilityID.Homestead.prerequisiteCallout)
-    }
-
-    private func isMet(_ requirement: HomesteadNodeRequirement) -> Bool {
-        homestead.tier(for: requirement.nodeID) >= requirement.minimumTier
-    }
-
-    private func title(for id: HomesteadNodeID) -> String {
-        GameContent.homesteadNode(matching: id)?.title ?? id.rawValue
-    }
-}
-
 struct HomesteadTierPath: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let highlightedTier: Int?
+    var minHeight: CGFloat = 0
+    var isBuilding = false
+    var onBuild: (() -> Void)?
+
+    private let nodeSize: CGFloat = 56
+    private let minConnectorLength: CGFloat = 24
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-            Text("Progression")
-                .trinketTypography(.sectionDisplay)
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(definition.tiers.enumerated()), id: \.element.tier) { index, tier in
+                HomesteadTierNode(
+                    definition: definition,
+                    tier: tier,
+                    state: status.tierPathState(for: tier),
+                    status: status,
+                    isHighlighted: highlightedTier == tier.tier,
+                    nodeSize: nodeSize,
+                    isBuilding: isBuilding,
+                    onBuild: onBuild
+                )
 
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(definition.tiers.enumerated()), id: \.element.tier) { index, tier in
-                    HomesteadTierNode(
-                        definition: definition,
-                        tier: tier,
-                        state: status.tierPathState(for: tier),
-                        isHighlighted: highlightedTier == tier.tier
+                if index < definition.tiers.count - 1 {
+                    HomesteadTierConnector(
+                        color: connectorColor(after: tier),
+                        nodeColumnWidth: nodeSize,
+                        minLength: minConnectorLength
                     )
-
-                    if index < definition.tiers.count - 1 {
-                        Rectangle()
-                            .fill(connectorColor(after: tier))
-                            .frame(width: 2, height: 14)
-                            .padding(.leading, 28)
-                    }
                 }
             }
         }
+        .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .top)
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .accessibilityIdentifier(AccessibilityID.Homestead.tierPath)
         .animation(TrinketMotion.Homestead.tierCompletion, value: status.currentTier)
@@ -222,9 +197,31 @@ struct HomesteadTierPath: View {
 
     private func connectorColor(after tier: HomesteadNodeTier) -> Color {
         switch status.tierPathState(for: tier) {
-        case .completed: return definition.tint.opacity(0.7)
-        case .next, .future, .locked: return Color.secondary.opacity(0.28)
+        case .completed: definition.tint.opacity(0.7)
+        case .next, .future, .locked: Color.secondary.opacity(0.28)
         }
+    }
+}
+
+/// Flexible vertical gap between tier rows; expands to fill leftover viewport height.
+private struct HomesteadTierConnector: View {
+    let color: Color
+    let nodeColumnWidth: CGFloat
+    let minLength: CGFloat
+
+    var body: some View {
+        Spacer(minLength: minLength)
+            .overlay {
+                HStack(spacing: 0) {
+                    Rectangle()
+                        .fill(color)
+                        .frame(width: 2)
+                        .frame(maxHeight: .infinity)
+                        .frame(width: nodeColumnWidth)
+                    Spacer(minLength: 0)
+                }
+            }
+            .accessibilityHidden(true)
     }
 }
 
@@ -232,179 +229,265 @@ struct HomesteadTierNode: View {
     let definition: HomesteadNodeDefinition
     let tier: HomesteadNodeTier
     let state: HomesteadTierPathState
+    let status: HomesteadProjectStatus
     let isHighlighted: Bool
+    var nodeSize: CGFloat = 56
+    var isBuilding = false
+    var onBuild: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var glowPulse = false
+
+    private var isActionable: Bool {
+        if case .next(affordable: true) = state {
+            return status.canBuildOrUpgrade
+        }
+        return false
+    }
+
+    private var showsCost: Bool {
+        if case .next = state {
+            return true
+        }
+        return false
+    }
+
+    private var actionTitle: String {
+        tier.tier == 1 ? "Build" : "Upgrade"
+    }
+
+    private var actionSymbolName: String {
+        tier.tier == 1 ? "hammer.fill" : "arrow.up.circle.fill"
+    }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 14) {
-            ZStack(alignment: .bottomTrailing) {
-                ZStack {
+        Group {
+            if isActionable, let onBuild {
+                Button(action: onBuild) {
+                    rowContent
+                }
+                .buttonStyle(.plain)
+                .disabled(isBuilding)
+                .accessibilityLabel(accessibilityLabelText)
+                .accessibilityHint("Double-tap to \(actionTitle.lowercased()) this project.")
+            } else {
+                rowContent
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(accessibilityLabelText)
+            }
+        }
+        .accessibilityIdentifier(tierNodeAccessibilityID)
+        .onAppear {
+            guard isActionable, !reduceMotion else { return }
+            glowPulse = true
+        }
+        .onChange(of: isActionable) { _, actionable in
+            glowPulse = actionable && !reduceMotion
+        }
+    }
+
+    private var tierNodeAccessibilityID: String {
+        AccessibilityID.Homestead.tierNode(title: definition.title, tier: tier.tier)
+    }
+
+    private var rowContent: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                // Fixed-geometry glow ring: fill masks inward bloom. Pulse opacity only —
+                // never radius/scale, which reads as the node bobbing.
+                if isActionable {
                     Circle()
-                        .fill(nodeFill)
-                    Circle()
-                        .strokeBorder(nodeStroke, lineWidth: nodeStrokeWidth)
-                    Image(systemName: definition.symbolName)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(nodeForeground)
-                        .symbolRenderingMode(.hierarchical)
+                        .strokeBorder(definition.tint, lineWidth: 2.5)
+                        .shadow(color: definition.tint.opacity(0.85), radius: 3)
+                        .shadow(color: definition.tint.opacity(0.4), radius: 6)
+                        .opacity(actionableGlowOpacity)
+                        .animation(
+                            reduceMotion
+                                ? nil
+                                : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
+                            value: glowPulse
+                        )
+                        .allowsHitTesting(false)
                 }
 
-                if showsLockBadge {
-                    Image(systemName: "lock.fill")
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 18, height: 18)
-                        .background(.thickMaterial, in: Circle())
-                }
+                Circle()
+                    .fill(nodeFill)
+
+                Circle()
+                    .strokeBorder(nodeStroke, lineWidth: nodeStrokeWidth)
+                    .shadow(
+                        color: completionGlowColor,
+                        radius: isHighlighted ? 8 : 0
+                    )
+
+                nodeGlyph
             }
-            .frame(width: 56, height: 56)
+            .frame(width: nodeSize, height: nodeSize)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 Text(tier.bonus.title)
-                    .trinketTypography(.rowDisplay)
+                    .trinketTypography(.sectionDisplay)
                     .foregroundStyle(nodeForeground)
 
                 Text(tier.bonus.description)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(nodeSecondaryForeground)
                     .fixedSize(horizontal: false, vertical: true)
+
+                if showsCost {
+                    HomesteadTierCostLabel(cost: tier.cost, status: status)
+                }
             }
 
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 6)
-        .shadow(
-            color: isHighlighted && !reduceMotion ? definition.tint.opacity(0.32) : .clear,
-            radius: isHighlighted ? 12 : 0
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            "Tier \(tier.tier), \(tier.bonus.title), \(tier.bonus.description), \(accessibilityState)"
-        )
-        .accessibilityIdentifier(AccessibilityID.Homestead.tierNode(title: definition.title, tier: tier.tier))
+        .contentShape(Rectangle())
     }
 
-    private var showsLockBadge: Bool {
-        switch state {
-        case .completed, .next: return false
-        case .future, .locked: return true
+    @ViewBuilder
+    private var nodeGlyph: some View {
+        switch glyphKind {
+        case .action:
+            Image(systemName: actionSymbolName)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(definition.tint)
+                .symbolRenderingMode(.hierarchical)
+        case .completed:
+            Image(systemName: "checkmark")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(definition.tint)
+        case .locked:
+            Image(systemName: "lock.fill")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(.secondary)
+        case .theme:
+            Image(systemName: definition.symbolName)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(nodeForeground)
+                .symbolRenderingMode(.hierarchical)
         }
+    }
+
+    private enum GlyphKind {
+        case action
+        case completed
+        case locked
+        case theme
+    }
+
+    private var glyphKind: GlyphKind {
+        if isActionable {
+            return .action
+        }
+        switch state {
+        case .completed: return .completed
+        case .future, .locked: return .locked
+        case .next: return .theme
+        }
+    }
+
+    private var completionGlowColor: Color {
+        isHighlighted && !reduceMotion ? definition.tint.opacity(0.32) : .clear
+    }
+
+    private var actionableGlowOpacity: Double {
+        if reduceMotion {
+            return 0.85
+        }
+        return glowPulse ? 1 : 0.4
     }
 
     private var nodeForeground: Color {
         switch state {
-        case .completed: return definition.tint
-        case let .next(affordable): return affordable ? definition.tint : .primary
-        case .future, .locked: return .secondary
+        case .completed: definition.tint
+        case let .next(affordable): affordable ? definition.tint : .primary
+        case .future, .locked: .secondary
         }
     }
 
     private var nodeSecondaryForeground: Color {
         switch state {
-        case .completed, .next: return .secondary
-        case .future, .locked: return Color.secondary.opacity(0.65)
+        case .completed, .next: .secondary
+        case .future, .locked: Color.secondary.opacity(0.65)
         }
     }
 
     private var nodeFill: Color {
         switch state {
-        case .completed: return definition.tint.opacity(0.18)
-        case let .next(affordable): return definition.tint.opacity(affordable ? 0.2 : 0.08)
-        case .future, .locked: return Color.secondary.opacity(0.1)
+        case .completed: definition.tint.opacity(0.18)
+        case let .next(affordable): definition.tint.opacity(affordable ? 0.2 : 0.08)
+        case .future, .locked: Color.secondary.opacity(0.1)
         }
     }
 
     private var nodeStroke: Color {
         switch state {
-        case .completed: return definition.tint.opacity(0.48)
-        case let .next(affordable): return affordable ? definition.tint : definition.tint.opacity(0.65)
-        case .future, .locked: return Color.secondary.opacity(0.2)
+        case .completed: definition.tint.opacity(0.48)
+        case let .next(affordable):
+            affordable ? definition.tint : definition.tint.opacity(0.55)
+        case .future, .locked: Color.secondary.opacity(0.2)
         }
     }
 
     private var nodeStrokeWidth: CGFloat {
-        if case .next = state { return 1.5 }
+        if isActionable {
+            return 2.5
+        }
+        if case .next = state {
+            return 1.5
+        }
         return 1
+    }
+
+    private var accessibilityLabelText: String {
+        var parts = [
+            "Tier \(tier.tier)",
+            tier.bonus.title,
+            tier.bonus.description,
+            accessibilityState
+        ]
+        if showsCost {
+            let costs = tier.cost.map { "\($0.quantity) \($0.resource.displayName)" }
+                .joined(separator: ", ")
+            parts.append("Costs \(costs)")
+        }
+        if isActionable {
+            parts.append("Double-tap to \(actionTitle.lowercased())")
+        }
+        return parts.joined(separator: ", ")
     }
 
     private var accessibilityState: String {
         switch state {
-        case .completed: return "Completed"
-        case let .next(affordable): return affordable ? "Next tier, affordable" : "Next tier, resources needed"
-        case .future: return "Locked until earlier tiers are complete"
-        case .locked: return "Locked by prerequisites"
+        case .completed: "Completed"
+        case let .next(affordable):
+            affordable ? "Ready to \(actionTitle.lowercased())" : "Next tier, resources needed"
+        case .future: "Locked until earlier tiers are complete"
+        case .locked: "Locked by prerequisites"
         }
     }
 }
 
-struct HomesteadBuildingArtwork: View {
-    enum Variant: Equatable {
-        case full
-        case thumbnail
-    }
-
-    let definition: HomesteadNodeDefinition
-    var variant: Variant = .full
-
-    @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 36
+struct HomesteadTierCostLabel: View {
+    let cost: [ResourceAmount]
+    let status: HomesteadProjectStatus
 
     var body: some View {
-        ZStack {
-            if let art = ArtCatalog.backgroundArtByID[definition.id.rawValue] {
-                HomesteadFocalArtwork(
-                    art: art,
-                    imageName: variant == .full ? art.imageName : "\(art.imageName)_thumb"
-                )
-                .accessibilityLabel(art.accessibilityLabel)
-            } else {
-                RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [definition.tint.opacity(0.18), Color(.secondarySystemBackground)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+        HStack(spacing: 8) {
+            ForEach(cost) { amount in
+                HStack(spacing: 3) {
+                    HomesteadResourceArtwork(resource: amount.resource)
+                        .frame(width: 20, height: 20)
+                    Text("\(amount.quantity)")
+                        .font(.caption.monospacedDigit().weight(.semibold))
+                        .foregroundStyle(
+                            status.hasEnough(amount)
+                                ? Color.primary
+                                : TrinketDesign.Colors.destructive
                         )
-                    )
-                Image(systemName: definition.symbolName)
-                    .font(.system(size: placeholderIconSize, weight: .semibold))
-                    .foregroundStyle(definition.tint)
-                    .accessibilityHidden(true)
+                }
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
-        .accessibilityLabel("\(definition.title) artwork")
-    }
-}
-
-struct HomesteadFocalArtwork: View {
-    let art: BackgroundArtReference
-    var imageName: String?
-
-    private let sourceAspectRatio: CGFloat = 1200.0 / 896.0
-
-    init(art: BackgroundArtReference, imageName: String? = nil) {
-        self.art = art
-        self.imageName = imageName
-    }
-
-    var body: some View {
-        GeometryReader { geometry in
-            let container = geometry.size
-            let scale = max(container.width / sourceAspectRatio, container.height)
-            let renderedWidth = sourceAspectRatio * scale
-            let renderedHeight = scale
-            let overflowX = max(renderedWidth - container.width, 0)
-            let overflowY = max(renderedHeight - container.height, 0)
-            let offsetX = (0.5 - art.focalPoint.x) * overflowX
-            let offsetY = (0.5 - art.focalPoint.y) * overflowY
-
-            Image(imageName ?? art.imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: container.width, height: container.height)
-                .offset(x: offsetX, y: offsetY)
-        }
-        .clipped()
+        .accessibilityHidden(true)
     }
 }

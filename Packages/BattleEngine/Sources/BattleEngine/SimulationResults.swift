@@ -22,7 +22,7 @@ public struct BattleMatchup: Equatable, Hashable {
     }
 }
 
-public enum BattleSimulationOutcome: Equatable {
+public enum BattleSimulationOutcome: Equatable, Sendable {
     case victory
     case defeat
 

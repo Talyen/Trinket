@@ -12,24 +12,28 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
     func testHomesteadOverviewShowsWalletCategoriesAndRepresentativeRows() {
         homestead.assertLoaded()
         assertExists(AccessibilityID.Homestead.resourceWallet)
-        assertExists(AccessibilityID.Homestead.category("Farming"))
-        assertExists(AccessibilityID.Homestead.node(title: "Wheat Field"))
+        assertExistsAfterScroll(AccessibilityID.Homestead.category("Farming"))
+        assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Wheat Field"))
 
         assertExistsAfterScroll(AccessibilityID.Homestead.category("Crafting"))
         assertExistsAfterScroll(AccessibilityID.Homestead.node(title: "Alchemy Lab"))
         assertExistsAfterScroll(AccessibilityID.Homestead.category("Research"))
     }
 
-    func testLockedProjectPushesToPrerequisiteDetail() {
+    func testLockedProjectsRemainVisibleButDoNotOpenDetail() {
         homestead.assertLoaded()
-        let pasture = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Pasture")]
+        let pastureID = AccessibilityID.Homestead.node(title: "Pasture")
+        let pasture = app.descendants(matching: .any)[pastureID]
         scrollUntilVisible(pasture, swipingUp: true)
-        tapWhenReady(pasture)
-
-        homestead.assertNodeDetail(named: "Pasture")
-        assertExists(AccessibilityID.Homestead.prerequisiteCallout)
-        assertExists(AccessibilityID.Homestead.tierPath)
-        assertExists("Build Pasture Button")
+        assertExists(pastureID)
+        XCTAssertFalse(
+            app.buttons[pastureID].exists,
+            "Locked projects should not be tappable navigation rows"
+        )
+        XCTAssertFalse(
+            app.descendants(matching: .any)[AccessibilityID.Homestead.nodeDetail(title: "Pasture")].exists,
+            "Locked projects should not open a detail destination"
+        )
     }
 
     func testWheatFieldDetailRetainsTabBarAndNativeBackNavigation() {
@@ -38,14 +42,10 @@ final class SmokeHomesteadTests: SeededSmokeUITestCase {
 
         homestead.assertNodeDetail(named: "Wheat Field")
         assertExists(AccessibilityID.Homestead.tierPath)
-        let action = app.buttons["Upgrade Wheat Field Button"]
-        XCTAssertTrue(action.waitForExistence(timeout: Self.defaultTimeout), "Upgrade action should exist")
         let tabButton = app.tabBars.buttons["Homestead"]
         XCTAssertTrue(tabButton.exists, "Tab bar should remain present on detail")
         XCTAssertTrue(tabButton.isHittable, "Tab bar should remain hittable above detail content")
         XCTAssertTrue(app.navigationBars.buttons.element(boundBy: 0).exists, "Native back affordance should be present")
-
-        XCTAssertLessThanOrEqual(action.frame.maxY, app.tabBars.element.frame.minY + 1, "Footer action must not overlap the tab bar")
 
         goBack()
         homestead.assertLoaded()

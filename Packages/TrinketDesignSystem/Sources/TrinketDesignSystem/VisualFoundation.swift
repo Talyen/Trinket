@@ -15,13 +15,13 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .standard: return "Standard"
-        case .playJourney: return "Play"
-        case .collection: return "Collection"
-        case .denseList: return "Dense List"
-        case .homestead: return "Homestead"
-        case .battle: return "Battle"
-        case .modal: return "Modal"
+        case .standard: "Standard"
+        case .playJourney: "Play"
+        case .collection: "Collection"
+        case .denseList: "Dense List"
+        case .homestead: "Homestead"
+        case .battle: "Battle"
+        case .modal: "Modal"
         }
     }
 }
@@ -69,27 +69,30 @@ public enum TypographyRole: Sendable {
 
     var font: Font {
         switch self {
-        case .screenDisplay: return .system(.largeTitle, design: .serif).weight(.semibold)
-        case .sectionDisplay: return .system(.title3, design: .serif).weight(.semibold)
-        case .screenTitle: return .largeTitle.weight(.bold)
-        case .sectionTitle: return .title3.weight(.semibold)
-        case .cardTitle: return .headline.weight(.semibold)
-        case .body: return .body
-        case .secondaryBody: return .subheadline
-        case .caption: return .caption
-        case .badge: return .caption.weight(.semibold)
-        case .button: return .body.weight(.semibold)
-        case .statValue: return .body.monospacedDigit().weight(.semibold)
-        case .tooltip: return .caption
-        case .navigation: return .headline.weight(.semibold)
-        case .rowDisplay: return .system(.headline, design: .serif).weight(.semibold)
+        case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
+        case .sectionDisplay: .system(.title3, design: .serif).weight(.semibold)
+        case .screenTitle: .largeTitle.weight(.bold)
+        case .sectionTitle: .title3.weight(.semibold)
+        case .cardTitle: .headline.weight(.semibold)
+        case .body: .body
+        case .secondaryBody: .subheadline
+        case .caption: .caption
+        case .badge: .caption.weight(.semibold)
+        case .button: .body.weight(.semibold)
+        case .statValue: .body.monospacedDigit().weight(.semibold)
+        case .tooltip: .caption
+        case .navigation: .headline.weight(.semibold)
+        case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
         }
     }
 }
 
 public enum HomesteadPalette {
-    public static let accent = Color(red: 0.91, green: 0.67, blue: 0.24)
+    /// Adaptive gold accent (deeper in Light, brighter in Dark) via asset catalog.
+    public static let accent = DesignAssetColors.named("HomesteadGold")
     public static let success = Color(red: 0.58, green: 0.74, blue: 0.28)
+    /// Adaptive wallet chrome: light grey in Light, dark grey in Dark.
+    public static let walletPanel = DesignAssetColors.named("HomesteadWalletPanel")
 
     public static func background(for colorScheme: ColorScheme) -> Color {
         colorScheme == .dark
@@ -111,8 +114,8 @@ public enum HomesteadPalette {
 
     public static func stroke(for colorScheme: ColorScheme) -> Color {
         colorScheme == .dark
-            ? Color(red: 0.56, green: 0.43, blue: 0.24).opacity(0.62)
-            : Color(red: 0.42, green: 0.30, blue: 0.13).opacity(0.42)
+            ? accent.opacity(0.55)
+            : accent.opacity(0.42)
     }
 
     public static func mutedText(for colorScheme: ColorScheme) -> Color {
@@ -122,7 +125,7 @@ public enum HomesteadPalette {
     }
 
     public static func pressedFill(for colorScheme: ColorScheme) -> Color {
-        accent.opacity(colorScheme == .dark ? 0.12 : 0.09)
+        accent.opacity(colorScheme == .dark ? 0.14 : 0.10)
     }
 }
 
@@ -332,7 +335,7 @@ enum MaterialRoleStyle {
     case solid(fill: Color)
     case ultraThinMaterial
 
-    init(role: MaterialRole, colorScheme: ColorScheme = .dark) {
+    init(role: MaterialRole, colorScheme _: ColorScheme = .dark) {
         let palette = ThemePalette.apple
         switch role {
         case .toolbar:
@@ -349,8 +352,8 @@ enum MaterialRoleStyle {
             self = .ultraThinMaterial
         case .homesteadFooter:
             self = .glass(
-                glass: .regular.tint(HomesteadPalette.accent.opacity(0.16)),
-                solidFill: HomesteadPalette.elevatedPanel(for: colorScheme)
+                glass: .regular,
+                solidFill: HomesteadPalette.walletPanel
             )
         }
     }

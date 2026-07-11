@@ -146,9 +146,7 @@ enum AccessibilityID {
 
     enum Homestead {
         static let resourceWallet = "Homestead Resource Wallet"
-        static let prerequisiteCallout = "Homestead Prerequisite Callout"
         static let tierPath = "Homestead Tier Path"
-        static let actionFooter = "Homestead Action Footer"
 
         static func category(_ title: String) -> String {
             "Homestead \(title) Category"
@@ -168,10 +166,6 @@ enum AccessibilityID {
 
         static func footerAction(title: String) -> String {
             "\(title) Homestead Action"
-        }
-
-        static func footerCost(resource: String) -> String {
-            "Homestead Footer \(resource) Cost"
         }
     }
 

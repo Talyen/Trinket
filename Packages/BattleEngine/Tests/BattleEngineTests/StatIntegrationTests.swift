@@ -158,7 +158,7 @@ struct StatIntegrationTests {
         for _ in 0 ..< 10 {
             _ = BattleTestFixtures.endTurn(on: &battle)
             if let values = battle.activeEffects(of: battle.hero)
-                .first(where: { $0.effect.isControlMeter })?
+                .first(where: \.effect.isControlMeter)?
                 .effect.controlMeterValues {
                 buildupValues = values
                 break

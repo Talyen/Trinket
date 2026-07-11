@@ -316,7 +316,7 @@ struct CombatPipelineTests {
 
         context.applyControlMeter(1, keyword: .stun, to: target, sourceActorID: "source")
 
-        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
+        let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
         let threshold = buildup?.effect.controlMeterValues?.threshold
         let expected = target.primaryStats.controlMeterThreshold(baseMaxHealth: 100)
         try #expect(threshold == expected)
@@ -332,7 +332,7 @@ struct CombatPipelineTests {
             sourceActorID: "source"
         )
 
-        let buildup = context.roster.enemy.activeEffects.first { $0.effect.isControlMeter }
+        let buildup = context.roster.enemy.activeEffects.first(where: \.effect.isControlMeter)
         let amount = buildup?.effect.controlMeterValues?.amount
         // Flat Armor 3 vs 20 → remaining 17 for stun buildup
         try #expect(amount == 17)

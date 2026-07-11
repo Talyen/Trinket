@@ -46,9 +46,9 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                         bodyContent()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .trinketScreenBackground(backgroundMode)
                 }
             }
+            .trinketScreenBackground(backgroundMode)
             .ignoresSafeArea(edges: .top)
             // Hide the system scroll-edge blur so full-bleed hero art stays sharp under clear toolbar.
             .scrollEdgeEffectHidden(true, for: .top)

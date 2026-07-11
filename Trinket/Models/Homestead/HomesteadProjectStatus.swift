@@ -63,15 +63,25 @@ struct HomesteadProjectStatus {
     }
 
     var rowState: HomesteadProjectRowState {
-        if !isUnlocked { return .prerequisiteLocked }
-        if isComplete { return .completed }
-        if currentTier == 0 { return .unbuilt(affordable: isAffordable) }
+        if !isUnlocked {
+            return .prerequisiteLocked
+        }
+        if isComplete {
+            return .completed
+        }
+        if currentTier == 0 {
+            return .unbuilt(affordable: isAffordable)
+        }
         return isAffordable ? .upgradeReady : .built
     }
 
     func tierPathState(for tier: HomesteadNodeTier) -> HomesteadTierPathState {
-        if !isUnlocked { return .locked }
-        if tier.tier <= currentTier { return .completed }
+        if !isUnlocked {
+            return .locked
+        }
+        if tier.tier <= currentTier {
+            return .completed
+        }
         if tier.tier == currentTier + 1 {
             return .next(affordable: isAffordable)
         }
@@ -83,51 +93,50 @@ struct HomesteadProjectStatus {
 
         let title = nextTier.tier == 1 ? "Build" : "Upgrade"
         let enabled = canBuildOrUpgrade
-        let reason: String?
-        if !isUnlocked {
-            reason = unlockRequirementText
+        let reason: String? = if !isUnlocked {
+            unlockRequirementText
         } else if !isAffordable {
-            reason = missingResourceText ?? "Gather materials to continue."
+            missingResourceText ?? "Gather materials to continue."
         } else {
-            reason = nil
+            nil
         }
         return .action(title: title, enabled: enabled, reason: reason)
     }
 
     var actionTitle: String {
         switch footerState {
-        case let .action(title, _, _): return title
-        case .complete: return "Complete"
+        case let .action(title, _, _): title
+        case .complete: "Complete"
         }
     }
 
     var statusTitle: String {
         switch rowState {
-        case .prerequisiteLocked: return unlockRequirementText
-        case let .unbuilt(affordable): return affordable ? "Ready to Build" : "Unbuilt"
-        case .built: return "Built"
-        case .upgradeReady: return "Ready to Upgrade"
-        case .completed: return "Complete"
+        case .prerequisiteLocked: "Locked"
+        case let .unbuilt(affordable): affordable ? "Ready to Build" : "Unbuilt"
+        case .built: "Built"
+        case .upgradeReady: "Ready to Upgrade"
+        case .completed: "Complete"
         }
     }
 
     var statusSymbolName: String {
         switch rowState {
-        case .prerequisiteLocked: return "lock.fill"
-        case let .unbuilt(affordable): return affordable ? "hammer.fill" : "chevron.right"
-        case .built: return "chevron.right"
-        case .upgradeReady: return "arrow.up.circle.fill"
-        case .completed: return "checkmark.circle.fill"
+        case .prerequisiteLocked: "lock.fill"
+        case let .unbuilt(affordable): affordable ? "hammer.fill" : "chevron.right"
+        case .built: "chevron.right"
+        case .upgradeReady: "arrow.up.circle.fill"
+        case .completed: "checkmark.circle.fill"
         }
     }
 
     var statusColor: Color {
         switch rowState {
-        case .prerequisiteLocked: return .secondary
-        case let .unbuilt(affordable): return affordable ? definition.tint : .secondary
-        case .built: return .secondary
-        case .upgradeReady: return definition.tint
-        case .completed: return TrinketDesign.Colors.success
+        case .prerequisiteLocked: .secondary
+        case let .unbuilt(affordable): affordable ? definition.tint : .secondary
+        case .built: .secondary
+        case .upgradeReady: definition.tint
+        case .completed: TrinketDesign.Colors.success
         }
     }
 

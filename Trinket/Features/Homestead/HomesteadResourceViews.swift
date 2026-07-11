@@ -19,7 +19,7 @@ struct HomesteadResourceWallet: View {
     }
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: TrinketDesign.Metrics.smallSpacing) {
+        LazyVGrid(columns: columns, spacing: 6) {
             ForEach(HomesteadResource.allCases) { resource in
                 HomesteadResourcePill(
                     resource: resource,
@@ -27,7 +27,9 @@ struct HomesteadResourceWallet: View {
                 )
             }
         }
-        .trinketSurface(.homesteadPanel)
+        .padding(6)
+        .trinketMaterial(.homesteadFooter, cornerRadius: TrinketDesign.Corners.compact)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
         .accessibilityLabel("Homestead resources")
     }
@@ -40,23 +42,23 @@ struct HomesteadResourcePill: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: 8) {
             HomesteadResourceArtwork(resource: resource)
-                .frame(width: 25, height: 25)
+                .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(resource.displayName)
-                    .font(.caption2.weight(.medium))
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.76)
 
                 Text("\(balance)")
-                    .font(.caption.monospacedDigit().weight(.semibold))
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
                     .contentTransition(.numericText())
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
         .animation(
             reduceMotion ? TrinketMotion.Homestead.reduceMotion : TrinketMotion.Homestead.tierCompletion,
             value: balance

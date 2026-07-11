@@ -13,9 +13,9 @@ enum HeroHeaderLayout {
         func height(forWidth width: CGFloat) -> CGFloat {
             switch self {
             case .portrait:
-                return max(width * HeroHeaderLayout.headerAspectRatio, HeroHeaderLayout.minimumHeaderHeight)
+                max(width * HeroHeaderLayout.headerAspectRatio, HeroHeaderLayout.minimumHeaderHeight)
             case .cinematicLandscape:
-                return min(max(width * 0.78, 288), 344)
+                min(max(width * 0.78, 288), 344)
             }
         }
     }
