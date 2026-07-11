@@ -49,8 +49,12 @@ enum BalanceContrastSupport {
             let key = "\(result.tier.rawValue)|\(focus.entityID)|\(focus.ownerID)"
             var bucket = buckets[key] ?? (0, 0, 0, result.tier, result.focusIndex)
             bucket.pairs += 1
-            if result.entityWon { bucket.entity += 1 }
-            if result.baselineWon { bucket.baseline += 1 }
+            if result.entityWon {
+                bucket.entity += 1
+            }
+            if result.baselineWon {
+                bucket.baseline += 1
+            }
             buckets[key] = bucket
         }
 
@@ -74,7 +78,9 @@ enum BalanceContrastSupport {
             )
         }
         .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged { return lhs.flagged && !rhs.flagged }
+            if lhs.flagged != rhs.flagged {
+                return lhs.flagged && !rhs.flagged
+            }
             return abs(lhs.lift) > abs(rhs.lift)
         }
     }

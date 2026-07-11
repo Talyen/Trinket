@@ -1,7 +1,7 @@
 import Testing
 @testable import TrinketContent
 
-@Suite struct GameContentCatalogInvariantTests {
+struct GameContentCatalogInvariantTests {
     @Test func itemBaseIDsAreUnique() throws {
         let ids = GameContent.itemBaseTypes.map(\.id)
         try #expect(ids.count == Set(ids).count)

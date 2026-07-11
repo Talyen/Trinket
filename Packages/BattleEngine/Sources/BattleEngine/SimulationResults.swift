@@ -15,9 +15,9 @@ public struct BattleMatchup: Equatable, Hashable {
 
     public func combatant(for participant: BattleParticipant) -> Combatant {
         switch participant {
-        case .hero: return hero
-        case .pet: return pet
-        case .enemy: return enemy
+        case .hero: hero
+        case .pet: pet
+        case .enemy: enemy
         }
     }
 }
@@ -27,9 +27,15 @@ public enum BattleSimulationOutcome: Equatable {
     case defeat
 
     public static func resolve(isPartyDefeated: Bool, isEnemyDefeated: Bool) -> BattleSimulationOutcome? {
-        if isEnemyDefeated, isPartyDefeated { return .victory }
-        if isPartyDefeated { return .defeat }
-        if isEnemyDefeated { return .victory }
+        if isEnemyDefeated, isPartyDefeated {
+            return .victory
+        }
+        if isPartyDefeated {
+            return .defeat
+        }
+        if isEnemyDefeated {
+            return .victory
+        }
         return nil
     }
 }

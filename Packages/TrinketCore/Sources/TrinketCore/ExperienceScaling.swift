@@ -6,17 +6,21 @@ enum ProgressionBracket: Equatable {
     case late
 
     static func forLevel(_ level: Int) -> ProgressionBracket {
-        if level < 20 { return .early }
-        if level < 40 { return .mid }
+        if level < 20 {
+            return .early
+        }
+        if level < 40 {
+            return .mid
+        }
         return .late
     }
 
     /// Target equal-level battles to advance one level.
     var targetBattlesPerLevel: Double {
         switch self {
-        case .early: return 1.5
-        case .mid: return 2.5
-        case .late: return 3.5
+        case .early: 1.5
+        case .mid: 2.5
+        case .late: 3.5
         }
     }
 }

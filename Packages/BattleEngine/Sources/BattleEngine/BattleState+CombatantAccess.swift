@@ -63,9 +63,15 @@ public extension BattleState {
     }
 
     func modifiers(for combatantID: String) -> CombatModifierProfile {
-        if combatantID == roster.hero.id { return heroModifiers }
-        if combatantID == roster.pet.id { return petModifiers }
-        if combatantID == roster.enemy.id { return enemyModifiers }
+        if combatantID == roster.hero.id {
+            return heroModifiers
+        }
+        if combatantID == roster.pet.id {
+            return petModifiers
+        }
+        if combatantID == roster.enemy.id {
+            return enemyModifiers
+        }
         return .zero
     }
 }

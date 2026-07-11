@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push gate: format lint + generated-output assert.
+# Pre-push gate: format lint + SwiftLint + UI style + generated-output assert.
 # Install with: git config core.hooksPath .githooks
 set -euo pipefail
 
@@ -16,6 +16,15 @@ echo "=== Pre-push: ensure pinned format/lint tools ==="
 
 echo "=== Pre-push: SwiftFormat lint ==="
 ./Scripts/format.sh --lint
+
+echo "=== Pre-push: SwiftLint ==="
+./Scripts/lint.sh
+
+echo "=== Pre-push: UI style guardrail ==="
+./Scripts/check-ui-style.sh
+
+echo "=== Pre-push: platform API bans ==="
+./Scripts/check-platform-api-bans.sh
 
 echo "=== Pre-push: regenerate content catalogs ==="
 # Prefer full generate when XcodeGen is available so pbxproj stays in sync.

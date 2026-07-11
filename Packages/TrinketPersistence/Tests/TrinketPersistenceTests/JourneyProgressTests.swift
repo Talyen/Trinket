@@ -1,11 +1,11 @@
 import Foundation
 import Testing
-import TrinketCore
 import TrinketContent
-@testable import TrinketPersistence
+import TrinketCore
 import TrinketTestSupport
+@testable import TrinketPersistence
 
-@Suite @MainActor
+@MainActor
 final class JourneyProgressTests {
     private var chapter: Chapter {
         GameContent.chapters[0]

@@ -82,10 +82,10 @@ public enum SimulationMatchupBuilder {
     }
 
     /// Random legal loadout from a combatant's choice pools, respecting unlock level.
-    public static func sampleLoadout<RNG: RandomNumberGenerator>(
+    public static func sampleLoadout(
         for combatant: Combatant,
         level: Int,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> AbilityLoadout {
         let progression = Self.progression(level: level)
         let choices = combatant.abilityChoices
@@ -96,13 +96,13 @@ public enum SimulationMatchupBuilder {
             .unlocked(for: progression)
     }
 
-    public static func generateAlignedGear<RNG: RandomNumberGenerator>(
+    public static func generateAlignedGear(
         for combatant: Combatant,
         tier: SimulationPowerTier,
         keywordBias: Set<Keyword>,
         idPrefix: String,
         gearGenerator: ThemedGearGenerator = ThemedGearGenerator(),
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> GearOverride? {
         guard tier.includesGear,
               let rarity = tier.rarity,
@@ -152,11 +152,11 @@ public enum SimulationMatchupBuilder {
         var affixIDs: [String]
     }
 
-    private static func preparePartyMember<RNG: RandomNumberGenerator>(
+    private static func preparePartyMember(
         _ combatant: Combatant,
         loadout: AbilityLoadout,
         request: PartyPrepareRequest,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> PreparedPartyMember {
         let unlocked = loadout.unlocked(for: request.progression)
         let withLoadout = combatant.withAbilityLoadoutPreservingEmptyTiers(unlocked)

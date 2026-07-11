@@ -1,10 +1,9 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Integration tests for healing and leech through card combat.
-@Suite
 struct RestorationIntegrationTests {
     @Test func instantHealRestoresHealth() throws {
         let heal = Ability(

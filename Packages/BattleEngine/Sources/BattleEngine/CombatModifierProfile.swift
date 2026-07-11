@@ -255,9 +255,13 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         thornsPercent += other.thornsPercent
         cannotBeHealed = cannotBeHealed || other.cannotBeHealed
         burnDecaySlowPercent += other.burnDecaySlowPercent
-        if shieldErosionKeyword == nil { shieldErosionKeyword = other.shieldErosionKeyword }
+        if shieldErosionKeyword == nil {
+            shieldErosionKeyword = other.shieldErosionKeyword
+        }
         shieldErosionTicks += other.shieldErosionTicks
-        if mitigationShredKeyword == nil { mitigationShredKeyword = other.mitigationShredKeyword }
+        if mitigationShredKeyword == nil {
+            mitigationShredKeyword = other.mitigationShredKeyword
+        }
         mitigationShredMultiplier = max(mitigationShredMultiplier, other.mitigationShredMultiplier)
         mitigationShredDurationTicks = max(mitigationShredDurationTicks, other.mitigationShredDurationTicks)
         freezeControlVulnerabilityPercent += other.freezeControlVulnerabilityPercent
@@ -273,7 +277,9 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         freezeDamageWhileFrozenBonus += other.freezeDamageWhileFrozenBonus
         damageWhileTargetFrozenBonus += other.damageWhileTargetFrozenBonus
         damageBelowHealthPercentThreshold = max(damageBelowHealthPercentThreshold, other.damageBelowHealthPercentThreshold)
-        if damageBelowHealthPercentKeyword == nil { damageBelowHealthPercentKeyword = other.damageBelowHealthPercentKeyword }
+        if damageBelowHealthPercentKeyword == nil {
+            damageBelowHealthPercentKeyword = other.damageBelowHealthPercentKeyword
+        }
         damageBelowHealthPercentBonus += other.damageBelowHealthPercentBonus
         damageAfterDodgeBonus += other.damageAfterDodgeBonus
         refreshBleedOnReapply = refreshBleedOnReapply || other.refreshBleedOnReapply

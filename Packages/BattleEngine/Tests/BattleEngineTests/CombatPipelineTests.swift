@@ -1,10 +1,9 @@
-import Testing
-import TrinketTestSupport
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
+import TrinketTestSupport
 
-@Suite
 struct CombatPipelineTests {
     // MARK: - Helpers
 

@@ -85,7 +85,7 @@ struct LabyrinthProgressTests {
         #expect(save.roster.gold >= goldBefore)
     }
 
-    @Test func nonCombatCompletionDoesNotGrantBattleExperience() throws {
+    @Test func nonCombatCompletionDoesNotGrantBattleExperience() {
         var save = PlayerSave.fresh
         save.labyrinth.ensureMap(seed: 23)
         let restID = "labyrinth-audit-rest"
@@ -169,10 +169,10 @@ struct LabyrinthProgressTests {
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == false)
     }
 
-    @Test func sanitizeCollapsesLegacyEventNodesToMystery() {
+    @Test func sanitizeCollapsesLegacyEventNodesToMystery() throws {
         var dirty = PlayerLabyrinthState.freshStart
         dirty.ensureMap(seed: 4)
-        let nodeID = dirty.reachableNodeIDs().first ?? dirty.nodes.keys.sorted().first!
+        let nodeID = try #require(dirty.reachableNodeIDs().first ?? dirty.nodes.keys.sorted().first)
         if let node = dirty.nodes[nodeID] {
             dirty.nodes[nodeID] = LabyrinthNode(
                 id: node.id,

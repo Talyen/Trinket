@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@Suite @MainActor
+@MainActor
 final class PlayerSaveSanitizerTests {
     @Test func sanitizeInventoryRemovesDuplicateItemIDs() throws {
         let baseType = try #require(GameContent.itemBaseTypes.first)

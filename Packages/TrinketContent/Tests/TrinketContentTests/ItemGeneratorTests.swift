@@ -89,7 +89,9 @@ struct ItemGeneratorTests {
         for definition in GameContent.itemAffixDefinitions {
             // Trigger-only affixes may share identical basic/astral power tables.
             let isTriggerOnly = definition.basic.modifiers.isEmpty && definition.astral.modifiers.isEmpty
-            if isTriggerOnly { continue }
+            if isTriggerOnly {
+                continue
+            }
             try #expect(definition.basic != definition.astral, "\(definition.id)")
         }
     }

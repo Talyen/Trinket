@@ -5,16 +5,16 @@ import SwiftUI
 enum CombatFeedbackChipRecipes {
     static func chip(for feedbackClass: CombatFeedbackClass) -> CombatFeedbackMotionRecipe {
         switch feedbackClass {
-        case .directDamage: return directDamageChip
-        case .critical: return criticalChip
-        case .dot: return dotChip
-        case .heal: return healChip
-        case .block: return blockChip
-        case .dodge: return dodgeChip
-        case .control: return controlChip
-        case .buff: return buffChip
-        case .resource: return resourceChip
-        case .deathsDoor: return deathsDoorChip
+        case .directDamage: directDamageChip
+        case .critical: criticalChip
+        case .dot: dotChip
+        case .heal: healChip
+        case .block: blockChip
+        case .dodge: dodgeChip
+        case .control: controlChip
+        case .buff: buffChip
+        case .resource: resourceChip
+        case .deathsDoor: deathsDoorChip
         }
     }
 

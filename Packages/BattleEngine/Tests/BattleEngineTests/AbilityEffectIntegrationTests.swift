@@ -1,10 +1,9 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Integration tests for catalog abilities that combine damage, effects, and resources.
-@Suite
 struct AbilityEffectIntegrationTests {
     @Test func blackjackGrantsGoldAlongsideStunDamage() throws {
         let hero = Combatant(
@@ -65,10 +64,22 @@ struct AbilityEffectIntegrationTests {
         // Three typed damage components (2 nature, 2 bleed, 2 poison) resolve
         // before any end-of-round DoT tick. Ability Leech heals 50% of damage dealt.
         try #expect(battle.health(of: battle.enemy) == 94)
-        try #expect(battle.hasEnemyEffect { if case .bleed = $0 { return true }; return false })
-        try #expect(battle.hasEnemyEffect { if case .poison = $0 { return true }; return false })
+        try #expect(battle.hasEnemyEffect {
+            if case .bleed = $0 {
+                return true
+            }; return false
+        })
+        try #expect(battle.hasEnemyEffect {
+            if case .poison = $0 {
+                return true
+            }; return false
+        })
         try #expect(battle.health(of: battle.hero) > 10)
-        try #expect(!battle.hasHeroEffect { if case .leech = $0 { return true }; return false })
+        try #expect(!battle.hasHeroEffect {
+            if case .leech = $0 {
+                return true
+            }; return false
+        })
     }
 
     @Test func prayerCleanseRandomRemovesOneDebuffAndHeals() throws {
@@ -158,7 +169,9 @@ struct AbilityEffectIntegrationTests {
         )
 
         try #expect(battle.activeEffects(of: battle.hero).contains { active in
-            if case .damageKeywordOverride(.holy, 3, 6) = active.effect { return true }
+            if case .damageKeywordOverride(.holy, 3, 6) = active.effect {
+                return true
+            }
             return false
         })
         try #expect(events.contains { $0.effectKind == .shieldApplied && $0.amount == 5 })

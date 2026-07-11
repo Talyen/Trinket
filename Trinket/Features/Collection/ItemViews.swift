@@ -17,13 +17,13 @@ enum InventoryFilter: String, CaseIterable, Identifiable {
     var slot: ItemSlot? {
         switch self {
         case .all:
-            return nil
+            nil
         case .weapon:
-            return .weapon
+            .weapon
         case .armor:
-            return .armor
+            .armor
         case .trinket:
-            return .trinket
+            .trinket
         }
     }
 }

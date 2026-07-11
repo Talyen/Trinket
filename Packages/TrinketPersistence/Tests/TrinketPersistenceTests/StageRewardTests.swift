@@ -1,10 +1,9 @@
-import Testing
-import TrinketCore
-import TrinketContent
-@testable import TrinketPersistence
 import Foundation
+import Testing
+import TrinketContent
+import TrinketCore
+@testable import TrinketPersistence
 
-@Suite
 struct StageRewardTests {
     private var chapter: Chapter {
         GameContent.chapters[0]

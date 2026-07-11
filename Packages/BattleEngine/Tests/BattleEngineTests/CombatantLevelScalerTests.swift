@@ -1,9 +1,8 @@
 import Testing
-@testable import BattleEngine
 import TrinketContent
 import TrinketCore
+@testable import BattleEngine
 
-@Suite
 struct CombatantLevelScalerTests {
     @Test func playerScalerAtLevelOneMatchesIdentity() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })

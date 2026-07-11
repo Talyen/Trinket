@@ -128,11 +128,11 @@ struct CollectionView: View {
         }
     }
 
-    private func collectionCategorySection<Destination: View, ShelfContent: View>(
+    private func collectionCategorySection(
         title: String,
         accessibilityIdentifier: String,
-        destination: Destination,
-        @ViewBuilder shelf: () -> ShelfContent
+        destination: some View,
+        @ViewBuilder shelf: () -> some View
     ) -> some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             NavigationLink {
@@ -163,7 +163,7 @@ struct CollectionView: View {
         .contentShape(Rectangle())
     }
 
-    private func horizontalShelf<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    private func horizontalShelf(@ViewBuilder content: () -> some View) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: TrinketDesign.Metrics.collectionShelfCardSpacing) {
                 content()

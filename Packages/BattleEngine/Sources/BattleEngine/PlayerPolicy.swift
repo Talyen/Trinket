@@ -48,9 +48,9 @@ public struct GreedyHeuristicPolicy: PlayerPolicy {
 
     private func tierScore(_ tier: AbilityTier) -> Int {
         switch tier {
-        case .ultimate: return 300
-        case .skill: return 200
-        case .basic: return 100
+        case .ultimate: 300
+        case .skill: 200
+        case .basic: 100
         }
     }
 }

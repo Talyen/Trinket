@@ -51,24 +51,24 @@ public enum BattleLogReducer {
     private static func effectLine(for event: ActionEvent) -> String? {
         switch event.effectKind {
         case .deathsDoorTriggered:
-            return "\(event.targetName) is on Death's Door."
+            "\(event.targetName) is on Death's Door."
         case .deathsDoorExpired:
-            return "\(event.targetName)'s Death's Door fades."
+            "\(event.targetName)'s Death's Door fades."
         default:
-            return nil
+            nil
         }
     }
 
     private static func milestoneLine(for event: ActionEvent, matchup: BattleMatchup) -> String? {
         switch event.milestone {
         case .battleStarted:
-            return "\(matchup.hero.name) and \(matchup.pet.name) face \(matchup.enemy.name)."
+            "\(matchup.hero.name) and \(matchup.pet.name) face \(matchup.enemy.name)."
         case .enemyDefeated:
-            return "\(matchup.enemy.name) is defeated."
+            "\(matchup.enemy.name) is defeated."
         case .partyDefeated:
-            return "Your party has been defeated by \(matchup.enemy.name)."
+            "Your party has been defeated by \(matchup.enemy.name)."
         case nil:
-            return nil
+            nil
         }
     }
 
@@ -90,15 +90,14 @@ public enum BattleLogReducer {
         let hadDamage = dealt > 0
         let hadEffects = !appliedEffectSummaries.isEmpty
 
-        if !hadDamage && !hadEffects {
+        if !hadDamage, !hadEffects {
             return "\(actorName) uses \(abilityName)."
         }
 
-        let prefix: String
-        if hadDamage {
-            prefix = "\(actorName) uses \(abilityName) for \(dealt) \(damageKeyword.rawValue) damage to \(targetName)"
+        let prefix = if hadDamage {
+            "\(actorName) uses \(abilityName) for \(dealt) \(damageKeyword.rawValue) damage to \(targetName)"
         } else {
-            prefix = "\(actorName) uses \(abilityName) on \(targetName)"
+            "\(actorName) uses \(abilityName) on \(targetName)"
         }
 
         if hadEffects {

@@ -1,8 +1,7 @@
 import SwiftUI
-import TrinketDesignSystem
 import Testing
+import TrinketDesignSystem
 
-@Suite
 struct ThemePaletteTests {
     @Test func themePaletteAppleUsesSemanticColors() throws {
         let palette = ThemePalette.apple

@@ -64,12 +64,20 @@ package extension DamagePipeline {
     ) {
         guard state.sourceActorID != nil else { return }
         let effects = state.activeEffects
-        guard effects.contains(where: { if case .marked = $0.effect { return true }; return false }) else {
+        guard effects.contains(where: {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }) else {
             return
         }
 
-        guard let index = effects.firstIndex(where: { if case .marked = $0.effect { return true }; return false }),
-              case let .marked(bonus, _) = effects[index].effect
+        guard let index = effects.firstIndex(where: {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }),
+            case let .marked(bonus, _) = effects[index].effect
         else { return }
 
         state.remaining += bonus
@@ -154,10 +162,14 @@ package extension DamagePipeline {
         in context: inout BattleEngineContext
     ) {
         var effects = context.roster.activeEffects(for: state.combatant)
-        guard let index = effects.firstIndex(where: { if case .shield = $0.effect { return true }; return false }),
-              case let .shield(keyword, buffer) = effects[index].effect,
-              buffer > 0,
-              state.remaining > 0
+        guard let index = effects.firstIndex(where: {
+            if case .shield = $0.effect {
+                return true
+            }; return false
+        }),
+            case let .shield(keyword, buffer) = effects[index].effect,
+            buffer > 0,
+            state.remaining > 0
         else {
             state.activeEffects = effects
             return
@@ -224,8 +236,12 @@ package extension DamagePipeline {
         guard state.markedBonusApplied else { return }
 
         var effects = context.roster.activeEffects(for: state.combatant)
-        guard let index = effects.firstIndex(where: { if case .marked = $0.effect { return true }; return false }),
-              case let .marked(bonus, _) = effects[index].effect
+        guard let index = effects.firstIndex(where: {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }),
+            case let .marked(bonus, _) = effects[index].effect
         else { return }
 
         effects.remove(at: index)

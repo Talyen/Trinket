@@ -120,7 +120,11 @@ struct OptionsView: View {
             "Reset Failed",
             isPresented: Binding(
                 get: { resetErrorMessage != nil },
-                set: { if !$0 { resetErrorMessage = nil } }
+                set: {
+                    if !$0 {
+                        resetErrorMessage = nil
+                    }
+                }
             )
         ) {
             Button("OK", role: .cancel) {}

@@ -60,7 +60,9 @@ public enum EffectTickEngine {
         if !tickOutcomes.isEmpty {
             merged = merged.compactMap { activeEffect in
                 guard let outcome = tickOutcomes[activeEffect.id] else { return activeEffect }
-                if outcome.removeAfter { return nil }
+                if outcome.removeAfter {
+                    return nil
+                }
                 if let updated = outcome.updatedStack {
                     var preserved = activeEffect
                     preserved.remainingTicks = updated.remainingTicks

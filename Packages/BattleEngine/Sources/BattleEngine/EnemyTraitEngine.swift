@@ -57,7 +57,9 @@ package enum EnemyTraitEngine {
         }
         guard didErode else { return }
         effects.removeAll { active in
-            if case let .shield(_, buffer) = active.effect { return buffer <= 0 }
+            if case let .shield(_, buffer) = active.effect {
+                return buffer <= 0
+            }
             return false
         }
         context.roster.setActiveEffects(effects, for: combatant)

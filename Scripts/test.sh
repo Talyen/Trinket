@@ -74,6 +74,7 @@ if [[ "$MODE" == "style" ]]; then
   ./Scripts/format.sh --lint
   ./Scripts/lint.sh
   ./Scripts/check-ui-style.sh
+  ./Scripts/check-platform-api-bans.sh
   exit 0
 fi
 

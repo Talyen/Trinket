@@ -4,20 +4,40 @@ import Foundation
 /// logs, ability description generation, and combat HUD summaries.
 public enum EffectPresentation {
     public static func applyPhrase(for effect: Effect) -> String {
-        if let phrase = dotPhrase(for: effect) { return phrase }
-        if let phrase = controlPhrase(for: effect) { return phrase }
-        if let phrase = defensivePhrase(for: effect) { return phrase }
-        if let phrase = restorationPhrase(for: effect) { return phrase }
-        if let phrase = cleansePhrase(for: effect) { return phrase }
-        if let phrase = purgePhrase(for: effect) { return phrase }
-        if let phrase = mitigationPhrase(for: effect) { return phrase }
-        if let phrase = utilityPhrase(for: effect) { return phrase }
+        if let phrase = dotPhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = controlPhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = defensivePhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = restorationPhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = cleansePhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = purgePhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = mitigationPhrase(for: effect) {
+            return phrase
+        }
+        if let phrase = utilityPhrase(for: effect) {
+            return phrase
+        }
         return effect.keyword.rawValue
     }
 
     public static func activePhrase(for active: ActiveEffect) -> String {
-        if let phrase = activeStatusPhrase(for: active.effect) { return phrase }
-        if let phrase = activeRecoveryPhrase(for: active.effect) { return phrase }
+        if let phrase = activeStatusPhrase(for: active.effect) {
+            return phrase
+        }
+        if let phrase = activeRecoveryPhrase(for: active.effect) {
+            return phrase
+        }
 
         switch active.effect {
         case .leech:
@@ -67,91 +87,91 @@ public enum EffectPresentation {
     private static func activeRecoveryPhrase(for effect: Effect) -> String? {
         switch effect {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom, .purge, .purgeRandom, .halveMitigation:
-            return ""
+            ""
         default:
-            return nil
+            nil
         }
     }
 
     private static func dotPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .burn(amount):
-            return statusPhrase(for: .burn, amount: amount)
+            statusPhrase(for: .burn, amount: amount)
         case let .poison(amount):
-            return statusPhrase(for: .poison, amount: amount)
+            statusPhrase(for: .poison, amount: amount)
         case let .bleed(amount):
-            return statusPhrase(for: .bleed, amount: amount)
+            statusPhrase(for: .bleed, amount: amount)
         default:
-            return nil
+            nil
         }
     }
 
     private static func controlPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .controlMeter(keyword, _, _):
-            return "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
+            "builds toward \(keyword.statusAlias ?? keyword.rawValue)"
         default:
-            return nil
+            nil
         }
     }
 
     private static func defensivePhrase(for effect: Effect) -> String? {
         switch effect {
         case let .shield(.block, buffer):
-            return "gain \(buffer) Block"
+            "gain \(buffer) Block"
         case let .mitigation(.armor, points):
-            return "gain \(points) Armor"
+            "gain \(points) Armor"
         case .haste:
-            return "gain Haste"
+            "gain Haste"
         case .thorns:
-            return "gain Thorns"
+            "gain Thorns"
         case .nextHolyStrike:
-            return "your next Holy attack deals double damage and applies Burning"
+            "your next Holy attack deals double damage and applies Burning"
         default:
-            return nil
+            nil
         }
     }
 
     private static func restorationPhrase(for effect: Effect) -> String? {
         switch effect {
         case let .instantHeal(.health, amount):
-            return "restore \(amount) Health"
+            "restore \(amount) Health"
         case .leech:
-            return "gain Leech"
+            "gain Leech"
         case let .resourceGain(.gold, amount):
-            return "steal \(amount) Gold"
+            "steal \(amount) Gold"
         case let .resourceGain(.mana, amount):
-            return "restore \(amount) Mana"
+            "restore \(amount) Mana"
         case let .drawCards(count):
-            return count == 1 ? "draw 1 card" : "draw \(count) cards"
+            count == 1 ? "draw 1 card" : "draw \(count) cards"
         default:
-            return nil
+            nil
         }
     }
 
     private static func cleansePhrase(for effect: Effect) -> String? {
         switch effect {
         case let .cleanse(keyword?):
-            return "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
+            "cleanse \(keyword.statusAlias ?? keyword.rawValue)"
         case .cleanse(nil):
-            return "cleanse all debuffs"
+            "cleanse all debuffs"
         case .cleanseRandom:
-            return "cleanse a random debuff"
+            "cleanse a random debuff"
         default:
-            return nil
+            nil
         }
     }
 
     private static func purgePhrase(for effect: Effect) -> String? {
         switch effect {
         case let .purge(keyword?):
-            return "purge \(keyword.rawValue)"
+            "purge \(keyword.rawValue)"
         case .purge(nil):
-            return "purge all buffs"
+            "purge all buffs"
         case .purgeRandom:
-            return "purge a random buff"
+            "purge a random buff"
         default:
-            return nil
+            nil
         }
     }
 
@@ -163,15 +183,15 @@ public enum EffectPresentation {
     private static func utilityPhrase(for effect: Effect) -> String? {
         switch effect {
         case .marked:
-            return "mark the enemy"
+            "mark the enemy"
         case let .criticalChanceBonus(percent, _):
-            return "gain +\(Int(percent * 100))% Critical chance"
+            "gain +\(Int(percent * 100))% Critical chance"
         case let .restoreManaOnHit(amount, _):
-            return "restore \(amount) Mana when you take damage"
+            "restore \(amount) Mana when you take damage"
         case let .damageKeywordOverride(keyword, bonus, durationTicks):
-            return "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(ticks: durationTicks))"
+            "your attacks become \(keyword.rawValue) damage and deal +\(bonus) \(durationPhrase(ticks: durationTicks))"
         default:
-            return nil
+            nil
         }
     }
 

@@ -1,7 +1,6 @@
-import TrinketCore
 import Testing
+import TrinketCore
 
-@Suite
 struct EffectModelTests {
     @Test func representativeEffectSummariesAndProperties() throws {
         try #expect(Effect.burn(4).summary == "applies Burning")

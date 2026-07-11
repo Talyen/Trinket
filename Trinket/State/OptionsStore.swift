@@ -17,9 +17,9 @@ enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .always: return "Always"
-        case .never: return "Never"
-        case .oncePerBattle, .afterFirstView: return "Show Once Per Battle"
+        case .always: "Always"
+        case .never: "Never"
+        case .oncePerBattle, .afterFirstView: "Show Once Per Battle"
         }
     }
 
@@ -123,9 +123,9 @@ final class OptionsStore {
     func canSkipUltimateCinematic() -> Bool {
         switch ultimateCinematicSkipPolicy.normalized {
         case .always, .oncePerBattle, .afterFirstView:
-            return true
+            true
         case .never:
-            return false
+            false
         }
     }
 
@@ -137,9 +137,9 @@ final class OptionsStore {
     ) -> Bool {
         switch ultimateCinematicSkipPolicy.normalized {
         case .oncePerBattle, .afterFirstView:
-            return actorsWhoPresentedThisBattle.contains(actorID)
+            actorsWhoPresentedThisBattle.contains(actorID)
         case .always, .never:
-            return false
+            false
         }
     }
 

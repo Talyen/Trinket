@@ -81,16 +81,16 @@ public struct DecayingDoTHandler: BattleEffectHandler {
 
     private func matches(_ effect: Effect) -> Bool {
         switch (keyword, effect) {
-        case (.burn, .burn), (.poison, .poison): return true
-        default: return false
+        case (.burn, .burn), (.poison, .poison): true
+        default: false
         }
     }
 
     private func effectCase(potency: Int) -> Effect {
         switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        default: return .burn(potency)
+        case .burn: .burn(potency)
+        case .poison: .poison(potency)
+        default: .burn(potency)
         }
     }
 }

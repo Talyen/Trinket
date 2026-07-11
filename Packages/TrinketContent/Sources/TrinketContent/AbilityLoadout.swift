@@ -23,22 +23,22 @@ public struct AbilityLoadout: Hashable, Sendable {
     public func ability(for tier: AbilityTier) -> Ability? {
         switch tier {
         case .basic:
-            return basic
+            basic
         case .skill:
-            return skill
+            skill
         case .ultimate:
-            return ultimate
+            ultimate
         }
     }
 
     public func selecting(_ ability: Ability) -> AbilityLoadout {
         switch ability.tier {
         case .basic:
-            return AbilityLoadout(basic: ability, skill: skill, ultimate: ultimate)
+            AbilityLoadout(basic: ability, skill: skill, ultimate: ultimate)
         case .skill:
-            return AbilityLoadout(basic: basic, skill: ability, ultimate: ultimate)
+            AbilityLoadout(basic: basic, skill: ability, ultimate: ultimate)
         case .ultimate:
-            return AbilityLoadout(basic: basic, skill: skill, ultimate: ability)
+            AbilityLoadout(basic: basic, skill: skill, ultimate: ability)
         }
     }
 
@@ -101,11 +101,11 @@ public struct AbilityChoices: Hashable, Sendable {
     public func abilities(for tier: AbilityTier) -> [Ability] {
         switch tier {
         case .basic:
-            return basics
+            basics
         case .skill:
-            return skills
+            skills
         case .ultimate:
-            return ultimates
+            ultimates
         }
     }
 

@@ -9,11 +9,11 @@ public enum GrowthArchetype: String, Codable, Hashable, Sendable, CaseIterable {
 
     public var displayName: String {
         switch self {
-        case .tank: return "Tank"
-        case .assassin: return "Assassin"
-        case .mage: return "Mage"
-        case .support: return "Support"
-        case .bruiser: return "Bruiser"
+        case .tank: "Tank"
+        case .assassin: "Assassin"
+        case .mage: "Mage"
+        case .support: "Support"
+        case .bruiser: "Bruiser"
         }
     }
 }
@@ -71,11 +71,11 @@ public enum StatGrowth {
 
         func value(in stats: PrimaryStats) -> Int {
             switch self {
-            case .strength: return stats.strength
-            case .agility: return stats.agility
-            case .toughness: return stats.toughness
-            case .intellect: return stats.intellect
-            case .wisdom: return stats.wisdom
+            case .strength: stats.strength
+            case .agility: stats.agility
+            case .toughness: stats.toughness
+            case .intellect: stats.intellect
+            case .wisdom: stats.wisdom
             }
         }
 

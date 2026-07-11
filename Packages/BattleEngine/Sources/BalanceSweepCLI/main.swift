@@ -169,15 +169,15 @@ private enum CLIError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case let .unknownArgument(arg):
-            return "unknown argument \(arg)"
+            "unknown argument \(arg)"
         case let .missingValue(flag):
-            return "\(flag) requires a value"
+            "\(flag) requires a value"
         case let .invalidInt(flag, raw):
-            return "\(flag) invalid integer \(raw)"
+            "\(flag) invalid integer \(raw)"
         case let .invalidTier(raw):
-            return "invalid tiers \(raw)"
+            "invalid tiers \(raw)"
         case let .invalidMode(raw):
-            return "invalid mode \(raw)"
+            "invalid mode \(raw)"
         }
     }
 }

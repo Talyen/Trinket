@@ -37,18 +37,18 @@ public enum ActionEventFormatter {
     public static func display(for event: ActionEvent) -> ActionEventDisplay {
         switch event.kind {
         case .ability:
-            return amountDisplay(emphasis: .damage, event: event, prefix: "-")
+            amountDisplay(emphasis: .damage, event: event, prefix: "-")
         case .status:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .status,
                 keyword: event.keyword,
                 text: "-\(event.amount) \(event.keyword.rawValue)",
                 secondaryText: nil
             )
         case .effect:
-            return displayForEffect(event)
+            displayForEffect(event)
         case .milestone:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .generic,
                 keyword: event.keyword,
                 text: "",
@@ -73,33 +73,33 @@ public enum ActionEventFormatter {
     private static func displayForEffectKind(_ effectKind: ActionEvent.EffectKind, event: ActionEvent) -> ActionEventDisplay {
         switch effectKind {
         case .instantHeal:
-            return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .resourceGain:
-            return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
         case .cardsDrawn:
-            return cardsDrawnDisplay(for: event)
+            cardsDrawnDisplay(for: event)
         case .leechHeal:
-            return signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .heal, event: event, prefix: "+")
         case .shieldApplied:
-            return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .mitigationApplied:
-            return mitigationAppliedDisplay(for: event)
+            mitigationAppliedDisplay(for: event)
         case .shieldAbsorbed:
-            return signedAmountDisplay(emphasis: .shieldAbsorbed, event: event, prefix: "-")
+            signedAmountDisplay(emphasis: .shieldAbsorbed, event: event, prefix: "-")
         case .controlActionSkipped, .controlApplied, .controlTriggered:
-            return controlDisplay(for: effectKind, event: event)
+            controlDisplay(for: effectKind, event: event)
         case .cleanseApplied:
-            return cleanseDisplay(for: event)
+            cleanseDisplay(for: event)
         case .purgeApplied:
-            return purgeDisplay(for: event)
+            purgeDisplay(for: event)
         case .leechApplied:
-            return leechAppliedDisplay(for: event)
+            leechAppliedDisplay(for: event)
         case .mitigationHalved:
-            return mitigationHalvedDisplay(for: event)
+            mitigationHalvedDisplay(for: event)
         case .dodgeApplied:
-            return dodgeDisplay(for: event)
+            dodgeDisplay(for: event)
         case .criticalApplied:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .damage,
                 keyword: event.keyword,
                 text: "Critical",
@@ -107,13 +107,13 @@ public enum ActionEventFormatter {
             )
         case .hasteApplied, .criticalChanceApplied, .manaShieldApplied, .thornsApplied, .markedApplied,
              .damageKeywordOverrideApplied, .nextHolyStrikeApplied:
-            return signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .buff, event: event, prefix: "+")
         case .thornsTriggered, .markedConsumed:
-            return amountDisplay(emphasis: .damage, event: event, prefix: "-")
+            amountDisplay(emphasis: .damage, event: event, prefix: "-")
         case .manaShieldTriggered:
-            return signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
+            signedAmountDisplay(emphasis: .resourceGain, event: event, prefix: "+")
         case .deathsDoorTriggered, .deathsDoorExpired:
-            return deathsDoorDisplay(for: event)
+            deathsDoorDisplay(for: event)
         }
     }
 
@@ -151,28 +151,28 @@ public enum ActionEventFormatter {
     ) -> ActionEventDisplay {
         switch effectKind {
         case .controlActionSkipped:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .control,
                 keyword: event.keyword,
                 text: event.keyword.rawValue,
                 secondaryText: nil
             )
         case .controlApplied:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .control,
                 keyword: event.keyword,
                 text: "+\(event.keyword.rawValue)",
                 secondaryText: nil
             )
         case .controlTriggered:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .control,
                 keyword: event.keyword,
                 text: "\(event.keyword.statusAlias ?? event.keyword.rawValue)!",
                 secondaryText: nil
             )
         default:
-            return ActionEventDisplay(
+            ActionEventDisplay(
                 emphasis: .generic,
                 keyword: event.keyword,
                 text: event.keyword.rawValue,

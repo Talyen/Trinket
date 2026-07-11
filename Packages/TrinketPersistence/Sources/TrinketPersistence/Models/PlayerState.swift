@@ -146,11 +146,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     public func isUnlocked(_ combatant: Combatant) -> Bool {
         switch combatant.role {
         case .hero:
-            return unlockedHeroIDs.contains(combatant.id)
+            unlockedHeroIDs.contains(combatant.id)
         case .pet:
-            return unlockedPetIDs.contains(combatant.id)
+            unlockedPetIDs.contains(combatant.id)
         case .enemy:
-            return false
+            false
         }
     }
 
@@ -230,11 +230,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     public mutating func unlock(_ combatant: Combatant) -> Bool {
         switch combatant.role {
         case .hero:
-            return unlockHero(id: combatant.id)
+            unlockHero(id: combatant.id)
         case .pet:
-            return unlockPet(id: combatant.id)
+            unlockPet(id: combatant.id)
         case .enemy:
-            return false
+            false
         }
     }
 

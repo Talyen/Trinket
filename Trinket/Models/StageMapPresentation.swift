@@ -60,10 +60,14 @@ extension Stage {
     }
 
     var encounterArtReference: EncounterArtReference? {
-        if case .battle = encounter { return nil }
+        if case .battle = encounter {
+            return nil
+        }
         if case .mysteryEvent = encounter {
             // Recruit mysteries use combatant portrait art (3:4), not encounter art.
-            if recruitCombatant != nil { return nil }
+            if recruitCombatant != nil {
+                return nil
+            }
             guard let artID = mysteryEvent?.artID else { return nil }
             return ArtCatalog.encounterArtByID[artID]
         }
@@ -108,13 +112,13 @@ extension StageEncounter {
     var mapTint: Color {
         switch self {
         case .battle:
-            return TrinketDesign.Colors.encounterBattle
+            TrinketDesign.Colors.encounterBattle
         case .event, .mysteryEvent:
-            return TrinketDesign.Colors.encounterEvent
+            TrinketDesign.Colors.encounterEvent
         case .shop:
-            return TrinketDesign.Colors.encounterShop
+            TrinketDesign.Colors.encounterShop
         case .rest:
-            return TrinketDesign.Colors.encounterRest
+            TrinketDesign.Colors.encounterRest
         }
     }
 }

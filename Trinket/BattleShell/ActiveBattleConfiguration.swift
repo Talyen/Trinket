@@ -56,8 +56,12 @@ struct ActiveBattleConfiguration: Identifiable {
     }
 
     func partyMember(for combatantID: String) -> PartyMember? {
-        if combatantID == hero.combatant.id { return hero }
-        if combatantID == pet.combatant.id { return pet }
+        if combatantID == hero.combatant.id {
+            return hero
+        }
+        if combatantID == pet.combatant.id {
+            return pet
+        }
         return nil
     }
 
@@ -149,9 +153,9 @@ struct ActiveBattleConfiguration: Identifiable {
         )
     }
 
-    private static func pendingAspectRewardItem<RNG: RandomNumberGenerator>(
+    private static func pendingAspectRewardItem(
         aspectBattle: AspectBattle?,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard let aspectBattle,
               let floor = GameContent.aspectFloor(

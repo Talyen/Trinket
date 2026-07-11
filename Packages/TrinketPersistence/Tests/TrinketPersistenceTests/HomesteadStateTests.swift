@@ -3,7 +3,6 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@Suite
 struct HomesteadStateTests {
     @Test func buildOrUpgradeSpendsMaterialsAndGold() throws {
         let definition = try #require(GameContent.homesteadNode(matching: .wheatField))

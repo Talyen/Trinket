@@ -34,13 +34,12 @@ struct AbilitySummaryGrid: View {
         }
     }
 
+    @ViewBuilder
     private func abilitySlot(for tier: AbilityTier) -> some View {
-        Group {
-            if let ability = selectedAbility(for: tier) {
-                AbilityChoiceCard(ability: ability, lockLabel: lockLabel(for: tier))
-            } else {
-                EmptyAbilitySlotCard(tier: tier)
-            }
+        if let ability = selectedAbility(for: tier) {
+            AbilityChoiceCard(ability: ability, lockLabel: lockLabel(for: tier))
+        } else {
+            EmptyAbilitySlotCard(tier: tier)
         }
     }
 

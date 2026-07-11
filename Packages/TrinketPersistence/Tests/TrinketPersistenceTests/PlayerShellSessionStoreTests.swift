@@ -26,7 +26,7 @@ final class PlayerShellSessionStoreTests {
     }
 
     @Test func migratesLegacyUserDefaultsOnFirstLaunch() throws {
-        let defaults = UserDefaults(suiteName: "PlayerShellSessionStoreTests.\(UUID().uuidString)")!
+        let defaults = try #require(UserDefaults(suiteName: "PlayerShellSessionStoreTests.\(UUID().uuidString)"))
         defaults.set("homestead", forKey: PlayerShellSessionStore.legacySessionTabKey)
         defaults.set("chapter-1-stage-2", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
 
@@ -95,9 +95,9 @@ final class PlayerShellSessionStoreTests {
     }
 
     @Test func migratesExtendedLegacyUserDefaultsOnFirstLaunch() throws {
-        let defaults = UserDefaults(suiteName: "PlayerShellSessionStoreTests.extended.\(UUID().uuidString)")!
-        let savedAt = Date(timeIntervalSince1970: 1_700_000_456)
-        let backgroundedAt = Date(timeIntervalSince1970: 1_700_000_789)
+        let defaults = try #require(UserDefaults(suiteName: "PlayerShellSessionStoreTests.extended.\(UUID().uuidString)"))
+        let savedAt = Date(timeIntervalSince1970: 1700000456)
+        let backgroundedAt = Date(timeIntervalSince1970: 1700000789)
         defaults.set("search", forKey: PlayerShellSessionStore.legacySessionTabKey)
         defaults.set("chapter-1-stage-4", forKey: PlayerShellSessionStore.legacyActiveBattleStageIDKey)
         defaults.set("chapter-1-stage-5", forKey: PlayerShellSessionStore.legacyMapScrollStageIDKey)
@@ -151,7 +151,7 @@ final class PlayerShellSessionStoreTests {
 
         _ = try PlayerShellSessionStore(storeURL: storeURL)
 
-        let reloadedContext = ModelContext(try ModelContainer(for: schema, configurations: [config]))
+        let reloadedContext = try ModelContext(ModelContainer(for: schema, configurations: [config]))
         let descriptor = FetchDescriptor<PlayerShellSession>()
         let reloaded = try #require(try reloadedContext.fetch(descriptor).first { $0.id == "current" })
         try #expect(reloaded.activeBattleStageID == nil)

@@ -152,21 +152,20 @@ public enum BalanceSweepRunner {
 }
 
 enum BalanceSampling {
-    static func stratifiedEnemy<RNG: RandomNumberGenerator>(
+    static func stratifiedEnemy(
         enemies: [Enemy],
         battleIndex: Int,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Enemy {
         let bosses = enemies.filter(\.isBoss)
         let elites = enemies.filter { $0.isElite && !$0.isBoss }
         let fodder = enemies.filter { !$0.isBoss && !$0.isElite }
         let bucket = battleIndex % 3
-        let pool: [Enemy]
-        switch bucket {
-        case 0 where !fodder.isEmpty: pool = fodder
-        case 1 where !elites.isEmpty: pool = elites
-        case 2 where !bosses.isEmpty: pool = bosses
-        default: pool = enemies
+        let pool: [Enemy] = switch bucket {
+        case 0 where !fodder.isEmpty: fodder
+        case 1 where !elites.isEmpty: elites
+        case 2 where !bosses.isEmpty: bosses
+        default: enemies
         }
         return pool.randomElement(using: &randomNumberGenerator) ?? enemies[battleIndex % enemies.count]
     }

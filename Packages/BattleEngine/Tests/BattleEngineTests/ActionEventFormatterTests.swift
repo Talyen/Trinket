@@ -1,11 +1,10 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Representative formatter coverage. Battle tests assert event semantics; this file
 /// only locks a few display categories so emphasis mapping does not regress silently.
-@Suite
 struct ActionEventFormatterTests {
     private func event(
         id: Int = 1,

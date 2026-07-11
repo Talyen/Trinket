@@ -12,7 +12,9 @@ package enum ControlMeterEngine {
         in context: inout BattleEngineContext
     ) -> [ActionEvent] {
         guard amount > 0, context.roster.health(for: combatant) > 0 else { return [] }
-        if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) { return [] }
+        if context.roster.hasPendingActionSkip(for: combatant, keyword: keyword) {
+            return []
+        }
 
         let profile = context.modifiers(for: combatant.id)
         var adjustedAmount = amount
@@ -27,7 +29,9 @@ package enum ControlMeterEngine {
         let threshold = controlMeterThreshold(for: combatant, in: context)
         var currentEffects = context.roster.activeEffects(for: combatant)
         let existingIndex = currentEffects.firstIndex { activeEffect in
-            if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword { return true }
+            if case let .controlMeter(k, _, _) = activeEffect.effect, k == keyword {
+                return true
+            }
             return false
         }
         let existingAmount = existingMeterAmount(at: existingIndex, in: currentEffects)
@@ -109,11 +113,10 @@ package enum ControlMeterEngine {
             in: &context
         )
 
-        let actorName: String
-        if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
-            actorName = source.name
+        let actorName: String = if let sourceActorID, let source = context.roster.combatant(for: sourceActorID) {
+            source.name
         } else {
-            actorName = combatant.name
+            combatant.name
         }
         let abilityName = keyword.statusAlias ?? keyword.rawValue
         var events = [

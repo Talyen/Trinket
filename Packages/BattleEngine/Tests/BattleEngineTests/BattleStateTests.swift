@@ -1,13 +1,18 @@
-import Testing
-import TrinketTestSupport
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
+import TrinketTestSupport
 
-@Suite
 struct BattleStateTests {
-    private var defaultEnemy: Combatant { GameContent.enemies.first!.combatant }
-    private var wolfPet: Combatant { GameContent.pets.first { $0.id == "wolf" }! }
+    private var defaultEnemy: Combatant {
+        // Catalog invariants guarantee a non-empty enemy list.
+        GameContent.enemies[0].combatant
+    }
+
+    private var wolfPet: Combatant {
+        GameContent.pets.first { $0.id == "wolf" } ?? GameContent.pets[0]
+    }
 
     @Test func openingHandDrawsTwoHeroAndTwoPetCards() throws {
         // Loadouts need ≥2 abilities so opening draw of 2 per owner can succeed.
@@ -141,7 +146,9 @@ struct BattleStateTests {
         try #expect(ability.damageKeyword == .poison)
         try #expect(ability.damageType == .poison)
         let hasPoisonDot = ability.effects.contains {
-            if case .poison = $0 { return true }
+            if case .poison = $0 {
+                return true
+            }
             return false
         }
         try #expect(hasPoisonDot)
@@ -151,7 +158,9 @@ struct BattleStateTests {
         let ability = Ability.serratedEdge
         try #expect(ability.damageKeyword == .bleed)
         let hasBleedDot = ability.effects.contains {
-            if case .bleed = $0 { return true }
+            if case .bleed = $0 {
+                return true
+            }
             return false
         }
         try #expect(hasBleedDot)
@@ -161,12 +170,14 @@ struct BattleStateTests {
         let ability = Ability.judgment
         try #expect(ability.damageKeyword == .holy)
         let hasBlock = ability.effects.contains {
-            if case .shield(.block, _) = $0 { return true }
+            if case .shield(.block, _) = $0 {
+                return true
+            }
             return false
         }
         let hasStunDamage = ability.damageComponents.contains { $0.keyword == .stun }
         try #expect(hasBlock)
-        try #expect(!(hasStunDamage))
+        try #expect(!hasStunDamage)
     }
 
     @Test func battleTracksGoldFromResourceGains() throws {

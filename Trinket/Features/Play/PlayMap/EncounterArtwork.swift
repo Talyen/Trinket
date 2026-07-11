@@ -39,18 +39,16 @@ struct EncounterArtworkButton: View {
     let onEnemyTap: () -> Void
 
     var body: some View {
-        Group {
-            if stage.encounter.battleEnemyID != nil {
-                Button(action: onEnemyTap) {
-                    artwork
-                }
-                // UIStyleCheck: allow - Artwork opens enemy details without button chrome.
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
-                .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
-            } else {
+        if stage.encounter.battleEnemyID != nil {
+            Button(action: onEnemyTap) {
                 artwork
             }
+            // UIStyleCheck: allow - Artwork opens enemy details without button chrome.
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
+            .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
+        } else {
+            artwork
         }
     }
 

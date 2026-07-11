@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct CombatOutcomeTests {
     private func makeContext(seed: UInt64 = 1772) -> BattleEngineContext {
         let target = CombatantFixtures.combatant(id: "target", role: .enemy, maxHealth: 50)

@@ -87,11 +87,11 @@ public enum AspectAttunement: Equatable, Sendable {
     public var message: String {
         switch self {
         case .ready:
-            return "Party is attuned."
+            "Party is attuned."
         case .missingHeroAffinity:
-            return "Hero needs an ability that matches this Aspect."
+            "Hero needs an ability that matches this Aspect."
         case .missingPetAffinity:
-            return "Pet needs an ability that matches this Aspect."
+            "Pet needs an ability that matches this Aspect."
         }
     }
 

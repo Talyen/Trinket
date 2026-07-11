@@ -1,12 +1,13 @@
 import Testing
 import TrinketContent
 
-@Suite
 struct EncounterLevelResolverTests {
     @Test func journeyEnemyLevelSpansFiveLevelsPerChapter() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter {
-            if case .battle = $0.encounter { return true }
+            if case .battle = $0.encounter {
+                return true
+            }
             return false
         }
 
@@ -20,7 +21,9 @@ struct EncounterLevelResolverTests {
     @Test func nonBattleStagesReturnChapterBaseLevel() throws {
         let chapter = try #require(GameContent.chapters.first)
         let nonBattleStage = try #require(chapter.stages.first {
-            if case .battle = $0.encounter { return false }
+            if case .battle = $0.encounter {
+                return false
+            }
             return true
         })
 

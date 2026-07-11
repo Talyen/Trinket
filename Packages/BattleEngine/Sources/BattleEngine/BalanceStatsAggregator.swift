@@ -89,12 +89,13 @@ public enum BalanceStatsAggregator {
             for id in Set(ids(record)) {
                 var bucket = buckets[id] ?? (0, 0)
                 bucket.battles += 1
-                if record.result.isVictory { bucket.wins += 1 }
+                if record.result.isVictory {
+                    bucket.wins += 1
+                }
                 buckets[id] = bucket
             }
         }
-        return buckets.keys.sorted().map { id in
-            let bucket = buckets[id]!
+        return buckets.sorted { $0.key < $1.key }.map { id, bucket in
             let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
             let ci = wilson(wins: bucket.wins, battles: bucket.battles)
             let delta = rate - peerRate
@@ -112,7 +113,9 @@ public enum BalanceStatsAggregator {
             )
         }
         .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged { return lhs.flagged && !rhs.flagged }
+            if lhs.flagged != rhs.flagged {
+                return lhs.flagged && !rhs.flagged
+            }
             return abs(lhs.deltaVsPeer) > abs(rhs.deltaVsPeer)
         }
     }
@@ -124,23 +127,23 @@ public enum BalanceStatsAggregator {
         for record in records {
             var bucket = buckets[record.enemyID] ?? (0, 0, record.isBossOrElite)
             bucket.battles += 1
-            if record.result.isVictory { bucket.wins += 1 }
+            if record.result.isVictory {
+                bucket.wins += 1
+            }
             bucket.boss = record.isBossOrElite
             buckets[record.enemyID] = bucket
         }
 
-        return buckets.keys.sorted().map { id in
-            let bucket = buckets[id]!
+        return buckets.sorted { $0.key < $1.key }.map { id, bucket in
             let rate = bucket.battles == 0 ? 0 : Double(bucket.wins) / Double(bucket.battles)
             let ci = wilson(wins: bucket.wins, battles: bucket.battles)
             let band = targetBand(isBossOrElite: bucket.boss, tier: records.first?.tier ?? .early)
             let inBand = rate >= band.lower && rate <= band.upper
             let flagged = !inBand && bucket.battles >= 10
-            let reason: String?
-            if flagged {
-                reason = rate > band.upper ? "EASY" : "HARD"
+            let reason: String? = if flagged {
+                rate > band.upper ? "EASY" : "HARD"
             } else {
-                reason = nil
+                nil
             }
             return WinRateSummary(
                 id: id,
@@ -155,7 +158,9 @@ public enum BalanceStatsAggregator {
             )
         }
         .sorted { lhs, rhs in
-            if lhs.flagged != rhs.flagged { return lhs.flagged && !rhs.flagged }
+            if lhs.flagged != rhs.flagged {
+                return lhs.flagged && !rhs.flagged
+            }
             return lhs.id < rhs.id
         }
     }

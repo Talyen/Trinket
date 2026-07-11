@@ -6,19 +6,19 @@ enum AppTab: String, CaseIterable {
 
     var symbolName: String {
         switch self {
-        case .play: return "map.fill"
-        case .collection: return "person.2.fill"
-        case .homestead: return "house.fill"
-        case .options: return "gearshape.fill"
+        case .play: "map.fill"
+        case .collection: "person.2.fill"
+        case .homestead: "house.fill"
+        case .options: "gearshape.fill"
         }
     }
 
     var displayName: String {
         switch self {
-        case .play: return "Play"
-        case .collection: return "Collection"
-        case .homestead: return "Homestead"
-        case .options: return "Options"
+        case .play: "Play"
+        case .collection: "Collection"
+        case .homestead: "Homestead"
+        case .options: "Options"
         }
     }
 }

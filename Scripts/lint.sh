@@ -5,17 +5,10 @@ cd "$(dirname "$0")/.."
 
 # shellcheck source=tool-versions.env
 source Scripts/tool-versions.env
+# shellcheck source=swift-source-dirs.env
+source Scripts/swift-source-dirs.env
 EXPECTED_VERSION="$SWIFTLINT_VERSION"
-SOURCE_DIRS=(
-  Trinket
-  TrinketTests
-  TrinketUITests
-  Packages/TrinketCore/Sources
-  Packages/TrinketContent/Sources
-  Packages/BattleEngine/Sources
-  Packages/TrinketPersistence/Sources
-  Packages/TrinketDesignSystem/Sources
-)
+SOURCE_DIRS=("${SWIFT_SOURCE_DIRS[@]}")
 
 # Prefer pinned .tools binary when present.
 if [[ -x .tools/swiftlint ]]; then

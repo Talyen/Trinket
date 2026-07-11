@@ -25,7 +25,7 @@ struct AspectsProgressTests {
         let dirty = PlayerAspectsState(
             highestClearedFloorByAspectID: [
                 AspectID.ironVein.rawValue: 99,
-                "missingAspect": 4,
+                "missingAspect": 4
             ]
         )
         let sanitized = PlayerSaveSanitizer.sanitizeAspects(dirty)

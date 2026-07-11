@@ -3,7 +3,7 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@Suite @MainActor
+@MainActor
 final class PlayerHomesteadStoreTests {
     let context: PersistenceTestContext
 

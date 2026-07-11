@@ -158,19 +158,19 @@ private extension CombatFeedbackItem {
     var feedbackVisualStyle: Keyword.VisualStyle {
         switch feedbackClass {
         case .heal:
-            return .health
+            .health
         case .resource:
-            return .gold
+            .gold
         case .block:
-            return .block
+            .block
         case .dodge:
-            return Keyword.dodge.visualStyle
+            Keyword.dodge.visualStyle
         case .control:
-            return .stun
+            .stun
         case .deathsDoor:
-            return Keyword.deathsDoor.visualStyle
+            Keyword.deathsDoor.visualStyle
         case .directDamage, .critical, .dot, .buff:
-            return keyword.visualStyle
+            keyword.visualStyle
         }
     }
 }

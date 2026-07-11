@@ -4,9 +4,15 @@ import TrinketCore
 
 public extension AffixModifier {
     func apply(to profile: inout CombatModifierProfile) {
-        if applyPrimaryStat(to: &profile) { return }
-        if applyMaximumStat(to: &profile) { return }
-        if applyCombatBonus(to: &profile) { return }
+        if applyPrimaryStat(to: &profile) {
+            return
+        }
+        if applyMaximumStat(to: &profile) {
+            return
+        }
+        if applyCombatBonus(to: &profile) {
+            return
+        }
         applyDurationBonus(to: &profile)
     }
 

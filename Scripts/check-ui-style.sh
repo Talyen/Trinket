@@ -21,11 +21,6 @@ is_allowed_line() {
     return 0
   fi
 
-  # Legacy central styling helpers lived at the top of ContentView before extraction.
-  if [[ "$file" == "Trinket/ContentView.swift" && "$line_number" -le 90 ]]; then
-    return 0
-  fi
-
   # Existing inspectable card surfaces can keep their current material until they are migrated.
   if [[ "$line" == *"TrinketDesign.cardShape"* ]]; then
     return 0

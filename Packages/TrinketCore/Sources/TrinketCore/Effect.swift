@@ -87,53 +87,53 @@ public enum Effect: Hashable, Sendable {
 
     public var keyword: Keyword {
         switch self {
-        case .burn: return .burn
-        case .poison: return .poison
-        case .bleed: return .bleed
-        case let .controlMeter(k, _, _): return k
-        case let .shield(k, _): return k
-        case let .mitigation(k, _): return k
-        case let .instantHeal(k, _): return k
-        case let .leech(k, _, _): return k
-        case let .resourceGain(k, _): return k
-        case .drawCards: return .physical
-        case let .cleanse(k?): return k
-        case .cleanse(nil), .cleanseRandom: return .health
-        case let .purge(k?): return k
-        case .purge(nil), .purgeRandom: return .purge
-        case let .halveMitigation(k): return k
-        case .deathsDoor: return .deathsDoor
-        case .haste: return .physical
-        case let .thorns(k, _, _): return k
-        case .marked: return .physical
-        case .criticalChanceBonus: return .physical
-        case .restoreManaOnHit: return .mana
-        case let .damageKeywordOverride(k, _, _): return k
-        case .nextHolyStrike: return .holy
+        case .burn: .burn
+        case .poison: .poison
+        case .bleed: .bleed
+        case let .controlMeter(k, _, _): k
+        case let .shield(k, _): k
+        case let .mitigation(k, _): k
+        case let .instantHeal(k, _): k
+        case let .leech(k, _, _): k
+        case let .resourceGain(k, _): k
+        case .drawCards: .physical
+        case let .cleanse(k?): k
+        case .cleanse(nil), .cleanseRandom: .health
+        case let .purge(k?): k
+        case .purge(nil), .purgeRandom: .purge
+        case let .halveMitigation(k): k
+        case .deathsDoor: .deathsDoor
+        case .haste: .physical
+        case let .thorns(k, _, _): k
+        case .marked: .physical
+        case .criticalChanceBonus: .physical
+        case .restoreManaOnHit: .mana
+        case let .damageKeywordOverride(k, _, _): k
+        case .nextHolyStrike: .holy
         }
     }
 
     public var potency: Int? {
         switch self {
-        case let .burn(p), let .poison(p), let .bleed(p): return p
-        default: return nil
+        case let .burn(p), let .poison(p), let .bleed(p): p
+        default: nil
         }
     }
 
     public var durationTicks: Int {
         switch self {
-        case .bleed: return Self.bleedDoTTickCount
-        case let .leech(_, _, d): return d
-        case let .haste(d): return d
-        case let .thorns(_, _, d): return d
-        case let .marked(_, d): return d
-        case let .criticalChanceBonus(_, d): return d
-        case let .restoreManaOnHit(_, d): return d
-        case let .damageKeywordOverride(_, _, d): return d
+        case .bleed: Self.bleedDoTTickCount
+        case let .leech(_, _, d): d
+        case let .haste(d): d
+        case let .thorns(_, _, d): d
+        case let .marked(_, d): d
+        case let .criticalChanceBonus(_, d): d
+        case let .restoreManaOnHit(_, d): d
+        case let .damageKeywordOverride(_, _, d): d
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation, .controlMeter, .deathsDoor,
              .shield, .mitigation, .nextHolyStrike:
-            return 0
+            0
         }
     }
 
@@ -159,11 +159,11 @@ public enum Effect: Hashable, Sendable {
     public static func defaultTarget(for effect: Effect) -> EffectTarget {
         switch effect {
         case .burn, .poison, .bleed, .controlMeter, .halveMitigation, .purge, .purgeRandom, .marked:
-            return .abilityTarget
+            .abilityTarget
         case .shield, .mitigation, .instantHeal, .leech, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .deathsDoor, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike:
-            return .actor
+            .actor
         }
     }
 }

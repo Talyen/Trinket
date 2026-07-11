@@ -1,8 +1,7 @@
 import SwiftUI
-@testable import TrinketDesignSystem
 import Testing
+@testable import TrinketDesignSystem
 
-@Suite
 struct VisualFoundationTests {
     @Test func backgroundModeDisplayNamesAreNonEmpty() throws {
         for mode in BackgroundMode.allCases {

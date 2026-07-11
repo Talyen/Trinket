@@ -57,7 +57,7 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 
 public enum MysteryItemRarity {
     /// 80% basic, 20% astral.
-    public static func roll<RNG: RandomNumberGenerator>(using randomNumberGenerator: inout RNG) -> Rarity {
+    public static func roll(using randomNumberGenerator: inout some RandomNumberGenerator) -> Rarity {
         Int.random(in: 1 ... 100, using: &randomNumberGenerator) <= 80 ? .basic : .astral
     }
 }

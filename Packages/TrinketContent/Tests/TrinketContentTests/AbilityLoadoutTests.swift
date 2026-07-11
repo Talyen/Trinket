@@ -1,9 +1,8 @@
 import Testing
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
 /// Ability loadout selection and tier-unlock filtering.
-@Suite
 struct AbilityLoadoutTests {
     @Test func selectingReplacesAbilityInMatchingTier() throws {
         let loadout = AbilityLoadout(basic: .bash, skill: .smite, ultimate: .blessedAegis)

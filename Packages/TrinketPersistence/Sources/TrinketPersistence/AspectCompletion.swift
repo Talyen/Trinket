@@ -54,9 +54,9 @@ public enum AspectCompletion {
     }
 
     /// Generates an Aspect-biased item for any cleared floor (affinity base + biased affixes).
-    public static func makeAspectFloorItem<RNG: RandomNumberGenerator>(
+    public static func makeAspectFloorItem(
         for floor: AspectFloor,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard let aspect = GameContent.aspect(id: floor.aspectID) else { return nil }
 
@@ -79,9 +79,9 @@ public enum AspectCompletion {
     }
 
     /// Backward-compatible alias used by older call sites and tests.
-    public static func makeWardenItem<RNG: RandomNumberGenerator>(
+    public static func makeWardenItem(
         for floor: AspectFloor,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard floor.isWarden else { return nil }
         return makeAspectFloorItem(for: floor, using: &randomNumberGenerator)

@@ -12,7 +12,7 @@ enum LabyrinthMapPresentation {
         var id: String {
             switch self {
             case let .revealed(node), let .fog(node):
-                return node.id
+                node.id
             }
         }
     }
@@ -30,14 +30,20 @@ enum LabyrinthMapPresentation {
     ) -> [ClusterDisplayNode] {
         cluster.nodeIDs.compactMap { id -> ClusterDisplayNode? in
             guard let node = state.nodes[id] else { return nil }
-            if node.isRevealed { return .revealed(node) }
-            if isFogged(nodeID: id, in: state) { return .fog(node) }
+            if node.isRevealed {
+                return .revealed(node)
+            }
+            if isFogged(nodeID: id, in: state) {
+                return .fog(node)
+            }
             return nil
         }
         .sorted { lhs, rhs in
             let left = sortKey(lhs)
             let right = sortKey(rhs)
-            if left.cleared != right.cleared { return !left.cleared && right.cleared }
+            if left.cleared != right.cleared {
+                return !left.cleared && right.cleared
+            }
             return left.id < right.id
         }
     }
@@ -82,9 +88,9 @@ enum LabyrinthMapPresentation {
     private static func sortKey(_ entry: ClusterDisplayNode) -> (cleared: Bool, id: String) {
         switch entry {
         case let .revealed(node):
-            return (node.isCleared, node.id)
+            (node.isCleared, node.id)
         case let .fog(node):
-            return (false, node.id)
+            (false, node.id)
         }
     }
 }

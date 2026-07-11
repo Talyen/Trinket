@@ -67,7 +67,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     }
 
     @ViewBuilder
-    private func navigationBarConfigured<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    private func navigationBarConfigured(@ViewBuilder content: () -> some View) -> some View {
         if hidesNavigationBar {
             content()
                 .toolbar(.hidden, for: .navigationBar)

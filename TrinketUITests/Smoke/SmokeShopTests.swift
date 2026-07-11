@@ -49,7 +49,9 @@ final class SmokeShopTests: TrinketUITestCase {
         // before tapping so a covered/off-screen element doesn't swallow the tap.
         for _ in 0 ..< 6 {
             let leaveButton = button(AccessibilityID.Shop.leaveButton)
-            if leaveButton.exists, leaveButton.isHittable { break }
+            if leaveButton.exists, leaveButton.isHittable {
+                break
+            }
             app.swipeUp()
         }
         tapButton(AccessibilityID.Shop.leaveButton)

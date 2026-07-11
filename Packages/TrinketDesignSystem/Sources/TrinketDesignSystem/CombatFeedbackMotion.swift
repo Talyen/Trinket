@@ -147,10 +147,10 @@ public enum CombatFeedbackLayout: Sendable {
 
     public static func particleCount(for feedbackClass: CombatFeedbackClass) -> Int {
         switch feedbackClass {
-        case .critical: return 8
-        case .directDamage, .heal: return 5
-        case .dot, .block: return 3
-        case .dodge, .control, .buff, .resource, .deathsDoor: return 0
+        case .critical: 8
+        case .directDamage, .heal: 5
+        case .dot, .block: 3
+        case .dodge, .control, .buff, .resource, .deathsDoor: 0
         }
     }
 }

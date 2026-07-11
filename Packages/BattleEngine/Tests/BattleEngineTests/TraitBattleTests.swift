@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct TraitBattleTests {
     private func makeContext(
         hero: Combatant,

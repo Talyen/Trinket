@@ -109,9 +109,9 @@ public extension View {
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.
-    func trinketSensoryFeedback<T: Equatable>(
+    func trinketSensoryFeedback(
         _ feedback: SensoryFeedback,
-        trigger: T,
+        trigger: some Equatable,
         enabled: Bool
     ) -> some View {
         sensoryFeedback(feedback, trigger: trigger) { _, _ in enabled }

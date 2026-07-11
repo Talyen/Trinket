@@ -122,8 +122,12 @@ public enum BattleTurnEngine {
     }
 
     public static func preferredTier(for turnNumber: Int) -> AbilityTier {
-        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) { return .ultimate }
-        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) { return .skill }
+        if turnNumber.isMultiple(of: AbilityTier.ultimate.cadenceTurns) {
+            return .ultimate
+        }
+        if turnNumber.isMultiple(of: AbilityTier.skill.cadenceTurns) {
+            return .skill
+        }
         return .basic
     }
 
@@ -131,7 +135,9 @@ public enum BattleTurnEngine {
         guard ability.manaCost > 0, actor.hasMana else { return }
         _ = context.spendMana(ability.manaCost, for: actor)
     }
+}
 
+extension BattleTurnEngine {
     private struct DamageComponentOutcome {
         let events: [ActionEvent]
         let pairedDirectDamage: [(Keyword, Int)]
@@ -263,7 +269,9 @@ public enum BattleTurnEngine {
         in context: BattleEngineContext
     ) -> Bool {
         context.roster.activeEffects(for: actor).contains { active in
-            if case .nextHolyStrike = active.effect { return true }
+            if case .nextHolyStrike = active.effect {
+                return true
+            }
             return false
         }
     }
@@ -273,7 +281,11 @@ public enum BattleTurnEngine {
         in context: inout BattleEngineContext
     ) {
         var effects = context.roster.activeEffects(for: actor)
-        effects.removeAll { if case .nextHolyStrike = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .nextHolyStrike = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: actor)
     }
 
@@ -344,8 +356,12 @@ public enum BattleTurnEngine {
         context: BattleEngineContext
     ) -> Bool {
         guard context.roster.health(for: target) <= 0 else { return false }
-        if case .resourceGain(.gold, _) = effect { return false }
-        if case .drawCards = effect { return false }
+        if case .resourceGain(.gold, _) = effect {
+            return false
+        }
+        if case .drawCards = effect {
+            return false
+        }
         return true
     }
 

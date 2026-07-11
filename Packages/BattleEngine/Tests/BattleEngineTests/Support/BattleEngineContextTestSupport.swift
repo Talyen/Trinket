@@ -1,6 +1,6 @@
-@testable import BattleEngine
 import TrinketContent
 import TrinketCore
+@testable import BattleEngine
 
 extension BattleEngineContext {
     @discardableResult

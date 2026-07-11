@@ -16,13 +16,13 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     var id: String {
         switch self {
         case .campaign:
-            return "campaign"
+            "campaign"
         case .aspectsHub:
-            return "aspectsHub"
+            "aspectsHub"
         case .labyrinthMap:
-            return "labyrinthMap"
+            "labyrinthMap"
         case let .aspectClimb(aspectID):
-            return "aspectClimb-\(aspectID.rawValue)"
+            "aspectClimb-\(aspectID.rawValue)"
         }
     }
 
@@ -31,24 +31,24 @@ enum PlayLaunchDestination: Equatable, Hashable, Identifiable {
     static func returning(from token: ActiveBattleResumeToken?) -> PlayLaunchDestination? {
         switch token {
         case .none:
-            return nil
+            nil
         case .journey:
-            return .campaign
+            .campaign
         case let .aspect(aspectID, _):
-            return .aspectClimb(aspectID)
+            .aspectClimb(aspectID)
         case .labyrinth:
-            return .labyrinthMap
+            .labyrinthMap
         }
     }
 
     static func restoring(lastMode: PlayerShellSessionPlayMode) -> PlayLaunchDestination {
         switch lastMode {
         case .campaign:
-            return .campaign
+            .campaign
         case .aspects:
-            return .aspectsHub
+            .aspectsHub
         case .labyrinth:
-            return .labyrinthMap
+            .labyrinthMap
         }
     }
 }

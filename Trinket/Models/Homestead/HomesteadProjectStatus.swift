@@ -43,23 +43,41 @@ struct HomesteadProjectStatus {
     }
 
     var statusTitle: String {
-        if isComplete { return "Complete" }
-        if !isUnlocked { return unlockRequirementText }
-        if canBuildOrUpgrade { return nextTier?.tier == 1 ? "Ready to Build" : "Ready to Upgrade" }
+        if isComplete {
+            return "Complete"
+        }
+        if !isUnlocked {
+            return unlockRequirementText
+        }
+        if canBuildOrUpgrade {
+            return nextTier?.tier == 1 ? "Ready to Build" : "Ready to Upgrade"
+        }
         return missingResourceText ?? "Gather Materials"
     }
 
     var statusSymbolName: String {
-        if isComplete { return "checkmark.seal.fill" }
-        if !isUnlocked { return "lock.fill" }
-        if canBuildOrUpgrade { return "hammer.fill" }
+        if isComplete {
+            return "checkmark.seal.fill"
+        }
+        if !isUnlocked {
+            return "lock.fill"
+        }
+        if canBuildOrUpgrade {
+            return "hammer.fill"
+        }
         return "shippingbox.fill"
     }
 
     var statusColor: Color {
-        if isComplete { return TrinketDesign.Colors.success }
-        if !isUnlocked { return .secondary }
-        if canBuildOrUpgrade { return definition.tint }
+        if isComplete {
+            return TrinketDesign.Colors.success
+        }
+        if !isUnlocked {
+            return .secondary
+        }
+        if canBuildOrUpgrade {
+            return definition.tint
+        }
         return .secondary
     }
 

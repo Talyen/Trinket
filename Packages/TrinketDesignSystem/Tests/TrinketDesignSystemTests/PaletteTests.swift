@@ -1,8 +1,7 @@
+import Testing
 import TrinketCore
 import TrinketDesignSystem
-import Testing
 
-@Suite
 struct PaletteTests {
     @Test func bundledEncounterAndKeywordColorsResolve() throws {
         try #expect(TrinketDesign.Colors.encounterBattle != .clear)

@@ -37,7 +37,7 @@ enum BalanceAbilityContrastRunner {
 
         return BalanceContrastSupport.aggregate(
             foci: foci.map { ($0.focus.id, $0.sibling.id, $0.owner.id) },
-            pairResults: pairResults.compactMap { $0 },
+            pairResults: pairResults.compactMap(\.self),
             threshold: context.config.peerDeltaFlagThreshold
         )
     }
@@ -91,13 +91,13 @@ enum BalanceAbilityContrastRunner {
         )
     }
 
-    private static func makePairSetup<RNG: RandomNumberGenerator>(
+    private static func makePairSetup(
         focus: Focus,
         tier: SimulationPowerTier,
         pairIndex: Int,
         context: BalanceContrastContext,
         pairSeed: UInt64,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         let partnerPool = focus.owner.role == .hero ? context.pets : context.heroes
         let partner = partnerPool.randomElement(using: &randomNumberGenerator) ?? partnerPool[0]

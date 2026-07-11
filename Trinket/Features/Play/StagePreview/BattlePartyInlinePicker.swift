@@ -16,15 +16,15 @@ enum BattlePartySlot: String, Identifiable {
 
     var role: Combatant.Role {
         switch self {
-        case .hero: return .hero
-        case .pet: return .pet
+        case .hero: .hero
+        case .pet: .pet
         }
     }
 
     var controlAccessibilityID: String {
         switch self {
-        case .hero: return AccessibilityID.Play.battlePartyHeroControl
-        case .pet: return AccessibilityID.Play.battlePartyPetControl
+        case .hero: AccessibilityID.Play.battlePartyHeroControl
+        case .pet: AccessibilityID.Play.battlePartyPetControl
         }
     }
 }
@@ -131,15 +131,15 @@ struct BattlePartyInlinePicker: View {
 
     private func combatants(for slot: BattlePartySlot) -> [Combatant] {
         switch slot {
-        case .hero: return appState.roster.heroes
-        case .pet: return appState.roster.pets
+        case .hero: appState.roster.heroes
+        case .pet: appState.roster.pets
         }
     }
 
     private func selectedID(for slot: BattlePartySlot) -> String {
         switch slot {
-        case .hero: return appState.roster.activeHero.id
-        case .pet: return appState.roster.activePet.id
+        case .hero: appState.roster.activeHero.id
+        case .pet: appState.roster.activePet.id
         }
     }
 

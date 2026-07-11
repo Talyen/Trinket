@@ -4,7 +4,7 @@ import TrinketCore
 
 @Suite("LabyrinthCatalog")
 struct LabyrinthCatalogTests {
-    @Test func biomesAreAuthoredWithResolvableEnemies() throws {
+    @Test func biomesAreAuthoredWithResolvableEnemies() {
         #expect(GameContent.labyrinthBiomes.count >= 8)
         for biome in GameContent.labyrinthBiomes {
             #expect(!biome.enemyPool.isEmpty)

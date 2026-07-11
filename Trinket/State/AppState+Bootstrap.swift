@@ -167,11 +167,11 @@ extension AppState {
     private static func tab(for launchScreen: LaunchScreen) -> AppTab {
         switch launchScreen {
         case .heroDetail, .petDetail, .itemDetail:
-            return .collection
+            .collection
         case .battle, .battleVictory, .shop, .mystery, .labyrinth, .labyrinthMap:
-            return .play
+            .play
         case .options:
-            return .options
+            .options
         }
     }
 
@@ -180,13 +180,13 @@ extension AppState {
     ) -> LaunchPresentation? {
         switch launchScreen {
         case let .heroDetail(id):
-            return .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id))
+            .collectionCombatant(CombatantDetailContext(kind: .hero, combatantID: id))
         case let .petDetail(id):
-            return .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
+            .collectionCombatant(CombatantDetailContext(kind: .pet, combatantID: id))
         case let .itemDetail(id):
-            return .collectionItem(id)
+            .collectionItem(id)
         case .battle, .battleVictory, .shop, .mystery, .options, .labyrinth, .labyrinthMap, .none:
-            return nil
+            nil
         }
     }
 
@@ -195,9 +195,9 @@ extension AppState {
     ) -> PlayLaunchDestination? {
         switch launchScreen {
         case .labyrinth, .labyrinthMap:
-            return .labyrinthMap
+            .labyrinthMap
         case .battle, .battleVictory, .shop, .mystery, .options, .heroDetail, .petDetail, .itemDetail, .none:
-            return nil
+            nil
         }
     }
 }

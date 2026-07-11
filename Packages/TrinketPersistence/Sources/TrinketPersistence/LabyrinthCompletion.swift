@@ -6,14 +6,13 @@ public enum LabyrinthCompletion {
     public static let milestoneDepths: [Int] = [5, 10, 25, 50]
 
     public static func enemyLevel(for node: LabyrinthNode, effects: LabyrinthModifierEffects) -> Int {
-        let base: Int
-        switch node.type {
+        let base: Int = switch node.type {
         case .warden:
-            base = max(1, node.depth + 3)
+            max(1, node.depth + 3)
         case .elite, .gate:
-            base = max(1, node.depth + 1)
+            max(1, node.depth + 1)
         default:
-            base = max(1, node.depth)
+            max(1, node.depth)
         }
         // Soft power from threat modifiers: +1 level per 20% enemy power.
         let bonusLevels = effects.enemyPowerPercent / 20
@@ -25,18 +24,17 @@ public enum LabyrinthCompletion {
         effects: LabyrinthModifierEffects
     ) -> StageReward {
         let type = node.type.canonical
-        let baseGold: Int
-        switch type {
+        let baseGold = switch type {
         case .warden:
-            baseGold = 10 + node.depth * 3
+            10 + node.depth * 3
         case .elite, .gate:
-            baseGold = 6 + node.depth * 2
+            6 + node.depth * 2
         case .battle:
-            baseGold = 4 + node.depth * 2
+            4 + node.depth * 2
         case .shop, .mystery, .event, .craft:
-            baseGold = 2 + node.depth
+            2 + node.depth
         case .rest:
-            baseGold = 1 + node.depth / 2
+            1 + node.depth / 2
         }
         let gold = max(0, baseGold + (baseGold * effects.goldPercent) / 100)
 
@@ -49,18 +47,18 @@ public enum LabyrinthCompletion {
         return StageReward(gold: gold, itemTemplateIDs: [], materialRewards: materials)
     }
 
-    public static func shouldRollItem<RNG: RandomNumberGenerator>(
+    public static func shouldRollItem(
         for node: LabyrinthNode,
         effects: LabyrinthModifierEffects,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Bool {
         switch node.type.canonical {
         case .warden, .elite, .craft:
-            return true
+            true
         case .battle, .gate:
-            return Int.random(in: 0 ... 99, using: &randomNumberGenerator) < (8 + effects.itemDropBonusPercent)
+            Int.random(in: 0 ... 99, using: &randomNumberGenerator) < (8 + effects.itemDropBonusPercent)
         default:
-            return false
+            false
         }
     }
 

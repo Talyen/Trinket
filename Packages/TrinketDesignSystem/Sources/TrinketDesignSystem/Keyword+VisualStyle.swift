@@ -45,23 +45,23 @@ public extension Keyword {
 
     var visualStyle: VisualStyle {
         switch self {
-        case .physical: return .physical
-        case .burn: return .burn
-        case .stun: return .stun
-        case .block: return .block
-        case .armor: return .armor
-        case .health: return .health
-        case .gold: return .gold
-        case .holy: return .holy
-        case .poison: return .poison
-        case .bleed: return .bleed
-        case .leech: return .leech
-        case .nature: return .nature
-        case .freeze: return .freeze
-        case .dodge: return .dodge
-        case .purge: return .purge
-        case .mana: return .mana
-        case .deathsDoor: return .deathsDoor
+        case .physical: .physical
+        case .burn: .burn
+        case .stun: .stun
+        case .block: .block
+        case .armor: .armor
+        case .health: .health
+        case .gold: .gold
+        case .holy: .holy
+        case .poison: .poison
+        case .bleed: .bleed
+        case .leech: .leech
+        case .nature: .nature
+        case .freeze: .freeze
+        case .dodge: .dodge
+        case .purge: .purge
+        case .mana: .mana
+        case .deathsDoor: .deathsDoor
         }
     }
 }

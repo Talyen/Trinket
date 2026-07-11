@@ -148,10 +148,25 @@ Options:
 Pushing a `v*` tag triggers `.github/workflows/release.yml`, which creates a GitHub
 Release and uploads App Store note artifacts.
 
+## Style & lint ownership
+
+`./Scripts/test.sh style` runs three complementary checks. Do not blur their roles:
+
+| Tool | Config | Owns |
+|------|--------|------|
+| SwiftFormat | `.swiftformat` | Whitespace, commas, import order, trailing newlines, brace layout |
+| SwiftLint | `.swiftlint.yml` | Semantics, API idioms, structural size, force unwrap/cast/try; macOS custom_rules for platform bans |
+| UI style | `Scripts/check-ui-style.sh` | Product chrome — route glass/material/button styles through `TrinketDesign` (or `UIStyleCheck: allow`) |
+| Platform bans | `Scripts/check-platform-api-bans.sh` | `NavigationView` / `ObservableObject` / `@Published` / `@StateObject` / `@EnvironmentObject` / `@ObservedObject` (SourceKit-free) |
+
+Pinned versions live in `Scripts/tool-versions.env`. Shared format/lint roots live in `Scripts/swift-source-dirs.env` (app, packages, package tests, `TrinketTestSupport`). Install with `./Scripts/ensure-ci-tools.sh`. Module layering is a separate gate: `./Scripts/check-module-boundaries.sh`.
+
 ## Configuration files
 
 | File | Role |
 |------|------|
+| `.swiftformat` / `.swiftlint.yml` | Format + semantic lint (see Style & lint ownership) |
+| `Scripts/swift-source-dirs.env` | Shared Swift roots for `format.sh` / `lint.sh` |
 | `cliff.toml` | Developer changelog (Keep a Changelog categories) |
 | `cliff-appstore.toml` | Alternate git-cliff template (plain bullets) |
 | `ReleaseNotes/.prompt.md` | Generated prompt for optional AI polish (gitignored) |
@@ -205,6 +220,6 @@ git config core.hooksPath .githooks
 The repo includes:
 
 - `.githooks/commit-msg` → `./Scripts/validate-commit-msg.sh` (advisory)
-- `.githooks/pre-push` → format lint + generate/assert (blocks push on drift)
+- `.githooks/pre-push` → format lint + SwiftLint + UI style + platform bans + generate/assert (blocks push on drift)
 
 Install pinned SwiftFormat/SwiftLint with `./Scripts/ensure-ci-tools.sh` (versions in `Scripts/tool-versions.env`). Skip the pre-push gate once with `SKIP_TRINKET_PREPUSH=1`. For the full local CI gate without unit/quick-smoke, run `./Scripts/ci-gate.sh`. Commit-msg warnings are advisory and do not block commits.

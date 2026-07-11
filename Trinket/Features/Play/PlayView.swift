@@ -170,11 +170,11 @@ struct PlayView: View {
     private func canOpen(_ mode: PlayerShellSessionPlayMode) -> Bool {
         switch mode {
         case .campaign:
-            return true
+            true
         case .aspects:
-            return ModesUnlock.isUnlocked(journey: appState.journey.current)
+            ModesUnlock.isUnlocked(journey: appState.journey.current)
         case .labyrinth:
-            return appState.isLabyrinthUnlocked
+            appState.isLabyrinthUnlocked
         }
     }
 

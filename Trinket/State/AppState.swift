@@ -153,13 +153,13 @@ final class AppState {
     var persistenceStatusMessage: String? {
         switch playerSave.lastPersistenceError {
         case .writeFailed:
-            return "Couldn't save progress to this device. Your latest changes may be lost if the app closes."
+            "Couldn't save progress to this device. Your latest changes may be lost if the app closes."
         case let .invalidSave(message):
-            return message
+            message
         case let .storeUnavailable(message):
-            return message
+            message
         case .none:
-            return nil
+            nil
         }
     }
 

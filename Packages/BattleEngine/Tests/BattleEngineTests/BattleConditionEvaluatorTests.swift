@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct BattleConditionEvaluatorTests {
     @Test func lowestHealthAllyPrefersLivingCombatantWhenHeroIsDefeated() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
@@ -61,12 +60,12 @@ struct BattleConditionEvaluatorTests {
         )
 
         try #expect(!BattleConditionEvaluator.isMet(
-                .enemyBleeding,
-                actor: hero,
-                enemy: enemy,
-                hero: hero,
-                pet: pet,
-                context: context
-            ))
+            .enemyBleeding,
+            actor: hero,
+            enemy: enemy,
+            hero: hero,
+            pet: pet,
+            context: context
+        ))
     }
 }

@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct MarkedConsumeTests {
     @Test func markedConsumedWhenFullyShielded() throws {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 20)
@@ -37,7 +36,11 @@ struct MarkedConsumeTests {
 
         try #expect(outcome.healthLost == 0)
         try #expect(
-            !context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }
+            !context.roster.activeEffects(for: enemy).contains {
+                if case .marked = $0.effect {
+                    return true
+                }; return false
+            }
         )
         try #expect(outcome.events.contains { $0.effectKind == .markedConsumed })
     }

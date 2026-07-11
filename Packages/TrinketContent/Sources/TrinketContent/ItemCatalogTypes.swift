@@ -88,9 +88,9 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
     public func power(for rarity: Rarity) -> ItemAffixPower {
         switch rarity {
         case .basic:
-            return basic
+            basic
         case .astral:
-            return astral
+            astral
         }
     }
 
@@ -103,7 +103,9 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
     /// `true` when this affix matches `bias` or is build-generic.
     /// Damage-type affixes outside the bias (e.g. Poison on a Physical/Holy kit) are rejected.
     public func isAligned(withBuildKeywords bias: Set<Keyword>) -> Bool {
-        if isBuildGeneric { return true }
+        if isBuildGeneric {
+            return true
+        }
         guard !bias.isEmpty else { return true }
         return !keywords.isDisjoint(with: bias)
     }

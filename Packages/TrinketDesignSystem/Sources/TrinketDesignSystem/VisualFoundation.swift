@@ -15,13 +15,13 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .standard: return "Standard"
-        case .playJourney: return "Play"
-        case .collection: return "Collection"
-        case .denseList: return "Dense List"
-        case .homestead: return "Homestead"
-        case .battle: return "Battle"
-        case .modal: return "Modal"
+        case .standard: "Standard"
+        case .playJourney: "Play"
+        case .collection: "Collection"
+        case .denseList: "Dense List"
+        case .homestead: "Homestead"
+        case .battle: "Battle"
+        case .modal: "Modal"
         }
     }
 }
@@ -64,17 +64,17 @@ public enum TypographyRole: Sendable {
 
     var font: Font {
         switch self {
-        case .screenTitle: return .largeTitle.weight(.bold)
-        case .sectionTitle: return .title3.weight(.semibold)
-        case .cardTitle: return .headline.weight(.semibold)
-        case .body: return .body
-        case .secondaryBody: return .subheadline
-        case .caption: return .caption
-        case .badge: return .caption.weight(.semibold)
-        case .button: return .body.weight(.semibold)
-        case .statValue: return .body.monospacedDigit().weight(.semibold)
-        case .tooltip: return .caption
-        case .navigation: return .headline.weight(.semibold)
+        case .screenTitle: .largeTitle.weight(.bold)
+        case .sectionTitle: .title3.weight(.semibold)
+        case .cardTitle: .headline.weight(.semibold)
+        case .body: .body
+        case .secondaryBody: .subheadline
+        case .caption: .caption
+        case .badge: .caption.weight(.semibold)
+        case .button: .body.weight(.semibold)
+        case .statValue: .body.monospacedDigit().weight(.semibold)
+        case .tooltip: .caption
+        case .navigation: .headline.weight(.semibold)
         }
     }
 }

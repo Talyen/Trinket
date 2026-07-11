@@ -17,7 +17,9 @@ package enum DeathsDoorEngine {
         for combatant: Combatant,
         in context: BattleEngineContext
     ) -> Bool {
-        if isActive(for: combatant, in: context) { return true }
+        if isActive(for: combatant, in: context) {
+            return true
+        }
         guard context.roster.hasConsumedDeathsDoor(for: combatant),
               let runtime = context.roster.runtime(for: combatant),
               let expiredAt = runtime.deathsDoorExpiredAtTick,

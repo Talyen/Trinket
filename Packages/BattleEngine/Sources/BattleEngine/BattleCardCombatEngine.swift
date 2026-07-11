@@ -187,14 +187,13 @@ public enum BattleCardCombatEngine {
         guard context.roster[owner].isAlive else { return false }
         guard !context.hand.isAtSoftCap else { return false }
 
-        let ability: Ability?
-        switch owner {
+        let ability: Ability? = switch owner {
         case .hero:
-            ability = context.heroDeck.draw()
+            context.heroDeck.draw()
         case .pet:
-            ability = context.petDeck.draw()
+            context.petDeck.draw()
         case .enemy:
-            ability = nil
+            nil
         }
         guard let ability else { return false }
 
