@@ -6,6 +6,20 @@ import CoreGraphics
 /// - Bottom scrim on those heroes: ~47% of the minimum header (140pt), not a third competing system.
 /// - Picker list thumbs: 3:4 art at ~100pt width → 133pt height (`pickerRowCardHeight`).
 enum HeroHeaderLayout {
+    enum HeightPolicy: Equatable {
+        case portrait
+        case cinematicLandscape
+
+        func height(forWidth width: CGFloat) -> CGFloat {
+            switch self {
+            case .portrait:
+                return max(width * HeroHeaderLayout.headerAspectRatio, HeroHeaderLayout.minimumHeaderHeight)
+            case .cinematicLandscape:
+                return min(max(width * 0.78, 288), 344)
+            }
+        }
+    }
+
     /// Minimum full-bleed hero height (also the reference for scrim proportion).
     static let minimumHeaderHeight: CGFloat = 300
     /// Portrait aspect for full-bleed combatant/item heroes.
@@ -21,7 +35,7 @@ enum HeroHeaderLayout {
     }
 
     static func headerHeight(forWidth width: CGFloat) -> CGFloat {
-        max(width * headerAspectRatio, minimumHeaderHeight)
+        HeightPolicy.portrait.height(forWidth: width)
     }
 
     /// Bottom gradient scrim on full-bleed heroes — proportional to minimum header height.

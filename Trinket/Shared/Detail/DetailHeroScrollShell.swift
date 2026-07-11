@@ -4,6 +4,8 @@ import TrinketDesignSystem
 /// Shared scroll + toolbar chrome for full-bleed hero detail sheets (combatants, items).
 struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     let title: String
+    let backgroundMode: BackgroundMode
+    let heroHeightPolicy: HeroHeaderLayout.HeightPolicy
     var showsDoneButton = false
     var hidesNavigationBar = false
     var onDone: (() -> Void)?
@@ -16,6 +18,8 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
 
     init(
         title: String,
+        backgroundMode: BackgroundMode = .standard,
+        heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
         showsDoneButton: Bool = false,
         hidesNavigationBar: Bool = false,
         onDone: (() -> Void)? = nil,
@@ -23,6 +27,8 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
         @ViewBuilder bodyContent: @escaping () -> BodyContent
     ) {
         self.title = title
+        self.backgroundMode = backgroundMode
+        self.heroHeightPolicy = heroHeightPolicy
         self.showsDoneButton = showsDoneButton
         self.hidesNavigationBar = hidesNavigationBar
         self.onDone = onDone
@@ -40,7 +46,7 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                         bodyContent()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .trinketScreenBackground(.standard)
+                    .trinketScreenBackground(backgroundMode)
                 }
             }
             .ignoresSafeArea(edges: .top)
@@ -58,10 +64,10 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     )
                 )
             } action: { _, metrics in
-                headerBaseHeight = HeroHeaderLayout.headerHeight(forWidth: metrics.containerWidth)
+                headerBaseHeight = heroHeightPolicy.height(forWidth: metrics.containerWidth)
                 heroOverscroll = metrics.overscroll
                 let threshold = headerBaseHeight - metrics.topInset - 44
-                titleOpacity = min(max((metrics.offsetY - threshold) / 20, 0), 1)
+                titleOpacity = min(max((metrics.offsetY - threshold) / 32, 0), 1)
             }
         }
     }

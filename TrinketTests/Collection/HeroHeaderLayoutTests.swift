@@ -45,6 +45,12 @@ struct HeroHeaderLayoutTests {
         }
     }
 
+    @Test func cinematicHeightIsDenseAndClamped() {
+        #expect(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 320) == 288)
+        #expect(abs(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 390) - 304.2) < 0.1)
+        #expect(HeroHeaderLayout.HeightPolicy.cinematicLandscape.height(forWidth: 500) == 344)
+    }
+
     // MARK: - Overscroll stretch contract
 
     @Test func overscrollIsZeroWhenContentIsNotPulledPastTop() {

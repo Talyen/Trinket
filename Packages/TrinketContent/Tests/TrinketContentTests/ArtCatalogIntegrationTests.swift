@@ -1,4 +1,5 @@
 import Testing
+import TrinketCore
 @testable import TrinketContent
 
 struct ArtCatalogIntegrationTests {
@@ -93,6 +94,22 @@ struct ArtCatalogIntegrationTests {
             rewarded.artReference,
             "Missing art after rewardInstance for \(rewarded.templateID)"
         )
+    }
+
+    @Test func eachHomesteadResourceHasArtReference() throws {
+        for resource in HomesteadResource.allCases {
+            _ = try #require(
+                ArtCatalog.resourceArtByID[resource.rawValue],
+                "Missing Homestead resource art for \(resource.rawValue)"
+            )
+        }
+    }
+
+    @Test func backgroundFocalPointsAreNormalized() {
+        for art in ArtCatalog.backgroundArtByID.values {
+            #expect((0 ... 1).contains(art.focalPoint.x))
+            #expect((0 ... 1).contains(art.focalPoint.y))
+        }
     }
 
     private func referencedAbilityIDs() -> Set<String> {

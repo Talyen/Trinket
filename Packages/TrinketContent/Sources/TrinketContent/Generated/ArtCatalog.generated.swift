@@ -40,6 +40,12 @@ public struct SlotBackgroundArtReference: Hashable, Sendable {
 
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
+    public let focalPoint: ArtFocalPoint
+    public let accessibilityLabel: String
+}
+
+public struct ResourceArtReference: Hashable, Sendable {
+    public let imageName: String
     public let accessibilityLabel: String
 }
 
@@ -892,43 +898,58 @@ public enum ArtCatalog {
     public static let backgroundArtByID: [String: BackgroundArtReference] = [
         "chapter-1": BackgroundArtReference(
             imageName: "bg_verdant_forest",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Lush green canopy and winding forest path of the Verdant Forest"
+        ),
+        "homestead": BackgroundArtReference(
+            imageName: "bg_homestead",
+            focalPoint: ArtFocalPoint(x: 0.60, y: 0.50),
+            accessibilityLabel: "A prosperous mountain Homestead glowing beneath a dramatic golden sunset"
         ),
         "wheatField": BackgroundArtReference(
             imageName: "bg_homestead_wheat_field",
-            accessibilityLabel: "Golden wheat field at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.55, y: 0.58),
+            accessibilityLabel: "Golden wheat field and mountain path at the Homestead"
         ),
         "herbGarden": BackgroundArtReference(
             imageName: "bg_homestead_herb_garden",
-            accessibilityLabel: "Green herb garden at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.58, y: 0.58),
+            accessibilityLabel: "Medicinal herb beds beside a timber cottage at sunset"
         ),
         "chickenCoop": BackgroundArtReference(
             imageName: "bg_homestead_chicken_coop",
-            accessibilityLabel: "Wooden chicken coop at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.60, y: 0.54),
+            accessibilityLabel: "Rustic timber chicken coop in a mountain yard"
         ),
         "pasture": BackgroundArtReference(
             imageName: "bg_homestead_pasture",
-            accessibilityLabel: "Open pasture at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.60, y: 0.52),
+            accessibilityLabel: "Fenced mountain pasture and sturdy field shelter at sunset"
         ),
         "blacksmithForge": BackgroundArtReference(
             imageName: "bg_homestead_blacksmith_forge",
-            accessibilityLabel: "Blacksmith forge at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.54),
+            accessibilityLabel: "Glowing medieval blacksmith forge with anvil and bellows"
         ),
         "alchemyLab": BackgroundArtReference(
             imageName: "bg_homestead_alchemy_lab",
-            accessibilityLabel: "Alchemy lab at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.52, y: 0.58),
+            accessibilityLabel: "Copper stills, glass flasks, and herbs in a medieval alchemy lab"
         ),
         "crystalGarden": BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden",
-            accessibilityLabel: "Blue crystal garden at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.48, y: 0.58),
+            accessibilityLabel: "Cultivated amethyst and blue crystal beds at mountain dusk"
         ),
         "runesmithWorkshop": BackgroundArtReference(
             imageName: "bg_homestead_runesmith_workshop",
-            accessibilityLabel: "Runesmith workshop at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.58),
+            accessibilityLabel: "Arcane runesmith worktable with engraved iron and crystal tools"
         ),
         "wishingWell": BackgroundArtReference(
             imageName: "bg_homestead_wishing_well",
-            accessibilityLabel: "Wishing well at the Homestead"
+            focalPoint: ArtFocalPoint(x: 0.58, y: 0.54),
+            accessibilityLabel: "Ancient mossy wishing well beneath old trees in golden light"
         ),
     ]
 
@@ -1032,6 +1053,37 @@ public enum ArtCatalog {
             imageName: "encounter_destination_corruption_altar",
             thumbnailImageName: "encounter_destination_corruption_altar_thumb",
             accessibilityLabel: "Destination art showing a corruption altar"
+        ),
+    ]
+
+    public static let resourceArtByID: [String: ResourceArtReference] = [
+        "wood": ResourceArtReference(
+            imageName: "resource_homestead_wood",
+            accessibilityLabel: "Bundle of cut wood logs"
+        ),
+        "stone": ResourceArtReference(
+            imageName: "resource_homestead_stone",
+            accessibilityLabel: "Cluster of rugged building stones"
+        ),
+        "iron": ResourceArtReference(
+            imageName: "resource_homestead_iron",
+            accessibilityLabel: "Stacked dark iron ingots"
+        ),
+        "food": ResourceArtReference(
+            imageName: "resource_homestead_food",
+            accessibilityLabel: "Golden sheaf of wheat"
+        ),
+        "herbs": ResourceArtReference(
+            imageName: "resource_homestead_herbs",
+            accessibilityLabel: "Bundle of medicinal herbs"
+        ),
+        "crystal": ResourceArtReference(
+            imageName: "resource_homestead_crystal",
+            accessibilityLabel: "Amethyst crystal cluster"
+        ),
+        "gold": ResourceArtReference(
+            imageName: "resource_homestead_gold",
+            accessibilityLabel: "Antique gold sun coin"
         ),
     ]
 

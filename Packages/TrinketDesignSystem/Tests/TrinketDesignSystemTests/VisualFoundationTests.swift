@@ -49,11 +49,23 @@ struct VisualFoundationTests {
         if case .ultraThinMaterial = MaterialRoleStyle(role: .subtleOverlay) {} else {
             Issue.record("subtleOverlay should keep ultra-thin material")
         }
+
+        if case let .glass(_, solidFill) = MaterialRoleStyle(role: .homesteadFooter, colorScheme: .dark) {
+            try #expect(solidFill == HomesteadPalette.elevatedPanel(for: .dark))
+        } else {
+            Issue.record("homesteadFooter should use tinted glass")
+        }
     }
 
     @Test func glassChromeSolidFillsAreDistinct() throws {
         let palette = ThemePalette.apple
         try #expect(palette.elevatedBackground != palette.panelSurface)
         try #expect(palette.panelSurface != palette.secondaryBackground)
+    }
+
+    @Test func homesteadPaletteAdaptsAcrossAppearances() throws {
+        try #expect(HomesteadPalette.background(for: .dark) != HomesteadPalette.background(for: .light))
+        try #expect(HomesteadPalette.panel(for: .dark) != HomesteadPalette.panel(for: .light))
+        try #expect(HomesteadPalette.stroke(for: .dark) != HomesteadPalette.stroke(for: .light))
     }
 }

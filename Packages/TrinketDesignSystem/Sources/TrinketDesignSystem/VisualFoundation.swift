@@ -15,13 +15,13 @@ public enum BackgroundMode: CaseIterable, Equatable, Identifiable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .standard: "Standard"
-        case .playJourney: "Play"
-        case .collection: "Collection"
-        case .denseList: "Dense List"
-        case .homestead: "Homestead"
-        case .battle: "Battle"
-        case .modal: "Modal"
+        case .standard: return "Standard"
+        case .playJourney: return "Play"
+        case .collection: return "Collection"
+        case .denseList: return "Dense List"
+        case .homestead: return "Homestead"
+        case .battle: return "Battle"
+        case .modal: return "Modal"
         }
     }
 }
@@ -38,6 +38,7 @@ public enum SurfaceRole: Equatable, Sendable {
     case reward
     case modal
     case popover
+    case homesteadPanel
 }
 
 public enum MaterialRole: Sendable {
@@ -47,9 +48,12 @@ public enum MaterialRole: Sendable {
     case popover
     case rewardReveal
     case subtleOverlay
+    case homesteadFooter
 }
 
 public enum TypographyRole: Sendable {
+    case screenDisplay
+    case sectionDisplay
     case screenTitle
     case sectionTitle
     case cardTitle
@@ -61,44 +65,94 @@ public enum TypographyRole: Sendable {
     case statValue
     case tooltip
     case navigation
+    case rowDisplay
 
     var font: Font {
         switch self {
-        case .screenTitle: .largeTitle.weight(.bold)
-        case .sectionTitle: .title3.weight(.semibold)
-        case .cardTitle: .headline.weight(.semibold)
-        case .body: .body
-        case .secondaryBody: .subheadline
-        case .caption: .caption
-        case .badge: .caption.weight(.semibold)
-        case .button: .body.weight(.semibold)
-        case .statValue: .body.monospacedDigit().weight(.semibold)
-        case .tooltip: .caption
-        case .navigation: .headline.weight(.semibold)
+        case .screenDisplay: return .system(.largeTitle, design: .serif).weight(.semibold)
+        case .sectionDisplay: return .system(.title3, design: .serif).weight(.semibold)
+        case .screenTitle: return .largeTitle.weight(.bold)
+        case .sectionTitle: return .title3.weight(.semibold)
+        case .cardTitle: return .headline.weight(.semibold)
+        case .body: return .body
+        case .secondaryBody: return .subheadline
+        case .caption: return .caption
+        case .badge: return .caption.weight(.semibold)
+        case .button: return .body.weight(.semibold)
+        case .statValue: return .body.monospacedDigit().weight(.semibold)
+        case .tooltip: return .caption
+        case .navigation: return .headline.weight(.semibold)
+        case .rowDisplay: return .system(.headline, design: .serif).weight(.semibold)
         }
     }
 }
 
-struct TrinketScreenBackground: View {
+public enum HomesteadPalette {
+    public static let accent = Color(red: 0.91, green: 0.67, blue: 0.24)
+    public static let success = Color(red: 0.58, green: 0.74, blue: 0.28)
+
+    public static func background(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.035, green: 0.033, blue: 0.028)
+            : Color(red: 0.965, green: 0.945, blue: 0.895)
+    }
+
+    public static func panel(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.085, green: 0.08, blue: 0.068)
+            : Color(red: 0.92, green: 0.885, blue: 0.80)
+    }
+
+    public static func elevatedPanel(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.12, green: 0.105, blue: 0.082)
+            : Color(red: 0.985, green: 0.965, blue: 0.92)
+    }
+
+    public static func stroke(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.56, green: 0.43, blue: 0.24).opacity(0.62)
+            : Color(red: 0.42, green: 0.30, blue: 0.13).opacity(0.42)
+    }
+
+    public static func mutedText(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark
+            ? Color(red: 0.76, green: 0.72, blue: 0.64)
+            : Color(red: 0.34, green: 0.29, blue: 0.22)
+    }
+
+    public static func pressedFill(for colorScheme: ColorScheme) -> Color {
+        accent.opacity(colorScheme == .dark ? 0.12 : 0.09)
+    }
+}
+
+public struct TrinketScreenBackground: View {
     private let mode: BackgroundMode
     private let elementTint: Color?
+    @Environment(\.colorScheme) private var colorScheme
 
-    init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
+    public init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
         self.mode = mode
         self.elementTint = elementTint
     }
 
-    var body: some View {
-        Color(.systemBackground)
-            .ignoresSafeArea()
+    public var body: some View {
+        Group {
+            if mode == .homestead {
+                HomesteadPalette.background(for: colorScheme)
+            } else {
+                Color(.systemBackground)
+            }
+        }
+        .ignoresSafeArea()
     }
 }
 
-struct ScreenBackgroundModifier: ViewModifier {
+public struct ScreenBackgroundModifier: ViewModifier {
     let mode: BackgroundMode
     let elementTint: Color?
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .background {
                 TrinketScreenBackground(mode: mode, elementTint: elementTint)
@@ -106,12 +160,14 @@ struct ScreenBackgroundModifier: ViewModifier {
     }
 }
 
-struct SurfaceModifier: ViewModifier {
+public struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
-    func body(content: Content) -> some View {
-        let style = SurfaceStyle(role: role, palette: ThemePalette.apple)
+    public func body(content: Content) -> some View {
+        let style = SurfaceStyle(role: role, palette: ThemePalette.apple, colorScheme: colorScheme)
 
         content
             .padding(style.padding)
@@ -122,7 +178,7 @@ struct SurfaceModifier: ViewModifier {
             }
             .shadow(color: style.shadow.color, radius: style.shadow.radius, y: style.shadow.y)
             .opacity(role == .disabled ? 0.72 : 1)
-            .scaleEffect(isPressed ? 0.98 : 1)
+            .scaleEffect(isPressed && !reduceMotion ? 0.98 : 1)
     }
 }
 
@@ -135,7 +191,7 @@ private struct SurfaceStyle {
     let shadow: ShadowStyle
 
     // swiftlint:disable:next function_body_length
-    init(role: SurfaceRole, palette: ThemePalette) {
+    init(role: SurfaceRole, palette: ThemePalette, colorScheme: ColorScheme) {
         switch role {
         case .base:
             fill = palette.panelSurface
@@ -214,6 +270,13 @@ private struct SurfaceStyle {
             padding = 10
             cornerRadius = TrinketDesign.Corners.small
             shadow = palette.shadow
+        case .homesteadPanel:
+            fill = HomesteadPalette.panel(for: colorScheme)
+            stroke = HomesteadPalette.stroke(for: colorScheme)
+            strokeWidth = 1
+            padding = 12
+            cornerRadius = TrinketDesign.Corners.card
+            shadow = .none
         }
     }
 
@@ -222,14 +285,15 @@ private struct SurfaceStyle {
     }
 }
 
-struct MaterialRoleModifier: ViewModifier {
+public struct MaterialRoleModifier: ViewModifier {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorScheme) private var colorScheme
 
     let role: MaterialRole
     let shape: RoundedRectangle
 
-    func body(content: Content) -> some View {
-        switch MaterialRoleStyle(role: role) {
+    public func body(content: Content) -> some View {
+        switch MaterialRoleStyle(role: role, colorScheme: colorScheme) {
         case .none:
             content
         case let .glass(glass, solidFill):
@@ -268,7 +332,7 @@ enum MaterialRoleStyle {
     case solid(fill: Color)
     case ultraThinMaterial
 
-    init(role: MaterialRole) {
+    init(role: MaterialRole, colorScheme: ColorScheme = .dark) {
         let palette = ThemePalette.apple
         switch role {
         case .toolbar:
@@ -283,6 +347,11 @@ enum MaterialRoleStyle {
             self = .glass(glass: .regular.tint(palette.accent), solidFill: palette.elevatedBackground)
         case .subtleOverlay:
             self = .ultraThinMaterial
+        case .homesteadFooter:
+            self = .glass(
+                glass: .regular.tint(HomesteadPalette.accent.opacity(0.16)),
+                solidFill: HomesteadPalette.elevatedPanel(for: colorScheme)
+            )
         }
     }
 }
@@ -308,22 +377,22 @@ struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     }
 }
 
-struct TypographyModifier: ViewModifier {
+public struct TypographyModifier: ViewModifier {
     let role: TypographyRole
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content.font(role.font)
     }
 }
 
-struct GlassChipModifier: ViewModifier {
+public struct GlassChipModifier: ViewModifier {
     let role: ChipChromeRole
 
-    init(role: ChipChromeRole = .standard) {
+    public init(role: ChipChromeRole = .standard) {
         self.role = role
     }
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .padding(.horizontal, role.horizontalPadding)
             .padding(.vertical, role.verticalPadding)
@@ -362,8 +431,10 @@ extension ChipChromeRole {
 }
 
 /// Dark outline + soft bloom so floating combat numbers stay readable on busy art.
-struct CombatFloatTextModifier: ViewModifier {
-    func body(content: Content) -> some View {
+public struct CombatFloatTextModifier: ViewModifier {
+    public init() {}
+
+    public func body(content: Content) -> some View {
         content
             .shadow(color: .black.opacity(0.95), radius: 0, x: 0, y: 1)
             .shadow(color: .black.opacity(0.9), radius: 0, x: 0, y: -1)
@@ -373,8 +444,8 @@ struct CombatFloatTextModifier: ViewModifier {
     }
 }
 
-struct StatusBadgeModifier: ViewModifier {
-    func body(content: Content) -> some View {
+public struct StatusBadgeModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .padding(.horizontal, TrinketDesign.Metrics.chipCompactPaddingHorizontal)
             .padding(.vertical, TrinketDesign.Metrics.chipCompactPaddingVertical)
@@ -386,8 +457,8 @@ struct StatusBadgeModifier: ViewModifier {
     }
 }
 
-struct WalletPillModifier: ViewModifier {
-    func body(content: Content) -> some View {
+public struct WalletPillModifier: ViewModifier {
+    public func body(content: Content) -> some View {
         content
             .padding(.horizontal, TrinketDesign.Metrics.chipPaddingHorizontal)
             .padding(.vertical, TrinketDesign.Metrics.chipPaddingVertical)

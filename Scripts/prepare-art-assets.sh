@@ -35,6 +35,7 @@ items_temp=$(mktemp)
 slot_backgrounds_temp=$(mktemp)
 backgrounds_temp=$(mktemp)
 encounters_temp=$(mktemp)
+resources_temp=$(mktemp)
 active_assets_temp=$(mktemp)
 processed_count=0
 
@@ -51,7 +52,7 @@ heic_from_source() {
 while IFS=$'\t' read -r kind id asset_name source_path focal_x focal_y accessibility_label || [[ -n "${kind:-}" ]]; do
   [[ -z "${kind:-}" || "$kind" == \#* ]] && continue
 
-  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" ]]; then
+  if [[ "$kind" != "combatant" && "$kind" != "ability" && "$kind" != "item" && "$kind" != "slot_background" && "$kind" != "background" && "$kind" != "encounter" && "$kind" != "resource" ]]; then
     echo "Unsupported art kind '$kind' for id '$id'." >&2
     exit 1
   fi
@@ -182,6 +183,14 @@ SWIFT
     cat >> "$backgrounds_temp" <<SWIFT
         "$escaped_id": BackgroundArtReference(
             imageName: "$escaped_asset",
+            focalPoint: ArtFocalPoint(x: $focal_x, y: $focal_y),
+            accessibilityLabel: "$escaped_label"
+        ),
+SWIFT
+  elif [[ "$kind" == "resource" ]]; then
+    cat >> "$resources_temp" <<SWIFT
+        "$escaped_id": ResourceArtReference(
+            imageName: "$escaped_asset",
             accessibilityLabel: "$escaped_label"
         ),
 SWIFT
@@ -244,6 +253,12 @@ public struct SlotBackgroundArtReference: Hashable, Sendable {
 
 public struct BackgroundArtReference: Hashable, Sendable {
     public let imageName: String
+    public let focalPoint: ArtFocalPoint
+    public let accessibilityLabel: String
+}
+
+public struct ResourceArtReference: Hashable, Sendable {
+    public let imageName: String
     public let accessibilityLabel: String
 }
 
@@ -277,6 +292,10 @@ $(cat "$backgrounds_temp")
 
     public static let encounterArtByID: [String: EncounterArtReference] = [
 $(cat "$encounters_temp")
+    ]
+
+    public static let resourceArtByID: [String: ResourceArtReference] = [
+$(cat "$resources_temp")
     ]
 
 }
@@ -320,7 +339,7 @@ SWIFT_EXTENSIONS
     name="${foldername%.imageset}"
     
     case "$name" in
-      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*)
+      hero_*|pet_*|enemy_*|ability_*|item_*|slot_*|bg_*|encounter_*|resource_*)
         if ! grep -qx "$name" "$active_assets_temp"; then
           echo "Pruning orphaned asset: $foldername"
           rm -rf "$dir"
@@ -330,7 +349,7 @@ SWIFT_EXTENSIONS
   done
   shopt -u nullglob
 
-rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$active_assets_temp"
+rm -f "$combatants_temp" "$abilities_temp" "$items_temp" "$slot_backgrounds_temp" "$backgrounds_temp" "$encounters_temp" "$resources_temp" "$active_assets_temp"
 
 echo "Prepared $processed_count curated art asset(s) (HEIC full + thumbnail per asset)."
 

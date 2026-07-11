@@ -6,10 +6,6 @@ import TrinketPersistence
 
 struct HomesteadView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var build = HomesteadBuildControl()
-    @State private var recentUpgradeID: HomesteadNodeID?
-    @State private var selectedHomesteadNode: HomesteadNodeDefinition?
 
     private var homestead: PlayerHomesteadState {
         appState.homestead.current
@@ -19,98 +15,82 @@ struct HomesteadView: View {
         appState.roster.current
     }
 
-    private var allDefinitions: [HomesteadNodeDefinition] {
-        GameContent.homesteadNodes
-    }
-
-    private var featuredDefinition: HomesteadNodeDefinition? {
-        HomesteadProgression.recommendedProject(
-            definitions: allDefinitions,
-            homestead: homestead,
-            roster: roster
-        )
-    }
-
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                HomesteadResourceWallet(
-                    homestead: homestead,
-                    roster: roster,
-                    resources: HomesteadProgression.walletResources(
-                        for: featuredDefinition,
+        DetailHeroScrollShell(
+            title: "Homestead",
+            backgroundMode: .homestead,
+            heroHeightPolicy: .cinematicLandscape
+        ) { baseHeight, overscroll in
+            HomesteadOverviewHero(baseHeight: baseHeight, overscroll: overscroll)
+        } bodyContent: {
+            VStack(alignment: .leading, spacing: 18) {
+                HomesteadResourceWallet(homestead: homestead, roster: roster)
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+
+                ForEach(HomesteadNodeCategory.allCases) { category in
+                    HomesteadProjectSection(
+                        category: category,
+                        definitions: definitions(in: category),
                         homestead: homestead,
                         roster: roster
                     )
-                )
-
-                if let featuredDefinition {
-                    HomesteadProjectCard(
-                        definition: featuredDefinition,
-                        status: HomesteadProjectStatus(
-                            definition: featuredDefinition,
-                            homestead: homestead,
-                            roster: roster
-                        ),
-                        style: .featured(onBuild: { buildOrUpgrade(featuredDefinition) }),
-                        onSelect: { selectedHomesteadNode = featuredDefinition }
-                    )
-                }
-
-                ForEach(HomesteadNodeCategory.allCases) { category in
-                    let definitions = definitions(in: category)
-                    if !definitions.isEmpty {
-                        HomesteadProjectSection(
-                            category: category,
-                            definitions: definitions,
-                            homestead: homestead,
-                            roster: roster,
-                            recentUpgradeID: recentUpgradeID,
-                            onSelect: { selectedHomesteadNode = $0 }
-                        )
-                    }
                 }
             }
-            .padding(.top, 12)
+            .padding(.top, 10)
             .padding(.bottom, 112)
         }
-        .trinketScreenBackground(.homestead)
-        .navigationTitle("Homestead")
-        .navigationBarTitleDisplayMode(.large)
-        .accessibilityIdentifier(AccessibilityID.Screen.homestead)
-        .trinketSensoryFeedback(
-            .success,
-            trigger: build.upgradeEventCount,
-            enabled: appState.options.hapticsEnabled
-        )
-        .homesteadBuildErrorAlert(build: $build)
-        .sheet(item: $selectedHomesteadNode) { definition in
-            NavigationStack {
-                HomesteadNodeDetailView(definition: definition)
-            }
-            .trinketDetailSheet()
+        .navigationDestination(for: HomesteadNodeDefinition.self) { definition in
+            HomesteadNodeDetailView(definition: definition)
         }
-    }
-
-    private func buildOrUpgrade(_ definition: HomesteadNodeDefinition) {
-        build.perform(
-            definition,
-            saveStore: appState.playerSave,
-            onSuccess: { nodeID in
-                recentUpgradeID = nodeID
-                guard !reduceMotion else { return }
-                withAnimation(.snappy) {
-                    recentUpgradeID = nodeID
-                }
-            }
-        )
+        .accessibilityIdentifier(AccessibilityID.Screen.homestead)
     }
 
     private func definitions(in category: HomesteadNodeCategory) -> [HomesteadNodeDefinition] {
-        HomesteadProgression.visibleDefinitions(
-            in: category,
-            all: allDefinitions,
-            homestead: homestead
-        )
+        GameContent.homesteadNodes.filter { $0.category == category }
+    }
+}
+
+struct HomesteadOverviewHero: View {
+    let baseHeight: CGFloat
+    let overscroll: CGFloat
+
+    private var art: BackgroundArtReference? {
+        ArtCatalog.backgroundArtByID["homestead"]
+            ?? ArtCatalog.backgroundArtByID["wheatField"]
+    }
+
+    var body: some View {
+        OverscrollHeroContainer(
+            baseHeight: baseHeight,
+            overscroll: overscroll,
+            alignment: .bottomLeading
+        ) {
+            if let art {
+                HomesteadFocalArtwork(art: art)
+                    .accessibilityLabel(art.accessibilityLabel)
+            } else {
+                Color(.secondarySystemBackground)
+                    .accessibilityLabel("Homestead artwork")
+            }
+        } overlay: {
+            ZStack(alignment: .bottomLeading) {
+                LinearGradient(
+                    colors: [.clear, Color(red: 0.055, green: 0.038, blue: 0.02).opacity(0.88)],
+                    startPoint: .init(x: 0.5, y: 0.42),
+                    endPoint: .bottom
+                )
+                .allowsHitTesting(false)
+
+                Text("Homestead")
+                    .trinketTypography(.screenDisplay)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.95), radius: 1, y: 1)
+                    .shadow(color: .black.opacity(0.48), radius: 5, y: 2)
+                    .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                    .padding(.bottom, 14)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Homestead, overview")
     }
 }

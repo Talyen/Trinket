@@ -87,6 +87,56 @@ struct PrimaryActionButtonModifier: ViewModifier {
     }
 }
 
+/// Shared press treatment for navigation rows. Feature views provide only the
+/// row content; the design system owns the surface, feedback, and motion.
+public struct NavigationRowButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .contentShape(Rectangle())
+            .background(
+                configuration.isPressed ? HomesteadPalette.pressedFill(for: colorScheme) : .clear,
+                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous)
+            )
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
+            .opacity(configuration.isPressed ? 0.94 : 1)
+            .animation(
+                reduceMotion ? TrinketMotion.Homestead.reduceMotion : TrinketMotion.Homestead.rowPress,
+                value: configuration.isPressed
+            )
+    }
+}
+
+public struct HomesteadActionButtonModifier: ViewModifier {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.colorScheme) private var colorScheme
+
+    public init() {}
+
+    public func body(content: Content) -> some View {
+        content
+            .font(.body.weight(.semibold))
+            .foregroundStyle(isEnabled ? HomesteadPalette.accent : HomesteadPalette.mutedText(for: colorScheme))
+            .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
+            .padding(.vertical, 10)
+            .background(
+                isEnabled ? HomesteadPalette.accent.opacity(0.15) : Color.primary.opacity(0.055),
+                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous)
+                    .stroke(
+                        isEnabled ? HomesteadPalette.accent.opacity(0.72) : Color.secondary.opacity(0.28),
+                        lineWidth: 1
+                    )
+            }
+    }
+}
+
 public extension View {
     func trinketCardSurface() -> some View {
         modifier(CardSurfaceModifier())
@@ -106,6 +156,14 @@ public extension View {
 
     func trinketPrimaryActionButton() -> some View {
         modifier(PrimaryActionButtonModifier())
+    }
+
+    func trinketNavigationRowButtonStyle() -> some View {
+        buttonStyle(NavigationRowButtonStyle())
+    }
+
+    func trinketHomesteadActionButton() -> some View {
+        modifier(HomesteadActionButtonModifier())
     }
 
     /// Gates system sensory feedback on the Options haptics toggle.

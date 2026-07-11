@@ -145,12 +145,33 @@ enum AccessibilityID {
     }
 
     enum Homestead {
+        static let resourceWallet = "Homestead Resource Wallet"
+        static let prerequisiteCallout = "Homestead Prerequisite Callout"
+        static let tierPath = "Homestead Tier Path"
+        static let actionFooter = "Homestead Action Footer"
+
+        static func category(_ title: String) -> String {
+            "Homestead \(title) Category"
+        }
+
         static func node(title: String) -> String {
             "\(title) Homestead Node"
         }
 
         static func nodeDetail(title: String) -> String {
             "\(title) Homestead Detail"
+        }
+
+        static func tierNode(title: String, tier: Int) -> String {
+            "\(title) Homestead Tier \(tier)"
+        }
+
+        static func footerAction(title: String) -> String {
+            "\(title) Homestead Action"
+        }
+
+        static func footerCost(resource: String) -> String {
+            "Homestead Footer \(resource) Cost"
         }
     }
 

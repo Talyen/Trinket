@@ -97,7 +97,11 @@ prepare_generated_inputs() {
     echo "=== Running generate ==="
   fi
 
-  ./Scripts/generate.sh "${generate_args[@]}"
+  if (( ${#generate_args[@]} )); then
+    ./Scripts/generate.sh "${generate_args[@]}"
+  else
+    ./Scripts/generate.sh
+  fi
   touch "$stamp"
 }
 

@@ -4,6 +4,28 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+enum HomesteadProjectRowState: Equatable {
+    case prerequisiteLocked
+    case unbuilt(affordable: Bool)
+    case built
+    case upgradeReady
+    case completed
+}
+
+enum HomesteadTierPathState: Equatable {
+    case completed
+    case next(affordable: Bool)
+    case future
+    case locked
+}
+
+enum HomesteadFooterState: Equatable {
+    case action(title: String, enabled: Bool, reason: String?)
+    case complete
+}
+
+/// Derived presentation state for Homestead rows, the tier path, and its
+/// persistent action footer. Nothing here is persisted or used by game rules.
 struct HomesteadProjectStatus {
     let definition: HomesteadNodeDefinition
     let homestead: PlayerHomesteadState
@@ -33,52 +55,80 @@ struct HomesteadProjectStatus {
         isUnlocked && isAffordable && !isComplete
     }
 
-    var nextBonus: HomesteadBonus? {
-        nextTier?.bonus
+    /// The effect visible in the overview row. Unbuilt and locked projects
+    /// intentionally preview tier one; built projects show only their active tier.
+    var overviewEffect: HomesteadBonus? {
+        let visibleTier = max(currentTier, 1)
+        return definition.tier(visibleTier)?.bonus
+    }
+
+    var rowState: HomesteadProjectRowState {
+        if !isUnlocked { return .prerequisiteLocked }
+        if isComplete { return .completed }
+        if currentTier == 0 { return .unbuilt(affordable: isAffordable) }
+        return isAffordable ? .upgradeReady : .built
+    }
+
+    func tierPathState(for tier: HomesteadNodeTier) -> HomesteadTierPathState {
+        if !isUnlocked { return .locked }
+        if tier.tier <= currentTier { return .completed }
+        if tier.tier == currentTier + 1 {
+            return .next(affordable: isAffordable)
+        }
+        return .future
+    }
+
+    var footerState: HomesteadFooterState {
+        guard let nextTier else { return .complete }
+
+        let title = nextTier.tier == 1 ? "Build" : "Upgrade"
+        let enabled = canBuildOrUpgrade
+        let reason: String?
+        if !isUnlocked {
+            reason = unlockRequirementText
+        } else if !isAffordable {
+            reason = missingResourceText ?? "Gather materials to continue."
+        } else {
+            reason = nil
+        }
+        return .action(title: title, enabled: enabled, reason: reason)
     }
 
     var actionTitle: String {
-        guard let nextTier else { return "Complete" }
-        return nextTier.tier == 1 ? "Build" : "Upgrade"
+        switch footerState {
+        case let .action(title, _, _): return title
+        case .complete: return "Complete"
+        }
     }
 
     var statusTitle: String {
-        if isComplete {
-            return "Complete"
+        switch rowState {
+        case .prerequisiteLocked: return unlockRequirementText
+        case let .unbuilt(affordable): return affordable ? "Ready to Build" : "Unbuilt"
+        case .built: return "Built"
+        case .upgradeReady: return "Ready to Upgrade"
+        case .completed: return "Complete"
         }
-        if !isUnlocked {
-            return unlockRequirementText
-        }
-        if canBuildOrUpgrade {
-            return nextTier?.tier == 1 ? "Ready to Build" : "Ready to Upgrade"
-        }
-        return missingResourceText ?? "Gather Materials"
     }
 
     var statusSymbolName: String {
-        if isComplete {
-            return "checkmark.seal.fill"
+        switch rowState {
+        case .prerequisiteLocked: return "lock.fill"
+        case let .unbuilt(affordable): return affordable ? "hammer.fill" : "chevron.right"
+        case .built: return "chevron.right"
+        case .upgradeReady: return "arrow.up.circle.fill"
+        case .completed: return "checkmark.circle.fill"
         }
-        if !isUnlocked {
-            return "lock.fill"
-        }
-        if canBuildOrUpgrade {
-            return "hammer.fill"
-        }
-        return "shippingbox.fill"
     }
 
     var statusColor: Color {
-        if isComplete {
-            return TrinketDesign.Colors.success
+        switch rowState {
+        case .prerequisiteLocked: return .secondary
+        case let .unbuilt(affordable): return affordable ? definition.tint : .secondary
+        case .built: return .secondary
+        case .upgradeReady: return definition.tint
+        case .completed: return TrinketDesign.Colors.success
         }
-        if !isUnlocked {
-            return .secondary
-        }
-        if canBuildOrUpgrade {
-            return definition.tint
-        }
-        return .secondary
     }
 
     var missingResources: [ResourceAmount] {
@@ -96,7 +146,7 @@ struct HomesteadProjectStatus {
         if missing.count == 1, let first = missing.first {
             return "Need \(first.quantity) \(first.resource.displayName)"
         }
-        return "Need \(missing.count) Materials"
+        return "Need \(missing.count) materials"
     }
 
     var unlockRequirementText: String {

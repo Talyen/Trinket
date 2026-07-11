@@ -17,7 +17,7 @@ Trinket keeps raw art and app-ready art separate.
 kind	id	asset_name	source_path	focal_x	focal_y	accessibility_label
 ```
 
-- `kind`: currently `combatant`.
+- `kind`: `combatant`, `ability`, `item`, `slot_background`, `background`, `encounter`, or `resource`.
 - `id`: game model ID, such as `mage` or `training-slime`.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
 - `source_path`: path to the raw source file from the repo root.
@@ -27,6 +27,7 @@ kind	id	asset_name	source_path	focal_x	focal_y	accessibility_label
 For combatants, the raw art filename should match the game entity name exactly, ignoring the file extension. Do not map near-synonyms or temporary stand-ins such as `Knight` art to `Paladin`, `Wizard` art to `Mage`, or a different enemy to `Training Slime`; leave the entity unmapped until matching art exists or the game entity is renamed.
 
 Focal points are intentionally lightweight. They let hero headers bias a 3:4 portrait image toward the face or upper body when the layout crops the image with `scaledToFill`.
+Background focal points are also emitted into `BackgroundArtReference` so cinematic landscape headers and thumbnails can share a curated crop anchor. Resource entries use the same seven-column row shape for pipeline consistency; their focal point should normally be `0.50, 0.50`.
 
 ## Output Format: HEIC + Thumbnail Variants
 

@@ -5,6 +5,24 @@ import SwiftUI
 /// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
+    public enum Homestead: Sendable {
+        public static let reduceMotionFade: TimeInterval = 0.18
+
+        /// Press feedback for dense navigation rows: fast, critically damped, and interruptible.
+        public static var rowPress: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        /// Completion emphasis for a tier node after a successful build or upgrade.
+        public static var tierCompletion: Animation {
+            .spring(response: 0.35, dampingFraction: 1.0)
+        }
+
+        public static var reduceMotion: Animation {
+            .easeOut(duration: reduceMotionFade)
+        }
+    }
+
     public enum Battle: Sendable {
         /// Soft-hold after a Skill cast so caster art is readable.
         public static let skillSoftHold: TimeInterval = 0.5
