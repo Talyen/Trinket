@@ -34,29 +34,29 @@ public extension Effect {
     /// matching `EffectKind` case and extend this switch.
     var kind: EffectKind {
         switch self {
-        case .burn: return .burn
-        case .poison: return .poison
-        case .bleed: return .bleed
-        case .controlMeter: return .controlMeter
-        case .shield: return .shield
-        case .mitigation: return .mitigation
-        case .instantHeal: return .instantHeal
-        case .leech: return .leech
-        case .resourceGain: return .resourceGain
-        case .drawCards: return .drawCards
-        case .cleanse: return .cleanse
-        case .cleanseRandom: return .cleanseRandom
-        case .purge: return .purge
-        case .purgeRandom: return .purgeRandom
-        case .halveMitigation: return .halveMitigation
-        case .deathsDoor: return .deathsDoor
-        case .haste: return .haste
-        case .thorns: return .thorns
-        case .marked: return .marked
-        case .criticalChanceBonus: return .criticalChanceBonus
-        case .restoreManaOnHit: return .restoreManaOnHit
-        case .damageKeywordOverride: return .damageKeywordOverride
-        case .nextHolyStrike: return .nextHolyStrike
+        case .burn: .burn
+        case .poison: .poison
+        case .bleed: .bleed
+        case .controlMeter: .controlMeter
+        case .shield: .shield
+        case .mitigation: .mitigation
+        case .instantHeal: .instantHeal
+        case .leech: .leech
+        case .resourceGain: .resourceGain
+        case .drawCards: .drawCards
+        case .cleanse: .cleanse
+        case .cleanseRandom: .cleanseRandom
+        case .purge: .purge
+        case .purgeRandom: .purgeRandom
+        case .halveMitigation: .halveMitigation
+        case .deathsDoor: .deathsDoor
+        case .haste: .haste
+        case .thorns: .thorns
+        case .marked: .marked
+        case .criticalChanceBonus: .criticalChanceBonus
+        case .restoreManaOnHit: .restoreManaOnHit
+        case .damageKeywordOverride: .damageKeywordOverride
+        case .nextHolyStrike: .nextHolyStrike
         }
     }
 
@@ -65,12 +65,12 @@ public extension Effect {
     var isRemovableDebuff: Bool {
         switch self {
         case .burn, .poison, .bleed, .controlMeter, .marked:
-            return true
+            true
         case .shield, .mitigation, .leech, .cleanse, .purge,
              .instantHeal, .resourceGain, .drawCards, .cleanseRandom, .purgeRandom, .halveMitigation, .deathsDoor,
              .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride,
              .nextHolyStrike:
-            return false
+            false
         }
     }
 
@@ -80,9 +80,9 @@ public extension Effect {
         switch self {
         case .shield, .mitigation, .leech, .haste, .thorns, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
@@ -94,11 +94,11 @@ public extension Effect {
         case .burn, .poison, .bleed, .controlMeter,
              .leech, .deathsDoor,
              .haste, .thorns, .marked, .criticalChanceBonus, .restoreManaOnHit, .damageKeywordOverride:
-            return true
+            true
         case .shield, .mitigation, .nextHolyStrike,
              .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
-            return false
+            false
         }
     }
 
@@ -108,9 +108,9 @@ public extension Effect {
         switch self {
         case .instantHeal, .resourceGain, .drawCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveMitigation:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
@@ -119,15 +119,17 @@ public extension Effect {
     var isDecayingDoT: Bool {
         switch self {
         case .burn, .poison:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 
     /// True for bleed, which tracks its own duration.
     var isBleed: Bool {
-        if case .bleed = self { return true }
+        if case .bleed = self {
+            return true
+        }
         return false
     }
 

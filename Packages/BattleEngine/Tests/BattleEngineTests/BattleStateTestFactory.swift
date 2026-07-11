@@ -1,7 +1,6 @@
-@testable import BattleEngine
-import TrinketCore
 import TrinketContent
-
+import TrinketCore
+@testable import BattleEngine
 
 /// Test factory for `BattleState` that produces a battle with a fixed RNG
 /// seed. The default `BattleState` initializer picks a random seed, which

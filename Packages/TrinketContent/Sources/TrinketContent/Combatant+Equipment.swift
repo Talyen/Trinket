@@ -5,11 +5,11 @@ public extension Combatant.Role {
     var equipmentSlots: [ItemSlot] {
         switch self {
         case .hero:
-            return [.weapon, .armor, .trinket]
+            [.weapon, .armor, .trinket]
         case .pet:
-            return [.trinket, .armor, .secondaryTrinket]
+            [.trinket, .armor, .secondaryTrinket]
         case .enemy:
-            return []
+            []
         }
     }
 }

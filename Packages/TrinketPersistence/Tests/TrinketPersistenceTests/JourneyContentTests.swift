@@ -2,7 +2,6 @@ import Testing
 import TrinketContent
 @testable import TrinketPersistence
 
-@Suite
 struct JourneyContentTests {
     private var chapter: Chapter {
         GameContent.chapters[0]

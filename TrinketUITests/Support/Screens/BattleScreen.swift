@@ -58,14 +58,18 @@ struct BattleScreen {
         let card = app.descendants(matching: .any)[AccessibilityID.CombatantDetail.battleCard(name: combatantName)]
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if victory.exists { return true }
+            if victory.exists {
+                return true
+            }
             if ultimateCinematic.exists {
                 // Default skip policy is `.always` in tests; tap to dismiss the overlay.
                 ultimateCinematic.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                 _ = ultimateCinematic.waitForNonExistence(timeout: 3)
                 continue
             }
-            if card.exists { return false }
+            if card.exists {
+                return false
+            }
             RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         }
         return victory.exists || !card.exists

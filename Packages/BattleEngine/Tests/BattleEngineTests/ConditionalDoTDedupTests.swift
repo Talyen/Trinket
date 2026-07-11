@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct ConditionalDoTDedupTests {
     @Test func shouldSkipImmediateDoTWhenKeywordMatchesRegardlessOfPotency() throws {
         let action = ActionApplyContext(pairedDirectDamage: [(.burn, 9)])

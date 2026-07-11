@@ -39,7 +39,9 @@ struct PlayScreen {
             back.tap()
             let hub = app.descendants(matching: .any)[AccessibilityID.Play.modesScreen]
             let play = app.descendants(matching: .any)[AccessibilityID.Screen.play]
-            if hub.exists, !play.exists { return }
+            if hub.exists, !play.exists {
+                return
+            }
         }
     }
 

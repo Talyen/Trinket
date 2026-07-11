@@ -1,7 +1,6 @@
-import TrinketCore
 import Testing
+import TrinketCore
 
-@Suite
 struct CombatantProgressionTests {
     @Test func requiredXPFollowsQuadraticCurve() throws {
         try #expect(CombatantProgression.requiredXP(forLevel: 1) == 100)
@@ -39,11 +38,11 @@ struct CombatantProgressionTests {
         let overCap = CombatantProgression(level: 1, currentXP: 150, requiredXP: 100)
         let zeroRequired = CombatantProgression(level: 1, currentXP: 10, requiredXP: 0)
 
-        try #expect(abs((empty.progressFraction) - (0)) < 0.001)
-        try #expect(abs((half.progressFraction) - (0.5)) < 0.001)
-        try #expect(abs((full.progressFraction) - (1)) < 0.001)
-        try #expect(abs((overCap.progressFraction) - (1)) < 0.001)
-        try #expect(abs((zeroRequired.progressFraction) - (0)) < 0.001)
+        try #expect(abs((empty.progressFraction) - 0) < 0.001)
+        try #expect(abs((half.progressFraction) - 0.5) < 0.001)
+        try #expect(abs((full.progressFraction) - 1) < 0.001)
+        try #expect(abs((overCap.progressFraction) - 1) < 0.001)
+        try #expect(abs((zeroRequired.progressFraction) - 0) < 0.001)
     }
 
     @Test func unlocksRespectsAbilityTierLevels() throws {

@@ -1,14 +1,13 @@
-import Testing
-import Foundation
 import BattleEngine
-import TrinketCore
+import Foundation
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Integration tests that stats flow correctly through card combat.
 /// Pure formula coverage lives in `TrinketCoreTests/PrimaryStatsRulesTests`.
 /// Runtime health and heal math live in `CombatantRuntimeTests`.
 /// Control-meter threshold wiring lives in `ControlMeterIntegrationTests`.
-@Suite
 struct StatIntegrationTests {
     private struct DirectDamageCase {
         let ability: Ability
@@ -28,7 +27,7 @@ struct StatIntegrationTests {
             DirectDamageCase(ability: .fireball, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .burn),
             DirectDamageCase(ability: .frostbolt, stats: PrimaryStats(intellect: 10), expectedAmount: 4, keyword: .freeze),
             DirectDamageCase(ability: .lightningBolt, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .nature),
-            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy),
+            DirectDamageCase(ability: .smite, stats: PrimaryStats(wisdom: 10), expectedAmount: 5, keyword: .holy)
         ]
 
         for testCase in cases {
@@ -160,8 +159,7 @@ struct StatIntegrationTests {
             _ = BattleTestFixtures.endTurn(on: &battle)
             if let values = battle.activeEffects(of: battle.hero)
                 .first(where: { $0.effect.isControlMeter })?
-                .effect.controlMeterValues
-            {
+                .effect.controlMeterValues {
                 buildupValues = values
                 break
             }

@@ -1,9 +1,8 @@
 import SwiftUI
+import Testing
 import TrinketCore
 import TrinketDesignSystem
-import Testing
 
-@Suite
 struct KeywordVisualStyleTests {
     @Test func allKeywordsHaveVisualStyle() throws {
         for keyword in Keyword.allCases {

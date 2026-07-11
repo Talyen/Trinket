@@ -100,11 +100,11 @@ public final class PlayerShellSessionStore {
 
     private static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
         if let storeName {
-            return URL.applicationSupportDirectory.appending(path: "\(storeName)-shell.store")
+            URL.applicationSupportDirectory.appending(path: "\(storeName)-shell.store")
         } else if let storeURL {
-            return storeURL
+            storeURL
         } else {
-            return URL.applicationSupportDirectory.appending(path: "shell-session.store")
+            URL.applicationSupportDirectory.appending(path: "shell-session.store")
         }
     }
 

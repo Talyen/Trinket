@@ -1,7 +1,7 @@
 import Testing
 import TrinketContent
 
-@Suite struct EnemyCatalogTests {
+struct EnemyCatalogTests {
     private static let bossIDs: Set<String> = [
         "the_blight_treant",
         "the_forge_golem",

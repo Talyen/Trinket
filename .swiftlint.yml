@@ -1,6 +1,7 @@
 # SwiftLint enforces semantics and API idioms. Formatting (whitespace, commas,
 # trailing newlines) is owned by SwiftFormat (.swiftformat). Product UI chrome is
 # guarded by Scripts/check-ui-style.sh (TrinketDesign / UIStyleCheck: allow).
+# See Scripts/README.md "Style & lint ownership".
 swiftlint_version: 0.65.0
 
 opt_in_rules:
@@ -22,6 +23,9 @@ opt_in_rules:
   - modifier_order
   - implicit_return
   - async_without_await
+  - force_unwrapping
+  - force_cast
+  - force_try
 
 disabled_rules:
   - line_length
@@ -31,8 +35,14 @@ disabled_rules:
   - trailing_comma
   - trailing_newline
   - vertical_whitespace
-  - inclusive_language
   - statement_position
+
+# Force unwrap / cast / try are opt-in above. Under `strict` + `lint.sh --strict`
+# they fail the gate; keep production code free of them and prefer XCTUnwrap /
+# #require / guard-let in tests.
+force_unwrapping: error
+force_cast: error
+force_try: error
 
 file_length:
   warning: 550
@@ -61,6 +71,21 @@ nesting:
 function_parameter_count:
   warning: 7
   error: 9
+
+# Platform bans from AGENTS.md — prefer @Observable / NavigationStack.
+# Regex custom_rules need SourceKit (skipped on Linux portable builds); style also
+# runs Scripts/check-platform-api-bans.sh so Linux/CI tools still enforce these.
+custom_rules:
+  banned_observation_apis:
+    name: "Banned Observation APIs"
+    regex: '(?<!\w)(@Published|@StateObject|@EnvironmentObject|@ObservedObject|ObservableObject)(?!\w)'
+    message: "Use @Observable with @Environment(Type.self) and @Bindable instead."
+    severity: error
+  banned_navigation_view:
+    name: "Banned NavigationView"
+    regex: '(?<!\w)NavigationView(?!\w)'
+    message: "Use NavigationStack instead of NavigationView."
+    severity: error
 
 excluded:
   - Packages/TrinketContent/Sources/TrinketContent/Generated

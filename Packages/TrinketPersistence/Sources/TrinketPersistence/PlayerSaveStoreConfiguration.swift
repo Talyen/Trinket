@@ -7,9 +7,9 @@ import SwiftData
 enum PlayerSaveStoreConfiguration {
     static func resolveStoreURL(storeName: String?, storeURL: URL?) -> URL {
         if let storeName {
-            return URL.applicationSupportDirectory.appending(path: "\(storeName).store")
+            URL.applicationSupportDirectory.appending(path: "\(storeName).store")
         } else {
-            return storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
+            storeURL ?? URL.applicationSupportDirectory.appending(path: "default.store")
         }
     }
 
@@ -31,17 +31,17 @@ enum PlayerSaveStoreConfiguration {
         cloudKitContainerIdentifier: String
     ) -> (config: ModelConfiguration, recoveryURL: URL?) {
         if inMemoryOnly {
-            return (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
+            (ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none), nil)
         } else if storeName != nil {
-            return (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
+            (ModelConfiguration(schema: schema, url: finalURL, cloudKitDatabase: .none), finalURL)
         } else if let storeURL {
-            return (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
+            (ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none), storeURL)
         } else if disableCloudSync {
             // Local-only until Apple Developer Program + CloudKit container (F2).
-            return (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
+            (ModelConfiguration(schema: schema, cloudKitDatabase: .none), nil)
         } else {
             // Requires filled Trinket.entitlements + portal container (see CloudKitPreShipChecklist).
-            return (
+            (
                 ModelConfiguration(schema: schema, cloudKitDatabase: .private(cloudKitContainerIdentifier)),
                 nil
             )

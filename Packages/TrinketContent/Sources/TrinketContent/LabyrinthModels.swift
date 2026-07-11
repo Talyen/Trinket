@@ -139,51 +139,51 @@ public enum LabyrinthNodeType: String, Codable, Hashable, Sendable, CaseIterable
 
     public var title: String {
         switch canonical {
-        case .battle: return "Battle"
-        case .elite: return "Elite"
-        case .warden: return "Warden"
-        case .shop: return "Merchant's Shop"
-        case .rest: return "Shrine"
-        case .mystery, .event: return "Mystery"
-        case .craft: return "Crafting Altar"
-        case .gate: return "Depth Gate"
+        case .battle: "Battle"
+        case .elite: "Elite"
+        case .warden: "Warden"
+        case .shop: "Merchant's Shop"
+        case .rest: "Shrine"
+        case .mystery, .event: "Mystery"
+        case .craft: "Crafting Altar"
+        case .gate: "Depth Gate"
         }
     }
 
     public var symbolName: String {
         switch canonical {
-        case .battle: return "bolt.fill"
-        case .elite: return "flame.fill"
-        case .warden: return "crown.fill"
-        case .shop: return "bag.fill"
-        case .rest: return "tent.fill"
-        case .mystery, .event: return "sparkles"
-        case .craft: return "hammer.fill"
-        case .gate: return "arrow.down.to.line.compact"
+        case .battle: "bolt.fill"
+        case .elite: "flame.fill"
+        case .warden: "crown.fill"
+        case .shop: "bag.fill"
+        case .rest: "tent.fill"
+        case .mystery, .event: "sparkles"
+        case .craft: "hammer.fill"
+        case .gate: "arrow.down.to.line.compact"
         }
     }
 
     public var primaryActionTitle: String {
         switch canonical {
         case .battle, .elite, .warden, .gate:
-            return "Fight"
+            "Fight"
         case .shop:
-            return "Visit"
+            "Visit"
         case .rest:
-            return "Rest"
+            "Rest"
         case .mystery, .event:
-            return "Approach"
+            "Approach"
         case .craft:
-            return "Forge"
+            "Forge"
         }
     }
 
     public var isCombat: Bool {
         switch canonical {
         case .battle, .elite, .warden, .gate:
-            return true
+            true
         case .shop, .rest, .mystery, .event, .craft:
-            return false
+            false
         }
     }
 }

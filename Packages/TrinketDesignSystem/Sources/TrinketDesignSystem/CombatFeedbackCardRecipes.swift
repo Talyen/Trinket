@@ -4,11 +4,11 @@ import SwiftUI
 enum CombatFeedbackCardRecipes {
     static func cardReaction(for kind: CombatantHitReactionKind) -> CombatantHitReactionRecipe {
         switch kind {
-        case .none: return noneCardReaction
-        case .damage: return damageCardReaction
-        case .critical: return criticalCardReaction
-        case .heal: return healCardReaction
-        case .dodge: return dodgeCardReaction
+        case .none: noneCardReaction
+        case .damage: damageCardReaction
+        case .critical: criticalCardReaction
+        case .heal: healCardReaction
+        case .dodge: dodgeCardReaction
         }
     }
 

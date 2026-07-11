@@ -3,7 +3,7 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-@Suite struct EffectHandlersTests {
+struct EffectHandlersTests {
     @Test func registryKeysMatchAllEffectKinds() throws {
         try #expect(Set(EffectHandlers.all.keys) == Set(EffectKind.allCases))
     }

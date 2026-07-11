@@ -12,8 +12,8 @@ public enum BattleParticipant: CaseIterable, Sendable {
 
     public var isPartyMember: Bool {
         switch self {
-        case .hero, .pet: return true
-        case .enemy: return false
+        case .hero, .pet: true
+        case .enemy: false
         }
     }
 }
@@ -43,9 +43,9 @@ public struct BattleRoster {
     public subscript(participant: BattleParticipant) -> CombatantRuntime {
         get {
             switch participant {
-            case .hero: return hero
-            case .pet: return pet
-            case .enemy: return enemy
+            case .hero: hero
+            case .pet: pet
+            case .enemy: enemy
             }
         }
         set {
@@ -58,9 +58,15 @@ public struct BattleRoster {
     }
 
     public func participant(for combatant: Combatant) -> BattleParticipant? {
-        if hero.id == combatant.id { return .hero }
-        if pet.id == combatant.id { return .pet }
-        if enemy.id == combatant.id { return .enemy }
+        if hero.id == combatant.id {
+            return .hero
+        }
+        if pet.id == combatant.id {
+            return .pet
+        }
+        if enemy.id == combatant.id {
+            return .enemy
+        }
         return nil
     }
 
@@ -109,11 +115,15 @@ public struct BattleRoster {
     /// The combatant the enemy prefers to attack: the living party member with
     /// the highest current health, preferring the hero when both are alive and tied.
     public var enemyAttackTarget: Combatant {
-        if hero.isAlive && pet.isAlive {
+        if hero.isAlive, pet.isAlive {
             return hero.currentHealth >= pet.currentHealth ? hero.combatant : pet.combatant
         }
-        if hero.isAlive { return hero.combatant }
-        if pet.isAlive { return pet.combatant }
+        if hero.isAlive {
+            return hero.combatant
+        }
+        if pet.isAlive {
+            return pet.combatant
+        }
         return hero.combatant
     }
 

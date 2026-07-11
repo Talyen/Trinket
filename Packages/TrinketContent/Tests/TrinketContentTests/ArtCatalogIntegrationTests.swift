@@ -1,7 +1,6 @@
 import Testing
 @testable import TrinketContent
 
-@Suite
 struct ArtCatalogIntegrationTests {
     /// Abilities intentionally shipping without curated art yet (cinematic / placeholder path).
     private static let abilitiesAllowedWithoutArt: Set<String> = [

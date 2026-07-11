@@ -123,11 +123,11 @@ public extension Combatant.Role {
     var fallbackArtSymbolName: String {
         switch self {
         case .hero:
-            return "person.fill"
+            "person.fill"
         case .pet:
-            return "pawprint.fill"
+            "pawprint.fill"
         case .enemy:
-            return "flame.fill"
+            "flame.fill"
         }
     }
 }

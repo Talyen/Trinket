@@ -2,7 +2,6 @@ import Testing
 import TrinketContent
 import TrinketCore
 
-@Suite
 struct CombatantEquipmentTests {
     @Test func petEquipmentSlotsUseTwoTrinketsAndArmor() throws {
         try #expect(

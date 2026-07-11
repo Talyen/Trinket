@@ -73,15 +73,27 @@ public enum AbilityValidator {
         for component in ability.damageComponents where component.target == .abilityTarget {
             switch component.keyword {
             case .burn:
-                if !ability.effects.contains(where: { if case let .burn(p) = $0 { return p == component.amount }; return false }) {
+                if !ability.effects.contains(where: {
+                    if case let .burn(p) = $0 {
+                        return p == component.amount
+                    }; return false
+                }) {
                     issues.append(Issue(abilityID: ability.id, message: "missing paired .burn(\(component.amount))"))
                 }
             case .poison:
-                if !ability.effects.contains(where: { if case let .poison(p) = $0 { return p == component.amount }; return false }) {
+                if !ability.effects.contains(where: {
+                    if case let .poison(p) = $0 {
+                        return p == component.amount
+                    }; return false
+                }) {
                     issues.append(Issue(abilityID: ability.id, message: "missing paired .poison(\(component.amount))"))
                 }
             case .bleed:
-                if !ability.effects.contains(where: { if case let .bleed(p) = $0 { return p == component.amount }; return false }) {
+                if !ability.effects.contains(where: {
+                    if case let .bleed(p) = $0 {
+                        return p == component.amount
+                    }; return false
+                }) {
                     issues.append(Issue(abilityID: ability.id, message: "missing paired .bleed(\(component.amount))"))
                 }
             default:
@@ -119,14 +131,13 @@ public enum AbilityValidator {
     }
 
     private static func tierDamageIssue(tier: AbilityTier, total: Int, abilityID: String) -> Issue? {
-        let allowed: Set<Int>
-        switch tier {
+        let allowed: Set<Int> = switch tier {
         case .basic:
-            allowed = [1, 2]
+            [1, 2]
         case .skill:
-            allowed = [2, 3]
+            [2, 3]
         case .ultimate:
-            allowed = [2, 3, 6]
+            [2, 3, 6]
         }
 
         if allowed.contains(total) || allowsMultiComponentTotal(abilityID: abilityID, total: total) {
@@ -142,15 +153,15 @@ public enum AbilityValidator {
     private static func allowsMultiComponentTotal(abilityID: String, total: Int) -> Bool {
         switch abilityID {
         case "bloodthorn":
-            return total == 6
+            total == 6
         case "blood-offering":
-            return total == 4
+            total == 4
         case "acid-potion", "ice-shot":
-            return total == 2
+            total == 2
         case "blizzard", "pack-tactics":
-            return total == 5
+            total == 5
         default:
-            return false
+            false
         }
     }
 }

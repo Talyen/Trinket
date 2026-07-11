@@ -1,10 +1,9 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Integration tests for shield, armor, and mitigation through card combat.
-@Suite
 struct MitigationIntegrationTests {
     @Test func shieldAbsorbsDamageBeforeHealth() throws {
         let hero = BattleTestFixtures.passiveCombatant(id: "hero", name: "Hero", role: .hero)
@@ -83,7 +82,9 @@ struct MitigationIntegrationTests {
         _ = try BattleTestFixtures.playCardNamed("Sunder Armor", owner: .pet, on: &battle)
 
         try #expect(battle.hasEnemyEffect { effect in
-            if case .mitigation(.armor, 1) = effect { return true }
+            if case .mitigation(.armor, 1) = effect {
+                return true
+            }
             return false
         })
     }

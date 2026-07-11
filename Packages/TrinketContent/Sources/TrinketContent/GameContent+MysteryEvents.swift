@@ -18,16 +18,16 @@ public extension GameContent {
         MysteryEventPool.mysteryEvent(matching: id)
     }
 
-    static func pickMysteryEvent<RNG: RandomNumberGenerator>(
-        using randomNumberGenerator: inout RNG
+    static func pickMysteryEvent(
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         MysteryEventPool.pickMysteryEvent(using: &randomNumberGenerator)
     }
 
-    static func pickEligibleMysteryEvent<RNG: RandomNumberGenerator>(
+    static func pickEligibleMysteryEvent(
         unlockedHeroIDs: Set<String>,
         unlockedPetIDs: Set<String>,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         MysteryEventPool.pickEligibleMysteryEvent(
             unlockedHeroIDs: unlockedHeroIDs,

@@ -7,10 +7,10 @@ public extension PlayerInventoryState {
         addRewardItem(from: template, for: stage, using: &randomNumberGenerator)
     }
 
-    mutating func addRewardItem<RNG: RandomNumberGenerator>(
+    mutating func addRewardItem(
         from template: InventoryItem,
         for stage: Stage,
-        using _: inout RNG
+        using _: inout some RandomNumberGenerator
     ) {
         appendUniqueItem(template.rewardInstance(for: stage.id))
     }

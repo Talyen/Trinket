@@ -1,7 +1,6 @@
-import TrinketCore
 import Testing
+import TrinketCore
 
-@Suite
 struct EffectPresentationTests {
     @Test func activePhraseFormatsControlMeterBuildUp() throws {
         let active = ActiveEffect(

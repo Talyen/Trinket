@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 
-@Suite
 struct AbilityDescriptionFormatterTests {
     @Test func slashFormatsPhysicalDamage() throws {
         try #expect(

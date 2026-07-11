@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
+import Testing
 import TrinketContent
 import TrinketCore
 
-@Suite
 struct CombatBuildResolverTests {
     @Test func equippedStatAffixesMergeIntoEffectiveStats() throws {
         let knight = try #require(GameContent.heroes.first { $0.id == "knight" })

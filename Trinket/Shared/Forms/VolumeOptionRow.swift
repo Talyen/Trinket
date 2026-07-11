@@ -10,16 +10,16 @@ struct VolumeOptionRow: View {
 
     private var dynamicIconName: String {
         if title == "Music" {
-            return value == 0 ? "music.note.slash" : "music.note"
+            value == 0 ? "music.note.slash" : "music.note"
         } else {
             if value == 0 {
-                return "speaker.slash.fill"
+                "speaker.slash.fill"
             } else if value < 0.33 {
-                return "speaker.wave.1.fill"
+                "speaker.wave.1.fill"
             } else if value < 0.66 {
-                return "speaker.wave.2.fill"
+                "speaker.wave.2.fill"
             } else {
-                return "speaker.wave.3.fill"
+                "speaker.wave.3.fill"
             }
         }
     }

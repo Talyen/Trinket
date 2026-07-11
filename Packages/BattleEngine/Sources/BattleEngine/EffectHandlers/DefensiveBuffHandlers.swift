@@ -7,7 +7,9 @@ public struct ShieldHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
-            if case let .shield(_, buffer) = effect.effect { return sum + buffer }
+            if case let .shield(_, buffer) = effect.effect {
+                return sum + buffer
+            }
             return sum
         }
         guard total > 0 else { return nil }
@@ -50,7 +52,9 @@ public struct MitigationHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, effect in
-            if case let .mitigation(_, points) = effect.effect { return sum + points }
+            if case let .mitigation(_, points) = effect.effect {
+                return sum + points
+            }
             return sum
         }
         guard total > 0 else { return nil }
@@ -93,12 +97,16 @@ public struct LeechHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = stacks.reduce(0.0) { maxPercent, effect in
-            if case let .leech(_, value, _) = effect.effect { return max(maxPercent, value) }
+            if case let .leech(_, value, _) = effect.effect {
+                return max(maxPercent, value)
+            }
             return maxPercent
         }
         guard percent > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .leech(_, _, duration) = effect { return duration }
+            if case let .leech(_, _, duration) = effect {
+                return duration
+            }
             return nil
         }
         return EffectSummary(
@@ -124,7 +132,11 @@ public struct LeechHandler: BattleEffectHandler {
         }
         let wisdomTicks = source.primaryStats.wisdom / 20
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .leech = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .leech = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .leech(adjustedKeyword, adjustedPercent, adjustedDuration),
@@ -165,7 +177,11 @@ public struct NextHolyStrikeHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .nextHolyStrike = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .nextHolyStrike = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .nextHolyStrike,

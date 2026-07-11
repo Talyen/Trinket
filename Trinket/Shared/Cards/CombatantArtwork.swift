@@ -34,9 +34,9 @@ struct CombatantArtwork: View {
     private func imageName(for artReference: CombatantArtReference) -> String {
         switch variant {
         case .card:
-            return artReference.thumbnailImageName ?? artReference.imageName
+            artReference.thumbnailImageName ?? artReference.imageName
         case .hero, .battle:
-            return artReference.imageName
+            artReference.imageName
         }
     }
 
@@ -45,11 +45,10 @@ struct CombatantArtwork: View {
     }
 
     private var placeholderArt: some View {
-        let style: TrinketDesign.CardPlaceholderStyle
-        switch combatant.role {
-        case .hero: style = .hero
-        case .pet: style = .pet
-        case .enemy: style = .enemy
+        let style: TrinketDesign.CardPlaceholderStyle = switch combatant.role {
+        case .hero: .hero
+        case .pet: .pet
+        case .enemy: .enemy
         }
         return ZStack {
             style.color.opacity(0.18)
@@ -65,9 +64,9 @@ struct CombatantArtwork: View {
     private var placeholderIconSize: CGFloat {
         switch variant {
         case .card, .hero:
-            return cardHeroIconSize
+            cardHeroIconSize
         case .battle:
-            return battleIconSize
+            battleIconSize
         }
     }
 }

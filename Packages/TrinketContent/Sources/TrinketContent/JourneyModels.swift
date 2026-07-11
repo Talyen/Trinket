@@ -59,45 +59,45 @@ public enum StageEncounter: Hashable, Sendable {
     public var title: String {
         switch self {
         case .battle:
-            return "Battle"
+            "Battle"
         case .event:
-            return "Event"
+            "Event"
         case .shop:
-            return "Shop"
+            "Shop"
         case .rest:
-            return "Rest"
+            "Rest"
         case .mysteryEvent:
-            return "Mystery"
+            "Mystery"
         }
     }
 
     public var symbolName: String {
         switch self {
         case .battle:
-            return "bolt.fill"
+            "bolt.fill"
         case .event:
-            return "sparkles"
+            "sparkles"
         case .shop:
-            return "bag.fill"
+            "bag.fill"
         case .rest:
-            return "tent.fill"
+            "tent.fill"
         case .mysteryEvent:
-            return "sparkles"
+            "sparkles"
         }
     }
 
     public var primaryActionTitle: String {
         switch self {
         case .battle:
-            return "Battle"
+            "Battle"
         case .event:
-            return "Continue"
+            "Continue"
         case .shop:
-            return "Shop"
+            "Shop"
         case .rest:
-            return "Rest"
+            "Rest"
         case .mysteryEvent:
-            return "Approach"
+            "Approach"
         }
     }
 

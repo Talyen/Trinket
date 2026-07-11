@@ -18,9 +18,13 @@ public extension CombatTraitTriggers {
         profile.thornsPercent += thornsPercent
         profile.cannotBeHealed = profile.cannotBeHealed || cannotBeHealed
         profile.burnDecaySlowPercent += burnDecaySlowPercent
-        if profile.shieldErosionKeyword == nil { profile.shieldErosionKeyword = shieldErosionKeyword }
+        if profile.shieldErosionKeyword == nil {
+            profile.shieldErosionKeyword = shieldErosionKeyword
+        }
         profile.shieldErosionTicks += shieldErosionTicks
-        if profile.mitigationShredKeyword == nil { profile.mitigationShredKeyword = mitigationShredKeyword }
+        if profile.mitigationShredKeyword == nil {
+            profile.mitigationShredKeyword = mitigationShredKeyword
+        }
         profile.mitigationShredMultiplier = max(profile.mitigationShredMultiplier, mitigationShredMultiplier)
         profile.mitigationShredDurationTicks = max(
             profile.mitigationShredDurationTicks,

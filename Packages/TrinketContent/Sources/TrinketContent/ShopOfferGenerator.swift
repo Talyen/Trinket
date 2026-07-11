@@ -20,12 +20,12 @@ public enum ShopOfferGenerator {
     public static let basePriceRange = 20 ... 40
     public static let astralPriceMultiplier = 2
 
-    public static func generateOffers<RNG: RandomNumberGenerator>(
+    public static func generateOffers(
         stageID: String,
         count: Int = offerCount,
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes,
         itemGenerator: ItemGenerator = ItemGenerator(),
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> [ShopOffer] {
         guard count > 0, !baseTypes.isEmpty else { return [] }
 

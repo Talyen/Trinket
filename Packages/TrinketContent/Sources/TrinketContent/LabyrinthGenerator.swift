@@ -103,10 +103,10 @@ public enum LabyrinthGenerator {
         let entryNodeIDs: [String]
     }
 
-    private static func generateCluster<RNG: RandomNumberGenerator>(
+    private static func generateCluster(
         depthBand: Int,
         previousBiomeID: LabyrinthBiomeID?,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> GeneratedCluster {
         let biome = pickBiome(excluding: previousBiomeID, using: &rng)
         let modifierIDs = rollModifiers(depthBand: depthBand, biome: biome, using: &rng)
@@ -144,21 +144,20 @@ public enum LabyrinthGenerator {
         )
     }
 
-    private static func makeNodes<RNG: RandomNumberGenerator>(
+    private static func makeNodes(
         types: [LabyrinthNodeType],
         clusterID: String,
         depthBand: Int,
         biome: LabyrinthBiomeDefinition,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> [LabyrinthNode] {
         types.enumerated().map { index, type in
-            let enemyID: String?
-            if type.isCombat {
-                enemyID = (type == .warden)
+            let enemyID: String? = if type.isCombat {
+                (type == .warden)
                     ? biome.wardenEnemyID
                     : pickEnemy(from: biome, using: &rng)
             } else {
-                enemyID = nil
+                nil
             }
             return LabyrinthNode(
                 id: "\(clusterID)-n\(index)",
@@ -174,12 +173,14 @@ public enum LabyrinthGenerator {
         }
     }
 
-    private static func wireLayeredEdges<RNG: RandomNumberGenerator>(
+    private static func wireLayeredEdges(
         nodes: inout [LabyrinthNode],
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) {
         for index in nodes.indices {
-            if nodes[index].type == .gate { continue }
+            if nodes[index].type == .gate {
+                continue
+            }
             let remaining = (index + 1) ..< nodes.count
             guard !remaining.isEmpty else { continue }
             let preferred = Int.random(in: 2 ... 3, using: &rng)
@@ -213,32 +214,31 @@ public enum LabyrinthGenerator {
         }
     }
 
-    private static func pickBiome<RNG: RandomNumberGenerator>(
+    private static func pickBiome(
         excluding previous: LabyrinthBiomeID?,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> LabyrinthBiomeDefinition {
         let pool = LabyrinthCatalog.biomes.filter { $0.id != previous }
         let choices = pool.isEmpty ? LabyrinthCatalog.biomes : pool
         return choices.randomElement(using: &rng) ?? LabyrinthCatalog.biomes[0]
     }
 
-    private static func pickEnemy<RNG: RandomNumberGenerator>(
+    private static func pickEnemy(
         from biome: LabyrinthBiomeDefinition,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> String {
         biome.enemyPool.randomElement(using: &rng) ?? biome.wardenEnemyID
     }
 
-    private static func rollModifiers<RNG: RandomNumberGenerator>(
+    private static func rollModifiers(
         depthBand: Int,
         biome: LabyrinthBiomeDefinition,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> [LabyrinthModifierID] {
-        let count: Int
-        switch depthBand {
-        case 1 ... 5: count = 1
-        case 6 ... 15: count = Int.random(in: 1 ... 2, using: &rng)
-        default: count = Int.random(in: 2 ... 3, using: &rng)
+        let count = switch depthBand {
+        case 1 ... 5: 1
+        case 6 ... 15: Int.random(in: 1 ... 2, using: &rng)
+        default: Int.random(in: 2 ... 3, using: &rng)
         }
 
         var picked: [LabyrinthModifierID] = []
@@ -291,12 +291,12 @@ public enum LabyrinthGenerator {
         return Array(picked.prefix(count))
     }
 
-    private static func plannedTypes<RNG: RandomNumberGenerator>(
+    private static func plannedTypes(
         count: Int,
         depthBand: Int,
         modifiers: [LabyrinthModifierDefinition],
         biome: LabyrinthBiomeDefinition,
-        using rng: inout RNG
+        using rng: inout some RandomNumberGenerator
     ) -> [LabyrinthNodeType] {
         var types: [LabyrinthNodeType] = []
         // Guaranteed specials from modifiers.

@@ -110,7 +110,9 @@ struct ActiveBattleConfigurationTests {
     @Test func makePreservesJourneyScaledEnemyStats() throws {
         let chapter = try #require(GameContent.chapters.first)
         let battleStages = chapter.stages.filter {
-            if case .battle = $0.encounter { return true }
+            if case .battle = $0.encounter {
+                return true
+            }
             return false
         }
         let stage = try #require(battleStages.last)

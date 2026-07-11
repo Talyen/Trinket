@@ -1,7 +1,6 @@
 import Testing
 @testable import TrinketCore
 
-@Suite
 struct StatGrowthTests {
     @Test func playerGrowthAtLevelOneIsZero() throws {
         let growth = StatGrowth.playerGrowth(archetype: .tank, levelsAbove: 0)

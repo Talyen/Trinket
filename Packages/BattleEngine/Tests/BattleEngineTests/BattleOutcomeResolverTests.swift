@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct BattleOutcomeResolverTests {
     @Test func simultaneousDefeatResolvesAsVictory() throws {
         try #expect(

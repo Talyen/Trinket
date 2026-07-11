@@ -1,10 +1,9 @@
-import Testing
-import TrinketTestSupport
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
+import TrinketTestSupport
 
-@Suite
 struct ControlMeterEngineTests {
     private func makeContext(
         targetMaxHealth: Int = 50,
@@ -134,10 +133,10 @@ struct ControlMeterEngineTests {
 
         try #expect(events.contains { $0.effectKind == .controlTriggered })
         try #expect(
-            context.roster.activeEffects(for: target).first {
+            !context.roster.activeEffects(for: target).contains {
                 guard case let .controlMeter(_, amount, threshold) = $0.effect else { return false }
                 return amount < threshold
-            } == nil,
+            },
             "Partial build-up should be consumed on trigger"
         )
         try #expect(context.roster.hasPendingActionSkip(for: target, keyword: .stun))

@@ -1,10 +1,9 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Integration tests for cleanse abilities through card combat.
-@Suite
 struct CleanseIntegrationTests {
     @Test func cleanseAllRemovesDebuffsWhenAbilityFires() throws {
         let hero = Combatant(
@@ -59,8 +58,16 @@ struct CleanseIntegrationTests {
         let events = try BattleTestFixtures.playCardNamed("Cleanse Poison", owner: .hero, on: &battle)
 
         try #expect(events.contains { $0.effectKind == .cleanseApplied && $0.keyword == .poison })
-        try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
-        try #expect(battle.hasHeroEffect { if case .burn = $0 { return true }; return false })
+        try #expect(!(battle.hasHeroEffect {
+            if case .poison = $0 {
+                return true
+            }; return false
+        }))
+        try #expect(battle.hasHeroEffect {
+            if case .burn = $0 {
+                return true
+            }; return false
+        })
     }
 
     @Test func cleanseAllRemovesAllDebuffsButLeavesShields() throws {
@@ -92,9 +99,21 @@ struct CleanseIntegrationTests {
         let events = try BattleTestFixtures.playCardNamed("Cleanse All", owner: .hero, on: &battle)
 
         try #expect(events.contains { $0.effectKind == .cleanseApplied })
-        try #expect(!(battle.hasHeroEffect { if case .poison = $0 { return true }; return false }))
-        try #expect(!(battle.hasHeroEffect { if case .burn = $0 { return true }; return false }))
-        try #expect(battle.hasHeroEffect { if case .shield = $0 { return true }; return false })
+        try #expect(!(battle.hasHeroEffect {
+            if case .poison = $0 {
+                return true
+            }; return false
+        }))
+        try #expect(!(battle.hasHeroEffect {
+            if case .burn = $0 {
+                return true
+            }; return false
+        }))
+        try #expect(battle.hasHeroEffect {
+            if case .shield = $0 {
+                return true
+            }; return false
+        })
     }
 
     @Test func cleanseStunRemovesControlMeterBuildup() throws {

@@ -1,9 +1,8 @@
-import Testing
-import TrinketTestSupport
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
-
+import TrinketCore
+import TrinketTestSupport
 
 /// Shared combatants, battle setup, and card-combat helpers for battle integration tests.
 /// Handler-level behavior lives in `EffectHandlersTests`.
@@ -263,7 +262,9 @@ enum BattleTestFixtures {
             if try playFirstPlayableCard(owner: owner, on: &battle) == nil {
                 _ = battle.endTurn()
             }
-            if battle.isBattleOver { break }
+            if battle.isBattleOver {
+                break
+            }
         }
         return nil
     }
@@ -310,7 +311,9 @@ enum BattleTestFixtures {
 
 extension Effect {
     var isControlMeter: Bool {
-        if case .controlMeter = self { return true }
+        if case .controlMeter = self {
+            return true
+        }
         return false
     }
 }
@@ -329,7 +332,7 @@ extension BattleState {
     }
 }
 
-extension Array where Element == ActionEvent {
+extension [ActionEvent] {
     func contains(effectKind: ActionEvent.EffectKind, keyword: Keyword? = nil) -> Bool {
         contains { event in
             event.effectKind == effectKind && (keyword == nil || event.keyword == keyword)
@@ -341,9 +344,9 @@ extension ActiveEffect {
     static func isDebuff(_ activeEffect: ActiveEffect) -> Bool {
         switch activeEffect.effect {
         case .burn, .poison, .bleed, .controlMeter:
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 }

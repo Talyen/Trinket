@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct ItemModifierBattleTests {
     @Test func equippedPhysicalDamageAffixIncreasesDirectDamage() throws {
         let keen = try #require(GameContent.itemAffixDefinitions.first { $0.id == "keen" })

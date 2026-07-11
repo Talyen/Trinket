@@ -163,8 +163,12 @@ struct HomesteadProjectCard: View {
     }
 
     private var featuredTitle: String {
-        if !status.isUnlocked { return "Next Unlock" }
-        if status.canBuildOrUpgrade || status.isComplete { return status.statusTitle }
+        if !status.isUnlocked {
+            return "Next Unlock"
+        }
+        if status.canBuildOrUpgrade || status.isComplete {
+            return status.statusTitle
+        }
         return "Gather Materials"
     }
 }

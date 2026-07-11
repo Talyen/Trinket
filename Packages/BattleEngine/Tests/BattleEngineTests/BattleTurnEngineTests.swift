@@ -1,10 +1,9 @@
-import Testing
-import TrinketTestSupport
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
+import TrinketTestSupport
 
-@Suite
 struct BattleTurnEngineTests {
     private func makeContext(
         actorEffects: [ActiveEffect] = [],
@@ -119,7 +118,11 @@ struct BattleTurnEngineTests {
         try #expect(events.contains { $0.effectKind == .controlActionSkipped })
         try #expect(!events.contains { $0.abilityName == "Deathgrip" })
         try #expect(
-            !context.roster.activeEffects(for: hero).contains { if case .shield = $0.effect { return true }; return false }
+            !context.roster.activeEffects(for: hero).contains {
+                if case .shield = $0.effect {
+                    return true
+                }; return false
+            }
         )
     }
 
@@ -188,7 +191,11 @@ struct BattleTurnEngineTests {
         )
 
         try #expect(context.roster.health(for: enemy) == 0)
-        try #expect(!(context.roster.activeEffects(for: enemy).contains { if case .marked = $0.effect { return true }; return false }))
+        try #expect(!(context.roster.activeEffects(for: enemy).contains {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }))
         let abilityEvent = try #require(events.first { $0.kind == .ability })
         try #expect(!(abilityEvent.appliedEffectSummaries.contains { $0.localizedCaseInsensitiveContains("mark") }))
     }

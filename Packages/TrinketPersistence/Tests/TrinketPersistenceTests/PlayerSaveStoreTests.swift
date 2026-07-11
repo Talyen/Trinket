@@ -4,7 +4,7 @@ import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 
-@Suite @MainActor
+@MainActor
 final class PlayerSaveStoreTests {
     let context: PersistenceTestContext
 

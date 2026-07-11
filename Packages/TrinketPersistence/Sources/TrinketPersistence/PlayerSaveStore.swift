@@ -213,13 +213,13 @@ public final class PlayerSaveStore {
             await Task.yield()
             guard let self, !Task.isCancelled else { return }
             do {
-                try self.saveGraph()
-                self.pendingRollbackSnapshot = nil
-                self.lastPersistenceError = nil
+                try saveGraph()
+                pendingRollbackSnapshot = nil
+                lastPersistenceError = nil
             } catch {
-                self.rollbackPendingMutationIfNeeded()
-                self.lastPersistenceError = .writeFailed
-                self.logger.error(
+                rollbackPendingMutationIfNeeded()
+                lastPersistenceError = .writeFailed
+                logger.error(
                     "Failed to persist deferred player graph mutation: \(error.localizedDescription, privacy: .public)"
                 )
             }

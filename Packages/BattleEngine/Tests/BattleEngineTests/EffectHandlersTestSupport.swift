@@ -1,7 +1,7 @@
 import BattleEngine
-import TrinketTestSupport
-import TrinketCore
 import TrinketContent
+import TrinketCore
+import TrinketTestSupport
 
 enum EffectHandlersTestSupport {
     static func makeBattle(

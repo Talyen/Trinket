@@ -9,17 +9,17 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
 
     public var level: Int {
         switch self {
-        case .early: return 1
-        case .middle: return 20
-        case .lateGame: return 40
+        case .early: 1
+        case .middle: 20
+        case .lateGame: 40
         }
     }
 
     public var displayName: String {
         switch self {
-        case .early: return "Early"
-        case .middle: return "Middle"
-        case .lateGame: return "Late Game"
+        case .early: "Early"
+        case .middle: "Middle"
+        case .lateGame: "Late Game"
         }
     }
 
@@ -29,17 +29,17 @@ public enum SimulationPowerTier: String, CaseIterable, Codable, Sendable {
 
     public var rarity: Rarity? {
         switch self {
-        case .early: return nil
-        case .middle: return .basic
-        case .lateGame: return .astral
+        case .early: nil
+        case .middle: .basic
+        case .lateGame: .astral
         }
     }
 
     public var fixedAffixCount: Int? {
         switch self {
-        case .early: return nil
-        case .middle: return 1
-        case .lateGame: return 3
+        case .early: nil
+        case .middle: 1
+        case .lateGame: 3
         }
     }
 

@@ -1,10 +1,9 @@
 import Testing
+import TrinketContent
+import TrinketCore
 import TrinketTestSupport
 @testable import BattleEngine
-import TrinketCore
-import TrinketContent
 
-@Suite
 struct EnemyTraitBattleTests {
     private func enemyBuild(id: String) throws -> CombatBuild {
         let enemy = try #require(GameContent.enemy(matching: id))

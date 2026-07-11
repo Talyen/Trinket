@@ -252,9 +252,9 @@ extension AppState {
         )
     }
 
-    private func pickMysteryEvent<RNG: RandomNumberGenerator>(
+    private func pickMysteryEvent(
         authored: MysteryEvent?,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent? {
         var event = authored ?? GameContent.pickEligibleMysteryEvent(
             unlockedHeroIDs: roster.current.unlockedHeroIDs,
@@ -268,9 +268,9 @@ extension AppState {
     }
 
     /// Returns `false` when the recruit is already unlocked and no substitute remains.
-    private func resolveRecruitSubstitution<RNG: RandomNumberGenerator>(
+    private func resolveRecruitSubstitution(
         event: inout MysteryEvent,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Bool {
         guard let combatantID = event.unlockCombatantID,
               roster.current.isCombatantUnlocked(id: combatantID)

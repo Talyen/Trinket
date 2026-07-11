@@ -6,14 +6,18 @@ import TrinketCore
 package enum DefensePoolEngine {
     package static func blockPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
-            if case let .shield(_, buffer) = active.effect { return sum + buffer }
+            if case let .shield(_, buffer) = active.effect {
+                return sum + buffer
+            }
             return sum
         }
     }
 
     package static func armorPoints(in effects: [ActiveEffect]) -> Int {
         effects.reduce(0) { sum, active in
-            if case let .mitigation(_, points) = active.effect { return sum + points }
+            if case let .mitigation(_, points) = active.effect {
+                return sum + points
+            }
             return sum
         }
     }
@@ -44,8 +48,12 @@ package enum DefensePoolEngine {
     ) {
         guard amount > 0 else { return }
         var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: { if case .shield = $0.effect { return true }; return false }),
-           case let .shield(existingKeyword, buffer) = effects[index].effect {
+        if let index = effects.firstIndex(where: {
+            if case .shield = $0.effect {
+                return true
+            }; return false
+        }),
+            case let .shield(existingKeyword, buffer) = effects[index].effect {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: .shield(existingKeyword, buffer + amount),
@@ -66,8 +74,12 @@ package enum DefensePoolEngine {
     ) {
         guard amount > 0 else { return }
         var effects = context.roster.activeEffects(for: target)
-        if let index = effects.firstIndex(where: { if case .mitigation = $0.effect { return true }; return false }),
-           case let .mitigation(existingKeyword, points) = effects[index].effect {
+        if let index = effects.firstIndex(where: {
+            if case .mitigation = $0.effect {
+                return true
+            }; return false
+        }),
+            case let .mitigation(existingKeyword, points) = effects[index].effect {
             effects[index] = ActiveEffect(
                 id: effects[index].id,
                 effect: .mitigation(existingKeyword, points + amount),
@@ -86,7 +98,11 @@ package enum DefensePoolEngine {
         in context: inout BattleEngineContext
     ) {
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .mitigation = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .mitigation = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         if amount > 0 {
             context.appendEffect(.mitigation(.armor, amount), to: target, sourceID: target.id, remainingTicks: 0)
@@ -99,7 +115,11 @@ package enum DefensePoolEngine {
         in context: inout BattleEngineContext
     ) {
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .shield = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .shield = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         if amount > 0 {
             context.appendEffect(.shield(.block, amount), to: target, sourceID: target.id, remainingTicks: 0)

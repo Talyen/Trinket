@@ -8,11 +8,11 @@ public extension PrimaryStats {
     /// prior `BattleState.statBonusForDamage(from:keyword:)` formula.
     func statBonusForDamage(keyword: Keyword) -> Int {
         switch keyword {
-        case .physical, .stun: return strength / 5
-        case .bleed: return agility / 5
-        case .burn, .freeze: return intellect / 5
-        case .poison, .holy, .nature: return wisdom / 5
-        default: return 0
+        case .physical, .stun: strength / 5
+        case .bleed: agility / 5
+        case .burn, .freeze: intellect / 5
+        case .poison, .holy, .nature: wisdom / 5
+        default: 0
         }
     }
 
@@ -40,16 +40,15 @@ public extension PrimaryStats {
     /// Base critical-hit chance for damage of the given keyword, before ability
     /// or item bonuses. Capped at 75%.
     func criticalChance(for keyword: Keyword) -> Double {
-        let statBonus: Double
-        switch keyword {
+        let statBonus: Double = switch keyword {
         case .physical, .bleed, .stun:
-            statBonus = Double(agility) * 0.0025
+            Double(agility) * 0.0025
         case .burn, .freeze:
-            statBonus = Double(intellect) * 0.0025
+            Double(intellect) * 0.0025
         case .poison, .holy, .nature:
-            statBonus = Double(wisdom) * 0.0025
+            Double(wisdom) * 0.0025
         default:
-            statBonus = 0
+            0
         }
         return min(0.75, 0.05 + statBonus)
     }

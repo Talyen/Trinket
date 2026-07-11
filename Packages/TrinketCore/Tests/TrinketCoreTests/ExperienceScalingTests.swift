@@ -1,7 +1,6 @@
 import Testing
 import TrinketCore
 
-@Suite
 struct ExperienceScalingTests {
     @Test func equalLevelAwardsFullExperience() throws {
         try #expect(
@@ -37,22 +36,22 @@ struct ExperienceScalingTests {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 1)
         try #expect(award == 67)
         try #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)) - (1.5)) < 0.05
-        )
+            Double(CombatantProgression.requiredXP(forLevel: 1)) / Double(award)
+        ) - 1.5) < 0.05)
     }
 
     @Test func baseBattleAwardTargetsMidBattlesPerLevel() throws {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 25)
         try #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 25)) / Double(award)) - (2.5)) < 0.05
-        )
+            Double(CombatantProgression.requiredXP(forLevel: 25)) / Double(award)
+        ) - 2.5) < 0.05)
     }
 
     @Test func baseBattleAwardTargetsLateBattlesPerLevel() throws {
         let award = ExperienceScaling.baseBattleAward(forPlayerLevel: 45)
         try #expect(abs((
-            Double(CombatantProgression.requiredXP(forLevel: 45)) / Double(award)) - (3.5)) < 0.05
-        )
+            Double(CombatantProgression.requiredXP(forLevel: 45)) / Double(award)
+        ) - 3.5) < 0.05)
     }
 
     @Test func battleAwardAppliesLevelDeltaMultiplier() throws {

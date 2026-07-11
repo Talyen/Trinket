@@ -57,7 +57,9 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
     /// (or it is the entrance's outgoing target).
     public func isNodeReachable(_ nodeID: String) -> Bool {
         guard let node = nodes[nodeID], node.isRevealed, !node.isCleared else { return false }
-        if node.id == LabyrinthGenerator.entranceNodeID { return false }
+        if node.id == LabyrinthGenerator.entranceNodeID {
+            return false
+        }
         // Reachable if any cleared node lists it as outgoing.
         return nodes.values.contains { source in
             source.isCleared && source.outgoingIDs.contains(nodeID)

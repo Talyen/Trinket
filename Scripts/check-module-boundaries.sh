@@ -23,6 +23,10 @@ check_no_import "Trinket/BattleShell" 'Features/' 'BattleShell must not referenc
 # State must not reference feature views by folder path.
 check_no_import "Trinket/State" 'Features/' 'State must not reference Features/'
 
+# Models are presentation helpers — no State or Features coupling.
+check_no_import "Trinket/Models" 'Features/' 'Models must not reference Features/'
+check_no_import "Trinket/Models" 'State/' 'Models must not reference State/'
+
 # Packages must not import the app module.
 while IFS= read -r file; do
   if rg -q '^import Trinket$' "$file"; then

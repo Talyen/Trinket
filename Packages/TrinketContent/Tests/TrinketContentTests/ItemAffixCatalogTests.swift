@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 
-@Suite
 struct ItemAffixCatalogTests {
     @Test func affixIDsAreUnique() throws {
         let ids = GameContent.itemAffixDefinitions.map(\.id)
@@ -64,7 +63,7 @@ struct ItemAffixCatalogTests {
 
     @Test func newArchetypeAndUtilityAffixesArePresent() throws {
         let ids = Set(GameContent.itemAffixDefinitions.map(\.id))
-        let expected: Set<String> = [
+        let expected: Set = [
             "venomancers", "cryomancers", "thunderers", "druids",
             "leeching", "sapping", "caustic", "persistent", "scorching",
             "rimed", "insulated", "sanctified", "thorned", "bloodbound",
@@ -74,7 +73,7 @@ struct ItemAffixCatalogTests {
             "infected", "ashen_wake", "cauterize", "contagion", "shatter",
             "brittle", "executioners", "riposte", "relentless", "cascading",
             "undergird", "ablution", "aftershock", "hexmark", "packbond",
-            "symbiosis", "second_wind", "deathgrip", "frostburn",
+            "symbiosis", "second_wind", "deathgrip", "frostburn"
         ]
         try #expect(expected.isSubset(of: ids))
         try #expect(GameContent.itemAffixDefinitions.count == 89)

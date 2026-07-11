@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct EffectHandlersTickTests {
     @Test func bleedTickDealsDamageAndDecrementsRemainingTicks() throws {
         var battle = EffectHandlersTestSupport.makeBattle()

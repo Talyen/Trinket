@@ -153,8 +153,12 @@ public enum StageCompletion {
         current: CombatantProgression,
         award: Int
     ) -> Bool {
-        if award == 0 { return true }
-        if current.level > baseline.level { return true }
+        if award == 0 {
+            return true
+        }
+        if current.level > baseline.level {
+            return true
+        }
         if current.level == baseline.level, current.currentXP >= baseline.currentXP + award {
             return true
         }

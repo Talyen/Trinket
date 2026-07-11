@@ -88,11 +88,10 @@ public enum AspectCatalog {
             var floors: [AspectFloor] = []
             for floorIndex in 1 ... aspect.floorCount {
                 let isWarden = floorIndex == aspect.floorCount
-                let enemyID: String
-                if isWarden {
-                    enemyID = pool.last ?? "goblin"
+                let enemyID: String = if isWarden {
+                    pool.last ?? "goblin"
                 } else {
-                    enemyID = pool[(floorIndex - 1) % max(pool.count - 1, 1)]
+                    pool[(floorIndex - 1) % max(pool.count - 1, 1)]
                 }
                 floors.append(
                     AspectFloor(
@@ -112,29 +111,28 @@ public enum AspectCatalog {
     public static func materialResource(for keyword: Keyword) -> HomesteadResource {
         switch keyword {
         case .physical, .stun:
-            return .iron
+            .iron
         case .burn:
-            return .wood
+            .wood
         case .poison, .nature:
-            return .herbs
+            .herbs
         case .bleed:
-            return .food
+            .food
         case .holy:
-            return .crystal
+            .crystal
         case .freeze:
-            return .stone
+            .stone
         default:
-            return .wood
+            .wood
         }
     }
 
     private static func rewards(for floor: Int, keyword: Keyword, isWarden: Bool) -> StageReward {
         let gold = 4 + floor * 2 + (isWarden ? 12 : 0)
-        let materials: [ResourceAmount]
-        if floor % 3 == 0 || isWarden {
-            materials = [ResourceAmount(materialResource(for: keyword), isWarden ? 3 : 1)]
+        let materials: [ResourceAmount] = if floor % 3 == 0 || isWarden {
+            [ResourceAmount(materialResource(for: keyword), isWarden ? 3 : 1)]
         } else {
-            materials = []
+            []
         }
         return StageReward(
             gold: gold,

@@ -1,7 +1,6 @@
 import Testing
 @testable import TrinketContent
 
-@Suite
 struct GameContentTraitCatalogTests {
     @Test func everyHeroAndPetReferencesKnownTrait() throws {
         let traitIDs = Set(GameContent.traits.map(\.id))

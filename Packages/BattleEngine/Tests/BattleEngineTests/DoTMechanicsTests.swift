@@ -1,9 +1,8 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct DoTMechanicsTests {
     private func isolatedBattle(
         heroAbilities: [Ability] = [],
@@ -182,7 +181,9 @@ struct DoTMechanicsTests {
         _ = try BattleTestFixtures.playFirstPlayableCard(owner: .hero, on: &battle)
 
         try #expect(!(battle.activeEffects(of: battle.hero)).contains {
-            if case .poison = $0.effect { return true }
+            if case .poison = $0.effect {
+                return true
+            }
             return false
         })
     }

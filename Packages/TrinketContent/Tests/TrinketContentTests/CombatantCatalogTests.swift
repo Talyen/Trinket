@@ -1,7 +1,6 @@
 import Testing
 import TrinketContent
 
-@Suite
 struct CombatantCatalogTests {
     @Test func heroIDsAreUnique() throws {
         let ids = GameContent.heroes.map(\.id)

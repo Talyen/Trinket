@@ -1,7 +1,7 @@
-import Testing
 import BattleEngine
-import TrinketCore
+import Testing
 import TrinketContent
+import TrinketCore
 
 /// Control-meter wiring through card combat endTurn / enemy skip.
 ///
@@ -9,7 +9,6 @@ import TrinketContent
 /// Threshold formulas: `PrimaryStatsRulesTests`.
 /// Effect summaries: `EffectSummaryBuilderTests`.
 /// Turn consumption primitives: `BattleTurnEngineTests`.
-@Suite
 struct ControlMeterIntegrationTests {
     @Test func actionSkipPreventsDamage() throws {
         for keyword in [Keyword.stun, Keyword.freeze] {
@@ -85,7 +84,9 @@ struct ControlMeterIntegrationTests {
 
         _ = try BattleTestFixtures.playCardNamed("Shield Bash", owner: .hero, on: &battle)
         try #expect(battle.hasHeroEffect { effect in
-            if case let .shield(.block, buffer) = effect, buffer > 0 { return true }
+            if case let .shield(.block, buffer) = effect, buffer > 0 {
+                return true
+            }
             return false
         })
 

@@ -5,19 +5,19 @@ public extension HomesteadTint {
     var color: Color {
         switch self {
         case .orange:
-            return .orange
+            .orange
         case .green:
-            return .green
+            .green
         case .yellow:
-            return .yellow
+            .yellow
         case .mint:
-            return .mint
+            .mint
         case .cyan:
-            return .cyan
+            .cyan
         case .indigo:
-            return .indigo
+            .indigo
         case .blue:
-            return .blue
+            .blue
         }
     }
 }

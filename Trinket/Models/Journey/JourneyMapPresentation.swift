@@ -21,7 +21,9 @@ enum JourneyMapPresentation {
     }
 
     static func stageNodeState(for stage: Stage, progress: JourneyProgressState) -> StageNodeState {
-        if progress.isActive(stage) { return .active }
+        if progress.isActive(stage) {
+            return .active
+        }
         if progress.isCompleted(stage) {
             return progress.isLastCompleted(stage) ? .justCompleted : .completed
         }
@@ -67,9 +69,9 @@ enum ChapterJourneyRow: Identifiable {
     var id: String {
         switch self {
         case let .stage(stage, _):
-            return stage.id
+            stage.id
         case let .chapterGate(chapter):
-            return StageMapID.chapterGate(for: chapter)
+            StageMapID.chapterGate(for: chapter)
         }
     }
 }

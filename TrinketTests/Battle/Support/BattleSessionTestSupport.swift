@@ -63,12 +63,16 @@ enum BattleSessionTestSupport {
                     journey: journey,
                     homestead: homestead
                 )
-                if earnedGold != nil { break }
+                if earnedGold != nil {
+                    break
+                }
                 continue
             }
             if session.canEndTurn {
                 earnedGold = session.endTurn(at: date, journey: journey, homestead: homestead)
-                if earnedGold != nil { break }
+                if earnedGold != nil {
+                    break
+                }
                 continue
             }
             break

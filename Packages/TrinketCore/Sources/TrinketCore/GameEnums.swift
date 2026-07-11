@@ -32,23 +32,23 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
 
     public var category: Category {
         switch self {
-        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: return .damageType
-        case .block, .armor, .dodge, .purge: return .mitigation
-        case .health, .leech, .deathsDoor: return .restoration
-        case .gold, .mana: return .resource
+        case .physical, .burn, .poison, .bleed, .holy, .nature, .freeze, .stun: .damageType
+        case .block, .armor, .dodge, .purge: .mitigation
+        case .health, .leech, .deathsDoor: .restoration
+        case .gold, .mana: .resource
         }
     }
 
     /// Player-facing status label for control effects and DoT effects. Shares styling with the parent keyword.
     public var statusAlias: String? {
         switch self {
-        case .freeze: return "Frozen"
-        case .stun: return "Stunned"
-        case .burn: return "Burning"
-        case .poison: return "Poisoned"
-        case .bleed: return "Bleeding"
-        case .deathsDoor: return "Death's Door"
-        default: return nil
+        case .freeze: "Frozen"
+        case .stun: "Stunned"
+        case .burn: "Burning"
+        case .poison: "Poisoned"
+        case .bleed: "Bleeding"
+        case .deathsDoor: "Death's Door"
+        default: nil
         }
     }
 
@@ -65,39 +65,39 @@ public enum Keyword: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var rulesText: String {
         switch self {
         case .physical:
-            return "Direct weapon or body damage."
+            "Direct weapon or body damage."
         case .burn:
-            return "Fire damage over time."
+            "Fire damage over time."
         case .stun:
-            return "Stun damage builds up; at 20% of max HP the target becomes Stunned and loses their next action."
+            "Stun damage builds up; at 20% of max HP the target becomes Stunned and loses their next action."
         case .block:
-            return "A pooled damage buffer absorbed before Health. Halves at the end of each round."
+            "A pooled damage buffer absorbed before Health. Halves at the end of each round."
         case .armor:
-            return "Flat damage reduction up to half of each hit. Decays by 1 whenever damage is taken."
+            "Flat damage reduction up to half of each hit. Decays by 1 whenever damage is taken."
         case .health:
-            return "Survivability and health restoration."
+            "Survivability and health restoration."
         case .gold:
-            return "Currency for shops or upgrades."
+            "Currency for shops or upgrades."
         case .holy:
-            return "Radiant holy damage type."
+            "Radiant holy damage type."
         case .poison:
-            return "Toxic damage over time."
+            "Toxic damage over time."
         case .bleed:
-            return "Physical damage over time from bleeding wounds."
+            "Physical damage over time from bleeding wounds."
         case .leech:
-            return "Damage that restores health to the attacker."
+            "Damage that restores health to the attacker."
         case .nature:
-            return "Nature and growth damage type."
+            "Nature and growth damage type."
         case .freeze:
-            return "Freeze damage builds up; at 20% of max HP the target becomes Frozen and loses their next action."
+            "Freeze damage builds up; at 20% of max HP the target becomes Frozen and loses their next action."
         case .dodge:
-            return "Chance to avoid incoming damage entirely."
+            "Chance to avoid incoming damage entirely."
         case .purge:
-            return "Instantly removes beneficial status effects from enemies."
+            "Instantly removes beneficial status effects from enemies."
         case .mana:
-            return "Magical energy used to power abilities."
+            "Magical energy used to power abilities."
         case .deathsDoor:
-            return "Hanging by a thread after a near-fatal blow. Heal soon or the next fatal hit will end them."
+            "Hanging by a thread after a near-fatal blow. Heal soon or the next fatal hit will end them."
         }
     }
 }
@@ -112,8 +112,8 @@ public enum Rarity: String, CaseIterable, Identifiable, Hashable, Codable, Senda
 
     public var label: String {
         switch self {
-        case .basic: return "Basic"
-        case .astral: return "Astral"
+        case .basic: "Basic"
+        case .astral: "Astral"
         }
     }
 }
@@ -130,22 +130,22 @@ public enum AbilityTier: String, CaseIterable, Identifiable, Hashable, Sendable,
     public var cadenceTurns: Int {
         switch self {
         case .basic:
-            return 1
+            1
         case .skill:
-            return 3
+            3
         case .ultimate:
-            return 6
+            6
         }
     }
 
     public var unlockLevel: Int {
         switch self {
         case .basic:
-            return 1
+            1
         case .skill:
-            return 1
+            1
         case .ultimate:
-            return 6
+            6
         }
     }
 
@@ -158,22 +158,22 @@ public extension AbilityTier {
     var symbolName: String {
         switch self {
         case .basic:
-            return "circle.fill"
+            "circle.fill"
         case .skill:
-            return "sparkles"
+            "sparkles"
         case .ultimate:
-            return "star.fill"
+            "star.fill"
         }
     }
 
     var cadenceLabel: String {
         switch self {
         case .basic:
-            return "Every turn"
+            "Every turn"
         case .skill:
-            return "Every 3 turns"
+            "Every 3 turns"
         case .ultimate:
-            return "Every 6 turns"
+            "Every 6 turns"
         }
     }
 }
@@ -192,18 +192,18 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var baseItemSlot: ItemSlot {
         switch self {
         case .secondaryTrinket:
-            return .trinket
+            .trinket
         default:
-            return self
+            self
         }
     }
 
     public var displayName: String {
         switch self {
         case .secondaryTrinket:
-            return ItemSlot.trinket.rawValue
+            ItemSlot.trinket.rawValue
         default:
-            return rawValue
+            rawValue
         }
     }
 
@@ -214,22 +214,22 @@ public enum ItemSlot: String, CaseIterable, Identifiable, Hashable, Sendable {
     public var symbolName: String {
         switch self {
         case .weapon:
-            return "wand.and.sparkles"
+            "wand.and.sparkles"
         case .armor:
-            return "shield.fill"
+            "shield.fill"
         case .trinket, .secondaryTrinket:
-            return "diamond.fill"
+            "diamond.fill"
         }
     }
 
     public var unlockLabel: String {
         switch self {
         case .weapon:
-            return "Find a Weapon to Unlock"
+            "Find a Weapon to Unlock"
         case .armor:
-            return "Find Armor to Unlock"
+            "Find Armor to Unlock"
         case .trinket, .secondaryTrinket:
-            return "Find a Trinket to Unlock"
+            "Find a Trinket to Unlock"
         }
     }
 

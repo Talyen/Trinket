@@ -1,8 +1,7 @@
 import Foundation
-import TrinketCore
 import Testing
+import TrinketCore
 
-@Suite
 struct PrimaryStatsModelTests {
     @Test func defaultStatsEqualZero() throws {
         let stats = PrimaryStats()

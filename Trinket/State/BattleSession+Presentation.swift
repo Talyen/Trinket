@@ -180,7 +180,7 @@ extension BattleSession {
         pendingFeedbackPruneTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard let self, !Task.isCancelled else { return }
-            self.pruneExpiredFeedback()
+            pruneExpiredFeedback()
         }
     }
 
@@ -256,9 +256,9 @@ extension BattleSession {
         pendingAutoEndTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(delay))
             guard let self, !Task.isCancelled else { return }
-            guard self.canEndTurn, !self.hasPlayableCard else { return }
-            let earnedGold = self.endTurn(journey: journey, homestead: homestead)
-            self.onTurnAutoEnded?(earnedGold)
+            guard canEndTurn, !hasPlayableCard else { return }
+            let earnedGold = endTurn(journey: journey, homestead: homestead)
+            onTurnAutoEnded?(earnedGold)
         }
     }
 

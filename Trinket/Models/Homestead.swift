@@ -6,37 +6,37 @@ import TrinketDesignSystem
 extension HomesteadResource {
     var displayName: String {
         switch self {
-        case .wood: return "Wood"
-        case .stone: return "Stone"
-        case .iron: return "Iron"
-        case .food: return "Food"
-        case .herbs: return "Herbs"
-        case .crystal: return "Crystal"
-        case .gold: return "Gold"
+        case .wood: "Wood"
+        case .stone: "Stone"
+        case .iron: "Iron"
+        case .food: "Food"
+        case .herbs: "Herbs"
+        case .crystal: "Crystal"
+        case .gold: "Gold"
         }
     }
 
     var symbolName: String {
         switch self {
-        case .wood: return "tree.fill"
-        case .stone: return "mountain.2.fill"
-        case .iron: return "hammer.fill"
-        case .food: return "carrot.fill"
-        case .herbs: return "leaf.fill"
-        case .crystal: return "sparkles"
-        case .gold: return "dollarsign.circle.fill"
+        case .wood: "tree.fill"
+        case .stone: "mountain.2.fill"
+        case .iron: "hammer.fill"
+        case .food: "carrot.fill"
+        case .herbs: "leaf.fill"
+        case .crystal: "sparkles"
+        case .gold: "dollarsign.circle.fill"
         }
     }
 
     var tint: Color {
         switch self {
-        case .wood: return .brown
-        case .stone: return Color("ResourceStone", bundle: .main)
-        case .iron: return Color("ResourceIron", bundle: .main)
-        case .food: return .orange
-        case .herbs: return .green
-        case .crystal: return .blue
-        case .gold: return Keyword.gold.visualStyle.color
+        case .wood: .brown
+        case .stone: Color("ResourceStone", bundle: .main)
+        case .iron: Color("ResourceIron", bundle: .main)
+        case .food: .orange
+        case .herbs: .green
+        case .crystal: .blue
+        case .gold: Keyword.gold.visualStyle.color
         }
     }
 }

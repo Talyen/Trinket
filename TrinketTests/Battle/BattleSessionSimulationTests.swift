@@ -284,7 +284,9 @@ struct BattleSessionSimulationTests {
                 journey: .initial,
                 homestead: .freshStart
             )
-            if earned != nil || session.outcome != nil { return }
+            if earned != nil || session.outcome != nil {
+                return
+            }
         }
 
         #expect(session.canEndTurn)

@@ -1,8 +1,7 @@
 import Testing
-import TrinketCore
 import TrinketContent
+import TrinketCore
 
-@Suite
 struct AbilityCatalogTests {
     @Test func catalogIDsAreUnique() throws {
         let ids = AbilityCatalog.all.map(\.id)
@@ -29,7 +28,9 @@ struct AbilityCatalogTests {
                 case .burn:
                     try #expect(
                         ability.effects.contains {
-                            if case let .burn(potency) = $0 { return potency == component.amount }
+                            if case let .burn(potency) = $0 {
+                                return potency == component.amount
+                            }
                             return false
                         },
                         "\(ability.id) should pair Burn damage with .burn(\(component.amount))"
@@ -37,7 +38,9 @@ struct AbilityCatalogTests {
                 case .poison:
                     try #expect(
                         ability.effects.contains {
-                            if case let .poison(potency) = $0 { return potency == component.amount }
+                            if case let .poison(potency) = $0 {
+                                return potency == component.amount
+                            }
                             return false
                         },
                         "\(ability.id) should pair Poison damage with .poison(\(component.amount))"
@@ -45,7 +48,9 @@ struct AbilityCatalogTests {
                 case .bleed:
                     try #expect(
                         ability.effects.contains {
-                            if case let .bleed(potency) = $0 { return potency == component.amount }
+                            if case let .bleed(potency) = $0 {
+                                return potency == component.amount
+                            }
                             return false
                         },
                         "\(ability.id) should pair Bleed damage with .bleed(\(component.amount))"
@@ -91,7 +96,11 @@ struct AbilityCatalogTests {
             keyword: .burn
         )
         try #expect(ability.damageComponents == [DamageComponent(3, keyword: .burn)])
-        try #expect(ability.effects.contains { if case .burn(3) = $0 { return true }; return false })
+        try #expect(ability.effects.contains {
+            if case .burn(3) = $0 {
+                return true
+            }; return false
+        })
         try #expect(ability.summary == "Deal 3 Burn damage.")
     }
 

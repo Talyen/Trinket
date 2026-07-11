@@ -179,7 +179,11 @@ package extension CombatReactionEngine {
         else { return }
 
         context.roster.mutateRuntime(for: hero) { $0.hasTriggeredHexmark = true }
-        state.activeEffects.removeAll { if case .marked = $0.effect { return true }; return false }
+        state.activeEffects.removeAll {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }
         state.activeEffects.append(
             ActiveEffect(
                 id: context.consumeNextEffectID(),
@@ -309,7 +313,11 @@ package extension CombatReactionEngine {
         )
         guard case let .leech(keyword, percent, duration) = adjusted else { return [] }
         var effects = context.roster.activeEffects(for: hero)
-        effects.removeAll { if case .leech = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .leech = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: hero)
         context.appendEffect(.leech(keyword, percent, duration), to: hero, sourceID: hero.id, remainingTicks: duration)
         return [context.nextEvent(

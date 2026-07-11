@@ -31,12 +31,16 @@ public struct ThornsHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
-            if case let .thorns(_, amount, _) = active.effect { return sum + amount }
+            if case let .thorns(_, amount, _) = active.effect {
+                return sum + amount
+            }
             return sum
         }
         guard total > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .thorns(_, _, duration) = effect { return duration }
+            if case let .thorns(_, _, duration) = effect {
+                return duration
+            }
             return nil
         }
         return EffectSummary(keyword: keyword, text: "Thorns: \(total) damage, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
@@ -93,7 +97,11 @@ public struct MarkedHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .marked = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .marked = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(.marked(bonus, durationTicks), to: target, sourceID: source.id, remainingTicks: durationTicks)
         let event = context.nextEvent(
@@ -114,12 +122,16 @@ public struct CriticalChanceBonusHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let percent = stacks.reduce(0.0) { maxPercent, active in
-            if case let .criticalChanceBonus(value, _) = active.effect { return max(maxPercent, value) }
+            if case let .criticalChanceBonus(value, _) = active.effect {
+                return max(maxPercent, value)
+            }
             return maxPercent
         }
         guard percent > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .criticalChanceBonus(_, duration) = effect { return duration }
+            if case let .criticalChanceBonus(_, duration) = effect {
+                return duration
+            }
             return nil
         }
         return EffectSummary(keyword: keyword, text: "Focused: +\(Int(percent * 100))% Critical, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
@@ -155,12 +167,16 @@ public struct RestoreManaOnHitHandler: BattleEffectHandler {
 
     public func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let amount = stacks.reduce(0) { maxAmount, active in
-            if case let .restoreManaOnHit(value, _) = active.effect { return max(maxAmount, value) }
+            if case let .restoreManaOnHit(value, _) = active.effect {
+                return max(maxAmount, value)
+            }
             return maxAmount
         }
         guard amount > 0 else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .restoreManaOnHit(_, duration) = effect { return duration }
+            if case let .restoreManaOnHit(_, duration) = effect {
+                return duration
+            }
             return nil
         }
         return EffectSummary(keyword: keyword, text: "Mana Shield: restore \(amount) Mana when hit, \(BattleTiming.remainingDurationLabel(ticks: maxTicks)).")
@@ -199,7 +215,9 @@ public struct DamageKeywordOverrideHandler: BattleEffectHandler {
               case let .damageKeywordOverride(overrideKeyword, bonus, _) = active.effect
         else { return nil }
         let maxTicks = TimedBuffSummary.minRemainingTicks(in: stacks) { effect in
-            if case let .damageKeywordOverride(_, _, duration) = effect { return duration }
+            if case let .damageKeywordOverride(_, _, duration) = effect {
+                return duration
+            }
             return nil
         }
         return EffectSummary(
@@ -220,7 +238,11 @@ public struct DamageKeywordOverrideHandler: BattleEffectHandler {
             return EffectApplyOutcome(events: [], didApply: false)
         }
         var effects = context.roster.activeEffects(for: target)
-        effects.removeAll { if case .damageKeywordOverride = $0.effect { return true }; return false }
+        effects.removeAll {
+            if case .damageKeywordOverride = $0.effect {
+                return true
+            }; return false
+        }
         context.roster.setActiveEffects(effects, for: target)
         context.appendEffect(
             .damageKeywordOverride(keyword, bonus, durationTicks),

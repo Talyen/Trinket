@@ -131,7 +131,9 @@ extension InventoryModel {
     func toPlayerInventoryState() -> PlayerInventoryState {
         PlayerInventoryState(items: (items ?? [])
             .sorted { lhs, rhs in
-                if lhs.sortIndex == rhs.sortIndex { return lhs.id < rhs.id }
+                if lhs.sortIndex == rhs.sortIndex {
+                    return lhs.id < rhs.id
+                }
                 return lhs.sortIndex < rhs.sortIndex
             }
             .compactMap { item in
@@ -140,7 +142,9 @@ extension InventoryModel {
                 }
                 let affixes = (item.affixes ?? [])
                     .sorted { lhs, rhs in
-                        if lhs.sortIndex == rhs.sortIndex { return lhs.id < rhs.id }
+                        if lhs.sortIndex == rhs.sortIndex {
+                            return lhs.id < rhs.id
+                        }
                         return lhs.sortIndex < rhs.sortIndex
                     }
                     .compactMap { affix in

@@ -74,7 +74,9 @@ package enum HealingEngine {
             leechPct = Effect.abilityLeechPercent
         }
         let buffPct = context.roster.activeEffects(for: actorCombatant).reduce(0.0) { maxPercent, activeEffect in
-            if case let .leech(_, percent, _) = activeEffect.effect { return max(maxPercent, percent) }
+            if case let .leech(_, percent, _) = activeEffect.effect {
+                return max(maxPercent, percent)
+            }
             return maxPercent
         }
         leechPct = max(leechPct, buffPct)

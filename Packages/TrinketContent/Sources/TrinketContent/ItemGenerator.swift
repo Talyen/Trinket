@@ -8,7 +8,7 @@ public struct ItemGenerator: Sendable {
         self.affixDefinitions = affixDefinitions
     }
 
-    public func generate<RNG: RandomNumberGenerator>(
+    public func generate(
         id: String,
         templateID: String? = nil,
         baseType: ItemBaseType,
@@ -17,7 +17,7 @@ public struct ItemGenerator: Sendable {
         keywordBias: Set<Keyword> = [],
         requireBuildAlignment: Bool = false,
         guaranteedAffixIDs: [String] = [],
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem {
         let eligibleAffixes = affixDefinitions.filter { definition in
             guard definition.slot == baseType.slot,
@@ -56,9 +56,9 @@ public struct ItemGenerator: Sendable {
         )
     }
 
-    public static func affixCount<RNG: RandomNumberGenerator>(
+    public static func affixCount(
         for rarity: Rarity,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Int {
         let roll = Int.random(in: 1 ... 100, using: &randomNumberGenerator)
 
@@ -70,11 +70,11 @@ public struct ItemGenerator: Sendable {
         }
     }
 
-    private static func weightedSample<RNG: RandomNumberGenerator>(
+    private static func weightedSample(
         _ definitions: [ItemAffixDefinition],
         count: Int,
         keywordBias: Set<Keyword> = [],
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> [ItemAffixDefinition] {
         var pool = definitions
         var selected: [ItemAffixDefinition] = []

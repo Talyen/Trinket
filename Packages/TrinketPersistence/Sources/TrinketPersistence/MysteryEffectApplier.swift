@@ -41,13 +41,13 @@ public struct MysteryEffectApplyResult: Equatable, Sendable {
 public enum MysteryEffectApplier {
     public static let chooseItemCandidateCount = 3
 
-    public static func apply<RNG: RandomNumberGenerator>(
+    public static func apply(
         _ effects: [MysteryEffect],
         stageID: String,
         choiceID: String,
         hero: Combatant,
         save: inout PlayerSave,
-        using randomNumberGenerator: inout RNG,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
         itemGenerator: ItemGenerator = ItemGenerator(),
         baseTypes: [ItemBaseType] = GameContent.itemBaseTypes
     ) -> MysteryEffectApplyResult {
@@ -101,13 +101,13 @@ public enum MysteryEffectApplier {
         var itemOrdinal = 0
     }
 
-    private static func apply<RNG: RandomNumberGenerator>(
+    private static func apply(
         _ effect: MysteryEffect,
         hero: Combatant,
         save: inout PlayerSave,
         state: inout ApplyState,
         itemContext: GeneratedItemContext,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) {
         switch effect {
         case let .gainGold(amount):
@@ -170,23 +170,22 @@ public enum MysteryEffectApplier {
         save: inout PlayerSave,
         result: inout MysteryEffectApplyResult
     ) {
-        let didUnlock: Bool
-        if GameContent.heroes.contains(where: { $0.id == combatantID }) {
-            didUnlock = save.roster.unlockHero(id: combatantID)
+        let didUnlock: Bool = if GameContent.heroes.contains(where: { $0.id == combatantID }) {
+            save.roster.unlockHero(id: combatantID)
         } else if GameContent.pets.contains(where: { $0.id == combatantID }) {
-            didUnlock = save.roster.unlockPet(id: combatantID)
+            save.roster.unlockPet(id: combatantID)
         } else {
-            didUnlock = false
+            false
         }
         if didUnlock {
             result.unlockedCombatantIDs.append(combatantID)
         }
     }
 
-    private static func makeChooseItemCandidates<RNG: RandomNumberGenerator>(
+    private static func makeChooseItemCandidates(
         startingOrdinal: Int,
         context: GeneratedItemContext,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> [InventoryItem] {
         var candidates: [InventoryItem] = []
         for candidateIndex in 0 ..< chooseItemCandidateCount {
@@ -218,13 +217,13 @@ public enum MysteryEffectApplier {
         result.grantedItems.append(item)
     }
 
-    private static func makeGeneratedItem<RNG: RandomNumberGenerator>(
+    private static func makeGeneratedItem(
         baseTypeID: String,
         guaranteedAffixIDs: [String],
         ordinal: Int,
         idSuffix: String? = nil,
         context: GeneratedItemContext,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> InventoryItem? {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
             return nil

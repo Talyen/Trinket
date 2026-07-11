@@ -167,7 +167,9 @@ public struct ExperienceBar: View {
         from pre: CombatantProgression,
         to post: CombatantProgression
     ) -> [Segment] {
-        if pre == post { return [] }
+        if pre == post {
+            return []
+        }
 
         if pre.level == post.level {
             return [Segment(

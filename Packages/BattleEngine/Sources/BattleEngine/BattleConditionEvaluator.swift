@@ -92,7 +92,9 @@ public enum BattleConditionEvaluator {
 
     private static func hasMarked(on combatant: Combatant, in context: BattleEngineContext) -> Bool {
         context.roster.activeEffects(for: combatant).contains { active in
-            if case .marked = active.effect { return true }
+            if case .marked = active.effect {
+                return true
+            }
             return false
         }
     }

@@ -32,15 +32,14 @@ struct EquipmentSlotSummaryGrid: View {
         }
     }
 
+    @ViewBuilder
     private func itemSlot(for slot: ItemSlot) -> some View {
-        Group {
-            if isLocked(slot) {
-                EmptyItemSlotCard(slot: slot, lockLabel: slot.unlockLabel, reservesLabelSpace: false)
-            } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
-                ItemCard(item: item, showsAffixCount: false, reservesLabelSpace: false)
-            } else {
-                EmptyItemSlotCard(slot: slot, reservesLabelSpace: false)
-            }
+        if isLocked(slot) {
+            EmptyItemSlotCard(slot: slot, lockLabel: slot.unlockLabel, reservesLabelSpace: false)
+        } else if let item = inventoryState.item(matching: equipmentLoadout.itemID(for: slot)) {
+            ItemCard(item: item, showsAffixCount: false, reservesLabelSpace: false)
+        } else {
+            EmptyItemSlotCard(slot: slot, reservesLabelSpace: false)
         }
     }
 

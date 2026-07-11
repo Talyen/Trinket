@@ -43,7 +43,11 @@ extension View {
             "Build Failed",
             isPresented: Binding(
                 get: { error.wrappedValue != nil },
-                set: { if !$0 { error.wrappedValue = nil } }
+                set: {
+                    if !$0 {
+                        error.wrappedValue = nil
+                    }
+                }
             )
         ) {
             Button("OK", role: .cancel) {}

@@ -23,14 +23,14 @@ public struct ThemedGearGenerator: Sendable {
         self.baseTypes = baseTypes
     }
 
-    public func generate<RNG: RandomNumberGenerator>(
+    public func generate(
         for combatant: Combatant,
         rarity: Rarity,
         fixedAffixCount: Int,
         idPrefix: String,
         keywordBias: Set<Keyword>? = nil,
         requireBuildAlignment: Bool = false,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> ThemedGearBuild {
         let resolvedBias = keywordBias ?? combatant.keywordProfile
         var inventory: [InventoryItem] = []
@@ -63,11 +63,11 @@ public struct ThemedGearGenerator: Sendable {
         return ThemedGearBuild(inventory: inventory, loadout: loadout)
     }
 
-    private func bestBaseType<RNG: RandomNumberGenerator>(
+    private func bestBaseType(
         for slot: ItemSlot,
         keywordBias: Set<Keyword>,
         requireBuildAlignment: Bool,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> ItemBaseType? {
         var candidates = baseTypes.filter { $0.slot == slot }
         if requireBuildAlignment {

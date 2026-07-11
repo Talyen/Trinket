@@ -99,9 +99,9 @@ package enum DoTApplicator {
 
     private static func effectCase(for keyword: Keyword, potency: Int) -> Effect {
         switch keyword {
-        case .burn: return .burn(potency)
-        case .poison: return .poison(potency)
-        default: return .poison(potency)
+        case .burn: .burn(potency)
+        case .poison: .poison(potency)
+        default: .poison(potency)
         }
     }
 }

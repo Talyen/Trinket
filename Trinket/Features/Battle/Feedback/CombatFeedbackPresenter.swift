@@ -136,7 +136,9 @@ enum CombatFeedbackPresenter {
     }
 
     private static func isDamageChipCandidate(_ event: ActionEvent) -> Bool {
-        if event.kind == .ability, event.amount > 0 { return true }
+        if event.kind == .ability, event.amount > 0 {
+            return true
+        }
         guard event.kind == .effect else { return false }
         switch event.effectKind {
         case .thornsTriggered, .markedConsumed:
@@ -223,15 +225,15 @@ enum CombatFeedbackPresenter {
     private static func reactionKind(for feedbackClass: CombatFeedbackClass) -> CombatantHitReactionKind {
         switch feedbackClass {
         case .directDamage, .dot, .block:
-            return .damage
+            .damage
         case .critical:
-            return .critical
+            .critical
         case .heal:
-            return .heal
+            .heal
         case .dodge:
-            return .dodge
+            .dodge
         case .control, .buff, .resource, .deathsDoor:
-            return .none
+            .none
         }
     }
 }

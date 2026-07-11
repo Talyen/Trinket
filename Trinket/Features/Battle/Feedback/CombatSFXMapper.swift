@@ -20,17 +20,17 @@ enum CombatSFXMapper {
         switch item.feedbackClass {
         case .dodge, .block, .resource:
             // Block absorb / dodge / resource chips have no dedicated SFX in v1.
-            return nil
+            nil
         case .heal:
-            return SFXID.heal
+            SFXID.heal
         case .deathsDoor:
-            return SFXID.deathsDoor
+            SFXID.deathsDoor
         case .control:
-            return controlClipID(for: item.keyword)
+            controlClipID(for: item.keyword)
         case .buff:
-            return buffFamilyClipID(for: item)
+            buffFamilyClipID(for: item)
         case .directDamage, .critical, .dot:
-            return damageClipID(for: item.keyword)
+            damageClipID(for: item.keyword)
         }
     }
 
@@ -71,11 +71,11 @@ enum CombatSFXMapper {
     private static func controlClipID(for keyword: Keyword) -> String {
         switch keyword {
         case .freeze:
-            return SFXID.controlFreeze
+            SFXID.controlFreeze
         case .stun:
-            return SFXID.controlStun
+            SFXID.controlStun
         default:
-            return SFXID.controlStun
+            SFXID.controlStun
         }
     }
 
@@ -100,15 +100,15 @@ enum CombatSFXMapper {
     private static func damageClipID(for keyword: Keyword) -> String {
         switch keyword {
         case .burn:
-            return SFXID.hitBurn
+            SFXID.hitBurn
         case .freeze:
-            return SFXID.hitFreeze
+            SFXID.hitFreeze
         case .stun:
-            return SFXID.controlStun
+            SFXID.controlStun
         case .physical, .nature, .holy, .poison, .bleed, .leech:
-            return SFXID.hit
+            SFXID.hit
         default:
-            return SFXID.hit
+            SFXID.hit
         }
     }
 }

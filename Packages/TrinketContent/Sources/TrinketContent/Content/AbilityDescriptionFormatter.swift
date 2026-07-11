@@ -65,16 +65,16 @@ public enum AbilityDescriptionFormatter {
 
     private static func conditionPhrase(_ condition: DamageCondition) -> String {
         switch condition {
-        case .enemyBleeding: return "the enemy is Bleeding"
-        case .enemyBurning: return "the enemy is Burning"
-        case .enemyPoisoned: return "the enemy is Poisoned"
-        case .enemyFrozen: return "the enemy is Frozen"
-        case .enemyStunned: return "the enemy is Stunned"
-        case .enemyStunnedOrFrozen: return "the enemy is Stunned or Frozen"
-        case .enemyMarked: return "the enemy is Marked"
-        case .enemyLowerHealthThanActor: return "the enemy has less Health than you"
-        case .allyBelowHalfHealth: return "your Hero or Pet is below half Health"
-        case .enemyHasBuff: return "the enemy has a buff"
+        case .enemyBleeding: "the enemy is Bleeding"
+        case .enemyBurning: "the enemy is Burning"
+        case .enemyPoisoned: "the enemy is Poisoned"
+        case .enemyFrozen: "the enemy is Frozen"
+        case .enemyStunned: "the enemy is Stunned"
+        case .enemyStunnedOrFrozen: "the enemy is Stunned or Frozen"
+        case .enemyMarked: "the enemy is Marked"
+        case .enemyLowerHealthThanActor: "the enemy has less Health than you"
+        case .allyBelowHalfHealth: "your Hero or Pet is below half Health"
+        case .enemyHasBuff: "the enemy has a buff"
         }
     }
 

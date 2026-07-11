@@ -294,8 +294,8 @@ public enum MysteryEventPool {
         all.first { $0.id == id } ?? RecruitMysteryEventPool.event(matching: id)
     }
 
-    public static func pickMysteryEvent<RNG: RandomNumberGenerator>(
-        using randomNumberGenerator: inout RNG
+    public static func pickMysteryEvent(
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         guard let event = all.randomElement(using: &randomNumberGenerator) else {
             return all[0]
@@ -304,10 +304,10 @@ public enum MysteryEventPool {
     }
 
     /// Prefer an eligible recruit unlock; otherwise fall back to a branching mystery.
-    public static func pickEligibleMysteryEvent<RNG: RandomNumberGenerator>(
+    public static func pickEligibleMysteryEvent(
         unlockedHeroIDs: Set<String>,
         unlockedPetIDs: Set<String>,
-        using randomNumberGenerator: inout RNG
+        using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         let recruits = RecruitMysteryEventPool.eligible(
             unlockedHeroIDs: unlockedHeroIDs,
