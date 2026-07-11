@@ -37,7 +37,7 @@ struct MusicPlayerRoutingTests {
     @Test func bossBattlePreviewPlaysBossTrack() throws {
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
+            preview: BattleMusicPreview(stageID: "chapter-1-stage-5", enemyID: "the_blight_treant"),
             activeBattle: nil,
             sceneIsActive: true,
             musicVolume: 0.75
@@ -60,7 +60,7 @@ struct MusicPlayerRoutingTests {
 
         let route = MusicRoute.resolve(
             selectedTab: .play,
-            preview: BattleMusicPreview(stageID: "chapter-1-stage-10", enemyID: "the_blight_treant"),
+            preview: BattleMusicPreview(stageID: "chapter-1-stage-5", enemyID: "the_blight_treant"),
             activeBattle: battle,
             sceneIsActive: true,
             musicVolume: 0.75
@@ -73,7 +73,7 @@ struct MusicPlayerRoutingTests {
 
     @Test func leavingPlayReturnsToMenuEvenWithActiveBattle() throws {
         let battle = try ActiveBattleConfigurationTestSupport.make(
-            stageID: "chapter-1-stage-10",
+            stageID: "chapter-1-stage-5",
             rngSeed: 0,
             hero: GameContent.heroes[0],
             pet: GameContent.pets[0],

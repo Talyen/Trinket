@@ -107,18 +107,21 @@ struct BattleView: View {
                     enemyPane: combatantPane(
                         for: battleState.enemy,
                         health: battleState.health(of: battleState.enemy),
+                        barEdge: .bottom,
                         battleState: battleState,
                         battleSession: battleSession
                     ),
                     heroPane: combatantPane(
                         for: battleState.hero,
                         health: battleState.health(of: battleState.hero),
+                        barEdge: .top,
                         battleState: battleState,
                         battleSession: battleSession
                     ),
                     petPane: combatantPane(
                         for: battleState.pet,
                         health: battleState.health(of: battleState.pet),
+                        barEdge: .top,
                         battleState: battleState,
                         battleSession: battleSession
                     )
@@ -192,6 +195,7 @@ struct BattleView: View {
     private func combatantPane(
         for combatant: Combatant,
         health: Int,
+        barEdge: BattleCombatantPane.BarEdge,
         battleState: BattleState,
         battleSession: BattleSession
     ) -> BattleCombatantPane {
@@ -199,8 +203,9 @@ struct BattleView: View {
             combatant: combatant,
             health: health,
             maxHealth: battleState.maxHealth(of: combatant),
-            mana: 0,
-            maxMana: 0,
+            mana: battleState.mana(of: combatant),
+            maxMana: battleState.maxMana(of: combatant),
+            barEdge: barEdge,
             items: battleSession.feedbackItems(for: combatant.id),
             hitReaction: battleSession.hitReactionsByTargetID[combatant.id],
             keywordBursts: battleSession.keywordBursts(for: combatant.id),

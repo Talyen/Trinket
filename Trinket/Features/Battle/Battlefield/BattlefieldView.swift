@@ -17,12 +17,12 @@ struct BattlefieldView: View {
                 sizedPane(petPane, size: layout.partySize)
             }
         }
-        .padding(layout.outerPadding)
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 
     private func sizedPane(_ pane: BattleCombatantPane, size: CGSize) -> some View {
         pane
             .frame(width: size.width, height: size.height)
-            .clipShape(TrinketDesign.cardShape)
+            .clipped()
     }
 }

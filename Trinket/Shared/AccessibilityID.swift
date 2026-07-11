@@ -16,6 +16,9 @@ enum AccessibilityID {
         static let battlePartyInlinePicker = "Battle Party Inline Picker"
         static let battlePartyHeroControl = "Battle Party Hero Control"
         static let battlePartyPetControl = "Battle Party Pet Control"
+        static let chapterPicker = "Campaign Chapter Picker"
+        static let stageRewards = "Campaign Stage Rewards"
+        static let activeStageDetail = "Campaign Active Stage Detail"
 
         static func battlePartyPickerSheet(for role: String) -> String {
             "Battle Party \(role) Picker Sheet"
@@ -27,6 +30,18 @@ enum AccessibilityID {
 
         static func chapterHeader(number: Int) -> String {
             "Chapter \(number) Header"
+        }
+
+        static func chapterTitle(number: Int) -> String {
+            "Chapter \(number) Title"
+        }
+
+        static func stageRow(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Row"
+        }
+
+        static func bossBadge(chapter: Int, stage: Int) -> String {
+            "Stage \(chapter)-\(stage) Boss Badge"
         }
 
         static func stageNode(chapter: Int, stage: Int) -> String {

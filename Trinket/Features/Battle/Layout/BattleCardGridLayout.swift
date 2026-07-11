@@ -1,15 +1,15 @@
 import CoreGraphics
 
 enum BattleCardGridLayout {
-    static let enemyAspectRatio: CGFloat = 1
+    static let enemyAspectRatio: CGFloat = 4.0 / 3.0
     static let partyAspectRatio: CGFloat = 3.0 / 4.0
-    static let gutter: CGFloat = 8
-    static let outerPadding: CGFloat = gutter
-    static let cardSpacing: CGFloat = gutter
+    static let gutter: CGFloat = 0
+    static let outerPadding: CGFloat = 0
+    static let cardSpacing: CGFloat = 0
     /// Reserved bottom band for the ability hand (art cards ~2× prior mechanical size).
-    static let handReservedHeight: CGFloat = 230
+    static let handReservedHeight: CGFloat = 224
     /// Extra battlefield height reclaimed under the hand so combatants fill side gutters on typical phones.
-    static let handOverlapAllowance: CGFloat = 112
+    static let handOverlapAllowance: CGFloat = 56
 
     struct Metrics: Equatable {
         let enemySize: CGSize

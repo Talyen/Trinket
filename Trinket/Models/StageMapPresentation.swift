@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
+import TrinketPersistence
 
 enum StageMapID {
     static func chapterGate(for chapter: Chapter) -> String {
@@ -26,6 +27,69 @@ enum StageNodeState: Equatable {
     case justCompleted
     case active
     case future
+}
+
+enum StageConnectorState: Equatable {
+    case progressed
+    case future
+}
+
+struct ChapterStageRowPresentation: Identifiable, Equatable {
+    let stage: Stage
+    let state: StageNodeState
+    let connectorBefore: StageConnectorState?
+    let connectorAfter: StageConnectorState?
+    let isBoss: Bool
+
+    var id: String {
+        stage.id
+    }
+
+    var isCompleted: Bool {
+        state == .completed || state == .justCompleted
+    }
+
+    var isActionable: Bool {
+        state == .active
+    }
+
+    var accessibilityStatus: String {
+        switch state {
+        case .completed, .justCompleted:
+            "Completed"
+        case .active:
+            "Current stage"
+        case .future:
+            "Not reached"
+        }
+    }
+
+    static func rows(
+        for chapter: Chapter,
+        progress: JourneyProgressState
+    ) -> [ChapterStageRowPresentation] {
+        let states = chapter.stages.map {
+            JourneyMapPresentation.stageNodeState(for: $0, progress: progress)
+        }
+
+        return chapter.stages.enumerated().map { index, stage in
+            let state = states[index]
+            let connectorBefore: StageConnectorState? = index == chapter.stages.startIndex
+                ? nil
+                : (state == .future ? .future : .progressed)
+            let connectorAfter: StageConnectorState? = index == chapter.stages.index(before: chapter.stages.endIndex)
+                ? nil
+                : (states[index + 1] == .future ? .future : .progressed)
+
+            return ChapterStageRowPresentation(
+                stage: stage,
+                state: state,
+                connectorBefore: connectorBefore,
+                connectorAfter: connectorAfter,
+                isBoss: stage.isBossEncounter
+            )
+        }
+    }
 }
 
 struct StageMapMessage: Identifiable {
@@ -91,6 +155,21 @@ extension Stage {
             }
             return mysteryEvent?.title ?? "Mystery"
         }
+    }
+
+    var encounterTypeTitle: String {
+        if isBossEncounter {
+            return "Boss"
+        }
+        if recruitCombatant != nil {
+            return "Recruitment"
+        }
+        return encounter.title
+    }
+
+    var isBossEncounter: Bool {
+        guard let enemyID = encounter.battleEnemyID else { return false }
+        return GameContent.enemy(matching: enemyID)?.isBoss == true
     }
 }
 

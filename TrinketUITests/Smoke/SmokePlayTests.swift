@@ -7,12 +7,7 @@ final class SmokePlayTests: TrinketUITestCase {
             "chapter-1-stage-2",
             "chapter-1-stage-3",
             "chapter-1-stage-4",
-            "chapter-1-stage-5",
-            "chapter-1-stage-6",
-            "chapter-1-stage-7",
-            "chapter-1-stage-8",
-            "chapter-1-stage-9",
-            "chapter-1-stage-10"
+            "chapter-1-stage-5"
         ])
     }
 
@@ -22,6 +17,10 @@ final class SmokePlayTests: TrinketUITestCase {
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
         assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
+        for stage in 1 ... 5 {
+            assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+        }
+        assertExists(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
     }
 
     /// One launch covers Mode Hub, Aspects hub/climb, and Labyrinth unlock.

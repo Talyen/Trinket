@@ -55,7 +55,7 @@ public struct CombatDeck: Hashable, Sendable {
 }
 
 public struct BattleHand: Hashable, Sendable {
-    public static let softCap = 8
+    public static let softCap = 5
 
     public private(set) var cards: [BattleCard]
 

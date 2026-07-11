@@ -5,11 +5,17 @@ import TrinketCore
 import TrinketDesignSystem
 
 struct BattleCombatantPane: View {
+    enum BarEdge {
+        case top
+        case bottom
+    }
+
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
+    let barEdge: BarEdge
     let items: [CombatFeedbackItem]
     let hitReaction: CombatantHitReaction?
     let keywordBursts: [KeywordBurstRequest]
@@ -27,7 +33,7 @@ struct BattleCombatantPane: View {
             ZStack {
                 reactiveArtwork
 
-                healthBar
+                resourceBars
 
                 ForEach(keywordBursts) { burst in
                     KeywordBurstView(request: burst, reduceMotion: reduceMotion)
@@ -139,40 +145,24 @@ struct BattleCombatantPane: View {
         return "\(health)/\(maxHealth) HP"
     }
 
-    private var healthBar: some View {
-        VStack {
-            Spacer(minLength: 0)
+    private var resourceBars: some View {
+        VStack(spacing: 2) {
+            CombatHealthBar(
+                health: health,
+                maxHealth: maxHealth,
+                fillColor: combatant.healthBarColor,
+                style: .battleBorder,
+                height: TrinketDesign.Metrics.battleHealthBarHeight,
+                reduceMotion: reduceMotion
+            )
 
             if hasMana {
-                HStack(spacing: 0) {
-                    CombatHealthBar(
-                        health: health,
-                        maxHealth: maxHealth,
-                        fillColor: combatant.healthBarColor,
-                        style: .battleBorder,
-                        height: TrinketDesign.Metrics.battleHealthBarHeight,
-                        reduceMotion: reduceMotion
-                    )
-
-                    CombatManaBar(
-                        mana: mana,
-                        maxMana: maxMana
-                    )
-                    .frame(height: TrinketDesign.Metrics.battleHealthBarHeight)
-                }
-                .accessibilityHidden(true)
-            } else {
-                CombatHealthBar(
-                    health: health,
-                    maxHealth: maxHealth,
-                    fillColor: combatant.healthBarColor,
-                    style: .battleBorder,
-                    height: TrinketDesign.Metrics.battleHealthBarHeight,
-                    reduceMotion: reduceMotion
-                )
-                .accessibilityHidden(true)
+                CombatManaBar(mana: mana, maxMana: maxMana)
+                    .frame(height: TrinketDesign.Metrics.statBarHeight)
             }
         }
+        .frame(maxHeight: .infinity, alignment: barEdge == .top ? .top : .bottom)
+        .accessibilityHidden(true)
     }
 }
 

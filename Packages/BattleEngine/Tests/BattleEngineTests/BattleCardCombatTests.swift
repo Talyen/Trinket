@@ -91,7 +91,7 @@ struct BattleCardCombatTests {
         try #expect(battle.health(of: battle.hero) == 48)
     }
 
-    @Test func handSoftCapSkipsDrawAtEight() throws {
+    @Test func handSoftCapSkipsDrawAtFive() throws {
         // Loadouts only hold 3 abilities, so seed the hand to the soft cap directly.
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
@@ -111,6 +111,45 @@ struct BattleCardCombatTests {
         let countAtCap = battle.hand.count
         _ = battle.endTurn()
         try #expect(battle.hand.count == countAtCap)
+    }
+
+    @Test func automaticFinalSlotGoesToOwnerWithFewerCards() throws {
+        var battle = makeBattle(
+            heroAbilities: [.slash, .heal, .smite],
+            petAbilities: [.bash, .fangs, .bloodthorn],
+            enemyMaxHealth: 500
+        )
+        let petCard = try #require(battle.hand.cards.first { $0.owner == .pet })
+        _ = battle.hand.remove(id: petCard.id)
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        battle.petDeck.putOnBottom(.fangs)
+
+        _ = battle.endTurn()
+
+        try #expect(battle.hand.count == BattleHand.softCap)
+        try #expect(battle.hand.cards.count { $0.owner == .hero } == 3)
+        try #expect(battle.hand.cards.count { $0.owner == .pet } == 2)
+    }
+
+    @Test(arguments: [(0, BattleParticipant.pet), (1, BattleParticipant.hero)])
+    func automaticFinalSlotAlternatesTiedOwnerByRound(
+        startingTick: Int,
+        expectedOwner: BattleParticipant
+    ) throws {
+        var battle = makeBattle(
+            heroAbilities: [.slash, .heal, .smite],
+            petAbilities: [.bash, .fangs, .bloodthorn],
+            enemyMaxHealth: 500
+        )
+        battle.tickCount = startingTick
+        battle.heroDeck.putOnBottom(.slash)
+        battle.petDeck.putOnBottom(.bash)
+
+        _ = battle.endTurn()
+
+        try #expect(battle.hand.count == BattleHand.softCap)
+        try #expect(battle.hand.cards.last?.owner == expectedOwner)
     }
 
     @Test func enemyCadenceUsesBasicSkillAndUltimate() throws {

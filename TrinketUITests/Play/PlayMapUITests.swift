@@ -7,12 +7,7 @@ final class PlayMapUITests: TrinketUITestCase {
             "chapter-1-stage-2",
             "chapter-1-stage-3",
             "chapter-1-stage-4",
-            "chapter-1-stage-5",
-            "chapter-1-stage-6",
-            "chapter-1-stage-7",
-            "chapter-1-stage-8",
-            "chapter-1-stage-9",
-            "chapter-1-stage-10"
+            "chapter-1-stage-5"
         ])
     }
 
@@ -28,6 +23,36 @@ final class PlayMapUITests: TrinketUITestCase {
         assertExists(AccessibilityID.CombatantDetail.statsSection)
         dismissSheet()
         assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Skeleton"), timeout: 2)
+    }
+
+    func testChapterOverviewShowsFiveStagesRewardsPartyAndBoss() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+
+        play.assertLoaded()
+        for stage in 1 ... 5 {
+            assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+        }
+        assertExists(AccessibilityID.Play.activeStageDetail)
+        assertExists(AccessibilityID.Play.stageRewards)
+        assertExists(AccessibilityID.Play.battlePartyInlinePicker)
+        assertExists(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
+        XCTAssertEqual(app.staticTexts.matching(identifier: "Rewards").count, 1)
+        XCTAssertEqual(app.staticTexts.matching(identifier: "Your Party").count, 1)
+    }
+
+    func testChapterPickerBrowsesCompletedChapterReadOnly() {
+        launchApp(arguments: chapterOneCompleteArgs)
+
+        play.assertLoaded()
+        play.assertChapterHeader(number: 2)
+        button(AccessibilityID.Play.chapterPicker).tap()
+        app.buttons["Chapter 1"].tap()
+
+        assertExists(AccessibilityID.Play.chapterTitle(number: 1))
+        for stage in 1 ... 5 {
+            assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+        }
+        assertDoesNotExist(AccessibilityID.Play.activeStageDetail)
     }
 
     func testNonBattleStubStageCanComplete() {
@@ -112,17 +137,12 @@ final class PlayMapUITests: TrinketUITestCase {
                 "chapter-1-stage-1",
                 "chapter-1-stage-2",
                 "chapter-1-stage-3",
-                "chapter-1-stage-4",
-                "chapter-1-stage-5",
-                "chapter-1-stage-6",
-                "chapter-1-stage-7",
-                "chapter-1-stage-8",
-                "chapter-1-stage-9"
+                "chapter-1-stage-4"
             ]))
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 10))
+        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
         assertDoesNotExist(AccessibilityID.Play.chapterLocked(number: 2))
     }
 }

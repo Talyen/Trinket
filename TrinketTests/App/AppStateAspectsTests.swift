@@ -25,7 +25,7 @@ struct AppStateAspectsTests {
             "-reset-state",
             "-seed-test-progress",
             "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
         // Seeded active pet is wolf (Nature/Physical). Pair with frost whelp to fail Physical.
         var roster = state.roster.current
@@ -77,7 +77,7 @@ struct AppStateAspectsTests {
             "-reset-state",
             "-seed-test-progress",
             "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let hero = state.roster.activeHero
@@ -112,7 +112,7 @@ struct AppStateAspectsTests {
             "-reset-state",
             "-seed-test-progress",
             "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
     }
 

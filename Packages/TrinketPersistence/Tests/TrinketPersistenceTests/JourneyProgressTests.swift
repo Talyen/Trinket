@@ -29,7 +29,7 @@ final class JourneyProgressTests {
         var progress = JourneyProgressState.initial
         let firstStage = chapter.stages[0]
         let secondStage = chapter.stages[1]
-        let finalStage = chapter.stages[9]
+        let finalStage = chapter.stages[4]
 
         progress.complete(firstStage, in: GameContent.chapters)
 
@@ -88,7 +88,7 @@ final class JourneyProgressTests {
 
         try #expect(progress.activeStageID == "chapter-2-stage-1")
         try #expect(progress.activeChapterID == "chapter-2")
-        try #expect(progress.lastCompletedStageID == "chapter-1-stage-10")
+        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
     }
 
     @Test func journeyPersistsProgress() throws {

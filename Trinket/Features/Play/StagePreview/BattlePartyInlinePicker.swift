@@ -89,12 +89,15 @@ struct BattlePartyInlinePicker: View {
                     Text(slot.title)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                     Text(combatant.name)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .minimumScaleFactor(0.65)
+                        .allowsTightening(true)
                 }
+                .layoutPriority(1)
 
                 Spacer(minLength: 2)
 
@@ -104,7 +107,6 @@ struct BattlePartyInlinePicker: View {
                     .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(10)
             .trinketSurface(.secondary)
             .clipShape(TrinketDesign.cardShape)
         }

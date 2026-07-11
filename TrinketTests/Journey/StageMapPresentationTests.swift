@@ -33,4 +33,50 @@ struct StageMapPresentationTests {
 
         #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
     }
+
+    @Test func chapterRowsKeepAllFiveStagesAndStopProgressAtTheActiveNode() {
+        let chapter = GameContent.chapters[0]
+        var progress = JourneyProgressState.initial
+        progress.completedStageIDs = [chapter.stages[0].id, chapter.stages[1].id]
+        progress.lastCompletedStageID = chapter.stages[1].id
+        progress.activeStageID = chapter.stages[2].id
+
+        let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
+
+        #expect(rows.count == 5)
+        #expect(rows.map(\.stage.id) == chapter.stages.map(\.id))
+        #expect(rows[0].state == .completed)
+        #expect(rows[1].state == .justCompleted)
+        #expect(rows[2].state == .active)
+        #expect(rows[3].state == .future)
+        #expect(rows[1].connectorAfter == .progressed)
+        #expect(rows[2].connectorBefore == .progressed)
+        #expect(rows[2].connectorAfter == .future)
+        #expect(rows[3].connectorBefore == .future)
+    }
+
+    @Test func bossAndRecruitmentPresentationAreDerivedFromLiveContent() {
+        let chapter = GameContent.chapters[0]
+        let rows = ChapterStageRowPresentation.rows(for: chapter, progress: .initial)
+
+        #expect(rows[1].stage.encounterTypeTitle == "Recruitment")
+        #expect(rows[4].isBoss)
+        #expect(rows[4].stage.encounterTypeTitle == "Boss")
+    }
+
+    @Test func completedChapterStillShowsEveryReadOnlyRow() {
+        let chapter = GameContent.chapters[0]
+        var progress = JourneyProgressState.initial
+        progress.completedStageIDs = Set(chapter.stages.map(\.id))
+        progress.lastCompletedStageID = chapter.stages.last?.id
+        progress.activeChapterID = GameContent.chapters[1].id
+        progress.activeStageID = GameContent.chapters[1].stages.first?.id
+
+        let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
+
+        #expect(rows.count == 5)
+        #expect(!rows.contains { !$0.isCompleted })
+        #expect(rows.allSatisfy { !$0.isActionable })
+        #expect(rows.dropLast().allSatisfy { $0.connectorAfter == .progressed })
+    }
 }

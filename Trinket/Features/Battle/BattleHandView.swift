@@ -23,6 +23,8 @@ struct BattleHandView: View {
                         isPlayable: isPlayable(card),
                         width: layout.cardWidth,
                         height: layout.cardHeight,
+                        restingRotation: BattleHandLayout.rotation(index: index, cardCount: cards.count),
+                        restingOffsetY: BattleHandLayout.restingOffsetY(index: index, cardCount: cards.count),
                         playDragThreshold: BattleHandLayout.playDragThreshold,
                         onTap: { onTap(card) },
                         onPlay: { onPlay(card) }
@@ -49,12 +51,14 @@ struct BattleAbilityCardView: View {
     let isPlayable: Bool
     let width: CGFloat
     let height: CGFloat
+    let restingRotation: CGFloat
+    let restingOffsetY: CGFloat
     let playDragThreshold: CGFloat
     let onTap: () -> Void
     let onPlay: () -> Void
 
     @State private var dragOffset: CGFloat = 0
-    @GestureState private var isDragging = false
+    @State private var isDragging = false
     @ScaledMetric(relativeTo: .title) private var placeholderIconSize: CGFloat = 38
 
     var body: some View {
@@ -64,27 +68,39 @@ struct BattleAbilityCardView: View {
             .clipShape(TrinketDesign.cardShape)
             .trinketCardSurface()
             .opacity(isPlayable ? 1 : 0.45)
-            .offset(y: -dragOffset)
+            .rotationEffect(.degrees(isDragging ? 0 : restingRotation), anchor: .bottom)
+            .offset(y: isDragging ? -dragOffset - 24 : height * 0.25 + restingOffsetY)
+            .scaleEffect(isDragging ? 1.03 : 1)
+            .mask(alignment: .top) {
+                Rectangle()
+                    .frame(height: isDragging ? height : height * 0.75)
+            }
+            .zIndex(isDragging ? 100 : 0)
+            .animation(.smooth(duration: 0.16), value: isDragging)
             .gesture(
-                DragGesture(minimumDistance: BattleHandLayout.dragMinimumDistance)
-                    .updating($isDragging) { _, state, _ in
-                        state = true
-                    }
+                DragGesture(minimumDistance: 0)
                     .onChanged { value in
+                        if !isDragging {
+                            isDragging = true
+                        }
                         guard isPlayable else { return }
                         dragOffset = max(0, -value.translation.height)
                     }
                     .onEnded { value in
-                        defer { dragOffset = 0 }
-                        guard isPlayable else { return }
-                        if -value.translation.height >= playDragThreshold {
+                        let upwardDistance = -value.translation.height
+                        let wasTap = abs(value.translation.width) < BattleHandLayout.dragMinimumDistance
+                            && abs(value.translation.height) < BattleHandLayout.dragMinimumDistance
+                        if wasTap {
+                            onTap()
+                        } else if isPlayable, upwardDistance >= playDragThreshold {
                             onPlay()
+                        }
+                        withAnimation(.spring(response: 0.34, dampingFraction: 0.86)) {
+                            dragOffset = 0
+                            isDragging = false
                         }
                     }
             )
-            .onTapGesture {
-                onTap()
-            }
             .accessibilityIdentifier(AccessibilityID.Battle.handCard(card.ability.id))
             .accessibilityLabel("\(card.ability.name), \(ownerLabel)")
             .accessibilityHint(isPlayable ? "Tap for details. Drag up to play." : "Cannot play now")

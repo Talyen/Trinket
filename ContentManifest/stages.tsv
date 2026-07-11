@@ -1,26 +1,16 @@
 chapter_id	chapter_number	chapter_title	theme	stage_number	flavor_text	encounter	enemy_id	gold	item_templates	materials	encounter_art_id	encounter_art_title
-chapter-1	1	The Verdant Forest	verdantForest	1	The old forest road narrows beneath a bright green canopy.	battle	skeleton	12	shortsword-basic	wood:8|stone:3		
-chapter-1	1	The Verdant Forest	verdantForest	2	A quiet howl answers from the bend ahead.	mystery	recruit-wolf	8		food:4|herbs:2		
-chapter-1	1	The Verdant Forest	verdantForest	3	Briars close behind you as a brittle shape steps forward.	battle	skeleton	14		wood:10|stone:5		
+chapter-1	1	The Verdant Forest	verdantForest	1	The old forest road narrows beneath a bright green canopy.	battle	skeleton	12	shortsword-basic	wood:8|stone:3
+chapter-1	1	The Verdant Forest	verdantForest	2	A quiet howl answers from the bend ahead.	mystery	recruit-wolf	8		food:4|herbs:2
+chapter-1	1	The Verdant Forest	verdantForest	3	The ground softens underfoot, and the glade begins to move.	battle	mud_elemental	18		stone:9|herbs:3
 chapter-1	1	The Verdant Forest	verdantForest	4	A covered cart waits beside the trail, its little lantern still warm.	shop		5		wood:6|iron:2	destination-merchant-shop	Merchant's Shop
-chapter-1	1	The Verdant Forest	verdantForest	5	The ground softens underfoot, and the glade begins to move.	battle	mud_elemental	18		stone:9|herbs:3		
-chapter-1	1	The Verdant Forest	verdantForest	6	Clear water gathers in a stone basin covered in silver leaves.	rest		0		food:8|herbs:5	destination-campfire	Campfire
-chapter-1	1	The Verdant Forest	verdantForest	7	Pale lights drift between the trees, each one trailing a bitter mist.	battle	plague_doctor	22	emerald_ring-basic	herbs:7|crystal:1		
-chapter-1	1	The Verdant Forest	verdantForest	8	Steel flashes once in the canopy, then stills.	mystery	recruit-rogue	10		wood:8|food:6		
-chapter-1	1	The Verdant Forest	verdantForest	9	An armored sentinel blocks the last rise before the heartwood.	battle	living_armor	26		stone:12|iron:5		
-chapter-1	1	The Verdant Forest	verdantForest	10	At the forest center, the oldest roots twist around a dark crown.	battle	the_blight_treant	40	longsword-astral	iron:8|crystal:3		
-chapter-2	2	The Whispering Glade	verdantForest	1	Sparks linger between the trees like unfinished thoughts.	mystery	recruit-wizard	10		crystal:2|herbs:3		
-chapter-2	2	The Whispering Glade	verdantForest	2	Glass clinks somewhere off the path, then a cork pops.	mystery	recruit-alchemist	10		herbs:4|food:2		
-chapter-2	2	The Whispering Glade	verdantForest	3	The undergrowth parts as if greeting an old friend.	mystery	recruit-druid	10		wood:6|herbs:4		
-chapter-2	2	The Whispering Glade	verdantForest	4	A notice flutters on a pine, pinned by a fresh arrow.	mystery	recruit-ranger	10		wood:4|food:4		
-chapter-2	2	The Whispering Glade	verdantForest	5	Dusk settles early, and candle-smoke finds you first.	mystery	recruit-warlock	12		crystal:3|iron:2		
-chapter-2	2	The Whispering Glade	verdantForest	6	Frost feathers the hollow before you feel the cold.	mystery	recruit-frost-whelp	8		crystal:2|food:3		
-chapter-2	2	The Whispering Glade	verdantForest	7	A sketched map flutters down from the canopy.	mystery	recruit-lizard-scout	8		wood:5|food:3		
-chapter-2	2	The Whispering Glade	verdantForest	8	Gold eyes open along the game trail and do not blink.	mystery	recruit-panther	8		wood:4|herbs:2		
-chapter-2	2	The Whispering Glade	verdantForest	9	Warm ash swirls upward from a charred stump.	mystery	recruit-phoenix	10		crystal:2|herbs:2		
-chapter-2	2	The Whispering Glade	verdantForest	10	Muddy paws and a wagging stick announce a new friend.	mystery	recruit-golden-retriever	8		food:6|wood:2		
-chapter-3	3	The Moonlit Archives	verdantForest	1	A ruined lectern still keeps its place among the trees.	mystery	recruit-library-owl	8		crystal:2|herbs:2		
-chapter-3	3	The Moonlit Archives	verdantForest	2	Leaf litter shifts, and something bony sits up politely.	mystery	recruit-risen-skeleton	8		iron:3|stone:4		
-chapter-3	3	The Moonlit Archives	verdantForest	3	A mana bloom trembles as starlight drinks from its petals.	mystery	recruit-mana-moth	8		crystal:4|herbs:2		
-chapter-3	3	The Moonlit Archives	verdantForest	4	Giggles ring a mushroom circle just off the path.	mystery	recruit-pixie	8		herbs:4|food:2		
-chapter-3	3	The Moonlit Archives	verdantForest	5	A living buckler blocks the narrow pass ahead.	mystery	recruit-shield-scarab	10		stone:6|iron:3		
+chapter-1	1	The Verdant Forest	verdantForest	5	At the forest center, the oldest roots twist around a dark crown.	battle	the_blight_treant	40	longsword-astral	iron:8|crystal:3
+chapter-2	2	The Whispering Glade	verdantForest	1	A goblin scout watches the road from beneath the whispering boughs.	battle	goblin	10		crystal:2|herbs:3
+chapter-2	2	The Whispering Glade	verdantForest	2	Sparks linger between the trees like unfinished thoughts.	mystery	recruit-wizard	10		herbs:4|food:2
+chapter-2	2	The Whispering Glade	verdantForest	3	Heat ripples across the glade as living flame takes shape.	battle	fire_elemental	10		wood:6|herbs:4
+chapter-2	2	The Whispering Glade	verdantForest	4	A covered cart waits where the whispering paths cross.	shop		10		wood:4|food:4	destination-merchant-shop	Merchant's Shop
+chapter-2	2	The Whispering Glade	verdantForest	5	A buried forge wakes, and an ancient golem steps from the sparks.	battle	the_forge_golem	12		crystal:3|iron:2
+chapter-3	3	The Moonlit Archives	verdantForest	1	A pale light slips between the ruined shelves and bars the way.	battle	will_o_wisp	8		crystal:2|herbs:2
+chapter-3	3	The Moonlit Archives	verdantForest	2	A ruined lectern still keeps its place among the trees.	mystery	recruit-library-owl	8		iron:3|stone:4
+chapter-3	3	The Moonlit Archives	verdantForest	3	Frost gathers across the old stone as an elemental rises.	battle	frost_elemental	8		crystal:4|herbs:2
+chapter-3	3	The Moonlit Archives	verdantForest	4	A lantern-lit merchant has made camp among the fallen stacks.	shop		8		herbs:4|food:2	destination-merchant-shop	Merchant's Shop
+chapter-3	3	The Moonlit Archives	verdantForest	5	The archive doors freeze shut as the Frostwarden descends.	battle	the_frostwarden	10		stone:6|iron:3

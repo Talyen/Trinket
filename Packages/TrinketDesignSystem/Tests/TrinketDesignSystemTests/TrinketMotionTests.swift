@@ -2,6 +2,10 @@ import Testing
 import TrinketDesignSystem
 
 struct TrinketMotionTests {
+    @Test func journeyReduceMotionFadeIsBrief() {
+        #expect(TrinketMotion.Journey.reduceMotionFade == 0.18)
+    }
+
     @Test func battleSkillSoftHoldIsHalfSecond() {
         #expect(TrinketMotion.Battle.skillSoftHold == 0.5)
     }

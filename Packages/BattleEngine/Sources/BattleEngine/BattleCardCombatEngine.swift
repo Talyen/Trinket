@@ -108,7 +108,7 @@ public enum BattleCardCombatEngine {
         }
 
         // Draw for next player turn
-        drawCards(heroCount: 1, petCount: 1, context: &context)
+        drawCardsBalanced(heroCount: 1, petCount: 1, context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         context.phase = .playerTurn
         return events
@@ -180,6 +180,39 @@ public enum BattleCardCombatEngine {
     private static func drawCards(heroCount: Int, petCount: Int, context: inout BattleEngineContext) {
         _ = drawCards(count: heroCount, for: .hero, context: &context)
         _ = drawCards(count: petCount, for: .pet, context: &context)
+    }
+
+    /// Resolves simultaneous automatic draws one card at a time so the final
+    /// soft-cap slot goes to the owner with fewer cards. Round parity rotates
+    /// the tie-break instead of permanently favoring one owner.
+    private static func drawCardsBalanced(
+        heroCount: Int,
+        petCount: Int,
+        context: inout BattleEngineContext
+    ) {
+        var remaining: [BattleParticipant: Int] = [.hero: heroCount, .pet: petCount]
+        let tieWinner: BattleParticipant = context.tickCount.isMultiple(of: 2) ? .hero : .pet
+
+        while !context.hand.isAtSoftCap {
+            let candidates = [BattleParticipant.hero, .pet].filter {
+                remaining[$0, default: 0] > 0
+            }
+            guard !candidates.isEmpty else { return }
+
+            let owner = candidates.min { lhs, rhs in
+                let lhsCount = context.hand.cards.count { $0.owner == lhs }
+                let rhsCount = context.hand.cards.count { $0.owner == rhs }
+                if lhsCount == rhsCount {
+                    return lhs == tieWinner && rhs != tieWinner
+                }
+                return lhsCount < rhsCount
+            } ?? tieWinner
+
+            remaining[owner, default: 0] -= 1
+            if !drawOne(owner: owner, context: &context) {
+                remaining[owner] = 0
+            }
+        }
     }
 
     @discardableResult

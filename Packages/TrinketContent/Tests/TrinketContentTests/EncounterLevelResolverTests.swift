@@ -15,7 +15,7 @@ struct EncounterLevelResolverTests {
         try #expect(levels.first == 1)
         try #expect(levels.last == 5)
         try #expect(levels == levels.sorted())
-        try #expect(Set(levels).count >= 4)
+        try #expect(Set(levels).count == battleStages.count)
     }
 
     @Test func nonBattleStagesReturnChapterBaseLevel() throws {

@@ -343,7 +343,7 @@ struct AppStatePlayFlowTests {
             "-reset-state",
             "-seed-test-progress",
             "-completed-stages",
-            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5,chapter-1-stage-6,chapter-1-stage-7,chapter-1-stage-8,chapter-1-stage-9,chapter-1-stage-10"
+            "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
     }
 

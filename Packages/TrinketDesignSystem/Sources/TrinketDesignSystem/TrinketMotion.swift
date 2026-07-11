@@ -5,6 +5,24 @@ import SwiftUI
 /// Shared motion presets. Battle spectacle (R-008 / R-011) is the first consumer;
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
+    public enum Journey: Sendable {
+        public static let reduceMotionFade: TimeInterval = 0.18
+
+        /// Immediate, critically damped feedback for the active stage row.
+        public static var rowPress: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        /// Spatially continuous expansion and collapse for the active stage detail.
+        public static var stageExpansion: Animation {
+            .spring(response: 0.38, dampingFraction: 1.0)
+        }
+
+        public static var reduceMotion: Animation {
+            .easeOut(duration: reduceMotionFade)
+        }
+    }
+
     public enum Homestead: Sendable {
         public static let reduceMotionFade: TimeInterval = 0.18
 

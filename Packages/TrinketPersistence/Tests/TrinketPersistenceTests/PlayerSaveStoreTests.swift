@@ -128,14 +128,17 @@ final class PlayerSaveStoreTests {
         try #expect(store.currentSave.modifiedAt > beforeLocalEdit)
     }
 
-    @Test func sanitizerUsesCatalogOrderForLastCompletedStage() throws {
+    @Test func sanitizerDropsRemovedStagesAndUsesCatalogOrderForLastCompletedStage() throws {
         var journey = JourneyProgressState.initial
-        journey.completedStageIDs = ["chapter-1-stage-9", "chapter-1-stage-10"]
+        journey.completedStageIDs = ["chapter-1-stage-5", "chapter-1-stage-9", "chapter-1-stage-10"]
+        journey.claimedRewardStageIDs = ["chapter-1-stage-5", "chapter-1-stage-10"]
         journey.lastCompletedStageID = "chapter-1-stage-9"
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        try #expect(sanitized.lastCompletedStageID == "chapter-1-stage-10")
+        try #expect(sanitized.completedStageIDs == ["chapter-1-stage-5"])
+        try #expect(sanitized.claimedRewardStageIDs == ["chapter-1-stage-5"])
+        try #expect(sanitized.lastCompletedStageID == "chapter-1-stage-5")
     }
 
     @Test func validateRejectsNegativeProgressionXP() throws {
