@@ -14,7 +14,8 @@ public enum BattleCardCombatEngine {
             rng: &context.rng
         )
         context.hand = BattleHand()
-        drawCards(heroCount: 2, petCount: 2, context: &context)
+        context.handBuffer = BattleHandBuffer()
+        drawOpeningHand(count: BattleHand.maxSize, context: &context)
         context.phase = .playerTurn
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
     }
@@ -46,6 +47,7 @@ public enum BattleCardCombatEngine {
             context: &context,
             spendMana: false
         )
+        promoteFromBuffer(context: &context)
         events.append(contentsOf: context.appendDefeatMilestonesIfNeeded(matchup: matchup))
         if context.isBattleOver {
             context.phase = .ended
@@ -109,6 +111,7 @@ public enum BattleCardCombatEngine {
 
         // Draw for next player turn
         drawCardsBalanced(heroCount: 1, petCount: 1, context: &context)
+        promoteFromBuffer(context: &context)
         context.ownersSkippingThisPlayerTurn = skippingOwners(in: context)
         context.phase = .playerTurn
         return events
@@ -123,8 +126,8 @@ public enum BattleCardCombatEngine {
 
     // MARK: - Private
 
-    /// Draws up to `count` cards for `owner` from their deck into the hand.
-    /// Returns how many cards were actually drawn (soft-cap / empty deck may reduce this).
+    /// Draws up to `count` cards for `owner` from their deck into the hand or buffer.
+    /// Returns how many cards were actually taken from the deck (empty deck / dead owner may reduce this).
     @discardableResult
     public static func drawCards(
         count: Int,
@@ -177,14 +180,21 @@ public enum BattleCardCombatEngine {
         return skipping
     }
 
-    private static func drawCards(heroCount: Int, petCount: Int, context: inout BattleEngineContext) {
-        _ = drawCards(count: heroCount, for: .hero, context: &context)
-        _ = drawCards(count: petCount, for: .pet, context: &context)
+    /// Draws `count` cards, each from a randomly chosen eligible owner (alive + non-empty deck).
+    private static func drawOpeningHand(count: Int, context: inout BattleEngineContext) {
+        for _ in 0 ..< count {
+            let eligible = [BattleParticipant.hero, .pet].filter { owner in
+                context.roster[owner].isAlive && !deck(for: owner, in: context).isEmpty
+            }
+            guard let owner = eligible.randomElement(using: &context.rng) else { return }
+            _ = drawOne(owner: owner, context: &context)
+        }
     }
 
-    /// Resolves simultaneous automatic draws one card at a time so the final
-    /// soft-cap slot goes to the owner with fewer cards. Round parity rotates
-    /// the tie-break instead of permanently favoring one owner.
+    /// Resolves simultaneous automatic draws one card at a time so open hand
+    /// slots go to the owner with fewer cards. Round parity rotates the
+    /// tie-break. Quotas continue after the hand is full so overflow enters
+    /// the hand buffer.
     private static func drawCardsBalanced(
         heroCount: Int,
         petCount: Int,
@@ -193,20 +203,25 @@ public enum BattleCardCombatEngine {
         var remaining: [BattleParticipant: Int] = [.hero: heroCount, .pet: petCount]
         let tieWinner: BattleParticipant = context.tickCount.isMultiple(of: 2) ? .hero : .pet
 
-        while !context.hand.isAtSoftCap {
+        while true {
             let candidates = [BattleParticipant.hero, .pet].filter {
                 remaining[$0, default: 0] > 0
             }
             guard !candidates.isEmpty else { return }
 
-            let owner = candidates.min { lhs, rhs in
-                let lhsCount = context.hand.cards.count { $0.owner == lhs }
-                let rhsCount = context.hand.cards.count { $0.owner == rhs }
-                if lhsCount == rhsCount {
-                    return lhs == tieWinner && rhs != tieWinner
-                }
-                return lhsCount < rhsCount
-            } ?? tieWinner
+            let owner: BattleParticipant = if context.hand.isFull {
+                // Hand is full — exhaust remaining quotas into the buffer without re-balancing.
+                candidates.contains(tieWinner) ? tieWinner : candidates[0]
+            } else {
+                candidates.min { lhs, rhs in
+                    let lhsCount = context.hand.cards.count { $0.owner == lhs }
+                    let rhsCount = context.hand.cards.count { $0.owner == rhs }
+                    if lhsCount == rhsCount {
+                        return lhs == tieWinner && rhs != tieWinner
+                    }
+                    return lhsCount < rhsCount
+                } ?? tieWinner
+            }
 
             remaining[owner, default: 0] -= 1
             if !drawOne(owner: owner, context: &context) {
@@ -215,10 +230,16 @@ public enum BattleCardCombatEngine {
         }
     }
 
+    /// Moves buffered cards into the hand in FIFO order until the hand is full.
+    private static func promoteFromBuffer(context: inout BattleEngineContext) {
+        while !context.hand.isFull, let card = context.handBuffer.dequeue() {
+            context.hand.append(card)
+        }
+    }
+
     @discardableResult
     private static func drawOne(owner: BattleParticipant, context: inout BattleEngineContext) -> Bool {
         guard context.roster[owner].isAlive else { return false }
-        guard !context.hand.isAtSoftCap else { return false }
 
         let ability: Ability? = switch owner {
         case .hero:
@@ -231,8 +252,21 @@ public enum BattleCardCombatEngine {
         guard let ability else { return false }
 
         context.nextCardID += 1
-        context.hand.append(BattleCard(id: context.nextCardID, ability: ability, owner: owner))
+        let card = BattleCard(id: context.nextCardID, ability: ability, owner: owner)
+        if context.hand.isFull {
+            context.handBuffer.enqueue(card)
+        } else {
+            context.hand.append(card)
+        }
         return true
+    }
+
+    private static func deck(for owner: BattleParticipant, in context: BattleEngineContext) -> CombatDeck {
+        switch owner {
+        case .hero: context.heroDeck
+        case .pet: context.petDeck
+        case .enemy: CombatDeck()
+        }
     }
 
     private static func putAbilityOnBottom(

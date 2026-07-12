@@ -185,7 +185,7 @@ extension HomesteadModel {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for balance in resources ?? [] {
             guard let resource = HomesteadResource(rawValue: balance.resourceID), resource != .gold else { continue }
-            resolvedResources[resource] = max(balance.quantity, 0)
+            resolvedResources[resource] = PlayerHomesteadState.clampedMaterialBalance(balance.quantity)
         }
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]
         for tierModel in nodeTiers ?? [] {

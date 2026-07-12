@@ -42,19 +42,23 @@ final class PlayMapUITests: TrinketUITestCase {
         XCTAssertEqual(app.staticTexts.matching(identifier: "Your Party").count, 0)
     }
 
-    func testChapterPickerBrowsesCompletedChapterReadOnly() {
+    func testChapterAdvanceContinuesFromClearedChapter() {
         launchApp(arguments: chapterOneCompleteArgs)
 
         play.assertLoaded()
-        play.assertChapterHeader(number: 2)
-        button(AccessibilityID.Play.chapterPicker).tap()
-        app.buttons["Chapter 1"].tap()
-
-        assertExists(AccessibilityID.Play.chapterTitle(number: 1))
+        play.assertChapterHeader(number: 1)
         for stage in 1 ... 5 {
             assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
         }
         assertDoesNotExist(AccessibilityID.Play.activeStageDetail)
+        assertDoesNotExist(AccessibilityID.Play.chapterPicker)
+
+        button(AccessibilityID.Play.chapterAdvance).tap()
+
+        play.assertChapterHeader(number: 2)
+        assertExists(AccessibilityID.Play.chapterTitle(number: 2))
+        assertExists(AccessibilityID.Play.activeStageDetail)
+        assertDoesNotExist(AccessibilityID.Play.chapterAdvance, timeout: 2)
     }
 
     func testNonBattleStubStageCanComplete() {
@@ -143,7 +147,7 @@ final class PlayMapUITests: TrinketUITestCase {
         battle.assertPresented(timeout: 8)
     }
 
-    func testFinalStageOfChapterAutoAdvancesWithoutGate() {
+    func testFinalStageOfChapterOffersAdvanceInsteadOfAutoJump() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs
             + TestLaunchArg.completedStages([
                 "chapter-1-stage-1",
@@ -155,6 +159,7 @@ final class PlayMapUITests: TrinketUITestCase {
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
         assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
+        assertDoesNotExist(AccessibilityID.Play.chapterAdvance)
         assertDoesNotExist(AccessibilityID.Play.chapterLocked(number: 2))
     }
 }

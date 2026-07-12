@@ -25,7 +25,7 @@ struct EmptyAbilitySlotCard: View {
                 .trinketCardSurface()
 
             Text("Empty \(tier.rawValue)")
-                .font(.subheadline.weight(.medium))
+                .trinketTypography(.cardLabel)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
@@ -64,7 +64,7 @@ struct EmptyItemSlotCard: View {
                 .trinketCardSurface()
 
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .trinketTypography(.cardLabel)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)

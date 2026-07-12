@@ -260,6 +260,13 @@ public final class PlayerSaveStore {
         try resetRoot(with: .testSeed)
     }
 
+    /// Unlocks all heroes/pets at level 20 and clears Chapter 1 (Modes unlock).
+    public func unlockAllContent() throws {
+        var unlocked = PlayerSave.unlockedAll
+        unlocked.sessionGeneration = currentSave.sessionGeneration &+ 1
+        try resetRoot(with: unlocked)
+    }
+
     private func mutate(_ update: (inout PlayerSave) -> Void) {
         do {
             try performBatchMutation(update, persistImmediately: persistSaveImmediately)

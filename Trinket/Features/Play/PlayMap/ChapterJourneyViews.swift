@@ -58,48 +58,22 @@ private struct ChapterStageRow: View {
     }
 
     private var stageRail: some View {
-        GeometryReader { geometry in
-            let centerY = geometry.size.height / 2
-
-            ZStack(alignment: .top) {
-                if let connectorBefore = presentation.connectorBefore {
-                    connector(connectorBefore)
-                        .frame(height: max(centerY - nodeSize / 2, 0))
-                }
-
-                if let connectorAfter = presentation.connectorAfter {
-                    connector(connectorAfter)
-                        .frame(height: max(geometry.size.height - centerY - nodeSize / 2, 0))
-                        .offset(y: centerY + nodeSize / 2)
-                }
-
-                node
-                    .frame(width: nodeSize, height: nodeSize)
-                    .offset(y: centerY - nodeSize / 2)
-            }
-            .frame(maxWidth: .infinity)
+        VerticalPathRail(
+            nodeSize: nodeSize,
+            minHeight: 76,
+            connectorBefore: presentation.connectorBefore,
+            connectorAfter: presentation.connectorAfter,
+            style: .homesteadAccent
+        ) {
+            StageNode(
+                symbolName: presentation.stage.encounter.symbolName,
+                state: presentation.state,
+                isBoss: presentation.isBoss
+            )
+            .accessibilityIdentifier(StageMapID.stageNode(for: presentation.stage))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(presentation.stage.mapLabel), \(presentation.accessibilityStatus)")
         }
-        // UIStyleCheck: allow - The rail follows the dynamic stage-card height.
-        .frame(minHeight: 76, maxHeight: .infinity)
-    }
-
-    private func connector(_ state: StageConnectorState) -> some View {
-        Capsule()
-            .fill(state == .progressed ? HomesteadPalette.accent : Color.secondary.opacity(0.38))
-            .frame(width: state == .progressed ? 3 : 2)
-            .frame(maxWidth: .infinity)
-            .accessibilityHidden(true)
-    }
-
-    private var node: some View {
-        StageNode(
-            symbolName: presentation.stage.encounter.symbolName,
-            state: presentation.state,
-            isBoss: presentation.isBoss
-        )
-        .accessibilityIdentifier(StageMapID.stageNode(for: presentation.stage))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(presentation.stage.mapLabel), \(presentation.accessibilityStatus)")
     }
 
     private var compactRow: some View {
@@ -109,7 +83,7 @@ private struct ChapterStageRow: View {
     private var compactRowLabel: some View {
         HStack(spacing: 10) {
             EncounterArtwork(stage: presentation.stage)
-                // UIStyleCheck: allow - Fixed row thumbnail keeps the five-stage path compact.
+                // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps the five-stage path compact.
                 .frame(width: 64, height: 48)
                 .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
                 .accessibilityHidden(true)
@@ -120,18 +94,7 @@ private struct ChapterStageRow: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(presentation.stage.mapLabel)
-                    HStack(spacing: 4) {
-                        Text(presentation.stage.encounterTypeTitle)
-                            .foregroundStyle(presentation.stage.encounter.mapTint)
-                        Image(systemName: presentation.stage.encounter.symbolName)
-                            .foregroundStyle(presentation.stage.encounter.mapTint)
-                            .accessibilityHidden(true)
-                    }
-                }
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+                StageMapMetaLine(stage: presentation.stage)
             }
 
             Spacer(minLength: 4)
@@ -161,8 +124,8 @@ private struct ChapterStageRow: View {
 
     private var compactAccessibilityLabel: String {
         let boss = presentation.isBoss ? ", Boss" : ""
-        return "\(presentation.stage.mapLabel), \(presentation.stage.encounterSubjectName), "
-            + "\(presentation.stage.encounterTypeTitle), \(presentation.accessibilityStatus)\(boss)"
+        return "\(presentation.stage.mapMetaLabel), \(presentation.stage.encounterSubjectName), "
+            + "\(presentation.accessibilityStatus)\(boss)"
     }
 }
 

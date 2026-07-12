@@ -87,11 +87,11 @@ struct BattlePartyInlinePicker: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(slot.title)
-                        .font(.caption.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     Text(combatant.name)
-                        .font(.subheadline.weight(.semibold))
+                        .trinketTypography(.cardTitle)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
@@ -126,7 +126,7 @@ struct BattlePartyInlinePicker: View {
         )
 
         Text(status.message)
-            .font(.footnote)
+            .trinketTypography(.footnote)
             .foregroundStyle(status.isReady ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
             .padding(.horizontal, 4)
     }
@@ -224,7 +224,7 @@ struct BattleCombatantPickerSheet: View {
                     .clipShape(TrinketDesign.cardShape)
 
                 Text(combatant.name)
-                    .font(.subheadline.weight(.semibold))
+                    .trinketTypography(.cardLabel)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -322,10 +322,10 @@ struct StageBattlePartyPickerSheet: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(slot.title)
-                        .font(.caption.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(.secondary)
                     Text(combatant.name)
-                        .font(.headline)
+                        .trinketTypography(.cardTitle)
                         .foregroundStyle(.primary)
                 }
 
@@ -382,10 +382,11 @@ private struct BattlePartyOptionsGrid: View {
                                 .frame(height: 88)
                                 .clipShape(TrinketDesign.cardShape)
                             Text(combatant.name)
-                                .font(.subheadline.weight(.semibold))
+                                .trinketTypography(.cardLabel)
                                 .foregroundStyle(.primary)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.center)
+                                // UIStyleCheck: allow - Grid option labels reserve two lines for long names.
                                 .frame(minHeight: 34)
                         }
                         .padding(8)

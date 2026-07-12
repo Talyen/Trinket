@@ -42,38 +42,44 @@ struct CombatHealthBar: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-
-            ZStack(alignment: .leading) {
-                switch style {
-                case .standard:
-                    Capsule().fill(.quaternary)
-                    Capsule()
-                        .fill(TrinketDesign.Colors.healthRestore)
-                        .frame(width: width * restoreFraction)
-                        .opacity(restoreOpacity)
-                    Capsule()
-                        .fill(TrinketDesign.Colors.healthTrailingDamage)
-                        .frame(width: width * trailingFraction)
-                    Capsule()
-                        .fill(fillColor)
-                        .frame(width: width * displayedFraction)
-                case .battleBorder:
+        Group {
+            switch style {
+            case .standard:
+                GeometryReader { geometry in
+                    let width = geometry.size.width
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(.quaternary)
+                        Capsule()
+                            .fill(TrinketDesign.Colors.healthRestore)
+                            .frame(width: width * restoreFraction)
+                            .opacity(restoreOpacity)
+                        Capsule()
+                            .fill(TrinketDesign.Colors.healthTrailingDamage)
+                            .frame(width: width * trailingFraction)
+                        Capsule()
+                            .fill(fillColor)
+                            .frame(width: width * displayedFraction)
+                    }
+                }
+            case .battleBorder:
+                // Avoid GeometryReader here — its width can collapse to ~0 when this
+                // strip is overlaid on landscape battle panes.
+                ZStack(alignment: .leading) {
                     Rectangle().fill(TrinketDesign.Colors.battleHealthTrack)
                     Rectangle()
                         .fill(TrinketDesign.Colors.healthRestore)
-                        .frame(width: width * restoreFraction)
                         .opacity(restoreOpacity)
+                        .scaleEffect(x: restoreFraction, y: 1, anchor: .leading)
                     Rectangle()
                         .fill(TrinketDesign.Colors.battleHealthTrailingDamage)
-                        .frame(width: width * trailingFraction)
+                        .scaleEffect(x: trailingFraction, y: 1, anchor: .leading)
                     Rectangle()
                         .fill(fillColor)
-                        .frame(width: width * displayedFraction)
+                        .scaleEffect(x: displayedFraction, y: 1, anchor: .leading)
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .frame(height: height)
         .modifier(CombatHealthBarClipModifier(style: style))
         .onChange(of: health) { oldValue, newValue in

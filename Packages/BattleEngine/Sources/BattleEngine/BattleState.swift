@@ -23,7 +23,7 @@ public typealias BattleEngineContext = BattleState
 /// - AI helper: `enemyAttackTarget`
 ///
 /// **Public surface (mutations):**
-/// - `init(...)` — construct a battle (opens with 2 Hero + 2 Pet cards)
+/// - `init(...)` — construct a battle (opens with 3 randomly drawn cards)
 /// - `playCard(cardID:)` / `endTurn()` — drive card combat
 /// - `syncLog()` / `releaseLogProjection()` — log cache lifecycle
 ///
@@ -81,6 +81,8 @@ public struct BattleState {
 
     public var phase: BattlePhase
     public var hand: BattleHand
+    /// Cards drawn while the hand was full; promote FIFO when a slot frees.
+    public var handBuffer: BattleHandBuffer
     public var heroDeck: CombatDeck
     public var petDeck: CombatDeck
     public var nextCardID: Int
@@ -110,6 +112,7 @@ public struct BattleState {
         hasLoggedPartyDefeat: Bool = false,
         phase: BattlePhase = .playerTurn,
         hand: BattleHand = BattleHand(),
+        handBuffer: BattleHandBuffer = BattleHandBuffer(),
         heroDeck: CombatDeck = CombatDeck(),
         petDeck: CombatDeck = CombatDeck(),
         nextCardID: Int = 0,
@@ -140,6 +143,7 @@ public struct BattleState {
         self.hasLoggedPartyDefeat = hasLoggedPartyDefeat
         self.phase = phase
         self.hand = hand
+        self.handBuffer = handBuffer
         self.heroDeck = heroDeck
         self.petDeck = petDeck
         self.nextCardID = nextCardID
@@ -207,6 +211,7 @@ public struct BattleState {
         hasLoggedPartyDefeat = false
         phase = .playerTurn
         hand = BattleHand()
+        handBuffer = BattleHandBuffer()
         heroDeck = CombatDeck()
         petDeck = CombatDeck()
         nextCardID = 0

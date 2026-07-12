@@ -58,6 +58,7 @@ struct HomesteadPresentationTests {
         let secondTier = try #require(definition.tier(2))
 
         #expect(affordable.rowState == .upgradeReady)
+        #expect(affordable.statusSymbolName == "hammer.fill")
         #expect(affordable.tierPathState(for: secondTier) == .next(affordable: true))
         #expect(unavailable.rowState == .built)
         #expect(unavailable.tierPathState(for: secondTier) == .next(affordable: false))
@@ -105,6 +106,26 @@ struct HomesteadPresentationTests {
             homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 3])
         )
         #expect(tierThree.tierPathState(for: tiers[2]) == .completed)
+    }
+
+    @Test func tierPathConnectorsMatchStageSelectProgressFrontier() throws {
+        let definition = try #require(GameContent.homesteadNode(matching: .wheatField))
+        #expect(definition.tiers.count == 3)
+
+        let mid = makeStatus(
+            definition: definition,
+            homestead: PlayerHomesteadState(resources: [:], nodeTiers: [.wheatField: 1])
+        )
+        let first = mid.tierPathConnectors(for: 0)
+        let second = mid.tierPathConnectors(for: 1)
+        let third = mid.tierPathConnectors(for: 2)
+
+        #expect(first.before == nil)
+        #expect(first.after == .progressed)
+        #expect(second.before == .progressed)
+        #expect(second.after == .future)
+        #expect(third.before == .future)
+        #expect(third.after == nil)
     }
 
     private func makeStatus(

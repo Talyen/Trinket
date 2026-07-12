@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketCore
+import TrinketDesignSystem
 
 struct CombatantHeroHeader: View {
     let combatant: Combatant
@@ -42,13 +43,13 @@ struct CombatantHeroHeader: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(combatant.role.rawValue.uppercased())
-                .font(.caption.weight(.bold))
+                .trinketTypography(.eyebrow)
                 .foregroundStyle(.white.opacity(0.78))
 
             Text(combatant.name)
-                .font(.largeTitle.weight(.bold))
+                .trinketTypography(.screenDisplay)
                 .foregroundStyle(.white)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
@@ -58,11 +59,12 @@ struct CombatantHeroHeader: View {
     private var experienceFooter: some View {
         HStack {
             Text("LEVEL \(progression.level)")
-                .font(.caption.weight(.bold))
+                .trinketTypography(.eyebrow)
                 .foregroundStyle(.white.opacity(0.78))
 
             Text("\(progression.currentXP)/\(progression.requiredXP) XP")
-                .font(.caption.weight(.bold).monospacedDigit())
+                .trinketTypography(.eyebrow)
+                .monospacedDigit()
                 .foregroundStyle(.white.opacity(0.78))
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -48,13 +48,13 @@ struct HomesteadResourcePill: View {
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(resource.displayName)
-                    .font(.caption.weight(.medium))
+                    .trinketTypography(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.76)
 
                 Text("\(balance)")
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                    .trinketTypography(.statValue)
                     .contentTransition(.numericText())
             }
         }

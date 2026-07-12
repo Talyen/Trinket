@@ -79,16 +79,56 @@ final class JourneyProgressTests {
         try #expect((1 ... 2).contains(rewardItem.affixes.count))
     }
 
-    @Test func chapterCompletionAdvancesActiveStageToNextChapter() throws {
+    @Test func chapterCompletionParksUntilAdvanceToNextChapter() throws {
         var progress = JourneyProgressState.initial
 
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
+        try #expect(progress.activeStageID == nil)
+        try #expect(progress.activeChapterID == "chapter-1")
+        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
+        try #expect(progress.pendingNextChapter()?.id == "chapter-2")
+
+        let advanced = progress.advanceToNextChapter()
+        try #expect(advanced)
         try #expect(progress.activeStageID == "chapter-2-stage-1")
         try #expect(progress.activeChapterID == "chapter-2")
-        try #expect(progress.lastCompletedStageID == "chapter-1-stage-5")
+        try #expect(progress.pendingNextChapter() == nil)
+    }
+
+    @Test func completeChapterMarksOnlyThatChapterDone() throws {
+        var progress = JourneyProgressState.initial
+        progress.completeChapter("chapter-1")
+
+        let chapter1 = try #require(GameContent.chapters.first { $0.id == "chapter-1" })
+        let chapter1StageIDs = Set(chapter1.stages.map(\.id))
+        let lastStage = try #require(chapter1.stages.last)
+        try #expect(progress.completedStageIDs == chapter1StageIDs)
+        try #expect(progress.claimedRewardStageIDs == chapter1StageIDs)
+        try #expect(progress.activeStageID == nil)
+        try #expect(progress.activeChapterID == "chapter-1")
+        try #expect(progress.lastCompletedStageID == lastStage.id)
+        try #expect(progress.isActiveChapterCleared())
+        try #expect(ModesUnlock.isUnlocked(journey: progress))
+        if GameContent.chapters.count > 1 {
+            try #expect(progress.pendingNextChapter()?.id == "chapter-2")
+        }
+    }
+
+    @Test func completeAllStagesMarksEntireCampaignDone() throws {
+        var progress = JourneyProgressState.initial
+        progress.completeAllStages()
+
+        let allStageIDs = Set(GameContent.chapters.flatMap(\.stages).map(\.id))
+        let lastStage = try #require(GameContent.chapters.flatMap(\.stages).last)
+        try #expect(progress.completedStageIDs == allStageIDs)
+        try #expect(progress.claimedRewardStageIDs == allStageIDs)
+        try #expect(progress.activeStageID == nil)
+        try #expect(progress.activeChapterID == lastStage.chapterID)
+        try #expect(progress.lastCompletedStageID == lastStage.id)
+        try #expect(ModesUnlock.isUnlocked(journey: progress))
     }
 
     @Test func journeyPersistsProgress() throws {

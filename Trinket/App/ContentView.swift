@@ -8,7 +8,7 @@ struct ContentView: View {
 
     var body: some View {
         tabRoot(selection: battleLockedSelection)
-            .preferredColorScheme(appState.options.appearance.colorScheme)
+            .preferredColorScheme(.dark)
             .alert(
                 "Progress Storage Issue",
                 isPresented: Binding(

@@ -51,9 +51,6 @@ extension AppState {
         )
 
         let resolvedOptions = OptionsStore(defaults: userDefaults)
-        if let appearanceOverride = environment.appearanceOverride {
-            resolvedOptions.appearance = appearanceOverride
-        }
 
         let launchCollection = launchCollectionPresentation(for: environment.launchScreen)
         let launchPlay = launchPlayDestination(for: environment.launchScreen)

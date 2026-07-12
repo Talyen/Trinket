@@ -152,14 +152,6 @@ struct AppStateTests {
         #expect(state.selectedTab == .options)
     }
 
-    @Test func appearanceOverrideAppliesToOptionsStore() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-appearance", "dark"])
-        )
-
-        #expect(state.options.appearance == .dark)
-    }
-
     @Test func resetStateWipesPersistedSave() throws {
         var save = PlayerSave.fresh
         save.roster.gold = 99

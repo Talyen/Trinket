@@ -86,6 +86,7 @@ mkdir -p "$RESULTS_DIR"
 
 scheme_for_package() {
   case "$1" in
+    BattleEngine) echo "BattleEngine-Package" ;;
     *) echo "$1" ;;
   esac
 }

@@ -9,7 +9,7 @@ struct BattleCardGridLayoutTests {
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
         #expect(metrics.outerPadding == 0)
-        #expect(metrics.cardSpacing == 4)
+        #expect(metrics.cardSpacing == 12)
         #expect(metrics.handReservedHeight == 224)
         #expect(abs(metrics.enemySize.width - width) < 0.001)
         assertRelationships(metrics, in: containerSize)

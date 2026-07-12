@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import TrinketDesignSystem
 
 /// How Ultimate cinematics may be dismissed or limited.
 enum UltimateCinematicSkipPolicy: String, CaseIterable, Identifiable {
@@ -41,7 +40,6 @@ final class OptionsStore {
     @ObservationIgnored private var musicVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var effectsVolumeStorage: AppStorage<Double>
     @ObservationIgnored private var hapticsEnabledStorage: AppStorage<Bool>
-    @ObservationIgnored private var appearanceStorage: AppStorage<String>
     @ObservationIgnored private var ultimateSkipPolicyStorage: AppStorage<String>
 
     var musicVolume: Double {
@@ -54,10 +52,6 @@ final class OptionsStore {
 
     var hapticsEnabled: Bool {
         didSet { hapticsEnabledStorage.wrappedValue = hapticsEnabled }
-    }
-
-    var appearance: TrinketDesign.AppAppearance {
-        didSet { appearanceStorage.wrappedValue = appearance.rawValue }
     }
 
     var ultimateCinematicSkipPolicy: UltimateCinematicSkipPolicy {
@@ -73,8 +67,9 @@ final class OptionsStore {
     static let musicVolumeKey = "options.musicVolume"
     static let effectsVolumeKey = "options.effectsVolume"
     static let hapticsEnabledKey = "options.hapticsEnabled"
-    static let appearanceKey = "options.appearance"
     static let ultimateCinematicSkipPolicyKey = "options.ultimateCinematicSkipPolicy"
+    /// Removed: appearance preference. Kept so reset clears any leftover key.
+    static let appearanceKey = "options.appearance"
     /// Removed: lifetime seen-ability tracking. Kept so reset clears any leftover key.
     static let seenUltimateCinematicsKey = "options.seenUltimateCinematics"
 
@@ -94,11 +89,6 @@ final class OptionsStore {
             Self.hapticsEnabledKey,
             store: defaults
         )
-        appearanceStorage = AppStorage(
-            wrappedValue: TrinketDesign.AppAppearance.default.rawValue,
-            Self.appearanceKey,
-            store: defaults
-        )
         ultimateSkipPolicyStorage = AppStorage(
             wrappedValue: UltimateCinematicSkipPolicy.always.rawValue,
             Self.ultimateCinematicSkipPolicyKey,
@@ -108,8 +98,6 @@ final class OptionsStore {
         musicVolume = musicVolumeStorage.wrappedValue
         effectsVolume = effectsVolumeStorage.wrappedValue
         hapticsEnabled = hapticsEnabledStorage.wrappedValue
-        appearance = TrinketDesign.AppAppearance(rawValue: appearanceStorage.wrappedValue)
-            ?? .default
         let loadedPolicy = UltimateCinematicSkipPolicy(
             rawValue: ultimateSkipPolicyStorage.wrappedValue
         ) ?? .always

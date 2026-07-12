@@ -32,6 +32,9 @@ final class SmokePlayTests: TrinketUITestCase {
         play.assertModeHub()
 
         app.buttons[AccessibilityID.Play.campaignModeCard].tap()
+        play.assertChapterHeader(number: 1)
+        assertExists(AccessibilityID.Play.chapterAdvance)
+        button(AccessibilityID.Play.chapterAdvance).tap()
         play.assertChapterHeader(number: 2)
         goBack()
 

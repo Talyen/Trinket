@@ -262,6 +262,22 @@ struct PlayerRosterStateTests {
         try #expect(unlockedEnemy == false)
     }
 
+    @Test func unlockAllCombatantsGrantsCatalogAtRequestedLevel() throws {
+        var roster = PlayerRosterState.freshStart
+        roster.unlockAllCombatants(atLevel: 20)
+
+        try #expect(roster.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
+        try #expect(roster.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
+        for hero in GameContent.heroes {
+            try #expect(roster.progression(for: hero) == CombatantProgression.at(level: 20))
+        }
+        for pet in GameContent.pets {
+            try #expect(roster.progression(for: pet) == CombatantProgression.at(level: 20))
+        }
+        try #expect(roster.highestHeroLevel == 20)
+        try #expect(roster.highestPetLevel == 20)
+    }
+
     @Test func addRewardItemIgnoresDuplicateID() throws {
         let template = try #require(GameContent.itemTemplate(matching: "shortsword-basic"))
         let stage = GameContent.chapters[0].stages[0]

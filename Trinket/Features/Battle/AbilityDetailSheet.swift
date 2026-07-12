@@ -24,7 +24,7 @@ struct AbilityDetailSheet: View {
                         .frame(maxWidth: .infinity)
 
                     Text(ability.name)
-                        .font(.title2.weight(.semibold))
+                        .trinketTypography(.sectionTitle)
                     Text(ability.tier.rawValue)
                         .trinketTypography(.secondaryBody)
                         .foregroundStyle(.secondary)

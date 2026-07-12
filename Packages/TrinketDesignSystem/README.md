@@ -6,18 +6,28 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 | File | Role |
 |------|------|
-| `TrinketDesign.swift` | Appearance modes, colors, metrics, and card chrome |
+| `TrinketDesign.swift` | Colors, metrics, and card chrome |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
 | `Resources/DesignColors.xcassets` | Keyword and encounter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
 | `ExperienceBar.swift` | XP/level progress bar |
+| `VerticalPathRail.swift` | Shared vertical node rail + connectors (Homestead / Stage select) |
 | `HomesteadTint+Color.swift` | Homestead node tint resolution |
 
-## Appearance
+## Typography
 
-App chrome uses Apple semantic system colors through `ThemePalette.apple`. Default appearance is **Dark**; players can choose **System**, **Light**, or **Dark** via `OptionsStore.appearance` in Options. Tests can override with the `-appearance` launch argument.
+Use `.trinketTypography(_:)` for all readable text. Do not call raw `.font(...)` for copy.
+
+| Role family | Typeface | Use for |
+|---|---|---|
+| `*Display` (`screenDisplay`, `sectionDisplay`, `rowDisplay`) | Serif (New York) | Branded heroes and journey names on art |
+| `*Title` (`screenTitle`, `sectionTitle`, `cardTitle`) | SF Pro | Apple-native UI chrome, lists, shelves |
+| `eyebrow` | SF caption bold | Label **above** a hero title (chapter, role, rarity) |
+| Body / caption / badge / button / statValue / … | SF Pro | Supporting copy and controls |
+
+Hero stack order is always **eyebrow → title** (never title then rarity/role).
 
 ## Surface roles
 

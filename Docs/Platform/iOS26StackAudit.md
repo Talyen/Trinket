@@ -154,7 +154,7 @@ After any Liquid Glass or chrome migration:
 ./Scripts/build.sh
 ```
 
-Manual: launch with `-appearance light`, `-appearance dark`, and accessibility settings (Reduce Transparency, Reduce Motion) on iOS 26 simulator.
+Manual: launch under dark appearance (app is always dark) and accessibility settings (Reduce Transparency, Reduce Motion) on iOS 26 simulator.
 
 ---
 

@@ -246,7 +246,9 @@ struct WireHomesteadState: Codable, Equatable {
 
     init(_ homestead: PlayerHomesteadState) {
         resources = Dictionary(
-            uniqueKeysWithValues: homestead.resources.map { ($0.key.rawValue, max($0.value, 0)) }
+            uniqueKeysWithValues: homestead.resources.map {
+                ($0.key.rawValue, PlayerHomesteadState.clampedMaterialBalance($0.value))
+            }
         )
         nodeTiers = Dictionary(
             uniqueKeysWithValues: homestead.nodeTiers.map { ($0.key.rawValue, max($0.value, 0)) }
@@ -262,7 +264,7 @@ struct WireHomesteadState: Codable, Equatable {
         var resolvedResources: [HomesteadResource: Int] = [:]
         for (rawValue, quantity) in resources {
             guard let resource = HomesteadResource(rawValue: rawValue), resource != .gold else { continue }
-            resolvedResources[resource] = max(quantity, 0)
+            resolvedResources[resource] = PlayerHomesteadState.clampedMaterialBalance(quantity)
         }
 
         var resolvedNodeTiers: [HomesteadNodeID: Int] = [:]

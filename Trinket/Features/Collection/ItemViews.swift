@@ -169,7 +169,7 @@ struct ItemDetailView: View {
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                         ForEach(item.affixes.prefix(4)) { affix in
                             KeywordDescriptionText(text: affix.description)
-                                .font(.subheadline)
+                                .trinketTypography(.secondaryBody)
                                 .foregroundStyle(.secondary)
                                 .accessibilityElement(children: .combine)
                         }

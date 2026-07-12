@@ -103,15 +103,16 @@ struct AppStatePlayFlowTests {
         #expect(JourneyMapPresentation.scrollFocusID(for: .initial) == "chapter-1-stage-1")
     }
 
-    @Test func mapScrollFocusIDReturnsNextChapterStageWhenChapterComplete() throws {
+    @Test func mapScrollFocusIDReturnsLastStageWhenChapterClearedAwaitingAdvance() throws {
         _ = try context.makeAppState()
         var progress = JourneyProgressState.initial
         for stage in GameContent.chapters[0].stages {
             progress.complete(stage, in: GameContent.chapters)
         }
 
-        #expect(progress.activeStageID == "chapter-2-stage-1")
-        #expect(JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-2-stage-1")
+        #expect(progress.activeStageID == nil)
+        #expect(progress.activeChapterID == "chapter-1")
+        #expect(JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-1-stage-5")
     }
 
     @Test func resetGameplayProgressClearsBattleAndMapScroll() throws {
@@ -129,6 +130,26 @@ struct AppStatePlayFlowTests {
         #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
         #expect(state.journey.current.completedStageIDs.isEmpty)
     }
+
+    #if DEBUG
+    @Test func unlockAllContentUnlocksRosterAndClearsBattle() throws {
+        let state = try context.makeAppState()
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        _ = state.startBattle(for: stage)
+        state.noteMapScrollFocus("chapter-1-stage-2")
+
+        #expect(state.unlockAllContent())
+
+        #expect(state.battle.activeBattle == nil)
+        #expect(state.mapScrollStageID == nil)
+        #expect(state.selectedTab == .play)
+        #expect(state.roster.current.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
+        #expect(state.roster.current.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
+        #expect(state.roster.current.highestHeroLevel == 20)
+        #expect(state.roster.current.highestPetLevel == 20)
+        #expect(ModesUnlock.isUnlocked(journey: state.journey.current))
+    }
+    #endif
 
     @Test func completeStageReturnsScrollFocusWithoutPersistingWhenSaveFails() throws {
         let state = try context.makeAppState()

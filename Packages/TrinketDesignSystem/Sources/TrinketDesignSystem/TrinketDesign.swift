@@ -14,12 +14,12 @@ public enum TrinketDesign {
         public static let healthTrailingDamage = Color.red.opacity(0.35)
         public static let healthRestore = Color.green
 
-        /// Muted red fill for battle card bottom-edge health chrome.
-        public static let battleHealth = Color.red.opacity(0.55)
-        /// Subtle empty track behind battle health fill.
-        public static let battleHealthTrack = Color.black.opacity(0.28)
+        /// Solid red fill for battle card bottom-edge health chrome.
+        public static let battleHealth = Color.red.opacity(0.92)
+        /// Dark empty track behind battle health fill so the strip reads on busy art.
+        public static let battleHealthTrack = Color.black.opacity(0.62)
         /// Lagging damage remnant on battle health bars.
-        public static let battleHealthTrailingDamage = Color.red.opacity(0.28)
+        public static let battleHealthTrailingDamage = Color.red.opacity(0.45)
 
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
         public static let encounterEvent = DesignAssetColors.named("EncounterEvent")
@@ -36,7 +36,7 @@ public enum TrinketDesign {
         /// Base height for two-line card captions; prefer `@ScaledMetric(relativeTo: .subheadline)`.
         public static let cardLabelReservedHeight: CGFloat = 38
         public static let statBarHeight: CGFloat = 7
-        /// Thin strip height for battle card bottom-edge health chrome.
+        /// Bottom-edge health strip height for battle cards.
         public static let battleHealthBarHeight: CGFloat = 3
         public static let contentMargin: CGFloat = 20
         public static let contentTopPadding: CGFloat = 24
@@ -91,57 +91,6 @@ public enum TrinketDesign {
     }
 
     public static let cardShape = RoundedRectangle(cornerRadius: Corners.card, style: .continuous)
-
-    public enum AppAppearance: CaseIterable, Identifiable, RawRepresentable, Sendable {
-        case system
-        case light
-        case dark
-
-        public static let `default` = AppAppearance.dark
-
-        public init?(rawValue: String) {
-            let normalized = rawValue
-                .lowercased()
-                .replacingOccurrences(of: "-", with: " ")
-                .replacingOccurrences(of: "_", with: " ")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-
-            switch normalized {
-            case "system", "system default", "automatic":
-                self = .system
-            case "light":
-                self = .light
-            case "dark":
-                self = .dark
-            default:
-                return nil
-            }
-        }
-
-        public var rawValue: String {
-            switch self {
-            case .system: "System"
-            case .light: "Light"
-            case .dark: "Dark"
-            }
-        }
-
-        public var id: String {
-            rawValue
-        }
-
-        public var displayName: String {
-            rawValue
-        }
-
-        public var colorScheme: ColorScheme? {
-            switch self {
-            case .system: nil
-            case .light: .light
-            case .dark: .dark
-            }
-        }
-    }
 
     public struct CardPlaceholderStyle: Sendable {
         public let color: Color

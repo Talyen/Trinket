@@ -110,10 +110,11 @@ struct JourneyMapPresentationTests {
         #expect(gateChapter.number == 2)
     }
 
-    @Test func completedChapterScrollsToGate() {
+    @Test func completedChapterScrollsToLastStageWhileAwaitingAdvance() {
         var progress = JourneyProgressState.initial
         progress.completedStageIDs = Set(chapter.stages.map(\.id))
         progress.activeStageID = nil
+        progress.activeChapterID = chapter.id
         progress.lastCompletedStageID = chapter.stages.last?.id
 
         let rows = JourneyMapPresentation.chapterRows(
@@ -127,17 +128,16 @@ struct JourneyMapPresentationTests {
             chapters: GameContent.chapters
         )
 
-        let gateChapter = JourneyMapPresentation.gateChapter(after: chapter, in: GameContent.chapters)
-        #expect(scrollTargetID == StageMapID.chapterGate(for: gateChapter))
+        #expect(scrollTargetID == chapter.stages.last?.id)
         #expect(rows.contains { row in
-            if case let .chapterGate(chapter) = row {
-                return chapter.number == gateChapter.number
+            if case let .chapterGate(gate) = row {
+                return gate.number == 2
             }
             return false
         })
     }
 
-    @Test func scrollTargetAdvancesToNextChapterWhenChapterComplete() {
+    @Test func scrollTargetStaysOnClearedChapterUntilAdvance() {
         var progress = JourneyProgressState.initial
         for stage in chapter.stages {
             progress.complete(stage, in: GameContent.chapters)
@@ -149,7 +149,14 @@ struct JourneyMapPresentationTests {
             chapters: GameContent.chapters
         )
 
-        #expect(scrollTargetID == "chapter-2-stage-1")
+        #expect(progress.activeStageID == nil)
+        #expect(scrollTargetID == "chapter-1-stage-5")
+
+        let advanced = progress.advanceToNextChapter()
+        #expect(advanced)
+        #expect(
+            JourneyMapPresentation.scrollFocusID(for: progress) == "chapter-2-stage-1"
+        )
     }
 
     @Test func gateChapterUsesPlaceholderWhenNextChapterMissing() throws {

@@ -260,6 +260,19 @@ public struct PlayerRosterState: Equatable, Sendable {
         return inserted
     }
 
+    /// Unlocks every catalog hero and pet, setting each progression to `level`.
+    public mutating func unlockAllCombatants(atLevel level: Int = 20) {
+        let progression = CombatantProgression.at(level: level)
+        unlockedHeroIDs = Set(GameContent.heroes.map(\.id))
+        unlockedPetIDs = Set(GameContent.pets.map(\.id))
+        for heroID in unlockedHeroIDs {
+            progressions[heroID] = progression
+        }
+        for petID in unlockedPetIDs {
+            progressions[petID] = progression
+        }
+    }
+
     public func isCombatantUnlocked(id combatantID: String) -> Bool {
         unlockedHeroIDs.contains(combatantID) || unlockedPetIDs.contains(combatantID)
     }

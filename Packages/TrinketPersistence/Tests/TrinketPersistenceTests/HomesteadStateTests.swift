@@ -112,4 +112,32 @@ struct HomesteadStateTests {
 
         try #expect(adjusted.isEmpty)
     }
+
+    @Test func grantCapsMaterialBalanceAtMax() throws {
+        var homestead = PlayerHomesteadState(
+            resources: [.wood: 995, .stone: PlayerHomesteadState.maxMaterialBalance],
+            nodeTiers: [:]
+        )
+
+        homestead.grant([
+            ResourceAmount(.wood, 10),
+            ResourceAmount(.stone, 5),
+            ResourceAmount(.food, 3)
+        ])
+
+        try #expect(homestead.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(homestead.resources[.stone] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(homestead.resources[.food] == 3)
+    }
+
+    @Test func grantDoesNotIncreaseMaterialsAlreadyAtCap() throws {
+        var homestead = PlayerHomesteadState(
+            resources: [.herbs: PlayerHomesteadState.maxMaterialBalance],
+            nodeTiers: [:]
+        )
+
+        homestead.grant([ResourceAmount(.herbs, 50)])
+
+        try #expect(homestead.resources[.herbs] == PlayerHomesteadState.maxMaterialBalance)
+    }
 }

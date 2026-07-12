@@ -4,7 +4,7 @@ import TrinketDesignSystem
 struct OptionsView: View {
     @Environment(AppState.self) private var appState
     @State private var isResetConfirmationPresented = false
-    @State private var resetErrorMessage: String?
+    @State private var actionErrorMessage: String?
 
     var body: some View {
         @Bindable var options = appState.options
@@ -13,20 +13,10 @@ struct OptionsView: View {
             if let message = appState.persistenceStatusMessage {
                 Section("Progress Status") {
                     Label(message, systemImage: "externaldrive.badge.exclamationmark")
-                        .font(.subheadline)
+                        .trinketTypography(.secondaryBody)
                         .foregroundStyle(TrinketDesign.Colors.destructive)
                         .accessibilityIdentifier("Progress Status Message")
                 }
-            }
-
-            Section("Appearance") {
-                Picker("Mode", selection: $options.appearance) {
-                    ForEach(TrinketDesign.AppAppearance.allCases) { appearance in
-                        Text(appearance.displayName).tag(appearance)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("Appearance Picker")
             }
 
             Section("Audio") {
@@ -72,6 +62,21 @@ struct OptionsView: View {
                 }
                 .accessibilityIdentifier("Reset Game Progress Button")
             }
+
+            #if DEBUG
+            Section {
+                Button("Unlock All") {
+                    if !appState.unlockAllContent() {
+                        actionErrorMessage = "Couldn't unlock content. Try again."
+                    }
+                }
+                .accessibilityIdentifier("Unlock All Button")
+            } header: {
+                Text("Developer")
+            } footer: {
+                Text("Unlocks all heroes and pets at level 20 and clears Chapter 1. Debug builds only.")
+            }
+            #endif
         }
         .scrollContentBackground(.hidden)
         .trinketScreenBackground(.denseList)
@@ -85,7 +90,7 @@ struct OptionsView: View {
         ) {
             Button("Reset Game Progress", role: .destructive) {
                 if !appState.resetGameplayProgress() {
-                    resetErrorMessage = "Couldn't reset progress. Try again."
+                    actionErrorMessage = "Couldn't reset progress. Try again."
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -93,19 +98,19 @@ struct OptionsView: View {
             Text("This permanently deletes journey, roster, and inventory progress on this device. Settings are kept.")
         }
         .alert(
-            "Reset Failed",
+            "Action Failed",
             isPresented: Binding(
-                get: { resetErrorMessage != nil },
+                get: { actionErrorMessage != nil },
                 set: {
                     if !$0 {
-                        resetErrorMessage = nil
+                        actionErrorMessage = nil
                     }
                 }
             )
         ) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(resetErrorMessage ?? "")
+            Text(actionErrorMessage ?? "")
         }
     }
 }

@@ -9,45 +9,55 @@ struct ChapterStageSelectView: View {
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
 
-    @State private var selectedChapterID: String?
+    private var chapter: Chapter {
+        appState.playChapter
+    }
+
+    private var pendingNextChapter: Chapter? {
+        appState.journey.current.pendingNextChapter()
+    }
 
     var body: some View {
         DetailHeroScrollShell(
-            title: selectedChapter.title,
+            title: chapter.title,
             backgroundMode: .playJourney,
             heroHeightPolicy: .cinematicLandscape
         ) { baseHeight, overscroll in
             ChapterJourneyHero(
-                chapter: selectedChapter,
-                availableChapters: availableChapters,
+                chapter: chapter,
                 baseHeight: baseHeight,
-                overscroll: overscroll,
-                onSelectChapter: selectChapter
+                overscroll: overscroll
             )
         } bodyContent: {
-            ChapterStageList(
-                rows: stageRows,
-                onEnemyTap: onEnemyTap,
-                onPrimaryAction: handlePrimaryAction
-            )
+            VStack(spacing: 0) {
+                ChapterStageList(
+                    rows: stageRows,
+                    onEnemyTap: onEnemyTap,
+                    onPrimaryAction: handlePrimaryAction
+                )
+
+                if let pendingNextChapter {
+                    chapterAdvanceButton(to: pendingNextChapter)
+                        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+                        .padding(.top, 8)
+                }
+            }
             .padding(.bottom, 92)
         }
         .accessibilityIdentifier(AccessibilityID.Screen.play)
         .overlay(alignment: .topLeading) {
-            Text("Chapter \(selectedChapter.number)")
+            Text("Chapter \(chapter.number)")
                 .accessibilityIdentifier(
-                    AccessibilityID.Play.chapterHeader(number: selectedChapter.number)
+                    AccessibilityID.Play.chapterHeader(number: chapter.number)
                 )
                 .frame(width: 0, height: 0)
                 .opacity(0)
                 .accessibilityHidden(false)
         }
         .onAppear {
-            synchronizeSelection(forceCurrentChapter: selectedChapterID == nil)
             updateMusicPreview()
         }
         .onChange(of: appState.journey.current) { _, _ in
-            synchronizeSelection(forceCurrentChapter: true)
             updateMusicPreview()
         }
         .onDisappear {
@@ -55,31 +65,11 @@ struct ChapterStageSelectView: View {
         }
     }
 
-    private var selectedChapter: Chapter {
-        if let selectedChapterID,
-           let chapter = GameContent.chapter(id: selectedChapterID),
-           availableChapters.contains(where: { $0.id == chapter.id }) {
-            return chapter
-        }
-        return appState.playChapter
-    }
-
-    private var availableChapters: [Chapter] {
-        let activeIndex = GameContent.chapters.firstIndex {
-            $0.id == appState.journey.current.activeChapterID
-        } ?? GameContent.chapters.startIndex
-        return Array(GameContent.chapters.prefix(through: activeIndex))
-    }
-
     private var stageRows: [ChapterStageRowPresentation] {
         ChapterStageRowPresentation.rows(
-            for: selectedChapter,
+            for: chapter,
             progress: appState.journey.current
         )
-    }
-
-    private func selectChapter(_ chapter: Chapter) {
-        selectedChapterID = chapter.id
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
@@ -87,11 +77,22 @@ struct ChapterStageSelectView: View {
         onStageTap(stage)
     }
 
-    private func synchronizeSelection(forceCurrentChapter: Bool) {
-        let activeChapter = appState.playChapter
-        if forceCurrentChapter || selectedChapterID == nil {
-            selectedChapterID = activeChapter.id
+    private func chapterAdvanceButton(to nextChapter: Chapter) -> some View {
+        Button {
+            _ = appState.advanceToNextChapter()
+        } label: {
+            Label(
+                "Continue to Chapter \(nextChapter.number)",
+                systemImage: "arrow.right.circle.fill"
+            )
+            .frame(maxWidth: .infinity)
         }
+        .trinketPrimaryActionButton(controlSize: .large)
+        .accessibilityIdentifier(AccessibilityID.Play.chapterAdvance)
+        .accessibilityLabel(
+            "Continue to Chapter \(nextChapter.number), \(nextChapter.title)"
+        )
+        .accessibilityHint("Begin the next chapter")
     }
 
     private func updateMusicPreview() {
@@ -102,10 +103,8 @@ struct ChapterStageSelectView: View {
 
 private struct ChapterJourneyHero: View {
     let chapter: Chapter
-    let availableChapters: [Chapter]
     let baseHeight: CGFloat
     let overscroll: CGFloat
-    let onSelectChapter: (Chapter) -> Void
 
     private var art: BackgroundArtReference? {
         ArtCatalog.backgroundArtByID[chapter.id]
@@ -136,30 +135,11 @@ private struct ChapterJourneyHero: View {
                 )
                 .allowsHitTesting(false)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Menu {
-                        ForEach(availableChapters) { availableChapter in
-                            Button {
-                                onSelectChapter(availableChapter)
-                            } label: {
-                                if availableChapter.id == chapter.id {
-                                    Label(
-                                        "Chapter \(availableChapter.number)",
-                                        systemImage: "checkmark"
-                                    )
-                                } else {
-                                    Text("Chapter \(availableChapter.number)")
-                                }
-                            }
-                        }
-                    } label: {
-                        Label("Chapter \(chapter.number)", systemImage: "chevron.down")
-                            .font(.subheadline.weight(.semibold))
-                            .labelStyle(ChapterMenuLabelStyle())
-                    }
-                    .trinketGlassChip(.compact)
-                    .accessibilityIdentifier(AccessibilityID.Play.chapterPicker)
-                    .accessibilityLabel("Chapter \(chapter.number), choose chapter")
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Chapter \(chapter.number)".uppercased())
+                        .trinketTypography(.eyebrow)
+                        .foregroundStyle(.white.opacity(0.78))
+                        .shadow(color: .black.opacity(0.7), radius: 1, y: 1)
 
                     Text(chapter.title)
                         .trinketTypography(.screenDisplay)
@@ -176,15 +156,5 @@ private struct ChapterJourneyHero: View {
             }
         }
         .accessibilityElement(children: .contain)
-    }
-}
-
-private struct ChapterMenuLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 6) {
-            configuration.title
-            configuration.icon
-                .font(.caption.weight(.bold))
-        }
     }
 }

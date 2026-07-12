@@ -169,7 +169,7 @@ struct CombatantDetailPane: View {
     private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {
         LabeledContent {
             Text(value)
-                .font(.body.monospacedDigit())
+                .trinketTypography(.statValue)
                 .foregroundStyle(.secondary)
         } label: {
             Text(title)

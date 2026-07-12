@@ -127,7 +127,7 @@ struct LabyrinthMapView: View {
         return VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             HStack(alignment: .firstTextBaseline) {
                 Text("Depth \(state.deepestDepth)")
-                    .font(.title2.weight(.semibold))
+                    .trinketTypography(.sectionTitle)
                     .accessibilityIdentifier(AccessibilityID.Play.labyrinthDepthBadge)
                 if state.deepestDepth >= 10 {
                     Text("Atlas marked")

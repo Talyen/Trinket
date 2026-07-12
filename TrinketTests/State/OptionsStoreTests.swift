@@ -1,5 +1,4 @@
 import Testing
-import TrinketDesignSystem
 @testable import Trinket
 
 @MainActor
@@ -20,7 +19,6 @@ struct OptionsStoreTests {
         #endif
         #expect(abs((store.effectsVolume) - 0.85) < 0.001)
         #expect(store.hapticsEnabled)
-        #expect(store.appearance == .dark)
         #expect(store.ultimateCinematicSkipPolicy == .always)
     }
 
@@ -28,7 +26,6 @@ struct OptionsStoreTests {
         context.userDefaults.set(0.4, forKey: "options.musicVolume")
         context.userDefaults.set(0.6, forKey: "options.effectsVolume")
         context.userDefaults.set(false, forKey: "options.hapticsEnabled")
-        context.userDefaults.set(TrinketDesign.AppAppearance.dark.rawValue, forKey: "options.appearance")
         context.userDefaults.set(
             UltimateCinematicSkipPolicy.never.rawValue,
             forKey: OptionsStore.ultimateCinematicSkipPolicyKey
@@ -39,7 +36,6 @@ struct OptionsStoreTests {
         #expect(abs((store.musicVolume) - 0.4) < 0.001)
         #expect(abs((store.effectsVolume) - 0.6) < 0.001)
         #expect(!(store.hapticsEnabled))
-        #expect(store.appearance == .dark)
         #expect(store.ultimateCinematicSkipPolicy == .never)
     }
 
@@ -74,13 +70,5 @@ struct OptionsStoreTests {
         #expect(OptionsStore.appearanceKey == "options.appearance")
         #expect(OptionsStore.ultimateCinematicSkipPolicyKey == "options.ultimateCinematicSkipPolicy")
         #expect(OptionsStore.seenUltimateCinematicsKey == "options.seenUltimateCinematics")
-    }
-
-    @Test func appearancePersistsOnChange() {
-        let store = OptionsStore(defaults: context.userDefaults)
-        store.appearance = .dark
-
-        #expect(context.userDefaults.string(forKey: "options.appearance") == TrinketDesign.AppAppearance.dark.rawValue)
-        #expect(OptionsStore(defaults: context.userDefaults).appearance == .dark)
     }
 }

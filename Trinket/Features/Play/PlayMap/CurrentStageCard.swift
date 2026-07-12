@@ -13,6 +13,9 @@ struct CurrentStageCard: View {
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
 
+    private let artWidth: CGFloat = 112
+    private let artHeight: CGFloat = 84
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             identity
@@ -36,22 +39,7 @@ struct CurrentStageCard: View {
                 )
 
                 if stage.encounter.battleEnemyID != nil {
-                    Button {
-                        isPartyPickerPresented = true
-                    } label: {
-                        Image(systemName: "person.2.fill")
-                            .font(.body.weight(.semibold))
-                            // UIStyleCheck: allow - Keeps the one-off party icon's tap target compact and legible.
-                            .frame(minWidth: 24, minHeight: 24)
-                            .trinketGlassChip(.utility)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier(AccessibilityID.Play.stagePartyControl)
-                    .accessibilityLabel("Choose party")
-                    .accessibilityValue(
-                        "Hero: \(appState.roster.activeHero.name), Pet: \(appState.roster.activePet.name)"
-                    )
-                    .accessibilityHint("Choose a different hero or pet")
+                    partyPickerButton
                 }
             }
         }
@@ -74,30 +62,38 @@ struct CurrentStageCard: View {
     private var identity: some View {
         HStack(alignment: .top, spacing: 12) {
             activeArtwork
-                .frame(width: 96, height: 72)
+                .frame(width: artWidth, height: artHeight)
                 .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous))
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(stage.encounterSubjectName)
-                    .font(.system(.title2, design: .serif).weight(.semibold))
+                    .trinketTypography(.sectionDisplay)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(stage.mapLabel)
-                    HStack(spacing: 5) {
-                        Text(stage.encounterTypeTitle)
-                            .foregroundStyle(stage.encounter.mapTint)
-                        Image(systemName: stage.encounter.symbolName)
-                            .foregroundStyle(stage.encounter.mapTint)
-                            .accessibilityHidden(true)
-                    }
-                }
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(.secondary)
+                StageMapMetaLine(stage: stage, role: .navigation)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var partyPickerButton: some View {
+        Button {
+            isPartyPickerPresented = true
+        } label: {
+            Image(systemName: "person.2.fill")
+                .font(.body.weight(.semibold))
+                // UIStyleCheck: allow - Compact party icon sits beside the primary CTA without chip chrome.
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(AccessibilityID.Play.stagePartyControl)
+        .accessibilityLabel("Choose party")
+        .accessibilityValue(
+            "Hero: \(appState.roster.activeHero.name), Pet: \(appState.roster.activePet.name)"
+        )
+        .accessibilityHint("Choose a different hero or pet")
     }
 
     @ViewBuilder
@@ -118,5 +114,25 @@ struct CurrentStageCard: View {
                         : "\(stage.mapLabel) Recruit Art"
                 )
         }
+    }
+}
+
+/// Shared stage index + type meta (type tinted, no SF Symbol).
+struct StageMapMetaLine: View {
+    let stage: Stage
+    var role: TypographyRole = .caption
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(stage.mapLabel)
+            Text("·")
+                .accessibilityHidden(true)
+            Text(stage.encounterTypeTitle)
+                .foregroundStyle(stage.encounter.mapTint)
+        }
+        .trinketTypography(role)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(stage.mapMetaLabel)
     }
 }

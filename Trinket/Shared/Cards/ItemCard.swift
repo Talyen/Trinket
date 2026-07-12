@@ -17,14 +17,14 @@ struct ItemCard: View {
             if showsName {
                 VStack(spacing: 2) {
                     Text(item.displayName)
-                        .font(.subheadline.weight(.medium))
+                        .trinketTypography(.cardLabel)
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
 
                     if showsAffixCount {
                         Text(item.affixCountLabel)
-                            .font(.caption2)
+                            .trinketTypography(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }

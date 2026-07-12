@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 
 /// Persistent progress for Aspects climbs.
 public struct PlayerAspectsState: Equatable, Sendable {
@@ -43,6 +44,13 @@ public struct PlayerAspectsState: Equatable, Sendable {
             return true
         }
         return false
+    }
+
+    /// Clears every Aspect climb so all Aspects are unlocked.
+    public mutating func unlockAll(aspects: [AspectDefinition] = GameContent.aspects) {
+        highestClearedFloorByAspectID = Dictionary(
+            uniqueKeysWithValues: aspects.map { ($0.id.rawValue, $0.floorCount) }
+        )
     }
 }
 

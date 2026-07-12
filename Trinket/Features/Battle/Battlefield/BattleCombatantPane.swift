@@ -5,17 +5,11 @@ import TrinketCore
 import TrinketDesignSystem
 
 struct BattleCombatantPane: View {
-    enum BarEdge {
-        case top
-        case bottom
-    }
-
     let combatant: Combatant
     let health: Int
     let maxHealth: Int
     let mana: Int
     let maxMana: Int
-    let barEdge: BarEdge
     let items: [CombatFeedbackItem]
     let hitReaction: CombatantHitReaction?
     let keywordBursts: [KeywordBurstRequest]
@@ -30,38 +24,44 @@ struct BattleCombatantPane: View {
 
     var body: some View {
         Button(action: onCombatantTap) {
-            ZStack {
-                reactiveArtwork
+            ZStack(alignment: .bottom) {
+                ZStack {
+                    reactiveArtwork
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+
+                    ForEach(keywordBursts) { burst in
+                        KeywordBurstView(request: burst, reduceMotion: reduceMotion)
+                    }
+
+                    CombatFeedbackOverlay(
+                        items: items,
+                        reduceMotion: reduceMotion
+                    )
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, resourceBarsReservedHeight + 8)
+                    .padding(.top, 8)
+
+                    if let skillCallout {
+                        SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            .padding(10)
+                            .allowsHitTesting(false)
+                    }
+
+                    // Invisible source for Ultimate matched-geometry expand from this card.
+                    Color.clear
+                        .frame(width: 1, height: 1)
+                        .matchedGeometryEffect(
+                            id: "ultimate-source-\(combatant.id)",
+                            in: cinematicNamespace,
+                            isSource: true
+                        )
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
 
                 resourceBars
-
-                ForEach(keywordBursts) { burst in
-                    KeywordBurstView(request: burst, reduceMotion: reduceMotion)
-                }
-
-                CombatFeedbackOverlay(
-                    items: items,
-                    reduceMotion: reduceMotion
-                )
-                .padding(.horizontal, 8)
-                .padding(.bottom, 12)
-                .padding(.top, 8)
-
-                if let skillCallout {
-                    SkillCalloutView(callout: skillCallout, reduceMotion: reduceMotion)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .padding(10)
-                        .allowsHitTesting(false)
-                }
-
-                // Invisible source for Ultimate matched-geometry expand from this card.
-                Color.clear
-                    .frame(width: 1, height: 1)
-                    .matchedGeometryEffect(
-                        id: "ultimate-source-\(combatant.id)",
-                        in: cinematicNamespace,
-                        isSource: true
-                    )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .trinketCardSurface()
@@ -118,6 +118,8 @@ struct BattleCombatantPane: View {
                     CubicKeyframe(recipe.flashOpacity[safe: 1]?.value ?? 0, duration: recipe.flashOpacity[safe: 1]?.duration ?? 0.16)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
         }
     }
 
@@ -145,8 +147,14 @@ struct BattleCombatantPane: View {
         return "\(health)/\(maxHealth) HP"
     }
 
+    private var resourceBarsReservedHeight: CGFloat {
+        let healthHeight = TrinketDesign.Metrics.battleHealthBarHeight
+        guard hasMana else { return healthHeight }
+        return healthHeight + TrinketDesign.Metrics.statBarHeight
+    }
+
     private var resourceBars: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             CombatHealthBar(
                 health: health,
                 maxHealth: maxHealth,
@@ -161,7 +169,7 @@ struct BattleCombatantPane: View {
                     .frame(height: TrinketDesign.Metrics.statBarHeight)
             }
         }
-        .frame(maxHeight: .infinity, alignment: barEdge == .top ? .top : .bottom)
+        .frame(maxWidth: .infinity)
         .accessibilityHidden(true)
     }
 }

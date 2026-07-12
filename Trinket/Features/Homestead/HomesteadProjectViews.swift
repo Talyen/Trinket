@@ -47,7 +47,7 @@ struct HomesteadProjectRow: View {
                     .lineLimit(2)
 
                 Text(effectLine)
-                    .font(.caption)
+                    .trinketTypography(.caption)
                     .foregroundStyle(isLocked ? .tertiary : .secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .lineLimit(2)
@@ -56,13 +56,29 @@ struct HomesteadProjectRow: View {
             Spacer(minLength: 0)
 
             Image(systemName: status.statusSymbolName)
-                .font(.body.weight(.semibold))
+                .font(statusAffordanceFont)
                 .foregroundStyle(status.statusColor)
                 .symbolRenderingMode(.hierarchical)
-                .frame(width: 22, height: 22)
+                .frame(width: statusAffordanceSize, height: statusAffordanceSize)
                 .accessibilityLabel(status.statusTitle)
         }
         .padding(.vertical, 4)
+    }
+
+    /// Ready-to-act hammers read at 2× the compact chevron/lock affordance.
+    private var showsActionHammer: Bool {
+        switch status.rowState {
+        case .upgradeReady, .unbuilt(affordable: true): true
+        default: false
+        }
+    }
+
+    private var statusAffordanceFont: Font {
+        showsActionHammer ? .system(size: 34, weight: .semibold) : .body.weight(.semibold)
+    }
+
+    private var statusAffordanceSize: CGFloat {
+        showsActionHammer ? 44 : 22
     }
 
     private var effectLine: String {
@@ -80,7 +96,7 @@ struct HomesteadProjectSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
             Text(category.rawValue)
-                .font(.title2.weight(.bold))
+                .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
                 .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                 .accessibilityAddTraits(.isHeader)
@@ -112,18 +128,18 @@ struct HomesteadProjectSection: View {
 
 struct HomesteadBonusCopy: View {
     let bonus: HomesteadBonus
-    var titleFont: Font = .subheadline.weight(.semibold)
-    var descriptionFont: Font = .subheadline
+    var titleRole: TypographyRole = .badge
+    var descriptionRole: TypographyRole = .secondaryBody
     var showsTitle = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
             if showsTitle {
                 Text(bonus.title)
-                    .font(titleFont)
+                    .trinketTypography(titleRole)
             }
             Text(bonus.description)
-                .font(descriptionFont)
+                .trinketTypography(descriptionRole)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -133,12 +149,12 @@ struct HomesteadBonusCopy: View {
 struct HomesteadRequirementCountText: View {
     let balance: Int
     let required: Int
-    let font: Font
+    let role: TypographyRole
 
     var body: some View {
         if balance >= required {
             Text("\(balance)/\(required)")
-                .font(font)
+                .trinketTypography(role)
                 .foregroundStyle(TrinketDesign.Colors.success)
                 .contentTransition(.numericText())
         } else {
@@ -148,7 +164,7 @@ struct HomesteadRequirementCountText: View {
                 Text("/\(required)")
                     .foregroundStyle(.secondary)
             }
-            .font(font)
+            .trinketTypography(role)
             .contentTransition(.numericText())
         }
     }

@@ -90,7 +90,7 @@ Hold **F2** until Apple Developer Program enrollment. Do not re-open A–E/G unl
 
 ## Phase B — Migrate Options to SwiftUI `AppStorage`
 
-**Problem:** `OptionsStore` hand-rolls `UserDefaults` get/set for music, effects, haptics, appearance.
+**Problem:** `OptionsStore` hand-rolls `UserDefaults` get/set for music, effects, haptics.
 
 **Target pattern:**
 
@@ -103,8 +103,7 @@ Hold **F2** until Apple Developer Program enrollment. Do not re-open A–E/G unl
 
 **Tests:**
 
-- Round-trip: set volumes/appearance/haptics → new `OptionsStore` instance → values match.
-- Launch-arg `-appearance` still overrides for UI tests (`AppEnvironment`).
+- Round-trip: set volumes/haptics → new `OptionsStore` instance → values match.
 
 **Verify:**
 

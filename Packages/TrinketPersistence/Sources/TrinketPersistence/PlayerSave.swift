@@ -41,6 +41,29 @@ public struct PlayerSave: Equatable, Sendable {
         )
     }
 
+    /// Unlocked roster save for local development and Simulator testing.
+    /// Clears Chapter 1 so Modes unlock; leaves later chapters, Aspects, and Labyrinth uncleared.
+    public static var unlockedAll: PlayerSave {
+        var roster = PlayerRosterState.freshStart
+        roster.unlockAllCombatants(atLevel: 20)
+        roster.gold = 9999
+
+        var journey = JourneyProgressState.initial
+        journey.completeChapter("chapter-1")
+
+        return PlayerSave(
+            schemaVersion: currentSchemaVersion,
+            modifiedAt: Date(),
+            sessionGeneration: 0,
+            journey: journey,
+            roster: roster,
+            inventory: .testSeed,
+            homestead: .testSeed,
+            aspects: .freshStart,
+            labyrinth: .freshStart
+        )
+    }
+
     public init(
         schemaVersion: Int,
         modifiedAt: Date,

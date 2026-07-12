@@ -106,10 +106,14 @@ struct EffectHandlersApplyTests {
         )
         // Loadouts hold at most one card per tier (basic/skill/ultimate), so
         // this hero's real deck is only 2 cards and the opening hand draw
-        // exhausts it. Pad the deck so this handler-level test can exercise
+        // may exhaust it. Pad the deck so this handler-level test can exercise
         // a full 2-card draw independent of that capacity limit.
         battle.heroDeck.putOnBottom(.smite)
         battle.heroDeck.putOnBottom(.heal)
+        // Leave room in hand so both draws land visibly (not in the buffer).
+        while battle.hand.count > 1 {
+            _ = battle.hand.remove(id: battle.hand.cards[0].id)
+        }
         let handBefore = battle.hand.count
         let outcome = EffectHandlersTestSupport.dispatch(
             .drawCards(2),
@@ -120,6 +124,38 @@ struct EffectHandlersApplyTests {
         )
         try #expect(outcome.didApply)
         try #expect(battle.hand.count == handBefore + 2)
+        try #expect(battle.handBuffer.isEmpty)
+        try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
+    }
+
+    @Test func drawCardsHandlerOverflowGoesToBuffer() throws {
+        var battle = EffectHandlersTestSupport.makeBattle(
+            hero: Combatant(
+                id: "hero",
+                name: "Hero",
+                role: .hero,
+                maxHealth: 50,
+                abilities: [.slash, .heal, .smite]
+            )
+        )
+        battle.heroDeck.putOnBottom(.smite)
+        battle.heroDeck.putOnBottom(.heal)
+        while battle.hand.count < BattleHand.maxSize {
+            battle.nextCardID += 1
+            battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        }
+        try #expect(battle.handBuffer.isEmpty)
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawCards(2),
+            ability: .darkPact,
+            source: battle.hero,
+            target: battle.hero,
+            battle: &battle
+        )
+        try #expect(outcome.didApply)
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.handBuffer.count == 2)
         try #expect(outcome.events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
     }
 

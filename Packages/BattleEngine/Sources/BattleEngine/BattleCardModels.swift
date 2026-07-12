@@ -55,7 +55,7 @@ public struct CombatDeck: Hashable, Sendable {
 }
 
 public struct BattleHand: Hashable, Sendable {
-    public static let softCap = 5
+    public static let maxSize = 3
 
     public private(set) var cards: [BattleCard]
 
@@ -80,8 +80,35 @@ public struct BattleHand: Hashable, Sendable {
         cards.append(card)
     }
 
-    public var isAtSoftCap: Bool {
-        cards.count >= Self.softCap
+    public var isFull: Bool {
+        cards.count >= Self.maxSize
+    }
+}
+
+/// Hidden FIFO queue for cards drawn while the visible hand is full.
+/// Cards wait here until a hand slot frees, then promote in draw order.
+public struct BattleHandBuffer: Hashable, Sendable {
+    public private(set) var cards: [BattleCard]
+
+    public init(cards: [BattleCard] = []) {
+        self.cards = cards
+    }
+
+    public var count: Int {
+        cards.count
+    }
+
+    public var isEmpty: Bool {
+        cards.isEmpty
+    }
+
+    public mutating func enqueue(_ card: BattleCard) {
+        cards.append(card)
+    }
+
+    public mutating func dequeue() -> BattleCard? {
+        guard !cards.isEmpty else { return nil }
+        return cards.removeFirst()
     }
 }
 

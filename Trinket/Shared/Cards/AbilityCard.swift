@@ -41,7 +41,7 @@ struct AbilityChoiceCard: View {
 
             if showsName {
                 Text(ability.name)
-                    .font(.subheadline.weight(.medium))
+                    .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)

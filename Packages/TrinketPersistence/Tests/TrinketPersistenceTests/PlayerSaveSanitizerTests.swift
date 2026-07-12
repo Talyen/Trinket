@@ -30,6 +30,26 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.items.map(\.id) == ["shared-id", "unique-id"])
     }
 
+    @Test func sanitizeHomesteadClampsMaterialBalances() throws {
+        let homestead = PlayerHomesteadState(
+            resources: [
+                .wood: 1500,
+                .stone: -3,
+                .food: 40,
+                .gold: 99
+            ],
+            nodeTiers: [.wheatField: 1]
+        )
+
+        let sanitized = PlayerSaveSanitizer.sanitizeHomestead(homestead)
+
+        try #expect(sanitized.resources[.wood] == PlayerHomesteadState.maxMaterialBalance)
+        try #expect(sanitized.resources[.stone] == 0)
+        try #expect(sanitized.resources[.food] == 40)
+        try #expect(sanitized.resources[.gold] == nil)
+        try #expect(sanitized.nodeTiers[.wheatField] == 1)
+    }
+
     @Test func sanitizeJourneyClampsInvalidStageAndChapterIDs() throws {
         var journey = JourneyProgressState.initial
         journey.activeChapterID = "missing-chapter"
@@ -55,6 +75,20 @@ final class PlayerSaveSanitizerTests {
 
         try #expect(sanitized.activeStageID == "chapter-1-stage-2")
         try #expect(sanitized.activeChapterID == "chapter-1")
+    }
+
+    @Test func sanitizeJourneyPreservesClearedChapterAwaitingAdvance() throws {
+        var journey = JourneyProgressState.initial
+        journey.activeChapterID = "chapter-1"
+        journey.activeStageID = nil
+        journey.completedStageIDs = Set(GameContent.chapters[0].stages.map(\.id))
+        journey.lastCompletedStageID = "chapter-1-stage-5"
+
+        let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
+
+        try #expect(sanitized.activeChapterID == "chapter-1")
+        try #expect(sanitized.activeStageID == nil)
+        try #expect(sanitized.pendingNextChapter()?.id == "chapter-2")
     }
 
     @Test func sanitizeJourneyMarksClaimedStagesAsCompleted() throws {

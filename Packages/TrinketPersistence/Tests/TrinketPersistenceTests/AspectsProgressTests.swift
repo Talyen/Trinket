@@ -162,6 +162,16 @@ struct AspectsProgressTests {
         #expect(ModesUnlock.isUnlocked(journey: unlockedJourney))
     }
 
+    @Test func unlockAllClearsEveryAspectClimb() {
+        var progress = PlayerAspectsState.freshStart
+        progress.unlockAll()
+
+        for aspect in GameContent.aspects {
+            #expect(progress.highestClearedFloor(for: aspect.id.rawValue) == aspect.floorCount)
+            #expect(AspectUnlock.isUnlocked(aspect, progress: progress))
+        }
+    }
+
     @Test func materialBiasMatchesAspectKeyword() throws {
         let burnFloor = try #require(GameContent.aspectFloor(aspectID: .cinderSpire, floor: 3))
         #expect(burnFloor.rewards.materialRewards.contains { $0.resource == .wood })

@@ -209,6 +209,23 @@ extension AppState {
     }
 
     @discardableResult
+    func advanceToNextChapter() -> Bool {
+        guard journey.current.pendingNextChapter() != nil else { return false }
+        do {
+            try playerSave.performBatchMutation { save in
+                _ = save.journey.advanceToNextChapter()
+            }
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey.current))
+            return true
+        } catch {
+            appStateLogger.error(
+                "Failed to advance chapter: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+    }
+
+    @discardableResult
     func persistStageCompletions(
         _ stages: [Stage],
         hero: Combatant,

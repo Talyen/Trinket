@@ -32,7 +32,7 @@ struct ShopEncounterView: View {
 
                     VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                         Text(session.stage.encounterSubjectName)
-                            .font(.title.bold())
+                            .trinketTypography(.screenTitle)
                             .accessibilityIdentifier(AccessibilityID.Shop.encounterTitle)
 
                         Text(session.greeting)
@@ -43,7 +43,7 @@ struct ShopEncounterView: View {
 
                         if let purchasedName = session.lastPurchasedItemName {
                             Text("Purchased \(purchasedName)")
-                                .font(.subheadline.weight(.semibold))
+                                .trinketTypography(.badge)
                                 .foregroundStyle(Keyword.gold.visualStyle.color)
                                 .accessibilityIdentifier(AccessibilityID.Shop.purchaseConfirmation)
                                 .transition(.opacity)
@@ -51,7 +51,7 @@ struct ShopEncounterView: View {
 
                         if let errorMessage = session.lastPurchaseError {
                             Text(errorMessage)
-                                .font(.subheadline.weight(.semibold))
+                                .trinketTypography(.badge)
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier(AccessibilityID.Shop.purchaseError)
                                 .transition(.opacity)
@@ -136,7 +136,7 @@ struct ShopEncounterView: View {
                 .foregroundStyle(Keyword.gold.visualStyle.color)
 
             Text("\(appState.roster.gold)")
-                .font(.subheadline.monospacedDigit().weight(.semibold))
+                .trinketTypography(.statValue)
                 .contentTransition(.numericText())
         }
         .trinketWalletPill()
@@ -197,7 +197,7 @@ struct ShopEncounterView: View {
                     .monospacedDigit()
             }
         }
-        .font(.subheadline.weight(.semibold))
+        .trinketTypography(.badge)
         .foregroundStyle(canBuy ? Keyword.gold.visualStyle.color : .secondary)
         .trinketGlassChip(.emphasis)
     }

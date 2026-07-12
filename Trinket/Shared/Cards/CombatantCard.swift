@@ -20,7 +20,7 @@ struct CombatantCard: View {
 
             if showsName {
                 Text(combatant.name)
-                    .font(.subheadline.weight(.medium))
+                    .trinketTypography(.cardLabel)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)

@@ -6,6 +6,9 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     public var resources: [HomesteadResource: Int]
     public var nodeTiers: [HomesteadNodeID: Int]
 
+    /// Soft cap for stored homestead materials (gold is roster-owned).
+    public static let maxMaterialBalance = 999
+
     public static var freshStart: PlayerHomesteadState {
         PlayerHomesteadState(resources: [:], nodeTiers: [:])
     }
@@ -57,8 +60,13 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
     public mutating func grant(_ rewards: [ResourceAmount]) {
         for reward in rewards where reward.resource != .gold && reward.quantity > 0 {
-            resources[reward.resource, default: 0] += reward.quantity
+            let current = resources[reward.resource, default: 0]
+            resources[reward.resource] = min(current + reward.quantity, Self.maxMaterialBalance)
         }
+    }
+
+    public static func clampedMaterialBalance(_ quantity: Int) -> Int {
+        min(max(quantity, 0), maxMaterialBalance)
     }
 
     private func adjustedQuantity(for reward: ResourceAmount) -> Int {

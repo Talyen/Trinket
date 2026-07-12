@@ -59,7 +59,7 @@ struct MysteryEncounterView: View {
 
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
                     Text(session.event.title)
-                        .font(.title.bold())
+                        .trinketTypography(.screenTitle)
                         .accessibilityIdentifier(AccessibilityID.Mystery.encounterTitle)
 
                     Text(session.event.narrative)
@@ -123,7 +123,7 @@ struct MysteryEncounterView: View {
         ScrollView {
             VStack(spacing: TrinketDesign.Metrics.sectionSpacing) {
                 Text(combatant.map { $0.role == .pet ? "New Pet" : "New Hero" } ?? "Unlocked")
-                    .font(.subheadline.weight(.semibold))
+                    .trinketTypography(.eyebrow)
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                     .accessibilityIdentifier(AccessibilityID.Mystery.unlockEyebrow)

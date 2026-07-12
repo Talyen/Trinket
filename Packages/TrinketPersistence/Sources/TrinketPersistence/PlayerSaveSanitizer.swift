@@ -7,7 +7,7 @@ public enum PlayerSaveSanitizer {
         var sanitized = save
         sanitized.inventory = sanitizeInventory(save.inventory)
         sanitized.roster = sanitizeRoster(save.roster, inventory: sanitized.inventory)
-        sanitized.homestead = save.homestead
+        sanitized.homestead = sanitizeHomestead(save.homestead)
         sanitized.journey = sanitizeJourney(save.journey)
         sanitized.aspects = sanitizeAspects(save.aspects)
         sanitized.labyrinth = sanitizeLabyrinth(save.labyrinth)
@@ -87,18 +87,36 @@ public enum PlayerSaveSanitizer {
            validStageIDs.contains(activeStageID),
            !sanitized.completedStageIDs.contains(activeStageID) {
             sanitized.activeStageID = activeStageID
+            if let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID }) {
+                sanitized.activeChapterID = stage.chapterID
+            }
+        } else if let activeChapter = chapters.first(where: { $0.id == sanitized.activeChapterID }),
+                  !activeChapter.stages.isEmpty,
+                  activeChapter.stages.allSatisfy({ sanitized.completedStageIDs.contains($0.id) }) {
+            // Cleared chapter awaiting advance, or campaign finale — keep parked.
+            sanitized.activeStageID = nil
+        } else if let firstIncomplete = chapters
+            .flatMap(\.stages)
+            .first(where: { !sanitized.completedStageIDs.contains($0.id) }) {
+            sanitized.activeStageID = firstIncomplete.id
+            sanitized.activeChapterID = firstIncomplete.chapterID
         } else {
-            sanitized.activeStageID = chapters
-                .flatMap(\.stages)
-                .first { !sanitized.completedStageIDs.contains($0.id) }?
-                .id
+            sanitized.activeStageID = nil
+            sanitized.activeChapterID = chapters.last?.id
+                ?? JourneyProgressState.initial.activeChapterID
         }
 
-        if let activeStageID = sanitized.activeStageID,
-           let stage = chapters.flatMap(\.stages).first(where: { $0.id == activeStageID }) {
-            sanitized.activeChapterID = stage.chapterID
-        }
+        return sanitized
+    }
 
+    public static func sanitizeHomestead(_ homestead: PlayerHomesteadState) -> PlayerHomesteadState {
+        var sanitized = homestead
+        sanitized.resources = Dictionary(
+            uniqueKeysWithValues: homestead.resources.compactMap { resource, quantity in
+                guard resource != .gold else { return nil }
+                return (resource, PlayerHomesteadState.clampedMaterialBalance(quantity))
+            }
+        )
         return sanitized
     }
 

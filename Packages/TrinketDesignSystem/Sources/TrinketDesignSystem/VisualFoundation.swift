@@ -52,20 +52,31 @@ public enum MaterialRole: Sendable {
 }
 
 public enum TypographyRole: Sendable {
+    /// Serif large title for cinematic heroes on art (Campaign, Homestead, detail heroes).
     case screenDisplay
+    /// Serif title3 for featured section names on themed surfaces.
     case sectionDisplay
+    /// SF large title for system-style screen titles (Apple-native UI chrome).
     case screenTitle
+    /// SF title3 for list/shelf section headers (Apple-native UI chrome).
     case sectionTitle
+    /// SF headline for card and row primary labels.
     case cardTitle
+    /// Small uppercase-capable label above a hero title (role, rarity, chapter index).
+    case eyebrow
     case body
     case secondaryBody
     case caption
+    case footnote
     case badge
     case button
     case statValue
     case tooltip
     case navigation
+    /// Serif headline for compact journey/list row titles.
     case rowDisplay
+    /// Medium subheadline under collection/card art.
+    case cardLabel
 
     var font: Font {
         switch self {
@@ -74,65 +85,40 @@ public enum TypographyRole: Sendable {
         case .screenTitle: .largeTitle.weight(.bold)
         case .sectionTitle: .title3.weight(.semibold)
         case .cardTitle: .headline.weight(.semibold)
+        case .eyebrow: .caption.weight(.bold)
         case .body: .body
         case .secondaryBody: .subheadline
         case .caption: .caption
+        case .footnote: .footnote
         case .badge: .caption.weight(.semibold)
         case .button: .body.weight(.semibold)
         case .statValue: .body.monospacedDigit().weight(.semibold)
         case .tooltip: .caption
         case .navigation: .headline.weight(.semibold)
         case .rowDisplay: .system(.headline, design: .serif).weight(.semibold)
+        case .cardLabel: .subheadline.weight(.medium)
         }
     }
 }
 
 public enum HomesteadPalette {
-    /// Adaptive gold accent (deeper in Light, brighter in Dark) via asset catalog.
+    /// Gold accent via asset catalog (dark appearance).
     public static let accent = DesignAssetColors.named("HomesteadGold")
     public static let success = Color(red: 0.58, green: 0.74, blue: 0.28)
-    /// Adaptive wallet chrome: light grey in Light, dark grey in Dark.
+    /// Wallet chrome via asset catalog (dark appearance).
     public static let walletPanel = DesignAssetColors.named("HomesteadWalletPanel")
 
-    public static func background(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? Color(red: 0.035, green: 0.033, blue: 0.028)
-            : Color(red: 0.965, green: 0.945, blue: 0.895)
-    }
-
-    public static func panel(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? Color(red: 0.085, green: 0.08, blue: 0.068)
-            : Color(red: 0.92, green: 0.885, blue: 0.80)
-    }
-
-    public static func elevatedPanel(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? Color(red: 0.12, green: 0.105, blue: 0.082)
-            : Color(red: 0.985, green: 0.965, blue: 0.92)
-    }
-
-    public static func stroke(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? accent.opacity(0.55)
-            : accent.opacity(0.42)
-    }
-
-    public static func mutedText(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? Color(red: 0.76, green: 0.72, blue: 0.64)
-            : Color(red: 0.34, green: 0.29, blue: 0.22)
-    }
-
-    public static func pressedFill(for colorScheme: ColorScheme) -> Color {
-        accent.opacity(colorScheme == .dark ? 0.14 : 0.10)
-    }
+    public static let background = Color(red: 0.035, green: 0.033, blue: 0.028)
+    public static let panel = Color(red: 0.085, green: 0.08, blue: 0.068)
+    public static let elevatedPanel = Color(red: 0.12, green: 0.105, blue: 0.082)
+    public static let stroke = accent.opacity(0.55)
+    public static let mutedText = Color(red: 0.76, green: 0.72, blue: 0.64)
+    public static let pressedFill = accent.opacity(0.14)
 }
 
 public struct TrinketScreenBackground: View {
     private let mode: BackgroundMode
     private let elementTint: Color?
-    @Environment(\.colorScheme) private var colorScheme
 
     public init(mode: BackgroundMode = .standard, elementTint: Color? = nil) {
         self.mode = mode
@@ -142,7 +128,7 @@ public struct TrinketScreenBackground: View {
     public var body: some View {
         Group {
             if mode == .homestead {
-                HomesteadPalette.background(for: colorScheme)
+                HomesteadPalette.background
             } else {
                 Color(.systemBackground)
             }
@@ -167,10 +153,9 @@ public struct SurfaceModifier: ViewModifier {
     let role: SurfaceRole
     let isPressed: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
 
     public func body(content: Content) -> some View {
-        let style = SurfaceStyle(role: role, palette: ThemePalette.apple, colorScheme: colorScheme)
+        let style = SurfaceStyle(role: role, palette: ThemePalette.apple)
 
         content
             .padding(style.padding)
@@ -194,7 +179,7 @@ private struct SurfaceStyle {
     let shadow: ShadowStyle
 
     // swiftlint:disable:next function_body_length
-    init(role: SurfaceRole, palette: ThemePalette, colorScheme: ColorScheme) {
+    init(role: SurfaceRole, palette: ThemePalette) {
         switch role {
         case .base:
             fill = palette.panelSurface
@@ -274,8 +259,8 @@ private struct SurfaceStyle {
             cornerRadius = TrinketDesign.Corners.small
             shadow = palette.shadow
         case .homesteadPanel:
-            fill = HomesteadPalette.panel(for: colorScheme)
-            stroke = HomesteadPalette.stroke(for: colorScheme)
+            fill = HomesteadPalette.panel
+            stroke = HomesteadPalette.stroke
             strokeWidth = 1
             padding = 12
             cornerRadius = TrinketDesign.Corners.card
@@ -290,13 +275,12 @@ private struct SurfaceStyle {
 
 public struct MaterialRoleModifier: ViewModifier {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.colorScheme) private var colorScheme
 
     let role: MaterialRole
     let shape: RoundedRectangle
 
     public func body(content: Content) -> some View {
-        switch MaterialRoleStyle(role: role, colorScheme: colorScheme) {
+        switch MaterialRoleStyle(role: role) {
         case .none:
             content
         case let .glass(glass, solidFill):
@@ -335,7 +319,7 @@ enum MaterialRoleStyle {
     case solid(fill: Color)
     case ultraThinMaterial
 
-    init(role: MaterialRole, colorScheme _: ColorScheme = .dark) {
+    init(role: MaterialRole) {
         let palette = ThemePalette.apple
         switch role {
         case .toolbar:

@@ -42,16 +42,22 @@ struct BattleCardCombatTests {
         return battle
     }
 
-    @Test func openingHandIsTwoHeroAndTwoPet() throws {
-        // Decks need ≥2 abilities each so opening draw of 2+2 can succeed.
+    @Test func openingHandDrawsThreeCardsFromRandomOwners() throws {
         let battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             petAbilities: [.bash, .fangs, .bloodthorn]
         )
-        try #expect(battle.hand.count == 4)
-        try #expect(battle.hand.cards.filter { $0.owner == .hero }.count == 2)
-        try #expect(battle.hand.cards.filter { $0.owner == .pet }.count == 2)
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.handBuffer.isEmpty)
         try #expect(battle.phase == .playerTurn)
+
+        let heroDrawn = battle.hand.cards.filter { $0.owner == .hero }.count
+        let petDrawn = battle.hand.cards.filter { $0.owner == .pet }.count
+        try #expect(heroDrawn + petDrawn == BattleHand.maxSize)
+        try #expect(battle.hand.cards.allSatisfy { $0.owner == .hero || $0.owner == .pet })
+        // Remaining deck sizes match what was not drawn (loadouts may be <3 after tier collapse).
+        try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
+        try #expect(battle.petDeck.count == battle.pet.abilityLoadout.abilities.count - petDrawn)
     }
 
     @Test func playPutsCardOnBottomOfOwnerDeck() throws {
@@ -59,15 +65,18 @@ struct BattleCardCombatTests {
             heroAbilities: [.slash, .heal, .smite],
             petAbilities: [.bash, .fangs, .bloodthorn]
         )
-        let card = try #require(battle.hand.cards.first { $0.owner == .hero })
-        let abilityID = card.ability.id
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        let card = BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero)
+        battle.hand.append(card)
         let deckBefore = battle.heroDeck.count
 
         _ = try battle.playCard(cardID: card.id)
 
         try #expect(battle.hand.card(id: card.id) == nil)
         try #expect(battle.heroDeck.count == deckBefore + 1)
-        try #expect(battle.heroDeck.abilities.last?.id == abilityID)
+        try #expect(battle.heroDeck.abilities.last?.id == Ability.slash.id)
     }
 
     @Test func darkPactDrawsTwoCardsForOwner() throws {
@@ -78,62 +87,114 @@ struct BattleCardCombatTests {
         )
         // Loadouts hold at most one card per tier (basic/skill/ultimate), so
         // this hero's real deck is only 2 cards (Slash + Dark Pact) and the
-        // opening hand draw exhausts it. Pad the deck so playing Dark Pact
+        // opening hand draw may exhaust it. Pad the deck so playing Dark Pact
         // has enough supply left to draw a full 2 cards.
         battle.heroDeck.putOnBottom(.heal)
         battle.heroDeck.putOnBottom(.smite)
-        let handBefore = battle.hand.count
+
+        // Ensure Dark Pact is in hand at max size so overflow exercises the buffer.
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .darkPact, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .bash, owner: .pet))
+
         let events = try BattleTestFixtures.playCardNamed("Dark Pact", owner: .hero, on: &battle)
 
-        // Dark Pact costs 1 hand card to play, then draws 2 → net +1.
-        try #expect(battle.hand.count == handBefore + 1)
+        // Play frees 1 slot; draw 2 → 1 into hand, 1 into buffer; promote is a no-op.
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.handBuffer.count == 1)
         try #expect(events.contains { $0.effectKind == .cardsDrawn && $0.amount == 2 })
         try #expect(battle.health(of: battle.hero) == 48)
     }
 
-    @Test func handSoftCapSkipsDrawAtFive() throws {
-        // Loadouts only hold 3 abilities, so seed the hand to the soft cap directly.
+    @Test func endTurnAtFullHandDrawsIntoBuffer() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             petAbilities: [.bash, .fangs, .bloodthorn],
             enemyAbilities: [],
             enemyMaxHealth: 500
         )
-        while battle.hand.count < BattleHand.softCap {
+        while battle.hand.count < BattleHand.maxSize {
             battle.nextCardID += 1
             let owner: BattleParticipant = battle.hand.count.isMultiple(of: 2) ? .hero : .pet
             battle.hand.append(
                 BattleCard(id: battle.nextCardID, ability: .slash, owner: owner)
             )
         }
-        try #expect(battle.hand.count == BattleHand.softCap)
+        battle.heroDeck.putOnBottom(.slash)
+        battle.petDeck.putOnBottom(.bash)
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.handBuffer.isEmpty)
 
         let countAtCap = battle.hand.count
         _ = battle.endTurn()
         try #expect(battle.hand.count == countAtCap)
+        try #expect(battle.handBuffer.count == 2)
     }
 
-    @Test func automaticFinalSlotGoesToOwnerWithFewerCards() throws {
+    @Test func playingCardPromotesOldestBufferedCardFIFO() throws {
         var battle = makeBattle(
             heroAbilities: [.slash, .heal, .smite],
             petAbilities: [.bash, .fangs, .bloodthorn],
             enemyMaxHealth: 500
         )
-        let petCard = try #require(battle.hand.cards.first { $0.owner == .pet })
-        _ = battle.hand.remove(id: petCard.id)
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        let firstBuffered = BattleCard(id: battle.nextCardID, ability: .fangs, owner: .pet)
+        battle.handBuffer.enqueue(firstBuffered)
+        battle.nextCardID += 1
+        battle.handBuffer.enqueue(BattleCard(id: battle.nextCardID, ability: .bloodthorn, owner: .pet))
         battle.nextCardID += 1
         battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .smite, owner: .hero))
+
+        let played = try #require(battle.hand.cards.first { $0.ability.id == Ability.slash.id })
+        _ = try battle.playCard(cardID: played.id)
+
+        // After effects, FIFO promote fills the freed slot with the oldest buffer card.
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.hand.cards.contains { $0.id == firstBuffered.id })
+        try #expect(battle.handBuffer.count == 1)
+        try #expect(battle.handBuffer.cards.first?.ability.id == Ability.bloodthorn.id)
+    }
+
+    @Test func automaticOpenSlotGoesToOwnerWithFewerCards() throws {
+        var battle = makeBattle(
+            heroAbilities: [.slash, .heal, .smite],
+            petAbilities: [.bash, .fangs, .bloodthorn],
+            enemyMaxHealth: 500
+        )
+        // Leave one open slot with hero owning both hand cards so the balanced
+        // draw prefers pet for the open slot; the second quota card buffers.
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .heal, owner: .hero))
+        battle.heroDeck.putOnBottom(.smite)
         battle.petDeck.putOnBottom(.fangs)
 
         _ = battle.endTurn()
 
-        try #expect(battle.hand.count == BattleHand.softCap)
-        try #expect(battle.hand.cards.count { $0.owner == .hero } == 3)
-        try #expect(battle.hand.cards.count { $0.owner == .pet } == 2)
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.hand.cards.count { $0.owner == .hero } == 2)
+        try #expect(battle.hand.cards.count { $0.owner == .pet } == 1)
+        try #expect(battle.hand.cards.last?.owner == .pet)
+        try #expect(battle.handBuffer.count == 1)
+        try #expect(battle.handBuffer.cards.first?.owner == .hero)
     }
 
     @Test(arguments: [(0, BattleParticipant.pet), (1, BattleParticipant.hero)])
-    func automaticFinalSlotAlternatesTiedOwnerByRound(
+    func automaticOpenSlotAlternatesTiedOwnerByRound(
         startingTick: Int,
         expectedOwner: BattleParticipant
     ) throws {
@@ -143,13 +204,21 @@ struct BattleCardCombatTests {
             enemyMaxHealth: 500
         )
         battle.tickCount = startingTick
+        // One open slot, tied owner counts (1 hero + 1 pet) → tie-break picks the open-slot owner.
+        battle.hand = BattleHand()
+        battle.handBuffer = BattleHandBuffer()
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .slash, owner: .hero))
+        battle.nextCardID += 1
+        battle.hand.append(BattleCard(id: battle.nextCardID, ability: .bash, owner: .pet))
         battle.heroDeck.putOnBottom(.slash)
         battle.petDeck.putOnBottom(.bash)
 
         _ = battle.endTurn()
 
-        try #expect(battle.hand.count == BattleHand.softCap)
+        try #expect(battle.hand.count == BattleHand.maxSize)
         try #expect(battle.hand.cards.last?.owner == expectedOwner)
+        try #expect(battle.handBuffer.count == 1)
     }
 
     @Test func enemyCadenceUsesBasicSkillAndUltimate() throws {

@@ -50,8 +50,9 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             }
             .trinketScreenBackground(backgroundMode)
             .ignoresSafeArea(edges: .top)
-            // Hide the system scroll-edge blur so full-bleed hero art stays sharp under clear toolbar.
-            .scrollEdgeEffectHidden(true, for: .top)
+            // Soft edge only once the inline title is pinned — keep hero art sharp at rest.
+            .scrollEdgeEffectHidden(!showsPinnedScrollEdgeEffect, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .onScrollGeometryChange(for: ScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 return ScrollMetrics(
@@ -70,6 +71,11 @@ struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 titleOpacity = min(max((metrics.offsetY - threshold) / 32, 0), 1)
             }
         }
+    }
+
+    /// Matches the inline title fade so edge blur arrives with pinned chrome, not over hero art.
+    private var showsPinnedScrollEdgeEffect: Bool {
+        titleOpacity >= 0.5
     }
 
     @ViewBuilder

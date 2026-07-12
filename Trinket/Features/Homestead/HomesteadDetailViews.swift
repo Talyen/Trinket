@@ -9,8 +9,6 @@ struct HomesteadNodeDetailView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var build = HomesteadBuildControl()
     @State private var highlightedTier: Int?
-    @State private var viewportSize: CGSize = .zero
-    @State private var walletHeight: CGFloat = 0
 
     let definition: HomesteadNodeDefinition
 
@@ -29,19 +27,6 @@ struct HomesteadNodeDetailView: View {
         HomesteadProjectStatus(definition: definition, homestead: homestead, roster: roster)
     }
 
-    /// Leftover band under the cinematic hero for the tier path (wallet + padding excluded).
-    private var tierPathMinHeight: CGFloat {
-        guard viewportSize.height > 0 else { return 0 }
-        let heroHeight = HeroHeaderLayout.HeightPolicy.cinematicLandscape
-            .height(forWidth: max(viewportSize.width, 1))
-        let reserved = heroHeight
-            + walletHeight
-            + bodyTopPadding
-            + TrinketDesign.Metrics.extraLargeSpacing
-            + bodyStackSpacing
-        return max(viewportSize.height - reserved, 0)
-    }
-
     var body: some View {
         DetailHeroScrollShell(
             title: definition.title,
@@ -58,28 +43,17 @@ struct HomesteadNodeDetailView: View {
             VStack(alignment: .leading, spacing: bodyStackSpacing) {
                 HomesteadResourceWallet(homestead: homestead, roster: roster)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
-                    .onGeometryChange(for: CGFloat.self) { proxy in
-                        proxy.size.height
-                    } action: { _, height in
-                        walletHeight = height
-                    }
 
                 HomesteadTierPath(
                     definition: definition,
                     status: status,
                     highlightedTier: highlightedTier,
-                    minHeight: tierPathMinHeight,
                     isBuilding: build.isBuilding,
                     onBuild: buildOrUpgrade
                 )
             }
             .padding(.top, bodyTopPadding)
             .padding(.bottom, TrinketDesign.Metrics.extraLargeSpacing)
-        }
-        .onGeometryChange(for: CGSize.self) { proxy in
-            proxy.size
-        } action: { _, size in
-            viewportSize = size
         }
         .accessibilityIdentifier(AccessibilityID.Homestead.nodeDetail(title: definition.title))
         .trinketSensoryFeedback(
@@ -159,12 +133,11 @@ struct HomesteadTierPath: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
     let highlightedTier: Int?
-    var minHeight: CGFloat = 0
     var isBuilding = false
     var onBuild: (() -> Void)?
 
     private let nodeSize: CGFloat = 56
-    private let minConnectorLength: CGFloat = 24
+    private let railWidth: CGFloat = 56
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -175,53 +148,17 @@ struct HomesteadTierPath: View {
                     state: status.tierPathState(for: tier),
                     status: status,
                     isHighlighted: highlightedTier == tier.tier,
+                    connectors: status.tierPathConnectors(for: index),
                     nodeSize: nodeSize,
+                    railWidth: railWidth,
                     isBuilding: isBuilding,
                     onBuild: onBuild
                 )
-
-                if index < definition.tiers.count - 1 {
-                    HomesteadTierConnector(
-                        color: connectorColor(after: tier),
-                        nodeColumnWidth: nodeSize,
-                        minLength: minConnectorLength
-                    )
-                }
             }
         }
-        .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .top)
+        .frame(maxWidth: .infinity, alignment: .top)
         .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
         .accessibilityIdentifier(AccessibilityID.Homestead.tierPath)
-        .animation(TrinketMotion.Homestead.tierCompletion, value: status.currentTier)
-    }
-
-    private func connectorColor(after tier: HomesteadNodeTier) -> Color {
-        switch status.tierPathState(for: tier) {
-        case .completed: definition.tint.opacity(0.7)
-        case .next, .future, .locked: Color.secondary.opacity(0.28)
-        }
-    }
-}
-
-/// Flexible vertical gap between tier rows; expands to fill leftover viewport height.
-private struct HomesteadTierConnector: View {
-    let color: Color
-    let nodeColumnWidth: CGFloat
-    let minLength: CGFloat
-
-    var body: some View {
-        Spacer(minLength: minLength)
-            .overlay {
-                HStack(spacing: 0) {
-                    Rectangle()
-                        .fill(color)
-                        .frame(width: 2)
-                        .frame(maxHeight: .infinity)
-                        .frame(width: nodeColumnWidth)
-                    Spacer(minLength: 0)
-                }
-            }
-            .accessibilityHidden(true)
     }
 }
 
@@ -231,7 +168,9 @@ struct HomesteadTierNode: View {
     let state: HomesteadTierPathState
     let status: HomesteadProjectStatus
     let isHighlighted: Bool
+    let connectors: (before: PathConnectorState?, after: PathConnectorState?)
     var nodeSize: CGFloat = 56
+    var railWidth: CGFloat = 56
     var isBuilding = false
     var onBuild: (() -> Void)?
 
@@ -257,7 +196,16 @@ struct HomesteadTierNode: View {
     }
 
     private var actionSymbolName: String {
-        tier.tier == 1 ? "hammer.fill" : "arrow.up.circle.fill"
+        "hammer.fill"
+    }
+
+    private var connectorStyle: PathConnectorStyle {
+        PathConnectorStyle(
+            progressedColor: definition.tint.opacity(0.7),
+            futureColor: Color.secondary.opacity(0.28),
+            progressedWidth: 2.5,
+            futureWidth: 2
+        )
     }
 
     var body: some View {
@@ -291,38 +239,17 @@ struct HomesteadTierNode: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .top, spacing: 14) {
-            ZStack {
-                // Fixed-geometry glow ring: fill masks inward bloom. Pulse opacity only —
-                // never radius/scale, which reads as the node bobbing.
-                if isActionable {
-                    Circle()
-                        .strokeBorder(definition.tint, lineWidth: 2.5)
-                        .shadow(color: definition.tint.opacity(0.85), radius: 3)
-                        .shadow(color: definition.tint.opacity(0.4), radius: 6)
-                        .opacity(actionableGlowOpacity)
-                        .animation(
-                            reduceMotion
-                                ? nil
-                                : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
-                            value: glowPulse
-                        )
-                        .allowsHitTesting(false)
-                }
-
-                Circle()
-                    .fill(nodeFill)
-
-                Circle()
-                    .strokeBorder(nodeStroke, lineWidth: nodeStrokeWidth)
-                    .shadow(
-                        color: completionGlowColor,
-                        radius: isHighlighted ? 8 : 0
-                    )
-
-                nodeGlyph
+        HStack(alignment: .center, spacing: 14) {
+            VerticalPathRail(
+                nodeSize: nodeSize,
+                minHeight: 72,
+                connectorBefore: connectors.before,
+                connectorAfter: connectors.after,
+                style: connectorStyle
+            ) {
+                tierNodeChrome
             }
-            .frame(width: nodeSize, height: nodeSize)
+            .frame(width: railWidth)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
                 Text(tier.bonus.title)
@@ -330,7 +257,7 @@ struct HomesteadTierNode: View {
                     .foregroundStyle(nodeForeground)
 
                 Text(tier.bonus.description)
-                    .font(.subheadline)
+                    .trinketTypography(.secondaryBody)
                     .foregroundStyle(nodeSecondaryForeground)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -338,10 +265,49 @@ struct HomesteadTierNode: View {
                     HomesteadTierCostLabel(cost: tier.cost, status: status)
                 }
             }
+            .padding(.vertical, 10)
 
             Spacer(minLength: 0)
         }
         .contentShape(Rectangle())
+    }
+
+    /// Node chrome with an outward attention ring. Opacity only — no shadow,
+    /// scale, or compositing group (those clipped the bloom inward and made the
+    /// soft edge bob vertically as opacity pulsed).
+    private var tierNodeChrome: some View {
+        PathNodeChrome(
+            size: nodeSize,
+            fill: nodeFill,
+            stroke: nodeStroke,
+            strokeWidth: nodeStrokeWidth
+        ) {
+            nodeGlyph
+        }
+        .frame(width: nodeSize, height: nodeSize)
+        .background {
+            if isActionable {
+                Circle()
+                    .strokeBorder(definition.tint.opacity(0.55), lineWidth: 2)
+                    .frame(width: nodeSize + 12, height: nodeSize + 12)
+                    .opacity(actionableHaloOpacity)
+                    .animation(
+                        reduceMotion
+                            ? nil
+                            : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
+                        value: glowPulse
+                    )
+                    .allowsHitTesting(false)
+            }
+        }
+        .overlay {
+            // Fixed-size completion bloom; opacity only.
+            Circle()
+                .strokeBorder(definition.tint.opacity(0.7), lineWidth: 2)
+                .frame(width: nodeSize + 8, height: nodeSize + 8)
+                .opacity(completionGlowOpacity)
+                .allowsHitTesting(false)
+        }
     }
 
     @ViewBuilder
@@ -349,9 +315,15 @@ struct HomesteadTierNode: View {
         switch glyphKind {
         case .action:
             Image(systemName: actionSymbolName)
-                .font(.title3.weight(.semibold))
+                // ~2× default `.title3` so the ready-to-act hammer reads clearly.
+                .font(.system(size: 34, weight: .semibold))
                 .foregroundStyle(definition.tint)
                 .symbolRenderingMode(.hierarchical)
+                .symbolEffect(
+                    .pulse,
+                    options: .repeating.speed(0.7),
+                    isActive: !reduceMotion
+                )
         case .completed:
             Image(systemName: "checkmark")
                 .font(.title3.weight(.bold))
@@ -386,15 +358,15 @@ struct HomesteadTierNode: View {
         }
     }
 
-    private var completionGlowColor: Color {
-        isHighlighted && !reduceMotion ? definition.tint.opacity(0.32) : .clear
+    private var completionGlowOpacity: Double {
+        isHighlighted && !reduceMotion ? 1 : 0
     }
 
-    private var actionableGlowOpacity: Double {
+    private var actionableHaloOpacity: Double {
         if reduceMotion {
-            return 0.85
+            return 0.9
         }
-        return glowPulse ? 1 : 0.4
+        return glowPulse ? 1 : 0.35
     }
 
     private var nodeForeground: Color {
@@ -479,7 +451,8 @@ struct HomesteadTierCostLabel: View {
                     HomesteadResourceArtwork(resource: amount.resource)
                         .frame(width: 20, height: 20)
                     Text("\(amount.quantity)")
-                        .font(.caption.monospacedDigit().weight(.semibold))
+                        .trinketTypography(.badge)
+                        .monospacedDigit()
                         .foregroundStyle(
                             status.hasEnough(amount)
                                 ? Color.primary

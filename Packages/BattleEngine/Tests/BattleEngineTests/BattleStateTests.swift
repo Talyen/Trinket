@@ -14,15 +14,19 @@ struct BattleStateTests {
         GameContent.pets.first { $0.id == "wolf" } ?? GameContent.pets[0]
     }
 
-    @Test func openingHandDrawsTwoHeroAndTwoPetCards() throws {
-        // Loadouts need ≥2 abilities so opening draw of 2 per owner can succeed.
+    @Test func openingHandDrawsThreeCards() throws {
         let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 20, abilities: [.bash, .heal, .smite])
         let pet = Combatant(id: "pet", name: "Pet", role: .pet, maxHealth: 20, abilities: [.bash, .fangs, .bloodthorn])
         let battle = BattleStateTestFactory.makeBattle(hero: hero, pet: pet, enemy: defaultEnemy)
 
         try #expect(battle.phase == .playerTurn)
-        try #expect(battle.hand.cards.filter { $0.owner == .hero }.count == 2)
-        try #expect(battle.hand.cards.filter { $0.owner == .pet }.count == 2)
+        try #expect(battle.hand.count == BattleHand.maxSize)
+        try #expect(battle.handBuffer.isEmpty)
+        let heroDrawn = battle.hand.cards.filter { $0.owner == .hero }.count
+        let petDrawn = battle.hand.cards.filter { $0.owner == .pet }.count
+        try #expect(heroDrawn + petDrawn == BattleHand.maxSize)
+        try #expect(battle.heroDeck.count == battle.hero.abilityLoadout.abilities.count - heroDrawn)
+        try #expect(battle.petDeck.count == battle.pet.abilityLoadout.abilities.count - petDrawn)
     }
 
     @Test func playingHeroCardDamagesEnemy() throws {

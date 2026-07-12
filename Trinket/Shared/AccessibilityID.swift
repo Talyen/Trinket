@@ -17,6 +17,7 @@ enum AccessibilityID {
         static let battlePartyHeroControl = "Battle Party Hero Control"
         static let battlePartyPetControl = "Battle Party Pet Control"
         static let chapterPicker = "Campaign Chapter Picker"
+        static let chapterAdvance = "Campaign Chapter Advance"
         static let stageRewards = "Campaign Stage Rewards"
         static let activeStageDetail = "Campaign Active Stage Detail"
         static let stagePartyControl = "Campaign Stage Party Control"

@@ -1,6 +1,7 @@
+import SwiftUI
 import Testing
 import TrinketCore
-import TrinketDesignSystem
+@testable import TrinketDesignSystem
 
 struct PaletteTests {
     @Test func bundledEncounterAndKeywordColorsResolve() throws {
@@ -16,12 +17,5 @@ struct PaletteTests {
         try #expect(palette.panelSurface != .clear)
         try #expect(palette.subtleStroke != .clear)
         try #expect(palette.accent != .clear)
-    }
-
-    @Test func appearanceParsingSupportsDisplayNames() throws {
-        try #expect(TrinketDesign.AppAppearance(rawValue: "system") == .system)
-        try #expect(TrinketDesign.AppAppearance(rawValue: "Light") == .light)
-        try #expect(TrinketDesign.AppAppearance(rawValue: "dark") == .dark)
-        try #expect(TrinketDesign.AppAppearance(rawValue: "unknown") == nil)
     }
 }

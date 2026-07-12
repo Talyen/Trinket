@@ -96,7 +96,6 @@ struct PrimaryActionButtonModifier: ViewModifier {
 /// row content; the design system owns the surface, feedback, and motion.
 public struct NavigationRowButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
 
     public init() {}
 
@@ -104,7 +103,7 @@ public struct NavigationRowButtonStyle: ButtonStyle {
         configuration.label
             .contentShape(Rectangle())
             .background(
-                configuration.isPressed ? HomesteadPalette.pressedFill(for: colorScheme) : .clear,
+                configuration.isPressed ? HomesteadPalette.pressedFill : .clear,
                 in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous)
             )
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)

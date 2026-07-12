@@ -152,7 +152,7 @@ struct CollectionView: View {
     private func collectionCategoryHeader(title: String) -> some View {
         HStack(spacing: 6) {
             Text(title)
-                .font(.title2.weight(.bold))
+                .trinketTypography(.sectionTitle)
                 .foregroundStyle(.primary)
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))

@@ -69,13 +69,13 @@ struct AspectClimbView: View {
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.largeSpacing) {
                 VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
                     Label(aspect.epithet, systemImage: style.symbolName)
-                        .font(.subheadline.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(style.color)
                     Text("Attune a Hero and Pet that match this Aspect.")
-                        .font(.footnote)
+                        .trinketTypography(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Affinity gear helps — not required.")
-                        .font(.caption)
+                        .trinketTypography(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal, 4)
@@ -115,15 +115,15 @@ struct AspectClimbView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(floor.isWarden ? "Warden · Floor \(floor.floor)" : "Floor \(floor.floor)")
-                        .font(isActive ? .title3.weight(.bold) : .headline)
+                        .trinketTypography(isActive ? .sectionTitle : .cardTitle)
                     if unlocked || cleared, let enemy = GameContent.enemy(matching: floor.enemyID) {
                         Text(enemy.combatant.name)
-                            .font(.subheadline)
+                            .trinketTypography(.secondaryBody)
                             .foregroundStyle(.secondary)
                     }
                     if cleared {
                         Text("Cleared")
-                            .font(.caption.weight(.semibold))
+                            .trinketTypography(.badge)
                             .foregroundStyle(.secondary)
                     }
                 }

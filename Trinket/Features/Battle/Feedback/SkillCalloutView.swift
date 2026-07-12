@@ -92,7 +92,7 @@ struct SkillCalloutView: View {
                 .shadow(color: style.color.opacity(0.35), radius: 8, y: 2)
 
             Text(callout.abilityName)
-                .font(.caption.weight(.semibold))
+                .trinketTypography(.badge)
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)

@@ -74,16 +74,6 @@ struct AppEnvironmentTests {
         #expect(!Self.parse(arguments: []).disableAudio)
     }
 
-    @Test func appearanceOverrideParsesKnownModes() {
-        #expect(Self.parse(arguments: ["-appearance", "system"]).appearanceOverride == .system)
-        #expect(Self.parse(arguments: ["-appearance", "Light"]).appearanceOverride == .light)
-        #expect(Self.parse(arguments: ["-appearance", "dark"]).appearanceOverride == .dark)
-    }
-
-    @Test func invalidAppearanceOverrideReturnsNil() {
-        #expect(Self.parse(arguments: ["-appearance", "not-a-mode"]).appearanceOverride == nil)
-    }
-
     @Test func resetStateImplicitlyDisablesCloudSync() {
         #expect(Self.parse(arguments: ["-reset-state"]).disableCloudSync)
     }
@@ -137,7 +127,6 @@ struct AppEnvironmentTests {
         #expect(!env.seedTestProgress)
         #expect(env.disableCloudSync)
         #expect(!env.disableAudio)
-        #expect(env.appearanceOverride == nil)
         #expect(env.completedStageIDs.isEmpty)
         #expect(env.mapScrollTarget == nil)
         #expect(env.battleTickInterval == nil)

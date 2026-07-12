@@ -67,16 +67,16 @@ struct ItemHeroHeader: View {
     }
 
     private var titleBlock: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(item.rarity.label.uppercased())
+                .trinketTypography(.eyebrow)
+                .foregroundStyle(.white.opacity(0.78))
+
             Text(item.displayName)
-                .font(.largeTitle.weight(.bold))
+                .trinketTypography(.screenDisplay)
                 .foregroundStyle(.white)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
-
-            Text(item.rarity.label.uppercased())
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.white.opacity(0.78))
         }
     }
 }

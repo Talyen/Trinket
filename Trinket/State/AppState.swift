@@ -189,6 +189,28 @@ final class AppState {
         return true
     }
 
+    #if DEBUG
+    /// Dev-only: unlocks all content/heroes/pets at level 20 for Simulator testing.
+    @discardableResult
+    func unlockAllContent() -> Bool {
+        do {
+            try playerSave.unlockAllContent()
+        } catch {
+            appStateLogger.error(
+                "Failed to unlock all content: \(error.localizedDescription, privacy: .public)"
+            )
+            return false
+        }
+        battle.endBattle()
+        activeMysteryEncounter = nil
+        activeShopEncounter = nil
+        activeLabyrinthRest = nil
+        activeLabyrinthCraft = nil
+        shellSession.resetToDefaults(selectingTab: .play)
+        return true
+    }
+    #endif
+
     static func shouldRestoreMapScroll(
         _ targetID: String,
         journey: JourneyProgressState,

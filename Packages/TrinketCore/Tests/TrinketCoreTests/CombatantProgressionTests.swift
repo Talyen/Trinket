@@ -65,4 +65,14 @@ struct CombatantProgressionTests {
         try #expect(CombatantProgression.requiredXP(forLevel: 0) == 100)
         try #expect(CombatantProgression.requiredXP(forLevel: 1) == 100)
     }
+
+    @Test func atLevelBuildsEmptyProgressTowardNextLevel() throws {
+        let mid = CombatantProgression.at(level: 20)
+        try #expect(mid.level == 20)
+        try #expect(mid.currentXP == 0)
+        try #expect(mid.requiredXP == CombatantProgression.requiredXP(forLevel: 20))
+
+        let clamped = CombatantProgression.at(level: 0)
+        try #expect(clamped == .initial)
+    }
 }

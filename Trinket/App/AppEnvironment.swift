@@ -1,5 +1,4 @@
 import Foundation
-import TrinketDesignSystem
 
 struct AppEnvironment {
     static let shared = load()
@@ -11,7 +10,6 @@ struct AppEnvironment {
     let disableCloudSync: Bool
     let disableAudio: Bool
     let persistSaveImmediately: Bool
-    let appearanceOverride: TrinketDesign.AppAppearance?
     let completedStageIDs: [String]
     /// Scroll target ID for the Play map row id, used by UI tests.
     let mapScrollTarget: String?
@@ -30,7 +28,6 @@ struct AppEnvironment {
         disableCloudSync: Bool,
         disableAudio: Bool,
         persistSaveImmediately: Bool,
-        appearanceOverride: TrinketDesign.AppAppearance?,
         completedStageIDs: [String],
         mapScrollTarget: String?,
         battleTickInterval: TimeInterval?,
@@ -43,7 +40,6 @@ struct AppEnvironment {
         self.disableCloudSync = disableCloudSync
         self.disableAudio = disableAudio
         self.persistSaveImmediately = persistSaveImmediately
-        self.appearanceOverride = appearanceOverride
         self.completedStageIDs = completedStageIDs
         self.mapScrollTarget = mapScrollTarget
         self.battleTickInterval = battleTickInterval
@@ -74,7 +70,6 @@ struct AppEnvironment {
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
             persistSaveImmediately: arguments.contains("-persist-save-immediately"),
-            appearanceOverride: appearanceOverride(from: arguments),
             completedStageIDs: completedStageIDs(from: arguments),
             mapScrollTarget: mapScrollTarget(from: arguments),
             battleTickInterval: battleTickInterval(from: arguments),
@@ -116,13 +111,6 @@ struct AppEnvironment {
         case "labyrinth-map": return .labyrinthMap
         default: return nil
         }
-    }
-
-    private static func appearanceOverride(from arguments: [String]) -> TrinketDesign.AppAppearance? {
-        guard let idx = arguments.firstIndex(of: "-appearance"),
-              arguments.indices.contains(idx + 1)
-        else { return nil }
-        return TrinketDesign.AppAppearance(rawValue: arguments[idx + 1])
     }
 
     private static func completedStageIDs(from arguments: [String]) -> [String] {

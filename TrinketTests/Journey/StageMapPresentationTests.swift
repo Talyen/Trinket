@@ -32,6 +32,7 @@ struct StageMapPresentationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
 
         #expect(stage.mapLabel == "Stage \(stage.chapterNumber)-\(stage.stageNumber)")
+        #expect(stage.mapMetaLabel == "\(stage.mapLabel) · \(stage.encounterTypeTitle)")
     }
 
     @Test func chapterRowsKeepAllFiveStagesAndStopProgressAtTheActiveNode() {
@@ -59,18 +60,18 @@ struct StageMapPresentationTests {
         let chapter = GameContent.chapters[0]
         let rows = ChapterStageRowPresentation.rows(for: chapter, progress: .initial)
 
-        #expect(rows[1].stage.encounterTypeTitle == "Recruitment")
+        #expect(rows[1].stage.encounterTypeTitle == "Recruit")
         #expect(rows[4].isBoss)
         #expect(rows[4].stage.encounterTypeTitle == "Boss")
     }
 
-    @Test func completedChapterStillShowsEveryReadOnlyRow() {
+    @Test func clearedChapterShowsEveryReadOnlyRowUntilAdvance() {
         let chapter = GameContent.chapters[0]
         var progress = JourneyProgressState.initial
         progress.completedStageIDs = Set(chapter.stages.map(\.id))
         progress.lastCompletedStageID = chapter.stages.last?.id
-        progress.activeChapterID = GameContent.chapters[1].id
-        progress.activeStageID = GameContent.chapters[1].stages.first?.id
+        progress.activeChapterID = chapter.id
+        progress.activeStageID = nil
 
         let rows = ChapterStageRowPresentation.rows(for: chapter, progress: progress)
 
@@ -78,5 +79,6 @@ struct StageMapPresentationTests {
         #expect(!rows.contains { !$0.isCompleted })
         #expect(rows.allSatisfy { !$0.isActionable })
         #expect(rows.dropLast().allSatisfy { $0.connectorAfter == .progressed })
+        #expect(progress.pendingNextChapter()?.id == GameContent.chapters[1].id)
     }
 }

@@ -16,6 +16,16 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         requiredXP: requiredXP(forLevel: 1)
     )
 
+    /// Progression parked at `level` with empty XP toward the next level.
+    public static func at(level: Int) -> CombatantProgression {
+        let clamped = max(level, 1)
+        return CombatantProgression(
+            level: clamped,
+            currentXP: 0,
+            requiredXP: requiredXP(forLevel: clamped)
+        )
+    }
+
     public init(level: Int, currentXP: Int, requiredXP: Int) {
         self.level = level
         self.currentXP = currentXP

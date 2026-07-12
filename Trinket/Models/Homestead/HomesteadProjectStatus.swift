@@ -88,6 +88,28 @@ struct HomesteadProjectStatus {
         return .future
     }
 
+    /// Connector segments for the shared vertical path rail (Stage-select style).
+    func tierPathConnectors(for tierIndex: Int) -> (
+        before: PathConnectorState?,
+        after: PathConnectorState?
+    ) {
+        let states = definition.tiers.map(tierPathState(for:))
+        let connectorBefore: PathConnectorState? = tierIndex == 0
+            ? nil
+            : (isFuturePathState(states[tierIndex]) ? .future : .progressed)
+        let connectorAfter: PathConnectorState? = tierIndex == definition.tiers.count - 1
+            ? nil
+            : (isFuturePathState(states[tierIndex + 1]) ? .future : .progressed)
+        return (connectorBefore, connectorAfter)
+    }
+
+    private func isFuturePathState(_ state: HomesteadTierPathState) -> Bool {
+        switch state {
+        case .future, .locked: true
+        case .completed, .next: false
+        }
+    }
+
     var footerState: HomesteadFooterState {
         guard let nextTier else { return .complete }
 
@@ -125,7 +147,7 @@ struct HomesteadProjectStatus {
         case .prerequisiteLocked: "lock.fill"
         case let .unbuilt(affordable): affordable ? "hammer.fill" : "chevron.right"
         case .built: "chevron.right"
-        case .upgradeReady: "arrow.up.circle.fill"
+        case .upgradeReady: "hammer.fill"
         case .completed: "checkmark.circle.fill"
         }
     }

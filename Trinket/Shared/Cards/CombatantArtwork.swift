@@ -77,7 +77,13 @@ private struct ArtFillModifier: ViewModifier {
     func body(content: Content) -> some View {
         switch variant {
         case .battle:
-            content.scaledToFill()
+            // Keep layout size = proposed frame. `scaledToFill()` alone lets square
+            // art expand a 4:3 enemy pane taller than its clip, hiding bottom chrome.
+            Color.clear
+                .overlay {
+                    content.scaledToFill()
+                }
+                .clipped()
         case .card, .hero:
             content.aspectRatio(contentMode: .fill)
         }

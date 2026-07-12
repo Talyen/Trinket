@@ -33,16 +33,11 @@ enum StageNodeState: Equatable {
     case future
 }
 
-enum StageConnectorState: Equatable {
-    case progressed
-    case future
-}
-
 struct ChapterStageRowPresentation: Identifiable, Equatable {
     let stage: Stage
     let state: StageNodeState
-    let connectorBefore: StageConnectorState?
-    let connectorAfter: StageConnectorState?
+    let connectorBefore: PathConnectorState?
+    let connectorAfter: PathConnectorState?
     let isBoss: Bool
 
     var id: String {
@@ -78,10 +73,10 @@ struct ChapterStageRowPresentation: Identifiable, Equatable {
 
         return chapter.stages.enumerated().map { index, stage in
             let state = states[index]
-            let connectorBefore: StageConnectorState? = index == chapter.stages.startIndex
+            let connectorBefore: PathConnectorState? = index == chapter.stages.startIndex
                 ? nil
                 : (state == .future ? .future : .progressed)
-            let connectorAfter: StageConnectorState? = index == chapter.stages.index(before: chapter.stages.endIndex)
+            let connectorAfter: PathConnectorState? = index == chapter.stages.index(before: chapter.stages.endIndex)
                 ? nil
                 : (states[index + 1] == .future ? .future : .progressed)
 
@@ -105,6 +100,11 @@ struct StageMapMessage: Identifiable {
 extension Stage {
     var mapLabel: String {
         "Stage \(chapterNumber)-\(stageNumber)"
+    }
+
+    /// Single card meta line: stage index plus encounter type (no type icon).
+    var mapMetaLabel: String {
+        "\(mapLabel) · \(encounterTypeTitle)"
     }
 
     var mysteryEvent: MysteryEvent? {

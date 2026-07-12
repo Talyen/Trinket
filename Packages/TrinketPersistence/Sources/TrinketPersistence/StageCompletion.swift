@@ -115,7 +115,11 @@ public enum StageCompletion {
 
         for reward in save.homestead.adjustedMaterialRewards(stage.rewards.materialRewards) {
             let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
-            if save.homestead.resources[reward.resource, default: 0] < baselineQuantity + reward.quantity {
+            let expectedQuantity = min(
+                baselineQuantity + reward.quantity,
+                PlayerHomesteadState.maxMaterialBalance
+            )
+            if save.homestead.resources[reward.resource, default: 0] < expectedQuantity {
                 return false
             }
         }

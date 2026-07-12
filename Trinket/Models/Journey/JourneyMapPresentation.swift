@@ -58,6 +58,9 @@ enum JourneyMapPresentation {
         if let activeStageID = progress.activeStageID {
             return activeStageID
         }
+        if let lastStage = chapter.stages.last, progress.isCompleted(lastStage) {
+            return lastStage.id
+        }
         return StageMapID.chapterGate(for: gateChapter(after: chapter, in: chapters))
     }
 }

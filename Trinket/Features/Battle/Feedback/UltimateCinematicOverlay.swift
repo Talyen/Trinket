@@ -50,7 +50,7 @@ struct UltimateCinematicOverlay: View {
                 VStack {
                     Spacer()
                     Text("Tap to skip")
-                        .font(.footnote.weight(.semibold))
+                        .trinketTypography(.badge)
                         .foregroundStyle(.white.opacity(0.9))
                         .trinketGlassChip(.emphasis)
                         .padding(.bottom, 36)
@@ -95,7 +95,7 @@ struct UltimateCinematicOverlay: View {
                 VStack {
                     Spacer()
                     Text(cinematic.abilityName)
-                        .font(.title2.weight(.bold))
+                        .trinketTypography(.sectionDisplay)
                         .foregroundStyle(.white)
                         .shadow(radius: 8)
                         .padding(.bottom, 28)
