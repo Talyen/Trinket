@@ -107,6 +107,29 @@ struct PlayerRosterStateTests {
         try #expect(roster.gold == 25)
     }
 
+    @Test func goldClampsAtMaxBalance() {
+        var roster = PlayerRosterState.initial
+        roster.gold = PlayerRosterState.maxGoldBalance + 1
+        #expect(roster.gold == PlayerRosterState.maxGoldBalance)
+
+        roster.gold = PlayerRosterState.maxGoldBalance - 1
+        roster.grantGold(50)
+
+        #expect(roster.gold == PlayerRosterState.maxGoldBalance)
+        #expect(
+            PlayerRosterState(
+                activeHeroID: PlayerRosterState.starterHeroID,
+                activePetID: PlayerRosterState.starterPetID,
+                unlockedHeroIDs: [PlayerRosterState.starterHeroID],
+                unlockedPetIDs: [PlayerRosterState.starterPetID],
+                abilityLoadouts: [:],
+                progressions: [:],
+                equipmentLoadouts: [:],
+                gold: PlayerRosterState.maxGoldBalance + 1
+            ).gold == PlayerRosterState.maxGoldBalance
+        )
+    }
+
     @Test func spendGoldDeductsWhenAffordable() {
         var roster = PlayerRosterState.initial
         roster.gold = 40

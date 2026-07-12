@@ -28,7 +28,7 @@ struct HomesteadResourceWallet: View {
             }
         }
         .padding(6)
-        .trinketMaterial(.homesteadFooter, cornerRadius: TrinketDesign.Corners.compact)
+        .trinketMaterial(.homesteadFooter)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
         .accessibilityLabel("Homestead resources")

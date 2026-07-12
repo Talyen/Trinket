@@ -17,7 +17,8 @@ struct ChapterStageList: View {
                 )
             }
         }
-        .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+        .padding(.leading, 8)
+        .padding(.trailing, TrinketDesign.Metrics.contentMargin)
         .padding(.vertical, 12)
     }
 }
@@ -27,13 +28,12 @@ private struct ChapterStageRow: View {
     let onEnemyTap: () -> Void
     let onPrimaryAction: () -> Void
 
-    private let railWidth: CGFloat = 54
-    private let nodeSize: CGFloat = 48
-
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        // Keep rail→card spacing identical for active and compact rows so card
+        // leading edges and widths stay aligned down the path.
+        HStack(alignment: .center, spacing: 14) {
             stageRail
-                .frame(width: railWidth)
+                .frame(width: PathNodeMetrics.railWidth)
 
             Group {
                 if presentation.isActionable {
@@ -46,6 +46,7 @@ private struct ChapterStageRow: View {
                     compactRow
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 4)
         }
         .accessibilityElement(children: .contain)
@@ -59,7 +60,6 @@ private struct ChapterStageRow: View {
 
     private var stageRail: some View {
         VerticalPathRail(
-            nodeSize: nodeSize,
             minHeight: 76,
             connectorBefore: presentation.connectorBefore,
             connectorAfter: presentation.connectorAfter,
@@ -85,7 +85,7 @@ private struct ChapterStageRow: View {
             EncounterArtwork(stage: presentation.stage)
                 // UIStyleCheck: allow - Fixed 4:3 thumbnail keeps the five-stage path compact.
                 .frame(width: 64, height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
+                .clipShape(TrinketDesign.cardShape)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -110,13 +110,6 @@ private struct ChapterStageRow: View {
         .frame(minHeight: 68)
         .trinketSurface(.denseRow)
         .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            if presentation.isBoss {
-                TrinketDesign.cardShape
-                    .strokeBorder(HomesteadPalette.accent.opacity(0.72), lineWidth: 2)
-                    .padding(2)
-            }
-        }
         .opacity(presentation.state == .future ? 0.72 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(compactAccessibilityLabel)
@@ -138,30 +131,26 @@ private struct StageNode: View {
         state != .future
     }
 
+    private var isEmphasized: Bool {
+        state == .active
+    }
+
     var body: some View {
         ZStack {
-            Circle()
-                .fill(Color(.secondarySystemBackground))
+            PathNodeChrome(
+                stroke: isProgressed ? TrinketDesign.Colors.accent : Color.secondary.opacity(0.65),
+                emphasized: isEmphasized
+            ) {
+                Image(systemName: symbolName)
+                    .font(PathNodeMetrics.glyphFont(emphasized: isEmphasized))
+                    .foregroundStyle(isProgressed ? .primary : .secondary)
+                    .symbolRenderingMode(.hierarchical)
+            }
 
-            Circle()
-                .strokeBorder(
-                    isProgressed ? HomesteadPalette.accent : Color.secondary.opacity(0.65),
-                    lineWidth: state == .active ? 3 : 2
-                )
-
-            Image(systemName: symbolName)
-                .font(
-                    state == .active
-                        ? .headline.weight(.semibold)
-                        : .title3.weight(.semibold)
-                )
-                .foregroundStyle(isProgressed ? .primary : .secondary)
-                .symbolRenderingMode(.hierarchical)
-
-            if state == .active {
+            if isEmphasized {
                 Image(systemName: "arrowtriangle.right.fill")
                     .font(.caption2)
-                    .foregroundStyle(HomesteadPalette.accent)
+                    .foregroundStyle(TrinketDesign.Colors.accent)
                     .offset(x: 30)
                     .accessibilityHidden(true)
             }
@@ -169,16 +158,16 @@ private struct StageNode: View {
             if isBoss {
                 Image(systemName: "crown.fill")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomesteadPalette.accent)
+                    .foregroundStyle(TrinketDesign.Colors.accent)
                     .offset(y: -37)
                     .accessibilityHidden(true)
             }
         }
         .shadow(
-            color: state == .active
+            color: isEmphasized
                 ? .clear
-                : isProgressed ? HomesteadPalette.accent.opacity(0.28) : .clear,
-            radius: state == .active ? 0 : 3
+                : isProgressed ? TrinketDesign.Colors.accent.opacity(0.28) : .clear,
+            radius: isEmphasized ? 0 : 3
         )
     }
 }

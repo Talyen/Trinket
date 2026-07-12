@@ -1,10 +1,15 @@
 import SwiftUI
 
 struct CardSurfaceModifier: ViewModifier {
+    var cornerRadius: CGFloat = TrinketDesign.Corners.card
+
     func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        let palette = ThemePalette.trinket
         content
-            .trinketSurface(.card)
-            .clipShape(TrinketDesign.cardShape)
+            .background(palette.panelSurface, in: shape)
+            .shadow(color: palette.shadow.color, radius: palette.shadow.radius, y: palette.shadow.y)
+            .clipShape(shape)
     }
 }
 
@@ -83,10 +88,14 @@ struct CardLabelSpaceModifier: ViewModifier {
 
 struct PrimaryActionButtonModifier: ViewModifier {
     let controlSize: ControlSize
+    let tint: Color
+    let labelColor: Color
 
     func body(content: Content) -> some View {
         content
             .buttonStyle(.glassProminent)
+            .tint(tint)
+            .foregroundStyle(labelColor)
             .controlSize(controlSize)
             .buttonBorderShape(.roundedRectangle)
     }
@@ -104,7 +113,7 @@ public struct NavigationRowButtonStyle: ButtonStyle {
             .contentShape(Rectangle())
             .background(
                 configuration.isPressed ? HomesteadPalette.pressedFill : .clear,
-                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous)
+                in: RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
             )
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .opacity(configuration.isPressed ? 0.94 : 1)
@@ -116,8 +125,8 @@ public struct NavigationRowButtonStyle: ButtonStyle {
 }
 
 public extension View {
-    func trinketCardSurface() -> some View {
-        modifier(CardSurfaceModifier())
+    func trinketCardSurface(cornerRadius: CGFloat = TrinketDesign.Corners.card) -> some View {
+        modifier(CardSurfaceModifier(cornerRadius: cornerRadius))
     }
 
     func trinketLockedCardEffect(
@@ -132,8 +141,16 @@ public extension View {
         modifier(CardLabelSpaceModifier(isReserved: isReserved))
     }
 
-    func trinketPrimaryActionButton(controlSize: ControlSize = .large) -> some View {
-        modifier(PrimaryActionButtonModifier(controlSize: controlSize))
+    func trinketPrimaryActionButton(
+        controlSize: ControlSize = .large,
+        tint: Color = TrinketDesign.Colors.accent,
+        labelColor: Color = TrinketDesign.Colors.canvas
+    ) -> some View {
+        modifier(PrimaryActionButtonModifier(
+            controlSize: controlSize,
+            tint: tint,
+            labelColor: labelColor
+        ))
     }
 
     func trinketNavigationRowButtonStyle() -> some View {

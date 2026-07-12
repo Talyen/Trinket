@@ -7,6 +7,7 @@ enum CombatFeedbackCardRecipes {
         case .none: noneCardReaction
         case .damage: damageCardReaction
         case .critical: criticalCardReaction
+        case .block: blockCardReaction
         case .heal: healCardReaction
         case .dodge: dodgeCardReaction
         }
@@ -52,6 +53,23 @@ enum CombatFeedbackCardRecipes {
             .init(value: 0.0, duration: 0.18, usesSpring: false)
         ],
         duration: 0.26
+    )
+
+    static let blockCardReaction = CombatantHitReactionRecipe(
+        kind: .block,
+        scale: [
+            .init(value: 0.985, duration: 0.08),
+            .init(value: 1.0, duration: 0.18)
+        ],
+        offsetX: [
+            .init(value: 0, duration: 0.08),
+            .init(value: 0, duration: 0.18)
+        ],
+        flashOpacity: [
+            .init(value: 0.24, duration: 0.06, usesSpring: false),
+            .init(value: 0.0, duration: 0.2, usesSpring: false)
+        ],
+        duration: 0.28
     )
 
     static let healCardReaction = CombatantHitReactionRecipe(

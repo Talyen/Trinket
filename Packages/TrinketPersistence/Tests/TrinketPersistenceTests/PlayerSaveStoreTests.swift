@@ -99,6 +99,7 @@ final class PlayerSaveStoreTests {
         try #expect(store.roster.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
         try #expect(store.roster.highestHeroLevel == 20)
         try #expect(store.roster.highestPetLevel == 20)
+        try #expect(store.roster.gold == PlayerRosterState.maxGoldBalance)
         try #expect(store.journey.completedStageIDs == chapter1StageIDs)
         try #expect(store.journey.activeChapterID == "chapter-1")
         try #expect(store.journey.activeStageID == nil)
@@ -107,12 +108,19 @@ final class PlayerSaveStoreTests {
         try #expect(store.aspects == .freshStart)
         try #expect(store.labyrinth == .freshStart)
         try #expect(store.inventory == .testSeed)
+        for resource in HomesteadResource.allCases where resource != .gold {
+            try #expect(store.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
+        }
         try #expect(store.currentSave.sessionGeneration == 1)
 
         let reloaded = try PlayerSaveStore(storeURL: storeURL, disableCloudSync: true)
         try #expect(reloaded.roster.highestHeroLevel == 20)
+        try #expect(reloaded.roster.gold == PlayerRosterState.maxGoldBalance)
         try #expect(ModesUnlock.isUnlocked(journey: reloaded.journey))
         try #expect(reloaded.aspects == .freshStart)
+        for resource in HomesteadResource.allCases where resource != .gold {
+            try #expect(reloaded.homestead.resources[resource] == PlayerHomesteadState.maxMaterialBalance)
+        }
     }
 
     @Test func equipmentLoadoutDropsMissingInventoryItemsOnLoad() throws {

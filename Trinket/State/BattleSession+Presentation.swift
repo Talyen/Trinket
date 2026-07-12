@@ -71,7 +71,7 @@ extension BattleSession {
     func presentResolvedEvents(_ events: [ActionEvent], at date: Date) {
         let nonMilestone = events.filter { $0.kind != .milestone }
         guard let state else {
-            recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+            recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
             return
         }
         let heroID = state.hero.id
@@ -89,7 +89,7 @@ extension BattleSession {
                 actorsWhoPresentedThisBattle: actorsWhoPresentedUltimateThisBattle
             ) ?? false
             if autoSkip {
-                recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+                recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
                 return
             }
             deferredFeedbackEvents = nonMilestone
@@ -97,7 +97,7 @@ extension BattleSession {
             return
         }
 
-        recordFeedbackEvents(nonMilestone, at: date, stagger: 0)
+        recordFeedbackEvents(nonMilestone, at: date, stagger: TrinketMotion.Battle.feedbackStagger)
         presentCallouts(from: nonMilestone, heroID: heroID, petID: petID, at: date)
     }
 
@@ -170,7 +170,23 @@ extension BattleSession {
         let items = CombatFeedbackPresenter.makeItems(from: events, at: date, stagger: stagger)
         activeFeedbackItems.append(contentsOf: items)
         applyImmediatePresentation(for: items, at: date)
+        scheduleFeedbackPresentation(for: items, at: date)
         scheduleFeedbackPruneIfNeeded(at: date)
+    }
+
+    /// Applies delayed haptics, SFX, hit reactions, and particle requests on the
+    /// same frame that a staggered feedback chip becomes visible.
+    func scheduleFeedbackPresentation(for items: [CombatFeedbackItem], at date: Date) {
+        for item in items where item.availableAt > date {
+            pendingFeedbackPresentationTasks[item.id]?.cancel()
+            let delay = max(0, item.availableAt.timeIntervalSince(date))
+            pendingFeedbackPresentationTasks[item.id] = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(delay))
+                guard let self, !Task.isCancelled else { return }
+                self.applyImmediatePresentation(for: [item], at: .now)
+                self.pendingFeedbackPresentationTasks.removeValue(forKey: item.id)
+            }
+        }
     }
 
     func scheduleFeedbackPruneIfNeeded(at date: Date) {
@@ -219,6 +235,10 @@ extension BattleSession {
     func clearFeedback() {
         pendingFeedbackPruneTask?.cancel()
         pendingFeedbackPruneTask = nil
+        for task in pendingFeedbackPresentationTasks.values {
+            task.cancel()
+        }
+        pendingFeedbackPresentationTasks = [:]
         activeFeedbackEvents = []
         activeFeedbackItems = []
         feedbackEventRecordedAt = [:]

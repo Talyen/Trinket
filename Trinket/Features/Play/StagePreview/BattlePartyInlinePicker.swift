@@ -40,7 +40,7 @@ struct BattlePartyInlinePicker: View {
 
     init(
         aspect: AspectDefinition? = nil,
-        accentColor: Color = .accentColor
+        accentColor: Color = TrinketDesign.Colors.accent
     ) {
         self.aspect = aspect
         self.accentColor = accentColor
@@ -83,7 +83,7 @@ struct BattlePartyInlinePicker: View {
             HStack(spacing: 8) {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     .frame(width: 38, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
+                    .clipShape(TrinketDesign.cardShape)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(slot.title)
@@ -127,7 +127,11 @@ struct BattlePartyInlinePicker: View {
 
         Text(status.message)
             .trinketTypography(.footnote)
-            .foregroundStyle(status.isReady ? AnyShapeStyle(.secondary) : AnyShapeStyle(Color.orange))
+            .foregroundStyle(
+                status.isReady
+                    ? AnyShapeStyle(.secondary)
+                    : AnyShapeStyle(TrinketDesign.Colors.warning)
+            )
             .padding(.horizontal, 4)
     }
 
@@ -318,7 +322,7 @@ struct StageBattlePartyPickerSheet: View {
                 CombatantArtwork(combatant: combatant, variant: .card)
                     // UIStyleCheck: allow - Party rows reserve a consistent portrait footprint.
                     .frame(width: 54, height: 68)
-                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
+                    .clipShape(TrinketDesign.cardShape)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(slot.title)

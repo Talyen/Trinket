@@ -16,8 +16,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
     public var leechDurationBonus: Int
     public var bleedDurationBonus: Int
     public var damageTakenReduction: [Keyword: Double]
+    public var damageTakenFlat: [Keyword: Int]
     public var damageTakenVulnerability: [Keyword: Double]
     public var petDamageDealtBonus: Int
+    public var manaCostReductionPercent: Double
     public var cleanseBonusHeal: Int
     public var gainGoldBonusHealSelf: Int
     public var restoreHealthAlsoHealHero: Int
@@ -87,8 +89,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         leechDurationBonus: Int = 0,
         bleedDurationBonus: Int = 0,
         damageTakenReduction: [Keyword: Double] = [:],
+        damageTakenFlat: [Keyword: Int] = [:],
         damageTakenVulnerability: [Keyword: Double] = [:],
         petDamageDealtBonus: Int = 0,
+        manaCostReductionPercent: Double = 0,
         cleanseBonusHeal: Int = 0,
         gainGoldBonusHealSelf: Int = 0,
         restoreHealthAlsoHealHero: Int = 0,
@@ -153,8 +157,10 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         self.leechDurationBonus = leechDurationBonus
         self.bleedDurationBonus = bleedDurationBonus
         self.damageTakenReduction = damageTakenReduction
+        self.damageTakenFlat = damageTakenFlat
         self.damageTakenVulnerability = damageTakenVulnerability
         self.petDamageDealtBonus = petDamageDealtBonus
+        self.manaCostReductionPercent = manaCostReductionPercent
         self.cleanseBonusHeal = cleanseBonusHeal
         self.gainGoldBonusHealSelf = gainGoldBonusHealSelf
         self.restoreHealthAlsoHealHero = restoreHealthAlsoHealHero
@@ -238,10 +244,14 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         for (keyword, amount) in other.damageTakenReduction {
             damageTakenReduction[keyword, default: 0] += amount
         }
+        for (keyword, amount) in other.damageTakenFlat {
+            damageTakenFlat[keyword, default: 0] += amount
+        }
         for (keyword, amount) in other.damageTakenVulnerability {
             damageTakenVulnerability[keyword, default: 0] += amount
         }
         petDamageDealtBonus += other.petDamageDealtBonus
+        manaCostReductionPercent += other.manaCostReductionPercent
         cleanseBonusHeal += other.cleanseBonusHeal
         gainGoldBonusHealSelf += other.gainGoldBonusHealSelf
         restoreHealthAlsoHealHero += other.restoreHealthAlsoHealHero
@@ -314,8 +324,19 @@ public struct CombatModifierProfile: Equatable, Hashable, Sendable {
         min(1, max(0, damageTakenReduction[keyword, default: 0]))
     }
 
+    public func damageTakenFlat(for keyword: Keyword) -> Int {
+        max(0, damageTakenFlat[keyword, default: 0])
+    }
+
     public func damageTakenVulnerability(for keyword: Keyword) -> Double {
         max(0, damageTakenVulnerability[keyword, default: 0])
+    }
+
+    public func effectiveManaCost(for ability: Ability) -> Int {
+        guard ability.manaCost > 0 else { return 0 }
+        let reduction = min(1, max(0, manaCostReductionPercent))
+        let reduced = Int(floor(Double(ability.manaCost) * (1 - reduction)))
+        return max(0, reduced)
     }
 }
 

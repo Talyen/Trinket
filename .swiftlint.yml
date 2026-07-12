@@ -86,6 +86,26 @@ custom_rules:
     regex: '(?<!\w)NavigationView(?!\w)'
     message: "Use NavigationStack instead of NavigationView."
     severity: error
+  banned_raw_rgb_color:
+    name: "Banned raw RGB Color"
+    regex: 'Color\s*\(\s*red\s*:'
+    message: "Use TrinketDesign.Colors / DesignColors assets via DesignAssetColors — not Color(red:green:blue:). See Packages/TrinketDesignSystem/README.md."
+    severity: error
+  banned_system_color_literal:
+    name: "Banned system Color literal"
+    regex: '(?<!\w)Color\.(red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey|black|white)\b'
+    message: "Use TrinketDesign.Colors, Overlay, keyword/homestead/resource helpers — not SwiftUI system Color.* literals."
+    severity: error
+  banned_system_shape_style_literal:
+    name: "Banned system shape-style color"
+    regex: '\.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\b'
+    message: "Use TrinketDesign.Colors / Overlay tokens instead of .foregroundStyle(.white) / .fill(.red) and similar."
+    severity: error
+  banned_app_bundle_named_color:
+    name: "Banned app-bundle named Color"
+    regex: 'Color\s*\(\s*"[^"]+"\s*,\s*bundle\s*:\s*\.main\b'
+    message: "Move named colors into DesignColors.xcassets and expose them via TrinketDesignSystem."
+    severity: error
 
 excluded:
   - Packages/TrinketContent/Sources/TrinketContent/Generated

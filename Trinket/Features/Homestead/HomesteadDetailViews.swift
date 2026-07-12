@@ -6,9 +6,7 @@ import TrinketPersistence
 
 struct HomesteadNodeDetailView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var build = HomesteadBuildControl()
-    @State private var highlightedTier: Int?
 
     let definition: HomesteadNodeDefinition
 
@@ -47,7 +45,6 @@ struct HomesteadNodeDetailView: View {
                 HomesteadTierPath(
                     definition: definition,
                     status: status,
-                    highlightedTier: highlightedTier,
                     isBuilding: build.isBuilding,
                     onBuild: buildOrUpgrade
                 )
@@ -65,26 +62,7 @@ struct HomesteadNodeDetailView: View {
     }
 
     private func buildOrUpgrade() {
-        let completedTier = status.nextTier?.tier
-        build.perform(
-            definition,
-            saveStore: appState.playerSave
-        ) { _ in
-            guard let completedTier else { return }
-            if reduceMotion {
-                highlightedTier = completedTier
-            } else {
-                withAnimation(TrinketMotion.Homestead.tierCompletion) {
-                    highlightedTier = completedTier
-                }
-            }
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(650))
-                withAnimation(TrinketMotion.Homestead.reduceMotion) {
-                    highlightedTier = nil
-                }
-            }
-        }
+        build.perform(definition, saveStore: appState.playerSave)
     }
 }
 
@@ -105,8 +83,8 @@ struct HomesteadDetailHero: View {
                 .opacity(status.isUnlocked ? 1 : 0.66)
         } overlay: {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(
-                    colors: [.clear, Color(red: 0.055, green: 0.038, blue: 0.02).opacity(0.9)],
+                TrinketHeroScrim.gradient(
+                    for: .homesteadDetail,
                     startPoint: .init(x: 0.5, y: 0.42),
                     endPoint: .bottom
                 )
@@ -114,10 +92,8 @@ struct HomesteadDetailHero: View {
 
                 Text(definition.title)
                     .trinketTypography(.screenDisplay)
-                    .foregroundStyle(.white)
                     .lineLimit(2)
-                    .shadow(color: .black.opacity(0.95), radius: 1, y: 1)
-                    .shadow(color: .black.opacity(0.48), radius: 5, y: 2)
+                    .trinketOnArtText(.title)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                     .padding(.bottom, 14)
             }
@@ -132,12 +108,8 @@ struct HomesteadDetailHero: View {
 struct HomesteadTierPath: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
-    let highlightedTier: Int?
     var isBuilding = false
     var onBuild: (() -> Void)?
-
-    private let nodeSize: CGFloat = 56
-    private let railWidth: CGFloat = 56
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -147,10 +119,7 @@ struct HomesteadTierPath: View {
                     tier: tier,
                     state: status.tierPathState(for: tier),
                     status: status,
-                    isHighlighted: highlightedTier == tier.tier,
                     connectors: status.tierPathConnectors(for: index),
-                    nodeSize: nodeSize,
-                    railWidth: railWidth,
                     isBuilding: isBuilding,
                     onBuild: onBuild
                 )
@@ -167,15 +136,11 @@ struct HomesteadTierNode: View {
     let tier: HomesteadNodeTier
     let state: HomesteadTierPathState
     let status: HomesteadProjectStatus
-    let isHighlighted: Bool
     let connectors: (before: PathConnectorState?, after: PathConnectorState?)
-    var nodeSize: CGFloat = 56
-    var railWidth: CGFloat = 56
     var isBuilding = false
     var onBuild: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var glowPulse = false
 
     private var isActionable: Bool {
         if case .next(affordable: true) = state {
@@ -196,7 +161,11 @@ struct HomesteadTierNode: View {
     }
 
     private var actionSymbolName: String {
-        "hammer.fill"
+        "arrowshape.up.fill"
+    }
+
+    private var tierTitle: String {
+        HomesteadTierCopy.title(for: tier.tier, nodeTitle: definition.title)
     }
 
     private var connectorStyle: PathConnectorStyle {
@@ -225,13 +194,6 @@ struct HomesteadTierNode: View {
             }
         }
         .accessibilityIdentifier(tierNodeAccessibilityID)
-        .onAppear {
-            guard isActionable, !reduceMotion else { return }
-            glowPulse = true
-        }
-        .onChange(of: isActionable) { _, actionable in
-            glowPulse = actionable && !reduceMotion
-        }
     }
 
     private var tierNodeAccessibilityID: String {
@@ -241,7 +203,6 @@ struct HomesteadTierNode: View {
     private var rowContent: some View {
         HStack(alignment: .center, spacing: 14) {
             VerticalPathRail(
-                nodeSize: nodeSize,
                 minHeight: 72,
                 connectorBefore: connectors.before,
                 connectorAfter: connectors.after,
@@ -249,10 +210,10 @@ struct HomesteadTierNode: View {
             ) {
                 tierNodeChrome
             }
-            .frame(width: railWidth)
+            .frame(width: PathNodeMetrics.railWidth)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Metrics.extraSmallSpacing) {
-                Text(tier.bonus.title)
+                Text(tierTitle)
                     .trinketTypography(.sectionDisplay)
                     .foregroundStyle(nodeForeground)
 
@@ -272,69 +233,40 @@ struct HomesteadTierNode: View {
         .contentShape(Rectangle())
     }
 
-    /// Node chrome with an outward attention ring. Opacity only — no shadow,
-    /// scale, or compositing group (those clipped the bloom inward and made the
-    /// soft edge bob vertically as opacity pulsed).
     private var tierNodeChrome: some View {
         PathNodeChrome(
-            size: nodeSize,
-            fill: nodeFill,
             stroke: nodeStroke,
-            strokeWidth: nodeStrokeWidth
+            emphasized: isActionable
         ) {
             nodeGlyph
-        }
-        .frame(width: nodeSize, height: nodeSize)
-        .background {
-            if isActionable {
-                Circle()
-                    .strokeBorder(definition.tint.opacity(0.55), lineWidth: 2)
-                    .frame(width: nodeSize + 12, height: nodeSize + 12)
-                    .opacity(actionableHaloOpacity)
-                    .animation(
-                        reduceMotion
-                            ? nil
-                            : .easeInOut(duration: 1.4).repeatForever(autoreverses: true),
-                        value: glowPulse
-                    )
-                    .allowsHitTesting(false)
-            }
-        }
-        .overlay {
-            // Fixed-size completion bloom; opacity only.
-            Circle()
-                .strokeBorder(definition.tint.opacity(0.7), lineWidth: 2)
-                .frame(width: nodeSize + 8, height: nodeSize + 8)
-                .opacity(completionGlowOpacity)
-                .allowsHitTesting(false)
         }
     }
 
     @ViewBuilder
     private var nodeGlyph: some View {
+        let glyphFont = PathNodeMetrics.glyphFont(emphasized: isActionable)
         switch glyphKind {
         case .action:
             Image(systemName: actionSymbolName)
-                // ~2× default `.title3` so the ready-to-act hammer reads clearly.
-                .font(.system(size: 34, weight: .semibold))
+                .font(glyphFont)
                 .foregroundStyle(definition.tint)
                 .symbolRenderingMode(.hierarchical)
                 .symbolEffect(
-                    .pulse,
-                    options: .repeating.speed(0.7),
-                    isActive: !reduceMotion
+                    .bounce.up,
+                    options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
+                    isActive: isActionable && !reduceMotion
                 )
         case .completed:
             Image(systemName: "checkmark")
-                .font(.title3.weight(.bold))
+                .font(glyphFont)
                 .foregroundStyle(definition.tint)
         case .locked:
             Image(systemName: "lock.fill")
-                .font(.body.weight(.semibold))
+                .font(glyphFont)
                 .foregroundStyle(.secondary)
         case .theme:
             Image(systemName: definition.symbolName)
-                .font(.title3.weight(.semibold))
+                .font(glyphFont)
                 .foregroundStyle(nodeForeground)
                 .symbolRenderingMode(.hierarchical)
         }
@@ -358,17 +290,6 @@ struct HomesteadTierNode: View {
         }
     }
 
-    private var completionGlowOpacity: Double {
-        isHighlighted && !reduceMotion ? 1 : 0
-    }
-
-    private var actionableHaloOpacity: Double {
-        if reduceMotion {
-            return 0.9
-        }
-        return glowPulse ? 1 : 0.35
-    }
-
     private var nodeForeground: Color {
         switch state {
         case .completed: definition.tint
@@ -384,14 +305,6 @@ struct HomesteadTierNode: View {
         }
     }
 
-    private var nodeFill: Color {
-        switch state {
-        case .completed: definition.tint.opacity(0.18)
-        case let .next(affordable): definition.tint.opacity(affordable ? 0.2 : 0.08)
-        case .future, .locked: Color.secondary.opacity(0.1)
-        }
-    }
-
     private var nodeStroke: Color {
         switch state {
         case .completed: definition.tint.opacity(0.48)
@@ -401,20 +314,9 @@ struct HomesteadTierNode: View {
         }
     }
 
-    private var nodeStrokeWidth: CGFloat {
-        if isActionable {
-            return 2.5
-        }
-        if case .next = state {
-            return 1.5
-        }
-        return 1
-    }
-
     private var accessibilityLabelText: String {
         var parts = [
-            "Tier \(tier.tier)",
-            tier.bonus.title,
+            tierTitle,
             tier.bonus.description,
             accessibilityState
         ]

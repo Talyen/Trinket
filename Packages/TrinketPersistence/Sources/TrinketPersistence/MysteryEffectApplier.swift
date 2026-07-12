@@ -56,7 +56,8 @@ public enum MysteryEffectApplier {
             stageID: stageID,
             choiceID: choiceID,
             itemGenerator: itemGenerator,
-            baseTypes: baseTypes
+            baseTypes: baseTypes,
+            astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent
         )
 
         for effect in effects {
@@ -93,6 +94,7 @@ public enum MysteryEffectApplier {
         let choiceID: String
         let itemGenerator: ItemGenerator
         let baseTypes: [ItemBaseType]
+        let astralChanceBonusPercent: Int
     }
 
     private struct ApplyState {
@@ -112,8 +114,9 @@ public enum MysteryEffectApplier {
         switch effect {
         case let .gainGold(amount):
             guard amount > 0 else { return }
-            save.roster.grantGold(amount)
-            state.result.grantedGold += amount
+            let granted = save.homestead.effects.adjustedGold(amount)
+            save.roster.grantGold(granted)
+            state.result.grantedGold += granted
 
         case let .gainMaterial(resource, amount):
             guard amount > 0, resource != .gold else { return }
@@ -228,7 +231,10 @@ public enum MysteryEffectApplier {
         guard let baseType = context.baseTypes.first(where: { $0.id == baseTypeID }) else {
             return nil
         }
-        let rarity = MysteryItemRarity.roll(using: &randomNumberGenerator)
+        let rarity = MysteryItemRarity.roll(
+            astralChanceBonusPercent: context.astralChanceBonusPercent,
+            using: &randomNumberGenerator
+        )
         let suffix = idSuffix.map { "-\($0)" } ?? ""
         let itemID =
             "\(context.stageID)-\(context.choiceID)-\(ordinal)-\(baseTypeID)-\(rarity.rawValue)\(suffix)"

@@ -13,43 +13,18 @@ struct CurrentStageCard: View {
     @State private var actionFeedbackTrigger = 0
     @State private var isPartyPickerPresented = false
 
-    private let artWidth: CGFloat = 112
-    private let artHeight: CGFloat = 84
+    private var hasBattleEnemy: Bool {
+        stage.encounter.battleEnemyID != nil
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            identity
+        VStack(spacing: 0) {
+            stageArtFrame
 
-            HStack(spacing: 8) {
-                Button {
-                    actionFeedbackTrigger += 1
-                    onPrimaryAction()
-                } label: {
-                    Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)
-                        .frame(maxWidth: .infinity)
-                }
-                .trinketPrimaryActionButton(controlSize: .regular)
-                .tint(stage.encounter.mapTint)
-                .accessibilityIdentifier(StageMapID.stageAction(for: stage))
-                .accessibilityLabel("\(stage.mapLabel), \(stage.encounter.primaryActionTitle)")
-                .trinketSensoryFeedback(
-                    .selection,
-                    trigger: actionFeedbackTrigger,
-                    enabled: appState.options.hapticsEnabled
-                )
-
-                if stage.encounter.battleEnemyID != nil {
-                    partyPickerButton
-                }
-            }
+            footerDock
         }
-        .padding(14)
-        .trinketSurface(.card)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .clipShape(TrinketDesign.cardShape)
-        .overlay {
-            TrinketDesign.cardShape
-                .strokeBorder(stage.encounter.mapTint.opacity(0.55), lineWidth: 1)
-        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
         .sheet(isPresented: $isPartyPickerPresented) {
@@ -59,22 +34,80 @@ struct CurrentStageCard: View {
         }
     }
 
-    private var identity: some View {
-        HStack(alignment: .top, spacing: 12) {
-            activeArtwork
-                .frame(width: artWidth, height: artHeight)
-                .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.compact, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(stage.encounterSubjectName)
-                    .trinketTypography(.sectionDisplay)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-
-                StageMapMetaLine(stage: stage, role: .navigation)
+    /// Full-bleed 4:3 encounter art with no chrome overlays.
+    private var stageArtFrame: some View {
+        Color.clear
+            .aspectRatio(stage.encounter.artAspectRatio, contentMode: .fit)
+            .overlay {
+                GeometryReader { geometry in
+                    stageArt
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var footerDock: some View {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            titleBlock
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            actionControls
+                .layoutPriority(1)
         }
+        .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
+        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
+        .padding(TrinketDesign.Metrics.mediumSpacing)
+        .background(TrinketDesign.Colors.surface)
+    }
+
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(stage.mapLabel.uppercased())
+                .trinketTypography(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityLabel(stage.mapLabel)
+
+            Text(stage.encounterSubjectName)
+                .trinketTypography(.sectionDisplay)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.75)
+                .accessibilityAddTraits(.isHeader)
+        }
+    }
+
+    private var actionControls: some View {
+        HStack(alignment: .center, spacing: TrinketDesign.Metrics.smallSpacing) {
+            if hasBattleEnemy {
+                partyPickerButton
+            }
+            primaryActionButton
+        }
+        .fixedSize(horizontal: true, vertical: false)
+    }
+
+    private var primaryActionButton: some View {
+        Button {
+            actionFeedbackTrigger += 1
+            onPrimaryAction()
+        } label: {
+            Label(stage.encounter.primaryActionTitle, systemImage: stage.encounter.symbolName)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        .trinketPrimaryActionButton(
+            controlSize: .regular,
+            tint: stage.encounter.mapTint,
+            labelColor: TrinketDesign.Colors.Overlay.paper
+        )
+        .accessibilityIdentifier(StageMapID.stageAction(for: stage))
+        .accessibilityLabel("\(stage.mapLabel), \(stage.encounter.primaryActionTitle)")
+        .trinketSensoryFeedback(
+            .selection,
+            trigger: actionFeedbackTrigger,
+            enabled: appState.options.hapticsEnabled
+        )
     }
 
     private var partyPickerButton: some View {
@@ -83,7 +116,8 @@ struct CurrentStageCard: View {
         } label: {
             Image(systemName: "person.2.fill")
                 .font(.body.weight(.semibold))
-                // UIStyleCheck: allow - Compact party icon sits beside the primary CTA without chip chrome.
+                .foregroundStyle(.primary)
+                // UIStyleCheck: allow - Compact party icon beside the primary CTA without chip chrome.
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
         }
@@ -97,23 +131,32 @@ struct CurrentStageCard: View {
     }
 
     @ViewBuilder
-    private var activeArtwork: some View {
-        if stage.encounter.battleEnemyID != nil {
+    private var stageArt: some View {
+        if hasBattleEnemy {
             Button(action: onEnemyTap) {
                 EncounterArtwork(stage: stage)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
             .buttonStyle(.plain)
-            .accessibilityIdentifier("\(stage.mapLabel) Enemy Art")
+            .accessibilityIdentifier(stageArtAccessibilityIdentifier)
             .accessibilityLabel("\(stage.mapLabel), \(stage.encounterSubjectName) details")
         } else {
             EncounterArtwork(stage: stage)
-                .accessibilityIdentifier(
-                    stage.recruitCombatant == nil
-                        ? "\(stage.mapLabel) Encounter Art"
-                        : "\(stage.mapLabel) Recruit Art"
-                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityIdentifier(stageArtAccessibilityIdentifier)
+                .accessibilityHidden(true)
         }
+    }
+
+    private var stageArtAccessibilityIdentifier: String {
+        if hasBattleEnemy {
+            return "\(stage.mapLabel) Enemy Art"
+        }
+        if stage.recruitCombatant != nil {
+            return "\(stage.mapLabel) Recruit Art"
+        }
+        return "\(stage.mapLabel) Encounter Art"
     }
 }
 

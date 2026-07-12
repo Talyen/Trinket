@@ -19,14 +19,10 @@ struct ItemHeroHeader: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } overlay: {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.6)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: HeroHeaderLayout.scrimHeight)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                .allowsHitTesting(false)
+                TrinketHeroScrim.gradient(for: .detailHeader)
+                    .frame(height: HeroHeaderLayout.scrimHeight)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .allowsHitTesting(false)
 
                 titleBlock
                     .padding()
@@ -70,11 +66,11 @@ struct ItemHeroHeader: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(item.rarity.label.uppercased())
                 .trinketTypography(.eyebrow)
-                .foregroundStyle(.white.opacity(0.78))
+                .trinketOnArtText(.eyebrow)
 
             Text(item.displayName)
                 .trinketTypography(.screenDisplay)
-                .foregroundStyle(.white)
+                .trinketOnArtText(.title)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
         }

@@ -169,7 +169,7 @@ struct BattleVictorySummaryTests {
             homestead: homestead
         )
 
-        #expect(summary.materialRewards.first { $0.resource == .wood }?.quantity == 9)
-        #expect(summary.materialRewards.first { $0.resource == .stone }?.quantity == 4)
+        #expect(summary.materialRewards.first { $0.resource == .wood }?.quantity == 8)
+        #expect(summary.materialRewards.first { $0.resource == .stone }?.quantity == 3)
     }
 }

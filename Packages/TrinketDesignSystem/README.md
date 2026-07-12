@@ -6,15 +6,38 @@ Shared app chrome — semantic surfaces, typography, keyword visuals, and reusab
 
 | File | Role |
 |------|------|
-| `TrinketDesign.swift` | Colors, metrics, and card chrome |
+| `TrinketDesign.swift` | Colors, metrics, overlays, and card chrome |
+| `ThemePalette.swift` | Internal mapping from `Theme*` assets to role colors |
 | `DesignAssetColors.swift` | Package-bundled semantic color assets (`Bundle.module`) |
-| `Resources/DesignColors.xcassets` | Keyword and encounter color sets |
+| `Resources/DesignColors.xcassets` | Theme, keyword, encounter, placeholder, homestead, resource, chapter color sets |
 | `VisualFoundation.swift` | Background modes, surface roles, spacing tokens |
+| `HeroScrim.swift` | Hero art scrims and on-art text styling |
 | `Keyword+VisualStyle.swift` | Color + SF Symbol per Keyword |
+| `HomesteadTint+Color.swift` | Homestead node tint resolution |
+| `HomesteadResource+Color.swift` | Homestead resource tint resolution |
 | `Modifiers.swift` | Semantic view modifiers for backgrounds, surfaces |
 | `ExperienceBar.swift` | XP/level progress bar |
-| `VerticalPathRail.swift` | Shared vertical node rail + connectors (Homestead / Stage select) |
-| `HomesteadTint+Color.swift` | Homestead node tint resolution |
+| `VerticalPathRail.swift` | Shared vertical node rail + connectors (Homestead / Stage select); `PathNodeMetrics` + `PathNodeChrome` keep circle size, stroke weight, and glyph scale in sync |
+
+## Color families
+
+All production colors load from `DesignColors.xcassets` through `DesignAssetColors`. Do not invent `Color.green`, raw RGB, or app-bundle `Color("…", bundle: .main)` in feature views.
+
+| Family | Public API | Assets |
+|---|---|---|
+| Theme chrome | `TrinketDesign.Colors.canvas/surface/panel/…/accent/success/…` | `ThemeCanvas`, `ThemeSurface`, … |
+| Gameplay health | `TrinketDesign.Colors.health`, `.healthRestore`, battle derived opacities | `ThemeHealth`, `ThemeHealthRestore` |
+| Overlays | `TrinketDesign.Colors.Overlay.ink/paper/heroWarm/…` | `ThemeOverlayInk`, `ThemeOverlayPaper`, `ThemeHeroScrim` |
+| Keywords | `Keyword.visualStyle.color` | `KeywordPhysical` … `KeywordDeathsDoor` |
+| Encounters | `TrinketDesign.Colors.encounter*` | `EncounterBattle` … |
+| Placeholders | `TrinketDesign.CardPlaceholderStyle.*` | `PlaceholderHero` … |
+| Homestead tints | `HomesteadTint.color` | `HomesteadTintOrange` … |
+| Resources | `HomesteadResource.tint` | `ResourceWood` … `ResourceCrystal` (+ gold via KeywordGold) |
+| Chapter | `TrinketDesign.Colors.chapterVerdant` | `ChapterVerdant` |
+
+Hero art overlays use `TrinketHeroScrim.gradient(for:)` and `.trinketOnArtText(_:)`.
+
+**Enforcement:** `./Scripts/check-ui-style.sh` and SwiftLint custom rules fail style/CI on one-off colors. Coding agents also load `.cursor/rules/design-system-colors.mdc` and `AGENTS.md`. Escape hatch: nearby `UIStyleCheck: allow` with a concrete reason. New colors = new `DesignColors` asset + public design-system API.
 
 ## Typography
 
@@ -52,6 +75,8 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur (blur skipped under Reduce Transparency), larger secondary-grey lock icon in a liquid glass chip |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
 | `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
+| `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
+| `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
 Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.

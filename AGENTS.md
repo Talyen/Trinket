@@ -7,7 +7,7 @@ Portrait-first iOS fantasy turn-based card combat. Read this file first; then re
 - iOS 26.0 minimum, Swift 6 strict concurrency, Xcode 26+, SwiftUI, SwiftData.
 - Do not add availability checks for pre-iOS-26 releases or UIKit bridges when SwiftUI has a first-party solution.
 - New state uses `@Observable`, `@Environment(Type.self)`, and `@Bindable`; never add `NavigationView`, `ObservableObject`, `@StateObject`, or `@Published`.
-- Use `TrinketDesignSystem` for reusable chrome. Do not hand-roll materials, glass, or reusable button styles in feature views.
+- Use `TrinketDesignSystem` for reusable chrome **and all product colors**. Do not hand-roll materials, glass, reusable button styles, or one-off `Color` / system palette literals (`Color.green`, `.foregroundStyle(.white)`, `Color(red:)`, `Color("…", bundle: .main)`) in feature views — use `TrinketDesign.Colors`, keyword/homestead/resource helpers, and `.trinketSurface` / `TrinketHeroScrim`. `./Scripts/check-ui-style.sh` enforces this.
 - Packages never import the `Trinket` app. `TrinketDesignSystem` depends on `TrinketCore` only.
 - App layers: `BattleShell/` must not import `Features/`; `State/` must not import feature views; `Models/` must not import `State/` or `Features/`.
 - Keep `BattleState` and `PlayerSaveStore` thin; put rules in handlers/engines, store slices, extensions, or value types.

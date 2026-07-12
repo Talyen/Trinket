@@ -21,22 +21,76 @@ public extension Keyword {
             self.prefersDarkForeground = prefersDarkForeground
         }
 
-        public static let physical = VisualStyle(color: Color.orange, symbolName: "bolt.fill")
-        public static let burn = VisualStyle(color: Color.red, secondaryColor: Color.orange, symbolName: "flame.fill")
-        public static let stun = VisualStyle(color: Color.yellow, symbolName: "bolt.fill", prefersDarkForeground: true)
-        public static let block = VisualStyle(color: Color.blue, symbolName: "shield.fill")
-        public static let armor = VisualStyle(color: Color.gray, symbolName: "shield.lefthalf.filled")
-        public static let health = VisualStyle(color: Color.red, secondaryColor: Color.green, symbolName: "heart.fill")
-        public static let gold = VisualStyle(color: DesignAssetColors.named("KeywordGold"), symbolName: "dollarsign.circle.fill", prefersDarkForeground: true)
-        public static let holy = VisualStyle(color: DesignAssetColors.named("KeywordHoly"), symbolName: "sun.max.fill", prefersDarkForeground: true)
-        public static let poison = VisualStyle(color: DesignAssetColors.named("KeywordPoison"), symbolName: "drop.triangle.fill")
-        public static let bleed = VisualStyle(color: DesignAssetColors.named("KeywordBleed"), symbolName: "drop.fill")
-        public static let leech = VisualStyle(color: DesignAssetColors.named("KeywordLeech"), symbolName: "drop.fill")
-        public static let nature = VisualStyle(color: DesignAssetColors.named("KeywordNature"), symbolName: "leaf.fill")
-        public static let freeze = VisualStyle(color: DesignAssetColors.named("KeywordFreeze"), symbolName: "snowflake", prefersDarkForeground: true)
-        public static let dodge = VisualStyle(color: DesignAssetColors.named("KeywordDodge"), symbolName: "arrowshape.turn.up.left.circle.fill")
-        public static let purge = VisualStyle(color: DesignAssetColors.named("KeywordPurge"), symbolName: "sparkles")
-        public static let mana = VisualStyle(color: DesignAssetColors.named("KeywordMana"), symbolName: "star.fill")
+        public static let physical = VisualStyle(
+            color: DesignAssetColors.named("KeywordPhysical"),
+            symbolName: "bolt.fill"
+        )
+        public static let burn = VisualStyle(
+            color: DesignAssetColors.named("KeywordBurn"),
+            secondaryColor: DesignAssetColors.named("KeywordPhysical"),
+            symbolName: "flame.fill"
+        )
+        public static let stun = VisualStyle(
+            color: DesignAssetColors.named("KeywordStun"),
+            symbolName: "bolt.fill",
+            prefersDarkForeground: true
+        )
+        public static let block = VisualStyle(
+            color: DesignAssetColors.named("KeywordBlock"),
+            symbolName: "shield.fill"
+        )
+        public static let armor = VisualStyle(
+            color: DesignAssetColors.named("KeywordArmor"),
+            symbolName: "shield.lefthalf.filled"
+        )
+        public static let health = VisualStyle(
+            color: DesignAssetColors.named("KeywordHealth"),
+            secondaryColor: ThemePalette.trinket.health,
+            symbolName: "heart.fill"
+        )
+        public static let gold = VisualStyle(
+            color: DesignAssetColors.named("KeywordGold"),
+            symbolName: "dollarsign.circle.fill",
+            prefersDarkForeground: true
+        )
+        public static let holy = VisualStyle(
+            color: DesignAssetColors.named("KeywordHoly"),
+            symbolName: "sun.max.fill",
+            prefersDarkForeground: true
+        )
+        public static let poison = VisualStyle(
+            color: DesignAssetColors.named("KeywordPoison"),
+            symbolName: "drop.triangle.fill"
+        )
+        public static let bleed = VisualStyle(
+            color: DesignAssetColors.named("KeywordBleed"),
+            symbolName: "drop.fill"
+        )
+        public static let leech = VisualStyle(
+            color: DesignAssetColors.named("KeywordLeech"),
+            symbolName: "drop.fill"
+        )
+        public static let nature = VisualStyle(
+            color: DesignAssetColors.named("KeywordNature"),
+            symbolName: "leaf.fill"
+        )
+        public static let freeze = VisualStyle(
+            color: DesignAssetColors.named("KeywordFreeze"),
+            symbolName: "snowflake",
+            prefersDarkForeground: true
+        )
+        public static let dodge = VisualStyle(
+            color: DesignAssetColors.named("KeywordDodge"),
+            symbolName: "arrowshape.turn.up.left.circle.fill"
+        )
+        public static let purge = VisualStyle(
+            color: DesignAssetColors.named("KeywordPurge"),
+            symbolName: "sparkles"
+        )
+        public static let mana = VisualStyle(
+            color: DesignAssetColors.named("KeywordMana"),
+            symbolName: "star.fill"
+        )
         public static let deathsDoor = VisualStyle(
             color: DesignAssetColors.named("KeywordDeathsDoor"),
             symbolName: "heart.slash.fill"

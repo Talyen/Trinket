@@ -49,10 +49,17 @@ struct BattleVictorySummary: Equatable {
             stageReward: stageReward,
             homestead: homestead
         )
+        let totalGold = StageCompletion.resolvedGoldReward(
+            stageGold: stageReward.gold,
+            battleEarnedGold: state.earnedGold,
+            homestead: homestead
+        )
+        let stageGold = min(stageReward.gold, totalGold)
+        let battleGold = max(0, totalGold - stageGold)
 
         return BattleVictorySummary(
-            stageGold: stageReward.gold,
-            battleGold: state.earnedGold,
+            stageGold: stageGold,
+            battleGold: battleGold,
             experience: heroXP,
             petExperience: petXP,
             heroName: state.hero.name,

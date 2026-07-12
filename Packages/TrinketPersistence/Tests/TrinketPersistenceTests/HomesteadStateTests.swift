@@ -54,63 +54,23 @@ struct HomesteadStateTests {
         try #expect(homestead.tier(for: .blacksmithForge) == 0)
     }
 
-    @Test func adjustedMaterialRewardsAddsGranaryBonusForAllMaterials() throws {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.wheatField: 3]
-        )
+    @Test func effectsReplaceLowerTiersInsteadOfStacking() throws {
+        let tier1 = HomesteadEffects.from(nodeTiers: [.wheatField: 1])
+        let tier3 = HomesteadEffects.from(nodeTiers: [.wheatField: 3])
 
-        let adjusted = homestead.adjustedMaterialRewards([
-            ResourceAmount(.wood, 8),
-            ResourceAmount(.stone, 3)
-        ])
-
-        try #expect(adjusted.first { $0.resource == .wood }?.quantity == 9)
-        try #expect(adjusted.first { $0.resource == .stone }?.quantity == 4)
+        try #expect(tier1.petModifiers == [.maximumHealth(2)])
+        try #expect(tier3.petModifiers == [.maximumHealth(6)])
     }
 
-    @Test func adjustedMaterialRewardsAddsFoodBonusFromChickenCoop() throws {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.chickenCoop: 2]
-        )
-
-        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 5)])
-
-        try #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
+    @Test func wishingWellIncreasesGoldFindPercent() throws {
+        let effects = HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
+        try #expect(effects.goldFindPercent == 10)
+        try #expect(effects.adjustedGold(100) == 110)
     }
 
-    @Test func adjustedMaterialRewardsAddsHerbBonusFromHerbGarden() throws {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.herbGarden: 2]
-        )
-
-        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.herbs, 2)])
-
-        try #expect(adjusted.first { $0.resource == .herbs }?.quantity == 3)
-    }
-
-    @Test func adjustedMaterialRewardsStacksFoodBonusesFromMultipleBuildings() throws {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.wheatField: 2, .chickenCoop: 2]
-        )
-
-        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.food, 4)])
-
-        try #expect(adjusted.first { $0.resource == .food }?.quantity == 6)
-    }
-
-    @Test func adjustedMaterialRewardsIgnoresGoldMaterials() throws {
-        let homestead = PlayerHomesteadState(
-            resources: [:],
-            nodeTiers: [.wheatField: 3]
-        )
-
-        let adjusted = homestead.adjustedMaterialRewards([ResourceAmount(.gold, 10)])
-
-        try #expect(adjusted.isEmpty)
+    @Test func detectMagicIncreasesAstralChancePercent() throws {
+        let effects = HomesteadEffects.from(nodeTiers: [.detectMagic: 3])
+        try #expect(effects.astralChanceBonusPercent == 15)
     }
 
     @Test func grantCapsMaterialBalanceAtMax() throws {

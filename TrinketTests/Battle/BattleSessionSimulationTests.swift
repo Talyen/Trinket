@@ -129,7 +129,7 @@ struct BattleSessionSimulationTests {
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) ?? 0 < 100)
 
         session.activeBattle = try ActiveBattleConfigurationTestSupport.make(
-            rngSeed: 0,
+            rngSeed: BattleSessionTestSupport.deterministicBattleSeed,
             hero: party.hero,
             pet: party.pet,
             enemy: party.enemy

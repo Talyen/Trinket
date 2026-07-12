@@ -33,10 +33,16 @@ public enum HomesteadNodeID: String, CaseIterable, Codable, Hashable, Identifiab
     case herbGarden
     case chickenCoop
     case pasture
+    case culinaryArts
     case blacksmithForge
+    case woolTailoring
     case alchemyLab
+    case botanicalDistillation
     case crystalGarden
     case runesmithWorkshop
+    case hunterLodge
+    case agilityTraining
+    case detectMagic
     case wishingWell
 
     public var id: String {
@@ -57,7 +63,9 @@ public enum HomesteadTint: String, CaseIterable, Codable, Hashable, Sendable {
 public enum HomesteadNodeCategory: String, CaseIterable, Hashable, Identifiable, Sendable {
     case farming = "Farming"
     case crafting = "Crafting"
-    case research = "Research"
+    case alchemy = "Alchemy"
+    case training = "Training"
+    case arcana = "Arcana"
 
     public var id: String {
         rawValue

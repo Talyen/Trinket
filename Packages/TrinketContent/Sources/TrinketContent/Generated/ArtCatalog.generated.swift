@@ -903,52 +903,82 @@ public enum ArtCatalog {
         ),
         "homestead": BackgroundArtReference(
             imageName: "bg_homestead",
-            focalPoint: ArtFocalPoint(x: 0.60, y: 0.50),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "A prosperous mountain Homestead glowing beneath a dramatic golden sunset"
         ),
         "wheatField": BackgroundArtReference(
             imageName: "bg_homestead_wheat_field",
-            focalPoint: ArtFocalPoint(x: 0.55, y: 0.58),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Golden wheat field and mountain path at the Homestead"
         ),
         "herbGarden": BackgroundArtReference(
             imageName: "bg_homestead_herb_garden",
-            focalPoint: ArtFocalPoint(x: 0.58, y: 0.58),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Medicinal herb beds beside a timber cottage at sunset"
         ),
         "chickenCoop": BackgroundArtReference(
             imageName: "bg_homestead_chicken_coop",
-            focalPoint: ArtFocalPoint(x: 0.60, y: 0.54),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Rustic timber chicken coop in a mountain yard"
         ),
         "pasture": BackgroundArtReference(
             imageName: "bg_homestead_pasture",
-            focalPoint: ArtFocalPoint(x: 0.60, y: 0.52),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Fenced mountain pasture and sturdy field shelter at sunset"
+        ),
+        "culinaryArts": BackgroundArtReference(
+            imageName: "bg_homestead_culinary_arts",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Warm homestead kitchen preparing harvest meals"
         ),
         "blacksmithForge": BackgroundArtReference(
             imageName: "bg_homestead_blacksmith_forge",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.54),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Glowing medieval blacksmith forge with anvil and bellows"
+        ),
+        "woolTailoring": BackgroundArtReference(
+            imageName: "bg_homestead_wool_tailoring",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Wool loom and padded wraps in a mountain tailor shop"
         ),
         "alchemyLab": BackgroundArtReference(
             imageName: "bg_homestead_alchemy_lab",
-            focalPoint: ArtFocalPoint(x: 0.52, y: 0.58),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Copper stills, glass flasks, and herbs in a medieval alchemy lab"
+        ),
+        "botanicalDistillation": BackgroundArtReference(
+            imageName: "bg_homestead_botanical_distillation",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Botanical stills concentrating garden greens into reagents"
         ),
         "crystalGarden": BackgroundArtReference(
             imageName: "bg_homestead_crystal_garden",
-            focalPoint: ArtFocalPoint(x: 0.48, y: 0.58),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Cultivated amethyst and blue crystal beds at mountain dusk"
         ),
         "runesmithWorkshop": BackgroundArtReference(
             imageName: "bg_homestead_runesmith_workshop",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.58),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Arcane runesmith worktable with engraved iron and crystal tools"
+        ),
+        "hunterLodge": BackgroundArtReference(
+            imageName: "bg_homestead_hunter_lodge",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Timber hunter lodge for companion drills and field craft"
+        ),
+        "agilityTraining": BackgroundArtReference(
+            imageName: "bg_homestead_agility_training",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Practice yard sharpening companion footwork and reflexes"
+        ),
+        "detectMagic": BackgroundArtReference(
+            imageName: "bg_homestead_detect_magic",
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
+            accessibilityLabel: "Quiet sanctum for sensing rare finds and unnatural threats"
         ),
         "wishingWell": BackgroundArtReference(
             imageName: "bg_homestead_wishing_well",
-            focalPoint: ArtFocalPoint(x: 0.58, y: 0.54),
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50),
             accessibilityLabel: "Ancient mossy wishing well beneath old trees in golden light"
         ),
     ]

@@ -2,29 +2,53 @@ import SwiftUI
 
 public enum TrinketDesign {
     public enum Colors {
-        public static let appBackground = Color(.systemBackground)
-        public static let cardArtAccent = Color.accentColor
-        public static let success = Color.green
-        public static let destructive = Color.red
-        public static let selection = Color.blue
-        public static let progression = Color.yellow
+        public static let canvas = ThemePalette.trinket.appBackground
+        public static let surface = ThemePalette.trinket.secondaryBackground
+        public static let panel = ThemePalette.trinket.panelSurface
+        public static let elevated = ThemePalette.trinket.elevatedBackground
+        public static let subtleStroke = ThemePalette.trinket.subtleStroke
 
-        public static let health = Color.green
-        public static let healthDamage = Color.red
-        public static let healthTrailingDamage = Color.red.opacity(0.35)
-        public static let healthRestore = Color.green
+        public static let accent = ThemePalette.trinket.accent
+        public static let accentEmphasized = ThemePalette.trinket.accentEmphasized
+        public static let accentPressed = ThemePalette.trinket.accentPressed
+        public static let success = ThemePalette.trinket.success
+        public static let warning = ThemePalette.trinket.warning
+        public static let destructive = ThemePalette.trinket.destructive
+        public static let informational = ThemePalette.trinket.informational
+        public static let arcane = ThemePalette.trinket.arcane
 
-        /// Solid red fill for battle card bottom-edge health chrome.
-        public static let battleHealth = Color.red.opacity(0.92)
+        /// Compatibility aliases for existing feature code. New chrome should use the role names above.
+        public static let appBackground = canvas
+        public static let cardArtAccent = accentEmphasized
+        public static let selection = accent
+        public static let progression = accentEmphasized
+
+        public static let health = ThemePalette.trinket.health
+        public static let healthRestore = ThemePalette.trinket.healthRestore
+        public static let healthTrailingDamage = health.opacity(0.35)
+
+        /// Solid fill for battle card bottom-edge health chrome.
+        public static let battleHealth = health.opacity(0.92)
         /// Dark empty track behind battle health fill so the strip reads on busy art.
-        public static let battleHealthTrack = Color.black.opacity(0.62)
+        public static let battleHealthTrack = Overlay.ink.opacity(0.62)
         /// Lagging damage remnant on battle health bars.
-        public static let battleHealthTrailingDamage = Color.red.opacity(0.45)
+        public static let battleHealthTrailingDamage = health.opacity(0.45)
 
         public static let encounterBattle = DesignAssetColors.named("EncounterBattle")
         public static let encounterEvent = DesignAssetColors.named("EncounterEvent")
         public static let encounterShop = DesignAssetColors.named("EncounterShop")
         public static let encounterRest = DesignAssetColors.named("EncounterRest")
+
+        public static let chapterVerdant = DesignAssetColors.named("ChapterVerdant")
+
+        public enum Overlay {
+            public static let ink = ThemePalette.trinket.overlayInk
+            public static let paper = ThemePalette.trinket.overlayPaper
+            public static let heroWarm = ThemePalette.trinket.heroScrim
+            public static let detailHeroScrim = ink.opacity(0.6)
+            public static let dragShadow = ink.opacity(0.3)
+            public static let cinematicDim = ink
+        }
     }
 
     public enum Metrics {
@@ -85,8 +109,7 @@ public enum TrinketDesign {
     }
 
     public enum Corners {
-        public static let small: CGFloat = 8
-        public static let compact: CGFloat = 12
+        /// Shared continuous radius for cards, panels, thumbs, and portrait frames.
         public static let card: CGFloat = 16
     }
 
@@ -96,11 +119,26 @@ public enum TrinketDesign {
         public let color: Color
         public let symbolName: String
 
-        public static let hero = CardPlaceholderStyle(color: .blue, symbolName: "person.fill")
-        public static let pet = CardPlaceholderStyle(color: .green, symbolName: "pawprint.fill")
-        public static let enemy = CardPlaceholderStyle(color: .red, symbolName: "flame.fill")
-        public static let item = CardPlaceholderStyle(color: .orange, symbolName: "shippingbox.fill")
-        public static let ability = CardPlaceholderStyle(color: .indigo, symbolName: "bolt.fill")
+        public static let hero = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderHero"),
+            symbolName: "person.fill"
+        )
+        public static let pet = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderPet"),
+            symbolName: "pawprint.fill"
+        )
+        public static let enemy = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderEnemy"),
+            symbolName: "flame.fill"
+        )
+        public static let item = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderItem"),
+            symbolName: "shippingbox.fill"
+        )
+        public static let ability = CardPlaceholderStyle(
+            color: DesignAssetColors.named("PlaceholderAbility"),
+            symbolName: "bolt.fill"
+        )
     }
 }
 

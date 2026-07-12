@@ -46,7 +46,7 @@ public struct PlayerSave: Equatable, Sendable {
     public static var unlockedAll: PlayerSave {
         var roster = PlayerRosterState.freshStart
         roster.unlockAllCombatants(atLevel: 20)
-        roster.gold = 9999
+        roster.gold = PlayerRosterState.maxGoldBalance
 
         var journey = JourneyProgressState.initial
         journey.completeChapter("chapter-1")
@@ -58,7 +58,7 @@ public struct PlayerSave: Equatable, Sendable {
             journey: journey,
             roster: roster,
             inventory: .testSeed,
-            homestead: .testSeed,
+            homestead: .developerMaxed,
             aspects: .freshStart,
             labyrinth: .freshStart
         )

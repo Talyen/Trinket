@@ -4,9 +4,25 @@ import TrinketCore
 import TrinketDesignSystem
 import TrinketPersistence
 
+private enum HomesteadProjectRowMetrics {
+    /// 4:3 project art beside title + effect; height sits with two caption lines.
+    static let artworkAspectRatio: CGFloat = 4.0 / 3.0
+    static let artworkHeight: CGFloat = 92
+    static var artworkWidth: CGFloat {
+        artworkHeight * artworkAspectRatio
+    }
+
+    static let artworkTextSpacing: CGFloat = 12
+    static var dividerLeadingInset: CGFloat {
+        artworkWidth + artworkTextSpacing
+    }
+}
+
 struct HomesteadProjectRow: View {
     let definition: HomesteadNodeDefinition
     let status: HomesteadProjectStatus
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isLocked: Bool {
         if case .prerequisiteLocked = status.rowState {
@@ -33,16 +49,19 @@ struct HomesteadProjectRow: View {
     }
 
     private var rowContent: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: HomesteadProjectRowMetrics.artworkTextSpacing) {
             HomesteadBuildingArtwork(definition: definition, variant: .thumbnail)
-                .frame(width: 118, height: 58)
+                .frame(
+                    width: HomesteadProjectRowMetrics.artworkWidth,
+                    height: HomesteadProjectRowMetrics.artworkHeight
+                )
                 .saturation(isLocked ? 0.42 : 1)
                 .opacity(isLocked ? 0.72 : 1)
                 .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(definition.title)
-                    .trinketTypography(.rowDisplay)
+                    .trinketTypography(.cardTitle)
                     .foregroundStyle(isLocked ? .secondary : .primary)
                     .lineLimit(2)
 
@@ -59,31 +78,28 @@ struct HomesteadProjectRow: View {
                 .font(statusAffordanceFont)
                 .foregroundStyle(status.statusColor)
                 .symbolRenderingMode(.hierarchical)
+                .symbolEffect(
+                    .bounce.up,
+                    options: .repeating.speed(TrinketMotion.Homestead.purchaseCueSpeed),
+                    isActive: status.canBuildOrUpgrade && !reduceMotion
+                )
                 .frame(width: statusAffordanceSize, height: statusAffordanceSize)
                 .accessibilityLabel(status.statusTitle)
         }
-        .padding(.vertical, 4)
-    }
-
-    /// Ready-to-act hammers read at 2× the compact chevron/lock affordance.
-    private var showsActionHammer: Bool {
-        switch status.rowState {
-        case .upgradeReady, .unbuilt(affordable: true): true
-        default: false
-        }
+        .padding(.vertical, 6)
     }
 
     private var statusAffordanceFont: Font {
-        showsActionHammer ? .system(size: 34, weight: .semibold) : .body.weight(.semibold)
+        .body.weight(.semibold)
     }
 
     private var statusAffordanceSize: CGFloat {
-        showsActionHammer ? 44 : 22
+        22
     }
 
     private var effectLine: String {
         guard let effect = status.overviewEffect else { return definition.summary }
-        return "\(effect.title): \(effect.description)"
+        return effect.description
     }
 }
 
@@ -115,9 +131,9 @@ struct HomesteadProjectSection: View {
 
                     if index < definitions.count - 1 {
                         Rectangle()
-                            .fill(HomesteadPalette.accent.opacity(0.18))
+                            .fill(TrinketDesign.Colors.subtleStroke.opacity(0.55))
                             .frame(height: 0.5)
-                            .padding(.leading, 128)
+                            .padding(.leading, HomesteadProjectRowMetrics.dividerLeadingInset)
                     }
                 }
             }

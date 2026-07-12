@@ -1,12 +1,12 @@
 import SwiftUI
 import TrinketContent
-import TrinketCore
+import TrinketDesignSystem
 
 extension ChapterTheme {
     var tint: Color {
         switch self {
         case .verdantForest:
-            Color.green
+            TrinketDesign.Colors.chapterVerdant
         }
     }
 }

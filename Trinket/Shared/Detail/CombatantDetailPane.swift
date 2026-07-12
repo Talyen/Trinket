@@ -76,7 +76,6 @@ struct CombatantDetailPane: View {
 
             if let heroOrPetTrait {
                 traitSection(
-                    title: "Trait",
                     traits: [heroOrPetTrait],
                     sectionID: AccessibilityID.CombatantDetail.traitSection,
                     descriptionID: AccessibilityID.CombatantDetail.traitDescription
@@ -85,7 +84,6 @@ struct CombatantDetailPane: View {
 
             if !enemyTraits.isEmpty {
                 traitSection(
-                    title: "Traits",
                     traits: enemyTraits,
                     sectionID: AccessibilityID.CombatantDetail.enemyTraitsSection,
                     descriptionID: AccessibilityID.CombatantDetail.enemyTraitDescription
@@ -143,22 +141,28 @@ struct CombatantDetailPane: View {
     }
 
     private func traitSection(
-        title: String,
         traits: [CombatantTraitDefinition],
         sectionID: String,
         descriptionID: String
     ) -> some View {
-        DetailSection(title, sectionID: sectionID) {
+        DetailSection("Traits", sectionID: sectionID) {
             ForEach(traits) { trait in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(trait.name)
-                        .trinketTypography(.button)
-                    KeywordDescriptionText(text: trait.description)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier(descriptionID)
-                }
+                traitRow(trait, descriptionID: descriptionID)
             }
+        }
+    }
+
+    private func traitRow(_ trait: CombatantTraitDefinition, descriptionID: String) -> some View {
+        LabeledContent {
+            KeywordDescriptionText(text: trait.description)
+                .trinketTypography(.secondaryBody)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.trailing)
+                .accessibilityIdentifier(descriptionID)
+        } label: {
+            Text(trait.name)
+                .trinketTypography(.body)
+                .foregroundStyle(.primary)
         }
     }
 

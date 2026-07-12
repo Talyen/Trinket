@@ -64,6 +64,8 @@ final class BattleSession {
     @ObservationIgnored
     var pendingFeedbackPruneTask: Task<Void, Never>?
     @ObservationIgnored
+    var pendingFeedbackPresentationTasks: [Int: Task<Void, Never>] = [:]
+    @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
     var autoEndHomestead: PlayerHomesteadState?
@@ -162,8 +164,13 @@ final class BattleSession {
     }
 
     func removeFeedbackEvent(_ id: Int) {
+        pendingFeedbackPresentationTasks[id]?.cancel()
+        pendingFeedbackPresentationTasks.removeValue(forKey: id)
         if let item = activeFeedbackItems.first(where: { $0.id == id }) {
             keywordBurstsByTargetID[item.targetID]?.removeAll { $0.id == id }
+            if hitReactionsByTargetID[item.targetID]?.id == id {
+                hitReactionsByTargetID.removeValue(forKey: item.targetID)
+            }
         }
         activeFeedbackEvents.removeAll { $0.id == id }
         activeFeedbackItems.removeAll { $0.id == id }

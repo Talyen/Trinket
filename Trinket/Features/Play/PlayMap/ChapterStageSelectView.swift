@@ -128,8 +128,8 @@ private struct ChapterJourneyHero: View {
             }
         } overlay: {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(
-                    colors: [.clear, Color.black.opacity(0.22), Color.black.opacity(0.94)],
+                TrinketHeroScrim.gradient(
+                    for: .chapter,
                     startPoint: .init(x: 0.5, y: 0.35),
                     endPoint: .bottom
                 )
@@ -138,14 +138,11 @@ private struct ChapterJourneyHero: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Chapter \(chapter.number)".uppercased())
                         .trinketTypography(.eyebrow)
-                        .foregroundStyle(.white.opacity(0.78))
-                        .shadow(color: .black.opacity(0.7), radius: 1, y: 1)
+                        .trinketOnArtText(.eyebrow)
 
                     Text(chapter.title)
                         .trinketTypography(.screenDisplay)
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.95), radius: 1, y: 1)
-                        .shadow(color: .black.opacity(0.5), radius: 5, y: 2)
+                        .trinketOnArtText(.title)
                         .accessibilityIdentifier(
                             AccessibilityID.Play.chapterTitle(number: chapter.number)
                         )

@@ -36,17 +36,25 @@ VALID_HOMESTEAD_RESOURCES = frozenset(
 VALID_HOMESTEAD_TINTS = frozenset(
     {"orange", "green", "yellow", "mint", "cyan", "indigo", "blue"}
 )
-VALID_HOMESTEAD_CATEGORIES = frozenset({"farming", "crafting", "research"})
+VALID_HOMESTEAD_CATEGORIES = frozenset(
+    {"farming", "crafting", "alchemy", "training", "arcana"}
+)
 VALID_HOMESTEAD_NODE_IDS = frozenset(
     {
         "wheatField",
         "herbGarden",
         "chickenCoop",
         "pasture",
+        "culinaryArts",
         "blacksmithForge",
+        "woolTailoring",
         "alchemyLab",
+        "botanicalDistillation",
         "crystalGarden",
         "runesmithWorkshop",
+        "hunterLodge",
+        "agilityTraining",
+        "detectMagic",
         "wishingWell",
     }
 )
@@ -1586,10 +1594,16 @@ HOMESTEAD_NODE_ORDER = [
     "herbGarden",
     "chickenCoop",
     "pasture",
+    "culinaryArts",
     "blacksmithForge",
+    "woolTailoring",
     "alchemyLab",
+    "botanicalDistillation",
     "crystalGarden",
     "runesmithWorkshop",
+    "hunterLodge",
+    "agilityTraining",
+    "detectMagic",
     "wishingWell",
 ]
 
@@ -1598,6 +1612,9 @@ def generate_homestead_catalog(rows: list[HomesteadNodeRow]) -> None:
     nodes: dict[str, list[HomesteadNodeRow]] = {}
     for row in rows:
         nodes.setdefault(row.node_id, []).append(row)
+
+    if set(HOMESTEAD_NODE_ORDER) != VALID_HOMESTEAD_NODE_IDS:
+        raise ValueError("HOMESTEAD_NODE_ORDER must match VALID_HOMESTEAD_NODE_IDS")
 
     node_blocks = ",\n".join(
         render_homestead_node(node_id, nodes[node_id])

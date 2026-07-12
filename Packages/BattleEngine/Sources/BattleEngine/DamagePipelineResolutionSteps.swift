@@ -98,6 +98,10 @@ package extension DamagePipeline {
             return
         }
         let profile = context.modifiers(for: state.combatant.id)
+        let flatReduction = profile.damageTakenFlat(for: damageKeyword)
+        if flatReduction > 0 {
+            state.remaining = max(0, state.remaining - flatReduction)
+        }
         let reduction = profile.damageTakenReduction(for: damageKeyword)
         if reduction > 0 {
             state.remaining = Int(ceil(Double(state.remaining) * (1 - reduction)))

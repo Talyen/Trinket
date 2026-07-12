@@ -5,19 +5,19 @@ public extension HomesteadTint {
     var color: Color {
         switch self {
         case .orange:
-            .orange
+            DesignAssetColors.named("HomesteadTintOrange")
         case .green:
-            .green
+            DesignAssetColors.named("HomesteadTintGreen")
         case .yellow:
-            .yellow
+            DesignAssetColors.named("HomesteadTintYellow")
         case .mint:
-            .mint
+            DesignAssetColors.named("HomesteadTintMint")
         case .cyan:
-            .cyan
+            DesignAssetColors.named("HomesteadTintCyan")
         case .indigo:
-            .indigo
+            DesignAssetColors.named("HomesteadTintIndigo")
         case .blue:
-            .blue
+            DesignAssetColors.named("HomesteadTintBlue")
         }
     }
 }

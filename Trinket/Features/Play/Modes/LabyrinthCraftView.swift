@@ -20,7 +20,7 @@ struct LabyrinthCraftView: View {
                 if let failure = session.failureMessage {
                     Text(failure)
                         .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(TrinketDesign.Colors.warning)
                         .accessibilityIdentifier(AccessibilityID.Play.labyrinthCraftFailure)
                 }
 

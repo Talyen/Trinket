@@ -163,9 +163,11 @@ struct BattleView: View {
                     },
                     onPlay: { card in
                         playCard(cardID: card.id)
-                    }
+                    },
+                    hapticsEnabled: appState.options.hapticsEnabled
                 )
                 .frame(height: BattleCardGridLayout.handReservedHeight)
+                .offset(y: -BattleHandLayout.bottomRise)
                 .zIndex(1)
                 .onAppear {
                     wireAutoEndTurn(battleSession)
@@ -201,7 +203,9 @@ struct BattleView: View {
         }
     }
 
-    private func playCard(cardID: Int) {
+    private func playCard(cardID: Int) -> Bool {
+        let wasInHand = appState.battle.hand.contains { $0.id == cardID }
+        guard wasInHand else { return false }
         if let earnedGold = appState.battle.playCard(
             cardID: cardID,
             journey: appState.journey,
@@ -209,6 +213,7 @@ struct BattleView: View {
         ), let configuration = appState.battle.activeBattle {
             _ = appState.completeActiveBattle(configuration, battleEarnedGold: earnedGold)
         }
+        return !appState.battle.hand.contains { $0.id == cardID }
     }
 
     private func wireAutoEndTurn(_ battleSession: BattleSession) {
@@ -239,6 +244,7 @@ struct BattleView: View {
                 ? battleSession.activeSkillCallout
                 : nil,
             reduceMotion: reduceMotion,
+            hapticsEnabled: appState.options.hapticsEnabled,
             cinematicNamespace: cinematicNamespace,
             onCombatantTap: { showDetails(for: combatant, battleState: battleState) }
         )

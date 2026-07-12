@@ -54,6 +54,8 @@ struct PlayView: View {
         ), content: { item in
             AbilityDetailSheet(ability: item.ability)
                 .presentationDetents([.large])
+                .presentationContentInteraction(.resizes)
+                .presentationDragIndicator(.hidden)
         })
         .sheet(isPresented: Binding(
             get: { battle.isShowingBattleLog },

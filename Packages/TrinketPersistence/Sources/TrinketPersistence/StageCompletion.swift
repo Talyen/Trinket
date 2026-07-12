@@ -17,10 +17,18 @@ public enum StageCompletion {
 
     public static func resolvedMaterialRewards(
         stageReward: StageReward,
-        homestead: PlayerHomesteadState,
+        homestead _: PlayerHomesteadState,
         override: [ResourceAmount]? = nil
     ) -> [ResourceAmount] {
-        override ?? homestead.adjustedMaterialRewards(stageReward.materialRewards)
+        override ?? stageReward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
+    }
+
+    public static func resolvedGoldReward(
+        stageGold: Int,
+        battleEarnedGold: Int,
+        homestead: PlayerHomesteadState
+    ) -> Int {
+        homestead.effects.adjustedGold(stageGold + battleEarnedGold)
     }
 
     public static func resolvedEncounterLevel(for stage: Stage, in chapters: [Chapter]) -> Int {
@@ -72,7 +80,13 @@ public enum StageCompletion {
         let encounterLevel = enemyEncounterLevel
             ?? resolvedEncounterLevel(for: stage, in: GameContent.chapters)
 
-        save.roster.grantGold(stage.rewards.gold + battleEarnedGold)
+        save.roster.grantGold(
+            resolvedGoldReward(
+                stageGold: stage.rewards.gold,
+                battleEarnedGold: battleEarnedGold,
+                homestead: save.homestead
+            )
+        )
         if case .battle = stage.encounter {
             grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
             grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &save.roster)
@@ -113,7 +127,7 @@ public enum StageCompletion {
             return false
         }
 
-        for reward in save.homestead.adjustedMaterialRewards(stage.rewards.materialRewards) {
+        for reward in stage.rewards.materialRewards where reward.resource != .gold && reward.quantity > 0 {
             let baselineQuantity = baseline.homestead.resources[reward.resource, default: 0]
             let expectedQuantity = min(
                 baselineQuantity + reward.quantity,

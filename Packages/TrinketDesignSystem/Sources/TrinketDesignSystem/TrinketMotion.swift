@@ -36,15 +36,28 @@ public enum TrinketMotion: Sendable {
             .spring(response: 0.35, dampingFraction: 1.0)
         }
 
+        /// Restrained squash-and-bounce cue for an affordable build or upgrade action.
+        public static let purchaseCueSpeed: Double = 0.45
+
         public static var reduceMotion: Animation {
             .easeOut(duration: reduceMotionFade)
         }
     }
 
     public enum Battle: Sendable {
+        /// Immediate press response before a drag direction is established.
+        public static var cardPress: Animation {
+            .spring(response: 0.16, dampingFraction: 1.0)
+        }
+
         /// Restrained, interruptible motion for directly manipulated ability cards.
         public static var cardLift: Animation {
             .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        /// Short, purposeful flight from the hand into the battlefield.
+        public static var cardCommit: Animation {
+            .spring(response: 0.28, dampingFraction: 0.92)
         }
 
         /// Slight overshoot is reserved for returning an object after a drag.
@@ -54,6 +67,17 @@ public enum TrinketMotion: Sendable {
 
         public static var cardReturnReducedMotion: Animation {
             .spring(response: 0.22, dampingFraction: 1.0)
+        }
+
+        /// Time reserved for the card's activation travel before the engine commit.
+        public static let cardCommitDelay: TimeInterval = 0.11
+
+        /// Stagger for a small deal without making the turn feel held up.
+        public static let cardDrawStagger: TimeInterval = 0.045
+
+        /// Spring used when the hand reflows around a draw or played card.
+        public static var handReflow: Animation {
+            .spring(response: 0.34, dampingFraction: 0.92)
         }
 
         public static let cardHeldScale = 1.035
@@ -85,6 +109,9 @@ public enum TrinketMotion: Sendable {
 
         /// Stagger between deferred Ultimate chips when the cinematic lands.
         public static let ultimateChipStagger: TimeInterval = 0.055
+
+        /// Small stagger that lets compound results read as a sequence.
+        public static let feedbackStagger: TimeInterval = 0.035
 
         /// Default chip display duration (direct damage). Prefer per-class recipes.
         public static let chipDisplayDuration: TimeInterval = 0.7

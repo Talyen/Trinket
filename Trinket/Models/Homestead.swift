@@ -27,18 +27,6 @@ extension HomesteadResource {
         case .gold: "dollarsign.circle.fill"
         }
     }
-
-    var tint: Color {
-        switch self {
-        case .wood: .brown
-        case .stone: Color("ResourceStone", bundle: .main)
-        case .iron: Color("ResourceIron", bundle: .main)
-        case .food: .orange
-        case .herbs: .green
-        case .crystal: .blue
-        case .gold: Keyword.gold.visualStyle.color
-        }
-    }
 }
 
 extension HomesteadNodeDefinition {

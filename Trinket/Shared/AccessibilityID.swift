@@ -200,6 +200,8 @@ enum AccessibilityID {
         static let experience = "Experience"
         static let rewards = "Rewards"
         static let continueButton = "Continue Button"
+        static let abilityDetail = "Battle Ability Detail"
+        static let abilityDetailEffect = "Battle Ability Detail Effect"
 
         static func handCard(_ abilityID: String) -> String {
             "Battle Hand Card \(abilityID)"

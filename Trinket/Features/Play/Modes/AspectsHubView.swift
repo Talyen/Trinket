@@ -93,8 +93,7 @@ struct AspectsHubView: View {
         }
         .trinketLockedCardEffect(
             isLocked: locked,
-            text: lockText,
-            cornerRadius: TrinketDesign.Corners.compact
+            text: lockText
         )
         .animation(reduceMotion ? nil : .smooth, value: locked)
     }

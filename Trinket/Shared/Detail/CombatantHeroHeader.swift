@@ -18,14 +18,10 @@ struct CombatantHeroHeader: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         } overlay: {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(
-                    colors: [.clear, .black.opacity(0.6)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: HeroHeaderLayout.scrimHeight)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-                .allowsHitTesting(false)
+                TrinketHeroScrim.gradient(for: .detailHeader)
+                    .frame(height: HeroHeaderLayout.scrimHeight)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .allowsHitTesting(false)
 
                 VStack(alignment: .leading) {
                     titleBlock
@@ -46,11 +42,11 @@ struct CombatantHeroHeader: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(combatant.role.rawValue.uppercased())
                 .trinketTypography(.eyebrow)
-                .foregroundStyle(.white.opacity(0.78))
+                .trinketOnArtText(.eyebrow)
 
             Text(combatant.name)
                 .trinketTypography(.screenDisplay)
-                .foregroundStyle(.white)
+                .trinketOnArtText(.title)
                 .lineLimit(2)
                 .minimumScaleFactor(0.75)
         }
@@ -60,12 +56,12 @@ struct CombatantHeroHeader: View {
         HStack {
             Text("LEVEL \(progression.level)")
                 .trinketTypography(.eyebrow)
-                .foregroundStyle(.white.opacity(0.78))
+                .trinketOnArtText(.eyebrow)
 
             Text("\(progression.currentXP)/\(progression.requiredXP) XP")
                 .trinketTypography(.eyebrow)
                 .monospacedDigit()
-                .foregroundStyle(.white.opacity(0.78))
+                .trinketOnArtText(.eyebrow)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -141,6 +141,7 @@ public enum PlayerSaveSanitizer {
         let validPetIDs = petIDs
 
         var sanitized = roster
+        sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)
         sanitized.unlockedHeroIDs = roster.unlockedHeroIDs.filter { validHeroIDs.contains($0) }
         sanitized.unlockedPetIDs = roster.unlockedPetIDs.filter { validPetIDs.contains($0) }
 

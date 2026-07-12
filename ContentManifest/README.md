@@ -123,7 +123,7 @@ node_id	title	summary	symbol_name	tint	category	prerequisites	tier	cost	bonus_ti
 
 - `node_id`: `HomesteadNodeID` case name (e.g. `wheatField`).
 - `tint`: `orange`, `green`, `yellow`, `mint`, `cyan`, `indigo`, or `blue`.
-- `category`: `farming`, `crafting`, or `research`.
+- `category`: `farming`, `crafting`, `alchemy`, `training`, or `arcana`.
 - `prerequisites`: pipe-separated `nodeID` or `nodeID:tier` tokens.
 - `cost`: pipe-separated `resource:amount` tokens (e.g. `wood:10|stone:4`).
 - One row per tier; node metadata must match across tiers for the same `node_id`.

@@ -6,6 +6,8 @@ enum BattleCardGridLayout {
     static let gutter: CGFloat = 0
     static let outerPadding: CGFloat = 0
     static let cardSpacing: CGFloat = 12
+    /// Scales enemy + party together so the triptych clears space for the hand.
+    static let combatantScale: CGFloat = 0.90
     /// Reserved bottom band for the ability hand (art cards ~2× prior mechanical size).
     static let handReservedHeight: CGFloat = 224
     /// Extra battlefield height reclaimed under the hand so combatants fill side gutters on typical phones.
@@ -44,13 +46,14 @@ enum BattleCardGridLayout {
             ),
             0
         )
-        let partyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
+        let fullPartyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
+        let fullPartyRowWidth = min(innerWidth, 2 * fullPartyWidth + cardSpacing)
+        let rowWidth = fullPartyRowWidth * combatantScale
+        let partyWidth = max((rowWidth - cardSpacing) / 2, 0)
         let partyHeight = partyWidth / partyAspectRatio
 
-        let partyRowWidth = min(innerWidth, 2 * partyWidth + cardSpacing)
-
         return Metrics(
-            enemySize: CGSize(width: partyRowWidth, height: partyRowWidth / enemyAspectRatio),
+            enemySize: CGSize(width: rowWidth, height: rowWidth / enemyAspectRatio),
             partySize: CGSize(width: partyWidth, height: partyHeight),
             outerPadding: outerPadding,
             cardSpacing: cardSpacing,

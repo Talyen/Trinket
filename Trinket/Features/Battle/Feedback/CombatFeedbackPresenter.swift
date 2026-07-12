@@ -224,10 +224,14 @@ enum CombatFeedbackPresenter {
 
     private static func reactionKind(for feedbackClass: CombatFeedbackClass) -> CombatantHitReactionKind {
         switch feedbackClass {
-        case .directDamage, .dot, .block:
+        case .directDamage:
             .damage
+        case .dot:
+            .none
         case .critical:
             .critical
+        case .block:
+            .block
         case .heal:
             .heal
         case .dodge:

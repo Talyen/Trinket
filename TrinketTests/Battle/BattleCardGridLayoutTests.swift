@@ -10,8 +10,8 @@ struct BattleCardGridLayoutTests {
 
         #expect(metrics.outerPadding == 0)
         #expect(metrics.cardSpacing == 12)
-        #expect(metrics.handReservedHeight == 224)
-        #expect(abs(metrics.enemySize.width - width) < 0.001)
+        #expect(metrics.handReservedHeight == BattleCardGridLayout.handReservedHeight)
+        #expect(abs(metrics.enemySize.width - width * BattleCardGridLayout.combatantScale) < 0.001)
         assertRelationships(metrics, in: containerSize)
     }
 
@@ -44,7 +44,10 @@ struct BattleCardGridLayoutTests {
             - metrics.handReservedHeight
             + BattleCardGridLayout.handOverlapAllowance
 
-        #expect(abs(metrics.enemySize.width - partyRowWidth) < 0.001, sourceLocation: location)
+        #expect(
+            abs(metrics.enemySize.width - partyRowWidth) < 0.001,
+            sourceLocation: location
+        )
         if metrics.enemySize.height > 0 {
             #expect(
                 abs(metrics.enemySize.width / metrics.enemySize.height - 4.0 / 3.0) < 0.001,
@@ -82,7 +85,7 @@ struct BattleHandLayoutTests {
         #expect(metrics.overlap > 0)
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
         #expect((0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
-            == [-12, -6, 0, 6, 12])
+            == [-13, -6.5, 0, 6.5, 13])
         #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: count) == 0)
         #expect(BattleHandLayout.restingOffsetY(index: 0, cardCount: count)
             > BattleHandLayout.restingOffsetY(index: 1, cardCount: count))
@@ -130,6 +133,21 @@ struct BattleHandLayoutTests {
             predictedEndTranslation: CGSize(width: 0, height: -180),
             isPlayable: false
         ))
+    }
+
+    @Test func unplayableUpwardDragRubberBandsPastThreshold() {
+        let below = BattleHandLayout.presentationTranslation(
+            CGSize(width: 0, height: -60),
+            isPlayable: false
+        )
+        let beyond = BattleHandLayout.presentationTranslation(
+            CGSize(width: 40, height: -180),
+            isPlayable: false
+        )
+
+        #expect(below.height == -60)
+        #expect(beyond.height > -180)
+        #expect(abs(beyond.width) < 40)
     }
 
     @Test func heldTiltIsBoundedAndRespondsToHorizontalDirection() {

@@ -176,16 +176,22 @@ combatant	will_o_wisp	enemy_will_o_wisp_card	Raw Assets/Enemies/Will-o-Wisp.jpg	
 combatant	pixie	pet_pixie_card	Raw Assets/Pets/Pixie.jpeg	0.50	0.50	Full art of the Pixie pet
 combatant	shield_scarab	pet_shield_scarab_card	Raw Assets/Pets/Shield Scarab.jpeg	0.50	0.50	Full art of the Shield Scarab pet
 background	chapter-1	bg_verdant_forest	Raw Assets/Chapter Backgrounds/Verdant Forest.jpeg	0.50	0.50	Lush green canopy and winding forest path of the Verdant Forest
-background	homestead	bg_homestead	Raw Assets/Homestead/Cinematic/Homestead.png	0.60	0.50	A prosperous mountain Homestead glowing beneath a dramatic golden sunset
-background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Cinematic/Wheat Field.png	0.55	0.58	Golden wheat field and mountain path at the Homestead
-background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Cinematic/Herb Garden.png	0.58	0.58	Medicinal herb beds beside a timber cottage at sunset
-background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Cinematic/Chicken Coop.png	0.60	0.54	Rustic timber chicken coop in a mountain yard
-background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Cinematic/Pasture.png	0.60	0.52	Fenced mountain pasture and sturdy field shelter at sunset
-background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Cinematic/Blacksmith's Forge.png	0.50	0.54	Glowing medieval blacksmith forge with anvil and bellows
-background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Cinematic/Alchemy Lab.png	0.52	0.58	Copper stills, glass flasks, and herbs in a medieval alchemy lab
-background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Cinematic/Crystal Garden.png	0.48	0.58	Cultivated amethyst and blue crystal beds at mountain dusk
-background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Cinematic/Runesmith's Workshop.png	0.50	0.58	Arcane runesmith worktable with engraved iron and crystal tools
-background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Cinematic/Wishing Well.png	0.58	0.54	Ancient mossy wishing well beneath old trees in golden light
+background	homestead	bg_homestead	Raw Assets/Homestead/Homestead Header.png	0.50	0.50	A prosperous mountain Homestead glowing beneath a dramatic golden sunset
+background	wheatField	bg_homestead_wheat_field	Raw Assets/Homestead/Wheat Field.png	0.50	0.50	Golden wheat field and mountain path at the Homestead
+background	herbGarden	bg_homestead_herb_garden	Raw Assets/Homestead/Herb Garden.png	0.50	0.50	Medicinal herb beds beside a timber cottage at sunset
+background	chickenCoop	bg_homestead_chicken_coop	Raw Assets/Homestead/Chicken Coop.png	0.50	0.50	Rustic timber chicken coop in a mountain yard
+background	pasture	bg_homestead_pasture	Raw Assets/Homestead/Pasture.jpeg	0.50	0.50	Fenced mountain pasture and sturdy field shelter at sunset
+background	culinaryArts	bg_homestead_culinary_arts	Raw Assets/Homestead/Culinary Arts.jpeg	0.50	0.50	Warm homestead kitchen preparing harvest meals
+background	blacksmithForge	bg_homestead_blacksmith_forge	Raw Assets/Homestead/Blacksmith's Forge.png	0.50	0.50	Glowing medieval blacksmith forge with anvil and bellows
+background	woolTailoring	bg_homestead_wool_tailoring	Raw Assets/Homestead/Wool Tailoring.jpeg	0.50	0.50	Wool loom and padded wraps in a mountain tailor shop
+background	alchemyLab	bg_homestead_alchemy_lab	Raw Assets/Homestead/Alchemy Lab.png	0.50	0.50	Copper stills, glass flasks, and herbs in a medieval alchemy lab
+background	botanicalDistillation	bg_homestead_botanical_distillation	Raw Assets/Homestead/Botanical Distillation.jpeg	0.50	0.50	Botanical stills concentrating garden greens into reagents
+background	crystalGarden	bg_homestead_crystal_garden	Raw Assets/Homestead/Crystal Garden.png	0.50	0.50	Cultivated amethyst and blue crystal beds at mountain dusk
+background	runesmithWorkshop	bg_homestead_runesmith_workshop	Raw Assets/Homestead/Runesmith's Workshop.png	0.50	0.50	Arcane runesmith worktable with engraved iron and crystal tools
+background	hunterLodge	bg_homestead_hunter_lodge	Raw Assets/Homestead/Hunter's Lodge.jpeg	0.50	0.50	Timber hunter lodge for companion drills and field craft
+background	agilityTraining	bg_homestead_agility_training	Raw Assets/Homestead/Agility Training.jpeg	0.50	0.50	Practice yard sharpening companion footwork and reflexes
+background	detectMagic	bg_homestead_detect_magic	Raw Assets/Homestead/Detect Magic.jpeg	0.50	0.50	Quiet sanctum for sensing rare finds and unnatural threats
+background	wishingWell	bg_homestead_wishing_well	Raw Assets/Homestead/Wishing Well.jpeg	0.50	0.50	Ancient mossy wishing well beneath old trees in golden light
 resource	wood	resource_homestead_wood	Raw Assets/Homestead/Resources/wood.png	0.50	0.50	Bundle of cut wood logs
 resource	stone	resource_homestead_stone	Raw Assets/Homestead/Resources/stone.png	0.50	0.50	Cluster of rugged building stones
 resource	iron	resource_homestead_iron	Raw Assets/Homestead/Resources/iron.png	0.50	0.50	Stacked dark iron ingots

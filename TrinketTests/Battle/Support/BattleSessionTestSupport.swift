@@ -8,8 +8,12 @@ import TrinketTestSupport
 
 @MainActor
 enum BattleSessionTestSupport {
+    /// Matches BattleEngine's `deterministicNonCriticalSeed` so single-card plays
+    /// are not invalidated by the 5% base dodge roll at seed 0.
+    static let deterministicBattleSeed: UInt64 = 1772
+
     static func makeConfiguredSession(
-        rngSeed: UInt64 = 0,
+        rngSeed: UInt64 = deterministicBattleSeed,
         hero: Combatant? = nil,
         pet: Combatant? = nil,
         enemy: Combatant? = nil
@@ -56,6 +60,10 @@ enum BattleSessionTestSupport {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
             actions += 1
+            if session.activeCinematic != nil {
+                session.completeCinematicCollapse(at: date)
+                continue
+            }
             if let card = session.hand.first(where: { session.isCardPlayable($0) }) {
                 earnedGold = session.playCard(
                     cardID: card.id,
@@ -93,6 +101,10 @@ enum BattleSessionTestSupport {
         var actions = 0
         while session.outcome == nil, actions < maxActions {
             actions += 1
+            if session.activeCinematic != nil {
+                session.completeCinematicCollapse(at: date)
+                continue
+            }
             if let card = session.hand.first(where: {
                 $0.ability.id == abilityID && session.isCardPlayable($0)
             }) {

@@ -10,7 +10,14 @@ enum BattleHandLayout {
     static let aspectRatio: CGFloat = 4.0 / 3.0
     static let widthRatio: CGFloat = 0.43
     static let horizontalInset: CGFloat = 8
-    static let maxOverlapRatio: CGFloat = 0.38
+    /// Horizontal stride between consecutive cards as a fraction of card width.
+    static let maxOverlapRatio: CGFloat = 0.40
+    /// Degrees of fan rotation between adjacent cards.
+    static let fanAngleStep: CGFloat = 9
+    /// Extra drop for outer cards in the fan.
+    static let fanLiftStep: CGFloat = 10
+    /// Lifts the hand band off the bottom edge for better card visibility.
+    static let bottomRise: CGFloat = 25
     /// Drag-up distance required to play a card (1:1 with finger until release).
     static let playDragThreshold: CGFloat = 80
     static let dragMinimumDistance: CGFloat = 12
@@ -48,11 +55,11 @@ enum BattleHandLayout {
 
     static func rotation(index: Int, cardCount: Int) -> CGFloat {
         guard cardCount > 1 else { return 0 }
-        return (CGFloat(index) - CGFloat(cardCount - 1) / 2) * 6
+        return (CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanAngleStep
     }
 
     static func restingOffsetY(index: Int, cardCount: Int) -> CGFloat {
-        abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * 8
+        abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * fanLiftStep
     }
 
     static func shouldPlay(
@@ -68,6 +75,24 @@ enum BattleHandLayout {
         let upwardDistance = -release.height
         return upwardDistance >= threshold
             && upwardDistance > abs(release.width)
+    }
+
+    /// Keeps invalid upward drags responsive while progressively resisting the
+    /// part of the gesture that would otherwise cross the play boundary.
+    static func presentationTranslation(
+        _ translation: CGSize,
+        isPlayable: Bool,
+        threshold: CGFloat = playDragThreshold
+    ) -> CGSize {
+        guard !isPlayable, translation.height < 0 else { return translation }
+        let upwardDistance = -translation.height
+        guard upwardDistance > threshold else { return translation }
+        let overshoot = upwardDistance - threshold
+        let resistedOvershoot = overshoot * threshold / (threshold + overshoot * 1.8)
+        return CGSize(
+            width: translation.width * 0.72,
+            height: -(threshold + resistedOvershoot)
+        )
     }
 
     static func heldTilt(

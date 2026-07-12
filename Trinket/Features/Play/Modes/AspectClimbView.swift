@@ -130,7 +130,7 @@ struct AspectClimbView: View {
                 Spacer()
                 if cleared {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(TrinketDesign.Colors.success)
                         .accessibilityLabel("Cleared")
                 }
             }

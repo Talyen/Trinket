@@ -6,7 +6,8 @@ public enum CombatBuildResolver {
     public static func build(
         combatant: Combatant,
         equipmentLoadout: EquipmentLoadout,
-        inventory: [InventoryItem]
+        inventory: [InventoryItem],
+        additionalModifiers: [AffixModifier] = []
     ) -> CombatBuild {
         let itemsByID = Dictionary(uniqueKeysWithValues: inventory.map { ($0.id, $0) })
         let equippedItems = combatant.role.equipmentSlots.compactMap { slot -> InventoryItem? in
@@ -22,6 +23,7 @@ public enum CombatBuildResolver {
             trait.apply(to: &profile)
             profile.traitDisplayName = trait.name
         }
+        profile.merge(additionalModifiers)
 
         let effectiveStats = combatant.primaryStats.merged(with: profile.statBonuses)
         let builtCombatant = Combatant(

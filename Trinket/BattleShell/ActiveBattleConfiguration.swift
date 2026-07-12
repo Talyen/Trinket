@@ -115,6 +115,7 @@ struct ActiveBattleConfiguration: Identifiable {
         pet: Combatant,
         rosterState: PlayerRosterState,
         inventoryState: PlayerInventoryState,
+        homesteadState: PlayerHomesteadState = .freshStart,
         enemy: Combatant? = nil,
         enemyEncounterLevel: Int? = nil,
         stageReward: StageReward? = nil
@@ -126,6 +127,7 @@ struct ActiveBattleConfiguration: Identifiable {
         let rewardNames = templateNames.isEmpty
             ? pendingRewardItem.map { [$0.displayName] } ?? []
             : templateNames
+        let homesteadEffects = homesteadState.effects
         return ActiveBattleConfiguration(
             stageID: stageID,
             aspectBattle: aspectBattle,
@@ -134,12 +136,14 @@ struct ActiveBattleConfiguration: Identifiable {
             hero: partyMember(
                 combatant: hero,
                 rosterState: rosterState,
-                inventoryState: inventoryState
+                inventoryState: inventoryState,
+                additionalModifiers: homesteadEffects.heroModifiers
             ),
             pet: partyMember(
                 combatant: pet,
                 rosterState: rosterState,
-                inventoryState: inventoryState
+                inventoryState: inventoryState,
+                additionalModifiers: homesteadEffects.petModifiers
             ),
             enemy: enemyBuild.combatant,
             enemyEncounterLevel: enemyEncounterLevel,
@@ -169,7 +173,8 @@ struct ActiveBattleConfiguration: Identifiable {
     private static func partyMember(
         combatant: Combatant,
         rosterState: PlayerRosterState,
-        inventoryState: PlayerInventoryState
+        inventoryState: PlayerInventoryState,
+        additionalModifiers: [AffixModifier] = []
     ) -> PartyMember {
         let progression = rosterState.progression(for: combatant)
         let equipmentLoadout = rosterState.equipmentLoadout(for: combatant)
@@ -179,7 +184,8 @@ struct ActiveBattleConfiguration: Identifiable {
                 level: progression.level
             ),
             equipmentLoadout: equipmentLoadout,
-            inventory: inventoryState.items
+            inventory: inventoryState.items,
+            additionalModifiers: additionalModifiers
         )
         return PartyMember(
             combatant: build.combatant,

@@ -40,7 +40,7 @@ struct ItemCard: View {
     @ViewBuilder
     private var artTile: some View {
         let tile = TrinketDesign.cardShape
-            .fill(Color(.secondarySystemBackground))
+            .fill(TrinketDesign.Colors.surface)
             .aspectRatio(3.0 / 4.0, contentMode: .fit)
             .overlay {
                 Group {

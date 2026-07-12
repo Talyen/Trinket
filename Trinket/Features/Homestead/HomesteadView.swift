@@ -69,13 +69,13 @@ struct HomesteadOverviewHero: View {
                 HomesteadFocalArtwork(art: art)
                     .accessibilityLabel(art.accessibilityLabel)
             } else {
-                Color(.secondarySystemBackground)
+                TrinketDesign.Colors.surface
                     .accessibilityLabel("Homestead artwork")
             }
         } overlay: {
             ZStack(alignment: .bottomLeading) {
-                LinearGradient(
-                    colors: [.clear, Color(red: 0.055, green: 0.038, blue: 0.02).opacity(0.88)],
+                TrinketHeroScrim.gradient(
+                    for: .homesteadOverview,
                     startPoint: .init(x: 0.5, y: 0.42),
                     endPoint: .bottom
                 )
@@ -83,9 +83,7 @@ struct HomesteadOverviewHero: View {
 
                 Text("Homestead")
                     .trinketTypography(.screenDisplay)
-                    .foregroundStyle(.white)
-                    .shadow(color: .black.opacity(0.95), radius: 1, y: 1)
-                    .shadow(color: .black.opacity(0.48), radius: 5, y: 2)
+                    .trinketOnArtText(.title)
                     .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
                     .padding(.bottom, 14)
             }

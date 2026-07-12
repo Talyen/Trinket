@@ -22,10 +22,10 @@ struct HomesteadBuildingArtwork: View {
                 )
                 .accessibilityLabel(art.accessibilityLabel)
             } else {
-                RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous)
+                RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [definition.tint.opacity(0.18), Color(.secondarySystemBackground)],
+                            colors: [definition.tint.opacity(0.18), TrinketDesign.Colors.surface],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -36,7 +36,7 @@ struct HomesteadBuildingArtwork: View {
                     .accessibilityHidden(true)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.card, style: .continuous))
         .accessibilityLabel("\(definition.title) artwork")
     }
 }
@@ -45,7 +45,8 @@ struct HomesteadFocalArtwork: View {
     let art: BackgroundArtReference
     var imageName: String?
 
-    private let sourceAspectRatio: CGFloat = 1200.0 / 896.0
+    /// Source Homestead JPEGs are 1200×896 (~4:3); registry frames match that ratio.
+    private let sourceAspectRatio: CGFloat = 4.0 / 3.0
 
     init(art: BackgroundArtReference, imageName: String? = nil) {
         self.art = art

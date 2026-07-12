@@ -33,12 +33,14 @@ public enum AspectCompletion {
         }
 
         let encounterLevel = enemyLevel(for: floor)
-        save.roster.grantGold(floor.rewards.gold + battleEarnedGold)
+        save.roster.grantGold(
+            save.homestead.effects.adjustedGold(floor.rewards.gold + battleEarnedGold)
+        )
         grantBattleExperience(enemyLevel: encounterLevel, to: hero, roster: &save.roster)
         grantBattleExperience(enemyLevel: encounterLevel, to: pet, roster: &save.roster)
 
         let resolvedMaterials = materialRewards
-            ?? save.homestead.adjustedMaterialRewards(floor.rewards.materialRewards)
+            ?? floor.rewards.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
         save.homestead.grant(resolvedMaterials)
 
         if let rewardItem {

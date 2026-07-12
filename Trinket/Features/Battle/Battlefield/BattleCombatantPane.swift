@@ -15,8 +15,11 @@ struct BattleCombatantPane: View {
     let keywordBursts: [KeywordBurstRequest]
     let skillCallout: SkillCalloutPresentation?
     let reduceMotion: Bool
+    let hapticsEnabled: Bool
     let cinematicNamespace: Namespace.ID
     let onCombatantTap: () -> Void
+
+    @State private var latestReactionID = 0
 
     private var hasMana: Bool {
         maxMana > 0
@@ -73,7 +76,32 @@ struct BattleCombatantPane: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .trinketSensoryFeedback(
+            reactionFeedback,
+            trigger: hitReaction?.id ?? latestReactionID,
+            enabled: hapticsEnabled
+        )
+        .onChange(of: hitReaction?.id) { _, reactionID in
+            if let reactionID {
+                latestReactionID = reactionID
+            }
+        }
         .accessibilityIdentifier("\(combatant.name) card")
+    }
+
+    private var reactionFeedback: SensoryFeedback {
+        switch hitReaction?.kind {
+        case .some(.critical):
+            .impact(weight: .heavy)
+        case .some(.heal):
+            .success
+        case .some(.dodge):
+            .selection
+        case .some(.damage), .some(.block):
+            .impact(weight: .light)
+        case .some(.none), nil:
+            .impact(weight: .light)
+        }
     }
 
     @ViewBuilder
@@ -81,13 +109,13 @@ struct BattleCombatantPane: View {
         let reactionID = hitReaction?.id ?? 0
         let kind = hitReaction?.kind ?? .none
         let recipe = TrinketMotion.Battle.cardReaction(for: kind)
-        let flashColor = hitReaction?.keyword.visualStyle.color ?? .white
+        let flashColor = hitReaction?.keyword.visualStyle.color ?? TrinketDesign.Colors.Overlay.paper
 
         if reduceMotion {
             artworkLayer
                 .overlay {
-                    if kind == .damage || kind == .critical || kind == .heal {
-                        flashColor.opacity(kind == .heal ? 0.18 : 0.22)
+                    if kind == .damage || kind == .critical || kind == .block || kind == .heal {
+                        flashColor.opacity(kind == .heal ? 0.18 : kind == .block ? 0.14 : 0.22)
                             .allowsHitTesting(false)
                     }
                 }

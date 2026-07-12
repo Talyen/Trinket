@@ -61,7 +61,14 @@ public struct PlayerRosterState: Equatable, Sendable {
         unlockedPetIDs.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
-    public var gold: Int = 0
+    public static let maxGoldBalance = 999
+
+    public var gold: Int = 0 {
+        didSet {
+            gold = Self.clampedGoldBalance(gold)
+        }
+    }
+
     public var primaryStatOverrides: [String: PrimaryStats] = [:]
 
     public init(
@@ -82,7 +89,7 @@ public struct PlayerRosterState: Equatable, Sendable {
         self.abilityLoadouts = abilityLoadouts
         self.progressions = progressions
         self.equipmentLoadouts = equipmentLoadouts
-        self.gold = gold
+        self.gold = Self.clampedGoldBalance(gold)
         self.primaryStatOverrides = primaryStatOverrides
     }
 
@@ -283,7 +290,12 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     public mutating func grantGold(_ amount: Int) {
         guard amount > 0 else { return }
-        gold += amount
+        let current = Self.clampedGoldBalance(gold)
+        gold = current + min(amount, Self.maxGoldBalance - current)
+    }
+
+    public static func clampedGoldBalance(_ amount: Int) -> Int {
+        min(max(amount, 0), maxGoldBalance)
     }
 
     /// Deducts gold when the roster can afford `amount`. Returns `false` without mutating

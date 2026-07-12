@@ -82,7 +82,7 @@ public enum LabyrinthCompletion {
         let reward = rewards(for: node, effects: effects)
         let encounterLevel = enemyLevel(for: node, effects: effects)
 
-        save.roster.grantGold(reward.gold + battleEarnedGold)
+        save.roster.grantGold(save.homestead.effects.adjustedGold(reward.gold + battleEarnedGold))
         // Battle XP is combat-only; rest/shop/mystery/craft grant gold/materials without XP.
         if node.type.isCombat {
             grantBattleExperience(enemyLevel: encounterLevel, effects: effects, to: hero, roster: &save.roster)
@@ -90,7 +90,7 @@ public enum LabyrinthCompletion {
         }
 
         let resolvedMaterials = materialRewards
-            ?? save.homestead.adjustedMaterialRewards(reward.materialRewards)
+            ?? reward.materialRewards.filter { $0.resource != .gold && $0.quantity > 0 }
         save.homestead.grant(resolvedMaterials)
 
         var itemRNG = SeededRandomNumberGenerator(
@@ -163,8 +163,12 @@ public enum LabyrinthCompletion {
             seed: save.labyrinth.worldSeed &+ GameContent.stableSeed(for: "labyrinth-item-\(nodeID)")
         )
         let baseType = bases.randomElement(using: &rng) ?? bases[0]
-        let astralRoll = Int.random(in: 0 ... 99, using: &rng)
-        let rarity: Rarity = astralRoll < (15 + effects.astralChanceBonusPercent) ? .astral : .basic
+        let rarity = ItemRarityRoll.roll(
+            baseAstralChancePercent: 15,
+            astralChanceBonusPercent: effects.astralChanceBonusPercent
+                + save.homestead.effects.astralChanceBonusPercent,
+            using: &rng
+        )
         let item = ItemGenerator().generate(
             id: "labyrinth-\(nodeID)-\(save.inventory.items.count)",
             templateID: "\(baseType.id)-\(rarity.rawValue)",

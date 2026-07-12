@@ -64,6 +64,7 @@
 				Cards/CombatantCard.swift,
 				Cards/EmptySlots.swift,
 				Cards/ItemCard.swift,
+				Detail/AbilityHeroHeader.swift,
 				Detail/AbilitySummaryGrid.swift,
 				Detail/AbilityTierPickerSheet.swift,
 				Detail/CombatantDetailPane.swift,

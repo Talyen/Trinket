@@ -92,7 +92,7 @@ struct VictoryView: View {
             ForEach(summary.itemNames, id: \.self) { itemName in
                 BattleOutcomeRewardRow(
                     symbolName: "bag.fill",
-                    tint: Color.accentColor,
+                    tint: TrinketDesign.Colors.accent,
                     text: itemName
                 )
             }

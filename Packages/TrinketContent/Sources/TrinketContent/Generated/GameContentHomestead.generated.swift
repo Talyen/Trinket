@@ -17,24 +17,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 10), ResourceAmount(.stone, 4)],
                     bonus: HomesteadBonus(
-                        title: "First Rows",
-                        description: "Stages can award Food for Homestead projects."
+                        title: "Pet Health",
+                        description: "Increases Pet Health by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 8), ResourceAmount(.gold, 14)],
                     bonus: HomesteadBonus(
-                        title: "Steady Harvest",
-                        description: "Food rewards from stages gain +1 when present."
+                        title: "Pet Health",
+                        description: "Increases Pet Health by 4"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 16), ResourceAmount(.food, 18), ResourceAmount(.gold, 28)],
                     bonus: HomesteadBonus(
-                        title: "Granary Rhythm",
-                        description: "Material rewards from stages gain +1 when present."
+                        title: "Pet Health",
+                        description: "Increases Pet Health by 6"
                     )
                 )
             ]
@@ -52,24 +52,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 12), ResourceAmount(.food, 6), ResourceAmount(.gold, 10)],
                     bonus: HomesteadBonus(
-                        title: "Seeded Beds",
-                        description: "Stages can award Herbs for support projects."
+                        title: "Health Restored",
+                        description: "Increases Health restored by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 22), ResourceAmount(.food, 12), ResourceAmount(.herbs, 8), ResourceAmount(.gold, 22)],
                     bonus: HomesteadBonus(
-                        title: "Tended Rows",
-                        description: "Herb rewards from stages gain +1 when present."
+                        title: "Health Restored",
+                        description: "Increases Health restored by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.herbs, 20), ResourceAmount(.gold, 38)],
                     bonus: HomesteadBonus(
-                        title: "Medicinal Stores",
-                        description: "Rest and event rewards can lean further into Herbs."
+                        title: "Health Restored",
+                        description: "Increases Health restored by 3"
                     )
                 )
             ]
@@ -87,24 +87,24 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 14), ResourceAmount(.food, 8), ResourceAmount(.gold, 12)],
                     bonus: HomesteadBonus(
-                        title: "Morning Feed",
-                        description: "Food can appear more often in early Homestead rewards."
+                        title: "Hero Strength",
+                        description: "Increases Hero Strength by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 24), ResourceAmount(.food, 16), ResourceAmount(.gold, 24)],
                     bonus: HomesteadBonus(
-                        title: "Full Nesting Boxes",
-                        description: "Food rewards from stages gain +1 when present."
+                        title: "Hero Strength",
+                        description: "Increases Hero Strength by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 14), ResourceAmount(.food, 28), ResourceAmount(.gold, 40)],
                     bonus: HomesteadBonus(
-                        title: "Kitchen Supply",
-                        description: "Future Homestead tuning can support repeatable meal rewards."
+                        title: "Hero Strength",
+                        description: "Increases Hero Strength by 3"
                     )
                 )
             ]
@@ -122,24 +122,59 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.wood, 18), ResourceAmount(.stone, 12), ResourceAmount(.food, 14), ResourceAmount(.gold, 18)],
                     bonus: HomesteadBonus(
-                        title: "Grazing Fence",
-                        description: "Food spending supports larger late Homestead projects."
+                        title: "Pet Toughness",
+                        description: "Increases Pet Toughness by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 18), ResourceAmount(.food, 24), ResourceAmount(.gold, 34)],
                     bonus: HomesteadBonus(
-                        title: "Healthy Stock",
-                        description: "Food rewards from stages gain +1 when present."
+                        title: "Pet Toughness",
+                        description: "Increases Pet Toughness by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.wood, 40), ResourceAmount(.stone, 28), ResourceAmount(.food, 40), ResourceAmount(.iron, 6), ResourceAmount(.gold, 52)],
                     bonus: HomesteadBonus(
-                        title: "Trade Herd",
-                        description: "Future reward tuning can turn excess Food into broader supplies."
+                        title: "Pet Toughness",
+                        description: "Increases Pet Toughness by 3"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .culinaryArts,
+            title: "Culinary Arts",
+            summary: "A warm kitchen that turns the harvest into lasting strength.",
+            symbolName: "frying.pan.fill",
+            tintStyle: .orange,
+            category: .crafting,
+            prerequisites: [HomesteadNodeRequirement(.herbGarden), HomesteadNodeRequirement(.chickenCoop)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 16), ResourceAmount(.food, 12), ResourceAmount(.gold, 20)],
+                    bonus: HomesteadBonus(
+                        title: "Hero Health",
+                        description: "Increases Hero Health by 2"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 26), ResourceAmount(.food, 22), ResourceAmount(.herbs, 6), ResourceAmount(.gold, 36)],
+                    bonus: HomesteadBonus(
+                        title: "Hero Health",
+                        description: "Increases Hero Health by 4"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 16), ResourceAmount(.food, 34), ResourceAmount(.gold, 54)],
+                    bonus: HomesteadBonus(
+                        title: "Hero Health",
+                        description: "Increases Hero Health by 6"
                     )
                 )
             ]
@@ -151,30 +186,65 @@ enum GameContentHomesteadGenerated {
             symbolName: "hammer.fill",
             tintStyle: .orange,
             category: .crafting,
-            prerequisites: [HomesteadNodeRequirement(.chickenCoop), HomesteadNodeRequirement(.herbGarden)],
+            prerequisites: [HomesteadNodeRequirement(.pasture), HomesteadNodeRequirement(.culinaryArts)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
                     cost: [ResourceAmount(.wood, 20), ResourceAmount(.stone, 20), ResourceAmount(.iron, 6), ResourceAmount(.gold, 24)],
                     bonus: HomesteadBonus(
-                        title: "Working Bellows",
-                        description: "Stages can award Iron for advanced construction."
+                        title: "Physical Damage",
+                        description: "Increases Hero Physical damage dealt by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.wood, 28), ResourceAmount(.stone, 30), ResourceAmount(.iron, 16), ResourceAmount(.gold, 42)],
                     bonus: HomesteadBonus(
-                        title: "Sharper Tools",
-                        description: "Iron rewards from stages gain +1 when present."
+                        title: "Physical Damage",
+                        description: "Increases Hero Physical damage dealt by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.stone, 46), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 4), ResourceAmount(.gold, 64)],
                     bonus: HomesteadBonus(
-                        title: "Tempered Work",
-                        description: "Future combat tuning can grant small Physical support."
+                        title: "Physical Damage",
+                        description: "Increases Hero Physical damage dealt by 3"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .woolTailoring,
+            title: "Wool Tailoring",
+            summary: "A loom shop that weaves padded wraps against winter chill.",
+            symbolName: "scissors",
+            tintStyle: .yellow,
+            category: .crafting,
+            prerequisites: [HomesteadNodeRequirement(.blacksmithForge)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 22), ResourceAmount(.stone, 14), ResourceAmount(.food, 10), ResourceAmount(.gold, 30)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze Ward",
+                        description: "Reduces Freeze damage received by 1"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 30), ResourceAmount(.stone, 22), ResourceAmount(.food, 18), ResourceAmount(.iron, 8), ResourceAmount(.gold, 48)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze Ward",
+                        description: "Reduces Freeze damage received by 2"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 18), ResourceAmount(.food, 24), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 70)],
+                    bonus: HomesteadBonus(
+                        title: "Freeze Ward",
+                        description: "Reduces Freeze damage received by 3"
                     )
                 )
             ]
@@ -185,31 +255,66 @@ enum GameContentHomesteadGenerated {
             summary: "A precise workspace for reagents, tonics, and restorative experiments.",
             symbolName: "testtube.2",
             tintStyle: .mint,
-            category: .research,
-            prerequisites: [HomesteadNodeRequirement(.herbGarden, tier: 2), HomesteadNodeRequirement(.blacksmithForge)],
+            category: .alchemy,
+            prerequisites: [HomesteadNodeRequirement(.herbGarden, tier: 2)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
                     cost: [ResourceAmount(.stone, 18), ResourceAmount(.food, 10), ResourceAmount(.herbs, 14), ResourceAmount(.gold, 28)],
                     bonus: HomesteadBonus(
-                        title: "Herbal Workbench",
-                        description: "Unlocks Herb spending for support upgrades."
+                        title: "Poison Damage",
+                        description: "Increases Hero Poison damage dealt by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 3), ResourceAmount(.gold, 46)],
                     bonus: HomesteadBonus(
-                        title: "Restorative Notes",
-                        description: "Future utility tuning can improve rest and healing rewards."
+                        title: "Poison Damage",
+                        description: "Increases Hero Poison damage dealt by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.iron, 10), ResourceAmount(.herbs, 42), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 68)],
                     bonus: HomesteadBonus(
-                        title: "Refined Reagents",
-                        description: "Future combat tuning can support Health, Poison, or Nature effects."
+                        title: "Poison Damage",
+                        description: "Increases Hero Poison damage dealt by 3"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .botanicalDistillation,
+            title: "Botanical Distillation",
+            summary: "A still house that concentrates garden greens into potent reagents.",
+            symbolName: "drop.triangle.fill",
+            tintStyle: .green,
+            category: .alchemy,
+            prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.stone, 22), ResourceAmount(.herbs, 18), ResourceAmount(.food, 8), ResourceAmount(.gold, 34)],
+                    bonus: HomesteadBonus(
+                        title: "Nature Damage",
+                        description: "Increases Hero Nature damage dealt by 1"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.stone, 32), ResourceAmount(.herbs, 28), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 52)],
+                    bonus: HomesteadBonus(
+                        title: "Nature Damage",
+                        description: "Increases Hero Nature damage dealt by 2"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.iron, 12), ResourceAmount(.herbs, 40), ResourceAmount(.crystal, 12), ResourceAmount(.gold, 76)],
+                    bonus: HomesteadBonus(
+                        title: "Nature Damage",
+                        description: "Increases Hero Nature damage dealt by 3"
                     )
                 )
             ]
@@ -220,31 +325,31 @@ enum GameContentHomesteadGenerated {
             summary: "A luminous garden where rare formations grow around quiet magic.",
             symbolName: "sparkles",
             tintStyle: .cyan,
-            category: .research,
+            category: .alchemy,
             prerequisites: [HomesteadNodeRequirement(.alchemyLab)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
                     cost: [ResourceAmount(.stone, 28), ResourceAmount(.herbs, 18), ResourceAmount(.crystal, 6), ResourceAmount(.gold, 42)],
                     bonus: HomesteadBonus(
-                        title: "Crystal Shoots",
-                        description: "Stages can award Crystal for magical Homestead upgrades."
+                        title: "Hero Intellect",
+                        description: "Increases Hero Intellect by 1"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.stone, 38), ResourceAmount(.herbs, 26), ResourceAmount(.crystal, 14), ResourceAmount(.gold, 64)],
                     bonus: HomesteadBonus(
-                        title: "Resonant Growth",
-                        description: "Crystal rewards from stages gain +1 when present."
+                        title: "Hero Intellect",
+                        description: "Increases Hero Intellect by 2"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.iron, 18), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 88)],
                     bonus: HomesteadBonus(
-                        title: "Blue Bloom",
-                        description: "Future magical tuning can support non-Physical keyword bonuses."
+                        title: "Hero Intellect",
+                        description: "Increases Hero Intellect by 3"
                     )
                 )
             ]
@@ -262,24 +367,129 @@ enum GameContentHomesteadGenerated {
                     tier: 1,
                     cost: [ResourceAmount(.stone, 32), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 52)],
                     bonus: HomesteadBonus(
-                        title: "Etched Tools",
-                        description: "Crystal spending begins to reinforce crafted upgrades."
+                        title: "Mana Costs",
+                        description: "Reduces Mana Costs by 5%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.stone, 42), ResourceAmount(.iron, 28), ResourceAmount(.crystal, 20), ResourceAmount(.gold, 76)],
                     bonus: HomesteadBonus(
-                        title: "Resonant Runes",
-                        description: "Crystal rewards from stages gain another +1 when present."
+                        title: "Mana Costs",
+                        description: "Reduces Mana Costs by 10%"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.iron, 44), ResourceAmount(.herbs, 24), ResourceAmount(.crystal, 34), ResourceAmount(.gold, 110)],
                     bonus: HomesteadBonus(
-                        title: "Attuned Craft",
-                        description: "Future item tuning can support magical equipment paths."
+                        title: "Mana Costs",
+                        description: "Reduces Mana Costs by 15%"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .hunterLodge,
+            title: "Hunter's Lodge",
+            summary: "A trail lodge for companion drills and field craft.",
+            symbolName: "scope",
+            tintStyle: .orange,
+            category: .training,
+            prerequisites: [HomesteadNodeRequirement(.blacksmithForge), HomesteadNodeRequirement(.pasture)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 24), ResourceAmount(.stone, 18), ResourceAmount(.food, 16), ResourceAmount(.iron, 8), ResourceAmount(.gold, 36)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Damage",
+                        description: "Increases Pet damage dealt by 1"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 34), ResourceAmount(.stone, 26), ResourceAmount(.food, 24), ResourceAmount(.iron, 14), ResourceAmount(.gold, 54)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Damage",
+                        description: "Increases Pet damage dealt by 2"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.stone, 40), ResourceAmount(.food, 32), ResourceAmount(.iron, 22), ResourceAmount(.crystal, 8), ResourceAmount(.gold, 78)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Damage",
+                        description: "Increases Pet damage dealt by 3"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .agilityTraining,
+            title: "Agility Training",
+            summary: "A practice yard that sharpens companion footwork and reflexes.",
+            symbolName: "figure.run",
+            tintStyle: .yellow,
+            category: .training,
+            prerequisites: [HomesteadNodeRequirement(.hunterLodge)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.wood, 26), ResourceAmount(.stone, 16), ResourceAmount(.food, 14), ResourceAmount(.gold, 40)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Agility",
+                        description: "Increases Pet Agility by 1"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.wood, 36), ResourceAmount(.stone, 24), ResourceAmount(.food, 22), ResourceAmount(.iron, 10), ResourceAmount(.gold, 58)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Agility",
+                        description: "Increases Pet Agility by 2"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.stone, 36), ResourceAmount(.food, 30), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 10), ResourceAmount(.gold, 84)],
+                    bonus: HomesteadBonus(
+                        title: "Pet Agility",
+                        description: "Increases Pet Agility by 3"
+                    )
+                )
+            ]
+        ),
+        HomesteadNodeDefinition(
+            id: .detectMagic,
+            title: "Detect Magic",
+            summary: "A quiet sanctum for sensing rare finds and unnatural threats.",
+            symbolName: "sparkle.magnifyingglass",
+            tintStyle: .cyan,
+            category: .arcana,
+            prerequisites: [HomesteadNodeRequirement(.botanicalDistillation), HomesteadNodeRequirement(.crystalGarden)],
+            tiers: [
+                HomesteadNodeTier(
+                    tier: 1,
+                    cost: [ResourceAmount(.stone, 34), ResourceAmount(.herbs, 20), ResourceAmount(.crystal, 12), ResourceAmount(.gold, 56)],
+                    bonus: HomesteadBonus(
+                        title: "Astral Find",
+                        description: "Find 5% more Astral items"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 2,
+                    cost: [ResourceAmount(.stone, 46), ResourceAmount(.herbs, 30), ResourceAmount(.crystal, 20), ResourceAmount(.gold, 82)],
+                    bonus: HomesteadBonus(
+                        title: "Astral Find",
+                        description: "Find 10% more Astral items"
+                    )
+                ),
+                HomesteadNodeTier(
+                    tier: 3,
+                    cost: [ResourceAmount(.iron, 24), ResourceAmount(.herbs, 38), ResourceAmount(.crystal, 32), ResourceAmount(.gold, 112)],
+                    bonus: HomesteadBonus(
+                        title: "Astral Find",
+                        description: "Find 15% more Astral items"
                     )
                 )
             ]
@@ -290,31 +500,31 @@ enum GameContentHomesteadGenerated {
             summary: "A quiet landmark for late goals, rare finds, and lucky returns.",
             symbolName: "drop.circle.fill",
             tintStyle: .blue,
-            category: .research,
-            prerequisites: [HomesteadNodeRequirement(.crystalGarden, tier: 2), HomesteadNodeRequirement(.runesmithWorkshop, tier: 2)],
+            category: .arcana,
+            prerequisites: [HomesteadNodeRequirement(.runesmithWorkshop), HomesteadNodeRequirement(.detectMagic), HomesteadNodeRequirement(.agilityTraining)],
             tiers: [
                 HomesteadNodeTier(
                     tier: 1,
                     cost: [ResourceAmount(.stone, 40), ResourceAmount(.iron, 18), ResourceAmount(.crystal, 18), ResourceAmount(.gold, 70)],
                     bonus: HomesteadBonus(
-                        title: "Clear Water",
-                        description: "Late Homestead rewards can lean into rarer materials."
+                        title: "Gold Find",
+                        description: "Find 5% more Gold"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 2,
                     cost: [ResourceAmount(.stone, 56), ResourceAmount(.iron, 30), ResourceAmount(.crystal, 28), ResourceAmount(.gold, 110)],
                     bonus: HomesteadBonus(
-                        title: "Answered Wish",
-                        description: "Material rewards from stages gain +1 when present."
+                        title: "Gold Find",
+                        description: "Find 10% more Gold"
                     )
                 ),
                 HomesteadNodeTier(
                     tier: 3,
                     cost: [ResourceAmount(.iron, 46), ResourceAmount(.herbs, 36), ResourceAmount(.crystal, 44), ResourceAmount(.gold, 160)],
                     bonus: HomesteadBonus(
-                        title: "Lucky Return",
-                        description: "Future reward tuning can occasionally improve rare drops."
+                        title: "Gold Find",
+                        description: "Find 15% more Gold"
                     )
                 )
             ]

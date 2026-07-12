@@ -88,7 +88,7 @@ struct StageRewardTests {
         try #expect(save.journey.activeStageID == "chapter-1-stage-2")
     }
 
-    @Test func homesteadBonusesAdjustMaterialRewards() throws {
+    @Test func materialRewardsAreUnchangedByHomesteadTiers() throws {
         var save = makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
@@ -105,41 +105,32 @@ struct StageRewardTests {
             save: &save
         )
 
-        try #expect(save.homestead.resources[.wood] == 9)
-        try #expect(save.homestead.resources[.stone] == 4)
+        try #expect(save.homestead.resources[.wood] == 8)
+        try #expect(save.homestead.resources[.stone] == 3)
     }
 
-    @Test func homesteadFoodBonusesStackFromMultipleBuildings() throws {
+    @Test func wishingWellIncreasesGrantedGold() throws {
         var save = makeSave(
             homestead: PlayerHomesteadState(
                 resources: [:],
-                nodeTiers: [.wheatField: 2, .chickenCoop: 2]
+                nodeTiers: [.wishingWell: 2]
             )
         )
         let hero = try #require(GameContent.heroes.first { $0.id == "knight" })
         let pet = try #require(GameContent.pets.first { $0.id == "wolf" })
-        let foodStage = Stage(
-            id: "food-test-stage",
-            chapterID: "chapter-1",
-            chapterNumber: 1,
-            stageNumber: 99,
-            flavorText: "Test",
-            encounter: .event,
-            rewards: StageReward(
-                gold: 0,
-                itemTemplateIDs: [],
-                materialRewards: [ResourceAmount(.food, 4)]
-            )
-        )
+        let startingGold = save.roster.gold
 
         StageCompletion.claimRewardsIfNeeded(
-            for: foodStage,
+            for: firstStage,
             hero: hero,
             pet: pet,
+            battleEarnedGold: 0,
             save: &save
         )
 
-        try #expect(save.homestead.resources[.food] == 6)
+        let expected = startingGold + HomesteadEffects.from(nodeTiers: [.wishingWell: 2])
+            .adjustedGold(firstStage.rewards.gold)
+        try #expect(save.roster.gold == expected)
     }
 
     @Test func completingStageTwiceDoesNotDoubleRewards() throws {

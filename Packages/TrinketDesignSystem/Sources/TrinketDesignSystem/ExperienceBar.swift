@@ -47,7 +47,7 @@ public struct ExperienceBar: View {
                 if let burstLevel = levelUpBurst {
                     Text("Level \(burstLevel)!")
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(TrinketDesign.Colors.progression, in: Capsule())

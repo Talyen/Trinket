@@ -208,30 +208,30 @@ struct LabyrinthMapNodeCard: View {
                 Spacer()
                 if node.isCleared {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(TrinketDesign.Colors.success)
                         .accessibilityLabel("Cleared")
                 } else if node.failCount > 0, reachable {
                     Text("Retry")
                         .trinketTypography(.badge)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(TrinketDesign.Colors.warning)
                 }
             }
 
             if type == .warden, reachable, !node.isCleared {
                 Text("Warden")
                     .trinketTypography(.badge)
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(TrinketDesign.Colors.arcane)
             }
 
             if deadly, reachable, !node.isCleared, type.isCombat {
                 Text("Deadly")
                     .trinketTypography(.badge)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(TrinketDesign.Colors.warning)
             }
 
             if reachable, !node.isCleared {
                 if type.isCombat {
-                    BattlePartyInlinePicker(accentColor: tint ?? .accentColor)
+                    BattlePartyInlinePicker(accentColor: tint ?? TrinketDesign.Colors.accent)
                 }
 
                 Button {
@@ -249,7 +249,7 @@ struct LabyrinthMapNodeCard: View {
                         .frame(maxWidth: .infinity)
                 }
                 .trinketPrimaryActionButton()
-                .tint(tint ?? .accentColor)
+                .tint(tint ?? TrinketDesign.Colors.accent)
                 .disabled(appState.battle.activeBattle != nil)
             }
         }

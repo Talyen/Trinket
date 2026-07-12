@@ -58,7 +58,7 @@ struct HomesteadPresentationTests {
         let secondTier = try #require(definition.tier(2))
 
         #expect(affordable.rowState == .upgradeReady)
-        #expect(affordable.statusSymbolName == "hammer.fill")
+        #expect(affordable.statusSymbolName == "arrowshape.up.fill")
         #expect(affordable.tierPathState(for: secondTier) == .next(affordable: true))
         #expect(unavailable.rowState == .built)
         #expect(unavailable.tierPathState(for: secondTier) == .next(affordable: false))

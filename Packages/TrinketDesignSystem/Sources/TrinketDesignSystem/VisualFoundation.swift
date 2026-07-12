@@ -54,11 +54,11 @@ public enum MaterialRole: Sendable {
 public enum TypographyRole: Sendable {
     /// Serif large title for cinematic heroes on art (Campaign, Homestead, detail heroes).
     case screenDisplay
-    /// Serif title3 for featured section names on themed surfaces.
+    /// Serif title2 for featured section names on themed surfaces.
     case sectionDisplay
     /// SF large title for system-style screen titles (Apple-native UI chrome).
     case screenTitle
-    /// SF title3 for list/shelf section headers (Apple-native UI chrome).
+    /// SF title2 for list/shelf section headers (Apple-native UI chrome).
     case sectionTitle
     /// SF headline for card and row primary labels.
     case cardTitle
@@ -81,9 +81,9 @@ public enum TypographyRole: Sendable {
     var font: Font {
         switch self {
         case .screenDisplay: .system(.largeTitle, design: .serif).weight(.semibold)
-        case .sectionDisplay: .system(.title3, design: .serif).weight(.semibold)
+        case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
-        case .sectionTitle: .title3.weight(.semibold)
+        case .sectionTitle: .title2.weight(.semibold)
         case .cardTitle: .headline.weight(.semibold)
         case .eyebrow: .caption.weight(.bold)
         case .body: .body
@@ -102,18 +102,16 @@ public enum TypographyRole: Sendable {
 }
 
 public enum HomesteadPalette {
-    /// Gold accent via asset catalog (dark appearance).
-    public static let accent = DesignAssetColors.named("HomesteadGold")
-    public static let success = Color(red: 0.58, green: 0.74, blue: 0.28)
-    /// Wallet chrome via asset catalog (dark appearance).
-    public static let walletPanel = DesignAssetColors.named("HomesteadWalletPanel")
+    public static let accent = TrinketDesign.Colors.accent
+    public static let success = TrinketDesign.Colors.success
+    public static let walletPanel = TrinketDesign.Colors.panel
 
-    public static let background = Color(red: 0.035, green: 0.033, blue: 0.028)
-    public static let panel = Color(red: 0.085, green: 0.08, blue: 0.068)
-    public static let elevatedPanel = Color(red: 0.12, green: 0.105, blue: 0.082)
-    public static let stroke = accent.opacity(0.55)
-    public static let mutedText = Color(red: 0.76, green: 0.72, blue: 0.64)
-    public static let pressedFill = accent.opacity(0.14)
+    public static let background = TrinketDesign.Colors.canvas
+    public static let panel = TrinketDesign.Colors.panel
+    public static let elevatedPanel = TrinketDesign.Colors.elevated
+    public static let stroke = TrinketDesign.Colors.subtleStroke
+    public static let mutedText = Color.secondary
+    public static let pressedFill = TrinketDesign.Colors.accent.opacity(0.14)
 }
 
 public struct TrinketScreenBackground: View {
@@ -126,14 +124,8 @@ public struct TrinketScreenBackground: View {
     }
 
     public var body: some View {
-        Group {
-            if mode == .homestead {
-                HomesteadPalette.background
-            } else {
-                Color(.systemBackground)
-            }
-        }
-        .ignoresSafeArea()
+        ThemePalette.trinket.appBackground
+            .ignoresSafeArea()
     }
 }
 
@@ -155,7 +147,7 @@ public struct SurfaceModifier: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public func body(content: Content) -> some View {
-        let style = SurfaceStyle(role: role, palette: ThemePalette.apple)
+        let style = SurfaceStyle(role: role, palette: ThemePalette.trinket)
 
         content
             .padding(style.padding)
@@ -186,14 +178,14 @@ private struct SurfaceStyle {
             stroke = palette.subtleStroke
             strokeWidth = 1
             padding = 16
-            cornerRadius = TrinketDesign.Corners.compact
+            cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .secondary:
             fill = palette.secondaryBackground
             stroke = palette.subtleStroke.opacity(0.7)
             strokeWidth = 1
             padding = 14
-            cornerRadius = TrinketDesign.Corners.compact
+            cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .elevated:
             fill = palette.elevatedBackground
@@ -211,10 +203,10 @@ private struct SurfaceStyle {
             shadow = palette.shadow
         case .denseRow:
             fill = palette.secondaryBackground
-            stroke = palette.subtleStroke.opacity(0.55)
-            strokeWidth = 1
+            stroke = .clear
+            strokeWidth = 0
             padding = 12
-            cornerRadius = TrinketDesign.Corners.compact
+            cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .selected:
             fill = palette.elevatedBackground
@@ -231,8 +223,8 @@ private struct SurfaceStyle {
             cornerRadius = TrinketDesign.Corners.card
             shadow = .none
         case .warning:
-            fill = Color.red.opacity(0.12)
-            stroke = Color.red.opacity(0.52)
+            fill = palette.warning.opacity(0.12)
+            stroke = palette.warning.opacity(0.65)
             strokeWidth = 1
             padding = 14
             cornerRadius = TrinketDesign.Corners.card
@@ -256,11 +248,11 @@ private struct SurfaceStyle {
             stroke = palette.subtleStroke
             strokeWidth = 1
             padding = 10
-            cornerRadius = TrinketDesign.Corners.small
+            cornerRadius = TrinketDesign.Corners.card
             shadow = palette.shadow
         case .homesteadPanel:
-            fill = HomesteadPalette.panel
-            stroke = HomesteadPalette.stroke
+            fill = palette.panelSurface
+            stroke = palette.subtleStroke
             strokeWidth = 1
             padding = 12
             cornerRadius = TrinketDesign.Corners.card
@@ -293,20 +285,20 @@ public struct MaterialRoleModifier: ViewModifier {
             content
                 .background(fill, in: shape)
                 .overlay {
-                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                    shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
                 }
         case .ultraThinMaterial:
             if reduceTransparency {
                 content
-                    .background(ThemePalette.apple.panelSurface, in: shape)
+                    .background(ThemePalette.trinket.panelSurface, in: shape)
                     .overlay {
-                        shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                        shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
                     }
             } else {
                 content
                     .background(.ultraThinMaterial, in: shape)
                     .overlay {
-                        shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                        shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
                     }
             }
         }
@@ -320,7 +312,7 @@ enum MaterialRoleStyle {
     case ultraThinMaterial
 
     init(role: MaterialRole) {
-        let palette = ThemePalette.apple
+        let palette = ThemePalette.trinket
         switch role {
         case .toolbar:
             self = .none
@@ -337,7 +329,7 @@ enum MaterialRoleStyle {
         case .homesteadFooter:
             self = .glass(
                 glass: .regular,
-                solidFill: HomesteadPalette.walletPanel
+                solidFill: palette.panelSurface
             )
         }
     }
@@ -355,7 +347,7 @@ struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
             content
                 .background(solidFill, in: shape)
                 .overlay {
-                    shape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1)
+                    shape.stroke(ThemePalette.trinket.subtleStroke, lineWidth: 1)
                 }
         } else {
             content
@@ -392,7 +384,7 @@ public struct GlassChipModifier: ViewModifier {
             .modifier(TrinketGlassBackgroundModifier(
                 glass: .regular,
                 shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.apple.elevatedBackground
+                solidFill: ThemePalette.trinket.elevatedBackground
             ))
     }
 }
@@ -423,11 +415,11 @@ public struct CombatFloatTextModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         content
-            .shadow(color: .black.opacity(0.95), radius: 0, x: 0, y: 1)
-            .shadow(color: .black.opacity(0.9), radius: 0, x: 0, y: -1)
-            .shadow(color: .black.opacity(0.9), radius: 0, x: 1, y: 0)
-            .shadow(color: .black.opacity(0.9), radius: 0, x: -1, y: 0)
-            .shadow(color: .black.opacity(0.55), radius: 3, x: 0, y: 1.5)
+            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.95), radius: 0, x: 0, y: 1)
+            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: 0, y: -1)
+            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: 1, y: 0)
+            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.9), radius: 0, x: -1, y: 0)
+            .shadow(color: TrinketDesign.Colors.Overlay.ink.opacity(0.55), radius: 3, x: 0, y: 1.5)
     }
 }
 
@@ -439,7 +431,7 @@ public struct StatusBadgeModifier: ViewModifier {
             .modifier(TrinketGlassBackgroundModifier(
                 glass: .regular,
                 shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.apple.panelSurface
+                solidFill: ThemePalette.trinket.panelSurface
             ))
     }
 }
@@ -452,7 +444,7 @@ public struct WalletPillModifier: ViewModifier {
             .modifier(TrinketGlassBackgroundModifier(
                 glass: .regular,
                 shape: Capsule(style: .continuous),
-                solidFill: ThemePalette.apple.secondaryBackground
+                solidFill: ThemePalette.trinket.secondaryBackground
             ))
     }
 }

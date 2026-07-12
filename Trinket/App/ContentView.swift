@@ -1,4 +1,5 @@
 import SwiftUI
+import TrinketDesignSystem
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
@@ -8,6 +9,7 @@ struct ContentView: View {
 
     var body: some View {
         tabRoot(selection: battleLockedSelection)
+            .tint(TrinketDesign.Colors.accent)
             .preferredColorScheme(.dark)
             .alert(
                 "Progress Storage Issue",

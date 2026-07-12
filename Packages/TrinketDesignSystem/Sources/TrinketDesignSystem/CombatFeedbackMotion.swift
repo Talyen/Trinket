@@ -99,6 +99,7 @@ public enum CombatantHitReactionKind: String, CaseIterable, Sendable, Equatable 
     case none
     case damage
     case critical
+    case block
     case heal
     case dodge
 }

@@ -119,6 +119,15 @@ final class PlayerSaveSanitizerTests {
         try #expect(sanitized.unlockedPetIDs == [PlayerRosterState.starterPetID])
     }
 
+    @Test func sanitizeRosterClampsGoldBalance() throws {
+        var roster = PlayerRosterState.initial
+        roster.gold = PlayerRosterState.maxGoldBalance + 1
+
+        let sanitized = PlayerSaveSanitizer.sanitizeRoster(roster, inventory: .freshStart)
+
+        try #expect(sanitized.gold == PlayerRosterState.maxGoldBalance)
+    }
+
     @Test func sanitizeRosterFallsBackToStartersWhenUnlocksEmpty() throws {
         let roster = PlayerRosterState(
             activeHeroID: "wizard",

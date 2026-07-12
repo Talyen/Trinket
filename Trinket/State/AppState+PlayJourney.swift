@@ -98,7 +98,7 @@ extension AppState {
         guard amount > 0 else { return true }
         do {
             try playerSave.performBatchMutation { save in
-                save.roster.gold += amount
+                save.roster.grantGold(amount)
             }
             return true
         } catch {
@@ -187,6 +187,7 @@ extension AppState {
             pet: pet,
             rosterState: roster,
             inventoryState: inventory,
+            homesteadState: homestead,
             enemy: enemy,
             enemyEncounterLevel: enemyEncounterLevel,
             stageReward: stageReward

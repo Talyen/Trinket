@@ -30,6 +30,7 @@ extension AppState {
         )
         let offers = ShopOfferGenerator.generateOffers(
             stageID: resolvedStage.id,
+            astralChanceBonusPercent: homestead.effects.astralChanceBonusPercent,
             using: &randomNumberGenerator
         )
         guard !offers.isEmpty else {

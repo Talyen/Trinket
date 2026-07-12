@@ -133,7 +133,9 @@ public enum BattleTurnEngine {
 
     public static func spendManaIfNeeded(for ability: Ability, actor: Combatant, context: inout BattleEngineContext) {
         guard ability.manaCost > 0, actor.hasMana else { return }
-        _ = context.spendMana(ability.manaCost, for: actor)
+        let cost = context.modifiers(for: actor.id).effectiveManaCost(for: ability)
+        guard cost > 0 else { return }
+        _ = context.spendMana(cost, for: actor)
     }
 }
 

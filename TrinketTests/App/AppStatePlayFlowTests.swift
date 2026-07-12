@@ -147,6 +147,7 @@ struct AppStatePlayFlowTests {
         #expect(state.roster.current.unlockedPetIDs == Set(GameContent.pets.map(\.id)))
         #expect(state.roster.current.highestHeroLevel == 20)
         #expect(state.roster.current.highestPetLevel == 20)
+        #expect(state.roster.current.gold == PlayerRosterState.maxGoldBalance)
         #expect(ModesUnlock.isUnlocked(journey: state.journey.current))
     }
     #endif

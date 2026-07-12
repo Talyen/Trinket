@@ -11,9 +11,26 @@ is_allowed_line() {
   local line="$3"
   local previous_line="${4:-}"
   local previous_context="${5:-}"
+  local pattern="${6:-}"
 
   if [[ "$line" == *"UIStyleCheck: allow"* || "$previous_context" == *"UIStyleCheck: allow"* ]]; then
     return 0
+  fi
+
+  # Raw RGB / system color literals / app-bundle Color("…") belong in DesignColors via DesignAssetColors.
+  if [[ "$pattern" == "raw RGB color" || "$pattern" == "system color literal" || "$pattern" == "app-bundle named color" ]]; then
+    if [[ "$pattern" == "raw RGB color" ]]; then
+      if [[ "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/TrinketDesign.swift" || "$file" == "Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift" ]]; then
+        return 0
+      fi
+    fi
+    # System / app-bundle named colors must not appear in product or design-system sources — use assets.
+    return 1
+  fi
+
+  # accentColor bypasses the app-wide semantic tint, including inside shared helpers.
+  if [[ "$pattern" == "direct accentColor modifier" ]]; then
+    return 1
   fi
 
   # Central styling helpers are the approved place for raw glass/material details.
@@ -54,6 +71,9 @@ check_line() {
   local pattern=""
 
   case "$line" in
+    *".accentColor("*)
+      pattern="direct accentColor modifier"
+      ;;
     *".buttonStyle(.glass"*|*".buttonStyle(.glassProminent"*)
       pattern="raw glass button style"
       ;;
@@ -82,15 +102,51 @@ check_line() {
       ;;
   esac
 
+  if [[ -z "$pattern" && "$line" =~ Color[[:space:]]*\([[:space:]]*red[[:space:]]*: ]]; then
+    pattern="raw RGB color"
+  fi
+
+  if [[ -z "$pattern" && "$line" =~ Color[[:space:]]*\([[:space:]]*white[[:space:]]*: ]]; then
+    pattern="raw RGB color"
+  fi
+
+  if [[ -z "$pattern" && "$line" =~ UIColor[[:space:]]*\( ]]; then
+    pattern="raw RGB color"
+  fi
+
+  if [[ -z "$pattern" && "$line" == *"#colorLiteral("* ]]; then
+    pattern="raw RGB color"
+  fi
+
+  # SwiftUI system palette used as chrome (adaptive .primary/.secondary/.clear are fine).
+  if [[ -z "$pattern" ]]; then
+    if [[ "$line" =~ \.(foregroundStyle|tint|fill|stroke|background)\(\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey) ]]; then
+      pattern="system color literal"
+    elif [[ "$line" =~ (^|[^A-Za-z0-9_])Color\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\b ]]; then
+      pattern="system color literal"
+    elif [[ "$line" =~ (^|[^A-Za-z0-9_])\.(white|black|red|green|blue|orange|yellow|pink|purple|mint|teal|indigo|brown|cyan|gray|grey)\.opacity\( ]]; then
+      pattern="system color literal"
+    fi
+  fi
+
+  if [[ -z "$pattern" && "$line" =~ Color[[:space:]]*\([[:space:]]*\"[^\"]+\"[[:space:]]*,[[:space:]]*bundle:[[:space:]]*\.main ]]; then
+    pattern="app-bundle named color"
+  fi
+
+  # Bare Color("AssetName") bypasses DesignAssetColors / TrinketDesign.Colors.
+  if [[ -z "$pattern" && "$line" =~ Color[[:space:]]*\([[:space:]]*\"[^\"]+\"[[:space:]]*\) ]]; then
+    pattern="app-bundle named color"
+  fi
+
   if [[ -z "$pattern" ]]; then
     return
   fi
 
-  if is_allowed_line "$file" "$line_number" "$line" "$previous_line" "$previous_context"; then
+  if is_allowed_line "$file" "$line_number" "$line" "$previous_line" "$previous_context" "$pattern"; then
     return
   fi
 
-  violations+=("$file:$line_number: $pattern should route through TrinketDesign or include UIStyleCheck: allow")
+  violations+=("$file:$line_number: $pattern should route through TrinketDesign semantic roles or include UIStyleCheck: allow")
 }
 
 while IFS= read -r file; do
@@ -136,7 +192,7 @@ if [[ ${#violations[@]} -gt 0 ]]; then
   fi
 
   echo
-  echo "Use shared TrinketDesign helpers for recurring chrome, or add a short UIStyleCheck: allow comment for intentional one-offs."
+  echo "Use shared TrinketDesign semantic roles for chrome. Reserve UIStyleCheck: allow for narrowly scoped content/art exceptions and explain the reason nearby."
   exit 1
 fi
 

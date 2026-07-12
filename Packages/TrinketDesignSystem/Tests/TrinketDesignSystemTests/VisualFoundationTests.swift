@@ -21,7 +21,7 @@ struct VisualFoundationTests {
     }
 
     @Test func materialRoleStylesMatchLiquidGlassPlan() throws {
-        let palette = ThemePalette.apple
+        let palette = ThemePalette.trinket
 
         if case .none = MaterialRoleStyle(role: .toolbar) {} else {
             Issue.record("toolbar should pass through without custom chrome")
@@ -63,7 +63,7 @@ struct VisualFoundationTests {
     }
 
     @Test func glassChromeSolidFillsAreDistinct() throws {
-        let palette = ThemePalette.apple
+        let palette = ThemePalette.trinket
         try #expect(palette.elevatedBackground != palette.panelSurface)
         try #expect(palette.panelSurface != palette.secondaryBackground)
     }
@@ -74,5 +74,8 @@ struct VisualFoundationTests {
         try #expect(HomesteadPalette.stroke != .clear)
         try #expect(HomesteadPalette.accent != .clear)
         try #expect(HomesteadPalette.walletPanel != .clear)
+        try #expect(HomesteadPalette.background == ThemePalette.trinket.appBackground)
+        try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)
+        try #expect(HomesteadPalette.accent == ThemePalette.trinket.accent)
     }
 }

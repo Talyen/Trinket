@@ -31,7 +31,7 @@ struct UltimateCinematicOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black
+            TrinketDesign.Colors.Overlay.cinematicDim
                 .opacity(scrimOpacity * 0.72)
                 .ignoresSafeArea()
                 .allowsHitTesting(cinematic.phase != .collapsing)
@@ -51,7 +51,7 @@ struct UltimateCinematicOverlay: View {
                     Spacer()
                     Text("Tap to skip")
                         .trinketTypography(.badge)
-                        .foregroundStyle(.white.opacity(0.9))
+                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper.opacity(0.9))
                         .trinketGlassChip(.emphasis)
                         .padding(.bottom, 36)
                 }
@@ -83,12 +83,18 @@ struct UltimateCinematicOverlay: View {
             ZStack {
                 artLayer
                     .frame(width: frame.width, height: frame.height)
-                    .clipShape(RoundedRectangle(cornerRadius: reduceMotion ? 20 : 0, style: .continuous))
+                    .clipShape(RoundedRectangle(
+                        cornerRadius: reduceMotion ? TrinketDesign.Corners.card : 0,
+                        style: .continuous
+                    ))
 
                 if showVideo, let player = BattleCinematicPlayer.shared.player(for: cinematic.abilityID) {
                     CinematicVideoView(player: player)
                         .frame(width: frame.width, height: frame.height)
-                        .clipShape(RoundedRectangle(cornerRadius: reduceMotion ? 20 : 0, style: .continuous))
+                        .clipShape(RoundedRectangle(
+                            cornerRadius: reduceMotion ? TrinketDesign.Corners.card : 0,
+                            style: .continuous
+                        ))
                         .transition(.opacity)
                 }
 
@@ -96,7 +102,7 @@ struct UltimateCinematicOverlay: View {
                     Spacer()
                     Text(cinematic.abilityName)
                         .trinketTypography(.sectionDisplay)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
                         .shadow(radius: 8)
                         .padding(.bottom, 28)
                 }
@@ -117,7 +123,7 @@ struct UltimateCinematicOverlay: View {
                 cinematic.keyword.visualStyle.color.opacity(0.35)
                 Image(systemName: "star.fill")
                     .font(.system(size: fallbackStarSize, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(TrinketDesign.Colors.Overlay.paper)
             }
         }
     }

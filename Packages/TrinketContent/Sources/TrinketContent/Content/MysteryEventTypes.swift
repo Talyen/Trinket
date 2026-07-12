@@ -56,8 +56,17 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 }
 
 public enum MysteryItemRarity {
-    /// 80% basic, 20% astral.
-    public static func roll(using randomNumberGenerator: inout some RandomNumberGenerator) -> Rarity {
-        Int.random(in: 1 ... 100, using: &randomNumberGenerator) <= 80 ? .basic : .astral
+    public static let baseAstralChancePercent = 20
+
+    /// 80% basic / 20% astral by default; homestead Detect Magic adds to astral chance.
+    public static func roll(
+        astralChanceBonusPercent: Int = 0,
+        using randomNumberGenerator: inout some RandomNumberGenerator
+    ) -> Rarity {
+        ItemRarityRoll.roll(
+            baseAstralChancePercent: baseAstralChancePercent,
+            astralChanceBonusPercent: astralChanceBonusPercent,
+            using: &randomNumberGenerator
+        )
     }
 }

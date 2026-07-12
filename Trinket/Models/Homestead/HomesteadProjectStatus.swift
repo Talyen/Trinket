@@ -145,9 +145,9 @@ struct HomesteadProjectStatus {
     var statusSymbolName: String {
         switch rowState {
         case .prerequisiteLocked: "lock.fill"
-        case let .unbuilt(affordable): affordable ? "hammer.fill" : "chevron.right"
+        case let .unbuilt(affordable): affordable ? "arrowshape.up.fill" : "chevron.right"
         case .built: "chevron.right"
-        case .upgradeReady: "hammer.fill"
+        case .upgradeReady: "arrowshape.up.fill"
         case .completed: "checkmark.circle.fill"
         }
     }
@@ -200,5 +200,17 @@ struct HomesteadProjectStatus {
             return "Build \(definition.title) Button"
         }
         return "Upgrade \(definition.title) Button"
+    }
+}
+
+enum HomesteadTierCopy {
+    static func title(for tier: Int, nodeTitle: String) -> String {
+        let suffix = switch tier {
+        case 1: "I"
+        case 2: "II"
+        case 3: "III"
+        default: "\(tier)"
+        }
+        return "\(nodeTitle) \(suffix)"
     }
 }

@@ -31,6 +31,18 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         )
     }
 
+    /// Development-only seed used by Options' Unlock All action.
+    public static var developerMaxed: PlayerHomesteadState {
+        var state = testSeed
+        for resource in HomesteadResource.allCases where resource != .gold {
+            state.resources[resource] = maxMaterialBalance
+        }
+        for nodeID in HomesteadNodeID.allCases {
+            state.nodeTiers[nodeID] = HomesteadNodeCatalog.maxTierByNodeID[nodeID, default: 3]
+        }
+        return state
+    }
+
     public init(resources: [HomesteadResource: Int], nodeTiers: [HomesteadNodeID: Int]) {
         self.resources = resources
         self.nodeTiers = nodeTiers
@@ -47,15 +59,8 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         nodeTiers[nodeID, default: 0]
     }
 
-    public func adjustedMaterialRewards(_ rewards: [ResourceAmount]) -> [ResourceAmount] {
-        var combined: [HomesteadResource: Int] = [:]
-        for reward in rewards where reward.resource != .gold {
-            combined[reward.resource, default: 0] += adjustedQuantity(for: reward)
-        }
-        return HomesteadResource.allCases.compactMap { resource in
-            guard resource != .gold, let quantity = combined[resource], quantity > 0 else { return nil }
-            return ResourceAmount(resource, quantity)
-        }
+    public var effects: HomesteadEffects {
+        HomesteadEffects.from(nodeTiers: nodeTiers)
     }
 
     public mutating func grant(_ rewards: [ResourceAmount]) {
@@ -67,33 +72,6 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
 
     public static func clampedMaterialBalance(_ quantity: Int) -> Int {
         min(max(quantity, 0), maxMaterialBalance)
-    }
-
-    private func adjustedQuantity(for reward: ResourceAmount) -> Int {
-        var quantity = reward.quantity
-        if tier(for: .wheatField) >= 3 || tier(for: .wishingWell) >= 2 {
-            quantity += 1
-        }
-        if reward.resource == .food {
-            if tier(for: .wheatField) >= 2 {
-                quantity += 1
-            }
-            if tier(for: .chickenCoop) >= 2 {
-                quantity += 1
-            }
-            if tier(for: .pasture) >= 2 {
-                quantity += 1
-            }
-        } else if reward.resource == .herbs, tier(for: .herbGarden) >= 2 {
-            quantity += 1
-        } else if reward.resource == .iron, tier(for: .blacksmithForge) >= 2 {
-            quantity += 1
-        } else if reward.resource == .crystal {
-            if tier(for: .crystalGarden) >= 2 {
-                quantity += tier(for: .runesmithWorkshop) >= 2 ? 2 : 1
-            }
-        }
-        return quantity
     }
 }
 

@@ -105,7 +105,7 @@ struct MysteryEncounterView: View {
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(combatant.name)
         } else {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            TrinketDesign.cardShape
                 .fill(TrinketDesign.Colors.encounterEvent.opacity(0.14))
                 .aspectRatio(4.0 / 3.0, contentMode: .fit)
                 .overlay {

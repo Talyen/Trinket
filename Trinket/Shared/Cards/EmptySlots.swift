@@ -56,7 +56,7 @@ struct EmptyItemSlotCard: View {
                             .scaledToFill()
                     } else {
                         TrinketDesign.cardShape
-                            .fill(Color(.secondarySystemBackground))
+                            .fill(TrinketDesign.Colors.surface)
                     }
                 }
                 .clipShape(TrinketDesign.cardShape)
