@@ -55,6 +55,6 @@ final class SmokeShopTests: TrinketUITestCase {
             app.swipeUp()
         }
         tapButton(AccessibilityID.Shop.leaveButton)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
+        assertButtonExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 5))
     }
 }

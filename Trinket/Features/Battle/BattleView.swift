@@ -29,8 +29,13 @@ struct BattleView: View {
             .trinketScreenBackground(.battle)
             .navigationTitle(battleSession.isShowingVictory ? "Victory" : battleSession.isShowingDefeat ? "Defeat" : "")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackgroundVisibility(isShowingOutcome ? .automatic : .hidden, for: .navigationBar)
-            .toolbarVisibility(isShowingOutcome ? .automatic : .hidden, for: .navigationBar)
+            .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            .toolbarVisibility(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    battleActionsMenu(canRetreat: !isShowingOutcome)
+                }
+            }
             .alert(item: $persistFailureMessage) { message in
                 Alert(
                     title: Text(message.title),
@@ -41,6 +46,31 @@ struct BattleView: View {
             .onChange(of: configuration.id) { _, _ in
                 battleSession.clearOutcomePresentation()
             }
+    }
+
+    private func battleActionsMenu(canRetreat: Bool) -> some View {
+        Menu {
+            Button {
+                appState.presentCombatLog()
+            } label: {
+                Label("Combat Log", systemImage: "list.bullet.rectangle")
+            }
+            .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
+
+            if canRetreat {
+                Button(role: .destructive) {
+                    appState.endBattleReturningToOrigin()
+                } label: {
+                    Label("Retreat", systemImage: "figure.run")
+                }
+                .accessibilityIdentifier(AccessibilityID.Battle.retreat)
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel("Battle Actions")
+        .accessibilityIdentifier(AccessibilityID.Battle.actionsMenu)
     }
 
     @ViewBuilder
@@ -151,6 +181,7 @@ struct BattleView: View {
                 cinematicOverlay(for: battleSession)
             }
         }
+        .ignoresSafeArea(.container, edges: .bottom)
     }
 
     @ViewBuilder

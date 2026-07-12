@@ -140,14 +140,12 @@ final class AppState {
         battle.endBattle()
     }
 
-    func rememberPlayMode(_ mode: PlayerShellSessionPlayMode) {
-        lastPlayMode = mode
+    func presentCombatLog() {
+        battle.presentBattleLog()
     }
 
-    /// Leaves Options for the live battle on Play and presents the combat log sheet.
-    func presentCombatLogFromOptions() {
-        selectedTab = .play
-        battle.presentBattleLog()
+    func rememberPlayMode(_ mode: PlayerShellSessionPlayMode) {
+        lastPlayMode = mode
     }
 
     var persistenceStatusMessage: String? {

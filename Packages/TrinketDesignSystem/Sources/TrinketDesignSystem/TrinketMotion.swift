@@ -42,6 +42,26 @@ public enum TrinketMotion: Sendable {
     }
 
     public enum Battle: Sendable {
+        /// Restrained, interruptible motion for directly manipulated ability cards.
+        public static var cardLift: Animation {
+            .spring(response: 0.2, dampingFraction: 1.0)
+        }
+
+        /// Slight overshoot is reserved for returning an object after a drag.
+        public static var cardReturn: Animation {
+            .spring(response: 0.38, dampingFraction: 0.82)
+        }
+
+        public static var cardReturnReducedMotion: Animation {
+            .spring(response: 0.22, dampingFraction: 1.0)
+        }
+
+        public static let cardHeldScale = 1.035
+        public static let cardHeldShadowRadius: CGFloat = 18
+        public static let cardHeldShadowY: CGFloat = 10
+        public static let cardMaximumTiltDegrees = 7.0
+        public static let cardMaximumStretch = 0.025
+
         /// Soft-hold after a Skill cast so caster art is readable.
         public static let skillSoftHold: TimeInterval = 0.5
 

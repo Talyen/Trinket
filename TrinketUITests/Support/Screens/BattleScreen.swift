@@ -11,6 +11,18 @@ struct BattleScreen {
         app.descendants(matching: .any)[AccessibilityID.Battle.victory]
     }
 
+    var actionsMenu: XCUIElement {
+        app.buttons[AccessibilityID.Battle.actionsMenu]
+    }
+
+    var combatLogAction: XCUIElement {
+        app.buttons[AccessibilityID.Battle.combatLog]
+    }
+
+    var retreatAction: XCUIElement {
+        app.buttons[AccessibilityID.Battle.retreat]
+    }
+
     var ultimateCinematic: XCUIElement {
         app.descendants(matching: .any).matching(
             NSPredicate(format: "identifier BEGINSWITH %@", "Ultimate Cinematic")
@@ -77,5 +89,9 @@ struct BattleScreen {
 
     func openCombatantCard(named name: String) {
         app.buttons[AccessibilityID.CombatantDetail.battleCard(name: name)].tap()
+    }
+
+    func openActions() {
+        actionsMenu.tap()
     }
 }

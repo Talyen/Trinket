@@ -7,7 +7,7 @@ struct ContentView: View {
     @State private var didAcknowledgePersistenceRecovery = false
 
     var body: some View {
-        tabRoot(selection: $localSelectedTab)
+        tabRoot(selection: battleLockedSelection)
             .preferredColorScheme(appState.options.appearance.colorScheme)
             .alert(
                 "Progress Storage Issue",
@@ -33,17 +33,35 @@ struct ContentView: View {
                 )
             }
             .onAppear {
-                localSelectedTab = appState.selectedTab
+                if appState.battle.activeBattle != nil {
+                    localSelectedTab = .play
+                    appState.selectedTab = .play
+                } else {
+                    localSelectedTab = appState.selectedTab
+                }
                 appState.reconcileShellState(.appeared, scenePhase: scenePhase)
             }
             .onChange(of: localSelectedTab) { _, newTab in
+                guard appState.battle.activeBattle == nil || newTab == .play else {
+                    localSelectedTab = .play
+                    return
+                }
                 appState.selectedTab = newTab
             }
             .onChange(of: appState.selectedTab) { _, newTab in
+                guard appState.battle.activeBattle == nil || newTab == .play else {
+                    appState.selectedTab = .play
+                    localSelectedTab = .play
+                    return
+                }
                 localSelectedTab = newTab
                 appState.reconcileShellState(.tabChanged, scenePhase: scenePhase)
             }
             .onChange(of: appState.battle.activeBattle?.id) { _, newValue in
+                if newValue != nil {
+                    localSelectedTab = .play
+                    appState.selectedTab = .play
+                }
                 appState.reconcileShellState(
                     .activeBattleChanged(started: newValue != nil),
                     scenePhase: scenePhase
@@ -66,25 +84,45 @@ struct ContentView: View {
                 NavigationStack {
                     PlayView()
                 }
+                .battleTabBarVisibility(appState.battle.activeBattle != nil)
             }
 
             Tab(AppTab.collection.displayName, systemImage: AppTab.collection.symbolName, value: AppTab.collection) {
                 NavigationStack {
                     CollectionView()
                 }
+                .battleTabBarVisibility(appState.battle.activeBattle != nil)
             }
 
             Tab(AppTab.homestead.displayName, systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 NavigationStack {
                     HomesteadView()
                 }
+                .battleTabBarVisibility(appState.battle.activeBattle != nil)
             }
 
             Tab(AppTab.options.displayName, systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
                     OptionsView()
                 }
+                .battleTabBarVisibility(appState.battle.activeBattle != nil)
             }
         }
+    }
+
+    private var battleLockedSelection: Binding<AppTab> {
+        Binding(
+            get: { localSelectedTab },
+            set: { newTab in
+                guard appState.battle.activeBattle == nil || newTab == .play else { return }
+                localSelectedTab = newTab
+            }
+        )
+    }
+}
+
+private extension View {
+    func battleTabBarVisibility(_ isBattleActive: Bool) -> some View {
+        toolbarVisibility(isBattleActive ? .hidden : .automatic, for: .tabBar)
     }
 }

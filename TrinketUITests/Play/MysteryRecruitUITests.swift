@@ -26,6 +26,6 @@ final class MysteryRecruitUITests: TrinketUITestCase {
         // dismiss, and adding a Done control is a product decision.
         assertExists(AccessibilityID.Mystery.continueButton)
         tapButton(AccessibilityID.Mystery.continueButton)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
     }
 }

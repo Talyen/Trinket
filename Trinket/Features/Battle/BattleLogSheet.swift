@@ -15,6 +15,7 @@ struct BattleLogSheet: View {
                     }
                 }
             }
+            .accessibilityIdentifier(AccessibilityID.Battle.combatLog)
             .navigationTitle("Combat Log")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -17,6 +17,10 @@ enum StageMapID {
         "Stage \(stage.chapterNumber)-\(stage.stageNumber) Node"
     }
 
+    static func stageAction(for stage: Stage) -> String {
+        "Stage \(stage.chapterNumber)-\(stage.stageNumber) Action"
+    }
+
     static func chapterLocked(_ chapter: Chapter) -> String {
         "Chapter \(chapter.number) Locked"
     }
@@ -162,7 +166,7 @@ extension Stage {
             return "Boss"
         }
         if recruitCombatant != nil {
-            return "Recruitment"
+            return "Recruit"
         }
         return encounter.title
     }
@@ -175,17 +179,7 @@ extension Stage {
 
 extension StageEncounter {
     var artAspectRatio: CGFloat {
-        switch self {
-        case .battle:
-            return 1
-        case let .mysteryEvent(eventID):
-            if let event = GameContent.mysteryEvent(matching: eventID), event.isRecruit {
-                return 3.0 / 4.0
-            }
-            return 4.0 / 3.0
-        case .event, .shop, .rest:
-            return 4.0 / 3.0
-        }
+        4.0 / 3.0
     }
 
     var mapTint: Color {

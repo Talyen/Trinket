@@ -20,7 +20,6 @@ enum BattleHandLayout {
         let cardHeight: CGFloat
         let overlap: CGFloat
         let startX: CGFloat
-        let clippedHeight: CGFloat
     }
 
     static func metrics(containerWidth: CGFloat, cardCount: Int) -> Metrics {
@@ -39,8 +38,7 @@ enum BattleHandLayout {
             cardWidth: cardWidth,
             cardHeight: cardHeight,
             overlap: overlap,
-            startX: startX,
-            clippedHeight: cardHeight * 0.75
+            startX: startX
         )
     }
 
@@ -55,5 +53,32 @@ enum BattleHandLayout {
 
     static func restingOffsetY(index: Int, cardCount: Int) -> CGFloat {
         abs(CGFloat(index) - CGFloat(cardCount - 1) / 2) * 8
+    }
+
+    static func shouldPlay(
+        translation: CGSize,
+        predictedEndTranslation: CGSize,
+        isPlayable: Bool,
+        threshold: CGFloat = playDragThreshold
+    ) -> Bool {
+        guard isPlayable else { return false }
+        let release = predictedEndTranslation.height < translation.height
+            ? predictedEndTranslation
+            : translation
+        let upwardDistance = -release.height
+        return upwardDistance >= threshold
+            && upwardDistance > abs(release.width)
+    }
+
+    static func heldTilt(
+        translation: CGSize,
+        predictedEndTranslation: CGSize,
+        cardWidth: CGFloat,
+        maximumDegrees: Double
+    ) -> Double {
+        guard cardWidth > 0 else { return 0 }
+        let velocityLean = Double(predictedEndTranslation.width - translation.width) * 0.04
+        let positionLean = Double(translation.width / cardWidth) * maximumDegrees
+        return min(max(positionLean + velocityLean, -maximumDegrees), maximumDegrees)
     }
 }

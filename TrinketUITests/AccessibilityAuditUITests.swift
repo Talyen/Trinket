@@ -12,7 +12,7 @@ final class AccessibilityAuditUITests: TrinketUITestCase {
     func testPlayScreenAccessibility() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
         play.assertLoaded()
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
         assertAccessibilityAudit()
     }
 

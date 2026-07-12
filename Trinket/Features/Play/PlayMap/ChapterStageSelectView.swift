@@ -5,13 +5,11 @@ import TrinketDesignSystem
 /// Cinematic Campaign chapter overview with five stable, inline stage rows.
 struct ChapterStageSelectView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let onStageTap: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
 
     @State private var selectedChapterID: String?
-    @State private var expandedStageID: String?
 
     var body: some View {
         DetailHeroScrollShell(
@@ -29,8 +27,6 @@ struct ChapterStageSelectView: View {
         } bodyContent: {
             ChapterStageList(
                 rows: stageRows,
-                expandedStageID: expandedStageID,
-                onToggleExpansion: toggleExpansion,
                 onEnemyTap: onEnemyTap,
                 onPrimaryAction: handlePrimaryAction
             )
@@ -83,19 +79,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func selectChapter(_ chapter: Chapter) {
-        withAnimation(stageAnimation) {
-            selectedChapterID = chapter.id
-            expandedStageID = chapter.id == appState.journey.current.activeChapterID
-                ? appState.journey.current.activeStageID
-                : nil
-        }
-    }
-
-    private func toggleExpansion(_ stage: Stage) {
-        guard appState.journey.current.isActive(stage) else { return }
-        withAnimation(stageAnimation) {
-            expandedStageID = expandedStageID == stage.id ? nil : stage.id
-        }
+        selectedChapterID = chapter.id
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
@@ -108,18 +92,11 @@ struct ChapterStageSelectView: View {
         if forceCurrentChapter || selectedChapterID == nil {
             selectedChapterID = activeChapter.id
         }
-        expandedStageID = selectedChapterID == activeChapter.id
-            ? appState.journey.current.activeStageID
-            : nil
     }
 
     private func updateMusicPreview() {
         let activeStage = appState.journey.current.activeStageID.flatMap(GameContent.stage(id:))
         appState.battle.setMusicPreview(for: activeStage)
-    }
-
-    private var stageAnimation: Animation {
-        reduceMotion ? TrinketMotion.Journey.reduceMotion : TrinketMotion.Journey.stageExpansion
     }
 }
 

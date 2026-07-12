@@ -53,7 +53,7 @@ struct PlayView: View {
             }
         ), content: { item in
             AbilityDetailSheet(ability: item.ability)
-                .presentationDetents([.medium])
+                .presentationDetents([.large])
         })
         .sheet(isPresented: Binding(
             get: { battle.isShowingBattleLog },

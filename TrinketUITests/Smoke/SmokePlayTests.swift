@@ -16,11 +16,11 @@ final class SmokePlayTests: TrinketUITestCase {
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
         for stage in 1 ... 5 {
             assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
         }
-        assertExists(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
+        assertDoesNotExist(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
     }
 
     /// One launch covers Mode Hub, Aspects hub/climb, and Labyrinth unlock.

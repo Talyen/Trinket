@@ -4,21 +4,14 @@ import TrinketDesignSystem
 
 struct ChapterStageList: View {
     let rows: [ChapterStageRowPresentation]
-    let expandedStageID: String?
-    let onToggleExpansion: (Stage) -> Void
     let onEnemyTap: (Stage) -> Void
     let onPrimaryAction: (Stage) -> Void
-
-    @Namespace private var stageNamespace
 
     var body: some View {
         VStack(spacing: 0) {
             ForEach(rows) { row in
                 ChapterStageRow(
                     presentation: row,
-                    isExpanded: expandedStageID == row.stage.id,
-                    namespace: stageNamespace,
-                    onToggleExpansion: { onToggleExpansion(row.stage) },
                     onEnemyTap: { onEnemyTap(row.stage) },
                     onPrimaryAction: { onPrimaryAction(row.stage) }
                 )
@@ -30,36 +23,27 @@ struct ChapterStageList: View {
 }
 
 private struct ChapterStageRow: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let presentation: ChapterStageRowPresentation
-    let isExpanded: Bool
-    let namespace: Namespace.ID
-    let onToggleExpansion: () -> Void
     let onEnemyTap: () -> Void
     let onPrimaryAction: () -> Void
 
     private let railWidth: CGFloat = 54
     private let nodeSize: CGFloat = 48
-    private let nodeTopInset: CGFloat = 8
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             stageRail
                 .frame(width: railWidth)
 
             Group {
-                if isExpanded {
+                if presentation.isActionable {
                     CurrentStageCard(
                         stage: presentation.stage,
-                        namespace: namespace,
                         onEnemyTap: onEnemyTap,
                         onPrimaryAction: onPrimaryAction
                     )
-                    .transition(detailTransition)
                 } else {
                     compactRow
-                        .transition(detailTransition)
                 }
             }
             .padding(.vertical, 4)
@@ -75,7 +59,7 @@ private struct ChapterStageRow: View {
 
     private var stageRail: some View {
         GeometryReader { geometry in
-            let centerY = nodeTopInset + nodeSize / 2
+            let centerY = geometry.size.height / 2
 
             ZStack(alignment: .top) {
                 if let connectorBefore = presentation.connectorBefore {
@@ -91,12 +75,12 @@ private struct ChapterStageRow: View {
 
                 node
                     .frame(width: nodeSize, height: nodeSize)
-                    .offset(y: nodeTopInset)
+                    .offset(y: centerY - nodeSize / 2)
             }
             .frame(maxWidth: .infinity)
         }
         // UIStyleCheck: allow - The rail follows the dynamic stage-card height.
-        .frame(minHeight: 76)
+        .frame(minHeight: 76, maxHeight: .infinity)
     }
 
     private func connector(_ state: StageConnectorState) -> some View {
@@ -107,49 +91,27 @@ private struct ChapterStageRow: View {
             .accessibilityHidden(true)
     }
 
-    @ViewBuilder
     private var node: some View {
-        let nodeContent = StageNumberNode(
-            number: presentation.stage.stageNumber,
+        StageNode(
+            symbolName: presentation.stage.encounter.symbolName,
             state: presentation.state,
             isBoss: presentation.isBoss
         )
-
-        if presentation.isActionable {
-            Button(action: onToggleExpansion) {
-                nodeContent
-            }
-            .buttonStyle(.plain)
-            .contentShape(Circle())
-            .accessibilityLabel("\(presentation.stage.mapLabel), \(presentation.accessibilityStatus)")
-            .accessibilityHint(isExpanded ? "Collapse stage details" : "Expand stage details")
-        } else {
-            nodeContent
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("\(presentation.stage.mapLabel), \(presentation.accessibilityStatus)")
-        }
+        .accessibilityIdentifier(StageMapID.stageNode(for: presentation.stage))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(presentation.stage.mapLabel), \(presentation.accessibilityStatus)")
     }
 
-    @ViewBuilder
     private var compactRow: some View {
-        if presentation.isActionable {
-            Button(action: onToggleExpansion) {
-                compactRowLabel
-            }
-            .trinketNavigationRowButtonStyle()
-            .accessibilityHint("Expand stage details")
-        } else {
-            compactRowLabel
-        }
+        compactRowLabel
     }
 
     private var compactRowLabel: some View {
         HStack(spacing: 10) {
             EncounterArtwork(stage: presentation.stage)
                 // UIStyleCheck: allow - Fixed row thumbnail keeps the five-stage path compact.
-                .frame(width: 54, height: 58)
+                .frame(width: 64, height: 48)
                 .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
-                .matchedGeometryEffect(id: "\(presentation.stage.id)-art", in: namespace)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
@@ -157,15 +119,16 @@ private struct ChapterStageRow: View {
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                    .matchedGeometryEffect(id: "\(presentation.stage.id)-title", in: namespace)
 
-                HStack(spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(presentation.stage.mapLabel)
-                    Text("·")
-                    Image(systemName: presentation.stage.encounter.symbolName)
-                        .accessibilityHidden(true)
-                    Text(presentation.stage.encounterTypeTitle)
-                        .foregroundStyle(presentation.stage.encounter.mapTint)
+                    HStack(spacing: 4) {
+                        Text(presentation.stage.encounterTypeTitle)
+                            .foregroundStyle(presentation.stage.encounter.mapTint)
+                        Image(systemName: presentation.stage.encounter.symbolName)
+                            .foregroundStyle(presentation.stage.encounter.mapTint)
+                            .accessibilityHidden(true)
+                    }
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -178,13 +141,6 @@ private struct ChapterStageRow: View {
                     .font(.headline.weight(.bold))
                     .foregroundStyle(TrinketDesign.Colors.success)
                     .accessibilityLabel("Completed")
-            } else if presentation.isBoss {
-                bossBadge
-            } else if presentation.isActionable {
-                Image(systemName: "chevron.down")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
             }
         }
         .padding(.horizontal, 10)
@@ -203,36 +159,15 @@ private struct ChapterStageRow: View {
         .accessibilityLabel(compactAccessibilityLabel)
     }
 
-    private var bossBadge: some View {
-        Label("BOSS", systemImage: "crown.fill")
-            .font(.caption2.weight(.bold))
-            .foregroundStyle(HomesteadPalette.accent)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 5)
-            .background(HomesteadPalette.accent.opacity(0.12), in: Capsule())
-            .accessibilityIdentifier(
-                AccessibilityID.Play.bossBadge(
-                    chapter: presentation.stage.chapterNumber,
-                    stage: presentation.stage.stageNumber
-                )
-            )
-    }
-
     private var compactAccessibilityLabel: String {
         let boss = presentation.isBoss ? ", Boss" : ""
         return "\(presentation.stage.mapLabel), \(presentation.stage.encounterSubjectName), "
             + "\(presentation.stage.encounterTypeTitle), \(presentation.accessibilityStatus)\(boss)"
     }
-
-    private var detailTransition: AnyTransition {
-        reduceMotion
-            ? .opacity
-            : .opacity.combined(with: .scale(scale: 0.985, anchor: .topLeading))
-    }
 }
 
-private struct StageNumberNode: View {
-    let number: Int
+private struct StageNode: View {
+    let symbolName: String
     let state: StageNodeState
     let isBoss: Bool
 
@@ -251,15 +186,14 @@ private struct StageNumberNode: View {
                     lineWidth: state == .active ? 3 : 2
                 )
 
-            if state == .active {
-                Circle()
-                    .strokeBorder(HomesteadPalette.accent.opacity(0.42), lineWidth: 1)
-                    .padding(-4)
-            }
-
-            Text(number.formatted())
-                .font(.title3.monospacedDigit().weight(.semibold))
+            Image(systemName: symbolName)
+                .font(
+                    state == .active
+                        ? .headline.weight(.semibold)
+                        : .title3.weight(.semibold)
+                )
                 .foregroundStyle(isProgressed ? .primary : .secondary)
+                .symbolRenderingMode(.hierarchical)
 
             if state == .active {
                 Image(systemName: "arrowtriangle.right.fill")
@@ -271,15 +205,17 @@ private struct StageNumberNode: View {
 
             if isBoss {
                 Image(systemName: "crown.fill")
-                    .font(.caption2.weight(.bold))
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(HomesteadPalette.accent)
-                    .offset(y: -31)
+                    .offset(y: -37)
                     .accessibilityHidden(true)
             }
         }
         .shadow(
-            color: isProgressed ? HomesteadPalette.accent.opacity(0.28) : .clear,
-            radius: state == .active ? 8 : 3
+            color: state == .active
+                ? .clear
+                : isProgressed ? HomesteadPalette.accent.opacity(0.28) : .clear,
+            radius: state == .active ? 0 : 3
         )
     }
 }

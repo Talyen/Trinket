@@ -3,10 +3,7 @@ import XCTest
 final class BattleFlowUITests: TrinketUITestCase {
     /// Mid-battle interactions: enter via Play map and assert turn-based chrome stays visible.
     func testMidBattleCombatantDetailAndHandChrome() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
-
-        play.assertLoaded()
-        play.startBattle(chapter: 1, stage: 1)
+        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.screen("battle"))
 
         // If Stage 1-1 already resolved, mid-battle chrome is gone — defer to the victory test.
         if battle.waitForMidBattleOrVictory() {
@@ -20,10 +17,15 @@ final class BattleFlowUITests: TrinketUITestCase {
         battle.assertActive()
         assertExists(AccessibilityID.Battle.hand)
 
-        // Leave Play, then return and inspect a combatant.
-        tabBar.selectCollection()
-        assertExists(AccessibilityID.CombatantDetail.collectionCard(name: "Knight"))
-        tabBar.selectPlay()
+        XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden during battle")
+        assertButtonExists(AccessibilityID.Battle.actionsMenu)
+
+        battle.openActions()
+        assertButtonExists(AccessibilityID.Battle.combatLog)
+        assertButtonExists(AccessibilityID.Battle.retreat)
+        battle.combatLogAction.tap()
+        assertExists(AccessibilityID.Battle.combatLog)
+        app.buttons["Close Combat Log"].tap()
 
         if battle.victory.waitForExistence(timeout: 1) {
             return
@@ -37,8 +39,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         dismissSheet()
     }
 
-    /// Victory path deep-links to outcome chrome; Combat Log remains available under Options
-    /// (tapping it returns to Play and presents the log over the battle).
+    /// Victory remains focused on Battle; Combat Log is available from Battle Actions.
     func testBattleVictorySummaryAndPostVictoryMenu() {
         launchApp(arguments: TestLaunchArg.allForBattleVictory())
 
@@ -48,9 +49,26 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Battle.rewards)
         assertButtonExists(AccessibilityID.Battle.continueButton)
 
-        tabBar.selectOptions()
-        options.assertLoaded()
-        options.assertCombatLogVisible()
-        options.assertRetreatUnavailable()
+        XCTAssertFalse(app.tabBars.firstMatch.exists, "Tab bar should be hidden until victory is completed")
+        battle.openActions()
+        assertButtonExists(AccessibilityID.Battle.combatLog)
+        XCTAssertFalse(battle.retreatAction.exists, "Retreat should be unavailable after victory")
+        battle.combatLogAction.tap()
+        assertExists(AccessibilityID.Battle.combatLog)
+    }
+
+    func testRetreatRestoresPlayNavigation() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.screen("battle"))
+
+        battle.assertActive()
+        battle.openActions()
+        assertButtonExists(AccessibilityID.Battle.retreat)
+        battle.retreatAction.tap()
+
+        XCTAssertTrue(
+            app.tabBars.buttons["Play"].waitForExistence(timeout: Self.defaultTimeout),
+            "Tab bar should return after retreat"
+        )
+        play.assertLoaded()
     }
 }

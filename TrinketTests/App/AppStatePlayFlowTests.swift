@@ -310,15 +310,15 @@ struct AppStatePlayFlowTests {
         #expect(state.consumePendingPlayDestination() == .aspectClimb(.ironVein))
     }
 
-    @Test func presentCombatLogFromOptionsSwitchesToPlayAndShowsLog() throws {
+    @Test func presentCombatLogShowsLogWithoutChangingTabs() throws {
         let state = try context.makeAppState()
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         state.selectedTab = .options
 
-        state.presentCombatLogFromOptions()
+        state.presentCombatLog()
 
-        #expect(state.selectedTab == .play)
+        #expect(state.selectedTab == .options)
         #expect(state.battle.isShowingBattleLog)
         #expect(state.battle.activeBattle != nil)
     }

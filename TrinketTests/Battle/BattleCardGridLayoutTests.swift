@@ -9,7 +9,7 @@ struct BattleCardGridLayoutTests {
         let metrics = BattleCardGridLayout.metrics(in: containerSize)
 
         #expect(metrics.outerPadding == 0)
-        #expect(metrics.cardSpacing == 0)
+        #expect(metrics.cardSpacing == 4)
         #expect(metrics.handReservedHeight == 224)
         #expect(abs(metrics.enemySize.width - width) < 0.001)
         assertRelationships(metrics, in: containerSize)
@@ -73,7 +73,7 @@ struct BattleHandLayoutTests {
         #expect(abs(offset) < 0.001)
     }
 
-    @Test func fiveCardsUseSymmetricFanAndBottomClipping() {
+    @Test func fiveCardsUseSymmetricFan() {
         let width: CGFloat = 390
         let count = 5
         let metrics = BattleHandLayout.metrics(containerWidth: width, cardCount: count)
@@ -81,7 +81,6 @@ struct BattleHandLayoutTests {
 
         #expect(metrics.overlap > 0)
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
-        #expect(metrics.clippedHeight == metrics.cardHeight * 0.75)
         #expect((0 ..< count).map { BattleHandLayout.rotation(index: $0, cardCount: count) }
             == [-12, -6, 0, 6, 12])
         #expect(BattleHandLayout.restingOffsetY(index: 2, cardCount: count) == 0)
@@ -97,5 +96,59 @@ struct BattleHandLayoutTests {
         #expect(abs(metrics.cardHeight / metrics.cardWidth - 4.0 / 3.0) < 0.001)
         let span = metrics.cardWidth + metrics.overlap * 4
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
+    }
+
+    @Test func upwardReleasePastThresholdPlays() {
+        #expect(BattleHandLayout.shouldPlay(
+            translation: CGSize(width: 8, height: -84),
+            predictedEndTranslation: CGSize(width: 10, height: -120),
+            isPlayable: true
+        ))
+    }
+
+    @Test func projectedUpwardFlickPlaysBeforeTranslationReachesThreshold() {
+        #expect(BattleHandLayout.shouldPlay(
+            translation: CGSize(width: 4, height: -55),
+            predictedEndTranslation: CGSize(width: 7, height: -105),
+            isPlayable: true
+        ))
+    }
+
+    @Test func sidewaysDownwardAndUnplayableReleasesReturn() {
+        #expect(!BattleHandLayout.shouldPlay(
+            translation: CGSize(width: 120, height: -90),
+            predictedEndTranslation: CGSize(width: 170, height: -110),
+            isPlayable: true
+        ))
+        #expect(!BattleHandLayout.shouldPlay(
+            translation: CGSize(width: 0, height: 120),
+            predictedEndTranslation: CGSize(width: 0, height: 180),
+            isPlayable: true
+        ))
+        #expect(!BattleHandLayout.shouldPlay(
+            translation: CGSize(width: 0, height: -120),
+            predictedEndTranslation: CGSize(width: 0, height: -180),
+            isPlayable: false
+        ))
+    }
+
+    @Test func heldTiltIsBoundedAndRespondsToHorizontalDirection() {
+        let right = BattleHandLayout.heldTilt(
+            translation: CGSize(width: 80, height: 0),
+            predictedEndTranslation: CGSize(width: 100, height: 0),
+            cardWidth: 180,
+            maximumDegrees: 7
+        )
+        let left = BattleHandLayout.heldTilt(
+            translation: CGSize(width: -80, height: 0),
+            predictedEndTranslation: CGSize(width: -100, height: 0),
+            cardWidth: 180,
+            maximumDegrees: 7
+        )
+
+        #expect(right > 0)
+        #expect(left < 0)
+        #expect(right <= 7)
+        #expect(left >= -7)
     }
 }

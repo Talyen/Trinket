@@ -258,3 +258,156 @@ struct BattleCombatantPickerSheet: View {
         return combatant.keywordProfile.contains(aspect.keyword)
     }
 }
+
+/// Journey's compact, single-sheet party editor.
+struct StageBattlePartyPickerSheet: View {
+    @Environment(AppState.self) private var appState
+
+    let accentColor: Color
+
+    @State private var presentedSlot: BattlePartySlot?
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let presentedSlot {
+                    BattlePartyOptionsGrid(
+                        slot: presentedSlot,
+                        combatants: combatants(for: presentedSlot),
+                        selectedID: selectedID(for: presentedSlot),
+                        accentColor: accentColor,
+                        onSelect: { combatant in
+                            select(combatant, for: presentedSlot)
+                            self.presentedSlot = nil
+                        }
+                    )
+                } else {
+                    partySlots
+                }
+            }
+            .trinketScreenBackground(.modal)
+            .navigationTitle(presentedSlot == nil ? "Choose Party" : "Choose \(presentedSlot?.title ?? "")")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if presentedSlot != nil {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Party", systemImage: "chevron.left") {
+                            presentedSlot = nil
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityIdentifier(AccessibilityID.Play.stagePartyPickerSheet)
+    }
+
+    private var partySlots: some View {
+        VStack(spacing: 12) {
+            partySlot(.hero, combatant: appState.roster.activeHero)
+            partySlot(.pet, combatant: appState.roster.activePet)
+            Spacer(minLength: 0)
+        }
+        .padding(TrinketDesign.Metrics.contentMargin)
+    }
+
+    private func partySlot(_ slot: BattlePartySlot, combatant: Combatant) -> some View {
+        Button {
+            presentedSlot = slot
+        } label: {
+            HStack(spacing: 12) {
+                CombatantArtwork(combatant: combatant, variant: .card)
+                    // UIStyleCheck: allow - Party rows reserve a consistent portrait footprint.
+                    .frame(width: 54, height: 68)
+                    .clipShape(RoundedRectangle(cornerRadius: TrinketDesign.Corners.small, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(slot.title)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(combatant.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                }
+
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(.secondary)
+            }
+            .padding(10)
+            .trinketSurface(.secondary)
+            .clipShape(TrinketDesign.cardShape)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(slot.controlAccessibilityID)
+        .accessibilityLabel("\(slot.title), \(combatant.name)")
+        .accessibilityValue(combatant.name)
+        .accessibilityHint("Choose a different \(slot.title.lowercased())")
+    }
+
+    private func combatants(for slot: BattlePartySlot) -> [Combatant] {
+        slot == .hero ? appState.roster.heroes : appState.roster.pets
+    }
+
+    private func selectedID(for slot: BattlePartySlot) -> String {
+        slot == .hero ? appState.roster.activeHero.id : appState.roster.activePet.id
+    }
+
+    private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
+        var roster = appState.roster.current
+        switch slot {
+        case .hero: roster.setActiveHero(combatant)
+        case .pet: roster.setActivePet(combatant)
+        }
+        appState.roster.current = roster
+    }
+}
+
+private struct BattlePartyOptionsGrid: View {
+    let slot: BattlePartySlot
+    let combatants: [Combatant]
+    let selectedID: String
+    let accentColor: Color
+    let onSelect: (Combatant) -> Void
+
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 12)], spacing: 12) {
+                ForEach(combatants) { combatant in
+                    Button {
+                        onSelect(combatant)
+                    } label: {
+                        VStack(spacing: 6) {
+                            CombatantArtwork(combatant: combatant, variant: .card)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 88)
+                                .clipShape(TrinketDesign.cardShape)
+                            Text(combatant.name)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
+                                .frame(minHeight: 34)
+                        }
+                        .padding(8)
+                        .frame(maxWidth: .infinity)
+                        .trinketSurface(.card)
+                        .clipShape(TrinketDesign.cardShape)
+                        .overlay {
+                            TrinketDesign.cardShape.strokeBorder(
+                                combatant.id == selectedID ? accentColor : .clear,
+                                lineWidth: combatant.id == selectedID ? 3 : 0
+                            )
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier(
+                        AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
+                    )
+                    .accessibilityValue(combatant.id == selectedID ? "Selected" : "Available")
+                }
+            }
+            .padding(.horizontal, TrinketDesign.Metrics.contentMargin)
+            .padding(.vertical, TrinketDesign.Metrics.mediumSpacing)
+        }
+    }
+}

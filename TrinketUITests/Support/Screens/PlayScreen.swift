@@ -50,22 +50,20 @@ struct PlayScreen {
         app.buttons[AccessibilityID.Play.campaignModeCard].tap()
     }
 
-    func openStage(_ nodeID: String) {
-        app.buttons[nodeID].tap()
+    func openStage(_ actionID: String) {
+        app.buttons[actionID].tap()
     }
 
     func openStage(chapter: Int, stage: Int) {
-        openStage(AccessibilityID.Play.stageNode(chapter: chapter, stage: stage))
+        openStage(AccessibilityID.Play.stageAction(chapter: chapter, stage: stage))
     }
 
-    /// Battle stages expose inline party controls and start directly from the stage CTA.
+    /// Battle stages expose a compact party control and start directly from the stage CTA.
     func startBattle(chapter: Int, stage: Int) {
-        let hero = app.descendants(matching: .any)[AccessibilityID.Play.battlePartyHeroControl]
-        let pet = app.descendants(matching: .any)[AccessibilityID.Play.battlePartyPetControl]
-        XCTAssertTrue(hero.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle Hero control not found")
-        XCTAssertTrue(pet.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle Pet control not found")
+        let party = app.descendants(matching: .any)[AccessibilityID.Play.stagePartyControl]
+        XCTAssertTrue(party.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle party control not found")
 
-        let start = app.buttons[AccessibilityID.Play.stageNode(chapter: chapter, stage: stage)]
+        let start = app.buttons[AccessibilityID.Play.stageAction(chapter: chapter, stage: stage)]
         XCTAssertTrue(start.waitForExistence(timeout: TrinketUITestCase.defaultTimeout), "Battle CTA not found")
         start.tap()
 

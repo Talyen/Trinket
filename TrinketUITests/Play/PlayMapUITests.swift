@@ -16,7 +16,8 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 1))
+        XCTAssertFalse(button(AccessibilityID.Play.stageNode(chapter: 1, stage: 1)).exists)
 
         button(AccessibilityID.Play.enemyArt(chapter: 1, stage: 1)).tap()
         assertExists(AccessibilityID.CombatantDetail.header(name: "Skeleton"))
@@ -25,7 +26,7 @@ final class PlayMapUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Skeleton"), timeout: 2)
     }
 
-    func testChapterOverviewShowsFiveStagesRewardsPartyAndBoss() {
+    func testChapterOverviewShowsFiveStagesWithoutRewardsCompactPartyAndBoss() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
@@ -33,11 +34,12 @@ final class PlayMapUITests: TrinketUITestCase {
             assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
         }
         assertExists(AccessibilityID.Play.activeStageDetail)
-        assertExists(AccessibilityID.Play.stageRewards)
-        assertExists(AccessibilityID.Play.battlePartyInlinePicker)
-        assertExists(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
-        XCTAssertEqual(app.staticTexts.matching(identifier: "Rewards").count, 1)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "Your Party").count, 1)
+        assertDoesNotExist(AccessibilityID.Play.stageRewards)
+        assertExists(AccessibilityID.Play.stagePartyControl)
+        assertDoesNotExist(AccessibilityID.Play.battlePartyInlinePicker)
+        assertDoesNotExist(AccessibilityID.Play.bossBadge(chapter: 1, stage: 5))
+        XCTAssertEqual(app.staticTexts.matching(identifier: "Rewards").count, 0)
+        XCTAssertEqual(app.staticTexts.matching(identifier: "Your Party").count, 0)
     }
 
     func testChapterPickerBrowsesCompletedChapterReadOnly() {
@@ -60,29 +62,39 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.openStage(chapter: 1, stage: 2)
 
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 3))
         XCTAssertFalse(button(AccessibilityID.Play.stageNode(chapter: 1, stage: 2)).exists)
     }
 
-    func testBattleUsesInlinePartyPicker() {
+    func testBattleUsesCompactPartyPicker() {
         launchApp(arguments: TestLaunchArg.testLaunchArgs)
 
         play.assertLoaded()
 
-        assertExists(AccessibilityID.Play.battlePartyInlinePicker)
+        assertDoesNotExist(AccessibilityID.Play.battlePartyInlinePicker)
+        button(AccessibilityID.Play.stagePartyControl).tap()
+        assertExists(AccessibilityID.Play.stagePartyPickerSheet)
         assertExists(AccessibilityID.Play.battlePartyHeroControl)
         assertExists(AccessibilityID.Play.battlePartyPetControl)
 
         button(AccessibilityID.Play.battlePartyHeroControl).tap()
-        assertExists(AccessibilityID.Play.battlePartyPickerSheet(for: "Hero"))
         assertExists(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard"))
-
         button(AccessibilityID.Play.battlePartyOption(for: "Hero", combatantName: "Wizard")).tap()
-        assertDoesNotExist(AccessibilityID.Play.battlePartyPickerSheet(for: "Hero"), timeout: 2)
         XCTAssertEqual(
             app.descendants(matching: .any)[AccessibilityID.Play.battlePartyHeroControl].value as? String,
             "Wizard"
         )
+
+        button(AccessibilityID.Play.battlePartyPetControl).tap()
+        assertExists(AccessibilityID.Play.battlePartyOption(for: "Pet", combatantName: "Bear"))
+        button(AccessibilityID.Play.battlePartyOption(for: "Pet", combatantName: "Bear")).tap()
+        XCTAssertEqual(
+            app.descendants(matching: .any)[AccessibilityID.Play.battlePartyPetControl].value as? String,
+            "Bear"
+        )
+
+        dismissSheet()
+        assertDoesNotExist(AccessibilityID.Play.stagePartyPickerSheet, timeout: 2)
 
         play.startBattle(chapter: 1, stage: 1)
     }
@@ -142,7 +154,7 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.assertLoaded()
         play.assertChapterHeader(number: 1)
-        assertButtonExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
+        assertExists(AccessibilityID.Play.stageNode(chapter: 1, stage: 5))
         assertDoesNotExist(AccessibilityID.Play.chapterLocked(number: 2))
     }
 }

@@ -23,6 +23,6 @@ struct BattlefieldView: View {
     private func sizedPane(_ pane: BattleCombatantPane, size: CGSize) -> some View {
         pane
             .frame(width: size.width, height: size.height)
-            .clipped()
+            .clipShape(TrinketDesign.cardShape)
     }
 }

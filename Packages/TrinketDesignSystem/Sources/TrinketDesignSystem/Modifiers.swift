@@ -82,10 +82,12 @@ struct CardLabelSpaceModifier: ViewModifier {
 }
 
 struct PrimaryActionButtonModifier: ViewModifier {
+    let controlSize: ControlSize
+
     func body(content: Content) -> some View {
         content
             .buttonStyle(.glassProminent)
-            .controlSize(.large)
+            .controlSize(controlSize)
             .buttonBorderShape(.roundedRectangle)
     }
 }
@@ -131,8 +133,8 @@ public extension View {
         modifier(CardLabelSpaceModifier(isReserved: isReserved))
     }
 
-    func trinketPrimaryActionButton() -> some View {
-        modifier(PrimaryActionButtonModifier())
+    func trinketPrimaryActionButton(controlSize: ControlSize = .large) -> some View {
+        modifier(PrimaryActionButtonModifier(controlSize: controlSize))
     }
 
     func trinketNavigationRowButtonStyle() -> some View {
