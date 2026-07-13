@@ -49,7 +49,7 @@ struct BattleStateTests {
         try #expect(!(battle.isPartyDefeated))
 
         // Death's Door lasts N rounds; each endTurn advances one round.
-        for _ in 0 ..< BattleTiming.deathsDoorDurationTurns {
+        for _ in 0 ..< BattleTiming.deathsDoorDurationTicks {
             _ = battle.endTurn()
         }
         // Expiry grace lasts through the round Death's Door fell off; advance once more to clear it.

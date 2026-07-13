@@ -54,14 +54,14 @@ struct PlayView: View {
                 .presentationDragIndicator(.hidden)
         })
         .sheet(item: Binding(
-            get: { battle.overlayAbilityDetail.map { AbilityDetailSheetItem(ability: $0) } },
+            get: { battle.overlayAbilityDetail },
             set: { newValue in
                 if newValue == nil {
                     battle.clearAbilityDetail()
                 }
             }
-        ), content: { item in
-            AbilityDetailSheet(ability: item.ability)
+        ), content: { ability in
+            AbilityDetailSheet(ability: ability)
                 .presentationDetents([.large])
                 .presentationContentInteraction(.resizes)
                 .presentationDragIndicator(.hidden)

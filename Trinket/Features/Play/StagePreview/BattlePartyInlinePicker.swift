@@ -1,6 +1,7 @@
 import SwiftUI
 import TrinketContent
 import TrinketDesignSystem
+import TrinketPersistence
 
 enum BattlePartySlot: String, Identifiable {
     case hero
@@ -14,18 +15,39 @@ enum BattlePartySlot: String, Identifiable {
         rawValue.capitalized
     }
 
-    var role: Combatant.Role {
-        switch self {
-        case .hero: .hero
-        case .companion: .companion
-        }
-    }
-
     var controlAccessibilityID: String {
         switch self {
         case .hero: AccessibilityID.Play.battlePartyHeroControl
         case .companion: AccessibilityID.Play.battlePartyCompanionControl
         }
+    }
+
+    func combatants(in roster: PlayerRosterState) -> [Combatant] {
+        switch self {
+        case .hero: roster.heroes
+        case .companion: roster.companions
+        }
+    }
+
+    func selectedID(in roster: PlayerRosterState) -> String {
+        switch self {
+        case .hero: roster.activeHero.id
+        case .companion: roster.activeCompanion.id
+        }
+    }
+
+    func select(_ combatant: Combatant, in roster: inout PlayerRosterState) {
+        switch self {
+        case .hero:
+            roster.setActiveHero(combatant)
+        case .companion:
+            roster.setActiveCompanion(combatant)
+        }
+    }
+
+    static func isEligible(_ combatant: Combatant, for aspect: AspectDefinition?) -> Bool {
+        guard let aspect else { return true }
+        return combatant.keywordProfile.contains(aspect.keyword)
     }
 }
 
@@ -60,8 +82,8 @@ struct BattlePartyInlinePicker: View {
         .sheet(item: $presentedSlot) { slot in
             BattleCombatantPickerSheet(
                 slot: slot,
-                combatants: combatants(for: slot),
-                selectedID: selectedID(for: slot),
+                combatants: slot.combatants(in: appState.roster),
+                selectedID: slot.selectedID(in: appState.roster),
                 aspect: aspect,
                 accentColor: accentColor,
                 onSelect: { combatant in
@@ -131,36 +153,12 @@ struct BattlePartyInlinePicker: View {
             .padding(.horizontal, 4)
     }
 
-    private func combatants(for slot: BattlePartySlot) -> [Combatant] {
-        switch slot {
-        case .hero: appState.roster.heroes
-        case .companion: appState.roster.companions
-        }
-    }
-
-    private func selectedID(for slot: BattlePartySlot) -> String {
-        switch slot {
-        case .hero: appState.roster.activeHero.id
-        case .companion: appState.roster.activeCompanion.id
-        }
-    }
-
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        guard isEligible(combatant) else { return }
+        guard BattlePartySlot.isEligible(combatant, for: aspect) else { return }
 
         var updatedRoster = appState.roster
-        switch slot {
-        case .hero:
-            updatedRoster.setActiveHero(combatant)
-        case .companion:
-            updatedRoster.setActiveCompanion(combatant)
-        }
+        slot.select(combatant, in: &updatedRoster)
         appState.roster = updatedRoster
-    }
-
-    private func isEligible(_ combatant: Combatant) -> Bool {
-        guard let aspect else { return true }
-        return combatant.keywordProfile.contains(aspect.keyword)
     }
 }
 
@@ -206,7 +204,7 @@ struct BattleCombatantPickerSheet: View {
     }
 
     private func optionButton(_ combatant: Combatant) -> some View {
-        let eligible = isEligible(combatant)
+        let eligible = BattlePartySlot.isEligible(combatant, for: aspect)
         let selected = combatant.id == selectedID
 
         return Button {
@@ -249,11 +247,6 @@ struct BattleCombatantPickerSheet: View {
             AccessibilityID.Play.battlePartyOption(for: slot.title, combatantName: combatant.name)
         )
     }
-
-    private func isEligible(_ combatant: Combatant) -> Bool {
-        guard let aspect else { return true }
-        return combatant.keywordProfile.contains(aspect.keyword)
-    }
 }
 
 /// Journey's compact, single-sheet party editor.
@@ -272,8 +265,8 @@ struct StageBattlePartyPickerSheet: View {
                 if let presentedSlot {
                     BattlePartyOptionsGrid(
                         slot: presentedSlot,
-                        combatants: combatants(for: presentedSlot),
-                        selectedID: selectedID(for: presentedSlot),
+                        combatants: presentedSlot.combatants(in: appState.roster),
+                        selectedID: presentedSlot.selectedID(in: appState.roster),
                         accentColor: accentColor,
                         onSelect: { combatant in
                             select(combatant, for: presentedSlot)
@@ -349,22 +342,9 @@ struct StageBattlePartyPickerSheet: View {
         .accessibilityHint("Choose a different \(slot.title.lowercased())")
     }
 
-    private func combatants(for slot: BattlePartySlot) -> [Combatant] {
-        slot == .hero ? appState.roster.heroes : appState.roster.companions
-    }
-
-    private func selectedID(for slot: BattlePartySlot) -> String {
-        slot == .hero ? appState.roster.activeHero.id : appState.roster.activeCompanion.id
-    }
-
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         var roster = appState.roster
-        switch slot {
-        case .hero:
-            roster.setActiveHero(combatant)
-        case .companion:
-            roster.setActiveCompanion(combatant)
-        }
+        slot.select(combatant, in: &roster)
         appState.roster = roster
         selectionFeedbackTrigger += 1
     }
