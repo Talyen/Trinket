@@ -73,15 +73,15 @@ Route recurring chrome through these modifiers — do not call raw SwiftUI styli
 | `.trinketGlassChip()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketTypography(_:)` | Scalable text hierarchy (`TypographyRole`) |
 | `.trinketCardSurface()` | 3:4 card identity tiles |
-| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur (blur skipped under Reduce Transparency), larger secondary-grey lock icon in a liquid glass chip |
+| `.trinketLockedCardEffect(isLocked:text:cornerRadius:)` | Subtle desaturation + opaque content blur, larger secondary-grey lock icon |
 | `.trinketPrimaryActionButton()` | Primary CTAs (`.glassProminent`) |
-| `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips with Reduce Transparency solid fallbacks |
+| `.trinketStatusBadge()` / `.trinketWalletPill()` | Glass capsule chips via shared `TrinketGlassBackgroundModifier` |
 | `.trinketOnArtText(_:)` | Paper foreground + ink shadows on hero art |
 | `TrinketHeroScrim.gradient(for:)` | Homestead / detail / chapter hero readability scrims |
 | `.trinketArtworkBlend(_:)` | Optional `.perimeter` or `.bottom` blend into a semantic destination surface; defaults to `.none` |
 | `.trinketSensoryFeedback(_:trigger:enabled:)` | Gate `.sensoryFeedback` on Options haptics toggle |
 
-Glass and material modifiers resolve to solid themed surfaces when **Reduce Transparency** is enabled — this is an accessibility fallback, not older-OS support. Deployment target is iOS 26.0 only.
+Glass chrome routes through `.glassEffect` in `TrinketDesignSystem` (feature views must not call raw glass APIs). Deployment target is iOS 26.0 only.
 
 Artwork blends should replace an overlapping edge scrim rather than stack with it. Use `.perimeter(into:)` for bounded thumbnails and cards, `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 

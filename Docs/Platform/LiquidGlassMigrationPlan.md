@@ -2,9 +2,9 @@
 
 Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liquid Glass. Complements [iOS26StackAudit.md](iOS26StackAudit.md) and [iOS26AppleReference.md](iOS26AppleReference.md).
 
-**Status (July 2026):** Phases 0–3, 5–6 **complete**. Liquid Glass design-system migration is done. Toolbar background overrides on Battle / Play map / combatant detail are **retained intentionally** (art-forward chrome) and are not part of this plan. Remaining Apple-native follow-ups live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+**Status (July 2026):** Phases 0–3, 5–6 **complete**. Liquid Glass design-system migration is done. Toolbar background overrides on Battle and combatant detail are **retained intentionally** (art-forward chrome) and are not part of this plan. Remaining Apple-native follow-ups live in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
 
-**Scope:** `TrinketDesignSystem` modifiers, three primary CTA call sites, and Homestead chrome. Accessibility audit removal and the visual-first baseline are documented in PD-007; this plan does not reintroduce accessibility audits.
+**Scope:** `TrinketDesignSystem` modifiers, primary CTA styling, and chrome that sits over artwork. Accessibility audit removal and the visual-first baseline are documented in PD-007; this plan does not reintroduce accessibility audits.
 
 **Principle:** Glass on **functional chrome** (chips, pills, primary actions, bottom bars over artwork). Solid themed surfaces on **dense content** (Collection grids, Inventory rows, Options forms) via `TrinketDesignSystem` / `VisualFoundation`.
 
@@ -22,48 +22,52 @@ Detailed implementation plan for migrating Trinket's custom chrome to iOS 26 Liq
 
 ---
 
-## Current state
+## As shipped (current state)
 
-### Design system (`VisualFoundation.swift`)
+### Design system (`VisualFoundation.swift` / `Modifiers.swift`)
 
-| Modifier | Today | Target |
-|----------|-------|--------|
-| `GlassChipModifier` | `.glassEffect(.regular)` | Keep (reference implementation) |
-| `StatusBadgeModifier` | `.background(.regularMaterial)` | `.glassEffect(.regular)` |
-| `WalletPillModifier` | `.background(.thinMaterial)` | `.glassEffect(.regular)` |
-| `MaterialRoleModifier` | `Material` by role | Role-specific: glass for chrome roles; solid for modal bodies |
+| Modifier | Shipped behavior |
+|----------|------------------|
+| `TrinketGlassBackgroundModifier` | Shared helper: `.glassEffect(glass, in: shape)` |
+| `GlassChipModifier` | Capsule glass via shared helper (`.trinketGlassChip()`) |
+| `StatusBadgeModifier` | Capsule glass via shared helper (`.trinketStatusBadge()`); API retained, no feature call sites today |
+| `WalletPillModifier` | Capsule glass via shared helper (`.trinketWalletPill()`); used by Shop gold chip |
+| `MaterialRoleModifier` | Role map via `MaterialRoleStyle` (see below) |
+| `PrimaryActionButtonModifier` | `.buttonStyle(.glassProminent)` |
 
-### Feature call sites (grep-stable inventory)
+### `MaterialRole` map (`MaterialRoleStyle`)
+
+| `MaterialRole` | Shipped | Rationale |
+|----------------|---------|-----------|
+| `.toolbar` | No custom material | System chrome |
+| `.bottomBar` | Glass (`.regular`) over `panelSurface` fallback color | Sticky footer / reward chrome over content |
+| `.modal` | Solid `panelSurface` | Avoid double material on sheets |
+| `.popover` | Glass (`.regular`) over `elevatedBackground` | Compact contextual chrome |
+| `.rewardReveal` | Glass (`.regular.tint(accent)`) | Victory/reward moments |
+| `.subtleOverlay` | `.ultraThinMaterial` | Battle scrims |
+| `.homesteadFooter` | Glass (`.regular`) over `panelSurface` | Homestead wallet grid chrome |
+
+### Representative feature call sites
 
 | File | Modifier | Notes |
 |------|----------|-------|
-| `SkillCalloutView.swift:99` | `.trinketGlassChip()` | Already glass (battle feedback) |
-| `HomesteadResourceViews.swift:53` | `.trinketWalletPill()` | Migrates with `WalletPillModifier` |
-| `HomesteadProjectViews.swift:291` | `.trinketStatusBadge()` | Migrates with `StatusBadgeModifier` |
-| `HomesteadDetailViews.swift:74` | `.trinketMaterial(.bottomBar)` | Phase 3 — bottom sticky bar |
-| `CurrentStageCard.swift:48` | `.trinketPrimaryActionButton()` | Phase 2 |
-| `HomesteadProjectViews.swift:237` | `.trinketPrimaryActionButton()` | Phase 2 |
-| `BattleOutcomeComponents.swift:53` | `.trinketPrimaryActionButton()` | Phase 2 |
+| `SkillCalloutView.swift:73` | `.trinketGlassChip(.utility)` | Battle feedback chip |
+| `ShopEncounterView.swift:135` | `.trinketWalletPill()` | Shop gold chip |
+| `WalletResources.swift:27` | `.trinketMaterial(.homesteadFooter)` | Homestead resource wallet grid |
+| `RewardRevealShell.swift:66` | `.trinketMaterial(.bottomBar, cornerRadius: 0)` | Bottom-pinned reward CTA bar |
+| `CurrentStageCard.swift:99` | `.trinketPrimaryActionButton(...)` | Play stage CTA |
+| `BattleOutcomeComponents.swift:52` | `.trinketPrimaryActionButton()` | Battle outcome CTA |
 
-### Primary button (`Modifiers.swift`)
-
-```swift
-// Today
-.buttonStyle(.borderedProminent)
-
-// Target
-.buttonStyle(.glassProminent)
-```
+Discover additional `.trinketGlassChip()` / `.trinketPrimaryActionButton()` call sites with a repo grep; do not treat the table above as exhaustive.
 
 ### Toolbar background overrides (retained)
 
 | File | Modifier | Notes |
 |------|----------|-------|
-| `BattleView.swift` | `.toolbarBackgroundVisibility(...)` | Art-forward combat chrome — keep |
-| `ChapterStageSelectView.swift` | `.toolbarBackgroundVisibility(.hidden)` | Journey hero under nav — keep |
-| `CombatantDetailPane.swift` | `.toolbarBackground(.clear)` + visibility hidden | Sheet over card art — keep |
+| `BattleView.swift` | `.toolbarBackgroundVisibility(.hidden, ...)` | Art-forward combat chrome — keep |
+| `DetailHeroScrollShell.swift` | `.toolbarBackground(.clear)` + visibility hidden | Combatant / detail hero under nav — keep |
 
-These are product choices for full-bleed artwork, not outstanding Liquid Glass debt. Do not remove them as part of this migration. Optional iOS 26 scroll APIs (tab minimize, `backgroundExtensionEffect`, `scrollEdgeEffectStyle`) are tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D.
+These are product choices for full-bleed artwork, not outstanding Liquid Glass debt. Do not remove them as part of chrome cleanup. Optional iOS 26 scroll APIs (tab minimize, `backgroundExtensionEffect`, `scrollEdgeEffectStyle`) are tracked in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase D (tab minimize deliberately omitted; journey `backgroundExtensionEffect` already shipped).
 
 ### UI test baseline
 
@@ -73,42 +77,30 @@ UI tests retain stable `AccessibilityID` selectors and assert visible state or i
 
 ## Architecture: shared glass primitive
 
-Before migrating individual modifiers, extract a single internal helper so fallbacks stay consistent.
-
-### Proposed helper (in `VisualFoundation.swift`)
+Shipped helper in `VisualFoundation.swift` (shape is a generic `Shape`, not a custom enum):
 
 ```swift
-enum TrinketGlassShape {
-    case capsule
-    case roundedRectangle(cornerRadius: CGFloat)
-}
-
-struct TrinketGlassBackgroundModifier: ViewModifier {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+struct TrinketGlassBackgroundModifier<S: Shape>: ViewModifier {
     let glass: Glass
-    let shape: TrinketGlassShape
-    let solidFill: Color  // role-appropriate fallback
+    let shape: S
+    let solidFill: Color
 
     func body(content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(solidFill, in: resolvedShape)
-                .overlay { resolvedShape.stroke(ThemePalette.apple.subtleStroke, lineWidth: 1) }
-        } else {
-            content
-                .glassEffect(glass, in: resolvedShape)
-        }
+        content
+            .glassEffect(glass, in: shape)
     }
 }
 ```
 
-**Why:** `GlassChipModifier`, `StatusBadgeModifier`, and `WalletPillModifier` should share one material policy. One helper prevents visual drift.
+**Why:** `GlassChipModifier`, `StatusBadgeModifier`, and `WalletPillModifier` share one material policy so chrome does not drift.
 
-**Public API unchanged:** `.trinketGlassChip()`, `.trinketStatusBadge()`, `.trinketWalletPill()` keep their names; only internal implementation changes.
+**Public API:** `.trinketGlassChip()`, `.trinketStatusBadge()`, `.trinketWalletPill()`, and `.trinketMaterial(_:)` keep their names; feature code must not call raw `.glassEffect` / `.buttonStyle(.glass*)`.
+
+Palette tokens use `ThemePalette.trinket` (there is no `ThemePalette.apple`).
 
 ### `GlassEffectContainer` usage
 
-When multiple glass elements appear in one row (Homestead wallet + status badges), wrap siblings:
+When multiple glass elements appear in one row, wrap siblings:
 
 ```swift
 GlassEffectContainer {
@@ -119,152 +111,66 @@ GlassEffectContainer {
 }
 ```
 
-Apply in `HomesteadResourceViews` or parent layout — not on every single chip globally. Apple warns against over-nesting containers ([Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views)).
+Apply only where sibling glass chips are visible together — not on every chip globally. Apple warns against over-nesting containers ([Applying Liquid Glass to custom views](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views)). Homestead wallet chrome now uses `TrinketWalletGrid` + `.homesteadFooter` rather than sibling wallet/status glass pills.
 
 ---
 
-## Phased rollout
+## Completed rollout (historical)
 
-### Phase 0 — Prep (no visual change)
+Phases below are finished. Keep them as the migration record; do not re-open unless product revisits chrome policy.
 
-**Effort:** Small. **Risk:** None.
+### Phase 0 — Prep ✅
 
-1. Add `TrinketGlassBackgroundModifier` (or equivalent private helper) in `VisualFoundation.swift`.
-2. Refactor `GlassChipModifier` to use the helper — behavior should be pixel-identical.
-3. Add unit tests in `VisualFoundationTests.swift`:
-   - Helper resolves shapes for capsule and rounded-rectangle cases.
-   - Document the shared material policy and verify its visual role mapping.
-4. Update `Packages/TrinketDesignSystem/README.md` if it lists modifier behavior.
+1. Added `TrinketGlassBackgroundModifier` in `VisualFoundation.swift`.
+2. Refactored `GlassChipModifier` onto the helper.
+3. Covered shared policy in `VisualFoundationTests.swift`.
+4. Documented modifier behavior in `Packages/TrinketDesignSystem/README.md`.
 
-**Verify:**
+**Verify (then):** `./Scripts/test-package.sh TrinketDesignSystem`, `./Scripts/check-ui-style.sh`
 
-```sh
-./Scripts/test-package.sh TrinketDesignSystem
-./Scripts/check-ui-style.sh
-```
+### Phase 1 — Badge and wallet modifiers ✅
 
----
+1. Migrated `StatusBadgeModifier` / `WalletPillModifier` onto the shared glass helper with `ThemePalette.trinket` solid-fill tokens.
+2. Homestead wallet chrome later consolidated into `TrinketWalletGrid` (`.homesteadFooter`); Shop retains `.trinketWalletPill()`.
 
-### Phase 1 — Badge and wallet modifiers
+**Verify (then):** `./Scripts/test.sh smoke SmokeHomesteadTests` (or closest Homestead smoke), `./Scripts/test.sh smoke`
 
-**Effort:** Small. **Risk:** Low (2 Homestead call sites).
+### Phase 2 — Primary action buttons ✅
 
-1. Migrate `StatusBadgeModifier` → shared glass helper, `.glassEffect(.regular)`, capsule shape. Solid fallback: `ThemePalette.apple.panelSurface` (unchanged).
-2. Migrate `WalletPillModifier` → shared glass helper. Solid fallback: `ThemePalette.apple.secondaryBackground` (unchanged).
-3. Wrap Homestead wallet row in `GlassEffectContainer` if multiple glass siblings are visible together.
+1. `PrimaryActionButtonModifier` uses `.glassProminent` / `.buttonBorderShape(.roundedRectangle)`.
+2. `check-ui-style.sh` still allow-lists legacy `.bordered*` only for Debug / “Battle Again” contexts; production CTAs go through `.trinketPrimaryActionButton()`.
+3. Representative CTAs: Play stage card, battle outcome, plus other feature primary actions discovered by grep.
 
-**Manual QA:**
+**Verify (then):** `./Scripts/test.sh smoke SmokePlayTests`, `./Scripts/test.sh smoke SmokeBattleTests`, `./Scripts/check-ui-style.sh`
 
-- Homestead tab: wallet pill and project status badges over scrolling content.
-- Visual QA: pills retain the intended role and readable contrast in the supported product presentation.
+### Phase 3 — `MaterialRoleModifier` role map ✅
 
-**Verify:**
+Role map shipped as in the **As shipped** table above (including `.homesteadFooter`). Bottom-bar chrome for pinned primary actions lives in `RewardRevealShell.swift`.
 
-```sh
-./Scripts/test.sh ui SmokeHomesteadTests   # if exists; else SmokeCollectionTests + manual Homestead
-./Scripts/test.sh smoke
-```
+**Verify (then):** `./Scripts/test.sh smoke`, `./Scripts/build.sh`
 
----
+### Phase 5 — Accessibility scope alignment ✅
 
-### Phase 2 — Primary action buttons
+Accessibility audit helper / nightly path removed. Native SwiftUI controls and stable UI-test identifiers remain; do not add custom semantics or accessibility-setting branches without revisiting PD-007.
 
-**Effort:** Small. **Risk:** Medium (high-visibility CTAs).
+### Phase 6 — Documentation and audit refresh ✅
 
-1. Change `PrimaryActionButtonModifier` in `Modifiers.swift`:
-
-   ```swift
-   .buttonStyle(.glassProminent)
-   .controlSize(.large)
-   .buttonBorderShape(.roundedRectangle)
-   ```
-
-2. Review `check-ui-style.sh` allow-list comment on line 38–40 (“Debug / Battle Again intentionally use bordered”) — ensure it still matches any one-off bordered buttons after migration.
-
-3. Visual QA on all three call sites:
-   - Play → current stage card CTA (`CurrentStageCard.swift`)
-   - Homestead → project build CTA (`HomesteadProjectViews.swift`)
-   - Battle outcome → “Battle Again” / continue (`BattleOutcomeComponents.swift`)
-
-**Accessibility baseline:** Confirm visible button labels and native SwiftUI control behavior; comprehensive contrast permutations are outside PD-007.
-
-**Verify:**
-
-```sh
-./Scripts/test.sh ui SmokePlayTests
-./Scripts/test.sh ui SmokeBattleTests   # or closest battle smoke class
-./Scripts/check-ui-style.sh
-```
+[iOS26StackAudit.md](iOS26StackAudit.md), design-system README, and [Docs/Platform/README.md](README.md) record the migration as complete.
 
 ---
 
-### Phase 3 — `MaterialRoleModifier` role map
-
-**Effort:** Medium. **Risk:** Medium (toolbar/bottom-bar semantics).
-
-Define per-role behavior — not all roles should become glass:
-
-| `MaterialRole` | Current | Proposed | Rationale |
-|--------------|---------|----------|-----------|
-| `.toolbar` | `.thinMaterial` | **No custom material** — remove modifier at call sites where system toolbar provides glass | System chrome |
-| `.bottomBar` | `.thinMaterial` | `.glassEffect(.regular)` in rounded rect | Homestead sticky footer over content |
-| `.modal` | `.regularMaterial` | Solid `panelSurface` or system sheet default | Sheets get iOS 26 glass automatically; avoid double material |
-| `.popover` | `.thinMaterial` | `.glassEffect(.regular)` | Compact contextual chrome |
-| `.rewardReveal` | `.regularMaterial` | `.glassEffect(.regular.tint(accent))` optional | Victory/reward moments |
-| `.subtleOverlay` | `.ultraThinMaterial` | Keep material or very light glass | Battle scrims — test legibility |
-
-**Call site today:** `HomesteadDetailViews.swift:74` — `.trinketMaterial(.bottomBar, cornerRadius: 0)`.
-
-**Steps:**
-
-1. Update `MaterialRoleModifier` implementation per table.
-2. Grep for `.trinketMaterial(` — migrate or remove each call site.
-3. If `.toolbar` call sites exist only for custom bars, switch to `.safeAreaBar` / system toolbar APIs per WWDC25-323.
-
-**Verify:**
-
-```sh
-./Scripts/test.sh smoke
-./Scripts/build.sh
-```
-
----
-
-### Phase 5 — Accessibility scope alignment
-
-**Effort:** Trivial. **Risk:** Low.
-
-The former accessibility audit helper and nightly execution path were deleted. Keep native SwiftUI controls and stable UI-test identifiers, but do not add custom semantics or accessibility-setting branches without revisiting PD-007.
-
-**Verify:**
-
-```sh
-./Scripts/test.sh smoke
-```
-
----
-
-### Phase 6 — Documentation and audit refresh
-
-1. Update [iOS26StackAudit.md](iOS26StackAudit.md) — mark glass migration complete, refresh date.
-2. Update `TrinketDesignSystem` / `VisualFoundation` material rules if role map changed.
-3. Update `TrinketDesignSystem` README modifier table.
-4. Add entry to `Docs/Platform/README.md` linking this plan (done when plan lands).
-
----
-
-## Testing matrix
+## Testing matrix (historical)
 
 | Phase | Automated | Manual |
 |-------|-----------|--------|
 | 0 | `test-package.sh TrinketDesignSystem`, `check-ui-style.sh` | — |
-| 1 | `test.sh smoke` | Homestead visual flow |
-| 2 | `SmokePlayTests`, battle smoke | Visible CTA state and interaction |
-| 3 | `test.sh smoke`, `build.sh` | Homestead detail bottom bar, sheets |
+| 1 | `test.sh smoke SmokeHomesteadTests` | Homestead visual flow |
+| 2 | `SmokePlayTests`, `SmokeBattleTests` | Visible CTA state and interaction |
+| 3 | `test.sh smoke`, `build.sh` | Reward bottom bar, sheets |
 | 5 | `SmokePlayTests`, `SmokeCollectionTests` | — |
 | 6 | — | Doc review |
 
-**Pre-merge gate for the full migration:**
+**Pre-merge gate used for the full migration:**
 
 ```sh
 ./Scripts/ci-locally.sh
@@ -272,9 +178,9 @@ The former accessibility audit helper and nightly execution path were deleted. K
 
 ---
 
-## PR strategy
+## PR strategy (historical)
 
-Ship as **stacked PRs** or **sequential commits on main** to keep review focused:
+Shipped as stacked PRs / sequential commits:
 
 | PR | Phases | Title |
 |----|--------|-------|
@@ -283,7 +189,7 @@ Ship as **stacked PRs** or **sequential commits on main** to keep review focused
 | 3 | 3 | `style(design): MaterialRole glass role map` |
 | 4 | 5 | `refactor(tests): remove accessibility audit path` |
 
-Phase 5 is complete alongside the visual-first accessibility decision; smoke tests cover the gameplay/UI flows without running platform accessibility audits.
+Phase 5 landed alongside the visual-first accessibility decision; smoke tests cover gameplay/UI flows without running platform accessibility audits.
 
 ---
 
@@ -291,7 +197,7 @@ Phase 5 is complete alongside the visual-first accessibility decision; smoke tes
 
 - Card surfaces (`.trinketSurface(.card)`) — stay solid; card art is the hero.
 - Collection / Inventory / Options list rows — stay solid (`denseList` background mode).
-- Toolbar background visibility on Battle / Play map / combatant detail — intentional art-forward chrome; not migrated.
+- Toolbar background visibility on Battle / detail hero chrome — intentional art-forward chrome; not migrated.
 - `LockedCardEffectModifier` fixed font sizes — Dynamic Type pass in [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase C.
 - StoreKit, GameKit, RealityKit — not applicable today.
 - App icon layer composition for Liquid Glass — track via App Store prep checklist.
