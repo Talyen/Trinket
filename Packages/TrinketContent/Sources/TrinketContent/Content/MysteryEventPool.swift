@@ -298,7 +298,7 @@ public enum MysteryEventPool {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent {
         guard let event = all.randomElement(using: &randomNumberGenerator) else {
-            return all[0]
+            preconditionFailure("MysteryEventPool.all must be non-empty")
         }
         return event
     }

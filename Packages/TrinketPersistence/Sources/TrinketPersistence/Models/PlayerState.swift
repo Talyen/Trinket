@@ -336,17 +336,27 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var activeHero: Combatant {
-        heroes.first { $0.id == activeHeroID } ??
-            heroes.first ??
-            GameContent.heroes.first { $0.id == PlayerRosterState.starterHeroID } ??
-            collectionHeroes[0]
+        if let hero = heroes.first(where: { $0.id == activeHeroID }) ?? heroes.first {
+            return hero
+        }
+        if let starter = GameContent.heroes.first(where: { $0.id == PlayerRosterState.starterHeroID })
+            ?? collectionHeroes.first
+        {
+            return starter
+        }
+        preconditionFailure("GameContent.heroes must be non-empty")
     }
 
     public var activeCompanion: Combatant {
-        companions.first { $0.id == activeCompanionID } ??
-            companions.first ??
-            GameContent.companions.first { $0.id == PlayerRosterState.starterCompanionID } ??
-            collectionCompanions[0]
+        if let companion = companions.first(where: { $0.id == activeCompanionID }) ?? companions.first {
+            return companion
+        }
+        if let starter = GameContent.companions.first(where: {
+            $0.id == PlayerRosterState.starterCompanionID
+        }) ?? collectionCompanions.first {
+            return starter
+        }
+        preconditionFailure("GameContent.companions must be non-empty")
     }
 
     private func orderedCollectionCombatants(_ combatants: [Combatant]) -> [Combatant] {

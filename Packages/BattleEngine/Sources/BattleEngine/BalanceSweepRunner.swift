@@ -157,6 +157,7 @@ enum BalanceSampling {
         battleIndex: Int,
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Enemy {
+        precondition(!enemies.isEmpty, "stratifiedEnemy requires a non-empty enemy list")
         let normal = enemies.filter { !$0.isBoss }
         let bosses = enemies.filter(\.isBoss)
         let bucket = battleIndex % 2
@@ -165,7 +166,8 @@ enum BalanceSampling {
         case 1 where !bosses.isEmpty: bosses
         default: enemies
         }
-        return pool.randomElement(using: &randomNumberGenerator) ?? enemies[battleIndex % enemies.count]
+        return pool.randomElement(using: &randomNumberGenerator)
+            ?? enemies[battleIndex % enemies.count]
     }
 }
 

@@ -83,11 +83,6 @@ public enum AbilityDescriptionFormatter {
         return damage.contains { $0.keyword == effect.keyword && $0.amount == potency }
     }
 
-    private static func listPhrase(_ items: [String]) -> String {
-        guard items.count > 1 else { return items[0] }
-        return items.dropLast().joined(separator: ", ") + ", and " + items[items.count - 1]
-    }
-
     private static func joinClauses(_ clauses: [String]) -> String {
         guard let first = clauses.first else { return "" }
         guard clauses.count > 1 else {
@@ -103,7 +98,8 @@ public enum AbilityDescriptionFormatter {
     }
 
     private static func joinWithAnd(_ clauses: [String]) -> String {
-        guard clauses.count > 1 else { return clauses[0] }
+        guard let first = clauses.first else { return "" }
+        guard clauses.count > 1 else { return first }
         return clauses.dropLast().joined(separator: ", ") + " and " + clauses[clauses.count - 1]
     }
 

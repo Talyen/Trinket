@@ -13,6 +13,11 @@ enum BalanceAffixContrastRunner {
         context: BalanceContrastContext,
         policy: some PlayerPolicy
     ) -> [PairedContrastSummary] {
+        guard !context.heroes.isEmpty,
+              !context.companions.isEmpty,
+              !context.enemies.isEmpty
+        else { return [] }
+
         let gearTiers = context.config.tiers.filter(\.includesGear)
         guard !gearTiers.isEmpty else { return [] }
 
@@ -108,7 +113,9 @@ enum BalanceAffixContrastRunner {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> (withEntity: ConfiguredSimulationMatchup, withBaseline: ConfiguredSimulationMatchup) {
         let partnerPool = focus.owner.role == .hero ? context.companions : context.heroes
-        let partner = partnerPool.randomElement(using: &randomNumberGenerator) ?? partnerPool[0]
+        guard let partner = partnerPool.randomElement(using: &randomNumberGenerator) else {
+            preconditionFailure("Contrast partner pool empty after roster guard")
+        }
         let enemy = BalanceSampling.stratifiedEnemy(
             enemies: context.enemies,
             battleIndex: pairIndex,
