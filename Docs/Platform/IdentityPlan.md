@@ -1,9 +1,8 @@
 # Identity Plan
 
-Canonical product + engineering plan for Trinket identity, cross-device progress, and account/data deletion.
+Canonical product + engineering guidance for Trinket identity, cross-device progress, and account/data deletion.
 
-**Status:** Finalized (July 2026). **Implementation stubbed** until Apple Developer Program enrollment unlocks live CloudKit (F2).  
-**Related:** [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md), [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md) Phase F2, [Architecture.md](Architecture.md) Persistence.
+**Status:** Decisions locked. Live CloudKit remains stubbed until Apple Developer Program enrollment — execute [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) to enable sync. Persistence overview: [Architecture.md](Architecture.md).
 
 ---
 
@@ -16,7 +15,7 @@ Canonical product + engineering plan for Trinket identity, cross-device progress
 | 3 | No iCloud on device? | **Fully playable local-only** |
 | 4 | Account / data deletion? | Follow Apple guidance — see [Deletion](#deletion--apple-guidance) |
 | 5 | Multi-device conflicts? | **Rely on CloudKit / SwiftData defaults** — no custom merge UI |
-| 6 | Developer Program / F2 timing? | **Not imminent** — stub docs + code seams; do not enable live sync |
+| 6 | Developer Program timing? | **Not imminent** — keep seams stubbed; do not enable live sync early |
 | 7 | Non-Apple platforms? | **None planned** — CloudKit-private is sufficient |
 
 **Out of scope (explicit):**
@@ -37,7 +36,7 @@ Trinket’s “identity” for progress is the **system iCloud Apple ID**, not a
 ```text
 Cold launch
   → Play immediately (local SwiftData) — always
-  → If F2 enabled AND device signed into iCloud AND cloud sync not disabled
+  → If CloudKit enabled AND device signed into iCloud AND cloud sync not disabled
        → SwiftData private CloudKit syncs PlayerSave silently
   → Else
        → Local-only; no blocking UI
@@ -46,9 +45,9 @@ Cold launch
 | Concern | Mechanism |
 |---------|-----------|
 | Who owns the save | iCloud account on the device (CloudKit private DB) |
-| How progress moves devices | Automatic SwiftData ↔ CloudKit sync after F2 |
+| How progress moves devices | Automatic SwiftData ↔ CloudKit sync after enablement |
 | How players start | Guest / local — no sign-in |
-| How players wipe data | In-app **Reset Game Progress** (clears local; after F2 also clears synced CloudKit data) |
+| How players wipe data | In-app **Reset Game Progress** (clears local; after enablement also clears synced CloudKit data) |
 | How players manage iCloud storage | System Settings → Apple Account → iCloud (Apple-provided) |
 
 There is **no** Trinket-owned user row, password, or OAuth session. Cross-device restore happens because Device B uses the same iCloud account as Device A.
@@ -87,13 +86,13 @@ Because progress is **local + optional iCloud container data**, not a developer-
 
 1. **Keep / strengthen in-app Reset Game Progress** (Options)  
    - Clears local SwiftData save (already).  
-   - **At F2:** ensure reset also removes / replaces CloudKit-backed progress so wipe propagates across devices (checklist already expects this).  
-   - Copy: device-local wording until F2; after F2, accurate “this Apple Account / iCloud” wording without promising manual sync controls.
+   - **When sync ships:** ensure reset also removes / replaces CloudKit-backed progress so wipe propagates across devices (checklist already expects this).  
+   - Copy: device-local wording until sync; after enablement, accurate “this Apple Account / iCloud” wording without promising manual sync controls.
 
 2. **Do not invent a separate “Delete Account”** unless we later add SIWA or a hosted account. That would create 5.1.1 obligations we do not need for sync.
 
 3. **Respect system iCloud management**  
-   Players can delete the app’s iCloud data from Settings → Apple Account → iCloud → Manage storage. App Review notes (F2) should state: playable offline; progress syncs via iCloud when signed in; reset clears progress.
+   Players can delete the app’s iCloud data from Settings → Apple Account → iCloud → Manage storage. App Review notes should state: playable offline; progress syncs via iCloud when signed in; reset clears progress.
 
 4. **If we later add SIWA** (not planned): treat it as optional profile only; implement full in-app account deletion + token revoke; still do not gate play or sync on SIWA.
 
@@ -106,55 +105,26 @@ Because progress is **local + optional iCloud container data**, not a developer-
 | No login splash | System launch screen → Play tab |
 | No save prompts | No “Sign in to save” / “Enable iCloud?” sheets |
 | Offline / no iCloud | Full game; progress stays on device |
-| Options (F2+) | Optional quiet status only if useful later (e.g. “iCloud sync: On/Off”) — **not** a prompt; defer until F2 ships |
-| Reset | Confirmation alert; destructive; after F2 must clear synced progress |
+| Options (after sync) | Optional quiet status only if useful later (e.g. “iCloud sync: On/Off”) — **not** a prompt |
+| Reset | Confirmation alert; destructive; after sync must clear synced progress |
 | Conflicts | Accept CloudKit/SwiftData last-writer / merge defaults; no player-facing conflict UI in v1 |
 
 ---
 
-## Engineering plan (phased)
+## Engineering notes
 
-### Phase I0 — Docs + seams (now — this plan)
-
-- [x] Lock product decisions in this document  
-- [x] Cross-link from Platform README, Architecture sync bullet, CloudKit checklist, best-practices plan  
-- [x] No runtime identity module yet  
-- [x] Do **not** add SIWA / Google capabilities or entitlements  
-
-### Phase I1 — Stub seams (optional, pre–Developer Program)
-
-Lightweight, test-friendly stubs only — no live CloudKit, no Auth UI:
+Keep seams lightweight until Developer Program enrollment:
 
 | Seam | Purpose |
 |------|---------|
-| `CloudSyncStatus` (or similar) value type | `disabled` / `localOnly` / `icloudAvailable` / `syncing` / `error` — derived from `AppEnvironment.disableCloudSync`, entitlements readiness flag, and later account status |
-| `PlayerSaveStore` / config | Keep existing `cloudKitDatabase: .none` vs `.private(...)` gate; document identity = iCloud in comments |
-| Launch args | Unchanged: `-disable-cloud-sync`, `-enable-cloud-sync` (Simulator), `-reset-state`; tests never require an Apple ID |
+| Cloud sync status (optional value type) | Derive local-only vs iCloud-available from launch args / entitlements readiness — no Auth UI |
+| `PlayerSaveStore` / config | Keep `cloudKitDatabase: .none` vs `.private(...)` gate; identity = system iCloud |
+| Launch args | `-disable-cloud-sync`, `-enable-cloud-sync` (Simulator), `-reset-state`; tests never require an Apple ID |
 | Options copy helpers | Single place for “this device” vs “iCloud” reset strings gated on “cloud sync configured” |
 
-**Do not** ship user-visible Account / Sign-In rows in Options during I1.
+**Do not** ship Account / Sign-In rows in Options. **Do not** add SIWA / Google capabilities.
 
-### Phase I2 — Live CloudKit (F2 — human + code after Developer Program)
-
-Execute [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) in full. Identity-relevant extras:
-
-- [ ] Entitlements + container `iCloud.com.ryanmcintire.Trinket`  
-- [ ] Production path uses `.private(container)` when `disableCloudSync == false`  
-- [ ] Playable with iCloud signed out / restricted → local fallback (no crash, no modal gate)  
-- [ ] Reset Game Progress clears local graph **and** synced cloud data; verify on second device  
-- [ ] Privacy questionnaire + App Review notes: offline playable; iCloud optional for cross-device  
-- [ ] No CI job depends on iCloud credentials  
-
-### Phase I3 — Explicitly deferred
-
-- Sign in with Apple  
-- Google / other social login  
-- Game Center  
-- Custom conflict resolution UI  
-- Hosted backend identity  
-- Non-Apple platforms  
-
-Revisit only if product goals change (e.g. friends, shared leaderboards beyond Game Center, or Android).
+When enabling live CloudKit, run [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) end-to-end. Explicitly deferred forever unless product goals change: SIWA, Google, Game Center, custom conflict UI, hosted backend, non-Apple platforms.
 
 ---
 
@@ -162,17 +132,17 @@ Revisit only if product goals change (e.g. friends, shared leaderboards beyond G
 
 | Audience | Behavior |
 |----------|----------|
-| **Live (post-F2)** | Local play always; silent iCloud sync when signed into iCloud; reset wipes progress including cloud |
-| **Live (pre-F2 / stub)** | Local-only; reset is this-device only; no sync claims in UI |
+| **Live (sync on)** | Local play always; silent iCloud sync when signed into iCloud; reset wipes progress including cloud |
+| **Live (sync off / stub)** | Local-only; reset is this-device only; no sync claims in UI |
 | **Dev Simulator** | CloudKit off unless `-enable-cloud-sync`; no identity UI |
 | **UI tests** | Default `-reset-state`, `-seed-test-progress`, `-disable-cloud-sync`; unique `-store-name`; never hit real iCloud login |
-| **Unit tests** | `AppTestContext` / persistence tests stay cloud-off; assert local reset/seed only until F2 harness exists |
+| **Unit tests** | Persistence tests stay cloud-off; assert local reset/seed only until a sync harness exists |
 
 ---
 
-## Privacy & App Review notes (draft for F2)
+## Privacy & App Review notes (draft for sync enablement)
 
-- **Data collected for sync:** game progress in the app’s iCloud container (declare in privacy questionnaire when F2 lands).  
+- **Data collected for sync:** game progress in the app’s iCloud container (declare in privacy questionnaire when sync lands).  
 - **Tracking:** none.  
 - **Login:** none required.  
 - **Review notes sketch:** “Trinket is playable without an account. Progress syncs across the player’s devices via iCloud when they are signed into iCloud. Players can reset progress in Options. There is no Sign in with Apple / Google login.”
@@ -182,19 +152,8 @@ Revisit only if product goals change (e.g. friends, shared leaderboards beyond G
 ## Success criteria
 
 1. New player reaches Play and can battle with **zero** identity UI.  
-2. After F2: same iCloud account on two devices shares `PlayerSave` without prompts.  
+2. After sync enablement: same iCloud account on two devices shares `PlayerSave` without prompts.  
 3. No iCloud → full local play; no blocking errors.  
 4. Reset removes progress on this device and, when sync is on, on other devices after sync.  
 5. No Google, no SIWA, no hosting, no Game Center in this plan.  
 6. Tests and CI remain deterministic without Apple ID / CloudKit network.
-
----
-
-## Implementation checklist (when unblocking F2)
-
-1. Finish Developer Program + portal container (human).  
-2. Fill `Trinket/Trinket.entitlements`; flip production `ModelConfiguration` cloud path.  
-3. Run CloudKit pre-ship checklist (two devices, offline, reset propagation).  
-4. Update Options reset copy + `PrivacyInfo` / questionnaire.  
-5. Optionally surface quiet iCloud status in Options (still no prompts).  
-6. Keep identity docs in sync if SIWA/Game Center is ever reconsidered.

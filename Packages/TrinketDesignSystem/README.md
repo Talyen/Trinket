@@ -85,4 +85,4 @@ Glass chrome routes through `.glassEffect` in `TrinketDesignSystem` (feature vie
 
 Artwork blends should replace an overlapping edge scrim rather than stack with it. Use `.perimeter(into:)` for bounded thumbnails and cards, `.bottom(into:)` for full-bleed art meeting a lower surface, and `.none` when artwork should retain a crisp edge. Keep text-only contrast treatments such as `.trinketOnArtText(_:)` when they serve a separate readability purpose.
 
-Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/Skills/apple-design/SKILL.md` (`TrinketMotion`). Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays (`VisualFoundation.swift` surface roles above).
+Platform API notes and deprecated patterns: `Docs/Platform/iOS26AppleReference.md`. Fluid motion: `Docs/Skills/apple-design/SKILL.md` (`TrinketMotion`). Dense content stays on solid themed surfaces; glass belongs on chrome and selective overlays. Standing stack rules: `Docs/Platform/Architecture.md`.

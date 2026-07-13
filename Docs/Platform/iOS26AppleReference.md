@@ -2,7 +2,7 @@
 
 Curated Apple documentation, WWDC sessions, and release guidance for Trinket's iOS 26 / Swift 6 stack. Official Apple sources remain authoritative; this doc highlights what matters for our portrait SwiftUI game shell.
 
-**Trinket baseline:** iOS 26.0 deployment target, Swift 6.0, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`).
+**Trinket baseline:** iOS 26.0 deployment target, Swift 6.0, `SWIFT_STRICT_CONCURRENCY: complete` (`project.yml`). Standing product rules: [Architecture.md](Architecture.md). Design-system chrome: [TrinketDesignSystem/README.md](../../Packages/TrinketDesignSystem/README.md).
 
 ---
 
@@ -32,12 +32,12 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 |-----|----------------|
 | `.tabBarMinimizeBehavior(.onScrollDown)` | Deliberately omitted — tab bar stays fully expanded on scroll |
 | `.tabViewBottomAccessory { }` | Optional: persistent mini-player or battle status above tab bar |
-| `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome — best-practices plan Phase D |
-| `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / Play map / combatant detail for art-forward chrome (not scheduled for removal) |
+| `.backgroundExtensionEffect()` | Play journey hero art extending under navigation chrome |
+| `.toolbarBackgroundVisibility(.hidden)` | Retained on Battle / detail-hero screens for art-forward chrome |
 | `ToolbarSpacer` | Group related toolbar actions (e.g. battle menus) |
 | `.sharedBackgroundVisibility(.hidden)` | Separate avatar or status items from grouped toolbar chrome |
 | `.badge()` | Notification or milestone indicators on toolbar items |
-| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Inventory) — best-practices plan Phase D |
+| `.scrollEdgeEffectStyle()` | Tune legibility on dense scroll surfaces (Collection, Inventory) |
 | `.buttonStyle(.glass)` / `.glassProminent` | Route through `TrinketDesignSystem` (see `check-ui-style.sh`) |
 | `.glassEffectID(_:in:)` + `@Namespace` | Morphing transitions between related glass chips |
 
@@ -45,12 +45,12 @@ Liquid Glass is the adaptive material Apple introduced for controls and navigati
 
 From [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass):
 
-1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle, Play map, and combatant detail by product choice.
+1. **Let system chrome adopt glass automatically** where it does not fight art-forward screens — Trinket retains hidden toolbar backgrounds on Battle and detail-hero screens by product choice.
 2. **Use glass sparingly on custom controls** — limit `.glassEffect` to high-value functional elements (combat feedback chips, wallet pills), not every card surface.
 3. **Follow the product accessibility baseline** — native SwiftUI controls remain available, while custom accessibility-setting branches and comprehensive accessibility permutations are out of scope per PD-007.
 4. **Avoid stacking glass on glass** — do not layer multiple translucent materials.
 
-Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem` / `VisualFoundation`); glass belongs on navigation chrome and selective overlays. Follow-up migrations: [AppleNativeBestPracticesPlan.md](AppleNativeBestPracticesPlan.md).
+Trinket's dense Collection / Inventory surfaces should stay on **solid themed surfaces** (`TrinketDesignSystem`); glass belongs on navigation chrome and selective overlays.
 
 ---
 
@@ -130,11 +130,11 @@ iOS 26 app icons use layered compositions with system-applied effects. When prep
 
 ## Trinket implementation map
 
-| Concern | Owner | iOS 26 doc |
-|---------|-------|------------|
-| Custom glass / materials | `Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/VisualFoundation.swift` | [iOS26StackAudit.md](iOS26StackAudit.md) § Liquid Glass |
-| Tab shell | `Trinket/App/ContentView.swift` | This doc § TabView APIs |
+| Concern | Owner | Notes |
+|---------|-------|-------|
+| Custom glass / materials | `TrinketDesignSystem` | Package README + style gate |
+| Tab shell | `Trinket/App` | See TabView APIs above |
 | Style guardrails | `Scripts/check-ui-style.sh` | Route `.glassEffect` / `.buttonStyle(.glass*)` through design system |
-| Visual foundation rules | `Packages/TrinketDesignSystem` (`VisualFoundation.swift`) | Dense vs glass surfaces |
 | Fluid motion / gesture feel | [Apple Design skill](../Skills/apple-design/SKILL.md) | Principles via SwiftUI / `TrinketMotion` |
 | Concurrency | `project.yml`, `@MainActor` stores | Swift 6 migration guide |
+| CloudKit enablement | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Local-only until Developer Program |

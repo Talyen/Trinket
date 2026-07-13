@@ -5,7 +5,7 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 ## Modules
 
 - **BattleEngine** — Core simulation. `BattleState.playCard(cardID:)` and `endTurn()` are the public drivers. Handlers are dispatched through `EffectHandlers.all` and mutate via `BattleEngineContext`.
-- **BalanceSweepCLI** — Headless bulk balance sweeps (non-user-facing). See `Docs/Plans/BattleBalanceSimulator.md`.
+- **BalanceSweepCLI** — Headless bulk balance sweeps (non-user-facing). Invoke with `./Scripts/balance-sweep.sh`.
 
 ## Key types
 
@@ -20,7 +20,17 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 | `EffectHandlers` | Registry of all handlers, keyed by `EffectKind` |
 | `CombatantRuntime` | Per-combatant runtime state (HP, mana, active effects) |
 
+## Hand and layout contracts
+
+- Visible hand caps at **three** cards (`BattleHand.maxSize`); overflow draws enqueue a hidden FIFO `BattleHandBuffer` and promote after effects / end-turn draws.
+- Ability cards stay **3:4** full-bleed art with no face text (name, cost, description, owner badge).
+- Party portraits stay **3:4**; enemy viewport is **4:3** landscape fill-crop of square source art.
+- Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`.
+- No pause control, global crystals, or other top chrome on the battle screen.
+
 ## Balance sweep
+
+Manual CLI only — **no CI gates** or scheduled automations.
 
 ```sh
 ./Scripts/balance-sweep.sh --battles-per-tier 1000 --seed 1
@@ -31,6 +41,8 @@ Turn-based card combat simulation for Trinket. Owns `BattleState`, effect handle
 
 Writes markdown under `BalanceSweepReports/` (gitignored). Requires a local Swift toolchain (Xcode 26+).
 Modes: `identity` (default), `ability-contrast`, `affix-contrast`, `all`.
+
+Locked tooling choices: greedy-v1 autoplay policy; default 1,000 battles per Early/Mid/Late tier; keyword-aligned gear (generics allowed); catalog identities + scaled level (not journey graph); reproducible seeds.
 
 ## Adding a new effect
 

@@ -1,6 +1,6 @@
 # Architecture
 
-High-level structure for Trinket after the Swift package migration.
+High-level structure for Trinket.
 
 ## Repository layout
 
@@ -143,7 +143,7 @@ App sources use **explicit** `import` per package. `./Scripts/apply-explicit-imp
 - **Save hub:** `PlayerSaveStore` opens the `ModelContainer` via `ModelContainerBootstrap` + `PlayerSaveStoreConfiguration` (disk → delete corrupt store → in-memory fallback). Value types such as `PlayerSave` remain calculation snapshots, not the canonical persisted form. The hub owns write-through, deferred save/rollback, and reset/seed only.
 - **Domain actions:** Single-slice reads/writes go through `PlayerSaveStore` properties (`journey`, `roster`, `inventory`, `homestead`, `aspects`, `labyrinth`). Cross-slice player actions live on `PlayerHomesteadStore` (e.g. `buildOrUpgradeNode`); access via `playerSave.homesteadStore`.
 - **Options/preferences:** `OptionsStore` persists volumes and haptics via `AppStorage`-compatible keys on a local `UserDefaults` suite — intentionally **not** part of `PlayerSave` / CloudKit. Session keys (tab/battle restoration) remain on the shell session store. The app is always dark mode (no appearance preference).
-- **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements (F2). Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
+- **Sync:** SwiftData is CloudKit-ready (`iCloud.com.ryanmcintire.Trinket`) but **local-only until** Apple Developer Program enrollment fills entitlements. Simulator/tests keep CloudKit off unless `-enable-cloud-sync`. See `Docs/Platform/CloudKitPreShipChecklist.md`.
 - **Identity:** No in-app login. Cross-device progress **is** iCloud private CloudKit sync (system Apple Account). Play always works local-only. No Sign in with Apple, Google, or hosted accounts — see `Docs/Platform/IdentityPlan.md`.
 - **Pre-ship:** `Docs/Platform/CloudKitPreShipChecklist.md`, `Docs/Platform/IdentityPlan.md`
 - **Audio:** `Trinket/Audio/MusicPlayer` uses ambient `AVAudioPlayer` by design — see `Trinket/Audio/README.md`.
@@ -161,7 +161,7 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Do not grow their type
 
 ## Tech stack
 
-Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([README](README.md)).
+Apple API notes: [iOS26AppleReference.md](iOS26AppleReference.md). Platform index: [README.md](README.md).
 
 - iOS 26.0, Swift 6.0, SwiftUI shell
 - Local packages use `swift-tools-version: 6.2` so `Package.swift` can declare `.iOS(.v26)`
@@ -172,12 +172,11 @@ Platform adoption notes and a point-in-time iOS 26 audit: `Docs/Platform/` ([REA
 - Battle presentation is SwiftUI; SpriteKit is not in use yet
 - Package tests run via `./Scripts/test.sh unit` in addition to `TrinketTests`
 
-## Migration status
+### Standing platform rules
 
-Swift package extraction (phases 0–6) is **complete**. Boundary tightening and content-pipeline expansion landed with it:
-
-- ✅ Explicit package imports in the app (no blanket re-exports)
-- ✅ Manifest-driven item bases and encounter art
-- ✅ Art/music/SFX catalogs owned by `TrinketContent`
-- ✅ CI module-boundary enforcement
-- ✅ `SoundManifest/sfx.tsv` curated + AAC pipeline (`Trinket/Resources/SFX`)
+- Use modern SwiftUI only: `NavigationStack`, modern `Tab`, `@Observable` / `@Environment` / `@Bindable`, two-parameter `onChange`. Do not reintroduce `NavigationView`, `ObservableObject` / `@Published`, or single-parameter `onChange`.
+- Route custom glass and prominent buttons through `TrinketDesignSystem`; feature views must not call raw `.glassEffect` / `.buttonStyle(.glass*)`. Glass belongs on functional chrome; dense Collection / Inventory / Options content stays on solid themed surfaces.
+- Keep the root tab bar fully expanded (do not adopt tab-bar minimize-on-scroll). Hidden toolbar chrome on Battle and detail-hero screens is an intentional art-forward choice.
+- Options/haptics stay on `AppStorage`-compatible local keys — not part of `PlayerSave` / CloudKit. Gate sensory feedback with `.trinketSensoryFeedback`.
+- Accessibility stays visual-first per PD-007: stable UI-test identifiers and native controls; no custom VoiceOver semantics or accessibility-setting branches without an explicit product decision.
+- When adopting new frameworks later: StoreKit 2, modern GameKit, RealityKit — not StoreKit 1, legacy GameKit, or SceneKit.
