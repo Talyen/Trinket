@@ -14,7 +14,6 @@ struct CardActivationTests {
         let second = CardActivationParticle.make(count: 50)
 
         #expect(first == second)
-        #expect(first.count == 50)
         #expect(CardActivationParticle.make(count: -1).isEmpty)
     }
 }

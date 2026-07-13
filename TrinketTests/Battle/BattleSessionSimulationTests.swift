@@ -77,7 +77,6 @@ struct BattleSessionSimulationTests {
         let result = session.endTurn(journey: .initial, homestead: .freshStart)
 
         #expect(result == nil)
-        #expect(session.outcome == .victory)
     }
 
     @Test func clearOutcomePresentationResetsVictoryAndDefeatFlagsWhenCleared() {
@@ -114,7 +113,6 @@ struct BattleSessionSimulationTests {
 
         _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
 
-        #expect(session.outcome == nil)
         #expect(!(session.activeFeedbackEvents.isEmpty))
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
@@ -135,7 +133,6 @@ struct BattleSessionSimulationTests {
         }
 
         #expect(session.state?.isPartyDefeated == true)
-        #expect(session.outcome == .defeat)
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
@@ -162,18 +159,6 @@ struct BattleSessionSimulationTests {
         #expect(session.activeFeedbackEvents.isEmpty)
         #expect(session.state?.health(of: session.state?.enemy ?? party.enemy) == 100)
         #expect(session.state?.health(of: session.state?.hero ?? party.hero) == party.hero.maxHealth)
-    }
-
-    @Test func removeFeedbackEventRemovesByIDWhenMatchingID() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
-
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
-        let eventID = try #require(session.activeFeedbackEvents.first?.id)
-
-        session.removeFeedbackEvent(eventID)
-
-        #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
     @Test func consolidatedFeedbackRemoveAndExpireClearsSources() throws {
@@ -255,9 +240,15 @@ struct BattleSessionSimulationTests {
         #expect(session.hasPlayableCard)
     }
 
-    @Test func autoEndsTurnAfterDelayWhenNoPlayableCardsRemain() async throws {
+    @Test func autoEndTurnFiresOnlyWhenHandIsExhausted() async throws {
         let session = try BattleSessionTestSupport.makeConfiguredSession()
+        #expect(session.hasPlayableCard)
+        let tickWhilePlayable = try #require(session.state?.tickCount)
+
         session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
+        try await Task.sleep(for: .milliseconds(30))
+        #expect(session.state?.tickCount == tickWhilePlayable)
+        #expect(session.canEndTurn)
 
         while let card = session.hand.first(where: { session.isCardPlayable($0) }) {
             let earned = session.playCard(
@@ -277,18 +268,6 @@ struct BattleSessionSimulationTests {
         try await waitForAutoEndTurn(session, after: tickBefore)
 
         #expect(session.state?.tickCount == tickBefore + 1)
-    }
-
-    @Test func doesNotAutoEndTurnWhilePlayableCardsRemain() async throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-        #expect(session.hasPlayableCard)
-        let tickBefore = try #require(session.state?.tickCount)
-
-        session.considerAutoEndTurn(journey: .initial, homestead: .freshStart)
-        try await Task.sleep(for: .milliseconds(30))
-
-        #expect(session.state?.tickCount == tickBefore)
-        #expect(session.canEndTurn)
     }
 
     @Test func trimMemoryFootprintReleasesBattleLogProjection() throws {

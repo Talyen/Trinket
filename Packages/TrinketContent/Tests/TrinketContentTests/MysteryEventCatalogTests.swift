@@ -8,7 +8,7 @@ struct MysteryEventCatalogTests {
         try #expect(ids.count == Set(ids).count)
     }
 
-    @Test func branchingMysteryEventsHaveTwoChoices() throws {
+    @Test func mysteryEventChoiceCountsMatchKind() throws {
         for event in GameContent.branchingMysteryEvents {
             try #expect(
                 event.choices.count == 2,
@@ -16,9 +16,6 @@ struct MysteryEventCatalogTests {
             )
             try #expect(event.unlockCombatantID == nil)
         }
-    }
-
-    @Test func recruitMysteryEventsHaveOneUnlockChoice() throws {
         for event in GameContent.recruitMysteryEvents {
             try #expect(
                 event.choices.count == 1,

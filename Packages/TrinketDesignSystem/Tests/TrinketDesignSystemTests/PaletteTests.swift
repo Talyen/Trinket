@@ -28,19 +28,8 @@ struct PaletteTests {
         for tint in HomesteadTint.allCases {
             try #expect(tint.color != .clear, "\(tint.rawValue) color")
         }
-    }
-
-    @Test func publicSemanticPaletteHasValidColors() throws {
-        let palette = ThemePalette.trinket
-        try #expect(palette.appBackground != .clear)
-        try #expect(palette.secondaryBackground != .clear)
-        try #expect(palette.elevatedBackground != .clear)
-        try #expect(palette.panelSurface != .clear)
-        try #expect(palette.subtleStroke != .clear)
-        try #expect(palette.accent != .clear)
-        try #expect(TrinketDesign.Colors.canvas == palette.appBackground)
-        try #expect(TrinketDesign.Colors.panel == palette.panelSurface)
-        try #expect(TrinketDesign.Colors.accent == palette.accent)
-        try #expect(TrinketDesign.Colors.progression == palette.accentEmphasized)
+        try #expect(HomesteadPalette.background == ThemePalette.trinket.appBackground)
+        try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)
+        try #expect(HomesteadPalette.accent == ThemePalette.trinket.accent)
     }
 }

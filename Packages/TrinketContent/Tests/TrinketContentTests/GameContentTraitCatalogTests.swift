@@ -20,7 +20,6 @@ struct GameContentTraitCatalogTests {
 
     @Test func everyCombatantHasExactlyOneTraitMapping() throws {
         let combatantIDs = Set(GameContent.heroes.map(\.id) + GameContent.companions.map(\.id))
-        try #expect(GameContent.combatantTraitIDs.count == combatantIDs.count)
         try #expect(Set(GameContent.combatantTraitIDs.keys) == combatantIDs)
     }
 

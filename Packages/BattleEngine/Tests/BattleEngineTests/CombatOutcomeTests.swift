@@ -78,26 +78,24 @@ struct CombatOutcomeTests {
         }
     }
 
-    @Test func damageRequestDoTTickPresetAppliesBonusesWithoutDodge() throws {
-        let preset = DamageRequest.doTTick(
+    @Test func damageRequestPresetsMatchExpectedOptions() throws {
+        let doTTick = DamageRequest.doTTick(
             amount: 10,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .burn,
             sourceActorID: "source"
         )
-        try #expect(preset.options.applyStatBonus)
-        try #expect(!(preset.options.applyDodge))
-        try #expect(preset.options.applyItemBonus)
-    }
+        try #expect(doTTick.options.applyStatBonus)
+        try #expect(!(doTTick.options.applyDodge))
+        try #expect(doTTick.options.applyItemBonus)
 
-    @Test func damageRequestDirectAbilityHitUsesDefaultOptions() throws {
-        let preset = DamageRequest.directAbilityHit(
+        let directHit = DamageRequest.directAbilityHit(
             amount: 5,
             target: CombatantFixtures.combatant(id: "t", role: .enemy),
             keyword: .physical,
             sourceActorID: "source"
         )
-        try #expect(preset.options == .directAbilityHit)
+        try #expect(directHit.options == .directAbilityHit)
     }
 
     @Test func resolveHealReturnsRestoredAmount() throws {

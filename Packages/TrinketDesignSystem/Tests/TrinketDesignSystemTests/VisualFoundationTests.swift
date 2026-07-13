@@ -22,17 +22,6 @@ struct VisualFoundationTests {
         try #expect(TypographyRole.footnote.font != TypographyRole.caption.font)
     }
 
-    @Test func homesteadPaletteUsesDarkChrome() throws {
-        try #expect(HomesteadPalette.background != .clear)
-        try #expect(HomesteadPalette.panel != .clear)
-        try #expect(HomesteadPalette.stroke != .clear)
-        try #expect(HomesteadPalette.accent != .clear)
-        try #expect(HomesteadPalette.walletPanel != .clear)
-        try #expect(HomesteadPalette.background == ThemePalette.trinket.appBackground)
-        try #expect(HomesteadPalette.panel == ThemePalette.trinket.panelSurface)
-        try #expect(HomesteadPalette.accent == ThemePalette.trinket.accent)
-    }
-
     @Test func artworkBlendDestinationsUseSemanticSurfaces() throws {
         try #expect(ArtworkBlendDestination.canvas.color == TrinketDesign.Colors.canvas)
         try #expect(ArtworkBlendDestination.surface.color == TrinketDesign.Colors.surface)

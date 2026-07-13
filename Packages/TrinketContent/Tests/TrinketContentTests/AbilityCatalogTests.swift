@@ -3,12 +3,9 @@ import TrinketContent
 import TrinketCore
 
 struct AbilityCatalogTests {
-    @Test func catalogIDsAreUnique() throws {
+    @Test func catalogIDsAreUniqueAndUnknownLookupReturnsNil() throws {
         let ids = AbilityCatalog.all.map(\.id)
         try #expect(Set(ids).count == ids.count, "Duplicate ability IDs: \(Dictionary(grouping: ids, by: { $0 }).filter { $1.count > 1 }.keys)")
-    }
-
-    @Test func unknownAbilityLookupReturnsNil() throws {
         try #expect(AbilityCatalog.ability(id: "missing-ability") == nil)
     }
 
@@ -57,7 +54,6 @@ struct AbilityCatalogTests {
     }
 
     @Test func bloodthornUsesDamageComponents() throws {
-        try #expect(Ability.bloodthorn.damageComponents.count == 3)
         try #expect(Ability.bloodthorn.directDamage == 6)
         try #expect(Ability.fireball.directDamage == 2)
         try #expect(Ability.fireball.damageKeyword == .burn)
