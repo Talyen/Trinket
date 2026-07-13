@@ -72,29 +72,32 @@ extension BattleSession {
     }
 
     func scheduleVictoryPresentation(after date: Date) {
-        pendingVictoryPresentationTask?.cancel()
-        let latestFeedbackDelay = activeFeedbackItems
-            .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
-            .max() ?? 0
-        let spectacleDelay = max(TrinketMotion.Battle.cardActivationDuration, latestFeedbackDelay)
-            + TrinketMotion.Battle.outcomePresentationPadding
-        let delay = outcomePresentationDelayOverride ?? spectacleDelay
-        guard delay > 0 else {
-            isShowingVictory = true
-            playSFX(SFXID.victory)
-            return
-        }
-        pendingVictoryPresentationTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
-            guard let self, !Task.isCancelled, outcome == .victory else { return }
-            isShowingVictory = true
-            playSFX(SFXID.victory)
-            pendingVictoryPresentationTask = nil
+        scheduleOutcomePresentation(
+            after: date,
+            expected: .victory,
+            sfx: SFXID.victory
+        ) { session in
+            session.isShowingVictory = true
         }
     }
 
     func scheduleDefeatPresentation(after date: Date) {
-        pendingDefeatPresentationTask?.cancel()
+        scheduleOutcomePresentation(
+            after: date,
+            expected: .defeat,
+            sfx: SFXID.defeat
+        ) { session in
+            session.isShowingDefeat = true
+        }
+    }
+
+    private func scheduleOutcomePresentation(
+        after date: Date,
+        expected: BattleSimulationOutcome,
+        sfx: SFXID,
+        show: @escaping @MainActor (BattleSession) -> Void
+    ) {
+        pendingOutcomePresentationTask?.cancel()
         let latestFeedbackDelay = activeFeedbackItems
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
@@ -102,16 +105,16 @@ extension BattleSession {
             + TrinketMotion.Battle.outcomePresentationPadding
         let delay = outcomePresentationDelayOverride ?? spectacleDelay
         guard delay > 0 else {
-            isShowingDefeat = true
-            playSFX(SFXID.defeat)
+            show(self)
+            playSFX(sfx)
             return
         }
-        pendingDefeatPresentationTask = Task { @MainActor [weak self] in
+        pendingOutcomePresentationTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(delay))
-            guard let self, !Task.isCancelled, outcome == .defeat else { return }
-            isShowingDefeat = true
-            playSFX(SFXID.defeat)
-            pendingDefeatPresentationTask = nil
+            guard let self, !Task.isCancelled, outcome == expected else { return }
+            show(self)
+            playSFX(sfx)
+            pendingOutcomePresentationTask = nil
         }
     }
 

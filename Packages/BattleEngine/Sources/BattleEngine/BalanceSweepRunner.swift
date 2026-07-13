@@ -31,22 +31,22 @@ public enum BalanceSweepRunner {
                 enemies: enemies
             )
         }
+        let contrastContext = BalanceContrastContext(
+            config: config,
+            heroes: heroes,
+            companions: companions,
+            enemies: enemies
+        )
         if runAbility {
-            abilityContrasts = BalanceContrastRunner.runAbilityContrasts(
-                config: config,
-                policy: policy,
-                heroes: heroes,
-                companions: companions,
-                enemies: enemies
+            abilityContrasts = BalanceAbilityContrastRunner.run(
+                context: contrastContext,
+                policy: policy
             )
         }
         if runAffix {
-            affixContrasts = BalanceContrastRunner.runAffixContrasts(
-                config: config,
-                policy: policy,
-                heroes: heroes,
-                companions: companions,
-                enemies: enemies
+            affixContrasts = BalanceAffixContrastRunner.run(
+                context: contrastContext,
+                policy: policy
             )
         }
 

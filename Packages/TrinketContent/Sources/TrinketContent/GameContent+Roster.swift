@@ -10,17 +10,3 @@ public extension GameContent {
         enemies.first { $0.id == id }
     }
 }
-
-public extension Combatant {
-    static var heroes: [Combatant] {
-        GameContent.heroes
-    }
-
-    static var companions: [Combatant] {
-        GameContent.companions
-    }
-
-    static var enemies: [Enemy] {
-        GameContent.enemies
-    }
-}

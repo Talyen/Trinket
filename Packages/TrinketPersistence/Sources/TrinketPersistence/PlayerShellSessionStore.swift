@@ -44,7 +44,7 @@ public final class PlayerShellSessionStore {
         let finalURL = Self.resolveStoreURL(storeName: storeName, storeURL: storeURL)
 
         if resetState, !inMemoryOnly {
-            Self.cleanStoreFiles(at: finalURL)
+            PlayerSaveStoreConfiguration.cleanStoreFiles(at: finalURL)
         }
 
         let schema = Schema([PlayerShellSession.self])
@@ -106,14 +106,6 @@ public final class PlayerShellSessionStore {
         } else {
             URL.applicationSupportDirectory.appending(path: "shell-session.store")
         }
-    }
-
-    private static func cleanStoreFiles(at url: URL) {
-        let shmURL = url.deletingPathExtension().appendingPathExtension("store-shm")
-        let walURL = url.deletingPathExtension().appendingPathExtension("store-wal")
-        try? FileManager.default.removeItem(at: url)
-        try? FileManager.default.removeItem(at: shmURL)
-        try? FileManager.default.removeItem(at: walURL)
     }
 
     private static func clearShellSession(in context: ModelContext) {
