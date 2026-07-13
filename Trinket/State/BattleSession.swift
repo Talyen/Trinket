@@ -66,9 +66,7 @@ final class BattleSession {
     @ObservationIgnored
     var pendingFeedbackPresentationTasks: [Int: Task<Void, Never>] = [:]
     @ObservationIgnored
-    var pendingVictoryPresentationTask: Task<Void, Never>?
-    @ObservationIgnored
-    var pendingDefeatPresentationTask: Task<Void, Never>?
+    var pendingOutcomePresentationTask: Task<Void, Never>?
     @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
@@ -166,10 +164,8 @@ final class BattleSession {
     }
 
     func clearOutcomePresentation() {
-        pendingVictoryPresentationTask?.cancel()
-        pendingVictoryPresentationTask = nil
-        pendingDefeatPresentationTask?.cancel()
-        pendingDefeatPresentationTask = nil
+        pendingOutcomePresentationTask?.cancel()
+        pendingOutcomePresentationTask = nil
         isShowingVictory = false
         isShowingDefeat = false
         victorySummary = nil
