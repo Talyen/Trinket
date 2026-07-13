@@ -30,4 +30,12 @@ struct CombatantLevelScalerTests {
         try #expect(scaled.maxHealth == 53)
         try #expect(scaled.primaryStats.toughness == 28)
     }
+
+    @Test func enemyScalerKeepsManaDisabledAtHigherLevels() throws {
+        let mage = try #require(GameContent.enemy(matching: "necromancer"))
+        let scaled = CombatantLevelScaler.scale(enemy: mage, level: 10)
+
+        try #expect(scaled.maxMana == 0)
+        try #expect(!scaled.hasMana)
+    }
 }

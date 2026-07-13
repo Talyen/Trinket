@@ -85,7 +85,7 @@ struct BattleView: View {
             VictoryView(
                 enemyName: battleState.enemy.name,
                 summary: victorySummary,
-                primaryActionTitle: hasStageProgression ? "Continue" : "Battle Again",
+                primaryActionTitle: hasStageProgression ? "Loot All" : "Battle Again",
                 onPrimaryAction: {
                     if hasStageProgression {
                         let didPersist = appState.completeActiveBattle(
@@ -168,12 +168,12 @@ struct BattleView: View {
                     battleSize: geometry.size
                 )
 
-                ForEach(castingCards) { request in
-                    CardCastOverlay(request: request) {
-                        castingCards.removeAll { $0.id == request.id }
-                    }
-                    .zIndex(3)
+                CardCastEffectsPrewarmView()
+
+                CardCastEffectsLayer(requests: castingCards) { requestID in
+                    castingCards.removeAll { $0.id == requestID }
                 }
+                .zIndex(3)
 
                 cinematicOverlay(for: battleSession)
                     .zIndex(10)

@@ -29,7 +29,7 @@ struct HomesteadProjectRow: View {
         return false
     }
 
-    private var showsInlineNavigationChevron: Bool {
+    private var showsNavigationChevron: Bool {
         status.statusSymbolName == "chevron.right"
     }
 
@@ -60,19 +60,10 @@ struct HomesteadProjectRow: View {
                 .opacity(isLocked ? 0.72 : 1)
 
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 4) {
-                    Text(definition.title)
-                        .trinketTypography(.cardTitle)
-                        .foregroundStyle(isLocked ? .secondary : .primary)
-                        .lineLimit(2)
-
-                    if showsInlineNavigationChevron {
-                        Image(systemName: "chevron.right")
-                            .font(statusAffordanceFont)
-                            .foregroundStyle(status.statusColor)
-                            .symbolRenderingMode(.hierarchical)
-                    }
-                }
+                Text(definition.title)
+                    .trinketTypography(.rowTitle)
+                    .foregroundStyle(isLocked ? .secondary : .primary)
+                    .lineLimit(2)
 
                 Text(effectLine)
                     .trinketTypography(.caption)
@@ -83,7 +74,12 @@ struct HomesteadProjectRow: View {
 
             Spacer(minLength: 0)
 
-            if !showsInlineNavigationChevron {
+            if showsNavigationChevron {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(status.statusColor)
+                    .symbolRenderingMode(.hierarchical)
+            } else {
                 Image(systemName: status.statusSymbolName)
                     .font(statusAffordanceFont)
                     .foregroundStyle(status.statusColor)

@@ -68,6 +68,8 @@ final class BattleSession {
     @ObservationIgnored
     var pendingVictoryPresentationTask: Task<Void, Never>?
     @ObservationIgnored
+    var pendingDefeatPresentationTask: Task<Void, Never>?
+    @ObservationIgnored
     var autoEndJourney: JourneyProgressState?
     @ObservationIgnored
     var autoEndHomestead: PlayerHomesteadState?
@@ -166,6 +168,8 @@ final class BattleSession {
     func clearOutcomePresentation() {
         pendingVictoryPresentationTask?.cancel()
         pendingVictoryPresentationTask = nil
+        pendingDefeatPresentationTask?.cancel()
+        pendingDefeatPresentationTask = nil
         isShowingVictory = false
         isShowingDefeat = false
         victorySummary = nil

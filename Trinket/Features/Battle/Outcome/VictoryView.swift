@@ -4,24 +4,17 @@ import TrinketCore
 import TrinketDesignSystem
 
 struct VictoryView: View {
-    private enum PresentationState {
-        case experienceAndChest
-        case rewardsOpened
-    }
-
-    @Environment(AppState.self) private var appState
-
     let enemyName: String
     let summary: BattleVictorySummary
     let primaryActionTitle: String
     let onPrimaryAction: () -> Bool
 
-    @State private var presentationState = PresentationState.experienceAndChest
-    @State private var shouldSnapExperience = false
-    @State private var openFeedbackTrigger = 0
     @State private var isCompleting = false
-    @State private var hasRevealedFocus = false
-    @State private var hasSettledResources = false
+    @State private var completedExperienceBars = 0
+    @State private var visibleWalletRewardCount = 0
+    @State private var areItemsVisible = false
+    @State private var isSequenceComplete = false
+    @State private var hasStartedRewardSequence = false
     @State private var revealTask: Task<Void, Never>?
 
     var body: some View {
@@ -33,54 +26,27 @@ struct VictoryView: View {
             titleAccessibilityIdentifier: AccessibilityID.Battle.victory,
             titleColor: TrinketDesign.Colors.accent,
             content: {
-                Group {
-                    switch presentationState {
-                    case .experienceAndChest:
-                        experienceAndChest
-                            .transition(.opacity.combined(with: .scale(scale: 0.98)))
-                    case .rewardsOpened:
-                        openedRewards
-                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                    }
+                VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+                    experiencePanel
+                    revealedRewards
                 }
-                .animation(TrinketMotion.Reward.stateChange, value: presentationState)
             },
-            primaryActionTitle: presentationState == .experienceAndChest
-                ? "Open Rewards"
-                : primaryActionTitle,
-            primaryActionAccessibilityIdentifier: presentationState == .experienceAndChest
-                ? AccessibilityID.Battle.openRewards
-                : "\(primaryActionTitle) Button",
+            primaryActionTitle: isSequenceComplete ? primaryActionTitle : nil,
+            primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
             isPrimaryActionDisabled: isCompleting,
-            onPrimaryAction: handlePrimaryAction
+            onPrimaryAction: completeVictory,
+            contentTopPadding: TrinketDesign.Metrics.smallSpacing,
+            pinsPrimaryActionToBottom: false,
+            primaryActionWidthFraction: 0.5
         )
-        .trinketSensoryFeedback(
-            .impact(weight: .medium),
-            trigger: openFeedbackTrigger,
-            enabled: appState.options.hapticsEnabled
-        )
+        .onAppear {
+            if !summary.hasExperienceAwards {
+                startRewardSequence()
+            }
+        }
         .onDisappear {
             revealTask?.cancel()
             revealTask = nil
-        }
-    }
-
-    private var experienceAndChest: some View {
-        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-            experiencePanel
-
-            Button(action: openRewards) {
-                VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                    RewardChestView(isOpen: false, isEnticing: true)
-                        .frame(maxWidth: 340)
-
-                    rewardAwaitingDivider
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-            }
-            .trinketArtworkNavigationCardButtonStyle()
-            .accessibilityIdentifier(AccessibilityID.Battle.rewardChest)
         }
     }
 
@@ -95,7 +61,8 @@ struct VictoryView: View {
                     post: summary.heroProgressionAfter,
                     fillColor: TrinketDesign.Colors.progression,
                     experienceAward: summary.experience,
-                    snapToFinal: shouldSnapExperience
+                    snapToFinal: false,
+                    onAnimationCompleted: experienceBarCompleted
                 )
                 .accessibilityIdentifier("\(summary.heroName) experience bar")
 
@@ -106,7 +73,8 @@ struct VictoryView: View {
                     post: summary.companionProgressionAfter,
                     fillColor: TrinketDesign.Colors.progression,
                     experienceAward: summary.companionExperience,
-                    snapToFinal: shouldSnapExperience
+                    snapToFinal: false,
+                    onAnimationCompleted: experienceBarCompleted
                 )
                 .accessibilityIdentifier("\(summary.companionName) experience bar")
             }
@@ -124,30 +92,14 @@ struct VictoryView: View {
         }
     }
 
-    private var openedRewards: some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            ZStack(alignment: .top) {
-                RewardChestView(isOpen: true, isEnticing: false)
-                    .frame(maxWidth: 250)
-
-                if summary.rewardItems.isEmpty {
-                    noItemRewardFocus
-                        .padding(.top, 148)
-                        .opacity(hasRevealedFocus ? 1 : 0)
-                        .offset(y: hasRevealedFocus ? 0 : 18)
-                } else {
-                    rewardItemPager
-                        .padding(.top, 136)
-                        .opacity(hasRevealedFocus ? 1 : 0)
-                        .offset(y: hasRevealedFocus ? 0 : 18)
-                }
-            }
-            .padding(.top, -TrinketDesign.Metrics.smallSpacing)
+    private var revealedRewards: some View {
+        VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
+            rewardWallet(columnCount: walletRewardCount)
 
             if !summary.rewardItems.isEmpty {
-                resourceRewards
-                    .opacity(hasSettledResources ? 1 : 0)
-                    .offset(y: hasSettledResources ? 0 : 10)
+                rewardItemPager
+                    .opacity(areItemsVisible ? 1 : 0)
+                    .scaleEffect(areItemsVisible ? 1 : 0.98)
             }
         }
         .accessibilityIdentifier(AccessibilityID.Battle.rewards)
@@ -168,174 +120,111 @@ struct VictoryView: View {
         .scrollTargetBehavior(.paging)
     }
 
-    private var rewardAwaitingDivider: some View {
-        HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            Rectangle()
-                .fill(TrinketDesign.Colors.accent.opacity(0.42))
-                .frame(height: 1)
-
-            Image(systemName: "diamond.fill")
-                .font(.caption2)
-
-            Text("Rewards Await")
-                .trinketTypography(.sectionDisplay)
-                .fixedSize()
-
-            Image(systemName: "diamond.fill")
-                .font(.caption2)
-
-            Rectangle()
-                .fill(TrinketDesign.Colors.accent.opacity(0.42))
-                .frame(height: 1)
-        }
-        .foregroundStyle(TrinketDesign.Colors.accent)
-    }
-
-    private var noItemRewardFocus: some View {
-        let materials = summary.materialRewards.filter { $0.quantity > 0 }
-        return ScrollView(.horizontal) {
-            HStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
-                if summary.totalGold > 0 {
-                    RewardResourceTile(
-                        symbolName: Keyword.gold.visualStyle.symbolName,
-                        tint: Keyword.gold.visualStyle.color,
-                        amount: summary.totalGold,
-                        title: "Gold"
-                    )
-                }
-
-                ForEach(materials, id: \.resource) { reward in
-                    RewardResourceTile(
-                        symbolName: reward.resource.symbolName,
-                        tint: reward.resource.tint,
-                        amount: reward.quantity,
-                        title: reward.resource.displayName
-                    )
-                }
-
-                if summary.totalGold == 0, materials.isEmpty {
-                    RewardResourceTile(
-                        symbolName: "sparkles",
-                        tint: TrinketDesign.Colors.accent,
-                        amount: nil,
-                        title: "Victory"
-                    )
-                }
-            }
-            .padding(.horizontal, TrinketDesign.Metrics.smallSpacing)
-        }
-        .scrollIndicators(.hidden)
-    }
-
     @ViewBuilder
-    private var resourceRewards: some View {
+    private func rewardWallet(columnCount: Int) -> some View {
         let materials = summary.materialRewards.filter { $0.quantity > 0 }
-        if summary.totalGold > 0 || !materials.isEmpty {
-            ScrollView(.horizontal) {
-                HStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-                    resourceRewardChips(materials: materials)
+        let rewardCount = (summary.totalGold > 0 ? 1 : 0) + materials.count
+
+        if rewardCount > 0 {
+            TrinketWalletGrid(columnCount: max(1, min(columnCount, rewardCount))) {
+                if summary.totalGold > 0 {
+                    TrinketWalletResourcePill(
+                        title: "Gold",
+                        amount: summary.totalGold,
+                        showsIncreasePrefix: true
+                    ) {
+                        rewardArtwork(for: .gold)
+                    }
+                    .opacity(visibleWalletRewardCount > 0 ? 1 : 0)
                 }
-                .padding(.horizontal, TrinketDesign.Metrics.extraSmallSpacing)
+
+                ForEach(Array(materials.enumerated()), id: \.element.resource) { index, reward in
+                    TrinketWalletResourcePill(
+                        title: reward.resource.displayName,
+                        amount: reward.quantity,
+                        showsIncreasePrefix: true
+                    ) {
+                        rewardArtwork(for: reward.resource)
+                    }
+                    .opacity(visibleWalletRewardCount > index + (summary.totalGold > 0 ? 1 : 0) ? 1 : 0)
+                }
             }
-            .scrollIndicators(.hidden)
         } else if summary.rewardItems.isEmpty {
             Text("No additional rewards.")
                 .trinketTypography(.secondaryBody)
                 .foregroundStyle(.secondary)
+                .opacity(areItemsVisible ? 1 : 0)
         }
     }
 
     @ViewBuilder
-    private func resourceRewardChips(materials: [ResourceAmount]) -> some View {
-        if summary.totalGold > 0 {
-            RewardResourceChip(
-                symbolName: Keyword.gold.visualStyle.symbolName,
-                tint: Keyword.gold.visualStyle.color,
-                text: "+\(summary.totalGold) Gold"
-            )
-        }
-
-        ForEach(materials, id: \.resource) { reward in
-            RewardResourceChip(
-                symbolName: reward.resource.symbolName,
-                tint: reward.resource.tint,
-                text: "+\(reward.quantity) \(reward.resource.displayName)"
-            )
+    private func rewardArtwork(for resource: HomesteadResource) -> some View {
+        if let art = ArtCatalog.resourceArtByID[resource.rawValue] {
+            Image(art.imageName)
+                .resizable()
+                .scaledToFit()
+        } else {
+            Image(systemName: resource.symbolName)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(resource.tint)
+                .symbolRenderingMode(.hierarchical)
         }
     }
 
-    private func handlePrimaryAction() {
-        switch presentationState {
-        case .experienceAndChest:
-            openRewards()
-        case .rewardsOpened:
-            guard !isCompleting else { return }
-            isCompleting = onPrimaryAction()
+    private func completeVictory() {
+        guard isSequenceComplete, !isCompleting else { return }
+        isCompleting = onPrimaryAction()
+    }
+
+    private func experienceBarCompleted() {
+        completedExperienceBars += 1
+        if completedExperienceBars == 2 {
+            startRewardSequence()
         }
     }
 
-    private func openRewards() {
-        guard presentationState == .experienceAndChest else { return }
-        shouldSnapExperience = true
-        appState.sfxPlayer.play(SFXID.uiConfirm, volume: appState.options.effectsVolume)
-        openFeedbackTrigger += 1
-        withAnimation(TrinketMotion.Reward.reveal) {
-            presentationState = .rewardsOpened
-        }
+    private func startRewardSequence() {
+        guard !hasStartedRewardSequence else { return }
+        hasStartedRewardSequence = true
         revealTask?.cancel()
         revealTask = Task { @MainActor in
             let clock = SuspendingClock()
-            try? await clock.sleep(for: .milliseconds(120))
-            guard !Task.isCancelled else { return }
-            withAnimation(TrinketMotion.Reward.reveal) {
-                hasRevealedFocus = true
+
+            if walletRewardCount > 0 {
+                for count in 1 ... walletRewardCount {
+                    try? await clock.sleep(for: .seconds(TrinketMotion.Reward.resourceStagger))
+                    guard !Task.isCancelled else { return }
+                    withAnimation(TrinketMotion.Reward.stateChange) {
+                        visibleWalletRewardCount = count
+                    }
+                }
             }
-            try? await clock.sleep(for: .milliseconds(140))
+
+            if !summary.rewardItems.isEmpty || walletRewardCount == 0 {
+                try? await clock.sleep(for: .seconds(TrinketMotion.Reward.itemRevealDelay))
+                guard !Task.isCancelled else { return }
+                withAnimation(TrinketMotion.Reward.reveal) {
+                    areItemsVisible = true
+                }
+            }
+
+            try? await clock.sleep(for: .seconds(TrinketMotion.Reward.completionDelay))
             guard !Task.isCancelled else { return }
             withAnimation(TrinketMotion.Reward.stateChange) {
-                hasSettledResources = true
+                isSequenceComplete = true
             }
+            revealTask = nil
         }
     }
-}
 
-private struct RewardChestView: View {
-    let isOpen: Bool
-    let isEnticing: Bool
+    private var walletRewardCount: Int {
+        (summary.totalGold > 0 ? 1 : 0) + summary.materialRewards.filter { $0.quantity > 0 }.count
+    }
 
-    @State private var isBreathing = false
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            Ellipse()
-                .fill(TrinketDesign.Colors.accent.opacity(isOpen ? 0.28 : 0.16))
-                .frame(width: isOpen ? 190 : 240, height: isOpen ? 54 : 72)
-                .blur(radius: isOpen ? 20 : 14)
-                .scaleEffect(isBreathing ? 1.08 : 0.94)
-
-            Image(isOpen ? "reward_chest_open" : "reward_chest_closed")
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(maxWidth: isOpen ? 235 : 330)
-                .scaleEffect(isBreathing ? 1.018 : 0.99)
-                .offset(y: isBreathing ? -3 : 2)
-                .shadow(
-                    color: TrinketDesign.Colors.accent.opacity(isBreathing ? 0.34 : 0.16),
-                    radius: isBreathing ? 18 : 10,
-                    y: 5
-                )
-        }
-        .frame(height: isOpen ? 210 : 250)
-        .onAppear {
-            guard isEnticing else { return }
-            withAnimation(TrinketMotion.Reward.chestBreathing) {
-                isBreathing = true
-            }
-        }
-        .onDisappear {
-            isBreathing = false
-        }
+    private var primaryActionAccessibilityIdentifier: String {
+        primaryActionTitle == "Loot All"
+            ? AccessibilityID.Battle.continueButton
+            : "\(primaryActionTitle) Button"
     }
 }
 
@@ -346,82 +235,17 @@ private struct RewardItemRevealCard: View {
         VStack(spacing: TrinketDesign.Metrics.mediumSpacing) {
             ItemArtwork(item: item, contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .frame(height: 220)
-                .background(TrinketDesign.Colors.surface, in: TrinketDesign.cardShape)
+                .frame(height: 260)
                 .clipShape(TrinketDesign.cardShape)
+                .trinketCardSurface()
 
             VStack(spacing: TrinketDesign.Metrics.extraSmallSpacing) {
+                TrinketRarityLabel(rarity: item.rarity)
+
                 Text(item.displayName)
                     .trinketTypography(.sectionDisplay)
                     .multilineTextAlignment(.center)
-
-                Text(item.rarity.label.uppercased())
-                    .trinketTypography(.eyebrow)
-                    .foregroundStyle(TrinketDesign.Colors.accent)
-            }
-
-            if !item.affixes.isEmpty {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    ForEach(item.affixes) { affix in
-                        HStack(alignment: .firstTextBaseline, spacing: TrinketDesign.Metrics.smallSpacing) {
-                            Text(affix.title)
-                                .trinketTypography(.cardTitle)
-                                .layoutPriority(1)
-
-                            KeywordDescriptionText(text: affix.description)
-                                .trinketTypography(.secondaryBody)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
-                                .multilineTextAlignment(.trailing)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, TrinketDesign.Metrics.mediumSpacing)
-                        .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
-                        .trinketSurface(.secondary)
-                    }
-                }
             }
         }
-        .trinketSurface(.reward)
-    }
-}
-
-private struct RewardResourceChip: View {
-    let symbolName: String
-    let tint: Color
-    let text: String
-
-    var body: some View {
-        Label(text, systemImage: symbolName)
-            .trinketTypography(.badge)
-            .foregroundStyle(tint)
-            .trinketGlassChip(.emphasis)
-    }
-}
-
-private struct RewardResourceTile: View {
-    let symbolName: String
-    let tint: Color
-    let amount: Int?
-    let title: String
-
-    var body: some View {
-        VStack(spacing: TrinketDesign.Metrics.smallSpacing) {
-            Image(systemName: symbolName)
-                .font(.system(.largeTitle, design: .rounded, weight: .semibold))
-                .foregroundStyle(tint)
-
-            if let amount {
-                Text("+\(amount)")
-                    .trinketTypography(.sectionDisplay)
-                    .monospacedDigit()
-            }
-
-            Text(title)
-                .trinketTypography(.badge)
-                .foregroundStyle(.secondary)
-        }
-        .frame(width: 148, height: 168)
-        .trinketSurface(.reward)
     }
 }

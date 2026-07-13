@@ -8,6 +8,7 @@ struct CombatFeedbackEventView: View {
     let laneIndex: Int
     let textOverride: String?
 
+    @State private var animationTrigger = false
     @State private var symbolTrigger = false
 
     init(
@@ -33,6 +34,18 @@ struct CombatFeedbackEventView: View {
         )
     }
 
+    private var floatDriftX: CGFloat {
+        let angle = CombatFeedbackLayout.floatAngle(
+            seed: item.spawnSeed &+ laneIndex &* 97,
+            range: recipe.floatAngleRange
+        )
+        let verticalTravel = CGFloat(abs(recipe.offsetY.last?.value ?? -48))
+        return CombatFeedbackLayout.horizontalDrift(
+            angleDegrees: angle,
+            verticalTravel: verticalTravel
+        )
+    }
+
     private var stackY: CGFloat {
         CombatFeedbackLayout.presentationOffset(index: laneIndex)
     }
@@ -40,6 +53,7 @@ struct CombatFeedbackEventView: View {
     var body: some View {
         animatedChip
             .task(id: item.id) {
+                animationTrigger.toggle()
                 symbolTrigger.toggle()
             }
     }
@@ -50,6 +64,11 @@ struct CombatFeedbackEventView: View {
         let offsetY = recipe.offsetY
         let offsetX = recipe.offsetX
         let rotation = recipe.rotation
+        let horizontalDrift = floatDriftX
+
+        let baseOffsetX0 = offsetX[safe: 0]?.value ?? recipe.initialOffsetX
+        let baseOffsetX1 = offsetX[safe: 1]?.value ?? baseOffsetX0
+        let baseOffsetX2 = offsetX[safe: 2]?.value ?? baseOffsetX1
 
         return KeyframeAnimator(
             initialValue: CombatFeedbackAnimationState(
@@ -59,16 +78,19 @@ struct CombatFeedbackEventView: View {
                 horizontalOffset: recipe.initialOffsetX,
                 rotation: recipe.initialRotation
             ),
-            trigger: item.id
+            trigger: animationTrigger
         ) { state in
             feedbackLabel
+                // Flatten the outlined glyphs once. Only the resulting texture's
+                // transform and opacity change during the animation.
+                .drawingGroup(opaque: false, colorMode: .linear)
                 .scaleEffect(state.scale)
-                .opacity(state.opacity)
                 .rotationEffect(.degrees(state.rotation))
                 .offset(
                     x: state.horizontalOffset + jitterX,
                     y: state.verticalOffset + stackY
                 )
+                .opacity(state.opacity)
         } keyframes: { _ in
             KeyframeTrack(\.scale) {
                 SpringKeyframe(scale[safe: 0]?.value ?? 1.1, duration: scale[safe: 0]?.duration ?? 0.14)
@@ -86,9 +108,9 @@ struct CombatFeedbackEventView: View {
                 SpringKeyframe(offsetY[safe: 2]?.value ?? -48, duration: offsetY[safe: 2]?.duration ?? 0.24)
             }
             KeyframeTrack(\.horizontalOffset) {
-                SpringKeyframe(offsetX[safe: 0]?.value ?? 0, duration: offsetX[safe: 0]?.duration ?? 0.01)
-                SpringKeyframe(offsetX[safe: 1]?.value ?? offsetX[safe: 0]?.value ?? 0, duration: offsetX[safe: 1]?.duration ?? 0.01)
-                SpringKeyframe(offsetX[safe: 2]?.value ?? offsetX[safe: 1]?.value ?? 0, duration: offsetX[safe: 2]?.duration ?? 0.01)
+                SpringKeyframe(baseOffsetX0, duration: offsetY[safe: 0]?.duration ?? 0.01)
+                SpringKeyframe(baseOffsetX1 + horizontalDrift * 0.62, duration: offsetY[safe: 1]?.duration ?? 0.01)
+                SpringKeyframe(baseOffsetX2 + horizontalDrift, duration: offsetY[safe: 2]?.duration ?? 0.01)
             }
             KeyframeTrack(\.rotation) {
                 SpringKeyframe(rotation[safe: 0]?.value ?? 0, duration: rotation[safe: 0]?.duration ?? 0.01)
@@ -140,9 +162,13 @@ struct CombatFeedbackEventView: View {
 
     private var symbolFont: Font {
         switch role {
-        case .headline: .title2.weight(.heavy)
-        case .secondary: .headline.weight(.bold)
-        case .overflow: .callout.weight(.bold)
+        case .headline:
+            if recipe.feedbackClass == .critical {
+                return Font.largeTitle.weight(.black)
+            }
+            return Font.title2.weight(.heavy)
+        case .secondary: return Font.headline.weight(.bold)
+        case .overflow: return Font.callout.weight(.bold)
         }
     }
 }

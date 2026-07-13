@@ -26,6 +26,17 @@ struct StatGrowthTests {
         try #expect(enemy == player)
     }
 
+    @Test func nonBossMageGrowthDoesNotAddMana() throws {
+        let enemy = StatGrowth.enemyGrowth(
+            archetype: .mage,
+            isBoss: false,
+            levelsAbove: 5,
+            identityStats: PrimaryStats(strength: 5, agility: 4, toughness: 4, intellect: 2, wisdom: 2)
+        )
+        try #expect(enemy.maxMana == 0)
+        try #expect(enemy.intellect == 5)
+    }
+
     @Test func bossGrowthSpikesPrimaryStat() throws {
         let stats = PrimaryStats(strength: 12, agility: 2, toughness: 14, intellect: 2, wisdom: 3)
         let growth = StatGrowth.enemyGrowth(

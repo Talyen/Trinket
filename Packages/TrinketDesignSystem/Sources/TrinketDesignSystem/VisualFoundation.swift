@@ -60,6 +60,8 @@ public enum TypographyRole: Sendable {
     case screenTitle
     /// SF title2 for list/shelf section headers (Apple-native UI chrome).
     case sectionTitle
+    /// SF title3 for prominent row labels beneath section headers.
+    case rowTitle
     /// SF headline for card and row primary labels.
     case cardTitle
     /// Small uppercase-capable label above a hero title (role, rarity, chapter index).
@@ -84,6 +86,7 @@ public enum TypographyRole: Sendable {
         case .sectionDisplay: .system(.title2, design: .serif).weight(.semibold)
         case .screenTitle: .largeTitle.weight(.bold)
         case .sectionTitle: .title2.weight(.semibold)
+        case .rowTitle: .title3.weight(.semibold)
         case .cardTitle: .headline.weight(.semibold)
         case .eyebrow: .caption.weight(.bold)
         case .body: .body

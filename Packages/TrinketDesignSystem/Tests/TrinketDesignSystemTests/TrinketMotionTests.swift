@@ -1,3 +1,4 @@
+import CoreGraphics
 import Testing
 import TrinketDesignSystem
 
@@ -13,6 +14,13 @@ struct TrinketMotionTests {
         #expect(TrinketMotion.Battle.ultimateChipStagger < 0.2)
         #expect(TrinketMotion.Labyrinth.modifierStagger > 0)
         #expect(TrinketMotion.Labyrinth.modifierStagger < 0.2)
+    }
+
+    @Test func rewardRevealTimingStaysBriefAndSequential() {
+        #expect(TrinketMotion.Reward.resourceStagger > 0)
+        #expect(TrinketMotion.Reward.resourceStagger < 0.2)
+        #expect(TrinketMotion.Reward.itemRevealDelay > TrinketMotion.Reward.resourceStagger)
+        #expect(TrinketMotion.Reward.completionDelay > TrinketMotion.Reward.itemRevealDelay)
     }
 
     @Test func everyCombatFeedbackClassHasPositiveLifetimeRecipe() {
@@ -32,11 +40,12 @@ struct TrinketMotionTests {
         #expect(critical.lifetime > dot.lifetime)
         #expect(critical.textStyle == .largeTitle)
         #expect(dot.textStyle == .title2)
-        #expect(critical.showsSecondaryCaption)
+        #expect(!critical.showsSecondaryCaption)
+        #expect((critical.scale.last?.value ?? 0) > (TrinketMotion.Battle.chip(for: .directDamage).scale.last?.value ?? 0))
         for feedbackClass in CombatFeedbackClass.allCases {
             let recipe = TrinketMotion.Battle.chip(for: feedbackClass)
-            #expect(recipe.lifetime <= 0.85)
-            #expect(recipe.lifetime >= 0.6)
+            #expect(recipe.lifetime <= 1.2)
+            #expect(recipe.lifetime >= 0.85)
             #expect(recipe.initialOpacity == 0)
             #expect(recipe.initialScale < 1)
             #expect(recipe.initialOffsetY > 0)
@@ -49,6 +58,25 @@ struct TrinketMotionTests {
             CombatFeedbackLayout.presentationOffset(index: 2)
                 > CombatFeedbackLayout.presentationOffset(index: 1)
         )
+    }
+
+    @Test func combatFeedbackFloatAnglesAreStableAndProduceBothDirections() {
+        let range: ClosedRange<CGFloat> = -26 ... 26
+        let first = CombatFeedbackLayout.floatAngle(seed: 17, range: range)
+        let repeated = CombatFeedbackLayout.floatAngle(seed: 17, range: range)
+        let other = CombatFeedbackLayout.floatAngle(seed: 18, range: range)
+        let sampledAngles = (0 ..< 32).map {
+            CombatFeedbackLayout.floatAngle(seed: $0, range: range)
+        }
+
+        #expect(first == repeated)
+        #expect(first >= range.lowerBound)
+        #expect(first <= range.upperBound)
+        #expect(sampledAngles.contains { $0 < 0 })
+        #expect(sampledAngles.contains { $0 > 0 })
+        #expect(CombatFeedbackLayout.horizontalDrift(angleDegrees: 20, verticalTravel: 60) > 0)
+        #expect(CombatFeedbackLayout.horizontalDrift(angleDegrees: -20, verticalTravel: 60) < 0)
+        #expect(first != other)
     }
 
     @Test func cardReactionsCoverAllKinds() {

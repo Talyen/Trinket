@@ -142,7 +142,9 @@ public enum StatGrowth {
         if isBoss {
             return bossGrowth(levelsAbove: levelsAbove, identityStats: identityStats)
         }
-        return playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
+        var growth = playerGrowth(archetype: archetype, levelsAbove: levelsAbove)
+        growth.maxMana = 0
+        return growth
     }
 
     private static func bossGrowth(

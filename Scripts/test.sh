@@ -264,7 +264,7 @@ run_package_tests() {
       )
       xcode_runner_run "${build_runner_args[@]}" -- \
         xcodebuild build-for-testing \
-          -scheme "$package" \
+          -scheme "$(package_test_scheme "$package")" \
           -sdk iphonesimulator \
           -destination "$SIMULATOR_DESTINATION" \
           -derivedDataPath "$DERIVED_DATA_PATH" \

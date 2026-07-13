@@ -46,15 +46,17 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(battle.victory, timeout: Self.defaultTimeout)
 
         assertExists(AccessibilityID.Battle.experience)
-        assertButtonExists(AccessibilityID.Battle.rewardChest)
-        assertButtonExists(AccessibilityID.Battle.openRewards)
-        XCTAssertFalse(any(AccessibilityID.Battle.rewards).exists)
-
-        tapButton(AccessibilityID.Battle.openRewards)
+        XCTAssertFalse(app.buttons["Victory Reward Chest"].exists)
+        XCTAssertFalse(app.buttons["Open Rewards Button"].exists)
 
         assertExists(AccessibilityID.Battle.rewards)
-        XCTAssertFalse(any(AccessibilityID.Battle.experience).exists)
+        assertExists(AccessibilityID.Battle.experience)
         assertExists(AccessibilityID.Battle.rewardItem("chapter-1-stage-1-shortsword-basic"))
+        XCTAssertEqual(
+            app.buttons.matching(identifier: AccessibilityID.Battle.rewardItem("chapter-1-stage-1-shortsword-basic")).count,
+            0
+        )
+        assertExists(app.staticTexts["BASIC"])
         assertExists(app.staticTexts["Shortsword"])
         assertButtonExists(AccessibilityID.Battle.continueButton)
 

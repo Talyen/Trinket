@@ -59,8 +59,7 @@ extension BattleSession {
             scheduleVictoryPresentation(after: date)
             return nil
         case .defeat:
-            isShowingDefeat = true
-            playSFX(SFXID.defeat)
+            scheduleDefeatPresentation(after: date)
             return nil
         case .none:
             return nil
@@ -86,6 +85,28 @@ extension BattleSession {
             isShowingVictory = true
             playSFX(SFXID.victory)
             pendingVictoryPresentationTask = nil
+        }
+    }
+
+    func scheduleDefeatPresentation(after date: Date) {
+        pendingDefeatPresentationTask?.cancel()
+        let latestFeedbackDelay = activeFeedbackItems
+            .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
+            .max() ?? 0
+        let spectacleDelay = max(TrinketMotion.Battle.cardActivationDuration, latestFeedbackDelay)
+            + TrinketMotion.Battle.outcomePresentationPadding
+        let delay = outcomePresentationDelayOverride ?? spectacleDelay
+        guard delay > 0 else {
+            isShowingDefeat = true
+            playSFX(SFXID.defeat)
+            return
+        }
+        pendingDefeatPresentationTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard let self, !Task.isCancelled, outcome == .defeat else { return }
+            isShowingDefeat = true
+            playSFX(SFXID.defeat)
+            pendingDefeatPresentationTask = nil
         }
     }
 
@@ -320,6 +341,7 @@ extension BattleSession {
 
     func resetRun(from configuration: ActiveBattleConfiguration) {
         cancelPendingAutoEnd()
+        sfxPlayer?.warm(SFXID.battlePrewarmIDs, concurrentPlayerCount: 2)
         state = BattleState(
             hero: configuration.hero.combatant,
             companion: configuration.companion.combatant,

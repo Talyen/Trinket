@@ -215,11 +215,11 @@ encounter	mystery-smoldering-crater	encounter_mystery_smoldering_crater	Raw Asse
 encounter	mystery-sunlight-breaks-canopy	encounter_mystery_sunlight_breaks_canopy	Raw Assets/Mystery Events/Sunlight Breaks Canopy.jpeg	0.50	0.50
 encounter	mystery-vines-carpet-mosaic-floors	encounter_mystery_vines_carpet_mosaic_floors	Raw Assets/Mystery Events/Vines Carpet Mosaic Floors.jpeg	0.50	0.50
 encounter	mystery-weathered-stone-altar	encounter_mystery_weathered_stone_altar	Raw Assets/Mystery Events/Weathered Stone Altar.jpeg	0.50	0.50
+encounter	mystery-recruit-companions	encounter_mystery_recruit_companions	Raw Assets/Mystery Events/Mystery Recruit Companions.png	0.50	0.50
+encounter	mystery-recruit-heroes	encounter_mystery_recruit_heroes	Raw Assets/Mystery Events/Mystery Recruit Heroes.png	0.50	0.50
 encounter	destination-merchant-shop	encounter_destination_merchant_shop	Raw Assets/Destinations/Merchant's Shop.jpeg	0.50	0.50
 encounter	destination-alchemist-shop	encounter_destination_alchemist_shop	Raw Assets/Destinations/Alchemist's Shop.jpeg	0.50	0.50
 encounter	destination-campfire	encounter_destination_campfire	Raw Assets/Destinations/Campfire.jpeg	0.50	0.50
 encounter	destination-corruption-altar	encounter_destination_corruption_altar	Raw Assets/Destinations/Corruption Altar.jpeg	0.50	0.50
 background	gameModeCampaign	bg_game_mode_campaign	Raw Assets/Game Modes/Game Mode Campaign.png	0.50	0.76
 background	gameModeExplore	bg_game_mode_explore	Raw Assets/Game Modes/Game Mode Explore.png	0.50	0.78
-background	rewardChestClosed	reward_chest_closed	Raw Assets/Misc/Reward Chest.png	0.50	0.50
-background	rewardChestOpen	reward_chest_open	Raw Assets/Misc/Reward Chest Open.png	0.50	0.50

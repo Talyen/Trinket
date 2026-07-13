@@ -121,9 +121,6 @@ extension Stage {
         if case let .battle(enemyID) = encounter {
             return GameContent.enemy(matching: enemyID)?.combatant.artReference
         }
-        if let recruit = recruitCombatant {
-            return recruit.artReference
-        }
         return nil
     }
 
@@ -132,9 +129,11 @@ extension Stage {
             return nil
         }
         if case .mysteryEvent = encounter {
-            // Recruit mysteries use combatant portrait art (3:4), not encounter art.
-            if recruitCombatant != nil {
-                return nil
+            if let recruit = recruitCombatant {
+                let artID = recruit.role == .companion
+                    ? "mystery-recruit-companions"
+                    : "mystery-recruit-heroes"
+                return ArtCatalog.encounterArtByID[artID]
             }
             guard let artID = mysteryEvent?.artID else { return nil }
             return ArtCatalog.encounterArtByID[artID]
@@ -154,8 +153,8 @@ extension Stage {
         case .rest:
             return GameContent.encounterArtTitle(for: self) ?? "Moonwell"
         case .mysteryEvent:
-            if let recruit = recruitCombatant {
-                return recruit.name
+            if recruitCombatant != nil {
+                return "Mystery"
             }
             return mysteryEvent?.title ?? "Mystery"
         }

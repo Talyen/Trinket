@@ -59,6 +59,8 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
     public let rotation: [CombatFeedbackKeyframeSample]
     public let lifetime: TimeInterval
     public let horizontalJitter: ClosedRange<CGFloat>
+    /// Randomized angle away from vertical for the upward float path.
+    public let floatAngleRange: ClosedRange<CGFloat>
     public let stackSpacing: CGFloat
     public let chrome: ChipChromeRole
     public let fontWeight: Font.Weight
@@ -81,6 +83,7 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         rotation: [CombatFeedbackKeyframeSample] = [],
         lifetime: TimeInterval,
         horizontalJitter: ClosedRange<CGFloat>,
+        floatAngleRange: ClosedRange<CGFloat> = -26 ... 26,
         stackSpacing: CGFloat,
         chrome: ChipChromeRole,
         fontWeight: Font.Weight,
@@ -101,6 +104,7 @@ public struct CombatFeedbackMotionRecipe: Sendable, Equatable {
         self.rotation = rotation
         self.lifetime = lifetime
         self.horizontalJitter = horizontalJitter
+        self.floatAngleRange = floatAngleRange
         self.stackSpacing = stackSpacing
         self.chrome = chrome
         self.fontWeight = fontWeight
@@ -179,6 +183,17 @@ public enum CombatFeedbackLayout: Sendable {
         guard jitter.upperBound > jitter.lowerBound else { return jitter.lowerBound }
         let t = unitNoise(seed: seed)
         return jitter.lowerBound + (jitter.upperBound - jitter.lowerBound) * t
+    }
+
+    /// Stable pseudo-random angle in degrees, measured from the vertical axis.
+    public static func floatAngle(seed: Int, range: ClosedRange<CGFloat>) -> CGFloat {
+        horizontalOffset(seed: seed, jitter: range)
+    }
+
+    /// Horizontal travel needed to rise at `angleDegrees` from vertical.
+    public static func horizontalDrift(angleDegrees: CGFloat, verticalTravel: CGFloat) -> CGFloat {
+        let radians = Double(angleDegrees) * .pi / 180
+        return CGFloat(tan(radians)) * abs(verticalTravel)
     }
 
     public static func stackOffset(index: Int, spacing: CGFloat) -> CGFloat {

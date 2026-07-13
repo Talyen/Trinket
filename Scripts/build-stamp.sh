@@ -22,3 +22,10 @@ touch_build_stamp() {
   mkdir -p "$results_dir"
   touch "$stamp"
 }
+
+package_test_scheme() {
+  case "$1" in
+    BattleEngine) printf '%s\n' 'BattleEngine-Package' ;;
+    *) printf '%s\n' "$1" ;;
+  esac
+}

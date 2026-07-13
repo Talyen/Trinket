@@ -201,8 +201,6 @@ enum AccessibilityID {
         static let victory = "Victory"
         static let experience = "Experience"
         static let rewards = "Rewards"
-        static let rewardChest = "Victory Reward Chest"
-        static let openRewards = "Open Rewards Button"
         static let continueButton = "Continue Button"
         static let abilityDetail = "Battle Ability Detail"
         static let abilityDetailEffect = "Battle Ability Detail Effect"

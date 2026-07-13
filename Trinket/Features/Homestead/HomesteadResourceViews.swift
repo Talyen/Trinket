@@ -8,15 +8,8 @@ struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let roster: PlayerRosterState
 
-    private var columns: [GridItem] {
-        Array(
-            repeating: GridItem(.flexible(minimum: 0), spacing: TrinketDesign.Metrics.smallSpacing),
-            count: 4
-        )
-    }
-
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 6) {
+        TrinketWalletGrid {
             ForEach(HomesteadResource.allCases) { resource in
                 HomesteadResourcePill(
                     resource: resource,
@@ -24,8 +17,6 @@ struct HomesteadResourceWallet: View {
                 )
             }
         }
-        .padding(6)
-        .trinketMaterial(.homesteadFooter)
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceWallet)
     }
 }
@@ -35,24 +26,9 @@ struct HomesteadResourcePill: View {
     let balance: Int
 
     var body: some View {
-        HStack(spacing: 8) {
+        TrinketWalletResourcePill(title: resource.displayName, amount: balance) {
             HomesteadResourceArtwork(resource: resource)
-                .frame(width: 36, height: 36)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(resource.displayName)
-                    .trinketTypography(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.76)
-
-                Text("\(balance)")
-                    .trinketTypography(.statValue)
-                    .contentTransition(.numericText())
-            }
         }
-        .frame(maxWidth: .infinity, minHeight: 46, alignment: .leading)
-        .animation(TrinketMotion.Homestead.tierCompletion, value: balance)
     }
 }
 

@@ -4,6 +4,7 @@ import TrinketDesignSystem
 
 struct CardActivationRequest: Equatable, Identifiable {
     let id: UUID
+    let startedAt: Date
     let artworkName: String?
     let center: CGPoint
     let size: CGSize
@@ -12,9 +13,11 @@ struct CardActivationRequest: Equatable, Identifiable {
     let scale: CGFloat
     let keywords: [Keyword]
     let particleCount: Int
+    let particles: [CardActivationParticle]
 
     init(
         id: UUID = UUID(),
+        startedAt: Date = .now,
         artworkName: String?,
         center: CGPoint,
         size: CGSize,
@@ -22,9 +25,10 @@ struct CardActivationRequest: Equatable, Identifiable {
         verticalTilt: CGFloat,
         scale: CGFloat,
         keywords: [Keyword],
-        particleCount: Int = Int.random(in: 100 ... 200)
+        particleCount: Int = 50
     ) {
         self.id = id
+        self.startedAt = startedAt
         self.artworkName = artworkName
         self.center = center
         self.size = size
@@ -37,148 +41,255 @@ struct CardActivationRequest: Equatable, Identifiable {
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
         self.particleCount = particleCount
+        particles = CardActivationParticle.make(count: particleCount)
     }
 }
 
-struct CardCastOverlay: View {
-    let request: CardActivationRequest
-    let onFinished: () -> Void
+struct CardActivationParticle: Equatable {
+    let originXNoise: CGFloat
+    let originYNoise: CGFloat
+    let vector: CGVector
+    let distanceNoise: CGFloat
+    let delayNoise: CGFloat
+    let lifetimeNoise: CGFloat
+    let curveNoise: CGFloat
+    let sizeNoise: CGFloat
+    let fadeNoise: CGFloat
+    let colorNoise: CGFloat
+
+    static func make(count: Int) -> [Self] {
+        (0 ..< max(0, count)).map { index in
+            let angle = dissolveNoise(column: index, row: 41) * 2 * .pi
+            return Self(
+                originXNoise: dissolveNoise(column: index, row: 13),
+                originYNoise: dissolveNoise(column: index, row: 29),
+                vector: CGVector(dx: cos(angle), dy: sin(angle)),
+                distanceNoise: dissolveNoise(column: index, row: 53),
+                delayNoise: dissolveNoise(column: index, row: 61),
+                lifetimeNoise: dissolveNoise(column: index, row: 67),
+                curveNoise: dissolveNoise(column: index, row: 83),
+                sizeNoise: dissolveNoise(column: index, row: 79),
+                fadeNoise: dissolveNoise(column: index, row: 101),
+                colorNoise: dissolveNoise(column: index, row: 109)
+            )
+        }
+    }
+}
+
+/// All active casts share one display-linked clock. Per-request cleanup remains
+/// independently cancellable when a cast disappears early.
+struct CardCastEffectsLayer: View {
+    let requests: [CardActivationRequest]
+    let onFinished: (UUID) -> Void
+
+    var body: some View {
+        Group {
+            if !requests.isEmpty {
+                ZStack {
+                    TimelineView(.animation) { timeline in
+                        ZStack {
+                            ForEach(requests) { request in
+                                cast(request, at: timeline.date)
+                            }
+                        }
+                    }
+
+                    ForEach(requests) { request in
+                        Color.clear
+                            .frame(width: 0, height: 0)
+                            .task(id: request.id) {
+                                let elapsed = Date.now.timeIntervalSince(request.startedAt)
+                                let remaining = max(0, TrinketMotion.Battle.cardActivationDuration - elapsed)
+                                try? await Task.sleep(for: .seconds(remaining))
+                                guard !Task.isCancelled else { return }
+                                onFinished(request.id)
+                            }
+                    }
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func cast(_ request: CardActivationRequest, at date: Date) -> some View {
+        let progress = CGFloat(min(max(
+            date.timeIntervalSince(request.startedAt) / TrinketMotion.Battle.cardActivationDuration,
+            0
+        ), 1))
+        return CardCastEffect(
+            artworkName: request.artworkName,
+            progress: progress,
+            keywords: request.keywords,
+            cardSize: request.size,
+            particles: request.particles
+        )
+        .rotationEffect(.radians(request.rotation), anchor: .bottom)
+        .rotation3DEffect(
+            .degrees(request.verticalTilt),
+            axis: (x: 1, y: 0, z: 0),
+            anchor: .bottom,
+            perspective: 0.35
+        )
+        .scaleEffect(request.scale)
+        .position(x: request.center.x, y: request.center.y)
+    }
+}
+
+struct CardCastEffectConfiguration {
+    var dissolveDuration: CGFloat = 0.50
+    var dissolveEdgeWidth: CGFloat = 0.02
+    var dissolveCellScale: CGFloat = 0.20
+    var particleDistance: CGFloat = 220
+    var particleDistanceVariation: CGFloat = 0
+    var particleDelay: CGFloat = 0.40
+    var particleLifetime: CGFloat = 0.70
+    var particleLifetimeVariation: CGFloat = 0.20
+    var particleCurve: CGFloat = 1.75
+    var particleOriginSpread: CGFloat = 0.60
+    var particleSize: CGFloat = 4.0
+    var particleSizeVariation: CGFloat = 3.0
+    var fadeStart: CGFloat = 0.30
+    var fadeStartVariation: CGFloat = 0
+}
+
+struct BattleDissolveEffect<Content: View>: View {
+    let progress: CGFloat
+    let keywords: [Keyword]
+    let size: CGSize
+    let particles: [CardActivationParticle]
+    let content: Content
+    var configuration = CardCastEffectConfiguration()
+
+    init(
+        progress: CGFloat,
+        keywords: [Keyword],
+        size: CGSize,
+        particles: [CardActivationParticle],
+        configuration: CardCastEffectConfiguration = CardCastEffectConfiguration(),
+        @ViewBuilder content: () -> Content
+    ) {
+        self.progress = progress
+        self.keywords = keywords
+        self.size = size
+        self.particles = particles
+        self.configuration = configuration
+        self.content = content()
+    }
+
+    var body: some View {
+        let dissolveProgress = min(progress / configuration.dissolveDuration, 1)
+        ZStack {
+            content
+                .frame(width: size.width, height: size.height)
+                .mask {
+                    CardDissolveThresholdMask(progress: dissolveProgress)
+                }
+
+            LinearGradient(
+                colors: keywords.map(\.visualStyle.color),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .mask {
+                CardDissolveEdgeMask(
+                    progress: dissolveProgress,
+                    edgeWidth: configuration.dissolveEdgeWidth,
+                    cellScale: configuration.dissolveCellScale
+                )
+            }
+        }
+        .frame(width: size.width, height: size.height)
+        .scaleEffect(1 - dissolveProgress * 0.06)
+        .overlay {
+            CardActivationParticles(
+                progress: progress,
+                keywords: keywords,
+                cardSize: size,
+                particles: particles,
+                configuration: configuration
+            )
+            .frame(width: size.width + 360, height: size.height + 360)
+        }
+    }
+}
+
+private struct CardCastEffect: View {
+    let artworkName: String?
+    let progress: CGFloat
+    let keywords: [Keyword]
+    let cardSize: CGSize
+    let particles: [CardActivationParticle]
+    var configuration = CardCastEffectConfiguration()
+
+    var body: some View {
+        BattleDissolveEffect(
+            progress: progress,
+            keywords: keywords,
+            size: cardSize,
+            particles: particles,
+            configuration: configuration
+        ) {
+            BattleAbilityCardFace(artworkName: artworkName)
+        }
+    }
+}
+
+struct BattleDissolveArtwork<Content: View>: View {
+    let content: Content
 
     @State private var startDate = Date()
+    private let particles = CardActivationParticle.make(count: 50)
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
 
     var body: some View {
         TimelineView(.animation) { timeline in
-            let progress = CGFloat(min(
-                timeline.date.timeIntervalSince(startDate) / TrinketMotion.Battle.cardActivationDuration,
-                1
-            ))
-            let dissolveProgress = min(progress / 0.34, 1)
-            ZStack {
-                BattleAbilityCardFace(artworkName: request.artworkName)
-                    .mask {
-                        CardDissolveMask(progress: dissolveProgress)
-                    }
+            GeometryReader { geometry in
+                let progress = CGFloat(min(
+                    max(timeline.date.timeIntervalSince(startDate), 0)
+                        / TrinketMotion.Battle.cardActivationDuration,
+                    1
+                ))
 
-                CardDissolveEnergyEdge(
-                    progress: dissolveProgress,
-                    keywords: request.keywords
-                )
-            }
-            .frame(width: request.size.width, height: request.size.height)
-            .rotationEffect(.radians(request.rotation), anchor: .bottom)
-            .rotation3DEffect(
-                .degrees(request.verticalTilt),
-                axis: (x: 1, y: 0, z: 0),
-                anchor: .bottom,
-                perspective: 0.35
-            )
-            .scaleEffect(request.scale * cardScale(at: progress))
-            .overlay {
-                CardActivationParticles(
+                BattleDissolveEffect(
                     progress: progress,
-                    keywords: request.keywords,
-                    cardSize: request.size,
-                    particleCount: request.particleCount
-                )
-                .frame(width: request.size.width + 360, height: request.size.height + 360)
+                    keywords: [.physical],
+                    size: geometry.size,
+                    particles: particles
+                ) {
+                    content
+                }
             }
-            .position(x: request.center.x, y: request.center.y)
         }
-        .allowsHitTesting(false)
         .onAppear {
             startDate = Date()
         }
-        .task {
-            try? await Task.sleep(for: .seconds(TrinketMotion.Battle.cardActivationDuration))
-            guard !Task.isCancelled else { return }
-            onFinished()
-        }
-    }
-
-    private func cardScale(at progress: CGFloat) -> CGFloat {
-        let disappearanceProgress = min(progress / 0.34, 1)
-        return 1 - disappearanceProgress * 0.06
+        .allowsHitTesting(false)
     }
 }
 
-private struct CardDissolveMask: View {
-    let progress: CGFloat
+/// Primes the dissolve texture filters and particle Canvas before the first activation.
+struct CardCastEffectsPrewarmView: View {
+    private let cardSize = CGSize(width: 168, height: 224)
+    private let particles = CardActivationParticle.make(count: 12)
 
     var body: some View {
-        Canvas(rendersAsynchronously: true) { context, size in
-            CardDissolveGrid.draw(in: &context, size: size) { threshold, _, _ in
-                (threshold > progress ? 1 : 0, .primary)
-            }
+        BattleDissolveEffect(
+            progress: 0.45,
+            keywords: [.physical],
+            size: cardSize,
+            particles: particles
+        ) {
+            Rectangle().fill(TrinketDesign.Colors.Overlay.paper)
         }
-    }
-}
-
-private struct CardDissolveEnergyEdge: View {
-    let progress: CGFloat
-    let keywords: [Keyword]
-
-    var body: some View {
-        Canvas(rendersAsynchronously: true) { context, size in
-            CardDissolveGrid.draw(in: &context, size: size, cellScale: 0.55) { threshold, column, row in
-                let distanceFromEdge = threshold - progress
-                guard distanceFromEdge > 0, distanceFromEdge < 0.09 else {
-                    return (0, .primary)
-                }
-                let colorNoise = dissolveNoise(column: column, row: row + 173)
-                let colorIndex = min(Int(colorNoise * CGFloat(keywords.count)), keywords.count - 1)
-                return (
-                    1 - distanceFromEdge / 0.09,
-                    keywords[colorIndex].visualStyle.color
-                )
-            }
-        }
-    }
-}
-
-private enum CardDissolveGrid {
-    private static let cellSize: CGFloat = 4
-
-    static func draw(
-        in context: inout GraphicsContext,
-        size: CGSize,
-        cellScale: CGFloat = 1,
-        style: (_ threshold: CGFloat, _ column: Int, _ row: Int) -> (opacity: CGFloat, color: Color)
-    ) {
-        let columns = Int(ceil(size.width / cellSize))
-        let rows = Int(ceil(size.height / cellSize))
-        let maximumInset = max(min(size.width, size.height) / 2, 1)
-
-        for row in 0 ..< rows {
-            for column in 0 ..< columns {
-                let midpoint = CGPoint(
-                    x: (CGFloat(column) + 0.5) * cellSize,
-                    y: (CGFloat(row) + 0.5) * cellSize
-                )
-                let inset = min(
-                    min(midpoint.x, size.width - midpoint.x),
-                    min(midpoint.y, size.height - midpoint.y)
-                )
-                let edgeDepth = max(0, inset / maximumInset)
-                let noise = dissolveNoise(column: column, row: row)
-                let threshold = min(edgeDepth * 0.86 + noise * 0.18, 1)
-                let cellStyle = style(threshold, column, row)
-                let cellOpacity = cellStyle.opacity
-                guard cellOpacity > 0 else { continue }
-
-                let renderedCellSize = cellSize * cellScale
-                let cellInset = (cellSize - renderedCellSize) / 2
-                context.opacity = cellOpacity
-                context.fill(
-                    Path(CGRect(
-                        x: CGFloat(column) * cellSize + cellInset,
-                        y: CGFloat(row) * cellSize + cellInset,
-                        width: renderedCellSize + 0.5,
-                        height: renderedCellSize + 0.5
-                    )),
-                    with: .color(cellStyle.color)
-                )
-            }
-        }
+        // A nonzero opacity ensures the render is not optimized away. Scaling
+        // happens after Canvas rasterization, so the representative workload is
+        // still prepared while remaining visually imperceptible.
+        .opacity(0.001)
+        .scaleEffect(0.01)
+        .allowsHitTesting(false)
     }
 }
 
@@ -186,40 +297,45 @@ private struct CardActivationParticles: View {
     let progress: CGFloat
     let keywords: [Keyword]
     let cardSize: CGSize
-    let particleCount: Int
+    let particles: [CardActivationParticle]
+    var configuration = CardCastEffectConfiguration()
 
     var body: some View {
         Canvas(rendersAsynchronously: true) { context, size in
-            for index in 0 ..< particleCount {
-                let origin = particleOrigin(index: index, size: size)
-                let vector = launchVector(index: index)
-                let distance = 96 + dissolveNoise(column: index, row: 53) * 120
-                let delay = dissolveNoise(column: index, row: 61) * 0.24
-                let lifetimeScale = 0.58 + dissolveNoise(column: index, row: 67) * 0.18
+            for particle in particles {
+                let origin = particleOrigin(particle, size: size)
+                let distance = configuration.particleDistance
+                    + particle.distanceNoise * configuration.particleDistanceVariation
+                let delay = particle.delayNoise * configuration.particleDelay
+                let lifetimeScale = configuration.particleLifetime
+                    + particle.lifetimeNoise * configuration.particleLifetimeVariation
                 guard progress >= delay else { continue }
                 let age = min((progress - delay) / lifetimeScale, 1)
                 guard age < 1 else { continue }
                 let easedAge = 1 - pow(1 - age, 2)
-                let curve = (dissolveNoise(column: index, row: 83) - 0.5) * distance * 1.15
+                let curve = (particle.curveNoise - 0.5)
+                    * distance * configuration.particleCurve
                 let center = curvedPosition(
                     from: origin,
-                    vector: vector,
+                    vector: particle.vector,
                     distance: distance,
                     curve: curve,
                     progress: easedAge
                 )
-                let diameter = (1.2 + dissolveNoise(column: index, row: 79) * 5.6) * (1 - age * 0.38)
+                let diameter = (configuration.particleSize
+                    + particle.sizeNoise * configuration.particleSizeVariation)
+                    * (1 - age * 0.38)
                 let rect = CGRect(
                     x: center.x - diameter / 2,
                     y: center.y - diameter / 2,
                     width: diameter,
                     height: diameter
                 )
-                let fadeStart = 0.32 + dissolveNoise(column: index, row: 101) * 0.5
+                let fadeStart = configuration.fadeStart
+                    + particle.fadeNoise * configuration.fadeStartVariation
                 let fadeProgress = max(0, (age - fadeStart) / (1 - fadeStart))
                 context.opacity = pow(1 - fadeProgress, 1.35)
-                let colorNoise = dissolveNoise(column: index, row: 109)
-                let colorIndex = min(Int(colorNoise * CGFloat(keywords.count)), keywords.count - 1)
+                let colorIndex = min(Int(particle.colorNoise * CGFloat(keywords.count)), keywords.count - 1)
                 context.fill(
                     Path(ellipseIn: rect),
                     with: .color(keywords[colorIndex].visualStyle.color)
@@ -229,16 +345,13 @@ private struct CardActivationParticles: View {
         .allowsHitTesting(false)
     }
 
-    private func particleOrigin(index: Int, size: CGSize) -> CGPoint {
+    private func particleOrigin(_ particle: CardActivationParticle, size: CGSize) -> CGPoint {
         CGPoint(
-            x: size.width / 2 + (dissolveNoise(column: index, row: 13) - 0.5) * cardSize.width * 0.22,
-            y: size.height / 2 + (dissolveNoise(column: index, row: 29) - 0.5) * cardSize.height * 0.22
+            x: size.width / 2 + (particle.originXNoise - 0.5)
+                * cardSize.width * configuration.particleOriginSpread,
+            y: size.height / 2 + (particle.originYNoise - 0.5)
+                * cardSize.height * configuration.particleOriginSpread
         )
-    }
-
-    private func launchVector(index: Int) -> CGVector {
-        let angle = dissolveNoise(column: index, row: 41) * 2 * .pi
-        return CGVector(dx: cos(angle), dy: sin(angle))
     }
 
     private func curvedPosition(
@@ -270,6 +383,110 @@ private struct CardActivationParticles: View {
 }
 
 private func dissolveNoise(column: Int, row: Int) -> CGFloat {
-    let value = sin(Double(column * 12989 + row * 78233)) * 43758.545_3
-    return CGFloat(value - floor(value))
+    CombatFeedbackLayout.unitNoise(seed: column &* 12989 &+ row &* 78233)
 }
+
+#if DEBUG
+private struct CardCastEffectPlayground: View {
+    private let cardSize = CGSize(width: 168, height: 224)
+
+    @State private var configuration = CardCastEffectConfiguration()
+    @State private var particleCount = 50
+    @State private var duration: CGFloat = 1.0
+    @State private var scrubProgress: CGFloat = 0.18
+    @State private var playsAutomatically = true
+    @State private var playbackStart = Date()
+    @State private var keyword = Keyword.burn
+
+    var body: some View {
+        HStack(spacing: 0) {
+            TimelineView(.animation) { timeline in
+                CardCastEffect(
+                    artworkName: nil,
+                    progress: progress(at: timeline.date),
+                    keywords: [keyword, .physical],
+                    cardSize: cardSize,
+                    particles: CardActivationParticle.make(count: particleCount),
+                    configuration: configuration
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .trinketSurface(.base)
+
+            Form {
+                Section("Playback") {
+                    Toggle("Auto-play", isOn: $playsAutomatically)
+                        .onChange(of: playsAutomatically) { _, isPlaying in
+                            if isPlaying {
+                                playbackStart = Date()
+                            }
+                        }
+                    parameterSlider("Duration", value: $duration, range: 0.4 ... 2.5, format: "%.2f s")
+                    parameterSlider("Progress", value: $scrubProgress, range: 0 ... 1, format: "%.2f")
+                        .disabled(playsAutomatically)
+                    Button("Replay") {
+                        playbackStart = Date()
+                        playsAutomatically = true
+                    }
+                }
+
+                Section("Particles") {
+                    Stepper("Count: \(particleCount)", value: $particleCount, in: 0 ... 400, step: 10)
+                    Picker("Palette", selection: $keyword) {
+                        ForEach(Keyword.allCases) { keyword in
+                            Text(keyword.rawValue).tag(keyword)
+                        }
+                    }
+                    parameterSlider("Travel", value: $configuration.particleDistance, range: 20 ... 220, format: "%.0f pt")
+                    parameterSlider("Variation", value: $configuration.particleDistanceVariation, range: 0 ... 240, format: "%.0f pt")
+                    parameterSlider("Curve", value: $configuration.particleCurve, range: 0 ... 2.5, format: "%.2f")
+                    parameterSlider("Origin spread", value: $configuration.particleOriginSpread, range: 0 ... 1, format: "%.2f")
+                    parameterSlider("Base size", value: $configuration.particleSize, range: 0.5 ... 8, format: "%.1f pt")
+                    parameterSlider("Size variation", value: $configuration.particleSizeVariation, range: 0 ... 12, format: "%.1f pt")
+                    parameterSlider("Max delay", value: $configuration.particleDelay, range: 0 ... 0.6, format: "%.2f")
+                    parameterSlider("Lifetime", value: $configuration.particleLifetime, range: 0.2 ... 1, format: "%.2f")
+                    parameterSlider("Lifetime variation", value: $configuration.particleLifetimeVariation, range: 0 ... 0.6, format: "%.2f")
+                    parameterSlider("Fade start", value: $configuration.fadeStart, range: 0 ... 0.8, format: "%.2f")
+                }
+
+                Section("Dissolve") {
+                    parameterSlider("Duration", value: $configuration.dissolveDuration, range: 0.1 ... 0.9, format: "%.2f")
+                    parameterSlider("Edge width", value: $configuration.dissolveEdgeWidth, range: 0.02 ... 0.25, format: "%.2f")
+                    parameterSlider("Cell scale", value: $configuration.dissolveCellScale, range: 0.2 ... 1, format: "%.2f")
+                }
+
+                Button("Reset Defaults") {
+                    configuration = CardCastEffectConfiguration()
+                    particleCount = 50
+                    duration = 1
+                    keyword = .burn
+                    playbackStart = Date()
+                }
+            }
+            .frame(width: 340)
+        }
+    }
+
+    private func progress(at date: Date) -> CGFloat {
+        guard playsAutomatically else { return scrubProgress }
+        let elapsed = max(0, date.timeIntervalSince(playbackStart))
+        return CGFloat((elapsed / TimeInterval(duration)).truncatingRemainder(dividingBy: 1))
+    }
+
+    private func parameterSlider(
+        _ title: String,
+        value: Binding<CGFloat>,
+        range: ClosedRange<CGFloat>,
+        format: String
+    ) -> some View {
+        VStack(alignment: .leading) {
+            LabeledContent(title, value: String(format: format, value.wrappedValue))
+            Slider(value: value, in: range)
+        }
+    }
+}
+
+#Preview("Card Cast Effect Lab") {
+    CardCastEffectPlayground()
+}
+#endif

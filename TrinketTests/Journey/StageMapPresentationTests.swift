@@ -60,6 +60,7 @@ struct StageMapPresentationTests {
         let chapter = GameContent.chapters[0]
         let rows = ChapterStageRowPresentation.rows(for: chapter, progress: .initial)
 
+        #expect(rows[1].stage.encounterSubjectName == "Mystery")
         #expect(rows[1].stage.encounterTypeTitle == "Recruit")
         #expect(rows[4].isBoss)
         #expect(rows[4].stage.encounterTypeTitle == "Boss")

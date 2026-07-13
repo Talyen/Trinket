@@ -25,9 +25,19 @@ struct CardActivationTests {
         #expect(request.scale == 1.035)
         #expect(request.keywords == [.burn, .physical])
         #expect(request.particleCount == 147)
+        #expect(request.particles.count == 147)
     }
 
     @Test func cardActivationUsesTheFullParticleDuration() {
         #expect(TrinketMotion.Battle.cardActivationDuration == 1.0)
+    }
+
+    @Test func cardParticlesArePreparedDeterministically() {
+        let first = CardActivationParticle.make(count: 50)
+        let second = CardActivationParticle.make(count: 50)
+
+        #expect(first == second)
+        #expect(first.count == 50)
+        #expect(CardActivationParticle.make(count: -1).isEmpty)
     }
 }

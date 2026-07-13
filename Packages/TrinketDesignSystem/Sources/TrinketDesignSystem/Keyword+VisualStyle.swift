@@ -23,7 +23,7 @@ public extension Keyword {
 
         public static let physical = VisualStyle(
             color: DesignAssetColors.named("KeywordPhysical"),
-            symbolName: "bolt.fill"
+            symbolName: "burst.fill"
         )
         public static let burn = VisualStyle(
             color: DesignAssetColors.named("KeywordBurn"),
@@ -50,7 +50,7 @@ public extension Keyword {
         )
         public static let gold = VisualStyle(
             color: DesignAssetColors.named("KeywordGold"),
-            symbolName: "dollarsign.circle.fill",
+            symbolName: "circle.circle.fill",
             prefersDarkForeground: true
         )
         public static let holy = VisualStyle(
@@ -60,7 +60,7 @@ public extension Keyword {
         )
         public static let poison = VisualStyle(
             color: DesignAssetColors.named("KeywordPoison"),
-            symbolName: "drop.triangle.fill"
+            symbolName: "drop.fill"
         )
         public static let bleed = VisualStyle(
             color: DesignAssetColors.named("KeywordBleed"),
@@ -68,7 +68,7 @@ public extension Keyword {
         )
         public static let leech = VisualStyle(
             color: DesignAssetColors.named("KeywordLeech"),
-            symbolName: "drop.fill"
+            symbolName: "drop"
         )
         public static let nature = VisualStyle(
             color: DesignAssetColors.named("KeywordNature"),
@@ -81,7 +81,7 @@ public extension Keyword {
         )
         public static let dodge = VisualStyle(
             color: DesignAssetColors.named("KeywordDodge"),
-            symbolName: "arrowshape.turn.up.left.circle.fill"
+            symbolName: "figure.run"
         )
         public static let purge = VisualStyle(
             color: DesignAssetColors.named("KeywordPurge"),
@@ -89,7 +89,7 @@ public extension Keyword {
         )
         public static let mana = VisualStyle(
             color: DesignAssetColors.named("KeywordMana"),
-            symbolName: "star.fill"
+            symbolName: "moon.stars.fill"
         )
         public static let deathsDoor = VisualStyle(
             color: DesignAssetColors.named("KeywordDeathsDoor"),

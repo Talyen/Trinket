@@ -68,7 +68,7 @@ struct ChapterStageSelectView: View {
         ChapterStageRowPresentation.rows(
             for: chapter,
             progress: appState.journey.current
-        )
+        ).filter { !$0.isCompleted }
     }
 
     private func handlePrimaryAction(_ stage: Stage) {

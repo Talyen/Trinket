@@ -29,13 +29,31 @@ enum SFXID {
     static let victory = "victory"
     static let defeat = "defeat"
     static let mysteryEvent = "mystery_event"
+
+    /// Battle clips are prepared before the battlefield becomes interactive so
+    /// an impact frame never performs resource lookup or decoder setup.
+    static let battlePrewarmIDs = [
+        abilityDraw,
+        hit,
+        hitBurn,
+        hitFreeze,
+        heal,
+        buff,
+        block,
+        controlFreeze,
+        controlStun,
+        purge,
+        deathsDoor,
+        victory,
+        defeat
+    ]
 }
 
 @MainActor
 final class SFXPlayer {
     private let isDisabled: Bool
     private var hasConfiguredSession = false
-    private var activePlayers: [AVAudioPlayer] = []
+    private var preparedPlayersByID: [String: [AVAudioPlayer]] = [:]
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "com.ryanmcintire.Trinket",
         category: "Audio"
@@ -54,37 +72,65 @@ final class SFXPlayer {
         }
 
         configureSessionIfNeeded()
-        pruneFinishedPlayers()
-
-        guard let url = resourceURL(for: clip) else {
-            logger.warning(
-                "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)"
-            )
-            return
+        if preparedPlayersByID[id] == nil {
+            warm([id])
         }
+        guard let players = preparedPlayersByID[id],
+              let player = players.first(where: { !$0.isPlaying })
+              ?? players.max(by: { $0.currentTime < $1.currentTime }) else { return }
 
-        do {
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.volume = min(Float(max(0, volume) * max(0, clip.volumeGain)), 1)
-            player.prepareToPlay()
-            player.play()
-            activePlayers.append(player)
-        } catch {
-            logger.error(
-                "Unable to load SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
-            )
+        if player.isPlaying {
+            player.stop()
+        }
+        player.currentTime = 0
+        player.volume = min(Float(max(0, volume) * max(0, clip.volumeGain)), 1)
+        player.play()
+    }
+
+    /// Prepares a small overlap pool. Battle uses two players per clip so rapid
+    /// target staggers do not allocate or cut off the immediately preceding hit.
+    func warm(_ ids: [String], concurrentPlayerCount: Int = 1) {
+        guard !isDisabled else { return }
+        configureSessionIfNeeded()
+        let desiredCount = max(1, concurrentPlayerCount)
+
+        for id in ids {
+            guard let clip = SFXCatalog.clipsByID[id] else { continue }
+            var players = preparedPlayersByID[id, default: []]
+            while players.count < desiredCount {
+                guard let player = makePreparedPlayer(for: clip) else { break }
+                players.append(player)
+            }
+            preparedPlayersByID[id] = players
         }
     }
 
     func stopAll() {
-        for player in activePlayers {
-            player.stop()
+        for players in preparedPlayersByID.values {
+            for player in players {
+                player.stop()
+                player.currentTime = 0
+            }
         }
-        activePlayers = []
     }
 
-    private func pruneFinishedPlayers() {
-        activePlayers.removeAll { !$0.isPlaying }
+    private func makePreparedPlayer(for clip: SFXClip) -> AVAudioPlayer? {
+        guard let url = resourceURL(for: clip) else {
+            logger.warning(
+                "Missing SFX resource: \(clip.resourceName, privacy: .public).\(clip.fileExtension, privacy: .public)"
+            )
+            return nil
+        }
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.prepareToPlay()
+            return player
+        } catch {
+            logger.error(
+                "Unable to prepare SFX resource \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
+            return nil
+        }
     }
 
     private func resourceURL(for clip: SFXClip) -> URL? {

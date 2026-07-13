@@ -32,7 +32,7 @@ struct CombatFeedbackPresenterTests {
         #expect(items.count == 1)
         #expect(items[0].feedbackClass == .critical)
         #expect(items[0].text.contains("12"))
-        #expect(items[0].secondaryText == "CRIT")
+        #expect(items[0].secondaryText == nil)
         #expect(items[0].reactionKind == .critical)
         #expect(items[0].sourceEventIDs == [10, 11])
     }
@@ -69,6 +69,7 @@ struct CombatFeedbackPresenterTests {
         #expect(items.map(\.feedbackClass) == [.heal, .dodge])
         #expect(items[0].reactionKind == .heal)
         #expect(items[1].reactionKind == .dodge)
+        #expect(items[1].text == "Dodge")
     }
 
     @Test func actionGroupRowsShareAvailability() {
@@ -116,7 +117,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(items.count == 1)
-        #expect(items[0].text == "-3 Bleed")
+        #expect(items[0].text == "-3")
         #expect(items[0].sourceEventIDs == [1, 2])
     }
 
@@ -182,7 +183,7 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(items.count == 2)
-        #expect(items.map(\.text) == ["+2 Health", "+3 Health"])
+        #expect(items.map(\.text) == ["+2", "+3"])
     }
 
     @Test func assignsPriorityAndOverflowMetadataDeterministically() {

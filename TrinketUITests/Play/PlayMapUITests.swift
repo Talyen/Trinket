@@ -26,11 +26,17 @@ final class PlayMapUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Slime"), timeout: 2)
     }
 
-    func testChapterOverviewShowsFiveStagesWithoutRewardsCompactPartyAndBoss() {
-        launchApp(arguments: TestLaunchArg.testLaunchArgs)
+    func testChapterOverviewHidesCompletedStagesAndShowsActiveAndFutureStages() {
+        launchApp(arguments: TestLaunchArg.testLaunchArgs + TestLaunchArg.completedStages([
+            "chapter-1-stage-1",
+            "chapter-1-stage-2"
+        ]))
 
         play.openCampaign()
-        for stage in 1 ... 5 {
+        for stage in 1 ... 2 {
+            assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+        }
+        for stage in 3 ... 5 {
             assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
         }
         assertExists(AccessibilityID.Play.activeStageDetail)
@@ -48,7 +54,7 @@ final class PlayMapUITests: TrinketUITestCase {
         play.openCampaign()
         play.assertCampaignLoaded(number: 1)
         for stage in 1 ... 5 {
-            assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+            assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
         }
         assertDoesNotExist(AccessibilityID.Play.activeStageDetail)
         assertDoesNotExist(AccessibilityID.Play.chapterPicker)
@@ -67,6 +73,7 @@ final class PlayMapUITests: TrinketUITestCase {
         play.openCampaign()
         play.openStage(chapter: 1, stage: 2)
 
+        assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: 2))
         assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 3))
         assertDoesNotExist(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
     }
@@ -155,6 +162,9 @@ final class PlayMapUITests: TrinketUITestCase {
 
         play.openCampaign()
         play.assertCampaignLoaded(number: 1)
+        for stage in 1 ... 4 {
+            assertDoesNotExist(AccessibilityID.Play.stageRow(chapter: 1, stage: stage))
+        }
         assertExists(AccessibilityID.Play.stageRow(chapter: 1, stage: 5))
         assertDoesNotExist(AccessibilityID.Play.chapterAdvance)
         assertDoesNotExist(AccessibilityID.Play.chapterLocked(number: 2))

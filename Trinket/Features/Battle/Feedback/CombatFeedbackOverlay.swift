@@ -4,20 +4,9 @@ struct CombatFeedbackOverlay: View {
     let items: [CombatFeedbackItem]
 
     var body: some View {
-        Group {
-            if items.isEmpty {
-                EmptyView()
-            } else {
-                TimelineView(.animation(paused: false)) { context in
-                    let visible = items.filter { item in
-                        context.date >= item.availableAt && context.date < item.expiresAt
-                    }
-                    ZStack {
-                        ForEach(actionGroups(from: visible)) { group in
-                            CombatFeedbackActionGroupView(items: group.items)
-                        }
-                    }
-                }
+        ZStack {
+            ForEach(actionGroups(from: items)) { group in
+                CombatFeedbackActionGroupView(items: group.items)
             }
         }
         .frame(maxWidth: .infinity)

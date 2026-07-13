@@ -292,12 +292,6 @@ enum CombatFeedbackPresenter {
         let event = source.event
         let display = ActionEventFormatter.display(for: event)
         let feedbackClass = source.forceCritical ? .critical : classify(event, display: display)
-        let secondary: String? = {
-            if source.forceCritical || feedbackClass == .critical {
-                return "CRIT"
-            }
-            return display.secondaryText
-        }()
         return PreparedEvent(
             id: event.id,
             sourceEventIDs: source.sourceEventIDs,
@@ -305,10 +299,21 @@ enum CombatFeedbackPresenter {
             targetID: event.targetID,
             feedbackClass: feedbackClass,
             keyword: display.keyword,
-            text: display.text,
-            secondaryText: secondary,
+            text: floatingText(from: display),
+            secondaryText: display.secondaryText,
             reactionKind: reactionKind(for: feedbackClass)
         )
+    }
+
+    /// Numeric effects use the icon for their keyword identity, so the float only
+    /// needs the signed amount (and any attached numeric unit such as `%`).
+    /// Text-only effects retain their descriptive label, such as "Dodge".
+    private static func floatingText(from display: ActionEventDisplay) -> String {
+        guard let firstToken = display.text.split(separator: " ").first,
+              firstToken.contains(where: \.isNumber) else {
+            return display.text
+        }
+        return String(firstToken)
     }
 
     private static func makeItem(

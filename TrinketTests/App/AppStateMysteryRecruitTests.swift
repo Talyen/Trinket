@@ -54,6 +54,18 @@ struct AppStateMysteryRecruitTests {
         #expect(state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
     }
 
+    @Test func authoredRecruitEventDoesNotSubstituteAnotherCombatant() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        var roster = state.roster
+        roster.unlockedHeroIDs = [PlayerRosterState.starterHeroID, "rogue"]
+        state.roster = roster
+
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
+        #expect(state.beginMysteryEncounter(for: stage) == nil)
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+    }
+
     @Test func dismissMysteryEncounterDoesNotCompleteStage() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))

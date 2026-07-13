@@ -101,15 +101,8 @@ fi
 
 mkdir -p "$RESULTS_DIR"
 
-scheme_for_package() {
-  case "$1" in
-    BattleEngine) echo "BattleEngine-Package" ;;
-    *) echo "$1" ;;
-  esac
-}
-
 for package in "${PACKAGES[@]}"; do
-  scheme="$(scheme_for_package "$package")"
+  scheme="$(package_test_scheme "$package")"
   package_report_prefix=""
   if [[ -n "$REPORT_PREFIX" ]]; then
     package_report_prefix="${REPORT_PREFIX}-${package}"

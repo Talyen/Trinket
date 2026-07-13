@@ -78,7 +78,7 @@ for package in "${PACKAGES[@]}"; do
     package_runner_args+=(--verbose)
   fi
   xcode_runner_run "${package_runner_args[@]}" -- xcodebuild build-for-testing \
-    -scheme "$package" \
+    -scheme "$(package_test_scheme "$package")" \
     -sdk iphonesimulator \
     -destination 'generic/platform=iOS Simulator' \
     -derivedDataPath "$DERIVED_DATA_PATH" \

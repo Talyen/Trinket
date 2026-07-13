@@ -145,19 +145,28 @@ extension AppState {
                 encounter: .mysteryEvent(eventID: event.id)
             )
         } else if let stage {
-            // Journey keeps separate RNGs for pool pick vs recruit substitute (prior contract).
+            // Authored stage and forced events are authoritative; only fallback picks may substitute duplicates.
             var pickRNG = SystemRandomNumberGenerator()
-            var picked = forcedEventID.flatMap { RecruitMysteryEventPool.event(matching: $0) }
+            let authoredEvent = forcedEventID.flatMap { RecruitMysteryEventPool.event(matching: $0) }
                 ?? stage.mysteryEvent
+            var picked = authoredEvent
                 ?? GameContent.pickEligibleMysteryEvent(
                     unlockedHeroIDs: roster.current.unlockedHeroIDs,
                     unlockedCompanionIDs: roster.current.unlockedCompanionIDs,
                     using: &pickRNG
                 )
-            var substituteRNG = SystemRandomNumberGenerator()
-            guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
-                completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
-                return nil
+            if let authoredEvent {
+                if let combatantID = authoredEvent.unlockCombatantID,
+                   roster.current.isCombatantUnlocked(id: combatantID) {
+                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+                    return nil
+                }
+            } else {
+                var substituteRNG = SystemRandomNumberGenerator()
+                guard resolveRecruitSubstitution(event: &picked, using: &substituteRNG) else {
+                    completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
+                    return nil
+                }
             }
             event = picked
             sessionStage = stage
@@ -211,10 +220,7 @@ extension AppState {
             return false
         }
 
-        if let unlockedID = applyResult.unlockedCombatantIDs.first
-            ?? session.event.unlockCombatantID.flatMap({ id in
-                roster.current.isCombatantUnlocked(id: id) ? id : nil
-            }) {
+        if let unlockedID = applyResult.unlockedCombatantIDs.first {
             session.presentReveal(unlockedCombatantID: unlockedID)
             return true
         }

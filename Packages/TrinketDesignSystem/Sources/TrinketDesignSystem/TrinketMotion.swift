@@ -6,7 +6,9 @@ import SwiftUI
 /// combat feedback chips extend the same vocabulary (R-001 / R-006).
 public enum TrinketMotion: Sendable {
     public enum Reward: Sendable {
-        public static let chestBreathingDuration: TimeInterval = 1.4
+        public static let resourceStagger: TimeInterval = 0.12
+        public static let itemRevealDelay: TimeInterval = 0.18
+        public static let completionDelay: TimeInterval = 0.3
 
         public static var stateChange: Animation {
             .spring(response: 0.38, dampingFraction: 1.0)
@@ -14,10 +16,6 @@ public enum TrinketMotion: Sendable {
 
         public static var reveal: Animation {
             .spring(response: 0.45, dampingFraction: 0.88)
-        }
-
-        public static var chestBreathing: Animation {
-            .easeInOut(duration: chestBreathingDuration).repeatForever(autoreverses: true)
         }
     }
 
@@ -193,7 +191,7 @@ public enum TrinketMotion: Sendable {
         public static let feedbackStagger: TimeInterval = 0.035
 
         /// Default chip display duration (direct damage). Prefer per-class recipes.
-        public static let chipDisplayDuration: TimeInterval = 0.7
+        public static let chipDisplayDuration: TimeInterval = 1.0
 
         /// Longest chip lifetime (+ buffer) for delayed memory prune after recording.
         public static var maxChipLifetime: TimeInterval {

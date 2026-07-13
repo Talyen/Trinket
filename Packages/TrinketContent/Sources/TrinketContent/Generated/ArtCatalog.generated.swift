@@ -789,14 +789,6 @@ public enum ArtCatalog {
             imageName: "bg_game_mode_explore",
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.78)
         ),
-        "rewardChestClosed": BackgroundArtReference(
-            imageName: "reward_chest_closed",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
-        "rewardChestOpen": BackgroundArtReference(
-            imageName: "reward_chest_open",
-            focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
-        ),
     ]
 
     public static let encounterArtByID: [String: EncounterArtReference] = [
@@ -863,6 +855,14 @@ public enum ArtCatalog {
         "mystery-weathered-stone-altar": EncounterArtReference(
             imageName: "encounter_mystery_weathered_stone_altar",
             thumbnailImageName: "encounter_mystery_weathered_stone_altar_thumb"
+        ),
+        "mystery-recruit-companions": EncounterArtReference(
+            imageName: "encounter_mystery_recruit_companions",
+            thumbnailImageName: "encounter_mystery_recruit_companions_thumb"
+        ),
+        "mystery-recruit-heroes": EncounterArtReference(
+            imageName: "encounter_mystery_recruit_heroes",
+            thumbnailImageName: "encounter_mystery_recruit_heroes_thumb"
         ),
         "destination-merchant-shop": EncounterArtReference(
             imageName: "encounter_destination_merchant_shop",

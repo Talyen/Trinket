@@ -69,7 +69,7 @@ struct CombatantDetailPane: View {
                     value: "\(currentHealth)/\(combatBuild.effectiveMaxHealth)",
                     accessibilityIdentifier: AccessibilityID.CombatantDetail.healthStat
                 )
-                if combatBuild.effectiveMaxMana > 0 {
+                if combatant.role != .enemy, combatBuild.effectiveMaxMana > 0 {
                     statRow("Mana", value: "\(combatBuild.effectiveMaxMana) MP")
                 }
                 statRow("Strength", value: "\(effectiveCombatant.primaryStats.strength)")

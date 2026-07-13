@@ -32,9 +32,7 @@ struct BattleCombatantPane: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipped()
 
-                    ForEach(keywordBursts) { burst in
-                        KeywordBurstView(request: burst)
-                    }
+                    KeywordBurstLayer(requests: keywordBursts)
 
                     CombatFeedbackOverlay(items: items)
                         .padding(.horizontal, 8)
@@ -63,7 +61,6 @@ struct BattleCombatantPane: View {
                 resourceBars
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .trinketCardSurface()
             .contentShape(TrinketDesign.cardShape)
         }
         .buttonStyle(.plain)
@@ -107,7 +104,7 @@ struct BattleCombatantPane: View {
             initialValue: CardReactionAnimationState(),
             trigger: reactionID
         ) { state in
-            artworkLayer
+            artworkPresentation
                 .scaleEffect(state.scale)
                 .offset(x: state.offsetX)
                 .overlay {
@@ -133,20 +130,29 @@ struct BattleCombatantPane: View {
         .clipped()
     }
 
+    @ViewBuilder
+    private var artworkPresentation: some View {
+        if isDefeated {
+            BattleDissolveArtwork {
+                artworkLayer
+            }
+        } else {
+            artworkLayer
+        }
+    }
+
     private var isDefeated: Bool {
         health <= 0
     }
 
     private var artworkLayer: some View {
         CombatantArtwork(combatant: combatant, variant: .battle)
-            .saturation(isDefeated ? 0 : 1)
-            .animation(.easeOut(duration: 0.18), value: isDefeated)
     }
 
     private var resourceBarsReservedHeight: CGFloat {
         let healthHeight = TrinketDesign.Metrics.battleHealthBarHeight
         guard hasMana else { return healthHeight }
-        return healthHeight + TrinketDesign.Metrics.statBarHeight
+        return healthHeight * 2
     }
 
     private var resourceBars: some View {
@@ -161,7 +167,6 @@ struct BattleCombatantPane: View {
 
             if hasMana {
                 CombatManaBar(mana: mana, maxMana: maxMana)
-                    .frame(height: TrinketDesign.Metrics.statBarHeight)
             }
         }
         .frame(maxWidth: .infinity)
@@ -186,18 +191,17 @@ struct CombatManaBar: View {
     let maxMana: Int
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(.quaternary)
+        ZStack(alignment: .leading) {
+            Rectangle()
+                .fill(TrinketDesign.Colors.battleHealthTrack)
 
-                Capsule()
-                    .fill(Keyword.mana.visualStyle.color)
-                    .frame(width: geometry.size.width * fraction)
-            }
+            Rectangle()
+                .fill(Keyword.mana.visualStyle.color)
+                .scaleEffect(x: fraction, y: 1, anchor: .leading)
         }
-        .frame(height: TrinketDesign.Metrics.statBarHeight)
-        .clipShape(Capsule())
+        .frame(maxWidth: .infinity)
+        .frame(height: TrinketDesign.Metrics.battleHealthBarHeight)
+        .clipShape(Rectangle())
     }
 
     private var fraction: Double {

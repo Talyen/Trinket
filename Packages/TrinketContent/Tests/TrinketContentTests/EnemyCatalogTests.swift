@@ -28,6 +28,7 @@ struct EnemyCatalogTests {
             try #expect(enemy.maxHealth <= 15, "\(enemy.name) should have normal base HP")
         }
         try #expect(!enemy.combatant.growthArchetype.rawValue.isEmpty)
+        try #expect(!enemy.combatant.hasMana, "\(enemy.name) should not have Mana")
         let loadout = enemy.combatant.abilityLoadout
         try #require(loadout.basic != nil, "\(enemy.name) should have a basic ability")
         try #require(loadout.skill != nil, "\(enemy.name) should have a skill ability")

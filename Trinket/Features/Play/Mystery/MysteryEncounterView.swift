@@ -118,19 +118,18 @@ struct MysteryEncounterView: View {
             eyebrow: combatant.map { $0.role == .companion ? "New Companion" : "New Hero" } ?? "Unlocked",
             eyebrowAccessibilityIdentifier: AccessibilityID.Mystery.unlockEyebrow,
             title: combatant?.name ?? "New Ally",
-            subtitle: combatant.map {
-                "\($0.role.rawValue) · \($0.growthArchetype.displayName)"
-            },
+            subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Mystery.unlockName,
             content: {
                 if let combatant {
                     recruitRevealContent(combatant)
                 }
             },
-            primaryActionTitle: "Continue",
+            primaryActionTitle: "Recruit",
             primaryActionAccessibilityIdentifier: AccessibilityID.Mystery.continueButton,
             isPrimaryActionDisabled: false,
-            onPrimaryAction: appState.finishActiveMysteryEncounter
+            onPrimaryAction: appState.finishActiveMysteryEncounter,
+            pinsPrimaryActionToBottom: false
         )
         .onAppear {
             unlockFeedbackTrigger += 1
@@ -153,16 +152,6 @@ struct MysteryEncounterView: View {
                 ZStack(alignment: .bottom) {
                     CombatantArtwork(combatant: combatant, variant: .hero)
                         .aspectRatio(3.0 / 4.0, contentMode: .fit)
-
-                    TrinketHeroScrim.gradient(for: .detailHeader)
-                        .frame(height: HeroHeaderLayout.scrimHeight)
-                        .frame(maxWidth: .infinity, alignment: .bottom)
-                        .allowsHitTesting(false)
-
-                    Label("View Details", systemImage: "info.circle")
-                        .trinketTypography(.button)
-                        .trinketGlassChip(.emphasis)
-                        .padding(TrinketDesign.Metrics.largeSpacing)
                 }
                 .clipShape(TrinketDesign.cardShape)
                 .trinketCardSurface()
@@ -173,30 +162,6 @@ struct MysteryEncounterView: View {
             // UIStyleCheck: allow - Unlock art opens detail without button chrome.
             .buttonStyle(.plain)
             .accessibilityIdentifier(AccessibilityID.Mystery.unlockCard(name: combatant.name))
-
-            Text("\(combatant.growthArchetype.displayName) · Tap to inspect")
-                .trinketTypography(.cardTitle)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .accessibilityIdentifier(AccessibilityID.Mystery.unlockSubtitle)
-
-            if let trait = GameContent.trait(forCombatantID: combatant.id) {
-                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.smallSpacing) {
-                    Text("Trait")
-                        .trinketTypography(.eyebrow)
-                        .foregroundStyle(TrinketDesign.Colors.accent)
-                        .textCase(.uppercase)
-
-                    Text(trait.name)
-                        .trinketTypography(.cardTitle)
-
-                    KeywordDescriptionText(text: trait.description)
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .trinketSurface(.reward)
-            }
         }
     }
 

@@ -172,7 +172,6 @@ class EnemyRow:
     id: str
     name: str
     max_health: str
-    max_mana: str
     is_boss: str
     growth_archetype: str
     abilities: str
@@ -344,7 +343,6 @@ def parse_enemy_rows() -> list[EnemyRow]:
         "id",
         "name",
         "max_health",
-        "max_mana",
         "is_boss",
         "growth_archetype",
         "abilities",
@@ -1030,8 +1028,6 @@ def validate_enemy_rows(
             raise ValueError(f"max_health for {row.id} must be an integer")
         if int(row.max_health) < 1:
             raise ValueError(f"max_health for {row.id} must be positive")
-        _validate_positive_int("max_mana", row.max_mana, row.id)
-
         for stat in ("strength", "agility", "toughness", "intellect", "wisdom"):
             _validate_positive_int(stat, getattr(row, stat), row.id)
 
@@ -1073,12 +1069,9 @@ def render_enemy(row: EnemyRow) -> str:
     flag_clause = ""
     if flags:
         flag_clause = ", " + ", ".join(flags)
-    max_mana_clause = ""
-    if row.max_mana and row.max_mana != "0":
-        max_mana_clause = f", maxMana: {row.max_mana}"
     return (
         f"        Enemy(combatant: Combatant(id: \"{swift_escape(row.id)}\", "
-        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}{max_mana_clause}, "
+        f"name: \"{swift_escape(row.name)}\", role: .enemy, maxHealth: {row.max_health}, "
         f"abilities: {ability_symbols_swift(row.abilities)}, "
         f"primaryStats: {primary_stats_swift(row)}, "
         f"growthArchetype: .{row.growth_archetype}), "

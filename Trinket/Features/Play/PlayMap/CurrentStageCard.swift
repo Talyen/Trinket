@@ -146,8 +146,8 @@ struct CurrentStageCard: View {
         if hasBattleEnemy {
             return "\(stage.mapLabel) Enemy Art"
         }
-        if stage.recruitCombatant != nil {
-            return "\(stage.mapLabel) Recruit Art"
+        if case .mysteryEvent = stage.encounter {
+            return "\(stage.mapLabel) Mystery Art"
         }
         return "\(stage.mapLabel) Encounter Art"
     }
