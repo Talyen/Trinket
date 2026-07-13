@@ -1,7 +1,5 @@
 import BattleEngine
 import Testing
-import TrinketContent
-import TrinketCore
 
 struct BattleOutcomeResolverTests {
     private static let cases: [(Bool, Bool, BattleSimulationOutcome?)] = [
