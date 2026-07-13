@@ -4,12 +4,14 @@ import TrinketContent
 import TrinketCore
 
 struct BattleOutcomeResolverTests {
-    @Test(arguments: [
-        (true, true, Optional(BattleSimulationOutcome.victory)),
-        (true, false, Optional(.defeat)),
-        (false, true, Optional(.victory)),
+    private static let cases: [(Bool, Bool, BattleSimulationOutcome?)] = [
+        (true, true, .victory),
+        (true, false, .defeat),
+        (false, true, .victory),
         (false, false, nil)
-    ] as [(Bool, Bool, BattleSimulationOutcome?)])
+    ]
+
+    @Test(arguments: cases)
     func resolvesPartyAndEnemyDefeatCombinations(
         isPartyDefeated: Bool,
         isEnemyDefeated: Bool,
