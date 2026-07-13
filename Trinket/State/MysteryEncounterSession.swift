@@ -6,6 +6,7 @@ import TrinketPersistence
 enum MysteryEncounterPhase: Equatable {
     case reading
     case revealing
+    case choosingItem
 }
 
 @MainActor
@@ -22,10 +23,15 @@ final class MysteryEncounterSession: Identifiable {
     let combatant: Combatant?
     private(set) var phase: MysteryEncounterPhase = .reading
     private(set) var unlockedCombatantID: String?
+    private(set) var itemCandidates: [InventoryItem] = []
     private(set) var isResolvingChoice = false
 
     var showsReveal: Bool {
         phase == .revealing && unlockedCombatantID != nil
+    }
+
+    var showsItemChoice: Bool {
+        phase == .choosingItem && !itemCandidates.isEmpty
     }
 
     init(
@@ -49,6 +55,12 @@ extension MysteryEncounterSession {
     func presentReveal(unlockedCombatantID: String) {
         self.unlockedCombatantID = unlockedCombatantID
         phase = .revealing
+        isResolvingChoice = false
+    }
+
+    func presentItemChoice(candidates: [InventoryItem]) {
+        itemCandidates = candidates
+        phase = .choosingItem
         isResolvingChoice = false
     }
 

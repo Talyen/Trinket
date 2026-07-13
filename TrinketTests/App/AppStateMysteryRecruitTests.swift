@@ -81,6 +81,41 @@ struct AppStateMysteryRecruitTests {
         #expect(state.roster.isCompanionUnlocked("bear") == false)
     }
 
+    @Test func chooseItemPresentsCandidatesAndGrantsSelection() throws {
+        let state = try context.makeAppState(arguments: ["-reset-state"])
+        let event = try #require(GameContent.mysteryEvent(matching: "abandoned-study"))
+        let stage = Stage(
+            id: "audit-mystery-choose-item",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 98,
+            flavorText: "Audit choose item.",
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        state.activeMysteryEncounter = MysteryEncounterSession(
+            stage: stage,
+            event: event,
+            combatant: nil
+        )
+
+        let itemsBefore = state.inventory.items.count
+        #expect(state.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
+
+        let session = try #require(state.activeMysteryEncounter)
+        #expect(session.phase == .choosingItem)
+        #expect(session.itemCandidates.count == MysteryEffectApplier.chooseItemCandidateCount)
+        #expect(!state.journey.completedStageIDs.contains(stage.id))
+        #expect(state.inventory.items.count == itemsBefore)
+
+        let chosen = try #require(session.itemCandidates.first)
+        #expect(state.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.inventory.items.contains(where: { $0.id == chosen.id }))
+        #expect(state.inventory.items.count == itemsBefore + 1)
+        #expect(state.journey.completedStageIDs.contains(stage.id))
+    }
+
     #if DEBUG
     @Test func resolveActiveMysteryChoiceRollsBackEffectsWhenPersistFails() throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
@@ -130,6 +165,42 @@ struct AppStateMysteryRecruitTests {
         #expect(state.finishActiveMysteryEncounter())
         #expect(state.activeMysteryEncounter == nil)
         #expect(state.journey.completedStageIDs.contains("chapter-1-stage-2"))
+    }
+
+    @Test func selectActiveMysteryItemKeepsSessionOpenWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        let event = try #require(GameContent.mysteryEvent(matching: "abandoned-study"))
+        let stage = Stage(
+            id: "audit-mystery-choose-item-fail",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 97,
+            flavorText: "Audit choose item persist fail.",
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        state.activeMysteryEncounter = MysteryEncounterSession(
+            stage: stage,
+            event: event,
+            combatant: nil
+        )
+
+        #expect(state.resolveActiveMysteryChoice(choiceID: "search-scrolls"))
+        let chosen = try #require(state.activeMysteryEncounter?.itemCandidates.first)
+        let itemsBefore = state.inventory.items.count
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.activeMysteryEncounter != nil)
+        #expect(state.activeMysteryEncounter?.phase == .choosingItem)
+        #expect(state.inventory.items.count == itemsBefore)
+        #expect(!state.journey.completedStageIDs.contains(stage.id))
+
+        #expect(state.selectActiveMysteryItem(itemID: chosen.id))
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.inventory.items.contains(where: { $0.id == chosen.id }))
+        #expect(state.journey.completedStageIDs.contains(stage.id))
     }
     #endif
 }

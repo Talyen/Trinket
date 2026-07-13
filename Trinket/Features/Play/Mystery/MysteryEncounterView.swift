@@ -16,6 +16,8 @@ struct MysteryEncounterView: View {
         Group {
             if session.showsReveal, let unlockedID = session.unlockedCombatantID {
                 unlockReveal(unlockedID: unlockedID)
+            } else if session.showsItemChoice {
+                itemChoiceContent
             } else {
                 readingContent
             }
@@ -76,6 +78,54 @@ struct MysteryEncounterView: View {
                         enabled: appState.options.hapticsEnabled
                     )
                     .padding(.top, TrinketDesign.Metrics.smallSpacing)
+                }
+            }
+            .padding(TrinketDesign.Metrics.extraLargeSpacing)
+        }
+    }
+
+    private var itemChoiceContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: TrinketDesign.Metrics.contentMargin) {
+                VStack(alignment: .leading, spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                    Text("Choose a Find")
+                        .trinketTypography(.screenTitle)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemTitle)
+
+                    Text("Three relics answer the scrolls. Take one.")
+                        .trinketTypography(.body)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                LazyVGrid(
+                    columns: TrinketDesign.Metrics.collectionGridItems,
+                    spacing: TrinketDesign.Metrics.largeSpacing
+                ) {
+                    ForEach(session.itemCandidates) { item in
+                        Button {
+                            _ = appState.selectActiveMysteryItem(itemID: item.id)
+                        } label: {
+                            VStack(spacing: TrinketDesign.Metrics.sectionHeaderSpacing) {
+                                ItemCard(
+                                    item: item,
+                                    showsAffixCount: false,
+                                    showsName: false,
+                                    appliesCardSurface: false
+                                )
+                                Text(item.displayName)
+                                    .trinketTypography(.badge)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.85)
+                            }
+                        }
+                        // UIStyleCheck: allow - Mystery item pick uses card art without button chrome.
+                        .buttonStyle(.plain)
+                        .disabled(session.isResolvingChoice)
+                        .accessibilityIdentifier(AccessibilityID.Mystery.chooseItemCard(itemID: item.id))
+                    }
                 }
             }
             .padding(TrinketDesign.Metrics.extraLargeSpacing)

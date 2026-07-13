@@ -193,6 +193,7 @@ struct LabyrinthProgressTests {
         let nodeID = try #require(craftID)
         save.roster.grantGold(200)
         let goldBefore = save.roster.gold
+        let itemsBefore = save.inventory.items.count
         let forged = LabyrinthCompletion.forgeAtAltar(
             nodeID: nodeID,
             hero: save.roster.activeHero,
@@ -202,6 +203,42 @@ struct LabyrinthProgressTests {
         #expect(forged)
         #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
         #expect(save.roster.gold < goldBefore)
+        #expect(save.inventory.items.count == itemsBefore + 1)
+    }
+
+    @Test func completeCraftNodeWithoutForgingDoesNotGrantItem() throws {
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 19)
+        var craftID: String?
+        for _ in 0 ..< 40 {
+            if let id = save.labyrinth.reachableNodeIDs().first(where: {
+                save.labyrinth.nodes[$0]?.type.canonical == .craft
+            }) {
+                craftID = id
+                break
+            }
+            guard let next = save.labyrinth.reachableNodeIDs().first else { break }
+            LabyrinthCompletion.complete(
+                nodeID: next,
+                hero: save.roster.activeHero,
+                companion: save.roster.activeCompanion,
+                save: &save
+            )
+        }
+        let nodeID = try #require(craftID)
+        let itemsBefore = save.inventory.items.count
+        let goldBefore = save.roster.gold
+
+        LabyrinthCompletion.complete(
+            nodeID: nodeID,
+            hero: save.roster.activeHero,
+            companion: save.roster.activeCompanion,
+            save: &save
+        )
+
+        #expect(save.labyrinth.nodes[nodeID]?.isCleared == true)
+        #expect(save.inventory.items.count == itemsBefore)
+        #expect(save.roster.gold > goldBefore)
     }
 
     @Test func corruptMapPayloadClearsTopologyThenSanitizeRebuilds() {
