@@ -19,8 +19,11 @@ extension BattleSession {
         beginCinematicCollapse()
     }
 
-    func completeCinematicCollapse(at date: Date = .now) {
+    func completeCinematicCollapse(expectedID: Int? = nil, at date: Date = .now) {
         guard let cinematic = activeCinematic else { return }
+        // Ignore stale collapse tasks from a prior cinematic (unstructured sleep can outlive
+        // the overlay that started them).
+        if let expectedID, cinematic.id != expectedID { return }
         actorsWhoPresentedUltimateThisBattle.insert(cinematic.actorID)
         activeCinematic = nil
         presentationHoldCount = max(0, presentationHoldCount - 1)

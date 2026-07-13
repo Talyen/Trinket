@@ -80,4 +80,56 @@ struct AppStateMysteryRecruitTests {
         #expect(!state.journey.completedStageIDs.contains("chapter-1-stage-2"))
         #expect(state.roster.isCompanionUnlocked("bear") == false)
     }
+
+    #if DEBUG
+    @Test func resolveActiveMysteryChoiceRollsBackEffectsWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let stage = Stage(
+            id: "audit-mystery-gold",
+            chapterID: "chapter-1",
+            chapterNumber: 1,
+            stageNumber: 99,
+            flavorText: "Audit mystery.",
+            encounter: .mysteryEvent(eventID: event.id),
+            rewards: .empty
+        )
+        state.activeMysteryEncounter = MysteryEncounterSession(
+            stage: stage,
+            event: event,
+            combatant: nil
+        )
+
+        let goldBefore = state.roster.gold
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(state.activeMysteryEncounter != nil)
+        #expect(state.roster.gold == goldBefore)
+
+        #expect(state.resolveActiveMysteryChoice(choiceID: "take-coinpurse"))
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.roster.gold == goldBefore + 20)
+    }
+
+    @Test func finishActiveMysteryEncounterKeepsSessionOpenWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+
+        #expect(state.handleStagePrimaryAction(for: stage) == nil)
+        #expect(state.resolveActiveMysteryChoice(choiceID: "welcome"))
+        #expect(state.roster.isCompanionUnlocked("bear"))
+        #expect(state.activeMysteryEncounter?.phase == .revealing)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.finishActiveMysteryEncounter())
+        #expect(state.activeMysteryEncounter != nil)
+        #expect(!state.journey.completedStageIDs.contains("chapter-1-stage-2"))
+
+        #expect(state.finishActiveMysteryEncounter())
+        #expect(state.activeMysteryEncounter == nil)
+        #expect(state.journey.completedStageIDs.contains("chapter-1-stage-2"))
+    }
+    #endif
 }

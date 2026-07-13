@@ -2,7 +2,9 @@ import Foundation
 import Testing
 import TrinketContent
 import TrinketCore
+import TrinketTestSupport
 @testable import Trinket
+@testable import TrinketPersistence
 
 @MainActor
 struct AppStateLabyrinthTests {
@@ -75,6 +77,27 @@ struct AppStateLabyrinthTests {
         #expect(state.activeShopEncounter == nil)
         #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
     }
+
+    #if DEBUG
+    @Test func finishActiveShopEncounterKeepsSessionOpenWhenPersistFails() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makeAppState(arguments: ["-reset-state"], playerSave: playerSave)
+        _ = state.enterLabyrinth()
+        let shopNodeID = try #require(firstReachableNodeID(of: .shop, in: state))
+
+        #expect(state.handleLabyrinthNodeAction(nodeID: shopNodeID) == nil)
+        #expect(state.activeShopEncounter != nil)
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter != nil)
+        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == false)
+
+        #expect(state.finishActiveShopEncounter())
+        #expect(state.activeShopEncounter == nil)
+        #expect(state.labyrinth.nodes[shopNodeID]?.isCleared == true)
+    }
+    #endif
 
     @Test func labyrinthShopDismissDoesNotClearNode() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
