@@ -37,17 +37,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items[0].sourceEventIDs == [10, 11])
     }
 
-    @Test func classifiesStatusAsDotWithShorterLifetime() {
-        let events = [
-            makeEvent(id: 3, kind: .status, amount: 2, keyword: .burn)
-        ]
-        let items = CombatFeedbackPresenter.makeItems(from: events, at: Date(timeIntervalSince1970: 50))
-        #expect(items.count == 1)
-        #expect(items[0].feedbackClass == .dot)
-        #expect(items[0].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
-        #expect(items[0].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
-    }
-
     @Test func classifiesHealAndDodge() {
         let events = [
             makeEvent(
@@ -72,25 +61,21 @@ struct CombatFeedbackPresenterTests {
         #expect(items[1].text == "Dodge")
     }
 
-    @Test func actionGroupRowsShareAvailability() {
-        let events = [
-            makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
-            makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed)
-        ]
+    @Test func actionGroupTimingSharesAvailabilityAndStaggersTargets() {
         let now = Date(timeIntervalSince1970: 1000)
-        let items = CombatFeedbackPresenter.makeItems(
-            from: events,
+        let sharedGroup = CombatFeedbackPresenter.makeItems(
+            from: [
+                makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
+                makeEvent(id: 2, kind: .status, amount: 4, keyword: .bleed)
+            ],
             at: now,
             stagger: 0.055
         )
-        #expect(items[0].availableAt == now)
-        #expect(items[1].availableAt == now)
-        #expect(items.map(\.actionGroupID) == [1, 1])
-    }
+        #expect(sharedGroup[0].availableAt == now)
+        #expect(sharedGroup[1].availableAt == now)
+        #expect(sharedGroup.map(\.actionGroupID) == [1, 1])
 
-    @Test func staggerOffsetsDifferentTargetGroups() {
-        let now = Date(timeIntervalSince1970: 1000)
-        let items = CombatFeedbackPresenter.makeItems(
+        let staggered = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 3, keyword: .physical),
                 makeEvent(
@@ -104,33 +89,31 @@ struct CombatFeedbackPresenterTests {
             at: now,
             stagger: 0.055
         )
-        #expect(items[0].availableAt == now)
-        #expect(items[1].availableAt == now.addingTimeInterval(0.055))
+        #expect(staggered[0].availableAt == now)
+        #expect(staggered[1].availableAt == now.addingTimeInterval(0.055))
     }
 
-    @Test func sumsSameKeywordStatusEventsAndRetainsSourceIDs() {
-        let items = CombatFeedbackPresenter.makeItems(
+    @Test func sumsSameKeywordDamageAndRetainsSourceIDs() {
+        let statusItems = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .status, amount: 1, keyword: .bleed),
                 makeEvent(id: 2, kind: .status, amount: 2, keyword: .bleed)
             ],
             at: .now
         )
-        #expect(items.count == 1)
-        #expect(items[0].text == "-3")
-        #expect(items[0].sourceEventIDs == [1, 2])
-    }
+        #expect(statusItems.count == 1)
+        #expect(statusItems[0].text == "-3")
+        #expect(statusItems[0].sourceEventIDs == [1, 2])
 
-    @Test func sumsSameKeywordAbilityDamage() {
-        let items = CombatFeedbackPresenter.makeItems(
+        let abilityItems = CombatFeedbackPresenter.makeItems(
             from: [
                 makeEvent(id: 1, kind: .ability, amount: 2, keyword: .physical),
                 makeEvent(id: 2, kind: .ability, amount: 4, keyword: .physical)
             ],
             at: .now
         )
-        #expect(items.count == 1)
-        #expect(items[0].text == "-6")
+        #expect(abilityItems.count == 1)
+        #expect(abilityItems[0].text == "-6")
     }
 
     @Test func keepsSameKeywordEventsSeparateAcrossTargets() {
@@ -160,6 +143,8 @@ struct CombatFeedbackPresenterTests {
             at: .now
         )
         #expect(items.map(\.feedbackClass) == [.directDamage, .dot])
+        #expect(items[1].lifetime == TrinketMotion.Battle.chip(for: .dot).lifetime)
+        #expect(items[1].lifetime < TrinketMotion.Battle.chip(for: .directDamage).lifetime)
     }
 
     @Test func keepsDifferentAdditiveEffectKindsSeparate() {
@@ -220,15 +205,6 @@ struct CombatFeedbackPresenterTests {
         #expect(items[0].presentationIndex == 0)
         #expect(items.allSatisfy { $0.groupResultCount == 5 })
         #expect(items.map(\.presentationIndex) == [0, 1, 2, 3, 4])
-    }
-
-    @Test func layoutJitterIsDeterministic() {
-        let a = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
-        let b = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
-        let c = CombatFeedbackLayout.horizontalOffset(seed: 43, jitter: -10 ... 10)
-        #expect(a == b)
-        #expect(a != c)
-        #expect((-10 ... 10).contains(a))
     }
 
     @Test func burstsSkipUtilityClasses() {

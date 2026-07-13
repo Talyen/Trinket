@@ -38,20 +38,16 @@ struct EffectSummaryBuilderTests {
 
     // MARK: - Prevention / build-up
 
-    @Test func stunBuildupSummary() throws {
-        let effects = [
+    @Test func stunBuildupAndTriggeredSummaries() throws {
+        let buildup = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 3, 10), remainingTicks: 0)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Stun Build-up: 3/10")
-    }
+        ])
+        try #expect(buildup.first?.text == "Stun Build-up: 3/10")
 
-    @Test func triggeredStunBuildupSummary() throws {
-        let effects = [
+        let triggered = EffectSummaryBuilder.build(for: [
             ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTicks: 0)
-        ]
-        let summaries = EffectSummaryBuilder.build(for: effects)
-        try #expect(summaries.first?.text == "Stunned: action prevented.")
+        ])
+        try #expect(triggered.first?.text == "Stunned: action prevented.")
     }
 
     // MARK: - Other tickable effects

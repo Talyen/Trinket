@@ -77,6 +77,13 @@ struct TrinketMotionTests {
         #expect(CombatFeedbackLayout.horizontalDrift(angleDegrees: 20, verticalTravel: 60) > 0)
         #expect(CombatFeedbackLayout.horizontalDrift(angleDegrees: -20, verticalTravel: 60) < 0)
         #expect(first != other)
+
+        let offsetA = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
+        let offsetB = CombatFeedbackLayout.horizontalOffset(seed: 42, jitter: -10 ... 10)
+        let offsetC = CombatFeedbackLayout.horizontalOffset(seed: 43, jitter: -10 ... 10)
+        #expect(offsetA == offsetB)
+        #expect(offsetA != offsetC)
+        #expect((-10 ... 10).contains(offsetA))
     }
 
     @Test func cardReactionsCoverAllKinds() {

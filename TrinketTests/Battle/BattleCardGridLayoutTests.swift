@@ -101,15 +101,12 @@ struct BattleHandLayoutTests {
         #expect(span <= width - BattleHandLayout.horizontalInset * 2 + 0.001)
     }
 
-    @Test func upwardReleasePastThresholdPlays() {
+    @Test func upwardPlayGestureCommitsFromTranslationOrProjectedFlick() {
         #expect(BattleHandLayout.shouldPlay(
             translation: CGSize(width: 8, height: -84),
             predictedEndTranslation: CGSize(width: 10, height: -120),
             isPlayable: true
         ))
-    }
-
-    @Test func projectedUpwardFlickPlaysBeforeTranslationReachesThreshold() {
         #expect(BattleHandLayout.shouldPlay(
             translation: CGSize(width: 4, height: -55),
             predictedEndTranslation: CGSize(width: 7, height: -105),

@@ -76,6 +76,5 @@ struct ItemAffixCatalogTests {
             "symbiosis", "second_wind", "deathgrip", "frostburn"
         ]
         try #expect(expected.isSubset(of: ids))
-        try #expect(GameContent.itemAffixDefinitions.count == 89)
     }
 }

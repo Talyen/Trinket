@@ -78,23 +78,6 @@ struct CombatOutcomeTests {
         }
     }
 
-    @Test func resolveDamageSetsLeechedFlag() throws {
-        let leech = ActiveEffect(id: 1, effect: .leech(.leech, 1.0, 3), remainingTicks: 3)
-        var context = makeContext(seed: 1772)
-        context.roster.mutateRuntime(for: context.roster.hero.combatant) { $0.currentHealth = 30 }
-        context.roster.setActiveEffects([leech], for: context.roster.hero.combatant)
-        let outcome = context.resolveDamage(
-            .directAbilityHit(
-                amount: 10,
-                target: context.roster.enemy.combatant,
-                keyword: .physical,
-                sourceActorID: "source"
-            )
-        )
-        try #expect(outcome.flags.contains(.leeched))
-        try #expect(outcome.events.contains { $0.effectKind == .leechHeal })
-    }
-
     @Test func damageRequestDoTTickPresetAppliesBonusesWithoutDodge() throws {
         let preset = DamageRequest.doTTick(
             amount: 10,

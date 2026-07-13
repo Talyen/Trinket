@@ -23,6 +23,7 @@ Each audit holds only its distinct scope, confirmation rules, domain allowlists,
 | Concurrency / Sendable | `SwiftConcurrencyDataRaceAudit.md` |
 | Force casts / unwraps / typing escapes | `TypeSafetyAudit.md` |
 | Unit test quality & gaps | `UnitTestAudit.md` |
+| Authored declaration reduction / tier ownership | `TestSuiteReduction.md` |
 | UI / smoke / exhaustive test quality | `E2ETestQualityAudit.md` |
 | Opportunistic defect hunt | `BugHuntingAudit.md` |
 | Doc drift | `DocumentationStalenessAudit.md` |

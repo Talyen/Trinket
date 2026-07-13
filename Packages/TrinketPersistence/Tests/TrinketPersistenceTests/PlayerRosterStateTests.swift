@@ -95,19 +95,15 @@ struct PlayerRosterStateTests {
         #expect(roster.gold == PlayerRosterState.maxGoldBalance)
     }
 
-    @Test func spendGoldDeductsWhenAffordable() {
+    @Test func spendGoldRespectsAffordabilityAndBounds() {
         var roster = PlayerRosterState.initial
         roster.gold = 40
 
         let spent = roster.spendGold(28)
         #expect(spent)
         #expect(roster.gold == 12)
-    }
 
-    @Test func spendGoldRejectsInsufficientOrNonPositiveAmounts() {
-        var roster = PlayerRosterState.initial
         roster.gold = 10
-
         let overspend = roster.spendGold(11)
         let zeroSpend = roster.spendGold(0)
         let negativeSpend = roster.spendGold(-3)

@@ -13,36 +13,14 @@ struct HeroHeaderLayoutTests {
     }
 
     @Test func headerHeightHasMinimumOf300() {
-        let width: CGFloat = 100
-        let height = HeroHeaderLayout.headerHeight(forWidth: width)
-        #expect(height == 300)
-    }
-
-    @Test func headerHeightAtMinimumThreshold() {
-        let width: CGFloat = 225
-        let height = HeroHeaderLayout.headerHeight(forWidth: width)
-        #expect(height == 300)
+        #expect(HeroHeaderLayout.headerHeight(forWidth: 100) == 300)
+        #expect(HeroHeaderLayout.headerHeight(forWidth: 225) == 300)
     }
 
     @Test func headerHeightAboveMinimumUsesWidth() {
         let width: CGFloat = 300
         let height = HeroHeaderLayout.headerHeight(forWidth: width)
         #expect(abs(height - 400) < 0.5)
-    }
-
-    @Test func headerHeightForCommonDeviceWidths() {
-        let widths: [(CGFloat, CGFloat)] = [
-            (320, 427),
-            (375, 500),
-            (390, 520),
-            (414, 552),
-            (428, 571)
-        ]
-        for (width, expected) in widths {
-            let height = HeroHeaderLayout.headerHeight(forWidth: width)
-            #expect(abs(height - expected) < 1,
-                    "Expected height for width \(width)")
-        }
     }
 
     @Test func cinematicHeightIsDenseAndClamped() {

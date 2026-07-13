@@ -3,17 +3,13 @@ import TrinketCore
 @testable import TrinketDesignSystem
 
 struct TrinketRarityLabelTests {
-    @Test func basicRarityUsesTheStandardTreatment() {
-        let presentation = TrinketRarityPresentation(rarity: .basic)
+    @Test func rarityPresentationMatchesTreatment() {
+        let basic = TrinketRarityPresentation(rarity: .basic)
+        #expect(basic.label == "BASIC")
+        #expect(!basic.isPremium)
 
-        #expect(presentation.label == "BASIC")
-        #expect(!presentation.isPremium)
-    }
-
-    @Test func astralRarityUsesThePremiumTreatment() {
-        let presentation = TrinketRarityPresentation(rarity: .astral)
-
-        #expect(presentation.label == "ASTRAL")
-        #expect(presentation.isPremium)
+        let astral = TrinketRarityPresentation(rarity: .astral)
+        #expect(astral.label == "ASTRAL")
+        #expect(astral.isPremium)
     }
 }

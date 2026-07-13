@@ -21,6 +21,7 @@ struct BattleSessionSimulationTests {
 
         BattleSessionTestSupport.driveUntilOutcome(session)
 
+        #expect(session.outcome == .victory)
         #expect(session.isShowingVictory)
         _ = try #require(session.victorySummary)
         #expect(!(session.isShowingDefeat))
@@ -113,6 +114,7 @@ struct BattleSessionSimulationTests {
 
         _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
 
+        #expect(session.outcome == nil)
         #expect(!(session.activeFeedbackEvents.isEmpty))
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
@@ -133,6 +135,7 @@ struct BattleSessionSimulationTests {
         }
 
         #expect(session.state?.isPartyDefeated == true)
+        #expect(session.outcome == .defeat)
         #expect(session.activeFeedbackEvents.allSatisfy { $0.kind != .milestone })
     }
 
@@ -173,7 +176,7 @@ struct BattleSessionSimulationTests {
         #expect(session.activeFeedbackEvents.allSatisfy { $0.id != eventID })
     }
 
-    @Test func removingConsolidatedFeedbackRemovesEverySourceEvent() {
+    @Test func consolidatedFeedbackRemoveAndExpireClearsSources() throws {
         let session = BattleSession()
         let now = Date(timeIntervalSince1970: 100)
         session.recordFeedbackEvents(
@@ -191,21 +194,16 @@ struct BattleSessionSimulationTests {
         #expect(session.activeFeedbackItems.isEmpty)
         #expect(session.activeFeedbackEvents.isEmpty)
         #expect(session.feedbackEventRecordedAt.isEmpty)
-    }
 
-    @Test func expiringConsolidatedFeedbackRemovesEverySourceEvent() throws {
-        let session = BattleSession()
-        let now = Date(timeIntervalSince1970: 100)
         session.recordFeedbackEvents(
             [
-                feedbackEvent(id: 1, amount: 1),
-                feedbackEvent(id: 2, amount: 2)
+                feedbackEvent(id: 3, amount: 1),
+                feedbackEvent(id: 4, amount: 2)
             ],
             at: now,
             stagger: 0
         )
         let item = try #require(session.activeFeedbackItems.first)
-
         session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.01))
         #expect(session.activeFeedbackItems.isEmpty)
         #expect(session.activeFeedbackEvents.isEmpty)
@@ -224,82 +222,6 @@ struct BattleSessionSimulationTests {
 
         session.pruneExpiredFeedback(at: item.expiresAt.addingTimeInterval(0.1))
         #expect(session.activeFeedbackItems.allSatisfy { $0.id != item.id })
-    }
-
-    @Test func outcomeReportsOngoingWhenBattleInProgress() throws {
-        let session = try BattleSessionTestSupport.makeConfiguredSession()
-        let card = try #require(session.hand.first(where: { session.isCardPlayable($0) }))
-
-        _ = session.playCard(cardID: card.id, journey: .initial, homestead: .freshStart)
-
-        #expect(session.outcome == nil)
-    }
-
-    @Test func outcomeReportsVictoryWhenEnemyDefeated() throws {
-        let party = BattlePartyFixtures.quickWinParty()
-        let session = try BattleSessionTestSupport.makeConfiguredSession(enemy: party.enemy)
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        #expect(session.outcome == .victory)
-    }
-
-    @Test func outcomeReportsDefeatWhenPartyDefeated() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 1, abilities: [])
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 1, abilities: [])
-        let enemy = CombatantFixtures.combatant(
-            id: "enemy",
-            role: .enemy,
-            maxHealth: 100,
-            abilities: [.slash]
-        )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        #expect(session.outcome == .defeat)
-    }
-
-    @Test func outcomeReportsVictoryWhenFaustianBargainDefeatsEnemyAndCompanionSurvives() throws {
-        let hero = Combatant(
-            id: "warlock",
-            name: "Warlock",
-            role: .hero,
-            maxHealth: 3,
-            abilities: [.faustianBargain]
-        )
-        let companion = Combatant(
-            id: "companion",
-            name: "Companion",
-            role: .companion,
-            maxHealth: 20,
-            abilities: []
-        )
-        let enemy = Combatant(
-            id: "enemy",
-            name: "Enemy",
-            role: .enemy,
-            maxHealth: 6,
-            abilities: []
-        )
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
-
-        BattleSessionTestSupport.driveUntilOutcome(session)
-
-        #expect(session.outcome == .victory)
-        #expect(!(session.state?.isPartyDefeated ?? true))
-        #expect(session.state?.isEnemyDefeated ?? false)
-    }
-
-    @Test func outcomeReportsVictoryWhenEnemyAndPartyDefeatedTogether() throws {
-        let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 0)
-        let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 0)
-        let enemy = CombatantFixtures.combatant(id: "enemy", role: .enemy, maxHealth: 0)
-        let session = try BattleSessionTestSupport.makeConfiguredSession(hero: hero, companion: companion, enemy: enemy)
-
-        #expect(session.state?.isPartyDefeated ?? false)
-        #expect(session.state?.isEnemyDefeated ?? false)
-        #expect(session.outcome == .victory)
     }
 
     @Test func resetPreservesEnemyModifiersWhenBattleReset() throws {

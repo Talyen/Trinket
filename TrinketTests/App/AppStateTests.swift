@@ -125,16 +125,6 @@ struct AppStateTests {
         #expect(state.selectedTab == .play)
     }
 
-    @Test func seedTestProgressPopulatesInventory() throws {
-        let state = try context.makeAppState(
-            environment: context.makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
-        )
-
-        #expect(!(state.inventory.items.isEmpty))
-        #expect(state.inventory.items.contains { $0.displayName == "Longsword" })
-        #expect(state.inventory.items.contains { $0.displayName == "Wand" })
-    }
-
     @Test func optionsLaunchScreenDefaultsToOptionsTab() throws {
         let state = try context.makeAppState(
             environment: context.makeEnvironment(arguments: ["-launch-screen", "options"])

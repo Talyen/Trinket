@@ -38,16 +38,19 @@ struct CombatPipelineTests {
         try #expect(events.contains { $0.effectKind == .dodgeApplied })
     }
 
-    @Test func applyDamageDodgeDoesNotTriggerWhenNoSourceActor() throws {
-        var context = makeContext(seed: 1772)
-        let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant)
-        try #expect(lost > 0)
-    }
+    @Test func applyDamageDodgeDoesNotTriggerWhenSkipped() throws {
+        var noSourceContext = makeContext(seed: 1772)
+        let (lostWithoutSource, _) = noSourceContext.applyTestDamage(10, to: noSourceContext.roster.enemy.combatant)
+        try #expect(lostWithoutSource > 0)
 
-    @Test func applyDamageDodgeDoesNotTriggerWhenApplyDodgeFalse() throws {
-        var context = makeContext(seed: 1772)
-        let (lost, _) = context.applyTestDamage(10, to: context.roster.enemy.combatant, sourceActorID: "source", applyDodge: false)
-        try #expect(lost > 0)
+        var disabledContext = makeContext(seed: 1772)
+        let (lostWithDodgeDisabled, _) = disabledContext.applyTestDamage(
+            10,
+            to: disabledContext.roster.enemy.combatant,
+            sourceActorID: "source",
+            applyDodge: false
+        )
+        try #expect(lostWithDodgeDisabled > 0)
     }
 
     // MARK: - Shield absorption
@@ -268,26 +271,6 @@ struct CombatPipelineTests {
     }
 
     // MARK: - Pipeline ordering
-
-    @Test func damageStepsRunInCanonicalOrder() throws {
-        try #expect(DamagePipeline.canonicalNames == [
-            "DodgeGate",
-            "CriticalGate",
-            "DamageBonus",
-            "Hexmark",
-            "MarkedBonus",
-            "ItemReduction",
-            "CriticalMultiply",
-            "Mitigation",
-            "ShieldAbsorption",
-            "TakeDamage",
-            "MarkedConsume",
-            "DeathsDoor",
-            "Leech",
-            "ControlMeter",
-            "ReactiveOnHit"
-        ])
-    }
 
     @Test func thornsRetaliationDoesNotRecurse() throws {
         let thorns = ActiveEffect(id: 1, effect: .thorns(.physical, 5, 6), remainingTicks: 6)

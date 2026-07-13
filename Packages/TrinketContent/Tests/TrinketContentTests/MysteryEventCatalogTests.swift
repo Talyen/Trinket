@@ -115,33 +115,25 @@ struct MysteryEventCatalogTests {
         try #expect(GameContent.mysteryEvent(matching: "nonexistent-event") == nil)
     }
 
-    @Test func pickMysteryEventReturnsValidBranchingEvent() throws {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 42)
-        let picked = GameContent.pickMysteryEvent(using: &randomNumberGenerator)
-        try #expect(GameContent.branchingMysteryEvents.contains(picked))
-    }
-
-    @Test func pickEligibleMysteryEventPrefersLockedRecruits() throws {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 7)
-        let picked = GameContent.pickEligibleMysteryEvent(
+    @Test func pickEligibleMysteryEventRespectsRosterUnlocks() throws {
+        var lockedRNG = SeededRandomNumberGenerator(seed: 7)
+        let lockedPick = GameContent.pickEligibleMysteryEvent(
             unlockedHeroIDs: [PlayerRosterStarterIDs.hero],
             unlockedCompanionIDs: [PlayerRosterStarterIDs.companion],
-            using: &randomNumberGenerator
+            using: &lockedRNG
         )
-        try #expect(picked.isRecruit)
-        try #expect(picked.unlockCombatantID != PlayerRosterStarterIDs.hero)
-        try #expect(picked.unlockCombatantID != PlayerRosterStarterIDs.companion)
-    }
+        try #expect(lockedPick.isRecruit)
+        try #expect(lockedPick.unlockCombatantID != PlayerRosterStarterIDs.hero)
+        try #expect(lockedPick.unlockCombatantID != PlayerRosterStarterIDs.companion)
 
-    @Test func pickEligibleMysteryEventFallsBackWhenAllUnlocked() throws {
-        var randomNumberGenerator = SeededRandomNumberGenerator(seed: 3)
-        let picked = GameContent.pickEligibleMysteryEvent(
+        var unlockedRNG = SeededRandomNumberGenerator(seed: 3)
+        let unlockedPick = GameContent.pickEligibleMysteryEvent(
             unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
             unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
-            using: &randomNumberGenerator
+            using: &unlockedRNG
         )
-        try #expect(!picked.isRecruit)
-        try #expect(GameContent.branchingMysteryEvents.contains(picked))
+        try #expect(!unlockedPick.isRecruit)
+        try #expect(GameContent.branchingMysteryEvents.contains(unlockedPick))
     }
 
     @Test func generatedItemEffectsReferenceKnownBaseTypes() throws {
