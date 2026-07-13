@@ -151,13 +151,13 @@ extension AppState {
                 ?? stage.mysteryEvent
             var picked = authoredEvent
                 ?? GameContent.pickEligibleMysteryEvent(
-                    unlockedHeroIDs: roster.current.unlockedHeroIDs,
-                    unlockedCompanionIDs: roster.current.unlockedCompanionIDs,
+                    unlockedHeroIDs: roster.unlockedHeroIDs,
+                    unlockedCompanionIDs: roster.unlockedCompanionIDs,
                     using: &pickRNG
                 )
             if let authoredEvent {
                 if let combatantID = authoredEvent.unlockCombatantID,
-                   roster.current.isCombatantUnlocked(id: combatantID) {
+                   roster.isCombatantUnlocked(id: combatantID) {
                     completeStage(stage, hero: roster.activeHero, companion: roster.activeCompanion)
                     return nil
                 }
@@ -267,8 +267,8 @@ extension AppState {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> MysteryEvent? {
         var event = authored ?? GameContent.pickEligibleMysteryEvent(
-            unlockedHeroIDs: roster.current.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.current.unlockedCompanionIDs,
+            unlockedHeroIDs: roster.unlockedHeroIDs,
+            unlockedCompanionIDs: roster.unlockedCompanionIDs,
             using: &randomNumberGenerator
         )
         guard resolveRecruitSubstitution(event: &event, using: &randomNumberGenerator) else {
@@ -283,13 +283,13 @@ extension AppState {
         using randomNumberGenerator: inout some RandomNumberGenerator
     ) -> Bool {
         guard let combatantID = event.unlockCombatantID,
-              roster.current.isCombatantUnlocked(id: combatantID)
+              roster.isCombatantUnlocked(id: combatantID)
         else {
             return true
         }
         let eligible = RecruitMysteryEventPool.eligible(
-            unlockedHeroIDs: roster.current.unlockedHeroIDs,
-            unlockedCompanionIDs: roster.current.unlockedCompanionIDs
+            unlockedHeroIDs: roster.unlockedHeroIDs,
+            unlockedCompanionIDs: roster.unlockedCompanionIDs
         ).filter { $0.id != event.id }
         guard let substitute = eligible.randomElement(using: &randomNumberGenerator) else {
             return false

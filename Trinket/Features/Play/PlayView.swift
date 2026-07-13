@@ -196,7 +196,7 @@ struct PlayView: View {
     }
 
     private func handleStageTap(_ stage: Stage) {
-        if appState.journey.current.isActive(stage) {
+        if appState.journey.isActive(stage) {
             appState.noteMapScrollFocus(stage.id)
             if let message = appState.handleStagePrimaryAction(for: stage) {
                 stageMessage = message
@@ -222,7 +222,7 @@ struct PlayView: View {
 
         return CombatantCardDetail(
             combatant: encounter.combatant,
-            inventoryState: appState.inventory.current
+            inventoryState: appState.inventory
         )
     }
 }

@@ -18,14 +18,14 @@ struct AppStatePlayFlowTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
-        let initialGold = state.roster.current.gold
+        let initialGold = state.roster.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.current.completedStageIDs.contains(stage.id))
-        #expect(state.roster.current.gold > initialGold + 4)
+        #expect(state.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.completedStageIDs.contains(stage.id))
+        #expect(state.roster.gold > initialGold + 4)
     }
 
     @Test func completeActiveBattleIsIdempotentWhenContinueTappedTwice() throws {
@@ -33,14 +33,14 @@ struct AppStatePlayFlowTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.startBattle(for: stage)
         let configuration = try #require(state.battle.activeBattle)
-        let initialGold = state.roster.current.gold
+        let initialGold = state.roster.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
         state.completeActiveBattle(configuration, battleEarnedGold: 5)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
-        #expect(state.roster.current.gold == initialGold + 5 + stage.rewards.gold)
+        #expect(state.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.roster.gold == initialGold + 5 + stage.rewards.gold)
     }
 
     @Test func completeActiveBattleWithoutStageGrantsGoldOnly() throws {
@@ -53,14 +53,14 @@ struct AppStatePlayFlowTests {
             enemy: enemy
         )
         state.battle.activeBattle = configuration
-        let journeyBefore = state.journey.current
-        let initialGold = state.roster.current.gold
+        let journeyBefore = state.journey
+        let initialGold = state.roster.gold
 
         state.completeActiveBattle(configuration, battleEarnedGold: 10)
 
         #expect(state.battle.activeBattle == nil)
-        #expect(state.journey.current == journeyBefore)
-        #expect(state.roster.current.gold == initialGold + 10)
+        #expect(state.journey == journeyBefore)
+        #expect(state.roster.gold == initialGold + 10)
     }
 
     #if DEBUG
@@ -76,7 +76,7 @@ struct AppStatePlayFlowTests {
 
         #expect(!didPersist)
         #expect(state.battle.activeBattle != nil)
-        #expect(state.journey.current.activeStageID == stage.id)
+        #expect(state.journey.activeStageID == stage.id)
     }
     #endif
 
@@ -92,11 +92,11 @@ struct AppStatePlayFlowTests {
         #expect(state.battle.activeBattle == nil)
         #expect(state.mapScrollStageID == nil)
         #expect(state.selectedTab == .play)
-        #expect(state.roster.current.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
-        #expect(state.roster.current.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
-        #expect(state.roster.current.highestHeroLevel == 20)
-        #expect(state.roster.current.highestCompanionLevel == 20)
-        #expect(state.roster.current.gold == PlayerRosterState.maxGoldBalance)
+        #expect(state.roster.unlockedHeroIDs == Set(GameContent.heroes.map(\.id)))
+        #expect(state.roster.unlockedCompanionIDs == Set(GameContent.companions.map(\.id)))
+        #expect(state.roster.highestHeroLevel == 20)
+        #expect(state.roster.highestCompanionLevel == 20)
+        #expect(state.roster.gold == PlayerRosterState.maxGoldBalance)
     }
     #endif
 
@@ -225,14 +225,14 @@ struct AppStatePlayFlowTests {
     }
 
     private func attunePhysicalPartyForReturnTests(on state: AppState) throws {
-        var roster = state.roster.current
+        var roster = state.roster
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
         roster.unlock(rogue)
         roster.unlock(lizard)
         roster.setActiveHero(rogue)
         roster.setActiveCompanion(lizard)
-        state.roster.current = roster
+        state.roster = roster
     }
 
     private func firstReachableCombatNodeIDForReturnTests(in state: AppState) -> String? {

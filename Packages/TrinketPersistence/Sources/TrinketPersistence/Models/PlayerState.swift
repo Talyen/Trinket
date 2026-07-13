@@ -374,17 +374,3 @@ public struct PlayerRosterState: Equatable, Sendable {
             .map(\.element)
     }
 }
-
-public extension PlayerRosterState {
-    var current: PlayerRosterState {
-        get { self }
-        set { self = newValue }
-    }
-}
-
-public extension PlayerInventoryState {
-    var current: PlayerInventoryState {
-        get { self }
-        set { self = newValue }
-    }
-}

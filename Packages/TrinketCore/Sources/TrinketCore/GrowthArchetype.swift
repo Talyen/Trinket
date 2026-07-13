@@ -283,11 +283,6 @@ public enum StatGrowth {
         Int((Double(amount) * t).rounded())
     }
 
-    private static func smoothstep(_ value: Double) -> Double {
-        let clamped = min(max(value, 0), 1)
-        return clamped * clamped * (3 - (2 * clamped))
-    }
-
     public static func apply(
         maxHealth: Int,
         maxMana: Int,

@@ -39,7 +39,7 @@ struct CollectionView: View {
     }
 
     private var collectionBrowseContent: some View {
-        let inventoryState = appState.inventory.current
+        let inventoryState = appState.inventory
         let shelfItems = Array(inventoryState.items.prefix(12))
 
         return ScrollView {
@@ -93,7 +93,7 @@ struct CollectionView: View {
         case let .collectionCombatant(context):
             selectedCombatant = context
         case let .collectionItem(itemID):
-            if let owned = appState.inventory.current.item(matching: itemID) {
+            if let owned = appState.inventory.item(matching: itemID) {
                 selectedItem = owned
             } else if let template = GameContent.itemTemplate(matching: itemID) {
                 selectedItem = template
@@ -117,7 +117,7 @@ struct CollectionView: View {
             ForEach(combatants) { combatant in
                 CollectionCombatantButton(
                     combatant: combatant,
-                    isLocked: !appState.roster.current.isUnlocked(combatant),
+                    isLocked: !appState.roster.isUnlocked(combatant),
                     cardWidth: nil,
                     showsName: false
                 ) {

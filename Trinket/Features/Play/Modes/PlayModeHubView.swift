@@ -71,7 +71,7 @@ struct PlayModeHubView: View {
         switch mode {
         case .campaign:
             let chapter = appState.playChapter
-            if let stageID = appState.journey.current.activeStageID,
+            if let stageID = appState.journey.activeStageID,
                let stage = GameContent.stage(id: stageID) {
                 return "Chapter \(chapter.number) · \(stage.mapLabel)"
             }

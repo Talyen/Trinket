@@ -53,10 +53,3 @@ public struct PlayerAspectsState: Equatable, Sendable {
         )
     }
 }
-
-public extension PlayerAspectsState {
-    var current: PlayerAspectsState {
-        get { self }
-        set { self = newValue }
-    }
-}

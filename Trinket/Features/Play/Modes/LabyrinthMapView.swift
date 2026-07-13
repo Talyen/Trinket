@@ -17,7 +17,7 @@ struct LabyrinthMapView: View {
     }
 
     private var state: PlayerLabyrinthState {
-        appState.labyrinth.current
+        appState.labyrinth
     }
 
     var body: some View {

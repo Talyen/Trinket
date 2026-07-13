@@ -160,7 +160,7 @@ struct BattleCombatantPane: View {
             CombatHealthBar(
                 health: health,
                 maxHealth: maxHealth,
-                fillColor: combatant.healthBarColor,
+                fillColor: TrinketDesign.Colors.battleHealth,
                 style: .battleBorder,
                 height: TrinketDesign.Metrics.battleHealthBarHeight
             )

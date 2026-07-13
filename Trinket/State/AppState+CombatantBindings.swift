@@ -17,33 +17,33 @@ extension AppState {
             GameContent.companions
         }
 
-        if let combatant = roster.current
+        if let combatant = roster
             .configuredCombatants(catalog)
             .first(where: { $0.id == combatantID }) {
             CombatantDetailPane(
                 combatant: combatant,
-                progression: roster.current.progression(for: combatant),
+                progression: roster.progression(for: combatant),
                 loadout: Binding(
-                    get: { self.roster.current.loadout(for: combatant) },
+                    get: { self.roster.loadout(for: combatant) },
                     set: { newValue in
-                        var updated = self.roster.current
+                        var updated = self.roster
                         updated.setLoadout(newValue, for: combatant)
-                        self.roster.current = updated
+                        self.roster = updated
                     }
                 ),
                 equipmentLoadout: Binding(
-                    get: { self.roster.current.equipmentLoadout(for: combatant) },
+                    get: { self.roster.equipmentLoadout(for: combatant) },
                     set: { newValue in
-                        var updated = self.roster.current
+                        var updated = self.roster
                         updated.setEquipmentLoadout(newValue, for: combatant)
-                        self.roster.current = updated
+                        self.roster = updated
                     }
                 ),
                 inventoryState: Binding(
-                    get: { self.inventory.current },
-                    set: { self.inventory.current = $0 }
+                    get: { self.inventory },
+                    set: { self.inventory = $0 }
                 ),
-                allowsEditing: roster.current.isUnlocked(combatant),
+                allowsEditing: roster.isUnlocked(combatant),
                 hidesNavigationBar: hidesNavigationBar
             )
         } else {

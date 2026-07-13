@@ -148,14 +148,14 @@ struct BattlePartyInlinePicker: View {
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
         guard isEligible(combatant) else { return }
 
-        var updatedRoster = appState.roster.current
+        var updatedRoster = appState.roster
         switch slot {
         case .hero:
             updatedRoster.setActiveHero(combatant)
         case .companion:
             updatedRoster.setActiveCompanion(combatant)
         }
-        appState.roster.current = updatedRoster
+        appState.roster = updatedRoster
     }
 
     private func isEligible(_ combatant: Combatant) -> Bool {
@@ -358,14 +358,14 @@ struct StageBattlePartyPickerSheet: View {
     }
 
     private func select(_ combatant: Combatant, for slot: BattlePartySlot) {
-        var roster = appState.roster.current
+        var roster = appState.roster
         switch slot {
         case .hero:
             roster.setActiveHero(combatant)
         case .companion:
             roster.setActiveCompanion(combatant)
         }
-        appState.roster.current = roster
+        appState.roster = roster
         selectionFeedbackTrigger += 1
     }
 }

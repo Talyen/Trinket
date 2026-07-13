@@ -14,7 +14,7 @@ struct ChapterStageSelectView: View {
     }
 
     private var pendingNextChapter: Chapter? {
-        appState.journey.current.pendingNextChapter()
+        appState.journey.pendingNextChapter()
     }
 
     var body: some View {
@@ -56,7 +56,7 @@ struct ChapterStageSelectView: View {
         .onAppear {
             updateMusicPreview()
         }
-        .onChange(of: appState.journey.current) { _, _ in
+        .onChange(of: appState.journey) { _, _ in
             updateMusicPreview()
         }
         .onDisappear {
@@ -67,12 +67,12 @@ struct ChapterStageSelectView: View {
     private var stageRows: [ChapterStageRowPresentation] {
         ChapterStageRowPresentation.rows(
             for: chapter,
-            progress: appState.journey.current
+            progress: appState.journey
         ).filter { !$0.isCompleted }
     }
 
     private func handlePrimaryAction(_ stage: Stage) {
-        guard appState.journey.current.isActive(stage) else { return }
+        guard appState.journey.isActive(stage) else { return }
         onStageTap(stage)
     }
 
@@ -91,7 +91,7 @@ struct ChapterStageSelectView: View {
     }
 
     private func updateMusicPreview() {
-        let activeStage = appState.journey.current.activeStageID.flatMap(GameContent.stage(id:))
+        let activeStage = appState.journey.activeStageID.flatMap(GameContent.stage(id:))
         appState.battle.setMusicPreview(for: activeStage)
     }
 }

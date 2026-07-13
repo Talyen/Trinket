@@ -16,10 +16,10 @@ struct AppStateTests {
         let state = try context.makeAppState(environment: context.makeEnvironment())
 
         #expect(state.selectedTab == .play)
-        #expect(state.roster.current == .freshStart)
-        #expect(state.roster.current.activeHeroID == "ranger")
-        #expect(state.roster.current.activeCompanionID == "wolf")
-        #expect(state.inventory.current == .freshStart)
+        #expect(state.roster == .freshStart)
+        #expect(state.roster.activeHeroID == "ranger")
+        #expect(state.roster.activeCompanionID == "wolf")
+        #expect(state.inventory == .freshStart)
     }
 
     @Test func launchTabOverridesDefaultTab() throws {
@@ -130,9 +130,9 @@ struct AppStateTests {
             environment: context.makeEnvironment(arguments: ["-reset-state", "-seed-test-progress"])
         )
 
-        #expect(!(state.inventory.current.items.isEmpty))
-        #expect(state.inventory.current.items.contains { $0.displayName == "Longsword" })
-        #expect(state.inventory.current.items.contains { $0.displayName == "Wand" })
+        #expect(!(state.inventory.items.isEmpty))
+        #expect(state.inventory.items.contains { $0.displayName == "Longsword" })
+        #expect(state.inventory.items.contains { $0.displayName == "Wand" })
     }
 
     @Test func optionsLaunchScreenDefaultsToOptionsTab() throws {
@@ -156,8 +156,8 @@ struct AppStateTests {
             environment: context.makeEnvironment(arguments: ["-reset-state"])
         )
 
-        #expect(state.roster.current == .freshStart)
-        #expect(state.inventory.current == .freshStart)
+        #expect(state.roster == .freshStart)
+        #expect(state.inventory == .freshStart)
 
         let reloadedStore = try PlayerSaveStore(
             storeURL: SaveTestSupport.makeStoreURL(directoryURL: context.directoryURL),
@@ -171,8 +171,8 @@ struct AppStateTests {
             environment: context.makeEnvironment(arguments: ["-seed-test-progress"])
         )
 
-        #expect(state.roster.current == .testSeed)
-        #expect(state.inventory.current == .testSeed)
+        #expect(state.roster == .testSeed)
+        #expect(state.inventory == .testSeed)
     }
 
     @Test func completedStagesAdvanceJourneyAndMarkRewardsClaimed() throws {
@@ -180,8 +180,8 @@ struct AppStateTests {
             environment: context.makeEnvironment(arguments: ["-completed-stages", "chapter-1-stage-1"])
         )
 
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.current.claimedRewardStageIDs.contains("chapter-1-stage-1"))
+        #expect(state.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.claimedRewardStageIDs.contains("chapter-1-stage-1"))
     }
 
     @Test func unknownCompletedStageIDsAreIgnored() throws {
@@ -189,7 +189,7 @@ struct AppStateTests {
             environment: context.makeEnvironment(arguments: ["-completed-stages", "missing-stage"])
         )
 
-        #expect(state.journey.current == .initial)
+        #expect(state.journey == .initial)
     }
 
     @Test func mapScrollTargetLaunchArgSetsSessionScrollFocus() throws {
@@ -204,7 +204,7 @@ struct AppStateTests {
     @Test func completeStageUpdatesStoresAndMapScrollFocus() throws {
         let state = try context.makeAppState(environment: context.makeEnvironment())
         let stage = try #require(GameContent.chapters[0].stages.first)
-        let initialGold = state.roster.current.gold
+        let initialGold = state.roster.gold
 
         let scrollTarget = state.completeStage(
             stage,
@@ -212,9 +212,9 @@ struct AppStateTests {
             companion: state.roster.activeCompanion
         )
 
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-2")
-        #expect(state.journey.current.completedStageIDs.contains(stage.id))
-        #expect(state.roster.current.gold > initialGold)
+        #expect(state.journey.activeStageID == "chapter-1-stage-2")
+        #expect(state.journey.completedStageIDs.contains(stage.id))
+        #expect(state.roster.gold > initialGold)
         #expect(scrollTarget == "chapter-1-stage-2")
         #expect(state.mapScrollStageID == "chapter-1-stage-2")
         #expect(state.mapScrollFocus?.stageID == "chapter-1-stage-2")

@@ -17,7 +17,7 @@ struct AppStateMysteryRecruitTests {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
 
-        #expect(state.roster.current.isCompanionUnlocked("bear") == false)
+        #expect(state.roster.isCompanionUnlocked("bear") == false)
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
 
         let session = try #require(state.activeMysteryEncounter)
@@ -26,17 +26,17 @@ struct AppStateMysteryRecruitTests {
         #expect(session.phase == .reading)
 
         #expect(state.resolveActiveMysteryChoice(choiceID: "welcome"))
-        #expect(state.roster.current.isCompanionUnlocked("bear"))
+        #expect(state.roster.isCompanionUnlocked("bear"))
         #expect(state.activeMysteryEncounter?.phase == .revealing)
         #expect(state.activeMysteryEncounter?.unlockedCombatantID == "bear")
         // Opening / resolving a mystery does not advance journey progress.
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
 
         state.finishActiveMysteryEncounter()
 
         #expect(state.activeMysteryEncounter == nil)
-        #expect(state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-3")
+        #expect(state.journey.completedStageIDs.contains("chapter-1-stage-2"))
+        #expect(state.journey.activeStageID == "chapter-1-stage-3")
     }
 
     @Test func alreadyUnlockedRecruitStageAutoCompletesWhenNoSubstitutesRemain() throws {
@@ -51,7 +51,7 @@ struct AppStateMysteryRecruitTests {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
         #expect(state.handleStagePrimaryAction(for: stage) == nil)
         #expect(state.activeMysteryEncounter == nil)
-        #expect(state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
+        #expect(state.journey.completedStageIDs.contains("chapter-1-stage-2"))
     }
 
     @Test func authoredRecruitEventDoesNotSubstituteAnotherCombatant() throws {
@@ -63,7 +63,7 @@ struct AppStateMysteryRecruitTests {
         let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         #expect(state.beginMysteryEncounter(for: stage) == nil)
         #expect(state.activeMysteryEncounter == nil)
-        #expect(state.journey.current.completedStageIDs.contains(stage.id))
+        #expect(state.journey.completedStageIDs.contains(stage.id))
     }
 
     @Test func dismissMysteryEncounterDoesNotCompleteStage() throws {
@@ -76,8 +76,8 @@ struct AppStateMysteryRecruitTests {
         state.dismissActiveMysteryEncounterWithoutCompleting()
 
         #expect(state.activeMysteryEncounter == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
-        #expect(!state.journey.current.completedStageIDs.contains("chapter-1-stage-2"))
-        #expect(state.roster.current.isCompanionUnlocked("bear") == false)
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
+        #expect(!state.journey.completedStageIDs.contains("chapter-1-stage-2"))
+        #expect(state.roster.isCompanionUnlocked("bear") == false)
     }
 }

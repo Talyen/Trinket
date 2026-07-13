@@ -40,7 +40,7 @@ struct CollectionCombatantGridView: View {
                         ForEach(combatants) { combatant in
                             CollectionCombatantButton(
                                 combatant: combatant,
-                                isLocked: !appState.roster.current.isUnlocked(combatant),
+                                isLocked: !appState.roster.isUnlocked(combatant),
                                 cardWidth: nil
                             ) {
                                 selectedCombatant = CombatantDetailContext(

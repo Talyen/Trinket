@@ -128,10 +128,3 @@ public struct PlayerLabyrinthState: Equatable, Sendable {
         return LabyrinthModifierEffects.combining(modifiers, biomeBias: biome.keywordBias)
     }
 }
-
-public extension PlayerLabyrinthState {
-    var current: PlayerLabyrinthState {
-        get { self }
-        set { self = newValue }
-    }
-}

@@ -169,11 +169,11 @@ struct MysteryEncounterView: View {
 
     private func revealCombatant(id: String) -> Combatant? {
         if let sessionCombatant = session.combatant, sessionCombatant.id == id {
-            return appState.roster.current.configuredCombatant(sessionCombatant)
+            return appState.roster.configuredCombatant(sessionCombatant)
         }
         let catalog = GameContent.heroes + GameContent.companions
         guard let combatant = catalog.first(where: { $0.id == id }) else { return nil }
-        return appState.roster.current.configuredCombatant(combatant)
+        return appState.roster.configuredCombatant(combatant)
     }
 
     private func presentReadingEntrance() {

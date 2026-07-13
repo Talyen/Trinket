@@ -29,10 +29,10 @@ struct AppStateAspectsTests {
             "chapter-1-stage-1,chapter-1-stage-2,chapter-1-stage-3,chapter-1-stage-4,chapter-1-stage-5"
         ])
         // Seeded active companion is wolf (Nature/Physical). Pair with frost whelp to fail Physical.
-        var roster = state.roster.current
+        var roster = state.roster
         let frost = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
         roster.setActiveCompanion(frost)
-        state.roster.current = roster
+        state.roster = roster
 
         let floor = try #require(GameContent.aspectFloor(aspectID: .ironVein, floor: 1))
         let message = state.startAspectBattle(for: floor)
@@ -119,13 +119,13 @@ struct AppStateAspectsTests {
 
     /// Iron Vein requires Physical on both hero and companion; knight/bear no longer qualify.
     private func attunePhysicalParty(on state: AppState) throws {
-        var roster = state.roster.current
+        var roster = state.roster
         let rogue = try #require(GameContent.heroes.first { $0.id == "rogue" })
         let lizard = try #require(GameContent.companions.first { $0.id == "lizard_scout" })
         roster.unlock(rogue)
         roster.unlock(lizard)
         roster.setActiveHero(rogue)
         roster.setActiveCompanion(lizard)
-        state.roster.current = roster
+        state.roster = roster
     }
 }

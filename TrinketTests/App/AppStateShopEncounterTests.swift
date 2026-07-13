@@ -23,7 +23,7 @@ struct AppStateShopEncounterTests {
         #expect(session.stage.id == "chapter-2-stage-4")
         #expect(session.offers.count == ShopOfferGenerator.offerCount)
         // Opening a shop does not advance journey progress.
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
     }
 
     @Test func purchasingOfferSpendsGoldAndGrantsItem() throws {
@@ -147,8 +147,8 @@ struct AppStateShopEncounterTests {
         state.finishActiveShopEncounter()
 
         #expect(state.activeShopEncounter == nil)
-        #expect(state.journey.current.completedStageIDs.contains("chapter-2-stage-4"))
-        #expect(state.journey.current.activeStageID == "chapter-2-stage-5")
+        #expect(state.journey.completedStageIDs.contains("chapter-2-stage-4"))
+        #expect(state.journey.activeStageID == "chapter-2-stage-5")
         #expect(state.roster.gold == stage.rewards.gold)
         #expect(state.inventory.items.count == itemsBefore)
     }
@@ -163,8 +163,8 @@ struct AppStateShopEncounterTests {
         state.dismissActiveShopEncounterWithoutCompleting()
 
         #expect(state.activeShopEncounter == nil)
-        #expect(state.journey.current.activeStageID == "chapter-1-stage-1")
-        #expect(!state.journey.current.completedStageIDs.contains("chapter-2-stage-4"))
+        #expect(state.journey.activeStageID == "chapter-1-stage-1")
+        #expect(!state.journey.completedStageIDs.contains("chapter-2-stage-4"))
     }
 
     @Test func mysteryEncounterDoesNotOpenWhileShopIsActive() throws {

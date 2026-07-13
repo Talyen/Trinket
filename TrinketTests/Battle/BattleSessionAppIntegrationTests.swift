@@ -54,9 +54,9 @@ struct BattleSessionAppIntegrationTests {
 
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 0)
 
-        var updatedRoster = appState.roster.current
+        var updatedRoster = appState.roster
         updatedRoster.grantExperience(25, to: appState.roster.activeHero)
-        appState.roster.current = updatedRoster
+        appState.roster = updatedRoster
         appState.restartActiveBattle()
 
         #expect(appState.battle.activeBattle?.hero.progression.currentXP == 25)
@@ -102,8 +102,8 @@ struct BattleSessionAppIntegrationTests {
         let card = try #require(appState.battle.hand.first(where: { appState.battle.isCardPlayable($0) }))
         _ = appState.battle.playCard(
             cardID: card.id,
-            journey: appState.journey.current,
-            homestead: appState.homestead.current
+            journey: appState.journey,
+            homestead: appState.homestead
         )
 
         appState.battle.presentBattleLog()

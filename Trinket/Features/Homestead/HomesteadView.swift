@@ -8,11 +8,11 @@ struct HomesteadView: View {
     @Environment(AppState.self) private var appState
 
     private var homestead: PlayerHomesteadState {
-        appState.homestead.current
+        appState.homestead
     }
 
     private var roster: PlayerRosterState {
-        appState.roster.current
+        appState.roster
     }
 
     var body: some View {

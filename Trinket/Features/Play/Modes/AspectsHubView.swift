@@ -36,8 +36,8 @@ struct AspectsHubView: View {
 
     @ViewBuilder
     private func aspectRow(_ aspect: AspectDefinition) -> some View {
-        let unlocked = AspectUnlock.isUnlocked(aspect, progress: appState.aspects.current)
-        let cleared = appState.aspects.current.highestClearedFloor(for: aspect.id.rawValue)
+        let unlocked = AspectUnlock.isUnlocked(aspect, progress: appState.aspects)
+        let cleared = appState.aspects.highestClearedFloor(for: aspect.id.rawValue)
         let style = aspect.keyword.visualStyle
 
         if unlocked {

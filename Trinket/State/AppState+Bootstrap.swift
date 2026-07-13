@@ -132,7 +132,7 @@ extension AppState {
         battle.victorySummary = BattleVictorySummary.make(
             configuration: configuration,
             state: battleState,
-            homestead: homestead.current
+            homestead: homestead
         )
         battle.isShowingVictory = true
     }

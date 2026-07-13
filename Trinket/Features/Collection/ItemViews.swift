@@ -36,7 +36,7 @@ struct InventoryGridView: View {
     private let columns = TrinketDesign.Metrics.collectionGridItems
 
     var body: some View {
-        let inventoryState = appState.inventory.current
+        let inventoryState = appState.inventory
         let items = filteredItems(from: inventoryState)
 
         ScrollView {

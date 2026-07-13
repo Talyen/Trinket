@@ -14,11 +14,11 @@ struct HomesteadNodeDetailView: View {
     private let bodyStackSpacing: CGFloat = 18
 
     private var homestead: PlayerHomesteadState {
-        appState.homestead.current
+        appState.homestead
     }
 
     private var roster: PlayerRosterState {
-        appState.roster.current
+        appState.roster
     }
 
     private var status: HomesteadProjectStatus {

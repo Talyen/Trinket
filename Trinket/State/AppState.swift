@@ -167,7 +167,7 @@ final class AppState {
     }
 
     var playChapter: Chapter {
-        GameContent.chapter(id: journey.current.activeChapterID) ?? GameContent.chapters[0]
+        GameContent.chapter(id: journey.activeChapterID) ?? GameContent.chapters[0]
     }
 
     @discardableResult

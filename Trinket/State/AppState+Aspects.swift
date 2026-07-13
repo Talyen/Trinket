@@ -12,15 +12,15 @@ extension AppState {
             return StageMapMessage(title: "Aspect Missing", message: "This Aspect is not ready yet.")
         }
 
-        guard AspectUnlock.isUnlocked(aspect, progress: aspects.current) else {
+        guard AspectUnlock.isUnlocked(aspect, progress: aspects) else {
             return StageMapMessage(
                 title: "Aspect Locked",
                 message: AspectUnlock.unlockHint(for: aspect)
             )
         }
 
-        guard aspects.current.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue) else {
-            if aspects.current.isFloorCleared(floor.floor, aspectID: floor.aspectID.rawValue) {
+        guard aspects.isFloorStartable(floor.floor, aspectID: floor.aspectID.rawValue) else {
+            if aspects.isFloorCleared(floor.floor, aspectID: floor.aspectID.rawValue) {
                 return StageMapMessage(
                     title: "Floor Cleared",
                     message: "This floor is already complete."

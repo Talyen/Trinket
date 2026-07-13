@@ -26,7 +26,7 @@ struct AspectClimbView: View {
     }
 
     private var progress: PlayerAspectsState {
-        appState.aspects.current
+        appState.aspects
     }
 
     private var activeFloorNumber: Int {

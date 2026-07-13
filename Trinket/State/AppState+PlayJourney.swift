@@ -13,7 +13,7 @@ extension AppState {
         battleEarnedGold: Int = 0,
         materialRewards: [ResourceAmount]? = nil
     ) -> String {
-        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey.current)
+        var scrollTarget = JourneyMapPresentation.scrollFocusID(for: journey)
         if let resultingJourney = persistStageCompletions(
             [stage],
             hero: hero,
@@ -211,12 +211,12 @@ extension AppState {
 
     @discardableResult
     func advanceToNextChapter() -> Bool {
-        guard journey.current.pendingNextChapter() != nil else { return false }
+        guard journey.pendingNextChapter() != nil else { return false }
         do {
             try playerSave.performBatchMutation { save in
                 _ = save.journey.advanceToNextChapter()
             }
-            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey.current))
+            noteMapScrollFocus(JourneyMapPresentation.scrollFocusID(for: journey))
             return true
         } catch {
             appStateLogger.error(
@@ -237,7 +237,7 @@ extension AppState {
     ) -> JourneyProgressState? {
         guard !stages.isEmpty else { return nil }
 
-        var resultingJourney = journey.current
+        var resultingJourney = journey
         do {
             try playerSave.performBatchMutation { save in
                 if resetJourney {

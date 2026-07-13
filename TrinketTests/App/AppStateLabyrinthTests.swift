@@ -23,11 +23,11 @@ struct AppStateLabyrinthTests {
     @Test func enterLabyrinthReusesExistingMap() throws {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         #expect(state.enterLabyrinth() == nil)
-        let firstMap = state.labyrinth.current
+        let firstMap = state.labyrinth
         let message = state.enterLabyrinth()
         #expect(message == nil)
         #expect(state.labyrinth.hasMap)
-        #expect(state.labyrinth.current == firstMap)
+        #expect(state.labyrinth == firstMap)
     }
 
     @Test func startLabyrinthBattleSetsConfiguration() throws {
@@ -133,9 +133,9 @@ struct AppStateLabyrinthTests {
         _ = state.enterLabyrinth()
         let craftNodeID = try #require(firstReachableNodeID(of: .craft, in: state))
 
-        var roster = state.roster.current
+        var roster = state.roster
         roster.grantGold(200)
-        state.roster.current = roster
+        state.roster = roster
 
         #expect(state.handleLabyrinthNodeAction(nodeID: craftNodeID) == nil)
         #expect(state.activeLabyrinthCraft != nil)
@@ -148,7 +148,7 @@ struct AppStateLabyrinthTests {
         let state = try context.makeAppState(arguments: ["-reset-state"])
         _ = state.enterLabyrinth()
         let reachableID = try #require(state.labyrinth.reachableNodeIDs().first)
-        var labyrinth = state.labyrinth.current
+        var labyrinth = state.labyrinth
         guard var node = labyrinth.nodes[reachableID] else {
             Issue.record("Missing reachable node")
             return
