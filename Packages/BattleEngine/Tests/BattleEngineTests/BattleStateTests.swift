@@ -211,5 +211,4 @@ struct BattleStateTests {
         )
         try #expect(battle.rngSeed == seed)
     }
-
 }

@@ -57,57 +57,9 @@ struct BattleLogReducerTests {
         )
     }
 
-    @Test func entriesReduceAndSyncIncrementally() throws {
-        let hero = Combatant(id: "hero", name: "Hero", role: .hero, maxHealth: 10, abilities: [])
-        let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
-        let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
-        let matchup = BattleMatchup(hero: hero, companion: companion, enemy: enemy)
-
-        let events: [ActionEvent] = [
-            ActionEvent(
-                id: 1,
-                kind: .milestone,
-                actorName: "",
-                abilityName: "",
-                targetID: enemy.id,
-                targetName: enemy.name,
-                amount: 0,
-                keyword: .physical,
-                milestone: .battleStarted
-            ),
-            ActionEvent(
-                id: 2,
-                kind: .ability,
-                actorName: "Hero",
-                abilityName: "Slash",
-                targetID: enemy.id,
-                targetName: enemy.name,
-                amount: 3,
-                keyword: .physical
-            ),
-            ActionEvent(
-                id: 3,
-                kind: .status,
-                actorName: "Burn",
-                abilityName: "Burn",
-                targetID: enemy.id,
-                targetName: enemy.name,
-                amount: 2,
-                keyword: .burn
-            ),
-            ActionEvent(
-                id: 4,
-                kind: .milestone,
-                actorName: "",
-                abilityName: "",
-                targetID: enemy.id,
-                targetName: enemy.name,
-                amount: 0,
-                keyword: .physical,
-                milestone: .enemyDefeated
-            )
-        ]
-
+    @Test func entriesReduceMilestonesStatusAndAbilityEvents() throws {
+        let matchup = sampleMatchup()
+        let events = sampleEvents(includeDefeat: true)
         let entries = BattleLogReducer.entries(from: events, matchup: matchup)
         try #expect(entries.map(\.text) == [
             "Hero and Companion face Enemy.",
@@ -115,18 +67,21 @@ struct BattleLogReducerTests {
             "Enemy takes 2 Burn damage.",
             "Enemy is defeated."
         ])
+    }
 
+    @Test func incrementalEntriesAndProjectionMatchFullReduce() throws {
+        let matchup = sampleMatchup()
+        let events = sampleEvents(includeDefeat: false)
+
+        let full = BattleLogReducer.entries(from: events, matchup: matchup)
         let firstBatch = BattleLogReducer.entries(from: [events[0]], startingAt: 0, matchup: matchup)
-        let secondBatch = BattleLogReducer.entries(from: Array(events.prefix(3)), startingAt: 1, matchup: matchup)
-        try #expect(firstBatch + secondBatch == BattleLogReducer.entries(from: Array(events.prefix(3)), matchup: matchup))
+        let secondBatch = BattleLogReducer.entries(from: events, startingAt: 1, matchup: matchup)
+        try #expect(firstBatch + secondBatch == full)
 
         var projection = BattleLogProjection()
         projection.sync(events: [events[0]], matchup: matchup)
-        projection.sync(events: Array(events.prefix(2)), matchup: matchup)
-        try #expect(
-            projection.entries
-                == BattleLogProjection.entries(from: Array(events.prefix(2)), matchup: matchup)
-        )
+        projection.sync(events: events, matchup: matchup)
+        try #expect(projection.entries == BattleLogProjection.entries(from: events, matchup: matchup))
     }
 
     @Test func deathsDoorLogLines() throws {
@@ -162,5 +117,58 @@ struct BattleLogReducerTests {
         let companion = Combatant(id: "companion", name: "Companion", role: .companion, maxHealth: 10, abilities: [])
         let enemy = Combatant(id: "enemy", name: "Enemy", role: .enemy, maxHealth: 10, abilities: [])
         return BattleMatchup(hero: hero, companion: companion, enemy: enemy)
+    }
+
+    private func sampleEvents(includeDefeat: Bool) -> [ActionEvent] {
+        let enemyID = "enemy"
+        var events: [ActionEvent] = [
+            ActionEvent(
+                id: 1,
+                kind: .milestone,
+                actorName: "",
+                abilityName: "",
+                targetID: enemyID,
+                targetName: "Enemy",
+                amount: 0,
+                keyword: .physical,
+                milestone: .battleStarted
+            ),
+            ActionEvent(
+                id: 2,
+                kind: .ability,
+                actorName: "Hero",
+                abilityName: "Slash",
+                targetID: enemyID,
+                targetName: "Enemy",
+                amount: 3,
+                keyword: .physical
+            ),
+            ActionEvent(
+                id: 3,
+                kind: .status,
+                actorName: "Burn",
+                abilityName: "Burn",
+                targetID: enemyID,
+                targetName: "Enemy",
+                amount: 2,
+                keyword: .burn
+            )
+        ]
+        if includeDefeat {
+            events.append(
+                ActionEvent(
+                    id: 4,
+                    kind: .milestone,
+                    actorName: "",
+                    abilityName: "",
+                    targetID: enemyID,
+                    targetName: "Enemy",
+                    amount: 0,
+                    keyword: .physical,
+                    milestone: .enemyDefeated
+                )
+            )
+        }
+        return events
     }
 }
