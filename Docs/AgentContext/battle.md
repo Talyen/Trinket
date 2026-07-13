@@ -16,4 +16,4 @@ For a new effect kind, update registry parity and `EffectHandlersApplyTests`; us
 
 Run `./Scripts/test.sh style` and `./Scripts/test-package.sh BattleEngine`. For UI-only battle changes, also run `./Scripts/test.sh smoke`. Read `Packages/BattleEngine/Tests/README.md` for the ownership matrix.
 
-Headless balance sweeps (non-user-facing): `Docs/Plans/BattleBalanceSimulator.md` and `./Scripts/balance-sweep.sh`.
+Headless balance sweeps: `Packages/BattleEngine/README.md` and `./Scripts/balance-sweep.sh`. Battle layout contracts (three-card hand, art ratios, no top chrome) live in that README.
