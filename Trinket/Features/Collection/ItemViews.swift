@@ -121,6 +121,8 @@ struct InventoryGridView: View {
 }
 
 struct ItemDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+
     let item: InventoryItem
     var purchasePrice: Int?
     var canAfford: Bool = true
@@ -130,6 +132,7 @@ struct ItemDetailView: View {
     var onPurchase: (() -> Void)?
     var primaryActionTitle: String?
     var primaryActionAccessibilityID: String?
+    var dismissAfterPrimaryAction = false
     var onPrimaryAction: (() -> Void)?
 
     init(
@@ -141,6 +144,7 @@ struct ItemDetailView: View {
         onPurchase: (() -> Void)? = nil,
         primaryActionTitle: String? = nil,
         primaryActionAccessibilityID: String? = nil,
+        dismissAfterPrimaryAction: Bool = false,
         onPrimaryAction: (() -> Void)? = nil
     ) {
         self.item = item
@@ -151,6 +155,7 @@ struct ItemDetailView: View {
         self.onPurchase = onPurchase
         self.primaryActionTitle = primaryActionTitle
         self.primaryActionAccessibilityID = primaryActionAccessibilityID
+        self.dismissAfterPrimaryAction = dismissAfterPrimaryAction
         self.onPrimaryAction = onPrimaryAction
     }
 
@@ -185,6 +190,9 @@ struct ItemDetailView: View {
             if let primaryActionTitle, let onPrimaryAction {
                 Button(primaryActionTitle) {
                     onPrimaryAction()
+                    if dismissAfterPrimaryAction {
+                        dismiss()
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .trinketPrimaryActionButton()

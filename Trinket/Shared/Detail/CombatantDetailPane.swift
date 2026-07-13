@@ -149,6 +149,7 @@ struct CombatantDetailPane: View {
                 item: item,
                 primaryActionTitle: "Equip \(selectedItemSlot?.displayName ?? item.baseType.slot.displayName)",
                 primaryActionAccessibilityID: AccessibilityID.LoadoutPicker.equipItem(item.id),
+                dismissAfterPrimaryAction: true,
                 onPrimaryAction: { equip(item) }
             )
         }
@@ -210,7 +211,10 @@ struct CombatantDetailPane: View {
         appState.sfxPlayer.play(SFXID.uiEquip, volume: appState.options.effectsVolume)
         selectionFeedbackTrigger += 1
         selectedItem = nil
-        self.selectedItemSlot = nil
+        Task { @MainActor in
+            await Task.yield()
+            self.selectedItemSlot = nil
+        }
     }
 
     private func statRow(_ title: String, value: String, accessibilityIdentifier: String? = nil) -> some View {

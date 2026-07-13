@@ -43,7 +43,6 @@ private struct ChapterStageRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(
             AccessibilityID.Play.stageRow(
                 chapter: presentation.stage.chapterNumber,

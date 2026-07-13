@@ -20,6 +20,7 @@ struct EquipmentSlotSummaryGrid: View {
                     }
                     .buttonStyle(.plain)
                     .frame(maxWidth: .infinity, alignment: .top)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier(slot.accessibilityIdentifier)
 
                 } else {

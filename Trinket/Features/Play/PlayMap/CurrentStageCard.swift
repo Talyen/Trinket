@@ -26,7 +26,6 @@ struct CurrentStageCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .clipShape(TrinketDesign.cardShape)
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
         .sheet(isPresented: $isPartyPickerPresented) {
             StageBattlePartyPickerSheet(accentColor: stage.encounter.mapTint)
                 .presentationDetents([.medium])
@@ -60,6 +59,8 @@ struct CurrentStageCard: View {
         .padding(.vertical, TrinketDesign.Metrics.smallSpacing)
         .padding(TrinketDesign.Metrics.mediumSpacing)
         .background(TrinketDesign.Colors.surface)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(AccessibilityID.Play.activeStageDetail)
     }
 
     private var titleBlock: some View {

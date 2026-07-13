@@ -72,6 +72,7 @@ struct BattlePartyInlinePicker: View {
             .presentationDragIndicator(.visible)
         }
         .disabled(appState.battle.activeBattle != nil)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.Play.battlePartyInlinePicker)
     }
 
